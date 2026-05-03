@@ -22,9 +22,10 @@ typedef struct
     void *net_transport_handle;
     void *serial_transport_handle;
 
-    /* 协议层句柄 */
-    void *protocol_handle;
-    bmc_protocol_t protocol_type;
+    /* 协议层句柄（支持双协议） */
+    void *redfish_handle;
+    void *ipmi_handle;
+    bmc_protocol_t current_protocol;
 
     /* 当前通道 */
     bmc_channel_t current_channel;
@@ -35,6 +36,7 @@ typedef struct
     uint32_t success_count;
     uint32_t fail_count;
     uint32_t switch_count;
+    uint32_t protocol_switch_count;
 
     /* 互斥锁 */
     osal_id_t mutex;
@@ -62,7 +64,7 @@ int32_t PDL_BMC_Init(const bmc_config_t *config,
     OSAL_Memset(ctx, 0, sizeof(bmc_context_t));
     OSAL_Memcpy(&ctx->config, config, sizeof(bmc_config_t));
     ctx->current_channel = config->primary_channel;
-    ctx->protocol_type = BMC_PROTOCOL_IPMI;
+    ctx->current_protocol = BMC_PROTOCOL_REDFISH;
 
     /* 创建互斥锁 */
     if (OSAL_SUCCESS != OSAL_MutexCreate(&ctx->mutex, "bmc_mutex", 0))
@@ -107,54 +109,52 @@ int32_t PDL_BMC_Init(const bmc_config_t *config,
         }
     }
 
-    /* 初始化协议层（根据配置选择IPMI或Redfish） */
+    /* 初始化协议层（优先Redfish，失败则使用IPMI） */
     void *transport_handle = (ctx->current_channel == BMC_CHANNEL_NETWORK) ?
                              ctx->net_transport_handle : ctx->serial_transport_handle;
 
     if (NULL != transport_handle)
     {
-        if (BMC_PROTOCOL_IPMI == ctx->protocol_type)
-        {
-            int32_t (*send_recv)(void*, const uint8_t*, uint32_t, uint8_t*, uint32_t, uint32_t*);
-            send_recv = (ctx->current_channel == BMC_CHANNEL_NETWORK) ?
-                        bmc_transport_net_send_recv : bmc_transport_serial_send_recv;
+        int32_t (*send_recv)(void*, const uint8_t*, uint32_t, uint8_t*, uint32_t, uint32_t*);
+        send_recv = (ctx->current_channel == BMC_CHANNEL_NETWORK) ?
+                    bmc_transport_net_send_recv : bmc_transport_serial_send_recv;
 
-            int32_t ret = bmc_ipmi_init(transport_handle, send_recv, &ctx->protocol_handle);
-            if (OSAL_SUCCESS != ret)
+        /* 优先尝试初始化Redfish */
+        int32_t ret = bmc_redfish_init(transport_handle, send_recv,
+                                      config->network.username,
+                                      config->network.password,
+                                      &ctx->redfish_handle);
+        if (OSAL_SUCCESS == ret)
+        {
+            LOG_INFO("BMC", "Redfish protocol initialized");
+            ctx->current_protocol = BMC_PROTOCOL_REDFISH;
+            ctx->connected = true;
+        }
+        else
+        {
+            LOG_WARN("BMC", "Redfish initialization failed, falling back to IPMI");
+        }
+
+        /* 初始化IPMI作为备用协议 */
+        ret = bmc_ipmi_init(transport_handle, send_recv, &ctx->ipmi_handle);
+        if (OSAL_SUCCESS == ret)
+        {
+            LOG_INFO("BMC", "IPMI protocol initialized");
+            if (!ctx->connected)
             {
-                LOG_ERROR("BMC", "Failed to initialize IPMI protocol");
-            }
-            else
-            {
-                LOG_INFO("BMC", "IPMI protocol initialized");
+                ctx->current_protocol = BMC_PROTOCOL_IPMI;
                 ctx->connected = true;
             }
         }
-        else if (BMC_PROTOCOL_REDFISH == ctx->protocol_type)
+        else
         {
-            int32_t (*send_recv)(void*, const uint8_t*, uint32_t, uint8_t*, uint32_t, uint32_t*);
-            send_recv = (ctx->current_channel == BMC_CHANNEL_NETWORK) ?
-                        bmc_transport_net_send_recv : bmc_transport_serial_send_recv;
-
-            int32_t ret = bmc_redfish_init(transport_handle, send_recv,
-                                          config->network.username,
-                                          config->network.password,
-                                          &ctx->protocol_handle);
-            if (OSAL_SUCCESS != ret)
-            {
-                LOG_ERROR("BMC", "Failed to initialize Redfish protocol");
-            }
-            else
-            {
-                LOG_INFO("BMC", "Redfish protocol initialized");
-                ctx->connected = true;
-            }
+            LOG_WARN("BMC", "IPMI initialization failed");
         }
     }
 
     *handle = (bmc_handle_t)ctx;
-    LOG_INFO("BMC", "BMC service initialized (protocol: %s)",
-             (ctx->protocol_type == BMC_PROTOCOL_IPMI) ? "IPMI" : "Redfish");
+    LOG_INFO("BMC", "BMC service initialized (active protocol: %s)",
+             (ctx->current_protocol == BMC_PROTOCOL_IPMI) ? "IPMI" : "Redfish");
 
     return OSAL_SUCCESS;
 }
@@ -172,16 +172,14 @@ int32_t PDL_BMC_Deinit(bmc_handle_t handle)
     bmc_context_t *ctx = (bmc_context_t *)handle;
 
     /* 关闭协议层 */
-    if (NULL != ctx->protocol_handle)
+    if (NULL != ctx->redfish_handle)
     {
-        if (BMC_PROTOCOL_IPMI == ctx->protocol_type)
-        {
-            bmc_ipmi_deinit(ctx->protocol_handle);
-        }
-        else if (BMC_PROTOCOL_REDFISH == ctx->protocol_type)
-        {
-            bmc_redfish_deinit(ctx->protocol_handle);
-        }
+        bmc_redfish_deinit(ctx->redfish_handle);
+    }
+
+    if (NULL != ctx->ipmi_handle)
+    {
+        bmc_ipmi_deinit(ctx->ipmi_handle);
     }
 
     /* 关闭网络传输层 */
@@ -221,20 +219,31 @@ int32_t PDL_BMC_PowerOn(bmc_handle_t handle)
 
     ctx->cmd_count++;
 
-    int32_t ret;
-    if (BMC_PROTOCOL_IPMI == ctx->protocol_type)
+    int32_t ret = OSAL_ERR_GENERIC;
+
+    /* 优先使用Redfish */
+    if (BMC_PROTOCOL_REDFISH == ctx->current_protocol && NULL != ctx->redfish_handle)
     {
-        ret = bmc_ipmi_power_on(ctx->protocol_handle);
+        ret = bmc_redfish_power_on(ctx->redfish_handle);
+        if (OSAL_SUCCESS != ret)
+        {
+            LOG_WARN("BMC", "Redfish power on failed, switching to IPMI");
+            ctx->current_protocol = BMC_PROTOCOL_IPMI;
+            ctx->protocol_switch_count++;
+        }
     }
-    else
+
+    /* 失败则切换到IPMI */
+    if (OSAL_SUCCESS != ret && NULL != ctx->ipmi_handle)
     {
-        ret = bmc_redfish_power_on(ctx->protocol_handle);
+        ret = bmc_ipmi_power_on(ctx->ipmi_handle);
     }
 
     if (OSAL_SUCCESS == ret)
     {
         ctx->success_count++;
-        LOG_INFO("BMC", "Power on command sent");
+        LOG_INFO("BMC", "Power on command sent (protocol: %s)",
+                 (ctx->current_protocol == BMC_PROTOCOL_IPMI) ? "IPMI" : "Redfish");
     }
     else
     {
@@ -263,20 +272,31 @@ int32_t PDL_BMC_PowerOff(bmc_handle_t handle)
 
     ctx->cmd_count++;
 
-    int32_t ret;
-    if (BMC_PROTOCOL_IPMI == ctx->protocol_type)
+    int32_t ret = OSAL_ERR_GENERIC;
+
+    /* 优先使用Redfish */
+    if (BMC_PROTOCOL_REDFISH == ctx->current_protocol && NULL != ctx->redfish_handle)
     {
-        ret = bmc_ipmi_power_off(ctx->protocol_handle);
+        ret = bmc_redfish_power_off(ctx->redfish_handle);
+        if (OSAL_SUCCESS != ret)
+        {
+            LOG_WARN("BMC", "Redfish power off failed, switching to IPMI");
+            ctx->current_protocol = BMC_PROTOCOL_IPMI;
+            ctx->protocol_switch_count++;
+        }
     }
-    else
+
+    /* 失败则切换到IPMI */
+    if (OSAL_SUCCESS != ret && NULL != ctx->ipmi_handle)
     {
-        ret = bmc_redfish_power_off(ctx->protocol_handle);
+        ret = bmc_ipmi_power_off(ctx->ipmi_handle);
     }
 
     if (OSAL_SUCCESS == ret)
     {
         ctx->success_count++;
-        LOG_INFO("BMC", "Power off command sent");
+        LOG_INFO("BMC", "Power off command sent (protocol: %s)",
+                 (ctx->current_protocol == BMC_PROTOCOL_IPMI) ? "IPMI" : "Redfish");
     }
     else
     {
@@ -305,20 +325,31 @@ int32_t PDL_BMC_PowerReset(bmc_handle_t handle)
 
     ctx->cmd_count++;
 
-    int32_t ret;
-    if (BMC_PROTOCOL_IPMI == ctx->protocol_type)
+    int32_t ret = OSAL_ERR_GENERIC;
+
+    /* 优先使用Redfish */
+    if (BMC_PROTOCOL_REDFISH == ctx->current_protocol && NULL != ctx->redfish_handle)
     {
-        ret = bmc_ipmi_power_reset(ctx->protocol_handle);
+        ret = bmc_redfish_power_reset(ctx->redfish_handle);
+        if (OSAL_SUCCESS != ret)
+        {
+            LOG_WARN("BMC", "Redfish power reset failed, switching to IPMI");
+            ctx->current_protocol = BMC_PROTOCOL_IPMI;
+            ctx->protocol_switch_count++;
+        }
     }
-    else
+
+    /* 失败则切换到IPMI */
+    if (OSAL_SUCCESS != ret && NULL != ctx->ipmi_handle)
     {
-        ret = bmc_redfish_power_reset(ctx->protocol_handle);
+        ret = bmc_ipmi_power_reset(ctx->ipmi_handle);
     }
 
     if (OSAL_SUCCESS == ret)
     {
         ctx->success_count++;
-        LOG_INFO("BMC", "Power reset command sent");
+        LOG_INFO("BMC", "Power reset command sent (protocol: %s)",
+                 (ctx->current_protocol == BMC_PROTOCOL_IPMI) ? "IPMI" : "Redfish");
     }
     else
     {
@@ -348,14 +379,24 @@ int32_t PDL_BMC_GetPowerState(bmc_handle_t handle,
 
     ctx->cmd_count++;
 
-    int32_t ret;
-    if (BMC_PROTOCOL_IPMI == ctx->protocol_type)
+    int32_t ret = OSAL_ERR_GENERIC;
+
+    /* 优先使用Redfish */
+    if (BMC_PROTOCOL_REDFISH == ctx->current_protocol && NULL != ctx->redfish_handle)
     {
-        ret = bmc_ipmi_get_power_state(ctx->protocol_handle, state);
+        ret = bmc_redfish_get_power_state(ctx->redfish_handle, state);
+        if (OSAL_SUCCESS != ret)
+        {
+            LOG_WARN("BMC", "Redfish get power state failed, switching to IPMI");
+            ctx->current_protocol = BMC_PROTOCOL_IPMI;
+            ctx->protocol_switch_count++;
+        }
     }
-    else
+
+    /* 失败则切换到IPMI */
+    if (OSAL_SUCCESS != ret && NULL != ctx->ipmi_handle)
     {
-        ret = bmc_redfish_get_power_state(ctx->protocol_handle, state);
+        ret = bmc_ipmi_get_power_state(ctx->ipmi_handle, state);
     }
 
     if (OSAL_SUCCESS == ret)
@@ -392,14 +433,24 @@ int32_t PDL_BMC_ReadSensors(bmc_handle_t handle,
 
     ctx->cmd_count++;
 
-    int32_t ret;
-    if (BMC_PROTOCOL_IPMI == ctx->protocol_type)
+    int32_t ret = OSAL_ERR_GENERIC;
+
+    /* 优先使用Redfish */
+    if (BMC_PROTOCOL_REDFISH == ctx->current_protocol && NULL != ctx->redfish_handle)
     {
-        ret = bmc_ipmi_read_sensors(ctx->protocol_handle, type, readings, max_count, actual_count);
+        ret = bmc_redfish_read_sensors(ctx->redfish_handle, type, readings, max_count, actual_count);
+        if (OSAL_SUCCESS != ret)
+        {
+            LOG_WARN("BMC", "Redfish read sensors failed, switching to IPMI");
+            ctx->current_protocol = BMC_PROTOCOL_IPMI;
+            ctx->protocol_switch_count++;
+        }
     }
-    else
+
+    /* 失败则切换到IPMI */
+    if (OSAL_SUCCESS != ret && NULL != ctx->ipmi_handle)
     {
-        ret = bmc_redfish_read_sensors(ctx->protocol_handle, type, readings, max_count, actual_count);
+        ret = bmc_ipmi_read_sensors(ctx->ipmi_handle, type, readings, max_count, actual_count);
     }
 
     if (OSAL_SUCCESS == ret)
