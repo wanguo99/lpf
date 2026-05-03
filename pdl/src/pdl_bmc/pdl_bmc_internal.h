@@ -10,12 +10,57 @@
 #include "osal_types.h"
 #include "pdl_bmc.h"
 
+/************************************************************************
+ * 传输层接口（pdl_bmc_transport.c实现）
+ * 职责：提供底层网络和串口通信能力
+ ************************************************************************/
+
+/*
+ * 网络传输接口
+ */
+int32_t bmc_transport_net_init(const char *ip_addr, uint16_t port, uint32_t timeout_ms, void **handle);
+int32_t bmc_transport_net_deinit(void *handle);
+int32_t bmc_transport_net_send_recv(void *handle,
+                                    const uint8_t *request,
+                                    uint32_t req_size,
+                                    uint8_t *response,
+                                    uint32_t resp_size,
+                                    uint32_t *actual_size);
+
+/*
+ * 串口传输接口
+ */
+int32_t bmc_transport_serial_init(const char *device, uint32_t baudrate, uint32_t timeout_ms, void **handle);
+int32_t bmc_transport_serial_deinit(void *handle);
+int32_t bmc_transport_serial_send_recv(void *handle,
+                                       const uint8_t *request,
+                                       uint32_t req_size,
+                                       uint8_t *response,
+                                       uint32_t resp_size,
+                                       uint32_t *actual_size);
+
+/************************************************************************
+ * IPMI协议层接口（pdl_bmc_ipmi.c实现）
+ * 职责：实现IPMI协议栈（RMCP/RMCP+, NetFn/Cmd, SDR解析等）
+ ************************************************************************/
+
+/*
+ * IPMI NetFn定义
+ */
+#define IPMI_NETFN_CHASSIS_REQ      0x00
+#define IPMI_NETFN_CHASSIS_RESP     0x01
+#define IPMI_NETFN_SENSOR_REQ       0x04
+#define IPMI_NETFN_SENSOR_RESP      0x05
+#define IPMI_NETFN_APP_REQ          0x06
+#define IPMI_NETFN_APP_RESP         0x07
+
 /*
  * IPMI命令码定义
  */
-#define IPMI_CMD_CHASSIS_CONTROL    0x00
+#define IPMI_CMD_CHASSIS_CONTROL    0x02
 #define IPMI_CMD_GET_CHASSIS_STATUS 0x01
 #define IPMI_CMD_GET_SENSOR_READING 0x2D
+#define IPMI_CMD_GET_DEVICE_SDR     0x21
 
 /*
  * IPMI Chassis Control子命令
@@ -26,65 +71,113 @@
 #define IPMI_CHASSIS_HARD_RESET     0x03
 
 /*
- * 网络通信接口（pdl_bmc_net.c实现）
+ * IPMI完成码
  */
-int32_t bmc_redfish_init(const char *ip_addr, uint16_t port, uint32_t timeout_ms, void **handle);
-int32_t bmc_redfish_deinit(void *handle);
-int32_t bmc_redfish_send_recv(void *handle,
-                       const uint8_t *request,
-                       uint32_t req_size,
-                       uint8_t *response,
-                       uint32_t resp_size,
-                       uint32_t *actual_size);
+#define IPMI_CC_OK                  0x00
+#define IPMI_CC_NODE_BUSY           0xC0
+#define IPMI_CC_INVALID_CMD         0xC1
+#define IPMI_CC_TIMEOUT             0xC3
 
 /*
- * 串口通信接口（pdl_bmc_net.c实现，复用网络模块）
+ * IPMI协议初始化/反初始化
  */
-int32_t bmc_serial_init(const char *device, uint32_t baudrate, uint32_t timeout_ms, void **handle);
-int32_t bmc_serial_deinit(void *handle);
-int32_t bmc_serial_send_recv(void *handle,
-                          const uint8_t *request,
-                          uint32_t req_size,
-                          uint8_t *response,
-                          uint32_t resp_size,
-                          uint32_t *actual_size);
+int32_t bmc_ipmi_init(void *transport_handle,
+                      int32_t (*send_recv)(void*, const uint8_t*, uint32_t, uint8_t*, uint32_t, uint32_t*),
+                      void **protocol_handle);
+int32_t bmc_ipmi_deinit(void *protocol_handle);
 
 /*
- * IPMI协议接口（pdl_bmc_ipmi.c实现）
+ * IPMI帧封装/解析
  */
-int32_t bmc_ipmi_pack_command(uint8_t cmd_code,
-                           uint8_t subcmd,
-                           const uint8_t *data,
-                           uint32_t data_len,
-                           uint8_t *frame,
-                           uint32_t frame_size,
-                           uint32_t *actual_size);
-
-int32_t bmc_ipmi_unpack_response(const uint8_t *frame,
-                              uint32_t frame_len,
-                              uint8_t *status,
-                              uint8_t *data,
-                              uint32_t data_size,
+int32_t bmc_ipmi_pack_request(uint8_t netfn,
+                              uint8_t cmd,
+                              const uint8_t *data,
+                              uint32_t data_len,
+                              uint8_t *frame,
+                              uint32_t frame_size,
                               uint32_t *actual_size);
 
-int32_t bmc_ipmi_power_on(void *comm_handle,
-                       int32_t (*send_recv)(void*, const uint8_t*, uint32_t, uint8_t*, uint32_t, uint32_t*));
+int32_t bmc_ipmi_unpack_response(const uint8_t *frame,
+                                 uint32_t frame_len,
+                                 uint8_t *netfn,
+                                 uint8_t *cmd,
+                                 uint8_t *completion_code,
+                                 uint8_t *data,
+                                 uint32_t data_size,
+                                 uint32_t *actual_size);
 
-int32_t bmc_ipmi_power_off(void *comm_handle,
-                        int32_t (*send_recv)(void*, const uint8_t*, uint32_t, uint8_t*, uint32_t, uint32_t*));
+/*
+ * IPMI业务接口
+ */
+int32_t bmc_ipmi_power_on(void *protocol_handle);
+int32_t bmc_ipmi_power_off(void *protocol_handle);
+int32_t bmc_ipmi_power_reset(void *protocol_handle);
+int32_t bmc_ipmi_get_power_state(void *protocol_handle, bmc_power_state_t *state);
+int32_t bmc_ipmi_read_sensors(void *protocol_handle,
+                              bmc_sensor_type_t type,
+                              bmc_sensor_reading_t *readings,
+                              uint32_t max_count,
+                              uint32_t *actual_count);
 
-int32_t bmc_ipmi_power_reset(void *comm_handle,
-                          int32_t (*send_recv)(void*, const uint8_t*, uint32_t, uint8_t*, uint32_t, uint32_t*));
+/************************************************************************
+ * Redfish协议层接口（pdl_bmc_redfish.c实现）
+ * 职责：实现Redfish RESTful API（HTTP/HTTPS, JSON, 标准资源访问）
+ ************************************************************************/
 
-int32_t bmc_ipmi_get_power_state(void *comm_handle,
-                              int32_t (*send_recv)(void*, const uint8_t*, uint32_t, uint8_t*, uint32_t, uint32_t*),
-                              bmc_power_state_t *state);
+/*
+ * Redfish HTTP方法
+ */
+typedef enum
+{
+    REDFISH_METHOD_GET = 0,
+    REDFISH_METHOD_POST,
+    REDFISH_METHOD_PATCH,
+    REDFISH_METHOD_DELETE
+} redfish_method_t;
 
-int32_t bmc_ipmi_read_sensors(void *comm_handle,
-                           int32_t (*send_recv)(void*, const uint8_t*, uint32_t, uint8_t*, uint32_t, uint32_t*),
-                           bmc_sensor_type_t type,
-                           bmc_sensor_reading_t *readings,
-                           uint32_t max_count,
-                           uint32_t *actual_count);
+/*
+ * Redfish认证信息
+ */
+typedef struct
+{
+    const char *username;
+    const char *password;
+    char session_token[128];
+    bool use_session;
+} redfish_auth_t;
+
+/*
+ * Redfish协议初始化/反初始化
+ */
+int32_t bmc_redfish_init(void *transport_handle,
+                         int32_t (*send_recv)(void*, const uint8_t*, uint32_t, uint8_t*, uint32_t, uint32_t*),
+                         const char *username,
+                         const char *password,
+                         void **protocol_handle);
+int32_t bmc_redfish_deinit(void *protocol_handle);
+
+/*
+ * Redfish HTTP请求/响应
+ */
+int32_t bmc_redfish_request(void *protocol_handle,
+                            redfish_method_t method,
+                            const char *uri,
+                            const char *json_body,
+                            char *response,
+                            uint32_t resp_size,
+                            uint32_t *actual_size);
+
+/*
+ * Redfish业务接口
+ */
+int32_t bmc_redfish_power_on(void *protocol_handle);
+int32_t bmc_redfish_power_off(void *protocol_handle);
+int32_t bmc_redfish_power_reset(void *protocol_handle);
+int32_t bmc_redfish_get_power_state(void *protocol_handle, bmc_power_state_t *state);
+int32_t bmc_redfish_read_sensors(void *protocol_handle,
+                                 bmc_sensor_type_t type,
+                                 bmc_sensor_reading_t *readings,
+                                 uint32_t max_count,
+                                 uint32_t *actual_count);
 
 #endif /* PDL_BMC_INTERNAL_H */
