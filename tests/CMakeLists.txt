@@ -49,6 +49,7 @@ add_executable(unit-test
     pdl/test_pdl_satellite.c
     pdl/test_pdl_mcu.c
     pdl/test_pdl_bmc.c
+    pdl/test_pdl_bmc_protocol.c
 )
 
 target_include_directories(unit-test PRIVATE
