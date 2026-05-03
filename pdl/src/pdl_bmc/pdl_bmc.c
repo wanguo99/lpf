@@ -3,8 +3,8 @@
  *
  * 职责：
  * - 实现对外业务接口
- * - 管理通信通道（网络/串口）切换
- * - 调度内部IPMI协议和通信模块
+ * - 管理通信通道（网络/串口）和协议类型（IPMI/Redfish）
+ * - 调度传输层和协议层模块
  ************************************************************************/
 
 #include "pdl_bmc.h"
@@ -18,9 +18,13 @@ typedef struct
 {
     bmc_config_t config;
 
-    /* 通信句柄 */
-    void *net_handle;
-    void *serial_handle;
+    /* 传输层句柄 */
+    void *net_transport_handle;
+    void *serial_transport_handle;
+
+    /* 协议层句柄 */
+    void *protocol_handle;
+    bmc_protocol_t protocol_type;
 
     /* 当前通道 */
     bmc_channel_t current_channel;
@@ -58,6 +62,7 @@ int32_t PDL_BMC_Init(const bmc_config_t *config,
     OSAL_Memset(ctx, 0, sizeof(bmc_context_t));
     OSAL_Memcpy(&ctx->config, config, sizeof(bmc_config_t));
     ctx->current_channel = config->primary_channel;
+    ctx->protocol_type = BMC_PROTOCOL_IPMI;
 
     /* 创建互斥锁 */
     if (OSAL_SUCCESS != OSAL_MutexCreate(&ctx->mutex, "bmc_mutex", 0))
@@ -67,53 +72,89 @@ int32_t PDL_BMC_Init(const bmc_config_t *config,
         return OSAL_ERR_GENERIC;
     }
 
-    /* 初始化网络通道 */
+    /* 初始化网络传输层 */
     if (config->network.enabled)
     {
-        int32_t ret = bmc_redfish_init(config->network.ip_addr,
-                                config->network.port,
-                                config->network.timeout_ms,
-                                &ctx->net_handle);
+        int32_t ret = bmc_transport_net_init(config->network.ip_addr,
+                                             config->network.port,
+                                             config->network.timeout_ms,
+                                             &ctx->net_transport_handle);
         if (OSAL_SUCCESS != ret)
         {
-            LOG_WARN("BMC", "Failed to open network channel");
+            LOG_WARN("BMC", "Failed to open network transport");
         }
         else
         {
-            LOG_INFO("BMC", "Network channel opened: %s:%d",
+            LOG_INFO("BMC", "Network transport opened: %s:%d",
                      config->network.ip_addr, config->network.port);
         }
     }
 
-    /* 初始化串口通道 */
+    /* 初始化串口传输层 */
     if (config->serial.enabled)
     {
-        int32_t ret = bmc_serial_init(config->serial.device,
-                                   config->serial.baudrate,
-                                   config->serial.timeout_ms,
-                                   &ctx->serial_handle);
+        int32_t ret = bmc_transport_serial_init(config->serial.device,
+                                                config->serial.baudrate,
+                                                config->serial.timeout_ms,
+                                                &ctx->serial_transport_handle);
         if (OSAL_SUCCESS != ret)
         {
-            LOG_WARN("BMC", "Failed to open serial channel");
+            LOG_WARN("BMC", "Failed to open serial transport");
         }
         else
         {
-            LOG_INFO("BMC", "Serial channel opened: %s", config->serial.device);
+            LOG_INFO("BMC", "Serial transport opened: %s", config->serial.device);
         }
     }
 
-    /* 检查主通道是否可用 */
-    if (ctx->current_channel == BMC_CHANNEL_NETWORK && NULL != ctx->net_handle)
+    /* 初始化协议层（根据配置选择IPMI或Redfish） */
+    void *transport_handle = (ctx->current_channel == BMC_CHANNEL_NETWORK) ?
+                             ctx->net_transport_handle : ctx->serial_transport_handle;
+
+    if (NULL != transport_handle)
     {
-        ctx->connected = true;
-    }
-    else if (ctx->current_channel == BMC_CHANNEL_SERIAL && NULL != ctx->serial_handle)
-    {
-        ctx->connected = true;
+        if (BMC_PROTOCOL_IPMI == ctx->protocol_type)
+        {
+            int32_t (*send_recv)(void*, const uint8_t*, uint32_t, uint8_t*, uint32_t, uint32_t*);
+            send_recv = (ctx->current_channel == BMC_CHANNEL_NETWORK) ?
+                        bmc_transport_net_send_recv : bmc_transport_serial_send_recv;
+
+            int32_t ret = bmc_ipmi_init(transport_handle, send_recv, &ctx->protocol_handle);
+            if (OSAL_SUCCESS != ret)
+            {
+                LOG_ERROR("BMC", "Failed to initialize IPMI protocol");
+            }
+            else
+            {
+                LOG_INFO("BMC", "IPMI protocol initialized");
+                ctx->connected = true;
+            }
+        }
+        else if (BMC_PROTOCOL_REDFISH == ctx->protocol_type)
+        {
+            int32_t (*send_recv)(void*, const uint8_t*, uint32_t, uint8_t*, uint32_t, uint32_t*);
+            send_recv = (ctx->current_channel == BMC_CHANNEL_NETWORK) ?
+                        bmc_transport_net_send_recv : bmc_transport_serial_send_recv;
+
+            int32_t ret = bmc_redfish_init(transport_handle, send_recv,
+                                          config->network.username,
+                                          config->network.password,
+                                          &ctx->protocol_handle);
+            if (OSAL_SUCCESS != ret)
+            {
+                LOG_ERROR("BMC", "Failed to initialize Redfish protocol");
+            }
+            else
+            {
+                LOG_INFO("BMC", "Redfish protocol initialized");
+                ctx->connected = true;
+            }
+        }
     }
 
     *handle = (bmc_handle_t)ctx;
-    LOG_INFO("BMC", "BMC payload service initialized");
+    LOG_INFO("BMC", "BMC service initialized (protocol: %s)",
+             (ctx->protocol_type == BMC_PROTOCOL_IPMI) ? "IPMI" : "Redfish");
 
     return OSAL_SUCCESS;
 }
@@ -130,23 +171,36 @@ int32_t PDL_BMC_Deinit(bmc_handle_t handle)
 
     bmc_context_t *ctx = (bmc_context_t *)handle;
 
-    /* 关闭网络 */
-    if (NULL != ctx->net_handle)
+    /* 关闭协议层 */
+    if (NULL != ctx->protocol_handle)
     {
-        bmc_redfish_deinit(ctx->net_handle);
+        if (BMC_PROTOCOL_IPMI == ctx->protocol_type)
+        {
+            bmc_ipmi_deinit(ctx->protocol_handle);
+        }
+        else if (BMC_PROTOCOL_REDFISH == ctx->protocol_type)
+        {
+            bmc_redfish_deinit(ctx->protocol_handle);
+        }
     }
 
-    /* 关闭串口 */
-    if (NULL != ctx->serial_handle)
+    /* 关闭网络传输层 */
+    if (NULL != ctx->net_transport_handle)
     {
-        bmc_serial_deinit(ctx->serial_handle);
+        bmc_transport_net_deinit(ctx->net_transport_handle);
+    }
+
+    /* 关闭串口传输层 */
+    if (NULL != ctx->serial_transport_handle)
+    {
+        bmc_transport_serial_deinit(ctx->serial_transport_handle);
     }
 
     /* 删除互斥锁 */
     OSAL_MutexDelete(ctx->mutex);
 
     OSAL_Free(ctx);
-    LOG_INFO("BMC", "BMC payload service deinitialized");
+    LOG_INFO("BMC", "BMC service deinitialized");
 
     return OSAL_SUCCESS;
 }
@@ -168,13 +222,13 @@ int32_t PDL_BMC_PowerOn(bmc_handle_t handle)
     ctx->cmd_count++;
 
     int32_t ret;
-    if (ctx->current_channel == BMC_CHANNEL_NETWORK)
+    if (BMC_PROTOCOL_IPMI == ctx->protocol_type)
     {
-        ret = bmc_ipmi_power_on(ctx->net_handle, bmc_redfish_send_recv);
+        ret = bmc_ipmi_power_on(ctx->protocol_handle);
     }
     else
     {
-        ret = bmc_ipmi_power_on(ctx->serial_handle, bmc_serial_send_recv);
+        ret = bmc_redfish_power_on(ctx->protocol_handle);
     }
 
     if (OSAL_SUCCESS == ret)
@@ -210,13 +264,13 @@ int32_t PDL_BMC_PowerOff(bmc_handle_t handle)
     ctx->cmd_count++;
 
     int32_t ret;
-    if (ctx->current_channel == BMC_CHANNEL_NETWORK)
+    if (BMC_PROTOCOL_IPMI == ctx->protocol_type)
     {
-        ret = bmc_ipmi_power_off(ctx->net_handle, bmc_redfish_send_recv);
+        ret = bmc_ipmi_power_off(ctx->protocol_handle);
     }
     else
     {
-        ret = bmc_ipmi_power_off(ctx->serial_handle, bmc_serial_send_recv);
+        ret = bmc_redfish_power_off(ctx->protocol_handle);
     }
 
     if (OSAL_SUCCESS == ret)
@@ -252,13 +306,13 @@ int32_t PDL_BMC_PowerReset(bmc_handle_t handle)
     ctx->cmd_count++;
 
     int32_t ret;
-    if (ctx->current_channel == BMC_CHANNEL_NETWORK)
+    if (BMC_PROTOCOL_IPMI == ctx->protocol_type)
     {
-        ret = bmc_ipmi_power_reset(ctx->net_handle, bmc_redfish_send_recv);
+        ret = bmc_ipmi_power_reset(ctx->protocol_handle);
     }
     else
     {
-        ret = bmc_ipmi_power_reset(ctx->serial_handle, bmc_serial_send_recv);
+        ret = bmc_redfish_power_reset(ctx->protocol_handle);
     }
 
     if (OSAL_SUCCESS == ret)
@@ -295,13 +349,13 @@ int32_t PDL_BMC_GetPowerState(bmc_handle_t handle,
     ctx->cmd_count++;
 
     int32_t ret;
-    if (ctx->current_channel == BMC_CHANNEL_NETWORK)
+    if (BMC_PROTOCOL_IPMI == ctx->protocol_type)
     {
-        ret = bmc_ipmi_get_power_state(ctx->net_handle, bmc_redfish_send_recv, state);
+        ret = bmc_ipmi_get_power_state(ctx->protocol_handle, state);
     }
     else
     {
-        ret = bmc_ipmi_get_power_state(ctx->serial_handle, bmc_serial_send_recv, state);
+        ret = bmc_redfish_get_power_state(ctx->protocol_handle, state);
     }
 
     if (OSAL_SUCCESS == ret)
@@ -339,15 +393,13 @@ int32_t PDL_BMC_ReadSensors(bmc_handle_t handle,
     ctx->cmd_count++;
 
     int32_t ret;
-    if (ctx->current_channel == BMC_CHANNEL_NETWORK)
+    if (BMC_PROTOCOL_IPMI == ctx->protocol_type)
     {
-        ret = bmc_ipmi_read_sensors(ctx->net_handle, bmc_redfish_send_recv,
-                                   type, readings, max_count, actual_count);
+        ret = bmc_ipmi_read_sensors(ctx->protocol_handle, type, readings, max_count, actual_count);
     }
     else
     {
-        ret = bmc_ipmi_read_sensors(ctx->serial_handle, bmc_serial_send_recv,
-                                   type, readings, max_count, actual_count);
+        ret = bmc_redfish_read_sensors(ctx->protocol_handle, type, readings, max_count, actual_count);
     }
 
     if (OSAL_SUCCESS == ret)
@@ -379,7 +431,6 @@ int32_t PDL_BMC_ExecuteCommand(bmc_handle_t handle,
 
     (void)response;
     (void)resp_size;
-    /* TODO: 实现原始命令执行 */
     return OSAL_ERR_GENERIC;
 }
 
@@ -399,14 +450,14 @@ int32_t PDL_BMC_SwitchChannel(bmc_handle_t handle,
     OSAL_MutexLock(ctx->mutex);
 
     /* 检查通道是否可用 */
-    if (BMC_CHANNEL_NETWORK == channel && NULL == ctx->net_handle)
+    if (BMC_CHANNEL_NETWORK == channel && NULL == ctx->net_transport_handle)
     {
         LOG_ERROR("BMC", "Network channel not available");
         OSAL_MutexUnlock(ctx->mutex);
         return OSAL_ERR_GENERIC;
     }
 
-    if (BMC_CHANNEL_SERIAL == channel && NULL == ctx->serial_handle)
+    if (BMC_CHANNEL_SERIAL == channel && NULL == ctx->serial_transport_handle)
     {
         LOG_ERROR("BMC", "Serial channel not available");
         OSAL_MutexUnlock(ctx->mutex);
@@ -438,7 +489,6 @@ bmc_channel_t PDL_BMC_GetChannel(bmc_handle_t handle)
 
     bmc_context_t *ctx = (bmc_context_t *)handle;
 
-    /* 加锁保护，确保读取一致性 */
     OSAL_MutexLock(ctx->mutex);
     bmc_channel_t channel = ctx->current_channel;
     OSAL_MutexUnlock(ctx->mutex);
@@ -458,7 +508,6 @@ bool PDL_BMC_IsConnected(bmc_handle_t handle)
 
     bmc_context_t *ctx = (bmc_context_t *)handle;
 
-    /* 加锁保护，确保读取一致性 */
     OSAL_MutexLock(ctx->mutex);
     bool connected = ctx->connected;
     OSAL_MutexUnlock(ctx->mutex);
@@ -480,7 +529,6 @@ int32_t PDL_BMC_GetStats(bmc_handle_t handle,
         return OSAL_ERR_GENERIC;
     }
 
-    /* At least one output parameter must be non-NULL */
     if (NULL == cmd_count && NULL == success_count &&
         NULL == fail_count && NULL == switch_count)
     {
