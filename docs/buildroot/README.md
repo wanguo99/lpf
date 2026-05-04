@@ -71,7 +71,7 @@ SysV init 启动脚本，将被安装到 `/etc/init.d/S90ems`。
    ```
    Target packages
      └─> Miscellaneous
-         └─> [*] bsp
+         └─> [*] ems
              [*]   install sample application
              [ ]   install unit tests
    ```
@@ -235,7 +235,7 @@ EMS_VERSION = abc123def456
 ```makefile
 EMS_VERSION = 1.0.0
 EMS_SITE = https://github.com/wanguo99/ems/releases/download/v$(EMS_VERSION)
-EMS_SOURCE = bsp-$(EMS_VERSION).tar.gz
+EMS_SOURCE = ems-$(EMS_VERSION).tar.gz
 EMS_SITE_METHOD = wget
 ```
 

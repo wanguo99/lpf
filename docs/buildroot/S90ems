@@ -1,17 +1,17 @@
 #!/bin/sh
 #
-# BSP 启动脚本 (SysV init)
+# EMS 启动脚本 (SysV init)
 #
 
-DAEMON="bsp-sample-app"
+DAEMON="ems-sample-app"
 PIDFILE="/var/run/$DAEMON.pid"
-CONFIG="/etc/bsp.conf"
+CONFIG="/etc/ems.conf"
 
 # 读取配置文件
 [ -r "$CONFIG" ] && . "$CONFIG"
 
 start() {
-	printf "Starting BSP: "
+	printf "Starting EMS: "
 
 	# 检查配置文件
 	if [ ! -f "$CONFIG" ]; then
@@ -31,7 +31,7 @@ start() {
 }
 
 stop() {
-	printf "Stopping BSP: "
+	printf "Stopping EMS: "
 	start-stop-daemon -K -q -p "$PIDFILE"
 
 	if [ $? -eq 0 ]; then

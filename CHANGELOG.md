@@ -52,5 +52,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Build system documentation
 - Cross-compilation guide
 
-[Unreleased]: https://github.com/yourusername/bsp/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/yourusername/bsp/releases/tag/v1.0.0
+[Unreleased]: https://github.com/wanguo99/EMS/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/wanguo99/EMS/releases/tag/v1.0.0

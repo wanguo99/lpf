@@ -1,11 +1,11 @@
-config BR2_PACKAGE_BSP
-	bool "bsp"
+config BR2_PACKAGE_EMS
+	bool "ems"
 	depends on BR2_INSTALL_LIBSTDCPP
 	depends on BR2_TOOLCHAIN_HAS_THREADS
 	depends on !BR2_STATIC_LIBS
-	select BR2_PACKAGE_HAS_BSP
+	select BR2_PACKAGE_HAS_EMS
 	help
-	  BSP (Board Support Package) is a lightweight embedded software
+	  EMS (Embedded Middleware System) is a lightweight embedded software
 	  framework providing hardware abstraction and peripheral drivers.
 
 	  Features:
@@ -14,22 +14,22 @@ config BR2_PACKAGE_BSP
 	  - PCL: Peripheral Configuration Library
 	  - PDL: Peripheral Driver Layer
 
-	  https://github.com/wanguo99/bsp
+	  https://github.com/wanguo99/EMS
 
-if BR2_PACKAGE_BSP
+if BR2_PACKAGE_EMS
 
-config BR2_PACKAGE_BSP_SAMPLE_APP
+config BR2_PACKAGE_EMS_SAMPLE_APP
 	bool "install sample application"
 	default y
 	help
-	  Install the BSP sample application to /usr/bin/bsp-sample-app
+	  Install the EMS sample application to /usr/bin/ems-sample-app
 
-config BR2_PACKAGE_BSP_TESTS
+config BR2_PACKAGE_EMS_TESTS
 	bool "install unit tests"
 	help
-	  Build and install the BSP unit test suite to /usr/bin/bsp-unit-test
+	  Build and install the EMS unit test suite to /usr/bin/ems-unit-test
 
 endif
 
-comment "bsp needs a toolchain w/ C++, threads, dynamic library"
+comment "ems needs a toolchain w/ C++, threads, dynamic library"
 	depends on !BR2_INSTALL_LIBSTDCPP || !BR2_TOOLCHAIN_HAS_THREADS || BR2_STATIC_LIBS
