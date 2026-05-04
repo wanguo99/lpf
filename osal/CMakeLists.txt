@@ -23,7 +23,6 @@ target_include_directories(osal_public_api INTERFACE
 # OSAL源文件
 set(OSAL_SOURCES
     # IPC - 进程间通信
-    ${OSAL_SRC_DIR}/ipc/osal_queue.c
     ${OSAL_SRC_DIR}/ipc/osal_mutex.c
     ${OSAL_SRC_DIR}/ipc/osal_atomic.c
 
@@ -50,7 +49,6 @@ set(OSAL_SOURCES
     # UTIL - 工具类
     ${OSAL_SRC_DIR}/util/osal_version.c
     ${OSAL_SRC_DIR}/util/osal_log.c
-    ${OSAL_SRC_DIR}/util/osal_resource_tracker.c
 )
 
 # 创建OSAL库（类型由BUILD_SHARED_LIBS控制）
@@ -78,9 +76,6 @@ target_compile_options(osal PRIVATE
     -Wall
     -Wextra
 )
-
-# 启用资源跟踪（调试功能）
-target_compile_definitions(osal PRIVATE OSAL_ENABLE_RESOURCE_TRACKING)
 
 # ============================================================================
 # 3. 安装规则

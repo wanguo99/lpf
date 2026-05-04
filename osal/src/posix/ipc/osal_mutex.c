@@ -84,9 +84,6 @@ int32_t OSAL_MutexCreate(osal_id_t *mutex_id, const char *mutex_name,
 
     pthread_mutex_unlock(&g_mutex_table_mutex);
 
-    /* 注册资源到泄漏检测系统 */
-    OSAL_ResourceRegister(*mutex_id, OSAL_RESOURCE_TYPE_MUTEX, mutex_name, __FILE__, __LINE__);
-
     return OSAL_SUCCESS;
 }
 
@@ -123,9 +120,6 @@ int32_t OSAL_MutexDelete(osal_id_t mutex_id)
         g_osal_mutex_table[slot_to_clear].is_used = false;
     }
     pthread_mutex_unlock(&g_mutex_table_mutex);
-
-    /* 注销资源 */
-    OSAL_ResourceUnregister(mutex_id, OSAL_RESOURCE_TYPE_MUTEX);
 
     return OSAL_SUCCESS;
 }

@@ -2,15 +2,15 @@
  * Sample应用 - 主程序
  *
  * 这是一个最小化的示例应用，展示如何正确使用EMS各层接口：
- * - OSAL层：任务、队列、信号处理、日志
+ * - OSAL层：线程、互斥锁、信号处理、日志
  * - HAL层：（可选）硬件驱动
  * - PDL层：（可选）外设服务
  *
  * 架构说明：
- * 1. 使用OSAL接口进行任务管理、日志输出
+ * 1. 使用OSAL接口进行线程管理、日志输出
  * 2. 通过信号处理实现优雅退出
- * 3. 展示多任务协作模式
- * 4. 展示队列通信机制
+ * 3. 展示多线程协作模式
+ * 4. 展示互斥锁保护共享资源
  ************************************************************************/
 
 #include "osal.h"
@@ -19,13 +19,9 @@
 /* 应用版本 */
 #define APP_VERSION "1.0.0"
 
-/* 队列配置 */
-#define QUEUE_DEPTH        10
-#define QUEUE_MSG_SIZE     64
-
 /* 定时器配置 */
 #define HEARTBEAT_INTERVAL_MS  1000   /* 1秒 */
-#define STATS_INTERVAL_MS      30000  /* 30秒 */
+#define STATS_INTERVAL_MS      5000   /* 5秒 */
 
 /* 全局运行标志 */
 static volatile bool g_running = true;
@@ -34,10 +30,10 @@ static volatile bool g_running = true;
 static osal_thread_t g_worker_thread = 0;
 static osal_thread_t g_stats_thread = 0;
 
-/* 消息队列ID */
-static osal_id_t g_msg_queue_id = 0;
+/* 互斥锁ID */
+static osal_id_t g_mutex_id = 0;
 
-/* 统计计数器 */
+/* 统计计数器（使用原子操作） */
 static atomic_uint g_msg_count = 0;
 
 /**
@@ -58,8 +54,8 @@ static void signal_handler(int32_t sig)
  * @brief 工作任务
  *
  * 演示：
- * - 任务循环检查退出标志
- * - 使用队列发送消息
+ * - 线程循环检查退出标志
+ * - 使用互斥锁保护日志输出
  * - 使用原子操作更新计数器
  */
 static void *worker_task(void *arg)
@@ -67,37 +63,25 @@ static void *worker_task(void *arg)
     (void)arg;  /* 未使用的参数 */
 
     uint32_t counter = 0;
-    int32_t ret;
 
-    LOG_INFO("Worker", "工作任务启动");
+    LOG_INFO("Worker", "工作线程启动");
 
     while (g_running)
     {
-        /* 构造消息 */
-        char msg[QUEUE_MSG_SIZE];
-        OSAL_Snprintf(msg, sizeof(msg), "Message #%u", counter++);
+        /* 使用互斥锁保护日志输出 */
+        OSAL_MutexLock(g_mutex_id);
+        LOG_INFO("Worker", "心跳 #%u", counter);
+        OSAL_MutexUnlock(g_mutex_id);
 
-        /* 发送消息到队列 */
-        ret = OSAL_QueuePut(g_msg_queue_id, msg, sizeof(msg), 1000);
-        if (OSAL_SUCCESS == ret)
-        {
-            atomic_fetch_add(&g_msg_count, 1);
-            LOG_INFO("Worker", "发送消息: %s", msg);
-        }
-        else if (OSAL_ERR_QUEUE_TIMEOUT == ret)
-        {
-            LOG_WARN("Worker", "队列发送超时");
-        }
-        else
-        {
-            LOG_ERROR("Worker", "队列发送失败: %d", ret);
-        }
+        /* 更新计数器 */
+        atomic_fetch_add(&g_msg_count, 1);
+        counter++;
 
         /* 延时1秒 */
         OSAL_msleep(HEARTBEAT_INTERVAL_MS);
     }
 
-    LOG_INFO("Worker", "工作任务退出");
+    LOG_INFO("Worker", "工作线程退出");
     return NULL;
 }
 
@@ -106,42 +90,34 @@ static void *worker_task(void *arg)
  *
  * 演示：
  * - 定期打印统计信息
- * - 从队列接收消息
+ * - 使用互斥锁保护输出
  */
 static void *stats_task(void *arg)
 {
     (void)arg;  /* 未使用的参数 */
 
-    int32_t ret;
-    int8_t msg[QUEUE_MSG_SIZE];
-    uint32_t msg_size;
-
-    LOG_INFO("Stats", "统计任务启动");
+    LOG_INFO("Stats", "统计线程启动");
 
     while (g_running)
     {
-        /* 从队列接收消息（超时5秒） */
-        ret = OSAL_QueueGet(g_msg_queue_id, msg, sizeof(msg), &msg_size, 5000);
-        if (OSAL_SUCCESS == ret)
-        {
-            LOG_INFO("Stats", "接收消息: %s (大小: %u字节)", msg, msg_size);
-        }
-        else if (OSAL_ERR_QUEUE_TIMEOUT == ret)
-        {
-            /* 超时是正常的，打印统计信息 */
-            uint32_t count = atomic_load(&g_msg_count);
-            OSAL_Printf("\n========== 应用统计 ==========\n");
-            OSAL_Printf("已处理消息数: %u\n", count);
-            OSAL_Printf("==============================\n\n");
-        }
-        else
-        {
-            LOG_ERROR("Stats", "队列接收失败: %d", ret);
+        /* 延时5秒 */
+        OSAL_msleep(STATS_INTERVAL_MS);
+
+        if (!g_running)
             break;
-        }
+
+        /* 使用互斥锁保护统计输出 */
+        OSAL_MutexLock(g_mutex_id);
+
+        uint32_t count = atomic_load(&g_msg_count);
+        OSAL_Printf("\n========== 应用统计 ==========\n");
+        OSAL_Printf("工作线程心跳次数: %u\n", count);
+        OSAL_Printf("==============================\n\n");
+
+        OSAL_MutexUnlock(g_mutex_id);
     }
 
-    LOG_INFO("Stats", "统计任务退出");
+    LOG_INFO("Stats", "统计线程退出");
     return NULL;
 }
 
@@ -178,16 +154,14 @@ int main(int32_t argc, char *argv[])
     }
     LOG_INFO("Main", "信号处理注册成功");
 
-    /* 2. 创建消息队列 */
-    ret = OSAL_QueueCreate(&g_msg_queue_id, "MsgQueue",
-                           QUEUE_DEPTH, QUEUE_MSG_SIZE, 0);
+    /* 2. 创建互斥锁 */
+    ret = OSAL_MutexCreate(&g_mutex_id, "AppMutex", 0);
     if (OSAL_SUCCESS != ret)
     {
-        LOG_ERROR("Main", "创建消息队列失败: %d", ret);
+        LOG_ERROR("Main", "创建互斥锁失败: %d", ret);
         goto cleanup;
     }
-    LOG_INFO("Main", "消息队列创建成功 (深度: %d, 消息大小: %d字节)",
-              QUEUE_DEPTH, QUEUE_MSG_SIZE);
+    LOG_INFO("Main", "互斥锁创建成功");
 
     /* 3. 创建工作线程 */
     ret = OSAL_ThreadCreate(&g_worker_thread, worker_task, NULL);
@@ -231,17 +205,17 @@ cleanup:
         LOG_INFO("Main", "统计线程已退出");
     }
 
-    /* 7. 删除队列 */
-    if (0 != g_msg_queue_id)
+    /* 7. 删除互斥锁 */
+    if (0 != g_mutex_id)
     {
-        ret = OSAL_QueueDelete(g_msg_queue_id);
+        ret = OSAL_MutexDelete(g_mutex_id);
         if (OSAL_SUCCESS == ret)
         {
-            LOG_INFO("Main", "消息队列已删除");
+            LOG_INFO("Main", "互斥锁已删除");
         }
         else
         {
-            LOG_ERROR("Main", "删除消息队列失败: %d", ret);
+            LOG_ERROR("Main", "删除互斥锁失败: %d", ret);
         }
     }
 

@@ -53,8 +53,11 @@ sudo apt-get install gcc-riscv64-linux-gnu        # RISC-V 64
 ./output/target/bin/unit-test -L OSAL  # Run OSAL layer tests
 ./output/target/bin/unit-test -m test_osal_task  # Run specific module
 
-# Fast iteration: compile single test module
+# Fast iteration: compile single test layer
 cd output/build && make osal_tests -j$(nproc) && cd ../..
+cd output/build && make hal_tests -j$(nproc) && cd ../..
+cd output/build && make pdl_tests -j$(nproc) && cd ../..
+cd output/build && make pcl_tests -j$(nproc) && cd ../..
 ```
 
 ### Run
@@ -138,8 +141,8 @@ OSAL_bind(sockfd, ...);  // CORRECT
 **CRITICAL: This project strictly prohibits using C native data types. You MUST use OSAL-wrapped types.**
 
 ```c
-/* String type */
-char                           // For strings (compatible with standard C library)
+/* String type - ALLOWED */
+char                           // For strings and text data ONLY (compatible with standard C library)
 
 /* Fixed-size integers */
 int8, int16, int32, int64       // Signed integers
@@ -157,16 +160,14 @@ osal_id_t                       // Object ID (uint32)
 ```
 
 **Usage Rules**:
-- `char` for strings and text data
+- `char` for strings and text data ONLY
 - `uint8`/`int8` for binary data and bytes
 - Fixed-size types for numeric data
 - `osal_size_t`/`osal_ssize_t` for memory sizes and array indices
-- ❌ **STRICTLY FORBIDDEN**: `char`, `int`, `unsigned int`, `short`, `long`, `long long`, `size_t`, `ssize_t`
 
 **Prohibited Native Types**:
 ```c
 /* ❌ NEVER USE THESE */
-char                // Use char (strings) or int8/uint8 (bytes)
 int                 // Use int32 or int16
 unsigned int        // Use uint32 or uint16
 short               // Use int16
@@ -422,8 +423,8 @@ output/
 
 ## Project Stats
 
-- **Code Size**: ~22,000 lines (15,500 production, 4,500 test)
-- **Files**: 118 C/H files
+- **Code Size**: ~50,000 lines of C/H source code
+- **Files**: 128 C/H files
 - **Test Coverage**: 142+ test cases across all layers
   - OSAL: 50+ tests (10 modules)
   - HAL: 72 tests (CAN, UART, I2C, SPI)
@@ -440,3 +441,28 @@ output/
 - [osal/include/osal.h](osal/include/osal.h) - OSAL main header
 - [tests/core/main.c](tests/core/main.c) - Test runner entry
 - [apps/sample_app/src/main.c](apps/sample_app/src/main.c) - Sample application
+
+## Git Commit Message Convention
+
+This project uses Chinese commit message format:
+
+```
+<类型>：<描述>
+
+类型 (Types):
+- 重构 (refactor): Code restructuring without changing functionality
+- 文档 (docs): Documentation changes
+- 修复 (fix): Bug fixes
+- 新增 (feat): New features
+- 测试 (test): Adding or updating tests
+- 构建 (build): Build system changes
+- 优化 (optimize): Performance or code quality improvements
+```
+
+**Examples**:
+```
+重构：移除 osal_task 模块，简化为基础线程接口
+文档：完成 Buildroot 集成文件的 BSP→EMS 重命名
+修复：替换不存在的OSAL_Strchr函数并修复测试编译
+新增：实现Redfish协议支持
+```

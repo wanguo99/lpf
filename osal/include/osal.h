@@ -16,7 +16,6 @@
 #include "osal_types.h"
 
 /* IPC - 进程间通信 */
-#include "ipc/osal_queue.h"
 #include "ipc/osal_mutex.h"
 #include "ipc/osal_atomic.h"
 
@@ -42,7 +41,6 @@
 
 /* UTIL - 工具类 */
 #include "util/osal_log.h"
-#include "util/osal_resource_tracker.h"
 
 /*
  * OSAL版本信息
