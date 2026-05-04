@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 
     /* Help */
     if (0 == OSAL_Strcmp(argv[1], "-h") || 0 == OSAL_Strcmp(argv[1], "--help")) {
-        OSAL_Printf("\nBSP Unit Test Runner\n");
+        OSAL_Printf("\nEMS Unit Test Runner\n");
         OSAL_Printf("========================\n\n");
         OSAL_Printf("Usage: %s [options]\n\n", argv[0]);
         OSAL_Printf("Options:\n");

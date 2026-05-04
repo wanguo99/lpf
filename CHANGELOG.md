@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
-- Transformed project from satellite-specific system to general-purpose embedded BSP framework
+- Transformed project from satellite-specific system to general-purpose embedded EMS framework
 - Updated all documentation to use generic terminology instead of domain-specific terms
 - Improved README.md with clearer project positioning
 

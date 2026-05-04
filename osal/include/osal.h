@@ -1,5 +1,5 @@
 /************************************************************************
- * BSP - Board Support Package
+ * EMS - Embedded Middleware System
  *
  * 轻量化操作系统抽象层
  *
@@ -59,7 +59,7 @@
 /**
  * @brief 获取OSAL版本字符串
  *
- * @return 版本字符串，例如 "BSP OSAL v1.0.0"
+ * @return 版本字符串，例如 "EMS OSAL v1.0.0"
  */
 const char *OSAL_GetVersionString(void);
 

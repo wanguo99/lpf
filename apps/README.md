@@ -2,7 +2,7 @@
 
 ## 模块概述
 
-Apps层包含基于BSP构建的应用程序，展示如何使用OSAL、HAL、PDL等抽象层。
+Apps层包含基于EMS构建的应用程序，展示如何使用OSAL、HAL、PDL等抽象层。
 
 **设计理念**：
 - 完全平台无关，只使用抽象层接口
@@ -172,9 +172,9 @@ add_executable(my_app ${MY_APP_SOURCES})
 
 # 链接依赖
 target_link_libraries(my_app
-    bsp::osal       # OSAL层
-    bsp::hal        # HAL层（可选）
-    bsp::pdl        # PDL层（可选）
+    ems::osal       # OSAL层
+    ems::hal        # HAL层（可选）
+    ems::pdl        # PDL层（可选）
     Threads::Threads
 )
 

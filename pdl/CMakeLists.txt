@@ -47,16 +47,16 @@ target_link_libraries(pdl PUBLIC pdl_public_api)
 
 # 依赖下层接口库（仅头文件依赖）
 target_link_libraries(pdl PUBLIC
-    bsp::osal_public_api
-    bsp::hal_public_api
-    bsp::pcl_public_api
+    ems::osal_public_api
+    ems::hal_public_api
+    ems::pcl_public_api
 )
 
 # 链接下层实现库（运行时依赖）
 target_link_libraries(pdl PRIVATE
-    bsp::osal
-    bsp::hal
-    bsp::pcl
+    ems::osal
+    ems::hal
+    ems::pcl
 )
 
 # 内部头文件目录（私有）
@@ -90,7 +90,7 @@ install(DIRECTORY include/
 
 install(EXPORT pdl-targets
     FILE pdl-targets.cmake
-    NAMESPACE bsp::
+    NAMESPACE ems::
     DESTINATION lib/cmake/pdl
 )
 

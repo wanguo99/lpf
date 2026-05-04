@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(BSP VERSION 1.0.0 LANGUAGES C)
+project(EMS VERSION 1.0.0 LANGUAGES C)
 
 # 设置C标准
 set(CMAKE_C_STANDARD 99)
@@ -57,26 +57,26 @@ find_package(Threads REQUIRED)
 add_subdirectory(osal)
 
 # 为后续模块创建命名空间别名
-add_library(bsp::osal_public_api ALIAS osal_public_api)
-add_library(bsp::osal ALIAS osal)
+add_library(ems::osal_public_api ALIAS osal_public_api)
+add_library(ems::osal ALIAS osal)
 
 # 1.5 Test Library（测试库 - 仅在启用测试时构建）
 # 现在由统一的tests/CMakeLists.txt管理
 
 # 2. HAL层（硬件抽象层）
 add_subdirectory(hal)
-add_library(bsp::hal_public_api ALIAS hal_public_api)
-add_library(bsp::hal ALIAS hal)
+add_library(ems::hal_public_api ALIAS hal_public_api)
+add_library(ems::hal ALIAS hal)
 
 # 3. XConfig层（硬件配置库）
 add_subdirectory(pcl)
-add_library(bsp::pcl_public_api ALIAS pcl_public_api)
-add_library(bsp::pcl ALIAS pcl)
+add_library(ems::pcl_public_api ALIAS pcl_public_api)
+add_library(ems::pcl ALIAS pcl)
 
 # 4. PDL层（外设驱动层）
 add_subdirectory(pdl)
-add_library(bsp::pdl_public_api ALIAS pdl_public_api)
-add_library(bsp::pdl ALIAS pdl)
+add_library(ems::pdl_public_api ALIAS pdl_public_api)
+add_library(ems::pdl ALIAS pdl)
 
 # 5. Apps层（应用层）
 add_subdirectory(apps)
@@ -94,7 +94,7 @@ endif()
 # ============================================================================
 message(STATUS "")
 message(STATUS "========================================")
-message(STATUS "BSP v${PROJECT_VERSION}")
+message(STATUS "EMS v${PROJECT_VERSION}")
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "System: ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_PROCESSOR}")
 message(STATUS "Compiler: ${CMAKE_C_COMPILER}")

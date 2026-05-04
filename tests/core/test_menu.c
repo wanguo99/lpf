@@ -301,7 +301,7 @@ int32_t libutest_interactive_menu(void)
     test_get_all_suites(&suite_count);
 
     OSAL_Printf("\n========================================\n");
-    OSAL_Printf("  BSP Unit Test Framework\n");
+    OSAL_Printf("  EMS Unit Test Framework\n");
     OSAL_Printf("  Total Test Suites: %u\n", suite_count);
     OSAL_Printf("========================================\n");
 

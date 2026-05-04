@@ -14,7 +14,7 @@ add_executable(sample_app ${SAMPLE_APP_SOURCES})
 
 # 链接依赖（使用命名空间别名）
 target_link_libraries(sample_app
-    bsp::osal
+    ems::osal
     Threads::Threads
 )
 

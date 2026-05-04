@@ -1,12 +1,12 @@
-# BSP 编译系统架构
+# EMS 编译系统架构
 
-本文档说明BSP的模块化编译系统设计，该设计参考了NASA cFS（Core Flight System）的编译框架。
+本文档说明EMS的模块化编译系统设计，该设计参考了NASA cFS（Core Flight System）的编译框架。
 
 ## 1. 设计理念
 
 ### 1.1 核心原则
 
-参考cFS的模块化设计，BSP采用以下核心原则：
+参考cFS的模块化设计，EMS采用以下核心原则：
 
 1. **接口与实现分离**：每个模块提供接口库（仅头文件）和实现库（静态库）
 2. **清晰的依赖层次**：OSAL → HAL → PCL → PDL → Apps
@@ -15,7 +15,7 @@
 
 ### 1.2 与cFS的对比
 
-| cFS | BSP | 说明 |
+| cFS | EMS | 说明 |
 |-----|---------|------|
 | OSAL | OSAL | 操作系统抽象层 |
 | PSP | HAL | 平台/硬件支持包 |
@@ -66,12 +66,12 @@
 1. **接口库 (`<module>_public_api`)**
    - 类型：INTERFACE库（仅头文件）
    - 用途：供上层模块使用，提供头文件路径
-   - 命名空间：`bsp::<module>_public_api`
+   - 命名空间：`ems::<module>_public_api`
 
 2. **实现库 (`<module>`)**
    - 类型：STATIC库（静态库）
    - 用途：包含实际代码实现
-   - 命名空间：`bsp::<module>`
+   - 命名空间：`ems::<module>`
 
 ### 2.3 依赖关系
 
@@ -79,10 +79,10 @@
 
 ```cmake
 # PUBLIC依赖：接口库（继承头文件路径）
-target_link_libraries(hal PUBLIC bsp::osal_public_api)
+target_link_libraries(hal PUBLIC ems::osal_public_api)
 
 # PRIVATE依赖：实现库（运行时链接）
-target_link_libraries(hal PRIVATE bsp::osal)
+target_link_libraries(hal PRIVATE ems::osal)
 ```
 
 这种设计的优点：
@@ -112,8 +112,8 @@ target_link_libraries(hal PRIVATE bsp::osal)
 **使用示例**：
 ```cmake
 target_link_libraries(my_module
-    PUBLIC bsp::osal_public_api   # 头文件
-    PRIVATE bsp::osal             # 实现
+    PUBLIC ems::osal_public_api   # 头文件
+    PRIVATE ems::osal             # 实现
 )
 ```
 
@@ -126,8 +126,8 @@ target_link_libraries(my_module
 - `hal` - 实现库
 
 **依赖**：
-- `bsp::osal_public_api` (PUBLIC)
-- `bsp::osal` (PRIVATE)
+- `ems::osal_public_api` (PUBLIC)
+- `ems::osal` (PRIVATE)
 
 **特点**：
 - 唯一允许包含硬件平台相关代码的层
@@ -143,8 +143,8 @@ target_link_libraries(my_module
 - `pcl` - 实现库
 
 **依赖**：
-- `bsp::osal_public_api` (PUBLIC)
-- `bsp::osal` (PRIVATE)
+- `ems::osal_public_api` (PUBLIC)
+- `ems::osal` (PRIVATE)
 
 **特点**：
 - 纯数据配置库，类似Linux设备树
@@ -171,12 +171,12 @@ pcl/platform/
 - `pdl` - 实现库
 
 **依赖**：
-- `bsp::osal_public_api` (PUBLIC)
-- `bsp::hal_public_api` (PUBLIC)
-- `bsp::pcl_public_api` (PUBLIC)
-- `bsp::osal` (PRIVATE)
-- `bsp::hal` (PRIVATE)
-- `bsp::pcl` (PRIVATE)
+- `ems::osal_public_api` (PUBLIC)
+- `ems::hal_public_api` (PUBLIC)
+- `ems::pcl_public_api` (PUBLIC)
+- `ems::osal` (PRIVATE)
+- `ems::hal` (PRIVATE)
+- `ems::pcl` (PRIVATE)
 
 **特点**：
 - 统一外设管理层
@@ -188,7 +188,7 @@ pcl/platform/
 **文件**：`apps/sample_app/CMakeLists.txt`
 
 **依赖**：
-- `bsp::osal`（或其他需要的模块）
+- `ems::osal`（或其他需要的模块）
 
 **特点**：
 - 应用层代码
@@ -203,9 +203,9 @@ pcl/platform/
 - `test_runner` - 测试运行器库
 
 **依赖**：
-- `bsp::pdl`
-- `bsp::hal`
-- `bsp::osal`
+- `ems::pdl`
+- `ems::hal`
+- `ems::osal`
 
 **特点**：
 - 统一测试入口（unit-test）
@@ -240,8 +240,8 @@ add_subdirectory(tests)
 
 3. **创建命名空间别名**
 ```cmake
-add_library(bsp::osal_public_api ALIAS osal_public_api)
-add_library(bsp::osal ALIAS osal)
+add_library(ems::osal_public_api ALIAS osal_public_api)
+add_library(ems::osal ALIAS osal)
 # ... 其他模块
 ```
 
@@ -355,13 +355,13 @@ make install DESTDIR=/path/to/install
 每个模块生成CMake配置文件，支持`find_package`：
 
 ```cmake
-# 在其他项目中使用BSP
+# 在其他项目中使用EMS
 find_package(osal REQUIRED)
 find_package(hal REQUIRED)
 
 target_link_libraries(my_app
-    bsp::osal
-    bsp::hal
+    ems::osal
+    ems::hal
 )
 ```
 
@@ -404,7 +404,7 @@ target_link_libraries(my_app
 target_include_directories(my_module PRIVATE ${OSAL_INCLUDE_DIR})
 
 # 正确
-target_link_libraries(my_module PUBLIC bsp::osal_public_api)
+target_link_libraries(my_module PUBLIC ems::osal_public_api)
 ```
 
 ### 9.2 链接错误
@@ -414,8 +414,8 @@ target_link_libraries(my_module PUBLIC bsp::osal_public_api)
 **解决**：
 ```cmake
 target_link_libraries(my_module
-    PUBLIC bsp::osal_public_api   # 头文件
-    PRIVATE bsp::osal             # 实现（必须）
+    PUBLIC ems::osal_public_api   # 头文件
+    PRIVATE ems::osal             # 实现（必须）
 )
 ```
 
@@ -430,7 +430,7 @@ target_link_libraries(my_module
 
 ## 10. 总结
 
-BSP的编译系统参考cFS设计，具有以下优点：
+EMS的编译系统参考cFS设计，具有以下优点：
 
 1. **模块化**：清晰的层次结构，便于维护和扩展
 2. **独立编译**：每个模块可独立编译和测试
@@ -438,4 +438,4 @@ BSP的编译系统参考cFS设计，具有以下优点：
 4. **可重用**：通过接口库和命名空间，便于在其他项目中使用
 5. **现代化**：使用CMake现代特性（INTERFACE库、命名空间别名等）
 
-这种设计使得BSP能够适应从开发板到实际卫星等各种部署场景。
+这种设计使得EMS能够适应从开发板到实际卫星等各种部署场景。

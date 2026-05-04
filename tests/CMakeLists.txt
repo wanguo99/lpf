@@ -69,11 +69,11 @@ target_compile_definitions(unit-test PRIVATE
 )
 
 target_link_libraries(unit-test
-    bsp::osal_public_api
-    bsp::osal
-    bsp::hal
-    bsp::pcl
-    bsp::pdl
+    ems::osal_public_api
+    ems::osal
+    ems::hal
+    ems::pcl
+    ems::pdl
     Threads::Threads
 )
 

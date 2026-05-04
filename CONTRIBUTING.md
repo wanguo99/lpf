@@ -1,6 +1,6 @@
-# Contributing to BSP
+# Contributing to EMS
 
-Thank you for your interest in contributing to BSP! This document provides guidelines for contributing to the project.
+Thank you for your interest in contributing to EMS! This document provides guidelines for contributing to the project.
 
 ## Code of Conduct
 

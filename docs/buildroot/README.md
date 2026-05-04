@@ -1,34 +1,34 @@
-# BSP Buildroot 集成指南
+# EMS Buildroot 集成指南
 
-本目录包含将 BSP 集成到 Buildroot 构建系统所需的配置文件。
+本目录包含将 EMS 集成到 Buildroot 构建系统所需的配置文件。
 
 ## 文件说明
 
-### 1. bsp.mk
-Buildroot package makefile，定义了如何下载、配置、编译和安装 BSP。
+### 1. ems.mk
+Buildroot package makefile，定义了如何下载、配置、编译和安装 EMS。
 
 **主要配置项：**
-- `BSP_VERSION`: 版本号或 Git 提交哈希
-- `BSP_SITE`: 源码仓库地址
-- `BSP_SITE_METHOD`: 下载方式（git/wget/local）
-- `BSP_DEPENDENCIES`: 依赖的其他 Buildroot packages
-- `BSP_CONF_OPTS`: CMake 配置选项
+- `EMS_VERSION`: 版本号或 Git 提交哈希
+- `EMS_SITE`: 源码仓库地址
+- `EMS_SITE_METHOD`: 下载方式（git/wget/local）
+- `EMS_DEPENDENCIES`: 依赖的其他 Buildroot packages
+- `EMS_CONF_OPTS`: CMake 配置选项
 
 ### 2. Config.in
-Buildroot menuconfig 配置文件，定义了 BSP 在配置菜单中的选项。
+Buildroot menuconfig 配置文件，定义了 EMS 在配置菜单中的选项。
 
 **可配置选项：**
-- `BR2_PACKAGE_BSP`: 启用 BSP package
-- `BR2_PACKAGE_BSP_SAMPLE_APP`: 安装示例应用程序
-- `BR2_PACKAGE_BSP_TESTS`: 安装单元测试
+- `BR2_PACKAGE_EMS`: 启用 EMS package
+- `BR2_PACKAGE_EMS_SAMPLE_APP`: 安装示例应用程序
+- `BR2_PACKAGE_EMS_TESTS`: 安装单元测试
 
 **依赖要求：**
 - C++ 工具链支持
 - 线程支持
 - 动态库支持（不支持纯静态链接）
 
-### 3. bsp.conf
-运行时配置文件，将被安装到目标系统的 `/etc/bsp.conf`。
+### 3. ems.conf
+运行时配置文件，将被安装到目标系统的 `/etc/ems.conf`。
 
 **配置项：**
 - 日志级别和输出方式
@@ -37,11 +37,11 @@ Buildroot menuconfig 配置文件，定义了 BSP 在配置菜单中的选项。
 - I2C/SPI 总线配置
 - 看门狗配置
 
-### 4. S90bsp
-SysV init 启动脚本，将被安装到 `/etc/init.d/S90bsp`。
+### 4. S90ems
+SysV init 启动脚本，将被安装到 `/etc/init.d/S90ems`。
 
 **功能：**
-- 系统启动时自动启动 BSP 示例应用
+- 系统启动时自动启动 EMS 示例应用
 - 支持 start/stop/restart 命令
 - 使用 start-stop-daemon 管理进程
 
@@ -51,14 +51,14 @@ SysV init 启动脚本，将被安装到 `/etc/init.d/S90bsp`。
 
 1. **将配置文件复制到 Buildroot 外部 package 目录：**
    ```bash
-   mkdir -p /path/to/buildroot-external/package/bsp
-   cp bsp.mk /path/to/buildroot-external/package/bsp/
-   cp Config.in /path/to/buildroot-external/package/bsp/
+   mkdir -p /path/to/buildroot-external/package/ems
+   cp ems.mk /path/to/buildroot-external/package/ems/
+   cp Config.in /path/to/buildroot-external/package/ems/
    ```
 
 2. **在外部 package 的 Config.in 中添加：**
    ```
-   source "$BR2_EXTERNAL_<NAME>_PATH/package/bsp/Config.in"
+   source "$BR2_EXTERNAL_<NAME>_PATH/package/ems/Config.in"
    ```
 
 3. **配置 Buildroot：**
@@ -67,7 +67,7 @@ SysV init 启动脚本，将被安装到 `/etc/init.d/S90bsp`。
    make BR2_EXTERNAL=/path/to/buildroot-external menuconfig
    ```
 
-4. **在 menuconfig 中启用 BSP：**
+4. **在 menuconfig 中启用 EMS：**
    ```
    Target packages
      └─> Miscellaneous
@@ -85,15 +85,15 @@ SysV init 启动脚本，将被安装到 `/etc/init.d/S90bsp`。
 
 1. **复制文件到 Buildroot package 目录：**
    ```bash
-   mkdir -p /path/to/buildroot/package/bsp
-   cp bsp.mk /path/to/buildroot/package/bsp/
-   cp Config.in /path/to/buildroot/package/bsp/
+   mkdir -p /path/to/buildroot/package/ems
+   cp ems.mk /path/to/buildroot/package/ems/
+   cp Config.in /path/to/buildroot/package/ems/
    ```
 
 2. **编辑 `package/Config.in`，添加：**
    ```
    menu "Miscellaneous"
-       source "package/bsp/Config.in"
+       source "package/ems/Config.in"
        ...
    endmenu
    ```
@@ -104,21 +104,21 @@ SysV init 启动脚本，将被安装到 `/etc/init.d/S90bsp`。
 
 如果需要使用本地源码而不是从 Git 仓库下载：
 
-1. **修改 `bsp.mk` 中的源码位置：**
+1. **修改 `ems.mk` 中的源码位置：**
    ```makefile
-   BSP_SITE = /path/to/bsp
-   BSP_SITE_METHOD = local
-   BSP_VERSION = local
+   EMS_SITE = /path/to/ems
+   EMS_SITE_METHOD = local
+   EMS_VERSION = local
    ```
 
 2. **或者在 Buildroot 配置中设置 override：**
    ```bash
-   echo 'BSP_OVERRIDE_SRCDIR = /path/to/bsp' >> local.mk
+   echo 'EMS_OVERRIDE_SRCDIR = /path/to/ems' >> local.mk
    ```
 
 ## 目标系统文件布局
 
-编译完成后，BSP 将在目标系统中安装以下文件：
+编译完成后，EMS 将在目标系统中安装以下文件：
 
 ```
 /usr/lib/
@@ -127,25 +127,25 @@ SysV init 启动脚本，将被安装到 `/etc/init.d/S90bsp`。
 ├── libpcl.so           # PCL 库
 └── libpdl.so           # PDL 库
 
-/usr/include/bsp/   # 头文件（如果启用开发文件）
+/usr/include/ems/   # 头文件（如果启用开发文件）
 ├── osal/
 ├── hal/
 ├── pcl/
 └── pdl/
 
 /usr/bin/
-├── bsp-sample-app      # 示例应用（可选）
-└── bsp-unit-test       # 单元测试（可选）
+├── ems-sample-app      # 示例应用（可选）
+└── ems-unit-test       # 单元测试（可选）
 
 /etc/
-├── bsp.conf        # 配置文件
+├── ems.conf        # 配置文件
 └── init.d/
-    └── S90bsp      # 启动脚本
+    └── S90ems      # 启动脚本
 ```
 
 ## 交叉编译配置
 
-BSP 支持多种架构的交叉编译，Buildroot 会自动传递正确的工具链配置：
+EMS 支持多种架构的交叉编译，Buildroot 会自动传递正确的工具链配置：
 
 - **ARM32**: `arm-linux-gnueabihf-gcc`
 - **ARM64**: `aarch64-linux-gnu-gcc`
@@ -156,7 +156,7 @@ CMake 会自动检测目标架构并应用相应的编译优化选项。
 
 ## 依赖关系
 
-BSP 在 Buildroot 中的依赖：
+EMS 在 Buildroot 中的依赖：
 
 - **必需依赖：**
   - C++ 工具链（`BR2_INSTALL_LIBSTDCPP`）
@@ -164,7 +164,7 @@ BSP 在 Buildroot 中的依赖：
   - 动态库支持（`!BR2_STATIC_LIBS`）
 
 - **可选依赖：**
-  - 无（BSP 是自包含的）
+  - 无（EMS 是自包含的）
 
 ## 常见问题
 
@@ -178,7 +178,7 @@ BSP 在 Buildroot 中的依赖：
 
 ### 3. 启动脚本不执行
 **原因：** 脚本权限不正确  
-**解决：** 检查 `S90bsp` 是否有执行权限（应为 755）
+**解决：** 检查 `S90ems` 是否有执行权限（应为 755）
 
 ### 4. 交叉编译架构不匹配
 **原因：** CMake 未正确检测目标架构  
@@ -188,10 +188,10 @@ BSP 在 Buildroot 中的依赖：
 
 ### 修改 CMake 配置选项
 
-编辑 `bsp.mk` 中的 `BSP_CONF_OPTS`：
+编辑 `ems.mk` 中的 `EMS_CONF_OPTS`：
 
 ```makefile
-BSP_CONF_OPTS = \
+EMS_CONF_OPTS = \
 	-DCMAKE_BUILD_TYPE=Release \
 	-DBUILD_SHARED_LIBS=ON \
 	-DBUILD_TESTING=OFF \
@@ -200,13 +200,13 @@ BSP_CONF_OPTS = \
 
 ### 添加额外的安装文件
 
-在 `bsp.mk` 中添加 `define BSP_INSTALL_TARGET_CMDS`：
+在 `ems.mk` 中添加 `define EMS_INSTALL_TARGET_CMDS`：
 
 ```makefile
-define BSP_INSTALL_TARGET_CMDS
-	$(INSTALL) -D -m 0755 $(@D)/build/release/bin/bsp-sample-app $(TARGET_DIR)/usr/bin/bsp-sample-app
-	$(INSTALL) -D -m 0644 $(BSP_PKGDIR)/bsp.conf $(TARGET_DIR)/etc/bsp.conf
-	$(INSTALL) -D -m 0755 $(BSP_PKGDIR)/S90bsp $(TARGET_DIR)/etc/init.d/S90bsp
+define EMS_INSTALL_TARGET_CMDS
+	$(INSTALL) -D -m 0755 $(@D)/build/release/bin/ems-sample-app $(TARGET_DIR)/usr/bin/ems-sample-app
+	$(INSTALL) -D -m 0644 $(EMS_PKGDIR)/ems.conf $(TARGET_DIR)/etc/ems.conf
+	$(INSTALL) -D -m 0755 $(EMS_PKGDIR)/S90ems $(TARGET_DIR)/etc/init.d/S90ems
 	# 添加自定义安装命令
 	$(INSTALL) -D -m 0644 $(@D)/custom-file $(TARGET_DIR)/etc/custom-file
 endef
@@ -216,32 +216,32 @@ endef
 
 ### 使用特定版本
 
-修改 `bsp.mk`：
+修改 `ems.mk`：
 
 ```makefile
-BSP_VERSION = v1.0.0
-BSP_SITE = https://github.com/wanguo99/bsp.git
-BSP_SITE_METHOD = git
+EMS_VERSION = v1.0.0
+EMS_SITE = https://github.com/wanguo99/ems.git
+EMS_SITE_METHOD = git
 ```
 
 ### 使用特定 Git 提交
 
 ```makefile
-BSP_VERSION = abc123def456
+EMS_VERSION = abc123def456
 ```
 
 ### 使用 tarball
 
 ```makefile
-BSP_VERSION = 1.0.0
-BSP_SITE = https://github.com/wanguo99/bsp/releases/download/v$(BSP_VERSION)
-BSP_SOURCE = bsp-$(BSP_VERSION).tar.gz
-BSP_SITE_METHOD = wget
+EMS_VERSION = 1.0.0
+EMS_SITE = https://github.com/wanguo99/ems/releases/download/v$(EMS_VERSION)
+EMS_SOURCE = bsp-$(EMS_VERSION).tar.gz
+EMS_SITE_METHOD = wget
 ```
 
 ## 技术支持
 
 如有问题，请参考：
-- BSP 主文档：`../README.md`
+- EMS 主文档：`../README.md`
 - Buildroot 官方文档：https://buildroot.org/downloads/manual/manual.html
 - 交叉编译指南：`../CROSS_COMPILE_GUIDE.md`

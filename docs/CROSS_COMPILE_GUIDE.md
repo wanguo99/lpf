@@ -1,8 +1,8 @@
-# BSP 交叉编译支持
+# EMS 交叉编译支持
 
 ## 概述
 
-BSP 框架**完全支持交叉编译**，可以在 x86_64 主机上编译出适用于不同目标平台的二进制文件。
+EMS 框架**完全支持交叉编译**，可以在 x86_64 主机上编译出适用于不同目标平台的二进制文件。
 
 ## 支持的目标架构
 
@@ -163,7 +163,7 @@ set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 
 ## 类型系统保证
 
-BSP 的类型系统经过优化，确保跨平台兼容性：
+EMS 的类型系统经过优化，确保跨平台兼容性：
 
 ### 固定宽度类型
 
@@ -370,7 +370,7 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: bsp-${{ matrix.arch }}
+        name: ems-\${{ matrix.arch }}
         path: output/target/
 ```
 
@@ -416,7 +416,7 @@ build:riscv64:
 
 ## 总结
 
-BSP 框架的交叉编译支持特性：
+EMS 框架的交叉编译支持特性：
 
 ✅ **完整支持** ARM32/ARM64/RISC-V 64 交叉编译  
 ✅ **类型安全** 编译时验证跨平台类型一致性  
