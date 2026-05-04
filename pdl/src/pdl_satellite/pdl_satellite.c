@@ -32,7 +32,7 @@ typedef struct
     volatile bool running;
 
     /* 互斥锁保护 */
-    osal_id_t mutex;
+    osal_mutex_t *mutex;
 } satellite_service_context_t;
 
 /*
@@ -141,7 +141,7 @@ int32_t PDL_Satellite_Init(const satellite_service_config_t *config,
     ctx->running = true;
 
     /* 创建互斥锁 */
-    if (OSAL_SUCCESS != OSAL_MutexCreate(&ctx->mutex, "sat_mutex", 0))
+    if (OSAL_SUCCESS != OSAL_MutexCreate(&ctx->mutex))
     {
         LOG_ERROR("SAT", "Failed to create mutex");
         OSAL_Free(ctx);

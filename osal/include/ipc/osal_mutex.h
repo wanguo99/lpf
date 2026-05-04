@@ -1,105 +1,67 @@
 /************************************************************************
- * 互斥锁API
+ * OSAL 互斥锁接口
+ *
+ * 简单封装 pthread_mutex，提供跨平台互斥锁支持
  ************************************************************************/
 
-#ifndef OSAPI_MUTEX_H
-#define OSAPI_MUTEX_H
+#ifndef OSAL_MUTEX_H
+#define OSAL_MUTEX_H
 
 #include "osal_types.h"
 
-/* 死锁检测超时阈值（毫秒） */
-#define OSAL_MUTEX_DEADLOCK_TIMEOUT_MSEC  5000U  /* 5秒 */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * @brief 互斥锁句柄类型
+ *
+ * 不透明句柄，内部实现为 pthread_mutex_t*
+ */
+typedef struct osal_mutex_s osal_mutex_t;
 
 /**
  * @brief 创建互斥锁
  *
- * @param[out] mutex_id   返回的互斥锁ID
- * @param[in]  mutex_name 互斥锁名称
- * @param[in]  flags      保留,传0
- *
+ * @param[out] mutex 互斥锁句柄指针
  * @return OSAL_SUCCESS 成功
- * @return OSAL_ERR_INVALID_POINTER mutex_id为NULL
- * @return OSAL_ERR_NAME_TOO_LONG 名称过长
- * @return OSAL_ERR_NO_FREE_IDS 无可用互斥锁ID
- * @return OSAL_ERR_NAME_TAKEN 名称已被使用
- * @return OSAL_ERR_GENERIC 其他错误
+ * @return OSAL_ERR_INVALID_POINTER mutex 为 NULL
+ * @return OSAL_ERR_GENERIC 系统调用失败
  */
-int32_t OSAL_MutexCreate(osal_id_t *mutex_id, const char *mutex_name, uint32_t flags);
+int32_t OSAL_MutexCreate(osal_mutex_t **mutex);
 
 /**
- * @brief 删除互斥锁
+ * @brief 销毁互斥锁
  *
- * @param[in] mutex_id 互斥锁ID
- *
+ * @param[in] mutex 互斥锁句柄
  * @return OSAL_SUCCESS 成功
- * @return OSAL_ERR_INVALID_ID 无效的互斥锁ID
- * @return OSAL_ERR_GENERIC 删除失败
+ * @return OSAL_ERR_INVALID_POINTER mutex 为 NULL
+ * @return OSAL_ERR_GENERIC 系统调用失败
  */
-int32_t OSAL_MutexDelete(osal_id_t mutex_id);
+int32_t OSAL_MutexDelete(osal_mutex_t *mutex);
 
 /**
  * @brief 获取互斥锁
  *
- * @param[in] mutex_id 互斥锁ID
- *
+ * @param[in] mutex 互斥锁句柄
  * @return OSAL_SUCCESS 成功
- * @return OSAL_ERR_INVALID_ID 无效的互斥锁ID
- * @return OSAL_ERR_GENERIC 获取失败
+ * @return OSAL_ERR_INVALID_POINTER mutex 为 NULL
+ * @return OSAL_ERR_GENERIC 系统调用失败
  */
-int32_t OSAL_MutexLock(osal_id_t mutex_id);
+int32_t OSAL_MutexLock(osal_mutex_t *mutex);
 
 /**
  * @brief 释放互斥锁
  *
- * @param[in] mutex_id 互斥锁ID
- *
+ * @param[in] mutex 互斥锁句柄
  * @return OSAL_SUCCESS 成功
- * @return OSAL_ERR_INVALID_ID 无效的互斥锁ID
- * @return OSAL_ERR_GENERIC 释放失败
+ * @return OSAL_ERR_INVALID_POINTER mutex 为 NULL
+ * @return OSAL_ERR_GENERIC 系统调用失败
  */
-int32_t OSAL_MutexUnlock(osal_id_t mutex_id);
+int32_t OSAL_MutexUnlock(osal_mutex_t *mutex);
 
-/**
- * @brief 根据名称获取互斥锁ID
- *
- * @param[out] mutex_id   返回的互斥锁ID
- * @param[in]  mutex_name 互斥锁名称
- *
- * @return OSAL_SUCCESS 成功
- * @return OSAL_ERR_INVALID_POINTER mutex_id为NULL
- * @return OSAL_ERR_NAME_NOT_FOUND 未找到互斥锁
- */
-int32_t OSAL_MutexGetIdByName(osal_id_t *mutex_id, const char *mutex_name);
+#ifdef __cplusplus
+}
+#endif
 
-/**
- * @brief 带超时的互斥锁获取
- *
- * @param[in] mutex_id      互斥锁ID
- * @param[in] timeout_msec  超时时间(毫秒)
- *
- * @return OSAL_SUCCESS 成功
- * @return OSAL_ERR_INVALID_ID 无效的互斥锁ID
- * @return OSAL_ERR_TIMEOUT 超时
- * @return OSAL_ERR_GENERIC 其他错误
- */
-int32_t OSAL_MutexLockTimeout(osal_id_t mutex_id, uint32_t timeout_msec);
-
-/**
- * @brief 死锁检测回调函数类型
- *
- * @param[in] mutex_name 互斥锁名称
- * @param[in] wait_time  等待时间(毫秒)
- */
-typedef void (*deadlock_callback_t)(const char *mutex_name, uint32_t wait_time);
-
-/**
- * @brief 设置死锁检测阈值和回调
- *
- * @param[in] threshold_msec 死锁检测阈值(毫秒)
- * @param[in] callback       死锁检测回调函数
- *
- * @return OSAL_SUCCESS 成功
- */
-int32_t OSAL_MutexSetDeadlockDetection(uint32_t threshold_msec, deadlock_callback_t callback);
-
-#endif /* OSAPI_MUTEX_H */
+#endif /* OSAL_MUTEX_H */

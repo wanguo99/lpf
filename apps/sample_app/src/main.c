@@ -30,8 +30,8 @@ static volatile bool g_running = true;
 static osal_thread_t g_worker_thread = 0;
 static osal_thread_t g_stats_thread = 0;
 
-/* 互斥锁ID */
-static osal_id_t g_mutex_id = 0;
+/* 互斥锁指针 */
+static osal_mutex_t *g_mutex = NULL;
 
 /* 统计计数器（使用原子操作） */
 static atomic_uint g_msg_count = 0;
@@ -69,9 +69,9 @@ static void *worker_task(void *arg)
     while (g_running)
     {
         /* 使用互斥锁保护日志输出 */
-        OSAL_MutexLock(g_mutex_id);
+        OSAL_MutexLock(g_mutex);
         LOG_INFO("Worker", "心跳 #%u", counter);
-        OSAL_MutexUnlock(g_mutex_id);
+        OSAL_MutexUnlock(g_mutex);
 
         /* 更新计数器 */
         atomic_fetch_add(&g_msg_count, 1);
@@ -107,14 +107,14 @@ static void *stats_task(void *arg)
             break;
 
         /* 使用互斥锁保护统计输出 */
-        OSAL_MutexLock(g_mutex_id);
+        OSAL_MutexLock(g_mutex);
 
         uint32_t count = atomic_load(&g_msg_count);
         OSAL_Printf("\n========== 应用统计 ==========\n");
         OSAL_Printf("工作线程心跳次数: %u\n", count);
         OSAL_Printf("==============================\n\n");
 
-        OSAL_MutexUnlock(g_mutex_id);
+        OSAL_MutexUnlock(g_mutex);
     }
 
     LOG_INFO("Stats", "统计线程退出");
@@ -155,7 +155,7 @@ int main(int32_t argc, char *argv[])
     LOG_INFO("Main", "信号处理注册成功");
 
     /* 2. 创建互斥锁 */
-    ret = OSAL_MutexCreate(&g_mutex_id, "AppMutex", 0);
+    ret = OSAL_MutexCreate(&g_mutex);
     if (OSAL_SUCCESS != ret)
     {
         LOG_ERROR("Main", "创建互斥锁失败: %d", ret);
@@ -206,9 +206,9 @@ cleanup:
     }
 
     /* 7. 删除互斥锁 */
-    if (0 != g_mutex_id)
+    if (NULL != g_mutex)
     {
-        ret = OSAL_MutexDelete(g_mutex_id);
+        ret = OSAL_MutexDelete(g_mutex);
         if (OSAL_SUCCESS == ret)
         {
             LOG_INFO("Main", "互斥锁已删除");

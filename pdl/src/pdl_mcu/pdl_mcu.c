@@ -20,7 +20,7 @@ typedef struct
     mcu_interface_t interface;
     void *comm_handle;                /* 通信句柄（CAN/串口） */
     bool initialized;
-    osal_id_t mutex;
+    osal_mutex_t *mutex;
     mcu_version_t version;
     mcu_status_t status;
 } mcu_context_t;
@@ -46,7 +46,7 @@ int32_t PDL_MCU_Init(const mcu_config_t *config, mcu_handle_t *handle)
     ctx->interface = config->interface;
 
     /* 创建互斥锁 */
-    if (OSAL_SUCCESS != OSAL_MutexCreate(&ctx->mutex, "mcu_mutex", 0))
+    if (OSAL_SUCCESS != OSAL_MutexCreate(&ctx->mutex))
     {
         OSAL_Free(ctx);
         return OSAL_ERR_GENERIC;

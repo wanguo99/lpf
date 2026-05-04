@@ -20,7 +20,7 @@ typedef struct
     hal_can_handle_t can_handle;
     uint32_t tx_id;
     uint32_t rx_id;
-    osal_id_t rx_mutex;
+    osal_mutex_t *rx_mutex;
 } mcu_can_context_t;
 
 /**
@@ -59,7 +59,7 @@ int32_t mcu_can_init(const void *config, void **handle)
     }
 
     /* 创建接收互斥锁 */
-    if (OSAL_SUCCESS != OSAL_MutexCreate(&ctx->rx_mutex, "mcu_can_rx", 0))
+    if (OSAL_SUCCESS != OSAL_MutexCreate(&ctx->rx_mutex))
     {
         HAL_CAN_Deinit(ctx->can_handle);
         OSAL_Free(ctx);

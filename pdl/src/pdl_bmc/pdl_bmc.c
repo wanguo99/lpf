@@ -39,7 +39,7 @@ typedef struct
     uint32_t protocol_switch_count;
 
     /* 互斥锁 */
-    osal_id_t mutex;
+    osal_mutex_t *mutex;
 } bmc_context_t;
 
 /**
@@ -67,7 +67,7 @@ int32_t PDL_BMC_Init(const bmc_config_t *config,
     ctx->current_protocol = BMC_PROTOCOL_REDFISH;
 
     /* 创建互斥锁 */
-    if (OSAL_SUCCESS != OSAL_MutexCreate(&ctx->mutex, "bmc_mutex", 0))
+    if (OSAL_SUCCESS != OSAL_MutexCreate(&ctx->mutex))
     {
         LOG_ERROR("BMC", "Failed to create mutex");
         OSAL_Free(ctx);

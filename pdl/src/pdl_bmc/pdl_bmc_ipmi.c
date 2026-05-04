@@ -19,7 +19,7 @@ typedef struct
     void *transport_handle;
     int32_t (*send_recv)(void*, const uint8_t*, uint32_t, uint8_t*, uint32_t, uint32_t*);
     uint8_t seq_num;
-    osal_id_t mutex;
+    osal_mutex_t *mutex;
 } bmc_ipmi_context_t;
 
 /*
@@ -100,7 +100,7 @@ int32_t bmc_ipmi_init(void *transport_handle,
     ctx->send_recv = send_recv;
     ctx->seq_num = 0;
 
-    if (OSAL_SUCCESS != OSAL_MutexCreate(&ctx->mutex, "ipmi_mutex", 0))
+    if (OSAL_SUCCESS != OSAL_MutexCreate(&ctx->mutex))
     {
         OSAL_Free(ctx);
         return OSAL_ERR_GENERIC;

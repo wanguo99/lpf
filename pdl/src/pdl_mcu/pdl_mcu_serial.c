@@ -29,7 +29,7 @@ typedef struct
 {
     hal_serial_handle_t serial_handle;
     bool enable_crc;
-    osal_id_t rx_mutex;
+    osal_mutex_t *rx_mutex;
 } mcu_serial_context_t;
 
 /**
@@ -68,7 +68,7 @@ int32_t mcu_serial_init(const void *config, void **handle)
     }
 
     /* 创建接收互斥锁 */
-    if (OSAL_SUCCESS != OSAL_MutexCreate(&ctx->rx_mutex, "mcu_serial_rx", 0))
+    if (OSAL_SUCCESS != OSAL_MutexCreate(&ctx->rx_mutex))
     {
         HAL_Serial_Close(ctx->serial_handle);
         OSAL_Free(ctx);

@@ -20,7 +20,7 @@ typedef struct
     int32_t (*send_recv)(void*, const uint8_t*, uint32_t, uint8_t*, uint32_t, uint32_t*);
     redfish_auth_t auth;
     char base_url[128];
-    osal_id_t mutex;
+    osal_mutex_t *mutex;
 } bmc_redfish_context_t;
 
 /*
@@ -236,7 +236,7 @@ int32_t bmc_redfish_init(void *transport_handle,
     ctx->auth.use_session = false;
     OSAL_Strcpy(ctx->base_url, "bmc");
 
-    if (OSAL_SUCCESS != OSAL_MutexCreate(&ctx->mutex, "redfish_mutex", 0))
+    if (OSAL_SUCCESS != OSAL_MutexCreate(&ctx->mutex))
     {
         OSAL_Free(ctx);
         return OSAL_ERR_GENERIC;
