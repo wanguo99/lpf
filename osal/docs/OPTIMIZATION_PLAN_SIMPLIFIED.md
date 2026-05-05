@@ -79,6 +79,95 @@
 
 ## 🎯 需要补充的核心功能（精简版）
 
+### 阶段 0: 类型系统优化（P0 - 最高优先级）
+
+#### 0.1 统一使用固定长度类型
+
+| ID | 任务 | 优先级 | 预计工时 | 状态 | Git Commit |
+|----|------|--------|----------|------|------------|
+| T0.1 | 将所有 API 参数从 osal_size_t 改为固定长度类型（uint32_t） | P0 | 8h | ⬜ TODO |  |
+
+**优化目标**：
+- 消除可变长度类型（osal_size_t 在不同平台上是 uint16_t/uint32_t/uint64_t）
+- 统一使用固定长度类型，确保跨平台数据一致性
+- 避免类型转换和内存越界问题
+
+**设计原则**：
+1. **内存/缓冲区操作**：统一使用 `uint32_t`（最大 4GB，嵌入式系统足够）
+2. **文件偏移/大小**：使用 `int64_t`/`uint64_t`（支持大文件）
+3. **字符串操作**：保留 `char *`（C 标准，可读性好）
+4. **不使用强制类型转换**：在 OSAL 实现层处理与系统调用的类型转换
+
+**需要修改的文件**：
+```
+osal/include/lib/osal_heap.h       - OSAL_Malloc(uint32_t size)
+osal/include/lib/osal_string.h     - OSAL_Memcpy/Memset/Strlen 等
+osal/include/sys/osal_file.h       - OSAL_read/write(uint32_t count)
+osal/include/net/osal_socket.h     - OSAL_send/recv(uint32_t len)
+osal/src/posix/lib/osal_heap.c     - 实现层处理类型转换
+osal/src/posix/lib/osal_string.c   - 实现层处理类型转换
+osal/src/posix/sys/osal_file.c     - 实现层处理类型转换
+osal/src/posix/net/osal_socket.c   - 实现层处理类型转换
+```
+
+**类型映射规则**：
+```c
+/* 旧设计（可变长度） */
+typedef uint64_t osal_size_t;   // 64位系统
+typedef uint32_t osal_size_t;   // 32位系统
+typedef uint16_t osal_size_t;   // 16位系统（不支持）
+
+/* 新设计（固定长度） */
+// 内存/缓冲区大小 - 统一使用 uint32_t
+void *OSAL_Malloc(uint32_t size);
+void *OSAL_Memcpy(void *dest, const void *src, uint32_t size);
+int32_t OSAL_read(int32_t fd, void *buf, uint32_t count);
+int32_t OSAL_send(int32_t sockfd, const void *buf, uint32_t len, int32_t flags);
+
+// 文件偏移 - 使用 int64_t 支持大文件
+int64_t OSAL_lseek(int32_t fd, int64_t offset, int32_t whence);
+
+// 字符串长度 - 返回 uint32_t
+uint32_t OSAL_Strlen(const char *str);
+```
+
+**实现层类型转换示例**：
+```c
+/* osal/src/posix/lib/osal_heap.c */
+void *OSAL_Malloc(uint32_t size) {
+    // 安全转换：uint32_t → size_t（总是安全）
+    void *ptr = malloc((size_t)size);
+    return ptr;
+}
+
+/* osal/src/posix/sys/osal_file.c */
+int32_t OSAL_read(int32_t fd, void *buf, uint32_t count) {
+    // 安全转换：uint32_t → size_t
+    ssize_t ret = read(fd, buf, (size_t)count);
+    
+    // 检查返回值是否超出 int32_t 范围
+    if (ret > INT32_MAX) {
+        // 理论上不会发生，因为 count <= UINT32_MAX
+        errno = EOVERFLOW;
+        return -1;
+    }
+    return (int32_t)ret;
+}
+```
+
+**验证方法**：
+1. 编译所有平台（x86_64/ARM32/ARM64/RISC-V64）
+2. 运行所有单元测试
+3. 检查是否有类型转换警告
+4. 验证跨平台数据一致性
+
+**注意事项**：
+- EMS 项目不支持 16 位系统（仅支持 x86_64/ARM32/ARM64/RISC-V64）
+- uint32_t 最大值 4GB 对嵌入式系统足够
+- 类型转换仅在 OSAL 实现层进行，应用层完全透明
+
+---
+
 ### 阶段 1: 同步原语补充（P0 - 核心基础）
 
 #### 1.1 信号量实现
