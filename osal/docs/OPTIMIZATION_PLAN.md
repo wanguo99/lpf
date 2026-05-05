@@ -110,7 +110,7 @@
 
 | ID | 任务 | 优先级 | 预计工时 | 状态 | Git Commit |
 |----|------|--------|----------|------|------------|
-| T3.3.1 | 实现 OSAL_CacheFlush（刷新缓存） | P1 | 3h | ⬜ TODO |  |
+| T3.3.1 | P0 | 2h | ❌ CANCELLED |  |
 | T3.3.2 | 实现 OSAL_CacheInvalidate（使缓存失效） | P1 | 3h | ⬜ TODO |  |
 | T3.3.3 | 实现 OSAL_CacheFlushRange（范围刷新） | P2 | 2h | ⬜ TODO |  |
 
