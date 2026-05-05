@@ -57,7 +57,7 @@
 
 | ID | 任务 | 优先级 | 预计工时 | 状态 | Git Commit |
 |----|------|--------|----------|------|------------|
-| T1.2.1 | 设计分层错误码结构（严重级别+模块ID+错误码） | P0 | 4h | ⬜ TODO |  |
+| T1.2.1 | P0 | 2h | ❌ CANCELLED |  |
 | T1.2.2 | 定义模块 ID 枚举（TASK/MUTEX/QUEUE/TIMER/FILE/NET） | P0 | 2h | ⬜ TODO |  |
 | T1.2.3 | 定义严重级别（SUCCESS/INFO/WARNING/ERROR/FATAL） | P0 | 1h | ⬜ TODO |  |
 | T1.2.4 | 实现错误码解析宏（提取级别/模块/代码） | P0 | 2h | ⬜ TODO |  |
