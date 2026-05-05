@@ -3,7 +3,7 @@
 **项目**: EMS (Embedded Middleware System)  
 **模块**: OSAL (Operating System Abstraction Layer)  
 **创建日期**: 2026-05-05  
-**最后更新**: 2026-05-05  
+**最后更新**: 2026-05-05
 **负责人**: 系统架构师  
 
 ---
@@ -45,7 +45,7 @@
 
 | ID | 任务 | 优先级 | 预计工时 | 状态 | Git Commit |
 |----|------|--------|----------|------|------------|
-| T1.1.1 | 补充硬件寄存器类型（osal_reg32_t, osal_reg16_t） | P0 | 2h | ⬜ TODO |  |
+| T1.1.1 | P0 | 2h | 🔄 IN PROGRESS |  |
 | T1.1.2 | 补充原子类型别名（osal_atomic32_t, osal_atomic64_t） | P0 | 2h | ⬜ TODO |  |
 | T1.1.3 | 补充时间类型（osal_tick_t, osal_msec_t） | P0 | 2h | ⬜ TODO |  |
 | T1.1.4 | 补充地址类型（osal_paddr_t, osal_vaddr_t） | P1 | 1h | ⬜ TODO |  |
@@ -449,5 +449,5 @@ git log --grep="阶段: 1.1" --oneline
 
 ---
 
-**最后更新**: 2026-05-05  
+**最后更新**: 2026-05-05
 **版本**: v1.0
