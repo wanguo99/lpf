@@ -43,10 +43,14 @@ cmake --preset riscv64 && cmake --build build/riscv64
 
 ```bash
 # Run tests (adjust path based on preset used)
-./build/release/bin/unit-test -i    # Interactive menu (recommended)
-./build/release/bin/unit-test -a    # Run all tests
-./build/release/bin/unit-test -L OSAL  # Run OSAL layer tests
-./build/release/bin/unit-test -m test_osal_task  # Run specific module
+./build/release/bin/ems-test -i    # Interactive menu (recommended)
+./build/release/bin/ems-test -a    # Run all tests
+./build/release/bin/ems-test -L OSAL  # Run OSAL layer tests
+./build/release/bin/ems-test -m test_osal_task  # Run specific module
+
+# Busybox-style shortcuts (via symlinks)
+./build/release/bin/osal-test -a    # Run only OSAL tests
+./build/release/bin/hal-test -a     # Run only HAL tests
 
 # Fast iteration: rebuild single test layer
 cd build/release && make osal_tests -j$(nproc) && cd ../..
@@ -58,7 +62,7 @@ cd build/release && make hal_tests -j$(nproc) && cd ../..
 ```bash
 cmake --preset debug && cmake --build --preset debug
 gdb ./build/debug/bin/sample_app
-gdb --args ./build/debug/bin/unit-test -m test_osal_task
+gdb --args ./build/debug/bin/ems-test -m test_osal_task
 ```
 
 ## Architecture: 5-Layer Design
@@ -263,10 +267,10 @@ static void task_entry(void *arg)
 5. Add platform-specific tests if needed
 
 ### Adding New Test
-1. Create test file in `tests/<layer>/` (e.g., `test_osal_timer.c`)
+1. Create test file in `tests/unit/<layer>/` (e.g., `test_osal_timer.c`)
 2. Use `TEST_MODULE_BEGIN/END` macros
 3. Add source file to `tests/CMakeLists.txt`
-4. Build and run: `cmake --build build/debug && ./build/debug/bin/unit-test -m test_osal_timer`
+4. Build and run: `cmake --build build/debug && ./build/debug/bin/ems-test -m test_osal_timer`
 5. For fast iteration: `cd build/debug && make osal_tests -j$(nproc) && cd ../..`
 
 **Test template**:
@@ -367,7 +371,7 @@ sudo usermod -a -G dialout $USER
 # Log out and log back in for changes to take effect
 
 # Or use sudo for testing
-sudo ./build/release/bin/unit-test -m test_hal_serial
+sudo ./build/release/bin/ems-test -m test_hal_serial
 ```
 
 ## Build Output Structure
@@ -375,7 +379,7 @@ sudo ./build/release/bin/unit-test -m test_hal_serial
 ```
 build/
 ├── release/           # Release build
-│   ├── bin/          # Executables (sample_app, unit-test)
+│   ├── bin/          # Executables (sample_app, ems-test)
 │   └── lib/          # Static libraries (libosal.a, libhal.a, libpdl.a, libpcl.a)
 ├── debug/            # Debug build
 │   ├── bin/
@@ -424,18 +428,18 @@ OSAL_LogSetLevel(LOG_LEVEL_DEBUG);  // In your code
 **GDB debugging**:
 ```bash
 cmake --preset debug && cmake --build --preset debug
-gdb --args ./build/debug/bin/unit-test -m test_osal_task
+gdb --args ./build/debug/bin/ems-test -m test_osal_task
 ```
 
 **Memory leak detection**:
 ```bash
-valgrind --leak-check=full ./build/debug/bin/unit-test -m test_osal_queue
+valgrind --leak-check=full ./build/debug/bin/ems-test -m test_osal_queue
 ```
 
 **Check task status**:
 ```bash
 # Monitor running tasks
-ps -eLf | grep unit-test
+ps -eLf | grep ems-test
 ```
 
 ## Project Stats

@@ -84,7 +84,7 @@ build/
 ├── release/          # Release 构建
 │   ├── bin/          # 可执行文件
 │   │   ├── sample_app
-│   │   └── unit-test
+│   │   └── ems-test
 │   └── lib/          # 库文件
 │       ├── libosal.so
 │       ├── libhal.so
@@ -100,11 +100,12 @@ build/
 
 ```bash
 # 运行示例应用
-./build/release/bin/sample_app
+./output/target/bin/sample_app
 
 # 运行测试
-./build/release/bin/unit-test -i    # 交互式
-./build/release/bin/unit-test -a    # 运行所有测试
+./output/target/bin/ems-test -i     # 交互式
+./output/target/bin/ems-test -a     # 运行所有测试
+./output/target/bin/osal-test -a    # 仅运行OSAL层测试
 ```
 
 ## 构建系统架构

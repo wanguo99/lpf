@@ -40,8 +40,8 @@ endif
 # 安装测试程序
 ifeq ($(BR2_PACKAGE_EMS_TESTS),y)
 define EMS_INSTALL_TESTS
-	$(INSTALL) -D -m 0755 $(@D)/build/release/bin/ems-unit-test \
-		$(TARGET_DIR)/usr/bin/ems-unit-test
+	$(INSTALL) -D -m 0755 $(@D)/build/release/bin/ems-test \
+		$(TARGET_DIR)/usr/bin/ems-test
 endef
 EMS_POST_INSTALL_TARGET_HOOKS += EMS_INSTALL_TESTS
 endif

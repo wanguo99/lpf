@@ -10,49 +10,35 @@ endif()
 message(STATUS "Tests configured (unified test framework)")
 
 # ============================================================================
-# Unified Test Runner Executable
+# Collect Test Sources
 # ============================================================================
-add_executable(unit-test
+file(GLOB_RECURSE UNIT_TEST_SOURCES
+    "unit/osal/*.c"
+    "unit/hal/*.c"
+    "unit/pcl/*.c"
+    "unit/pdl/*.c"
+)
+
+file(GLOB_RECURSE SYSTEM_TEST_SOURCES "system/**/*.c")
+file(GLOB_RECURSE STRESS_TEST_SOURCES "stress/**/*.c")
+
+# ============================================================================
+# Unified Test Runner Executable (renamed to ems-test)
+# ============================================================================
+add_executable(ems-test
     # Test framework core
     core/main.c
     core/test_runner.c
     core/test_registry.c
     core/test_menu.c
 
-    # OSAL tests
-    osal/test_osal_mutex.c
-    osal/test_osal_semaphore.c
-    osal/test_osal_cond.c
-    osal/test_osal_stress.c
-    osal/test_osal_signal.c
-    osal/test_osal_atomic.c
-    osal/test_osal_string.c
-    osal/test_osal_file.c
-    osal/test_osal_time.c
-    osal/test_osal_clock.c
-    osal/test_osal_env.c
-    osal/test_osal_errno.c
-    osal/test_osal_version.c
-    osal/test_osal_heap.c
-    osal/test_osal_log.c
-
-    # HAL tests
-    hal/test_hal_can.c
-    hal/test_hal_serial.c
-    hal/test_hal_i2c.c
-    hal/test_hal_spi.c
-
-    # PCL tests
-    pcl/test_pcl_api.c
-
-    # PDL tests
-    pdl/test_pdl_satellite.c
-    pdl/test_pdl_mcu.c
-    pdl/test_pdl_bmc.c
-    pdl/test_pdl_bmc_protocol.c
+    # All test sources
+    ${UNIT_TEST_SOURCES}
+    ${SYSTEM_TEST_SOURCES}
+    ${STRESS_TEST_SOURCES}
 )
 
-target_include_directories(unit-test PRIVATE
+target_include_directories(ems-test PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../osal/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../hal/include
@@ -64,7 +50,7 @@ target_include_directories(unit-test PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../pdl/src/pdl_bmc
 )
 
-target_link_libraries(unit-test
+target_link_libraries(ems-test
     ems::osal_public_api
     ems::osal
     ems::hal
@@ -75,22 +61,51 @@ target_link_libraries(unit-test
 
 # macOS 不需要 librt
 if(NOT APPLE)
-    target_link_libraries(unit-test rt)
+    target_link_libraries(ems-test rt)
 endif()
 
 # 输出目录由顶层 CMakeLists.txt 的 CMAKE_RUNTIME_OUTPUT_DIRECTORY 控制
 
 # ============================================================================
+# Install and Create Symlinks (Busybox-style)
+# ============================================================================
+install(TARGETS ems-test
+    RUNTIME DESTINATION bin
+)
+
+# Create symlinks for module-specific test runners
+install(CODE "
+    set(INSTALL_BIN_DIR \"\${CMAKE_INSTALL_PREFIX}/bin\")
+    set(EMS_TEST_PATH \"\${INSTALL_BIN_DIR}/ems-test\")
+
+    # Create symlinks
+    execute_process(
+        COMMAND \${CMAKE_COMMAND} -E create_symlink ems-test \${INSTALL_BIN_DIR}/osal-test
+    )
+    execute_process(
+        COMMAND \${CMAKE_COMMAND} -E create_symlink ems-test \${INSTALL_BIN_DIR}/hal-test
+    )
+    execute_process(
+        COMMAND \${CMAKE_COMMAND} -E create_symlink ems-test \${INSTALL_BIN_DIR}/pcl-test
+    )
+    execute_process(
+        COMMAND \${CMAKE_COMMAND} -E create_symlink ems-test \${INSTALL_BIN_DIR}/pdl-test
+    )
+
+    message(STATUS \"Created symlinks: osal-test, hal-test, pcl-test, pdl-test -> ems-test\")
+")
+
+# ============================================================================
 # Custom Test Targets
 # ============================================================================
 add_custom_target(run_tests
-    COMMAND $<TARGET_FILE:unit-test> --all
-    DEPENDS unit-test
+    COMMAND $<TARGET_FILE:ems-test> --all
+    DEPENDS ems-test
     COMMENT "Running all unit tests"
 )
 
 add_custom_target(run_tests_interactive
-    COMMAND $<TARGET_FILE:unit-test> --interactive
-    DEPENDS unit-test
+    COMMAND $<TARGET_FILE:ems-test> --interactive
+    DEPENDS ems-test
     COMMENT "Running tests in interactive mode"
 )

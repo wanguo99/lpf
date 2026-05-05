@@ -40,12 +40,12 @@ Tests是EMS的统一测试框架，提供跨层级的单元测试和集成测试
 # 方法1: 使用CMake直接编译
 mkdir -p output/build && cd output/build
 cmake ../.. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
-make unit-test -j$(nproc)
+make ems-test -j$(nproc)
 cd ../..
 
 # 方法2: 在已配置的构建目录中编译
 cd output/build
-make unit-test -j$(nproc)
+make ems-test -j$(nproc)
 cd ../..
 
 # 方法3: 编译单个测试模块（快速迭代）
@@ -103,7 +103,11 @@ output/
 │       └── libpdl_tests.a     # PDL测试库
 └── target/
     └── bin/
-        └── unit-test          # 统一测试运行器
+        ├── ems-test           # 统一测试运行器（主程序）
+        ├── osal-test -> ems-test  # OSAL层测试快捷方式
+        ├── hal-test -> ems-test   # HAL层测试快捷方式
+        ├── pcl-test -> ems-test   # PCL层测试快捷方式
+        └── pdl-test -> ems-test   # PDL层测试快捷方式
 ```
 
 ### 常用编译命令
@@ -113,11 +117,11 @@ output/
 ./build.sh -d                   # Debug模式编译所有
 
 # 仅编译测试
-cd output/build && make unit-test -j$(nproc) && cd ../..
+cd output/build && make ems-test -j$(nproc) && cd ../..
 
 # 快速迭代单个测试模块
 cd output/build && make osal_tests -j$(nproc) && cd ../..
-./output/target/bin/unit-test -m test_osal_task
+./output/target/bin/ems-test -m test_osal_version
 
 # 清理并重新编译
 ./build.sh -c && ./build.sh -d
@@ -128,12 +132,39 @@ cat output/build.log | grep -A 5 "test"
 
 ## 运行测试
 
-### 交互式菜单（推荐）
+### Busybox 风格调用（推荐）
+
+测试框架采用 Busybox 风格设计，提供多种调用方式：
 
 ```bash
-./output/target/bin/unit-test -i
+# 方式1: 使用主程序 ems-test（运行所有层级测试）
+./output/target/bin/ems-test -h
+
+# 方式2: 使用层级快捷方式（自动过滤对应层级）
+./output/target/bin/osal-test --list    # 仅列出OSAL测试
+./output/target/bin/hal-test --list     # 仅列出HAL测试
+./output/target/bin/pcl-test --list     # 仅列出PCL测试
+./output/target/bin/pdl-test --list     # 仅列出PDL测试
+
+# 方式3: 使用层级过滤参数
+./output/target/bin/ems-test -L OSAL    # 运行OSAL层测试
+./output/target/bin/ems-test -L HAL     # 运行HAL层测试
+```
+
+**快捷方式说明**：
+- `osal-test`、`hal-test`、`pcl-test`、`pdl-test` 是指向 `ems-test` 的软链接
+- 程序根据调用名称自动识别并过滤对应层级的测试
+- 等效于 `ems-test -L <LAYER>` 但更简洁直观
+
+### 交互式菜单
+
+```bash
+./output/target/bin/ems-test -i
 # 或
-./output/target/bin/unit-test --interactive
+./output/target/bin/ems-test --interactive
+
+# 也可以使用层级快捷方式进入交互式菜单
+./output/target/bin/osal-test -i    # 仅显示OSAL测试菜单
 ```
 
 **菜单特点**：
@@ -169,27 +200,36 @@ cat output/build.log | grep -A 5 "test"
 
 ```bash
 # 运行所有测试
-./output/target/bin/unit-test -a
-./output/target/bin/unit-test --all
+./output/target/bin/ems-test -a
+./output/target/bin/ems-test --all
 
-# 运行指定层级的测试
-./output/target/bin/unit-test -L OSAL    # OSAL层测试
-./output/target/bin/unit-test -L HAL     # HAL层测试
-./output/target/bin/unit-test -L PCL     # PCL层测试
-./output/target/bin/unit-test -L PDL     # PDL层测试
+# 运行指定层级的测试（方式1：使用参数）
+./output/target/bin/ems-test -L OSAL    # OSAL层测试
+./output/target/bin/ems-test -L HAL     # HAL层测试
+./output/target/bin/ems-test -L PCL     # PCL层测试
+./output/target/bin/ems-test -L PDL     # PDL层测试
+
+# 运行指定层级的测试（方式2：使用快捷方式，推荐）
+./output/target/bin/osal-test -a        # 运行所有OSAL测试
+./output/target/bin/hal-test -a         # 运行所有HAL测试
+./output/target/bin/pcl-test -a         # 运行所有PCL测试
+./output/target/bin/pdl-test -a         # 运行所有PDL测试
 
 # 运行指定模块的测试
-./output/target/bin/unit-test -m test_osal_task    # 任务测试
-./output/target/bin/unit-test -m test_osal_queue   # 队列测试
-./output/target/bin/unit-test -m test_hal_can      # CAN测试
+./output/target/bin/ems-test -m test_osal_version    # 版本测试
+./output/target/bin/ems-test -m test_osal_atomic     # 原子操作测试
+./output/target/bin/osal-test -m test_osal_version   # 等效于上面，但更简洁
 
 # 列出所有测试
-./output/target/bin/unit-test -l
-./output/target/bin/unit-test --list
+./output/target/bin/ems-test -l         # 列出所有层级测试
+./output/target/bin/ems-test --list
+./output/target/bin/osal-test --list    # 仅列出OSAL测试
+./output/target/bin/hal-test --list     # 仅列出HAL测试
 
 # 显示帮助信息
-./output/target/bin/unit-test -h
-./output/target/bin/unit-test --help
+./output/target/bin/ems-test -h
+./output/target/bin/ems-test --help
+./output/target/bin/osal-test -h        # 显示OSAL层专用帮助
 ```
 
 ### 测试输出示例
@@ -229,21 +269,32 @@ tests/
 │   ├── test_registry.h         # 测试注册接口
 │   └── tests_core.h            # 测试核心接口
 ├── core/                       # 测试框架核心
-│   ├── main.c                  # 测试入口
+│   ├── main.c                  # Busybox风格主入口
 │   ├── test_runner.c           # 测试运行器实现
 │   ├── test_registry.c         # 测试注册实现
 │   └── test_menu.c             # 交互式菜单实现
-├── osal/                       # OSAL层测试
-│   ├── test_osal_task.c        # 任务管理测试
-│   ├── test_osal_queue.c       # 消息队列测试
-│   ├── test_osal_mutex.c       # 互斥锁测试
-│   └── test_osal_signal.c      # 信号处理测试
-├── hal/                        # HAL层测试
-│   └── test_hal_can.c          # CAN驱动测试
-├── pcl/                        # PCL层测试
-│   └── test_pcl_api.c          # PCL API测试
-├── pdl/                        # PDL层测试（占位）
-│   └── (待添加)
+├── unit/                       # 单元测试
+│   ├── osal/                   # OSAL层单元测试
+│   │   ├── test_osal_version.c
+│   │   ├── test_osal_atomic.c
+│   │   ├── test_osal_string.c
+│   │   └── ...
+│   ├── hal/                    # HAL层单元测试
+│   │   ├── test_hal_can.c
+│   │   ├── test_hal_serial.c
+│   │   └── ...
+│   ├── pcl/                    # PCL层单元测试
+│   │   └── test_pcl_api.c
+│   └── pdl/                    # PDL层单元测试
+│       ├── test_pdl_bmc.c
+│       └── ...
+├── system/                     # 系统测试（待添加）
+│   └── (跨层级集成测试)
+├── stress/                     # 压力测试（待添加）
+│   └── (性能和稳定性测试)
+├── docs/                       # 测试文档
+│   ├── OPTIMIZATION_PLAN.md    # 优化计划
+│   └── README.md               # 详细文档
 └── CMakeLists.txt              # 统一测试构建配置
 ```
 
@@ -253,16 +304,30 @@ tests/
 
 | 模块 | 测试用例数 | 覆盖功能 |
 |------|-----------|---------|
-| test_osal_task | 15+ | 任务创建、删除、延时、优先级、退出 |
-| test_osal_queue | 12+ | 队列创建、删除、发送、接收、超时 |
-| test_osal_mutex | 10+ | 互斥锁创建、删除、加锁、解锁、死锁检测 |
-| test_osal_signal | 8+ | 信号注册、触发、处理、优雅退出 |
+| test_osal_version | 3 | 版本信息查询 |
+| test_osal_atomic | 3 | 原子操作（加、减、交换） |
+| test_osal_string | 6 | 字符串操作（长度、比较、复制、拼接、查找） |
+| test_osal_time | 4 | 时间获取和转换 |
+| test_osal_heap | 5 | 内存分配和释放 |
+| test_osal_log | 4 | 日志系统 |
+| test_osal_errno | 3 | 错误码处理 |
+| test_osal_env | 3 | 环境变量操作 |
+| test_osal_file | 7 | 文件操作 |
+| test_osal_clock | 3 | 时钟操作 |
+| test_osal_mutex | 5 | 互斥锁 |
+| test_osal_semaphore | 5 | 信号量 |
+| test_osal_cond | 3 | 条件变量 |
+| test_osal_signal | 3 | 信号处理 |
+| test_osal_stress | 3 | 压力测试 |
 
 ### HAL层测试
 
 | 模块 | 测试用例数 | 覆盖功能 |
 |------|-----------|---------|
-| test_hal_can | 3+ | CAN初始化、发送、接收 |
+| test_hal_can | 3 | CAN初始化、发送、接收 |
+| test_hal_serial | 3 | 串口初始化、读写 |
+| test_hal_i2c | 3 | I2C初始化、读写 |
+| test_hal_spi | 3 | SPI初始化、读写 |
 
 **注意**：HAL测试需要实际硬件设备（can0、/dev/ttyS0等）
 
@@ -270,11 +335,16 @@ tests/
 
 | 模块 | 测试用例数 | 覆盖功能 |
 |------|-----------|---------|
-| test_pcl_api | 5+ | 配置查询、外设枚举 |
+| test_pcl_api | 3 | 配置查询、外设枚举 |
 
 ### PDL层测试
 
-PDL层测试待添加（占位符）
+| 模块 | 测试用例数 | 覆盖功能 |
+|------|-----------|---------|
+| test_pdl_bmc | 3 | BMC通信 |
+| test_pdl_bmc_protocol | 3 | BMC协议 |
+| test_pdl_mcu | 3 | MCU通信 |
+| test_pdl_satellite | 3 | 卫星通信 |
 
 ## 开发指南
 
@@ -282,7 +352,7 @@ PDL层测试待添加（占位符）
 
 #### 1. 创建测试文件
 
-在对应层级目录创建测试文件（如 `tests/osal/test_osal_timer.c`）：
+在对应测试分类和层级目录创建测试文件（如 `tests/unit/osal/test_osal_timer.c`）：
 
 ```c
 #include "test_framework.h"
@@ -322,13 +392,13 @@ TEST_MODULE_END()
 编辑 `tests/CMakeLists.txt`：
 
 ```cmake
-# OSAL Tests
-add_library(osal_tests STATIC
-    osal/test_osal_task.c
-    osal/test_osal_queue.c
-    osal/test_osal_mutex.c
-    osal/test_osal_signal.c
-    osal/test_osal_timer.c      # 添加新测试文件
+# Unit tests - OSAL
+set(UNIT_TEST_SOURCES
+    ${UNIT_TEST_SOURCES}
+    unit/osal/test_osal_version.c
+    unit/osal/test_osal_atomic.c
+    unit/osal/test_osal_timer.c      # 添加新测试文件
+    # ... 其他测试文件
 )
 ```
 
@@ -336,7 +406,9 @@ add_library(osal_tests STATIC
 
 ```bash
 ./build.sh -d
-./output/target/bin/unit-test -m test_osal_timer
+./output/target/bin/ems-test -m test_osal_timer
+# 或使用快捷方式
+./output/target/bin/osal-test -m test_osal_timer
 ```
 
 ### 测试框架API
@@ -392,13 +464,19 @@ TEST_ASSERT_MEM_EQUAL(expected, actual, size)
 
 ### 测试文件命名规范
 
-**规则**：`test_<module>_<component>.c`
+**规则**：`test_<layer>_<component>.c`
 
 **示例**：
-- `test_osal_task.c` - OSAL任务测试
-- `test_osal_queue.c` - OSAL队列测试
-- `test_hal_can.c` - HAL CAN测试
-- `test_pcl_api.c` - PCL API测试
+- `unit/osal/test_osal_version.c` - OSAL版本测试
+- `unit/osal/test_osal_atomic.c` - OSAL原子操作测试
+- `unit/hal/test_hal_can.c` - HAL CAN测试
+- `unit/pcl/test_pcl_api.c` - PCL API测试
+- `unit/pdl/test_pdl_bmc.c` - PDL BMC测试
+
+**目录结构**：
+- `unit/` - 单元测试（测试单个模块或函数）
+- `system/` - 系统测试（测试跨层级集成）
+- `stress/` - 压力测试（测试性能和稳定性）
 
 **详细规范**：参考 [编码规范](../docs/CODING_STANDARDS.md)
 
@@ -549,7 +627,7 @@ cmake ../.. -DBUILD_TESTING=ON
 ```bash
 # 使用Debug模式编译，使用GDB调试
 ./build.sh -d
-gdb --args ./output/target/bin/unit-test -m test_osal_task
+gdb --args ./output/target/bin/ems-test -m test_osal_task
 (gdb) run
 (gdb) bt
 ```
@@ -565,7 +643,9 @@ sudo ip link set up vcan0
 **Q: 如何跳过硬件相关测试？**
 ```bash
 # 只运行OSAL层测试（不需要硬件）
-./output/target/bin/unit-test -L OSAL
+./output/target/bin/ems-test -L OSAL
+# 或使用快捷方式
+./output/target/bin/osal-test -a
 ```
 
 **Q: 如何添加测试超时？**

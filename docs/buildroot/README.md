@@ -135,7 +135,7 @@ SysV init 启动脚本，将被安装到 `/etc/init.d/S90ems`。
 
 /usr/bin/
 ├── ems-sample-app      # 示例应用（可选）
-└── ems-unit-test       # 单元测试（可选）
+└── ems-test            # 单元测试（可选）
 
 /etc/
 ├── ems.conf        # 配置文件
@@ -204,7 +204,8 @@ EMS_CONF_OPTS = \
 
 ```makefile
 define EMS_INSTALL_TARGET_CMDS
-	$(INSTALL) -D -m 0755 $(@D)/build/release/bin/ems-sample-app $(TARGET_DIR)/usr/bin/ems-sample-app
+	$(INSTALL) -D -m 0755 $(@D)/output/target/bin/sample_app $(TARGET_DIR)/usr/bin/sample_app
+	$(INSTALL) -D -m 0755 $(@D)/output/target/bin/ems-test $(TARGET_DIR)/usr/bin/ems-test
 	$(INSTALL) -D -m 0644 $(EMS_PKGDIR)/ems.conf $(TARGET_DIR)/etc/ems.conf
 	$(INSTALL) -D -m 0755 $(EMS_PKGDIR)/S90ems $(TARGET_DIR)/etc/init.d/S90ems
 	# 添加自定义安装命令

@@ -72,11 +72,12 @@ sudo apt-get install gcc-riscv64-linux-gnu        # RISC-V 64
 
 ```bash
 # 运行示例应用
-./build/release/bin/sample_app
+./output/target/bin/sample_app
 
 # 运行测试
-./build/release/bin/unit-test -i    # 交互式菜单
-./build/release/bin/unit-test -a    # 运行所有测试
+./output/target/bin/ems-test -i     # 交互式菜单
+./output/target/bin/ems-test -a     # 运行所有测试
+./output/target/bin/osal-test -a    # 仅运行OSAL层测试
 ```
 
 ## 模块组成
@@ -153,10 +154,13 @@ ems/
 ├── tests/                  # 测试框架
 │   ├── include/           # 测试框架头文件
 │   ├── core/              # 测试框架核心
-│   ├── osal/              # OSAL层测试
-│   ├── hal/               # HAL层测试
-│   ├── pcl/               # PCL层测试
-│   ├── pdl/               # PDL层测试
+│   ├── unit/              # 单元测试
+│   │   ├── osal/          # OSAL层单元测试
+│   │   ├── hal/           # HAL层单元测试
+│   │   ├── pcl/           # PCL层单元测试
+│   │   └── pdl/           # PDL层单元测试
+│   ├── system/            # 系统测试
+│   ├── stress/            # 压力测试
 │   └── docs/              # 文档
 ├── output/                 # 编译输出
 │   ├── build/             # 中间文件
@@ -220,13 +224,13 @@ ems/
 
 ```bash
 # 交互式测试菜单
-./output/target/bin/unit-test -i
+./output/target/bin/ems-test -i
 
 # 运行所有测试
-./output/target/bin/unit-test -a
+./output/target/bin/ems-test -a
 
 # 运行指定层测试
-./output/target/bin/unit-test -L OSAL
+./output/target/bin/ems-test -L OSAL
 ./output/target/bin/unit-test -L HAL
 
 # 运行指定模块测试

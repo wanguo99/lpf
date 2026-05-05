@@ -27,7 +27,7 @@ config BR2_PACKAGE_EMS_SAMPLE_APP
 config BR2_PACKAGE_EMS_TESTS
 	bool "install unit tests"
 	help
-	  Build and install the EMS unit test suite to /usr/bin/ems-unit-test
+	  Build and install the EMS unit test suite to /usr/bin/ems-test
 
 endif
 
