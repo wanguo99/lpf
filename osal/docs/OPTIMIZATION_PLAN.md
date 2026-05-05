@@ -61,7 +61,7 @@
 | T1.2.2 | P0 | 2h | ❌ CANCELLED |  |
 | T1.2.3 | P0 | 2h | ❌ CANCELLED |  |
 | T1.2.4 | P0 | 2h | ❌ CANCELLED |  |
-| T1.2.5 | 实现错误码转字符串函数（OSAL_StatusToString） | P1 | 3h | ⬜ TODO |  |
+| T1.2.5 | P0 | 2h | ❌ CANCELLED |  |
 | T1.2.6 | 更新所有模块使用新错误码 | P1 | 8h | ⬜ TODO |  |
 
 **验证方法**: 单元测试 + 错误码解析测试
