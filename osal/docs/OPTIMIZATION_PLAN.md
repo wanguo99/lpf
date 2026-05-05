@@ -45,7 +45,7 @@
 
 | ID | 任务 | 优先级 | 预计工时 | 状态 | Git Commit |
 |----|------|--------|----------|------|------------|
-| T1.1.1 | P0 | 2h | 🔄 IN PROGRESS |  |
+| T1.1.1 | P0 | 2h | ❌ CANCELLED |  |
 | T1.1.2 | 补充原子类型别名（osal_atomic32_t, osal_atomic64_t） | P0 | 2h | ⬜ TODO |  |
 | T1.1.3 | 补充时间类型（osal_tick_t, osal_msec_t） | P0 | 2h | ⬜ TODO |  |
 | T1.1.4 | 补充地址类型（osal_paddr_t, osal_vaddr_t） | P1 | 1h | ⬜ TODO |  |
