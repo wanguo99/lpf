@@ -45,6 +45,7 @@
 
 /* UTIL - 工具类 */
 #include "util/osal_log.h"
+#include "util/osal_version.h"
 
 /*
  * OSAL版本信息
@@ -52,16 +53,5 @@
 #define OSAL_LITE_VERSION_MAJOR  1
 #define OSAL_LITE_VERSION_MINOR  0
 #define OSAL_LITE_VERSION_PATCH  0
-
-/*
- * 版本和工具函数
- */
-
-/**
- * @brief 获取OSAL版本字符串
- *
- * @return 版本字符串，例如 "EMS OSAL v1.0.0"
- */
-const char *OSAL_GetVersionString(void);
 
 #endif /* OSAL_H */

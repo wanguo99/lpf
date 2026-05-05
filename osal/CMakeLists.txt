@@ -38,12 +38,12 @@ set(OSAL_SOURCES
     ${OSAL_SRC_DIR}/sys/osal_select.c
     ${OSAL_SRC_DIR}/sys/osal_env.c
     ${OSAL_SRC_DIR}/sys/osal_time.c
-    ${OSAL_SRC_DIR}/sys/osal_termios.c
     ${OSAL_SRC_DIR}/sys/osal_process.c
     ${OSAL_SRC_DIR}/sys/osal_thread.c
 
     # NET - 网络相关
     ${OSAL_SRC_DIR}/net/osal_socket.c
+    ${OSAL_SRC_DIR}/net/osal_termios.c
 
     # LIB - 标准库封装
     ${OSAL_SRC_DIR}/lib/osal_heap.c
