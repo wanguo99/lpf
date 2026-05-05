@@ -49,7 +49,7 @@
 | T1.1.2 | P0 | 2h | ❌ CANCELLED |  |
 | T1.1.3 | P0 | 2h | ❌ CANCELLED |  |
 | T1.1.4 | P0 | 2h | ❌ CANCELLED |  |
-| T1.1.5 | 添加类型大小验证（编译时断言） | P1 | 1h | ⬜ TODO |  |
+| T1.1.5 | P0 | 2h | ❌ CANCELLED |  |
 
 **验证方法**: 编译测试 + 类型大小断言
 
