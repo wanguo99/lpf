@@ -211,7 +211,7 @@
 
 | ID | 任务 | 优先级 | 预计工时 | 状态 | Git Commit |
 |----|------|--------|----------|------|------------|
-| T7.2.1 | 设计中断处理接口（OSAL_InterruptRegister） | P2 | 4h | ⬜ TODO |  |
+| T7.2.1 | P0 | 2h | ❌ CANCELLED |  |
 | T7.2.2 | 实现中断使能/禁止（OSAL_InterruptDisable） | P2 | 3h | ⬜ TODO |  |
 | T7.2.3 | 实现中断上下文判断（OSAL_InInterruptContext） | P2 | 2h | ⬜ TODO |  |
 
