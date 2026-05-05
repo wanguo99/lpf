@@ -60,7 +60,7 @@
 | T1.2.1 | P0 | 2h | ❌ CANCELLED |  |
 | T1.2.2 | P0 | 2h | ❌ CANCELLED |  |
 | T1.2.3 | P0 | 2h | ❌ CANCELLED |  |
-| T1.2.4 | 实现错误码解析宏（提取级别/模块/代码） | P0 | 2h | ⬜ TODO |  |
+| T1.2.4 | P0 | 2h | ❌ CANCELLED |  |
 | T1.2.5 | 实现错误码转字符串函数（OSAL_StatusToString） | P1 | 3h | ⬜ TODO |  |
 | T1.2.6 | 更新所有模块使用新错误码 | P1 | 8h | ⬜ TODO |  |
 
