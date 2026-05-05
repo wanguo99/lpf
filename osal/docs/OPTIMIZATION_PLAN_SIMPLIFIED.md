@@ -85,7 +85,7 @@
 
 | ID | 任务 | 优先级 | 预计工时 | 状态 | Git Commit |
 |----|------|--------|----------|------|------------|
-| T0.1 | 将所有 API 参数从 osal_size_t 改为固定长度类型（uint32_t） | P0 | 8h | ⬜ TODO |  |
+| T0.1 | 将所有 API 参数从 osal_size_t 改为固定长度类型（uint32_t） | P0 | 8h | 🔄 IN PROGRESS |  |
 
 **优化目标**：
 - 消除可变长度类型（osal_size_t 在不同平台上是 uint16_t/uint32_t/uint64_t）

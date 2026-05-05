@@ -7,6 +7,8 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/osal_file.h>
+#include <stdint.h>
+#include <errno.h>
 
 /*===========================================================================
  * 标志位映射（OSAL -> POSIX）
@@ -100,25 +102,57 @@ int32_t OSAL_close(int32_t fd)
     return result;
 }
 
-osal_ssize_t OSAL_read(int32_t fd, void *buf, osal_size_t count)
+int32_t OSAL_read(int32_t fd, void *buf, uint32_t count)
 {
-    osal_size_t read_count = count;
-    osal_ssize_t result = read(fd, buf, read_count);
-    return result;
+    ssize_t result = read(fd, buf, (size_t)count);
+
+    /* 错误情况直接返回 */
+    if (result < 0) {
+        return -1;
+    }
+
+    /* 检查返回值是否超出 int32_t 范围 */
+    if (result > INT32_MAX) {
+        errno = EOVERFLOW;
+        return -1;
+    }
+
+    /* 安全转换：已验证 result 在 [0, INT32_MAX] 范围内 */
+    int32_t safe_result = (int32_t)result;
+    return safe_result;
 }
 
-osal_ssize_t OSAL_write(int32_t fd, const void *buf, osal_size_t count)
+int32_t OSAL_write(int32_t fd, const void *buf, uint32_t count)
 {
-    osal_size_t write_count = count;
-    osal_ssize_t result = write(fd, buf, write_count);
-    return result;
+    ssize_t result = write(fd, buf, (size_t)count);
+
+    /* 错误情况直接返回 */
+    if (result < 0) {
+        return -1;
+    }
+
+    /* 检查返回值是否超出 int32_t 范围 */
+    if (result > INT32_MAX) {
+        errno = EOVERFLOW;
+        return -1;
+    }
+
+    /* 安全转换：已验证 result 在 [0, INT32_MAX] 范围内 */
+    int32_t safe_result = (int32_t)result;
+    return safe_result;
 }
 
-osal_ssize_t OSAL_lseek(int32_t fd, osal_ssize_t offset, int32_t whence)
+int64_t OSAL_lseek(int32_t fd, int64_t offset, int32_t whence)
 {
-    off_t seek_offset = offset;
-    off_t result = lseek(fd, seek_offset, whence);
-    return result;
+    off_t result = lseek(fd, (off_t)offset, whence);
+
+    /* 错误情况直接返回 */
+    if (result == (off_t)-1) {
+        return -1;
+    }
+
+    /* off_t 在 64 位系统上是 int64_t，直接返回 */
+    return (int64_t)result;
 }
 
 /*===========================================================================
@@ -155,9 +189,9 @@ int32_t OSAL_fcntl(int32_t fd, int32_t cmd, int32_t arg)
  * 设备控制操作
  *===========================================================================*/
 
-int32_t OSAL_ioctl(int32_t fd, osal_size_t request, void *argp)
+int32_t OSAL_ioctl(int32_t fd, uint32_t request, void *argp)
 {
-    /* osal_size_t在32位系统是uint32，64位系统是uint64，匹配系统调用的unsigned long */
+    /* uint32_t 转换为 unsigned long（ioctl 的标准参数类型） */
     int32_t result = ioctl(fd, (unsigned long)request, argp);
     return result;
 }

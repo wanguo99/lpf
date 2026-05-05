@@ -49,7 +49,7 @@
 | T1.1.2 | P0 | 2h | ❌ CANCELLED |  |
 | T1.1.3 | P0 | 2h | ❌ CANCELLED |  |
 | T1.1.4 | P0 | 2h | ❌ CANCELLED |  |
-| T1.1.5 | P0 | 2h | ❌ CANCELLED |  |
+| T1.1.5 | 添加类型大小验证（编译时断言） | P1 | 1h | ⬜ TODO |  |
 
 **验证方法**: 编译测试 + 类型大小断言
 
@@ -57,12 +57,12 @@
 
 | ID | 任务 | 优先级 | 预计工时 | 状态 | Git Commit |
 |----|------|--------|----------|------|------------|
-| T1.2.1 | P0 | 2h | ❌ CANCELLED |  |
-| T1.2.2 | P0 | 2h | ❌ CANCELLED |  |
-| T1.2.3 | P0 | 2h | ❌ CANCELLED |  |
-| T1.2.4 | P0 | 2h | ❌ CANCELLED |  |
-| T1.2.5 | P0 | 2h | ❌ CANCELLED |  |
-| T1.2.6 | P0 | 2h | ❌ CANCELLED |  |
+| T1.2.1 | 设计分层错误码结构（严重级别+模块ID+错误码） | P0 | 4h | ⬜ TODO |  |
+| T1.2.2 | 定义模块 ID 枚举（TASK/MUTEX/QUEUE/TIMER/FILE/NET） | P0 | 2h | ⬜ TODO |  |
+| T1.2.3 | 定义严重级别（SUCCESS/INFO/WARNING/ERROR/FATAL） | P0 | 1h | ⬜ TODO |  |
+| T1.2.4 | 实现错误码解析宏（提取级别/模块/代码） | P0 | 2h | ⬜ TODO |  |
+| T1.2.5 | 实现错误码转字符串函数（OSAL_StatusToString） | P1 | 3h | ⬜ TODO |  |
+| T1.2.6 | 更新所有模块使用新错误码 | P1 | 8h | ⬜ TODO |  |
 
 **验证方法**: 单元测试 + 错误码解析测试
 

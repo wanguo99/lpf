@@ -8,6 +8,8 @@
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <string.h>
+#include <stdint.h>
+#include <errno.h>
 
 /*===========================================================================
  * Socket基本操作
@@ -19,7 +21,7 @@ int32_t OSAL_socket(int32_t domain, int32_t type, int32_t protocol)
     return result;
 }
 
-int32_t OSAL_bind(int32_t sockfd, const osal_sockaddr_t *addr, osal_size_t addrlen)
+int32_t OSAL_bind(int32_t sockfd, const osal_sockaddr_t *addr, uint32_t addrlen)
 {
     union {
         const osal_sockaddr_t *osal_addr;
@@ -27,7 +29,7 @@ int32_t OSAL_bind(int32_t sockfd, const osal_sockaddr_t *addr, osal_size_t addrl
     } addr_union;
 
     addr_union.osal_addr = addr;
-    socklen_t len = addrlen;
+    socklen_t len = (socklen_t)addrlen;
     int32_t result = bind(sockfd, addr_union.posix_addr, len);
     return result;
 }
@@ -38,9 +40,9 @@ int32_t OSAL_listen(int32_t sockfd, int32_t backlog)
     return result;
 }
 
-int32_t OSAL_accept(int32_t sockfd, osal_sockaddr_t *addr, osal_size_t *addrlen)
+int32_t OSAL_accept(int32_t sockfd, osal_sockaddr_t *addr, uint32_t *addrlen)
 {
-    socklen_t len = addrlen ? *addrlen : 0;
+    socklen_t len = addrlen ? (socklen_t)(*addrlen) : 0;
 
     union {
         osal_sockaddr_t *osal_addr;
@@ -50,12 +52,12 @@ int32_t OSAL_accept(int32_t sockfd, osal_sockaddr_t *addr, osal_size_t *addrlen)
     addr_union.osal_addr = addr;
     int32_t result = accept(sockfd, addr_union.posix_addr, addrlen ? &len : NULL);
     if (addrlen) {
-        *addrlen = len;
+        *addrlen = (uint32_t)len;
     }
     return result;
 }
 
-int32_t OSAL_connect(int32_t sockfd, const osal_sockaddr_t *addr, osal_size_t addrlen)
+int32_t OSAL_connect(int32_t sockfd, const osal_sockaddr_t *addr, uint32_t addrlen)
 {
     union {
         const osal_sockaddr_t *osal_addr;
@@ -63,27 +65,53 @@ int32_t OSAL_connect(int32_t sockfd, const osal_sockaddr_t *addr, osal_size_t ad
     } addr_union;
 
     addr_union.osal_addr = addr;
-    socklen_t len = addrlen;
+    socklen_t len = (socklen_t)addrlen;
     int32_t result = connect(sockfd, addr_union.posix_addr, len);
     return result;
 }
 
-osal_ssize_t OSAL_send(int32_t sockfd, const void *buf, osal_size_t len, int32_t flags)
+int32_t OSAL_send(int32_t sockfd, const void *buf, uint32_t len, int32_t flags)
 {
-    osal_size_t send_len = len;
-    osal_ssize_t result = send(sockfd, buf, send_len, flags);
-    return result;
+    ssize_t result = send(sockfd, buf, (size_t)len, flags);
+
+    /* 错误情况直接返回 */
+    if (result < 0) {
+        return -1;
+    }
+
+    /* 检查返回值是否超出 int32_t 范围 */
+    if (result > INT32_MAX) {
+        errno = EOVERFLOW;
+        return -1;
+    }
+
+    /* 安全转换：已验证 result 在 [0, INT32_MAX] 范围内 */
+    int32_t safe_result = (int32_t)result;
+    return safe_result;
 }
 
-osal_ssize_t OSAL_recv(int32_t sockfd, void *buf, osal_size_t len, int32_t flags)
+int32_t OSAL_recv(int32_t sockfd, void *buf, uint32_t len, int32_t flags)
 {
-    osal_size_t recv_len = len;
-    osal_ssize_t result = recv(sockfd, buf, recv_len, flags);
-    return result;
+    ssize_t result = recv(sockfd, buf, (size_t)len, flags);
+
+    /* 错误情况直接返回 */
+    if (result < 0) {
+        return -1;
+    }
+
+    /* 检查返回值是否超出 int32_t 范围 */
+    if (result > INT32_MAX) {
+        errno = EOVERFLOW;
+        return -1;
+    }
+
+    /* 安全转换：已验证 result 在 [0, INT32_MAX] 范围内 */
+    int32_t safe_result = (int32_t)result;
+    return safe_result;
 }
 
-osal_ssize_t OSAL_sendto(int32_t sockfd, const void *buf, osal_size_t len, int32_t flags,
-                  const osal_sockaddr_t *dest_addr, osal_size_t addrlen)
+int32_t OSAL_sendto(int32_t sockfd, const void *buf, uint32_t len, int32_t flags,
+                  const osal_sockaddr_t *dest_addr, uint32_t addrlen)
 {
     union {
         const osal_sockaddr_t *osal_addr;
@@ -91,16 +119,29 @@ osal_ssize_t OSAL_sendto(int32_t sockfd, const void *buf, osal_size_t len, int32
     } addr_union;
 
     addr_union.osal_addr = dest_addr;
-    osal_size_t send_len = len;
-    socklen_t addr_len = addrlen;
-    osal_ssize_t result = sendto(sockfd, buf, send_len, flags, addr_union.posix_addr, addr_len);
-    return result;
+    socklen_t addr_len = (socklen_t)addrlen;
+    ssize_t result = sendto(sockfd, buf, (size_t)len, flags, addr_union.posix_addr, addr_len);
+
+    /* 错误情况直接返回 */
+    if (result < 0) {
+        return -1;
+    }
+
+    /* 检查返回值是否超出 int32_t 范围 */
+    if (result > INT32_MAX) {
+        errno = EOVERFLOW;
+        return -1;
+    }
+
+    /* 安全转换：已验证 result 在 [0, INT32_MAX] 范围内 */
+    int32_t safe_result = (int32_t)result;
+    return safe_result;
 }
 
-osal_ssize_t OSAL_recvfrom(int32_t sockfd, void *buf, osal_size_t len, int32_t flags,
-                    osal_sockaddr_t *src_addr, osal_size_t *addrlen)
+int32_t OSAL_recvfrom(int32_t sockfd, void *buf, uint32_t len, int32_t flags,
+                    osal_sockaddr_t *src_addr, uint32_t *addrlen)
 {
-    socklen_t slen = addrlen ? *addrlen : 0;
+    socklen_t slen = addrlen ? (socklen_t)(*addrlen) : 0;
 
     union {
         osal_sockaddr_t *osal_addr;
@@ -108,13 +149,26 @@ osal_ssize_t OSAL_recvfrom(int32_t sockfd, void *buf, osal_size_t len, int32_t f
     } addr_union;
 
     addr_union.osal_addr = src_addr;
-    osal_size_t recv_len = len;
-    osal_ssize_t result = recvfrom(sockfd, buf, recv_len, flags,
+    ssize_t result = recvfrom(sockfd, buf, (size_t)len, flags,
                              addr_union.posix_addr, addrlen ? &slen : NULL);
     if (addrlen) {
-        *addrlen = slen;
+        *addrlen = (uint32_t)slen;
     }
-    return result;
+
+    /* 错误情况直接返回 */
+    if (result < 0) {
+        return -1;
+    }
+
+    /* 检查返回值是否超出 int32_t 范围 */
+    if (result > INT32_MAX) {
+        errno = EOVERFLOW;
+        return -1;
+    }
+
+    /* 安全转换：已验证 result 在 [0, INT32_MAX] 范围内 */
+    int32_t safe_result = (int32_t)result;
+    return safe_result;
 }
 
 int32_t OSAL_shutdown(int32_t sockfd, int32_t how)
@@ -128,19 +182,19 @@ int32_t OSAL_shutdown(int32_t sockfd, int32_t how)
  *===========================================================================*/
 
 int32_t OSAL_setsockopt(int32_t sockfd, int32_t level, int32_t optname,
-                      const void *optval, osal_size_t optlen)
+                      const void *optval, uint32_t optlen)
 {
-    socklen_t len = optlen;
+    socklen_t len = (socklen_t)optlen;
     int32_t result = setsockopt(sockfd, level, optname, optval, len);
     return result;
 }
 
 int32_t OSAL_getsockopt(int32_t sockfd, int32_t level, int32_t optname,
-                      void *optval, osal_size_t *optlen)
+                      void *optval, uint32_t *optlen)
 {
-    socklen_t len = *optlen;
+    socklen_t len = (socklen_t)(*optlen);
     int32_t result = getsockopt(sockfd, level, optname, optval, &len);
-    *optlen = len;
+    *optlen = (uint32_t)len;
     return result;
 }
 
@@ -195,8 +249,8 @@ int32_t OSAL_inet_pton(int32_t af, const char *src, void *dst)
     return result;
 }
 
-const char *OSAL_inet_ntop(int32_t af, const void *src, char *dst, osal_size_t size)
+const char *OSAL_inet_ntop(int32_t af, const void *src, char *dst, uint32_t size)
 {
-    socklen_t len = size;
+    socklen_t len = (socklen_t)size;
     return inet_ntop(af, src, dst, len);
 }

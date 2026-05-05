@@ -13,38 +13,35 @@
  * 内存操作
  */
 
-void* OSAL_Memset(void *ptr, int32_t value, osal_size_t size)
+void* OSAL_Memset(void *ptr, int32_t value, uint32_t size)
 {
-    osal_size_t mem_size = size;
-    return memset(ptr, value, mem_size);
+    return memset(ptr, value, (size_t)size);
 }
 
-void* OSAL_Memcpy(void *dest, const void *src, osal_size_t size)
+void* OSAL_Memcpy(void *dest, const void *src, uint32_t size)
 {
-    osal_size_t mem_size = size;
-    return memcpy(dest, src, mem_size);
+    return memcpy(dest, src, (size_t)size);
 }
 
-void* OSAL_Memmove(void *dest, const void *src, osal_size_t size)
+void* OSAL_Memmove(void *dest, const void *src, uint32_t size)
 {
-    osal_size_t mem_size = size;
-    return memmove(dest, src, mem_size);
+    return memmove(dest, src, (size_t)size);
 }
 
-int32_t OSAL_Memcmp(const void *ptr1, const void *ptr2, osal_size_t size)
+int32_t OSAL_Memcmp(const void *ptr1, const void *ptr2, uint32_t size)
 {
-    osal_size_t mem_size = size;
-    return memcmp(ptr1, ptr2, mem_size);
+    return memcmp(ptr1, ptr2, (size_t)size);
 }
 
 /*
  * 字符串操作
  */
 
-osal_size_t OSAL_Strlen(const char *str)
+uint32_t OSAL_Strlen(const char *str)
 {
-    osal_size_t len = strlen(str);
-    return len;
+    size_t len = strlen(str);
+    /* 字符串长度超过 UINT32_MAX 的情况在实际应用中不会出现 */
+    return (uint32_t)len;
 }
 
 int32_t OSAL_Strcmp(const char *str1, const char *str2)
@@ -52,10 +49,9 @@ int32_t OSAL_Strcmp(const char *str1, const char *str2)
     return strcmp(str1, str2);
 }
 
-int32_t OSAL_Strncmp(const char *str1, const char *str2, osal_size_t n)
+int32_t OSAL_Strncmp(const char *str1, const char *str2, uint32_t n)
 {
-    osal_size_t cmp_len = n;
-    return strncmp(str1, str2, cmp_len);
+    return strncmp(str1, str2, (size_t)n);
 }
 
 int32_t OSAL_Strcasecmp(const char *str1, const char *str2)
@@ -68,10 +64,9 @@ char* OSAL_Strcpy(char *dest, const char *src)
     return strcpy(dest, src);
 }
 
-char* OSAL_Strncpy(char *dest, const char *src, osal_size_t n)
+char* OSAL_Strncpy(char *dest, const char *src, uint32_t n)
 {
-    osal_size_t copy_len = n;
-    return strncpy(dest, src, copy_len);
+    return strncpy(dest, src, (size_t)n);
 }
 
 char* OSAL_Strcat(char *dest, const char *src)
@@ -79,10 +74,9 @@ char* OSAL_Strcat(char *dest, const char *src)
     return strcat(dest, src);
 }
 
-char* OSAL_Strncat(char *dest, const char *src, osal_size_t n)
+char* OSAL_Strncat(char *dest, const char *src, uint32_t n)
 {
-    osal_size_t cat_len = n;
-    return strncat(dest, src, cat_len);
+    return strncat(dest, src, (size_t)n);
 }
 
 char* OSAL_Strstr(const char *haystack, const char *needle)
@@ -90,10 +84,10 @@ char* OSAL_Strstr(const char *haystack, const char *needle)
     return strstr(haystack, needle);
 }
 
-osal_size_t OSAL_Strcspn(const char *str, const char *reject)
+uint32_t OSAL_Strcspn(const char *str, const char *reject)
 {
-    osal_size_t result = strcspn(str, reject);
-    return result;
+    size_t result = strcspn(str, reject);
+    return (uint32_t)result;
 }
 
 /*
@@ -112,14 +106,13 @@ int32_t OSAL_Sprintf(char *str, const char *format, ...)
     return ret;
 }
 
-int32_t OSAL_Snprintf(char *str, osal_size_t size, const char *format, ...)
+int32_t OSAL_Snprintf(char *str, uint32_t size, const char *format, ...)
 {
     va_list args;
     int32_t ret;
 
     va_start(args, format);
-    osal_size_t buf_size = size;
-    ret = vsnprintf(str, buf_size, format, args);
+    ret = vsnprintf(str, (size_t)size, format, args);
     va_end(args);
 
     return ret;

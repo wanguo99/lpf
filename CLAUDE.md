@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**EMS** (Embedded Middleware System) is a general-purpose embedded system board support package, providing hardware abstraction and peripheral management services for embedded controllers.
+**EMS** (Embedded Middleware System) is a general-purpose embedded middleware framework providing hardware abstraction and peripheral management for embedded controllers. It uses a strict 5-layer architecture designed for cross-platform portability (Linux/RTOS).
 
 **Typical Application**:
 ```
@@ -15,61 +15,50 @@ External System <--CAN--> EMS Controller <--Ethernet/UART/CAN--> Device Modules
 
 ### Build
 
-**Native Build (本地架构)**:
+**Recommended: CMake Presets**
+```bash
+# Native build
+cmake --preset release && cmake --build --preset release
+cmake --preset debug && cmake --build --preset debug
+
+# Cross-compilation
+cmake --preset arm32 && cmake --build build/arm32
+cmake --preset arm64 && cmake --build build/arm64
+cmake --preset riscv64 && cmake --build build/riscv64
+```
+
+**Alternative: build.sh wrapper**
 ```bash
 ./build.sh              # Release build
 ./build.sh -d           # Debug build
-./build.sh -c           # Clean build directory
+./build.sh -c           # Clean
+./build.sh -a arm32     # ARM32 cross-compile
 ```
 
-**Cross-Compilation (交叉编译)**:
-```bash
-# ARM32 (ARMv7-A)
-./build.sh -a arm32
-./build.sh -a arm32 -d  # Debug mode
-
-# ARM64 (ARMv8-A)
-./build.sh -a arm64
-
-# RISC-V 64
-./build.sh -a riscv64
-
-# x86_64 (explicit)
-./build.sh -a x86_64
-```
-
-**Prerequisites for Cross-Compilation**:
-```bash
-# Ubuntu/Debian
-sudo apt-get install gcc-arm-linux-gnueabihf      # ARM32
-sudo apt-get install gcc-aarch64-linux-gnu        # ARM64
-sudo apt-get install gcc-riscv64-linux-gnu        # RISC-V 64
-```
+**Output locations**:
+- Binaries: `build/<preset>/bin/`
+- Libraries: `build/<preset>/lib/`
 
 ### Test
-```bash
-./output/target/bin/unit-test -i    # Interactive menu (recommended)
-./output/target/bin/unit-test -a    # Run all tests
-./output/target/bin/unit-test -L OSAL  # Run OSAL layer tests
-./output/target/bin/unit-test -m test_osal_task  # Run specific module
 
-# Fast iteration: compile single test layer
-cd output/build && make osal_tests -j$(nproc) && cd ../..
-cd output/build && make hal_tests -j$(nproc) && cd ../..
-cd output/build && make pdl_tests -j$(nproc) && cd ../..
-cd output/build && make pcl_tests -j$(nproc) && cd ../..
-```
-
-### Run
 ```bash
-./output/target/bin/sample_app      # Sample application
+# Run tests (adjust path based on preset used)
+./build/release/bin/unit-test -i    # Interactive menu (recommended)
+./build/release/bin/unit-test -a    # Run all tests
+./build/release/bin/unit-test -L OSAL  # Run OSAL layer tests
+./build/release/bin/unit-test -m test_osal_task  # Run specific module
+
+# Fast iteration: rebuild single test layer
+cd build/release && make osal_tests -j$(nproc) && cd ../..
+cd build/release && make hal_tests -j$(nproc) && cd ../..
 ```
 
 ### Debug
+
 ```bash
-./build.sh -d
-gdb ./output/target/bin/sample_app
-gdb --args ./output/target/bin/unit-test -m test_osal_task
+cmake --preset debug && cmake --build --preset debug
+gdb ./build/debug/bin/sample_app
+gdb --args ./build/debug/bin/unit-test -m test_osal_task
 ```
 
 ## Architecture: 5-Layer Design
@@ -81,34 +70,33 @@ Apps → PDL → HAL → OSAL → Linux System Calls
         PCL (configuration data)
 ```
 
-### OSAL - Operating System Abstraction Layer
-- **Only layer allowed to include system headers** (`<unistd.h>`, `<pthread.h>`, etc.)
-- Provides two types of interfaces:
-  1. High-level business APIs: `OSAL_TaskCreate()`, `OSAL_QueueCreate()`
-  2. Raw system call wrappers: `OSAL_socket()`, `OSAL_open()`, `OSAL_close()`
-- All standard library functions must be wrapped here
-- Encapsulates operating system APIs for cross-platform portability
-- Platform-specific code in `src/posix/` (future: `src/freertos/`, `src/vxworks/`)
+### Layer Responsibilities
 
-### HAL - Hardware Abstraction Layer
+**OSAL** (Operating System Abstraction Layer)
+- **Only layer allowed to include system headers** (`<unistd.h>`, `<pthread.h>`, `<stdlib.h>`)
+- Wraps ALL system calls and standard library functions
+- Provides: task management, queues, mutexes, logging, file I/O, networking, time services
+- Platform-specific code in `osal/src/posix/` (future: `freertos/`, `vxworks/`)
+
+**HAL** (Hardware Abstraction Layer)
 - **Only layer allowed to include hardware-specific headers** (`<linux/can.h>`, `<net/if.h>`)
 - **Must use OSAL wrappers for all system calls** (never direct `socket()`, `open()`, etc.)
-- Encapsulates hardware drivers: CAN, UART, I2C, SPI
-- Platform-specific code in `src/linux/` (future: `src/ti_am62/`, `src/nxp_imx8/`)
+- Provides: CAN, UART, I2C, SPI drivers
+- Platform-specific code in `hal/src/linux/` (future: `ti_am62/`, `nxp_imx8/`)
 
-### PCL - Peripheral Configuration Library
-- Device-tree-like hardware configuration
-- **Must be completely platform-independent** - pure data structures
-- Configuration organized by peripheral (MCU/BMC/Satellite/Sensor)
-- Platform configs in nested structure: `platform/<vendor>/<chip>/<product>/`
+**PCL** (Peripheral Configuration Library)
+- Device-tree-like hardware configuration (pure data structures)
+- **Must be completely platform-independent**
+- Configuration organized by peripheral: `platform/<vendor>/<chip>/<product>/`
+- Only PDL layer accesses PCL
 
-### PDL - Peripheral Driver Layer
+**PDL** (Peripheral Driver Layer)
 - Unified management of satellite/BMC/MCU peripherals
 - **Must be completely platform-independent**
 - Provides application-facing peripheral interfaces
 - Only Apps and Tests layers can access PDL APIs
 
-### Apps - Application Layer
+**Apps** (Application Layer)
 - **Must be completely platform-independent**
 - Currently contains only sample_app (reference implementation)
 
@@ -121,7 +109,7 @@ Apps → PDL → HAL → OSAL → Linux System Calls
 - ✅ **REQUIRED**: Use OSAL wrappers: `OSAL_socket()`, `OSAL_open()`, `OSAL_Memcpy()`, `OSAL_Strlen()`, `LOG_INFO()`, etc.
 
 **Header File Rules**:
-- ✅ OSAL layer: Can include `<unistd.h>`, `<sys/socket.h>`, `<pthread.h>`, `<stdlib.h>`
+- ✅ OSAL layer: Can include system headers (`<unistd.h>`, `<sys/socket.h>`, `<pthread.h>`, `<stdlib.h>`)
 - ✅ HAL layer: Can include hardware headers, but must use OSAL system call wrappers
 - ❌ PCL/PDL/Apps/Tests: **Strictly forbidden** to include any system headers
 
@@ -142,7 +130,7 @@ OSAL_bind(sockfd, ...);  // CORRECT
 
 ```c
 /* String type - ALLOWED */
-char                           // For strings and text data ONLY (compatible with standard C library)
+char                           // For strings and text data ONLY
 
 /* Fixed-size integers */
 int8, int16, int32, int64       // Signed integers
@@ -159,12 +147,6 @@ osal_ssize_t                    // Signed size (int32 on 32-bit, int64 on 64-bit
 osal_id_t                       // Object ID (uint32)
 ```
 
-**Usage Rules**:
-- `char` for strings and text data ONLY
-- `uint8`/`int8` for binary data and bytes
-- Fixed-size types for numeric data
-- `osal_size_t`/`osal_ssize_t` for memory sizes and array indices
-
 **Prohibited Native Types**:
 ```c
 /* ❌ NEVER USE THESE */
@@ -178,27 +160,6 @@ long long           // Use int64
 unsigned long long  // Use uint64
 size_t              // Use osal_size_t
 ssize_t             // Use osal_ssize_t
-```
-
-**Correct Examples**:
-```c
-/* ✅ CORRECT: Using OSAL types */
-int32 HAL_CAN_Init(const char *device, hal_can_handle_t *handle)
-{
-    uint32 filter_id = 0x100;
-    uint8 dlc = 8;
-    osal_size_t buffer_size = 1024;
-    bool is_initialized = false;
-    return OSAL_SUCCESS;
-}
-
-/* ❌ WRONG: Using native types */
-int HAL_CAN_Init(const char *device, void *handle)  // ❌ int, char
-{
-    unsigned int filter_id = 0x100;  // ❌ unsigned int
-    size_t buffer_size = 1024;       // ❌ size_t
-    return 0;
-}
 ```
 
 **Exceptions** (only in these cases):
@@ -305,8 +266,8 @@ static void task_entry(void *arg)
 1. Create test file in `tests/<layer>/` (e.g., `test_osal_timer.c`)
 2. Use `TEST_MODULE_BEGIN/END` macros
 3. Add source file to `tests/CMakeLists.txt`
-4. Build and run: `./build.sh -d && ./output/target/bin/unit-test -m test_osal_timer`
-5. For fast iteration: `cd output/build && make osal_tests -j$(nproc) && cd ../..`
+4. Build and run: `cmake --build build/debug && ./build/debug/bin/unit-test -m test_osal_timer`
+5. For fast iteration: `cd build/debug && make osal_tests -j$(nproc) && cd ../..`
 
 **Test template**:
 ```c
@@ -355,24 +316,20 @@ TEST_MODULE_END()
 
 ### Multi-Architecture Support
 - **Supported Architectures**: x86_64, ARM32 (ARMv7-A), ARM64 (ARMv8-A), RISC-V 64
-- **Type System**: Uses fixed-size types (`uint32_t`, `int64_t`) for portability
+- **Type System**: Uses fixed-size types (`uint32`, `int64`) for portability
 - **Endianness**: Automatic detection with `OSAL_HTONS/HTONL` macros for byte order conversion
-- **Atomic Operations**: Uses C11 `_Atomic` with fixed-size types (`_Atomic uint32_t`)
+- **Atomic Operations**: Uses C11 `_Atomic` with fixed-size types (`_Atomic uint32`)
 - **Pointer Casting**: Uses `uintptr_t` for safe pointer-to-integer conversions
 
 ### Cross-Compilation
 ```bash
-# ARM32 (requires arm-linux-gnueabihf-gcc)
-./build.sh -a arm32
-
-# ARM64 (requires aarch64-linux-gnu-gcc)
-./build.sh -a arm64
-
-# RISC-V 64 (requires riscv64-linux-gnu-gcc)
-./build.sh -a riscv64
-
 # Install toolchains on Ubuntu/Debian:
 sudo apt-get install gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu gcc-riscv64-linux-gnu
+
+# Cross-compile
+cmake --preset arm32 && cmake --build build/arm32
+cmake --preset arm64 && cmake --build build/arm64
+cmake --preset riscv64 && cmake --build build/riscv64
 ```
 
 **Architecture-Specific Compiler Flags**:
@@ -406,25 +363,30 @@ sudo ip link set can0 up
 ## Build Output Structure
 
 ```
-output/
-├── build.log        # Build log
-├── build/           # Intermediate files
-└── target/
-    ├── bin/         # Executables (sample_app, unit-test)
-    └── lib/         # Static libraries (libosal.a, libhal.a, libpdl.a, libpcl.a)
+build/
+├── release/           # Release build
+│   ├── bin/          # Executables (sample_app, unit-test)
+│   └── lib/          # Static libraries (libosal.a, libhal.a, libpdl.a, libpcl.a)
+├── debug/            # Debug build
+│   ├── bin/
+│   └── lib/
+├── arm32/            # ARM32 cross-compile
+├── arm64/            # ARM64 cross-compile
+└── riscv64/          # RISC-V 64 cross-compile
 ```
 
 ## Documentation
 
 - **Architecture**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - **Coding Standards**: [docs/CODING_STANDARDS.md](docs/CODING_STANDARDS.md)
+- **Quick Build Guide**: [docs/QUICK_BUILD.md](docs/QUICK_BUILD.md)
 - **Module READMEs**: Each layer has `README.md` and `docs/` directory
 - **Test Framework**: [tests/README.md](tests/README.md)
 
 ## Project Stats
 
-- **Code Size**: ~50,000 lines of C/H source code
-- **Files**: 128 C/H files
+- **Code Size**: ~22,000 lines (15,500 production + 4,500 test)
+- **Files**: 123 C/H files
 - **Test Coverage**: 142+ test cases across all layers
   - OSAL: 50+ tests (10 modules)
   - HAL: 72 tests (CAN, UART, I2C, SPI)
@@ -437,8 +399,10 @@ output/
 ## Important Files
 
 - [CMakeLists.txt](CMakeLists.txt) - Main build config
-- [build.sh](build.sh) - Build script
+- [CMakePresets.json](CMakePresets.json) - CMake presets for different targets
+- [build.sh](build.sh) - Build script wrapper
 - [osal/include/osal.h](osal/include/osal.h) - OSAL main header
+- [osal/include/osal_types.h](osal/include/osal_types.h) - Type definitions
 - [tests/core/main.c](tests/core/main.c) - Test runner entry
 - [apps/sample_app/src/main.c](apps/sample_app/src/main.c) - Sample application
 

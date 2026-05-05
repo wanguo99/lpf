@@ -7,7 +7,7 @@
 #include "test_assert.h"
 #include "test_registry.h"
 #include "osal.h"
-#include <unistd.h>
+#include "sys/osal_time.h"
 
 /*===========================================================================
  * OSAL_GetLocalTime 测试
@@ -25,7 +25,7 @@ TEST_CASE(test_osal_get_local_time_success)
     TEST_ASSERT_TRUE(time1.microsecs < 1000000);
 
     /* 等待一小段时间后再次获取 */
-    usleep(10000); /* 10ms */
+    OSAL_msleep(10); /* 10ms */
     ret = OSAL_GetLocalTime(&time2);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
@@ -68,7 +68,7 @@ TEST_CASE(test_osal_get_tick_count_monotonic)
     TEST_ASSERT_TRUE(tick1 > 0);
 
     /* 等待一小段时间 */
-    usleep(50000); /* 50ms */
+    OSAL_msleep(50); /* 50ms */
 
     tick2 = OSAL_GetTickCount();
     TEST_ASSERT_TRUE(tick2 > tick1);
@@ -84,9 +84,9 @@ TEST_CASE(test_osal_get_tick_count_multiple_calls)
     uint32_t tick1, tick2, tick3;
 
     tick1 = OSAL_GetTickCount();
-    usleep(10000); /* 10ms */
+    OSAL_msleep(10); /* 10ms */
     tick2 = OSAL_GetTickCount();
-    usleep(10000); /* 10ms */
+    OSAL_msleep(10); /* 10ms */
     tick3 = OSAL_GetTickCount();
 
     /* 验证单调递增 */
@@ -142,7 +142,7 @@ TEST_CASE(test_osal_time_precision)
     OSAL_GetLocalTime(&time1);
     tick1 = OSAL_GetTickCount();
 
-    usleep(100000); /* 100ms */
+    OSAL_msleep(100); /* 100ms */
 
     OSAL_GetLocalTime(&time2);
     tick2 = OSAL_GetTickCount();

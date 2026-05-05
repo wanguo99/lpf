@@ -63,11 +63,11 @@ int32_t OSAL_HeapGetStats(uint32_t *current, uint32_t *peak);
 /**
  * @brief 分配内存
  *
- * @param[in] size 要分配的字节数
+ * @param[in] size 要分配的字节数（最大4GB）
  *
  * @return 成功返回内存指针，失败返回NULL
  */
-void *OSAL_Malloc(osal_size_t size);
+void *OSAL_Malloc(uint32_t size);
 
 /**
  * @brief 释放内存

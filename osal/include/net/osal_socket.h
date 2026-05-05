@@ -143,7 +143,7 @@ int32_t OSAL_socket(int32_t domain, int32_t type, int32_t protocol);
  * @param addrlen 地址结构长度
  * @return 0成功，-1失败
  */
-int32_t OSAL_bind(int32_t sockfd, const osal_sockaddr_t *addr, osal_size_t addrlen);
+int32_t OSAL_bind(int32_t sockfd, const osal_sockaddr_t *addr, uint32_t addrlen);
 
 /**
  * @brief 监听连接
@@ -160,7 +160,7 @@ int32_t OSAL_listen(int32_t sockfd, int32_t backlog);
  * @param addrlen 地址结构长度指针（可为NULL）
  * @return 新socket描述符(>=0)，失败返回-1
  */
-int32_t OSAL_accept(int32_t sockfd, osal_sockaddr_t *addr, osal_size_t *addrlen);
+int32_t OSAL_accept(int32_t sockfd, osal_sockaddr_t *addr, uint32_t *addrlen);
 
 /**
  * @brief 连接到服务器
@@ -169,53 +169,53 @@ int32_t OSAL_accept(int32_t sockfd, osal_sockaddr_t *addr, osal_size_t *addrlen)
  * @param addrlen 地址结构长度
  * @return 0成功，-1失败
  */
-int32_t OSAL_connect(int32_t sockfd, const osal_sockaddr_t *addr, osal_size_t addrlen);
+int32_t OSAL_connect(int32_t sockfd, const osal_sockaddr_t *addr, uint32_t addrlen);
 
 /**
  * @brief 发送数据
  * @param sockfd socket描述符
  * @param buf 数据缓冲区
- * @param len 数据长度
+ * @param len 数据长度（最大4GB）
  * @param flags 标志（通常为0）
  * @return 实际发送字节数(>=0)，-1失败
  */
-osal_ssize_t OSAL_send(int32_t sockfd, const void *buf, osal_size_t len, int32_t flags);
+int32_t OSAL_send(int32_t sockfd, const void *buf, uint32_t len, int32_t flags);
 
 /**
  * @brief 接收数据
  * @param sockfd socket描述符
  * @param buf 数据缓冲区
- * @param len 缓冲区长度
+ * @param len 缓冲区长度（最大4GB）
  * @param flags 标志（通常为0）
  * @return 实际接收字节数(>=0)，0表示连接关闭，-1失败
  */
-osal_ssize_t OSAL_recv(int32_t sockfd, void *buf, osal_size_t len, int32_t flags);
+int32_t OSAL_recv(int32_t sockfd, void *buf, uint32_t len, int32_t flags);
 
 /**
  * @brief 发送数据到指定地址
  * @param sockfd socket描述符
  * @param buf 数据缓冲区
- * @param len 数据长度
+ * @param len 数据长度（最大4GB）
  * @param flags 标志（通常为0）
  * @param dest_addr 目标地址结构指针
  * @param addrlen 地址结构长度
  * @return 实际发送字节数(>=0)，-1失败
  */
-osal_ssize_t OSAL_sendto(int32_t sockfd, const void *buf, osal_size_t len, int32_t flags,
-                  const osal_sockaddr_t *dest_addr, osal_size_t addrlen);
+int32_t OSAL_sendto(int32_t sockfd, const void *buf, uint32_t len, int32_t flags,
+                  const osal_sockaddr_t *dest_addr, uint32_t addrlen);
 
 /**
  * @brief 从指定地址接收数据
  * @param sockfd socket描述符
  * @param buf 数据缓冲区
- * @param len 缓冲区长度
+ * @param len 缓冲区长度（最大4GB）
  * @param flags 标志（通常为0）
  * @param src_addr 源地址结构指针（可为NULL）
  * @param addrlen 地址结构长度指针（可为NULL）
  * @return 实际接收字节数(>=0)，-1失败
  */
-osal_ssize_t OSAL_recvfrom(int32_t sockfd, void *buf, osal_size_t len, int32_t flags,
-                    osal_sockaddr_t *src_addr, osal_size_t *addrlen);
+int32_t OSAL_recvfrom(int32_t sockfd, void *buf, uint32_t len, int32_t flags,
+                    osal_sockaddr_t *src_addr, uint32_t *addrlen);
 
 /**
  * @brief 关闭socket的部分功能
@@ -239,7 +239,7 @@ int32_t OSAL_shutdown(int32_t sockfd, int32_t how);
  * @return 0成功，-1失败
  */
 int32_t OSAL_setsockopt(int32_t sockfd, int32_t level, int32_t optname,
-                      const void *optval, osal_size_t optlen);
+                      const void *optval, uint32_t optlen);
 
 /**
  * @brief 获取socket选项
@@ -251,7 +251,7 @@ int32_t OSAL_setsockopt(int32_t sockfd, int32_t level, int32_t optname,
  * @return 0成功，-1失败
  */
 int32_t OSAL_getsockopt(int32_t sockfd, int32_t level, int32_t optname,
-                      void *optval, osal_size_t *optlen);
+                      void *optval, uint32_t *optlen);
 
 /*===========================================================================
  * 网络接口操作
@@ -317,6 +317,6 @@ int32_t OSAL_inet_pton(int32_t af, const char *src, void *dst);
  * @param size 缓冲区大小
  * @return 字符串指针，失败返回NULL
  */
-const char *OSAL_inet_ntop(int32_t af, const void *src, char *dst, osal_size_t size);
+const char *OSAL_inet_ntop(int32_t af, const void *src, char *dst, uint32_t size);
 
 #endif /* OSAL_SOCKET_H */

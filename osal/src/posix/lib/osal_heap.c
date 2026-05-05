@@ -10,7 +10,7 @@
 
 /* 内存块头部，用于追踪分配大小 */
 typedef struct {
-    osal_size_t size;
+    uint32_t size;
     uint32_t magic;
 } mem_block_header_t;
 
@@ -136,16 +136,16 @@ int32_t OSAL_HeapGetStats(uint32_t *current, uint32_t *peak)
     return OSAL_SUCCESS;
 }
 
-void *OSAL_Malloc(osal_size_t size)
+void *OSAL_Malloc(uint32_t size)
 {
-    /* 防止整数溢出 */
-    if (size > SIZE_MAX - sizeof(mem_block_header_t)) {
-        LOG_ERROR("OSAL_Heap", "Allocation size too large: %zu", (size_t)size);
+    /* 检查是否会导致整数溢出（uint32_t 最大值是 4GB） */
+    if (size > UINT32_MAX - sizeof(mem_block_header_t)) {
+        LOG_ERROR("OSAL_Heap", "Allocation size too large: %u", size);
         return NULL;
     }
 
     /* 分配额外空间存储块头 */
-    osal_size_t total_size = size + sizeof(mem_block_header_t);
+    size_t total_size = (size_t)size + sizeof(mem_block_header_t);
     void *raw_ptr = malloc(total_size);
 
     if (NULL == raw_ptr) {
@@ -205,7 +205,7 @@ void OSAL_Free(void *ptr)
     pthread_mutex_lock(&g_heap_monitor.lock);
     if (header->size > g_heap_monitor.current_usage) {
         /* 统计下溢：记录详细错误信息 */
-        OSAL_Printf("[HEAP] ERROR: Heap usage underflow - freeing %zu bytes but current usage is %zu\n",
+        OSAL_Printf("[HEAP] ERROR: Heap usage underflow - freeing %u bytes but current usage is %u\n",
                     header->size, g_heap_monitor.current_usage);
         g_heap_monitor.current_usage = 0;
     } else {
