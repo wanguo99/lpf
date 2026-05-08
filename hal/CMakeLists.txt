@@ -28,6 +28,7 @@ if(APPLE)
         ${HAL_SRC_DIR}/macos/hal_serial.c
         ${HAL_SRC_DIR}/macos/hal_i2c.c
         ${HAL_SRC_DIR}/macos/hal_spi.c
+        ${HAL_SRC_DIR}/macos/hal_watchdog.c
     )
     message(STATUS "HAL: Using macOS stub implementation (compile-only)")
 else()
@@ -37,6 +38,7 @@ else()
         ${HAL_SRC_DIR}/linux/hal_serial.c
         ${HAL_SRC_DIR}/linux/hal_i2c.c
         ${HAL_SRC_DIR}/linux/hal_spi.c
+        ${HAL_SRC_DIR}/linux/hal_watchdog.c
     )
     message(STATUS "HAL: Using Linux hardware implementation")
 endif()
