@@ -61,17 +61,52 @@ sudo apt-get install gcc-aarch64-linux-gnu        # ARM64
 sudo apt-get install gcc-riscv64-linux-gnu        # RISC-V 64
 ```
 
+### 安装
+
+```bash
+# 安装到默认路径 /usr/local
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
+sudo cmake --install build
+
+# 安装到自定义路径
+cmake -B build -DCMAKE_INSTALL_PREFIX=/opt/ems
+cmake --build build -j$(nproc)
+sudo cmake --install build
+```
+
 ### 运行
 
 ```bash
 # 运行示例应用
 ./build/bin/sample_app
 
+# 运行看门狗应用
+./build/bin/watchdog_app
+
 # 运行测试
 ./build/bin/ems-test -i     # 交互式菜单
 ./build/bin/ems-test -a     # 运行所有测试
 ./build/bin/osal-test -a    # 仅运行OSAL层测试
 ```
+
+### Buildroot 集成
+
+EMS 完全兼容 Buildroot 构建系统：
+
+```bash
+# 1. 复制配置文件到 Buildroot
+cp -r docs/buildroot/* <buildroot>/package/ems/
+
+# 2. 在 menuconfig 中启用 EMS
+make menuconfig
+# Target packages -> Libraries -> ems
+
+# 3. 构建
+make ems
+```
+
+详细集成指南：[docs/buildroot/README.md](docs/buildroot/README.md)
 
 ## 模块组成
 
@@ -217,27 +252,29 @@ ems/
 
 ```bash
 # 交互式测试菜单
-./output/target/bin/ems-test -i
+./build/bin/ems-test -i
 
 # 运行所有测试
-./output/target/bin/ems-test -a
+./build/bin/ems-test -a
 
 # 运行指定层测试
-./output/target/bin/ems-test -L OSAL
-./output/target/bin/unit-test -L HAL
+./build/bin/ems-test -L OSAL
+./build/bin/ems-test -L HAL
 
 # 运行指定模块测试
-./output/target/bin/unit-test -m test_osal_task
-./output/target/bin/unit-test -m test_hal_can
-./output/target/bin/unit-test -m test_hal_i2c
-./output/target/bin/unit-test -m test_hal_spi
+./build/bin/ems-test -m test_osal_task
+./build/bin/ems-test -m test_hal_can
+
+# Busybox 风格快捷方式
+./build/bin/osal-test -a    # 仅运行 OSAL 层测试
+./build/bin/hal-test -a     # 仅运行 HAL 层测试
 ```
 
 **测试覆盖**：
 - OSAL层：10模块，50+测试用例
-- HAL层：4模块，72测试用例（CAN、串口、I2C、SPI）
+- HAL层：4模块，72测试用例（CAN、串口、I2C、SPI、Watchdog）
 - PCL层：1模块，5+测试用例
-- PDL层：3模块，15+测试用例
+- PDL层：4模块，15+测试用例（Satellite、BMC、MCU、Watchdog）
 - 总计：142+测试用例
 
 ## 开发环境

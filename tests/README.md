@@ -38,18 +38,18 @@ Tests是EMS的统一测试框架，提供跨层级的单元测试和集成测试
 
 ```bash
 # 方法1: 使用CMake直接编译
-mkdir -p output/build && cd output/build
+mkdir -p build && cd build
 cmake ../.. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
 make ems-test -j$(nproc)
 cd ../..
 
 # 方法2: 在已配置的构建目录中编译
-cd output/build
+cd build
 make ems-test -j$(nproc)
 cd ../..
 
 # 方法3: 编译单个测试模块（快速迭代）
-cd output/build
+cd build
 make osal_tests -j$(nproc)    # 仅编译OSAL测试
 make hal_tests -j$(nproc)     # 仅编译HAL测试
 cd ../..
@@ -117,17 +117,17 @@ output/
 ./build.sh -d                   # Debug模式编译所有
 
 # 仅编译测试
-cd output/build && make ems-test -j$(nproc) && cd ../..
+cd build && make ems-test -j$(nproc) && cd ../..
 
 # 快速迭代单个测试模块
-cd output/build && make osal_tests -j$(nproc) && cd ../..
-./output/target/bin/ems-test -m test_osal_version
+cd build && make osal_tests -j$(nproc) && cd ../..
+./build/bin/ems-test -m test_osal_version
 
 # 清理并重新编译
 ./build.sh -c && ./build.sh -d
 
 # 查看编译日志
-cat output/build.log | grep -A 5 "test"
+cat build.log | grep -A 5 "test"
 ```
 
 ## 运行测试
@@ -138,17 +138,17 @@ cat output/build.log | grep -A 5 "test"
 
 ```bash
 # 方式1: 使用主程序 ems-test（运行所有层级测试）
-./output/target/bin/ems-test -h
+./build/bin/ems-test -h
 
 # 方式2: 使用层级快捷方式（自动过滤对应层级）
-./output/target/bin/osal-test --list    # 仅列出OSAL测试
-./output/target/bin/hal-test --list     # 仅列出HAL测试
-./output/target/bin/pcl-test --list     # 仅列出PCL测试
-./output/target/bin/pdl-test --list     # 仅列出PDL测试
+./build/bin/osal-test --list    # 仅列出OSAL测试
+./build/bin/hal-test --list     # 仅列出HAL测试
+./build/bin/pcl-test --list     # 仅列出PCL测试
+./build/bin/pdl-test --list     # 仅列出PDL测试
 
 # 方式3: 使用层级过滤参数
-./output/target/bin/ems-test -L OSAL    # 运行OSAL层测试
-./output/target/bin/ems-test -L HAL     # 运行HAL层测试
+./build/bin/ems-test -L OSAL    # 运行OSAL层测试
+./build/bin/ems-test -L HAL     # 运行HAL层测试
 ```
 
 **快捷方式说明**：
@@ -159,12 +159,12 @@ cat output/build.log | grep -A 5 "test"
 ### 交互式菜单
 
 ```bash
-./output/target/bin/ems-test -i
+./build/bin/ems-test -i
 # 或
-./output/target/bin/ems-test --interactive
+./build/bin/ems-test --interactive
 
 # 也可以使用层级快捷方式进入交互式菜单
-./output/target/bin/osal-test -i    # 仅显示OSAL测试菜单
+./build/bin/osal-test -i    # 仅显示OSAL测试菜单
 ```
 
 **菜单特点**：
@@ -200,36 +200,36 @@ cat output/build.log | grep -A 5 "test"
 
 ```bash
 # 运行所有测试
-./output/target/bin/ems-test -a
-./output/target/bin/ems-test --all
+./build/bin/ems-test -a
+./build/bin/ems-test --all
 
 # 运行指定层级的测试（方式1：使用参数）
-./output/target/bin/ems-test -L OSAL    # OSAL层测试
-./output/target/bin/ems-test -L HAL     # HAL层测试
-./output/target/bin/ems-test -L PCL     # PCL层测试
-./output/target/bin/ems-test -L PDL     # PDL层测试
+./build/bin/ems-test -L OSAL    # OSAL层测试
+./build/bin/ems-test -L HAL     # HAL层测试
+./build/bin/ems-test -L PCL     # PCL层测试
+./build/bin/ems-test -L PDL     # PDL层测试
 
 # 运行指定层级的测试（方式2：使用快捷方式，推荐）
-./output/target/bin/osal-test -a        # 运行所有OSAL测试
-./output/target/bin/hal-test -a         # 运行所有HAL测试
-./output/target/bin/pcl-test -a         # 运行所有PCL测试
-./output/target/bin/pdl-test -a         # 运行所有PDL测试
+./build/bin/osal-test -a        # 运行所有OSAL测试
+./build/bin/hal-test -a         # 运行所有HAL测试
+./build/bin/pcl-test -a         # 运行所有PCL测试
+./build/bin/pdl-test -a         # 运行所有PDL测试
 
 # 运行指定模块的测试
-./output/target/bin/ems-test -m test_osal_version    # 版本测试
-./output/target/bin/ems-test -m test_osal_atomic     # 原子操作测试
-./output/target/bin/osal-test -m test_osal_version   # 等效于上面，但更简洁
+./build/bin/ems-test -m test_osal_version    # 版本测试
+./build/bin/ems-test -m test_osal_atomic     # 原子操作测试
+./build/bin/osal-test -m test_osal_version   # 等效于上面，但更简洁
 
 # 列出所有测试
-./output/target/bin/ems-test -l         # 列出所有层级测试
-./output/target/bin/ems-test --list
-./output/target/bin/osal-test --list    # 仅列出OSAL测试
-./output/target/bin/hal-test --list     # 仅列出HAL测试
+./build/bin/ems-test -l         # 列出所有层级测试
+./build/bin/ems-test --list
+./build/bin/osal-test --list    # 仅列出OSAL测试
+./build/bin/hal-test --list     # 仅列出HAL测试
 
 # 显示帮助信息
-./output/target/bin/ems-test -h
-./output/target/bin/ems-test --help
-./output/target/bin/osal-test -h        # 显示OSAL层专用帮助
+./build/bin/ems-test -h
+./build/bin/ems-test --help
+./build/bin/osal-test -h        # 显示OSAL层专用帮助
 ```
 
 ### 测试输出示例
@@ -406,9 +406,9 @@ set(UNIT_TEST_SOURCES
 
 ```bash
 ./build.sh -d
-./output/target/bin/ems-test -m test_osal_timer
+./build/bin/ems-test -m test_osal_timer
 # 或使用快捷方式
-./output/target/bin/osal-test -m test_osal_timer
+./build/bin/osal-test -m test_osal_timer
 ```
 
 ### 测试框架API
@@ -627,7 +627,7 @@ cmake ../.. -DBUILD_TESTING=ON
 ```bash
 # 使用Debug模式编译，使用GDB调试
 ./build.sh -d
-gdb --args ./output/target/bin/ems-test -m test_osal_task
+gdb --args ./build/bin/ems-test -m test_osal_task
 (gdb) run
 (gdb) bt
 ```
@@ -643,9 +643,9 @@ sudo ip link set up vcan0
 **Q: 如何跳过硬件相关测试？**
 ```bash
 # 只运行OSAL层测试（不需要硬件）
-./output/target/bin/ems-test -L OSAL
+./build/bin/ems-test -L OSAL
 # 或使用快捷方式
-./output/target/bin/osal-test -a
+./build/bin/osal-test -a
 ```
 
 **Q: 如何添加测试超时？**

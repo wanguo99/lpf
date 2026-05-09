@@ -59,7 +59,7 @@ add_subdirectory(my_app)
 
 ```bash
 ./build.sh
-./output/target/bin/my_app
+./build/bin/my_app
 ```
 
 ## 使用HAL层

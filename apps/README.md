@@ -37,13 +37,13 @@ Apps层包含基于EMS构建的应用程序，展示如何使用OSAL、HAL、PDL
 
 ```bash
 # 方法1: 使用CMake直接编译
-mkdir -p output/build && cd output/build
+mkdir -p build && cd build
 cmake ../.. -DCMAKE_BUILD_TYPE=Release
 make sample_app -j$(nproc)
 cd ../..
 
 # 方法2: 在已配置的构建目录中编译
-cd output/build
+cd build
 make sample_app -j$(nproc)
 cd ../..
 ```
@@ -80,7 +80,7 @@ cmake ../.. -DCMAKE_BUILD_TYPE=Debug
 #### 示例1: Debug模式编译
 
 ```bash
-cd output/build
+cd build
 cmake ../.. -DCMAKE_BUILD_TYPE=Debug
 make sample_app -j$(nproc)
 cd ../..
@@ -89,7 +89,7 @@ cd ../..
 #### 示例2: 交叉编译ARM平台
 
 ```bash
-cd output/build
+cd build
 cmake ../.. \
     -DCMAKE_BUILD_TYPE=Release \
     -DPLATFORM=generic-linux \
@@ -114,13 +114,13 @@ output/
 ./build.sh -d                   # Debug模式编译所有
 
 # 仅编译sample_app
-cd output/build && make sample_app -j$(nproc) && cd ../..
+cd build && make sample_app -j$(nproc) && cd ../..
 
 # 清理并重新编译
 ./build.sh -c && ./build.sh
 
 # 查看编译日志
-cat output/build.log | grep -A 5 "Sample application"
+cat build.log | grep -A 5 "Sample application"
 ```
 
 ## 应用结构
@@ -141,10 +141,10 @@ apps/
 
 ```bash
 # 直接运行
-./output/target/bin/sample_app
+./build/bin/sample_app
 
 # 使用GDB调试
-gdb ./output/target/bin/sample_app
+gdb ./build/bin/sample_app
 (gdb) run
 ```
 
@@ -227,7 +227,7 @@ add_subdirectory(my_app)
 
 ```bash
 ./build.sh -d
-./output/target/bin/my_app
+./build/bin/my_app
 ```
 
 ## 应用开发指南
@@ -388,7 +388,7 @@ int main(void)
 ./build.sh -d
 
 # 启动GDB
-gdb ./output/target/bin/sample_app
+gdb ./build/bin/sample_app
 
 # GDB命令
 (gdb) break main          # 设置断点

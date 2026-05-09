@@ -208,18 +208,18 @@ EMS_CONF_OPTS = \
 
 ### 添加额外的安装文件
 
-在 `ems.mk` 中添加 `define EMS_INSTALL_TARGET_CMDS`：
+EMS 使用 CMake 标准 install 机制，所有文件会自动安装。如需添加额外的配置文件或脚本，可以在 `ems.mk` 中添加 post-install hooks：
 
 ```makefile
-define EMS_INSTALL_TARGET_CMDS
-	$(INSTALL) -D -m 0755 $(@D)/output/target/bin/sample_app $(TARGET_DIR)/usr/bin/sample_app
-	$(INSTALL) -D -m 0755 $(@D)/output/target/bin/ems-test $(TARGET_DIR)/usr/bin/ems-test
-	$(INSTALL) -D -m 0644 $(EMS_PKGDIR)/ems.conf $(TARGET_DIR)/etc/ems.conf
-	$(INSTALL) -D -m 0755 $(EMS_PKGDIR)/S90ems $(TARGET_DIR)/etc/init.d/S90ems
-	# 添加自定义安装命令
-	$(INSTALL) -D -m 0644 $(@D)/custom-file $(TARGET_DIR)/etc/custom-file
+# 安装额外的配置文件
+define EMS_INSTALL_EXTRA_CONFIG
+	$(INSTALL) -D -m 0644 $(EMS_PKGDIR)/custom.conf $(TARGET_DIR)/etc/ems/custom.conf
+	$(INSTALL) -D -m 0755 $(EMS_PKGDIR)/custom-script.sh $(TARGET_DIR)/usr/bin/custom-script.sh
 endef
+EMS_POST_INSTALL_TARGET_HOOKS += EMS_INSTALL_EXTRA_CONFIG
 ```
+
+**注意**：应用程序和库文件由 CMake install() 自动安装，无需手动指定。
 
 ## 版本管理
 

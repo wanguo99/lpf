@@ -84,13 +84,13 @@ PCL支持三种配置选择方式（优先级从高到低）：
 
 ```bash
 # 方法1: 使用CMake直接编译
-mkdir -p output/build && cd output/build
+mkdir -p build && cd build
 cmake ../.. -DCMAKE_BUILD_TYPE=Release
 make pcl -j$(nproc)
 cd ../..
 
 # 方法2: 在已配置的构建目录中编译
-cd output/build
+cd build
 make pcl -j$(nproc)
 cd ../..
 ```
@@ -109,7 +109,7 @@ cd ../..
 
 **选择TI AM6254平台**：
 ```bash
-cd output/build
+cd build
 cmake ../.. \
     -DPCL_PLATFORM=ti/am6254/H200_100P \
     -DPCL_VERSION=v2
@@ -118,7 +118,7 @@ make pcl -j$(nproc)
 
 **选择演示平台**：
 ```bash
-cd output/build
+cd build
 cmake ../.. \
     -DPCL_PLATFORM=vendor_demo/platform_demo/project_demo \
     -DPCL_VERSION=v1
@@ -151,16 +151,16 @@ output/
 ./build.sh -d                   # Debug模式编译所有
 
 # 仅编译PCL库
-cd output/build && make pcl -j$(nproc) && cd ../..
+cd build && make pcl -j$(nproc) && cd ../..
 
 # 查看PCL编译配置
-cd output/build && cmake -L ../.. | grep PCL && cd ../..
+cd build && cmake -L ../.. | grep PCL && cd ../..
 
 # 清理并重新编译
 ./build.sh -c && ./build.sh
 
 # 查看编译日志
-cat output/build.log | grep -A 5 "PCL"
+cat build.log | grep -A 5 "PCL"
 ```
 
 ## 模块结构
@@ -462,9 +462,9 @@ const pcl_mcu_t* PCL_GetMCUConfigs(uint32 *count)
 ./build.sh -d
 
 # 运行PCL测试
-./output/target/bin/unit-test -L PCL           # 运行所有PCL测试
-./output/target/bin/unit-test -m test_pcl_api  # 运行API测试
-./output/target/bin/unit-test -i               # 交互式菜单
+./build/bin/unit-test -L PCL           # 运行所有PCL测试
+./build/bin/unit-test -m test_pcl_api  # 运行API测试
+./build/bin/unit-test -i               # 交互式菜单
 ```
 
 **测试覆盖**：
@@ -514,7 +514,7 @@ make pcl -j$(nproc)
 **Q: 如何查看当前使用的平台配置？**
 ```bash
 # 查看编译配置
-cd output/build
+cd build
 cmake -L ../.. | grep PCL
 
 # 或在代码中查询

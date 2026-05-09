@@ -69,15 +69,15 @@
 ./build.sh
 
 # 或仅编译sample_app
-cd output/build
+cd build
 make sample_app
-cd ../..
+cd ..
 ```
 
 ### 运行
 
 ```bash
-./output/target/bin/sample_app
+./build/bin/sample_app
 ```
 
 ### 预期输出
