@@ -38,6 +38,21 @@ typedef struct {
     fixture_func_t suite_teardown;
 } test_suite_t;
 
+/* Test result codes */
+typedef enum {
+    TEST_RESULT_PASS = 0,
+    TEST_RESULT_FAIL = 1,
+    TEST_RESULT_SKIP = 2
+} test_result_t;
+
+/* Test result record (for detailed summary) */
+typedef struct test_result_node {
+    const char *suite_name;
+    const char *test_name;
+    uint32_t elapsed_ms;
+    struct test_result_node *next;
+} test_result_node_t;
+
 /* Test statistics */
 typedef struct {
     uint32_t total;
@@ -46,16 +61,17 @@ typedef struct {
     uint32_t skipped;
     uint64_t total_time_ms;      /* Total execution time in milliseconds */
     uint64_t avg_time_ms;        /* Average execution time per test */
-    const char *failed_tests[64]; /* List of failed test names */
-    uint32_t failed_test_count;  /* Number of failed tests in the list */
-} test_stats_t;
+    const char *failed_tests[64]; /* List of failed test names (legacy) */
+    uint32_t failed_test_count;  /* Number of failed tests in the list (legacy) */
 
-/* Test result codes */
-typedef enum {
-    TEST_RESULT_PASS = 0,
-    TEST_RESULT_FAIL = 1,
-    TEST_RESULT_SKIP = 2
-} test_result_t;
+    /* Separate linked lists for each result type */
+    test_result_node_t *passed_list_head;
+    test_result_node_t *passed_list_tail;
+    test_result_node_t *failed_list_head;
+    test_result_node_t *failed_list_tail;
+    test_result_node_t *skipped_list_head;
+    test_result_node_t *skipped_list_tail;
+} test_stats_t;
 
 /* Core API - Test Registration */
 void libutest_register_suite(const test_suite_t *suite);

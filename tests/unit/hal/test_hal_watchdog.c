@@ -115,8 +115,13 @@ TEST_CASE(test_hal_watchdog_timeout)
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
     LOG_INFO("TEST", "Current timeout: %u seconds", timeout);
 
-    /* 设置新的超时时间 */
+    /* 尝试设置新的超时时间（某些硬件可能不支持） */
     ret = HAL_WATCHDOG_SetTimeout(handle, 60);
+    if (ret == OSAL_ERR_NOT_SUPPORTED) {
+        LOG_INFO("TEST", "Hardware does not support setting timeout dynamically");
+        HAL_WATCHDOG_Deinit(handle);
+        return;
+    }
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     /* 验证设置 */

@@ -171,6 +171,7 @@ static int32_t menu_select_test(const test_suite_t *suite)
         }
 
         OSAL_Printf("%u. Back to suite selection\n", suite->case_count + 1);
+        OSAL_Printf("%u. Exit\n", suite->case_count + 2);
         OSAL_Printf("\nEnter your choice: ");
 
         int32_t choice = read_choice();
@@ -181,6 +182,9 @@ static int32_t menu_select_test(const test_suite_t *suite)
             return libutest_run_test(suite->suite_name, suite->cases[choice - 1].name);
         } else if (choice == (int32_t)(suite->case_count + 1)) {
             return OSAL_SUCCESS;
+        } else if (choice == (int32_t)(suite->case_count + 2)) {
+            OSAL_Printf("\nExiting...\n");
+            OSAL_Exit(0);
         } else {
             OSAL_Printf("Invalid choice. Please try again.\n");
         }
@@ -201,6 +205,7 @@ static int32_t menu_select_suite(const test_suite_t **suites, uint32_t count, co
         }
 
         OSAL_Printf("%u. Back\n", count + 1);
+        OSAL_Printf("%u. Exit\n", count + 2);
         OSAL_Printf("\nEnter your choice: ");
 
         int32_t choice = read_choice();
@@ -216,6 +221,9 @@ static int32_t menu_select_suite(const test_suite_t **suites, uint32_t count, co
             menu_select_test(suites[choice - 1]);
         } else if (choice == (int32_t)(count + 1)) {
             return OSAL_SUCCESS;
+        } else if (choice == (int32_t)(count + 2)) {
+            OSAL_Printf("\nExiting...\n");
+            OSAL_Exit(0);
         } else {
             OSAL_Printf("Invalid choice. Please try again.\n");
         }
@@ -238,6 +246,7 @@ static int32_t menu_select_module(void)
         }
 
         OSAL_Printf("%u. Back to main menu\n", module_count + 1);
+        OSAL_Printf("%u. Exit\n", module_count + 2);
         OSAL_Printf("\nEnter your choice: ");
 
         int32_t choice = read_choice();
@@ -251,6 +260,9 @@ static int32_t menu_select_module(void)
             menu_select_suite(suites, count, context);
         } else if (choice == (int32_t)(module_count + 1)) {
             return OSAL_SUCCESS;
+        } else if (choice == (int32_t)(module_count + 2)) {
+            OSAL_Printf("\nExiting...\n");
+            OSAL_Exit(0);
         } else {
             OSAL_Printf("Invalid choice. Please try again.\n");
         }
@@ -273,6 +285,7 @@ static int32_t menu_select_layer(void)
         }
 
         OSAL_Printf("%u. Back to main menu\n", layer_count + 1);
+        OSAL_Printf("%u. Exit\n", layer_count + 2);
         OSAL_Printf("\nEnter your choice: ");
 
         int32_t choice = read_choice();
@@ -286,6 +299,9 @@ static int32_t menu_select_layer(void)
             menu_select_suite(suites, count, context);
         } else if (choice == (int32_t)(layer_count + 1)) {
             return OSAL_SUCCESS;
+        } else if (choice == (int32_t)(layer_count + 2)) {
+            OSAL_Printf("\nExiting...\n");
+            OSAL_Exit(0);
         } else {
             OSAL_Printf("Invalid choice. Please try again.\n");
         }

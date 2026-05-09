@@ -157,6 +157,7 @@ extern const char *g_current_test;
 #define TEST_SKIP() \
     do { \
         OSAL_Printf("[  SKIPPED ] %s\n", g_current_test); \
+        g_current_test = NULL; \
         return; \
     } while(0)
 
@@ -164,6 +165,7 @@ extern const char *g_current_test;
     do { \
         if (condition) { \
             OSAL_Printf("[  SKIPPED ] %s: %s\n", g_current_test, message); \
+            g_current_test = NULL; \
             return; \
         } \
     } while(0)

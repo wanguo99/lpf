@@ -16,7 +16,7 @@ TEST_CASE(test_hal_can_init_success)
 {
     hal_can_handle_t handle = NULL;
     hal_can_config_t config = {
-        .interface = "vcan0",
+        .interface = "can0",
         .baudrate = 500000,
         .rx_timeout = 1000,
         .tx_timeout = 1000
@@ -24,12 +24,25 @@ TEST_CASE(test_hal_can_init_success)
 
     int32_t ret = HAL_CAN_Init(&config, &handle);
 
-    if (OSAL_SUCCESS != ret) {
-        TEST_SKIP_IF(true, "vcan0 not available");
-    }
+    /* 如果初始化失败，跳过所有CAN测试 */
+    TEST_SKIP_IF(ret != OSAL_SUCCESS, "CAN interface not available or down. Please run: ip link set can0 up");
 
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
     TEST_ASSERT_NOT_NULL(handle);
+
+    /* 尝试发送一个测试帧，检查接口是否真正可用 */
+    can_frame_t test_frame = {
+        .can_id = 0x001,
+        .dlc = 1,
+        .data = {0x00}
+    };
+    ret = HAL_CAN_Send(handle, &test_frame);
+
+    /* 如果发送失败（Network is down），跳过所有CAN测试 */
+    if (ret != OSAL_SUCCESS) {
+        HAL_CAN_Deinit(handle);
+        TEST_SKIP_IF(true, "CAN interface is down. Please run: ip link set can0 type can bitrate 500000 && ip link set can0 up");
+    }
 
     HAL_CAN_Deinit(handle);
 }
@@ -47,7 +60,7 @@ TEST_CASE(test_hal_can_init_null_config)
 TEST_CASE(test_hal_can_init_null_handle)
 {
     hal_can_config_t config = {
-        .interface = "vcan0",
+        .interface = "can0",
         .baudrate = 500000,
         .rx_timeout = 1000,
         .tx_timeout = 1000
@@ -77,16 +90,14 @@ TEST_CASE(test_hal_can_deinit)
 {
     hal_can_handle_t handle = NULL;
     hal_can_config_t config = {
-        .interface = "vcan0",
+        .interface = "can0",
         .baudrate = 500000,
         .rx_timeout = 1000,
         .tx_timeout = 1000
     };
 
     int32_t ret = HAL_CAN_Init(&config, &handle);
-    if (OSAL_SUCCESS != ret) {
-        TEST_SKIP_IF(true, "vcan0 not available");
-    }
+    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     ret = HAL_CAN_Deinit(handle);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
@@ -108,7 +119,7 @@ TEST_CASE(test_hal_can_send_success)
 {
     hal_can_handle_t handle = NULL;
     hal_can_config_t config = {
-        .interface = "vcan0",
+        .interface = "can0",
         .baudrate = 500000,
         .rx_timeout = 1000,
         .tx_timeout = 1000
@@ -120,9 +131,7 @@ TEST_CASE(test_hal_can_send_success)
     };
 
     int32_t ret = HAL_CAN_Init(&config, &handle);
-    if (OSAL_SUCCESS != ret) {
-        TEST_SKIP_IF(true, "vcan0 not available");
-    }
+    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     ret = HAL_CAN_Send(handle, &frame);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
@@ -148,16 +157,14 @@ TEST_CASE(test_hal_can_send_null_frame)
 {
     hal_can_handle_t handle = NULL;
     hal_can_config_t config = {
-        .interface = "vcan0",
+        .interface = "can0",
         .baudrate = 500000,
         .rx_timeout = 1000,
         .tx_timeout = 1000
     };
 
     int32_t ret = HAL_CAN_Init(&config, &handle);
-    if (OSAL_SUCCESS != ret) {
-        TEST_SKIP_IF(true, "vcan0 not available");
-    }
+    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     ret = HAL_CAN_Send(handle, NULL);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
@@ -170,7 +177,7 @@ TEST_CASE(test_hal_can_recv_timeout)
 {
     hal_can_handle_t handle = NULL;
     hal_can_config_t config = {
-        .interface = "vcan0",
+        .interface = "can0",
         .baudrate = 500000,
         .rx_timeout = 100,
         .tx_timeout = 1000
@@ -178,9 +185,7 @@ TEST_CASE(test_hal_can_recv_timeout)
     can_frame_t frame;
 
     int32_t ret = HAL_CAN_Init(&config, &handle);
-    if (OSAL_SUCCESS != ret) {
-        TEST_SKIP_IF(true, "vcan0 not available");
-    }
+    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     ret = HAL_CAN_Recv(handle, &frame, 100);
     TEST_ASSERT_EQUAL(OSAL_ERR_TIMEOUT, ret);
@@ -202,16 +207,14 @@ TEST_CASE(test_hal_can_recv_null_frame)
 {
     hal_can_handle_t handle = NULL;
     hal_can_config_t config = {
-        .interface = "vcan0",
+        .interface = "can0",
         .baudrate = 500000,
         .rx_timeout = 1000,
         .tx_timeout = 1000
     };
 
     int32_t ret = HAL_CAN_Init(&config, &handle);
-    if (OSAL_SUCCESS != ret) {
-        TEST_SKIP_IF(true, "vcan0 not available");
-    }
+    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     ret = HAL_CAN_Recv(handle, NULL, 100);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
@@ -224,7 +227,7 @@ TEST_CASE(test_hal_can_loopback)
 {
     hal_can_handle_t handle = NULL;
     hal_can_config_t config = {
-        .interface = "vcan0",
+        .interface = "can0",
         .baudrate = 500000,
         .rx_timeout = 1000,
         .tx_timeout = 1000
@@ -237,15 +240,13 @@ TEST_CASE(test_hal_can_loopback)
     can_frame_t rx_frame;
 
     int32_t ret = HAL_CAN_Init(&config, &handle);
-    if (OSAL_SUCCESS != ret) {
-        TEST_SKIP_IF(true, "vcan0 not available");
-    }
+    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     /* 发送帧 */
     ret = HAL_CAN_Send(handle, &tx_frame);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
-    /* 接收帧（vcan0支持回环） */
+    /* 接收帧（需要外部回环或另一个CAN节点） */
     ret = HAL_CAN_Recv(handle, &rx_frame, 1000);
     if (OSAL_SUCCESS == ret) {
         TEST_ASSERT_EQUAL(tx_frame.can_id, rx_frame.can_id);
@@ -267,16 +268,14 @@ TEST_CASE(test_hal_can_set_filter_success)
 {
     hal_can_handle_t handle = NULL;
     hal_can_config_t config = {
-        .interface = "vcan0",
+        .interface = "can0",
         .baudrate = 500000,
         .rx_timeout = 1000,
         .tx_timeout = 1000
     };
 
     int32_t ret = HAL_CAN_Init(&config, &handle);
-    if (OSAL_SUCCESS != ret) {
-        TEST_SKIP_IF(true, "vcan0 not available");
-    }
+    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     ret = HAL_CAN_SetFilter(handle, 0x100, 0x7FF);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
@@ -300,7 +299,7 @@ TEST_CASE(test_hal_can_get_stats_success)
 {
     hal_can_handle_t handle = NULL;
     hal_can_config_t config = {
-        .interface = "vcan0",
+        .interface = "can0",
         .baudrate = 500000,
         .rx_timeout = 1000,
         .tx_timeout = 1000
@@ -308,9 +307,7 @@ TEST_CASE(test_hal_can_get_stats_success)
     uint32_t tx_count, rx_count, err_count;
 
     int32_t ret = HAL_CAN_Init(&config, &handle);
-    if (OSAL_SUCCESS != ret) {
-        TEST_SKIP_IF(true, "vcan0 not available");
-    }
+    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     ret = HAL_CAN_GetStats(handle, &tx_count, &rx_count, &err_count);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
@@ -332,7 +329,7 @@ TEST_CASE(test_hal_can_get_stats_null_pointer)
 {
     hal_can_handle_t handle = NULL;
     hal_can_config_t config = {
-        .interface = "vcan0",
+        .interface = "can0",
         .baudrate = 500000,
         .rx_timeout = 1000,
         .tx_timeout = 1000
@@ -340,9 +337,7 @@ TEST_CASE(test_hal_can_get_stats_null_pointer)
     uint32_t count;
 
     int32_t ret = HAL_CAN_Init(&config, &handle);
-    if (OSAL_SUCCESS != ret) {
-        TEST_SKIP_IF(true, "vcan0 not available");
-    }
+    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     ret = HAL_CAN_GetStats(handle, NULL, &count, &count);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
@@ -361,7 +356,7 @@ TEST_CASE(test_hal_can_stats_accumulation)
 {
     hal_can_handle_t handle = NULL;
     hal_can_config_t config = {
-        .interface = "vcan0",
+        .interface = "can0",
         .baudrate = 500000,
         .rx_timeout = 1000,
         .tx_timeout = 1000
@@ -374,9 +369,7 @@ TEST_CASE(test_hal_can_stats_accumulation)
     };
 
     int32_t ret = HAL_CAN_Init(&config, &handle);
-    if (OSAL_SUCCESS != ret) {
-        TEST_SKIP_IF(true, "vcan0 not available");
-    }
+    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     /* 获取初始统计 */
     ret = HAL_CAN_GetStats(handle, &tx1, &rx1, &err1);
@@ -406,18 +399,15 @@ TEST_CASE(test_hal_can_different_baudrate)
 {
     hal_can_handle_t handle = NULL;
     hal_can_config_t config = {
-        .interface = "vcan0",
+        .interface = "can0",
         .baudrate = 250000,  /* 250kbps */
         .rx_timeout = 1000,
         .tx_timeout = 1000
     };
 
     int32_t ret = HAL_CAN_Init(&config, &handle);
-    if (OSAL_SUCCESS != ret) {
-        TEST_SKIP_IF(true, "vcan0 not available");
-    }
-
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
+
     HAL_CAN_Deinit(handle);
 }
 
