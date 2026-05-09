@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # ============================================================================
-# EMS 构建脚本 - 经典 CMake 命令
+# EMS 构建脚本 - 精简版
+# 所有参数写死，只支持编译和清理
 # ============================================================================
 
 set -e
@@ -12,139 +13,159 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-# 默认配置
-BUILD_TYPE="Release"
-BUILD_DIR="build"
-CLEAN=0
-TOOLCHAIN=""
+# ============================================================================
+# 构建参数配置（写死，不支持命令行修改）
+# ============================================================================
+BUILD_TYPE="Release"                    # 构建类型：Release/Debug
+BUILD_DIR="build"                       # 构建目录
+INSTALL_PREFIX="/usr/local"             # 安装路径
+BUILD_TESTING="ON"                      # 是否编译测试：ON/OFF
+BUILD_SHARED_LIBS="ON"                  # 是否编译动态库：ON/OFF
+INSTALL_HEADERS="ON"                    # 是否安装头文件：ON/OFF
+BUILD_SAMPLE_APP="ON"                   # 是否编译 sample_app：ON/OFF
+BUILD_WATCHDOG_APP="ON"                 # 是否编译 watchdog_app：ON/OFF
+
+# 交叉编译工具链（留空表示本地编译）
+# 示例：TOOLCHAIN_FILE="cmake/toolchains/arm32-linux-gnueabihf.cmake"
+TOOLCHAIN_FILE=""
+
+# 并行编译任务数
 JOBS=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
 
+# ============================================================================
 # 帮助信息
+# ============================================================================
 show_help() {
     cat << EOF
-用法: $0 [选项]
+用法: $0 [clean]
 
-选项:
-    -h, --help          显示此帮助信息
-    -d, --debug         Debug 模式编译（默认 Release）
-    -c, --clean         清理构建目录
-    -a, --arch ARCH     交叉编译架构 (arm32/arm64/riscv64)
-    -j, --jobs N        并行编译任务数（默认：CPU核心数）
-    -o, --output DIR    构建输出目录（默认：build）
+命令:
+    (无参数)    编译项目
+    clean       清理构建目录
 
-示例:
-    $0                  # Release 模式编译
-    $0 -d               # Debug 模式编译
-    $0 -c               # 清理构建
-    $0 -a arm32         # ARM32 交叉编译
-    $0 -d -o build-dbg  # Debug 模式，输出到 build-dbg
+当前配置（在脚本中修改）:
+    BUILD_TYPE         = $BUILD_TYPE
+    BUILD_DIR          = $BUILD_DIR
+    INSTALL_PREFIX     = $INSTALL_PREFIX
+    BUILD_TESTING      = $BUILD_TESTING
+    BUILD_SHARED_LIBS  = $BUILD_SHARED_LIBS
+    INSTALL_HEADERS    = $INSTALL_HEADERS
+    BUILD_SAMPLE_APP   = $BUILD_SAMPLE_APP
+    BUILD_WATCHDOG_APP = $BUILD_WATCHDOG_APP
+    TOOLCHAIN_FILE     = ${TOOLCHAIN_FILE:-"(native)"}
+    JOBS               = $JOBS
 
 等效的 CMake 命令:
-    cmake -B build -DCMAKE_BUILD_TYPE=Release
-    cmake --build build -j\$(nproc)
-
-交叉编译:
-    cmake -B build -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/arm32-linux-gnueabihf.cmake
-    cmake --build build
-
-详细文档: docs/BUILD_GUIDE.md
+    cmake -B $BUILD_DIR \\
+        -DCMAKE_BUILD_TYPE=$BUILD_TYPE \\
+        -DCMAKE_INSTALL_PREFIX=$INSTALL_PREFIX \\
+        -DBUILD_TESTING=$BUILD_TESTING \\
+        -DBUILD_SHARED_LIBS=$BUILD_SHARED_LIBS \\
+        -DINSTALL_HEADERS=$INSTALL_HEADERS \\
+        -DBUILD_SAMPLE_APP=$BUILD_SAMPLE_APP \\
+        -DBUILD_WATCHDOG_APP=$BUILD_WATCHDOG_APP
+    cmake --build $BUILD_DIR -j$JOBS
 
 EOF
 }
 
-# 解析命令行参数
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        -h|--help)
-            show_help
-            exit 0
-            ;;
-        -d|--debug)
-            BUILD_TYPE="Debug"
-            shift
-            ;;
-        -c|--clean)
-            CLEAN=1
-            shift
-            ;;
-        -a|--arch)
-            case $2 in
-                arm32)
-                    TOOLCHAIN="cmake/toolchains/arm32-linux-gnueabihf.cmake"
-                    ;;
-                arm64)
-                    TOOLCHAIN="cmake/toolchains/aarch64-linux-gnu.cmake"
-                    ;;
-                riscv64)
-                    TOOLCHAIN="cmake/toolchains/riscv64-linux-gnu.cmake"
-                    ;;
-                *)
-                    echo -e "${RED}错误: 不支持的架构 '$2'${NC}"
-                    echo "支持的架构: arm32, arm64, riscv64"
-                    exit 1
-                    ;;
-            esac
-            shift 2
-            ;;
-        -j|--jobs)
-            JOBS="$2"
-            shift 2
-            ;;
-        -o|--output)
-            BUILD_DIR="$2"
-            shift 2
-            ;;
-        *)
-            echo -e "${RED}错误: 未知选项 $1${NC}"
-            show_help
-            exit 1
-            ;;
-    esac
-done
-
+# ============================================================================
 # 清理构建
-if [ $CLEAN -eq 1 ]; then
-    echo -e "${YELLOW}清理构建目录...${NC}"
+# ============================================================================
+if [ "$1" = "clean" ]; then
+    echo -e "${YELLOW}清理构建目录: $BUILD_DIR${NC}"
     rm -rf "$BUILD_DIR"
     echo -e "${GREEN}清理完成${NC}"
     exit 0
 fi
 
+# ============================================================================
+# 显示帮助
+# ============================================================================
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# ============================================================================
+# 检查参数
+# ============================================================================
+if [ $# -gt 0 ]; then
+    echo -e "${RED}错误: 未知参数 '$1'${NC}"
+    echo "使用 '$0 --help' 查看帮助"
+    exit 1
+fi
+
+# ============================================================================
+# 配置构建
+# ============================================================================
+echo -e "${GREEN}========================================${NC}"
+echo -e "${GREEN}EMS 构建配置${NC}"
+echo -e "${GREEN}========================================${NC}"
+echo -e "构建类型:       ${YELLOW}$BUILD_TYPE${NC}"
+echo -e "构建目录:       ${YELLOW}$BUILD_DIR${NC}"
+echo -e "安装路径:       ${YELLOW}$INSTALL_PREFIX${NC}"
+echo -e "编译测试:       ${YELLOW}$BUILD_TESTING${NC}"
+echo -e "动态库:         ${YELLOW}$BUILD_SHARED_LIBS${NC}"
+echo -e "安装头文件:     ${YELLOW}$INSTALL_HEADERS${NC}"
+echo -e "Sample App:     ${YELLOW}$BUILD_SAMPLE_APP${NC}"
+echo -e "Watchdog App:   ${YELLOW}$BUILD_WATCHDOG_APP${NC}"
+if [ -n "$TOOLCHAIN_FILE" ]; then
+    echo -e "工具链:         ${YELLOW}$TOOLCHAIN_FILE${NC}"
+else
+    echo -e "工具链:         ${YELLOW}(native)${NC}"
+fi
+echo -e "并行任务:       ${YELLOW}$JOBS${NC}"
+echo -e "${GREEN}========================================${NC}"
+echo ""
+
 # 构建 CMake 配置命令
-CMAKE_ARGS="-B $BUILD_DIR -DCMAKE_BUILD_TYPE=$BUILD_TYPE"
-if [ -n "$TOOLCHAIN" ]; then
-    CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN"
+CMAKE_ARGS=(
+    -B "$BUILD_DIR"
+    -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
+    -DCMAKE_INSTALL_PREFIX="$INSTALL_PREFIX"
+    -DBUILD_TESTING="$BUILD_TESTING"
+    -DBUILD_SHARED_LIBS="$BUILD_SHARED_LIBS"
+    -DINSTALL_HEADERS="$INSTALL_HEADERS"
+    -DBUILD_SAMPLE_APP="$BUILD_SAMPLE_APP"
+    -DBUILD_WATCHDOG_APP="$BUILD_WATCHDOG_APP"
+)
+
+if [ -n "$TOOLCHAIN_FILE" ]; then
+    CMAKE_ARGS+=(-DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE")
 fi
 
 # 配置
-echo -e "${GREEN}配置构建 (类型: $BUILD_TYPE)...${NC}"
-if [ -n "$TOOLCHAIN" ]; then
-    echo -e "工具链: ${YELLOW}$TOOLCHAIN${NC}"
-fi
-cmake $CMAKE_ARGS
+echo -e "${GREEN}配置构建...${NC}"
+cmake "${CMAKE_ARGS[@]}"
+echo ""
 
 # 编译
-echo -e "${GREEN}开始编译 (并行任务: $JOBS)...${NC}"
+echo -e "${GREEN}开始编译...${NC}"
 cmake --build "$BUILD_DIR" -j "$JOBS"
+echo ""
 
 # 显示结果
-echo ""
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}编译完成！${NC}"
 echo -e "${GREEN}========================================${NC}"
-echo -e "构建类型: ${YELLOW}$BUILD_TYPE${NC}"
 echo -e "输出目录: ${YELLOW}$BUILD_DIR${NC}"
 echo ""
 
 # 显示可执行文件
 if [ -d "$BUILD_DIR/bin" ]; then
     echo -e "可执行文件:"
-    ls -lh "$BUILD_DIR/bin" | tail -n +2 | awk '{printf "  \033[0;32m%s\033[0m (%s)\n", $9, $5}'
+    ls -lh "$BUILD_DIR/bin" 2>/dev/null | tail -n +2 | awk '{printf "  \033[0;32m%s\033[0m (%s)\n", $9, $5}' || true
 fi
 
 # 显示库文件
 if [ -d "$BUILD_DIR/lib" ]; then
     echo ""
     echo -e "库文件:"
-    ls -lh "$BUILD_DIR/lib" | tail -n +2 | awk '{printf "  \033[0;32m%s\033[0m (%s)\n", $9, $5}'
+    ls -lh "$BUILD_DIR/lib" 2>/dev/null | tail -n +2 | awk '{printf "  \033[0;32m%s\033[0m (%s)\n", $9, $5}' || true
 fi
+
+echo ""
+echo -e "${GREEN}安装命令:${NC}"
+echo -e "  sudo cmake --install $BUILD_DIR"
+echo ""

@@ -14,17 +14,25 @@ Buildroot package makefile，定义了如何下载、配置、编译和安装 EM
 - `EMS_DEPENDENCIES`: 依赖的其他 Buildroot packages
 - `EMS_CONF_OPTS`: CMake 配置选项
 
+**Buildroot 自动传递的 CMake 参数：**
+- `CMAKE_INSTALL_PREFIX`: 安装前缀（通常为 /usr）
+- `CMAKE_TOOLCHAIN_FILE`: 交叉编译工具链文件
+- `CMAKE_BUILD_TYPE`: 构建类型（Release/Debug）
+- `CMAKE_INSTALL_LIBDIR`: 库目录（lib 或 lib64）
+- `CMAKE_INSTALL_BINDIR`: 可执行文件目录（bin）
+- `CMAKE_INSTALL_INCLUDEDIR`: 头文件目录（include）
+
 ### 2. Config.in
 Buildroot menuconfig 配置文件，定义了 EMS 在配置菜单中的选项。
 
 **可配置选项：**
 - `BR2_PACKAGE_EMS`: 启用 EMS package
 - `BR2_PACKAGE_EMS_SAMPLE_APP`: 安装示例应用程序
+- `BR2_PACKAGE_EMS_WATCHDOG_APP`: 安装看门狗应用程序
 - `BR2_PACKAGE_EMS_TESTS`: 安装单元测试
 
 **依赖要求：**
-- C++ 工具链支持
-- 线程支持
+- 线程支持（POSIX threads）
 - 动态库支持（不支持纯静态链接）
 
 ### 3. ems.conf

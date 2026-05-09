@@ -66,24 +66,26 @@ target_compile_options(pcl PRIVATE
 )
 
 # ============================================================================
-# 3. 安装规则
+# 3. 安装规则（使用 GNUInstallDirs 变量）
 # ============================================================================
 install(TARGETS pcl pcl_public_api
     EXPORT pcl-targets
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
-    RUNTIME DESTINATION bin
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-install(DIRECTORY include/
-    DESTINATION include/pcl
-    FILES_MATCHING PATTERN "*.h"
-)
+if(INSTALL_HEADERS)
+    install(DIRECTORY include/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/pcl
+        FILES_MATCHING PATTERN "*.h"
+    )
+endif()
 
 install(EXPORT pcl-targets
     FILE pcl-targets.cmake
     NAMESPACE ems::
-    DESTINATION lib/cmake/pcl
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pcl
 )
 
 # ============================================================================
@@ -103,7 +105,7 @@ if(BUILD_PCL_EXAMPLES)
     )
 
     install(TARGETS pcl_example
-        RUNTIME DESTINATION bin
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
 endif()
 

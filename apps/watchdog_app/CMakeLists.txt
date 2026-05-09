@@ -19,9 +19,9 @@ target_link_libraries(watchdog_app
     Threads::Threads
 )
 
-# 安装规则
+# 安装规则（使用 GNUInstallDirs 变量）
 install(TARGETS watchdog_app
-    RUNTIME DESTINATION bin
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 message(STATUS "Watchdog app configured")

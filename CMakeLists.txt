@@ -11,19 +11,47 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 # ============================================================================
 option(BUILD_TESTING "Build unit tests" ON)
 option(BUILD_SHARED_LIBS "Build shared libraries instead of static" ON)
+option(INSTALL_HEADERS "Install header files" ON)
+option(BUILD_SAMPLE_APP "Build sample application" ON)
+option(BUILD_WATCHDOG_APP "Build watchdog application" ON)
+
+# ============================================================================
+# 安装路径配置（Buildroot 兼容）
+# ============================================================================
+# 使用 GNUInstallDirs 提供标准安装路径变量
+include(GNUInstallDirs)
+
+# 默认安装路径：/usr/local（可通过 -DCMAKE_INSTALL_PREFIX 覆盖）
+# Buildroot 通常设置为 /usr
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Install prefix" FORCE)
+endif()
+
+# Buildroot 兼容说明：
+# - CMAKE_INSTALL_PREFIX: 安装前缀（Buildroot 通常设置为 /usr）
+# - CMAKE_INSTALL_LIBDIR: 库文件目录（相对路径，如 lib 或 lib64）
+# - CMAKE_INSTALL_BINDIR: 可执行文件目录（相对路径，如 bin）
+# - CMAKE_INSTALL_INCLUDEDIR: 头文件目录（相对路径，如 include）
+# - DESTDIR: 安装时的目标根目录（make install DESTDIR=/staging）
 
 # ============================================================================
 # 编译选项
 # ============================================================================
+# 基础编译标志
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror -D_POSIX_C_SOURCE=200809L")
 
-# 设置默认构建类型为 Release
+# 设置默认构建类型为 Release（Buildroot 通常会覆盖此设置）
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type (Debug/Release)" FORCE)
 endif()
 
-set(CMAKE_C_FLAGS_DEBUG "-g -O0")
-set(CMAKE_C_FLAGS_RELEASE "-O2")
+# 构建类型特定的标志（如果 Buildroot 未设置 CMAKE_C_FLAGS_RELEASE）
+if(NOT CMAKE_C_FLAGS_DEBUG)
+    set(CMAKE_C_FLAGS_DEBUG "-g -O0")
+endif()
+if(NOT CMAKE_C_FLAGS_RELEASE)
+    set(CMAKE_C_FLAGS_RELEASE "-O2")
+endif()
 
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
@@ -95,14 +123,25 @@ endif()
 message(STATUS "")
 message(STATUS "========================================")
 message(STATUS "EMS v${PROJECT_VERSION}")
+message(STATUS "========================================")
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "System: ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_PROCESSOR}")
 message(STATUS "Compiler: ${CMAKE_C_COMPILER}")
-if(BUILD_TESTING)
-message(STATUS "Tests: Enabled")
-else()
-message(STATUS "Tests: Disabled")
+if(CMAKE_TOOLCHAIN_FILE)
+message(STATUS "Toolchain: ${CMAKE_TOOLCHAIN_FILE}")
 endif()
+message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "  Binaries: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}")
+message(STATUS "  Libraries: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+message(STATUS "  Headers: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
+message(STATUS "")
+message(STATUS "Build options:")
+message(STATUS "  BUILD_TESTING: ${BUILD_TESTING}")
+message(STATUS "  BUILD_SHARED_LIBS: ${BUILD_SHARED_LIBS}")
+message(STATUS "  INSTALL_HEADERS: ${INSTALL_HEADERS}")
+message(STATUS "  BUILD_SAMPLE_APP: ${BUILD_SAMPLE_APP}")
+message(STATUS "  BUILD_WATCHDOG_APP: ${BUILD_WATCHDOG_APP}")
+message(STATUS "")
 message(STATUS "Output: ${CMAKE_BINARY_DIR}")
 message(STATUS "========================================")
 message(STATUS "")

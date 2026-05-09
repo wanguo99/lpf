@@ -17,34 +17,19 @@ EMS_INSTALL_STAGING = YES
 # 依赖项
 EMS_DEPENDENCIES = host-pkgconf
 
-# CMake 配置选项
+# CMake 配置选项（兼容 Buildroot 标准参数）
+# Buildroot 会自动传递以下参数：
+# - CMAKE_INSTALL_PREFIX（通常为 /usr）
+# - CMAKE_TOOLCHAIN_FILE（交叉编译工具链）
+# - CMAKE_BUILD_TYPE（构建类型）
+# - CMAKE_INSTALL_LIBDIR（库目录，如 lib 或 lib64）
+# - CMAKE_INSTALL_BINDIR（可执行文件目录，通常为 bin）
 EMS_CONF_OPTS = \
-	-DCMAKE_BUILD_TYPE=Release \
-	-DBUILD_TESTING=OFF \
-	-DBUILD_SHARED_LIBS=ON
-
-# 如果启用测试，则编译测试程序
-ifeq ($(BR2_PACKAGE_EMS_TESTS),y)
-EMS_CONF_OPTS += -DBUILD_TESTING=ON
-endif
-
-# 安装示例应用
-ifeq ($(BR2_PACKAGE_EMS_SAMPLE_APP),y)
-define EMS_INSTALL_SAMPLE_APP
-	$(INSTALL) -D -m 0755 $(@D)/build/release/bin/ems-sample-app \
-		$(TARGET_DIR)/usr/bin/ems-sample-app
-endef
-EMS_POST_INSTALL_TARGET_HOOKS += EMS_INSTALL_SAMPLE_APP
-endif
-
-# 安装测试程序
-ifeq ($(BR2_PACKAGE_EMS_TESTS),y)
-define EMS_INSTALL_TESTS
-	$(INSTALL) -D -m 0755 $(@D)/build/release/bin/ems-test \
-		$(TARGET_DIR)/usr/bin/ems-test
-endef
-EMS_POST_INSTALL_TARGET_HOOKS += EMS_INSTALL_TESTS
-endif
+	-DBUILD_TESTING=$(if $(BR2_PACKAGE_EMS_TESTS),ON,OFF) \
+	-DBUILD_SHARED_LIBS=$(if $(BR2_STATIC_LIBS),OFF,ON) \
+	-DBUILD_SAMPLE_APP=$(if $(BR2_PACKAGE_EMS_SAMPLE_APP),ON,OFF) \
+	-DBUILD_WATCHDOG_APP=$(if $(BR2_PACKAGE_EMS_WATCHDOG_APP),ON,OFF) \
+	-DINSTALL_HEADERS=ON
 
 # 安装配置文件
 define EMS_INSTALL_CONFIG

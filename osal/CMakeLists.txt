@@ -83,24 +83,26 @@ target_compile_options(osal PRIVATE
 )
 
 # ============================================================================
-# 3. 安装规则
+# 3. 安装规则（使用 GNUInstallDirs 变量）
 # ============================================================================
 install(TARGETS osal osal_public_api
     EXPORT osal-targets
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
-    RUNTIME DESTINATION bin
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-install(DIRECTORY include/
-    DESTINATION include/osal
-    FILES_MATCHING PATTERN "*.h"
-)
+if(INSTALL_HEADERS)
+    install(DIRECTORY include/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/osal
+        FILES_MATCHING PATTERN "*.h"
+    )
+endif()
 
 install(EXPORT osal-targets
     FILE osal-targets.cmake
     NAMESPACE ems::
-    DESTINATION lib/cmake/osal
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/osal
 )
 
 message(STATUS "OSAL configured")

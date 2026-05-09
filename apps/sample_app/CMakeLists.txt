@@ -20,9 +20,9 @@ target_link_libraries(sample_app
 
 # 输出目录由顶层 CMakeLists.txt 的 CMAKE_RUNTIME_OUTPUT_DIRECTORY 控制
 
-# 安装规则
+# 安装规则（使用 GNUInstallDirs 变量）
 install(TARGETS sample_app
-    RUNTIME DESTINATION bin
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 message(STATUS "Sample app configured")

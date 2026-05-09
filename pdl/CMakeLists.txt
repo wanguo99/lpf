@@ -77,24 +77,26 @@ target_compile_options(pdl PRIVATE
 )
 
 # ============================================================================
-# 3. 安装规则
+# 3. 安装规则（使用 GNUInstallDirs 变量）
 # ============================================================================
 install(TARGETS pdl pdl_public_api
     EXPORT pdl-targets
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
-    RUNTIME DESTINATION bin
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-install(DIRECTORY include/
-    DESTINATION include/pdl
-    FILES_MATCHING PATTERN "*.h"
-)
+if(INSTALL_HEADERS)
+    install(DIRECTORY include/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/pdl
+        FILES_MATCHING PATTERN "*.h"
+    )
+endif()
 
 install(EXPORT pdl-targets
     FILE pdl-targets.cmake
     NAMESPACE ems::
-    DESTINATION lib/cmake/pdl
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pdl
 )
 
 message(STATUS "PDL configured (MCU + Satellite + BMC + Watchdog drivers)")

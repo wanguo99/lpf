@@ -62,24 +62,26 @@ target_compile_options(hal PRIVATE
 )
 
 # ============================================================================
-# 3. 安装规则
+# 3. 安装规则（使用 GNUInstallDirs 变量）
 # ============================================================================
 install(TARGETS hal hal_public_api
     EXPORT hal-targets
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
-    RUNTIME DESTINATION bin
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-install(DIRECTORY include/
-    DESTINATION include/hal
-    FILES_MATCHING PATTERN "*.h"
-)
+if(INSTALL_HEADERS)
+    install(DIRECTORY include/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hal
+        FILES_MATCHING PATTERN "*.h"
+    )
+endif()
 
 install(EXPORT hal-targets
     FILE hal-targets.cmake
     NAMESPACE ems::
-    DESTINATION lib/cmake/hal
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/hal
 )
 
 message(STATUS "HAL configured (${PLATFORM})")
