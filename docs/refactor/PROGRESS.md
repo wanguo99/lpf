@@ -10,7 +10,7 @@
 
 | 阶段 | 状态 | 完成度 | 开始时间 | 完成时间 | 备注 |
 |------|------|--------|----------|----------|------|
-| 阶段1：基础设施完善 | 🔄 进行中 | 43% | 2026-05-17 | - | OSAL层增强 |
+| 阶段1：基础设施完善 | 🔄 进行中 | 86% | 2026-05-17 | - | OSAL层增强 |
 | 阶段2：ACL层实现 | ⏸️ 未开始 | 0% | - | - | 业务配置层 |
 | 阶段3：PDL层功能补全 | ⏸️ 未开始 | 0% | - | - | Redfish/IPMI |
 | 阶段4：APP层核心进程 | ⏸️ 未开始 | 0% | - | - | 5个核心进程 |
@@ -24,7 +24,7 @@
 
 **目标**: 补齐OSAL层缺失功能，为上层提供完整的运行环境  
 **状态**: 🔄 进行中  
-**完成度**: 3/7 任务
+**完成度**: 6/7 任务
 
 ### 任务清单
 
@@ -35,7 +35,7 @@
 | T1.3 | OSAL内存锁定API | P0 | 2天 | ✅ 已完成 | 2026-05-17 | 2026-05-17 | - | 已在T1.1中实现 |
 | T1.4 | OSAL共享内存API | P0 | 5天 | ✅ 已完成 | 2026-05-17 | 2026-05-17 | - | 创建/映射/销毁 |
 | T1.5 | OSAL原子操作增强 | P1 | 2天 | ✅ 已完成 | 2026-05-17 | 2026-05-17 | - | 64位原子时间戳 |
-| T1.6 | HAL GPIO驱动 | P1 | 3天 | ⏸️ 未开始 | - | - | - | 输入/输出/中断 |
+| T1.6 | HAL GPIO驱动 | P1 | 3天 | ✅ 已完成 | 2026-05-17 | 2026-05-17 | - | 输入/输出/中断 |
 | T1.7 | 单元测试补充 | P1 | 3天 | ⏸️ 未开始 | - | - | - | 覆盖率>80% |
 
 ### 详细进度
@@ -163,6 +163,53 @@ bool OSAL_AtomicCompareExchange64(osal_atomic_uint64_t *atomic, uint64_t expecte
 
 **提交记录**:
 - 05c3b0e: 增强OSAL原子操作，添加64位支持 (T1.5)
+
+#### T1.6 HAL GPIO驱动（已完成）
+
+**需求**:
+- 支持GPIO输入/输出模式控制
+- 支持GPIO电平读写（高/低）
+- 支持GPIO中断（上升沿/下降沿/双边沿触发）
+- 支持中断回调机制
+- 跨平台支持（Linux真实硬件 + macOS模拟）
+
+**设计**:
+```c
+// hal/include/hal_gpio.h
+int32_t HAL_GPIO_Init(uint32_t gpio_num, const hal_gpio_config_t *config);
+int32_t HAL_GPIO_Deinit(uint32_t gpio_num);
+int32_t HAL_GPIO_SetDirection(uint32_t gpio_num, hal_gpio_direction_t direction);
+int32_t HAL_GPIO_GetDirection(uint32_t gpio_num, hal_gpio_direction_t *direction);
+int32_t HAL_GPIO_SetLevel(uint32_t gpio_num, hal_gpio_level_t level);
+int32_t HAL_GPIO_GetLevel(uint32_t gpio_num, hal_gpio_level_t *level);
+int32_t HAL_GPIO_SetInterrupt(uint32_t gpio_num, hal_gpio_edge_t edge,
+                               hal_gpio_isr_callback_t callback, void *user_data);
+int32_t HAL_GPIO_EnableInterrupt(uint32_t gpio_num);
+int32_t HAL_GPIO_DisableInterrupt(uint32_t gpio_num);
+```
+
+**实现文件**:
+- [x] hal/include/hal_gpio.h
+- [x] hal/src/linux/hal_gpio.c
+- [x] hal/src/macos/hal_gpio.c
+- [x] tests/unit/hal/test_hal_gpio.c
+
+**完成状态**: 
+- ✅ 实现了完整的GPIO API接口（9个函数）
+- ✅ Linux平台使用sysfs GPIO接口（/sys/class/gpio/）
+- ✅ 实现了GPIO中断监听线程（使用poll机制）
+- ✅ macOS平台提供内存模拟实现
+- ✅ 完成了7个单元测试用例，全部通过：
+  * GPIO初始化/释放
+  * 方向控制（输入/输出）
+  * 电平控制（高/低）
+  * 中断配置和使能/禁用
+  * 参数验证
+  * 输出模式测试
+  * 输入模式测试
+
+**提交记录**:
+- 395c6ab: 功能：实现HAL GPIO驱动
 
 ---
 
