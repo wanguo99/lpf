@@ -1933,6 +1933,75 @@ EMS/
 │           ├── osal_sched.c                # 实时调度实现
 │           └── osal_shm.c                  # 共享内存实现
 │
+├── hal/                                     # 硬件抽象层（现有）
+│   ├── include/
+│   │   ├── hal_gpio.h                      # GPIO抽象接口
+│   │   ├── hal_uart.h                      # UART抽象接口
+│   │   ├── hal_i2c.h                       # I2C抽象接口
+│   │   ├── hal_spi.h                       # SPI抽象接口
+│   │   └── hal_can.h                       # CAN抽象接口
+│   └── src/
+│       └── linux/                          # Linux平台实现
+│           ├── hal_gpio_linux.c
+│           ├── hal_uart_linux.c
+│           ├── hal_i2c_linux.c
+│           ├── hal_spi_linux.c
+│           └── hal_can_linux.c
+│
+├── pcl/                                     # 外设配置层（现有）
+│   ├── include/
+│   │   ├── api/
+│   │   │   └── pcl_api.h                   # PCL统一查询接口
+│   │   ├── internal/
+│   │   │   ├── pcl.h                       # PCL内部接口
+│   │   │   ├── pcl_common.h                # PCL通用类型定义
+│   │   │   └── pcl_board.h                 # 板级配置接口
+│   │   └── peripheral/
+│   │       ├── pcl_mcu.h                   # MCU外设配置结构
+│   │       ├── pcl_bmc.h                   # BMC外设配置结构
+│   │       ├── pcl_satellite.h             # Satellite外设配置结构
+│   │       ├── pcl_sensor.h                # 传感器配置结构
+│   │       ├── pcl_storage.h               # 存储配置结构
+│   │       └── pcl_hardware_interface.h    # 硬件接口配置（CAN/UART/I2C/SPI）
+│   ├── src/
+│   │   ├── pcl_api.c                       # PCL查询接口实现
+│   │   └── pcl_register.c                  # PCL注册机制实现
+│   └── platform/
+│       ├── ti/
+│       │   └── am6254/
+│       │       ├── carrier_board_v1/
+│       │       │   └── ti_am6254_carrier_board_v1.c    # TI AM6254载板v1硬件配置
+│       │       └── carrier_board_v2/
+│       │           └── ti_am6254_carrier_board_v2.c    # TI AM6254载板v2硬件配置
+│       └── vendor_demo/
+│           └── platform_demo/
+│               └── vendor_demo_platform_demo_v1.c      # Demo平台硬件配置
+│
+├── pdl/                                     # 外设驱动层（现有）
+│   ├── include/
+│   │   ├── pdl_mcu.h                       # MCU驱动接口（独立）
+│   │   ├── pdl_bmc.h                       # BMC驱动接口（独立）
+│   │   ├── pdl_satellite.h                 # Satellite驱动接口（独立）
+│   │   └── pdl_watchdog.h                  # 看门狗驱动接口
+│   └── src/
+│       ├── pdl_mcu/                        # MCU驱动实现（独立模块）
+│       │   ├── pdl_mcu.c                   # MCU核心模块（对外API）
+│       │   ├── pdl_mcu_protocol.c          # MCU协议处理模块
+│       │   ├── pdl_mcu_can.c               # MCU CAN通信模块
+│       │   ├── pdl_mcu_serial.c            # MCU串口通信模块
+│       │   └── pdl_mcu_internal.h          # MCU内部头文件
+│       ├── pdl_bmc/                        # BMC驱动实现（独立模块）
+│       │   ├── pdl_bmc.c                   # BMC核心模块（对外API）
+│       │   ├── pdl_bmc_redfish.c           # Redfish协议实现
+│       │   ├── pdl_bmc_ipmi.c              # IPMI协议实现
+│       │   ├── pdl_bmc_transport.c         # BMC传输层（网络/串口）
+│       │   └── pdl_bmc_internal.h          # BMC内部头文件
+│       ├── pdl_satellite/                  # Satellite驱动实现（独立模块）
+│       │   ├── pdl_satellite.c             # Satellite核心模块（对外API）
+│       │   ├── pdl_satellite_can.c         # Satellite CAN通信模块
+│       │   └── pdl_satellite_internal.h    # Satellite内部头文件
+│       └── pdl_watchdog.c                  # 看门狗驱动实现
+│
 ├── acl/                                     # 应用配置层（新增）
 │   ├── include/
 │   │   ├── pmc_acl_types.h                 # PMC业务功能枚举（遥控/遥测/健康管理）
@@ -1943,7 +2012,7 @@ EMS/
 │       └── pmc_v1/
 │           └── pmc_acl_config.c            # PMC v1.0配置（BMC/MCU/FPGA映射）
 │
-├── processes/                               # 进程目录（新增）
+├── app/                                     # 应用层（新增）
 │   ├── supervisor/
 │   │   └── supervisor.c                    # Supervisor进程（<300行，心跳检测+进程重启）
 │   │
@@ -1983,10 +2052,16 @@ EMS/
     ├── unit/                                # 单元测试
     │   ├── acl/
     │   │   └── test_acl_lookup.c           # ACL查找测试（O(1)性能验证）
-    │   └── osal/
-    │       ├── test_osal_process.c         # 进程管理测试（fork/exec/wait）
-    │       ├── test_osal_shm.c             # 共享内存测试（双缓冲/原子操作）
-    │       └── test_osal_sched.c           # 实时调度测试（SCHED_FIFO/优先级）
+    │   ├── osal/
+    │   │   ├── test_osal_process.c         # 进程管理测试（fork/exec/wait）
+    │   │   ├── test_osal_shm.c             # 共享内存测试（双缓冲/原子操作）
+    │   │   └── test_osal_sched.c           # 实时调度测试（SCHED_FIFO/优先级）
+    │   ├── pdl/
+    │   │   ├── test_pdl_mcu.c              # MCU驱动测试
+    │   │   ├── test_pdl_bmc.c              # BMC驱动测试
+    │   │   └── test_pdl_satellite.c        # Satellite驱动测试
+    │   └── pcl/
+    │       └── test_pcl_api.c              # PCL查询接口测试
     │
     ├── integration/                         # 集成测试
     │   ├── test_2ms_latency.c              # 2ms延迟测试（关键路径验证）
@@ -2011,7 +2086,54 @@ EMS/
 | `osal_sched.c` | ~200行 | 实时调度实现（sched_setscheduler/mlockall） |
 | `osal_shm.c` | ~250行 | 共享内存实现（mmap/原子操作） |
 
-#### ACL层（2个头文件 + 2个实现文件）
+#### HAL层（现有，5个头文件 + 5个实现文件）
+
+| 文件 | 行数估算 | 说明 |
+|------|---------|------|
+| `hal_gpio.h` | ~100行 | GPIO抽象接口（输入/输出/中断） |
+| `hal_uart.h` | ~120行 | UART抽象接口（配置/收发/流控） |
+| `hal_i2c.h` | ~100行 | I2C抽象接口（主模式/从模式） |
+| `hal_spi.h` | ~100行 | SPI抽象接口（主模式/从模式） |
+| `hal_can.h` | ~150行 | CAN抽象接口（标准帧/扩展帧/过滤） |
+| `hal_*_linux.c` | ~200行/个 | Linux平台实现（5个文件，共~1000行） |
+
+#### PCL层（现有，10个头文件 + 2个实现文件 + 平台配置）
+
+| 文件 | 行数估算 | 说明 |
+|------|---------|------|
+| `pcl_api.h` | ~150行 | PCL统一查询接口（按逻辑索引查询） |
+| `pcl_common.h` | ~200行 | PCL通用类型定义（设备配置结构） |
+| `pcl_mcu.h` | ~150行 | MCU外设配置结构 |
+| `pcl_bmc.h` | ~200行 | BMC外设配置结构（Redfish/IPMI） |
+| `pcl_satellite.h` | ~150行 | Satellite外设配置结构 |
+| `pcl_sensor.h` | ~100行 | 传感器配置结构 |
+| `pcl_storage.h` | ~100行 | 存储配置结构 |
+| `pcl_hardware_interface.h` | ~200行 | 硬件接口配置（CAN/UART/I2C/SPI） |
+| `pcl_api.c` | ~400行 | PCL查询接口实现 |
+| `pcl_register.c` | ~300行 | PCL注册机制实现 |
+| `{platform}_{chip}_{project}_{version}.c` | ~500行/个 | 平台硬件配置（按命名规范） |
+
+#### PDL层（现有，4个头文件 + 13个实现文件）
+
+| 文件 | 行数估算 | 说明 |
+|------|---------|------|
+| `pdl_mcu.h` | ~300行 | MCU驱动接口（电源/复位/看门狗/传感器） |
+| `pdl_bmc.h` | ~400行 | BMC驱动接口（Redfish/IPMI/电源/传感器） |
+| `pdl_satellite.h` | ~250行 | Satellite驱动接口（遥控/遥测/心跳） |
+| `pdl_watchdog.h` | ~150行 | 看门狗驱动接口 |
+| `pdl_mcu.c` | ~600行 | MCU核心模块（对外API） |
+| `pdl_mcu_protocol.c` | ~500行 | MCU协议处理模块 |
+| `pdl_mcu_can.c` | ~400行 | MCU CAN通信模块 |
+| `pdl_mcu_serial.c` | ~350行 | MCU串口通信模块 |
+| `pdl_bmc.c` | ~700行 | BMC核心模块（对外API） |
+| `pdl_bmc_redfish.c` | ~800行 | Redfish协议实现 |
+| `pdl_bmc_ipmi.c` | ~600行 | IPMI协议实现 |
+| `pdl_bmc_transport.c` | ~500行 | BMC传输层（网络/串口） |
+| `pdl_satellite.c` | ~500行 | Satellite核心模块（对外API） |
+| `pdl_satellite_can.c` | ~400行 | Satellite CAN通信模块 |
+| `pdl_watchdog.c` | ~300行 | 看门狗驱动实现 |
+
+#### ACL层（新增，2个头文件 + 2个实现文件）
 
 | 文件 | 行数估算 | 说明 |
 |------|---------|------|
@@ -2020,7 +2142,7 @@ EMS/
 | `acl_core.c` | ~300行 | ACL核心实现（O(1)查找表初始化） |
 | `pmc_acl_config.c` | ~500行 | PMC v1.0配置（BMC/MCU/FPGA映射表） |
 
-#### 进程文件（4个进程 + 15个线程文件）
+#### 应用层（新增，4个进程 + 15个线程文件）
 
 | 进程/线程 | 文件 | 行数估算 | 说明 |
 |----------|------|---------|------|
@@ -2052,7 +2174,7 @@ EMS/
 | `heartbeat_table.h` | ~100行 | 心跳表结构（原子时间戳，5秒周期） |
 | `status_snapshot.h` | ~250行 | 状态快照结构（服务器+外设状态） |
 
-#### 测试文件（9个测试文件）
+#### 测试文件（13个测试文件）
 
 | 文件 | 行数估算 | 说明 |
 |------|---------|------|
@@ -2060,6 +2182,10 @@ EMS/
 | `test_osal_process.c` | ~400行 | 进程管理测试，fork/exec/wait |
 | `test_osal_shm.c` | ~450行 | 共享内存测试，双缓冲/原子操作 |
 | `test_osal_sched.c` | ~350行 | 实时调度测试，SCHED_FIFO/优先级 |
+| `test_pdl_mcu.c` | ~400行 | MCU驱动测试，CAN/串口通信 |
+| `test_pdl_bmc.c` | ~500行 | BMC驱动测试，Redfish/IPMI |
+| `test_pdl_satellite.c` | ~350行 | Satellite驱动测试，遥控遥测 |
+| `test_pcl_api.c` | ~300行 | PCL查询接口测试 |
 | `test_2ms_latency.c` | ~500行 | 2ms延迟测试，关键路径验证 |
 | `test_process_crash.c` | ~600行 | 进程崩溃测试，三级恢复机制 |
 | `test_seu_simulation.c` | ~450行 | SEU模拟测试，数据损坏+恢复 |
@@ -2070,13 +2196,21 @@ EMS/
 
 | 模块 | 文件数 | 总行数估算 | 说明 |
 |------|-------|-----------|------|
-| OSAL层扩展 | 6 | ~1,120行 | 进程管理+实时调度+共享内存 |
-| ACL层 | 4 | ~1,150行 | 业务功能映射+O(1)查找 |
-| 进程代码 | 19 | ~6,750行 | 4个进程+15个线程 |
-| 共享内存定义 | 5 | ~880行 | 遥测+日志+心跳+快照 |
-| 测试代码 | 9 | ~3,800行 | 单元+集成+压力测试 |
-| **总计** | **43** | **~13,700行** | 不含现有OSAL/HAL/PCL/PDL层 |
+| OSAL层扩展 | 6 | ~1,120行 | 进程管理+实时调度+共享内存（新增） |
+| HAL层 | 10 | ~1,570行 | GPIO/UART/I2C/SPI/CAN抽象（现有） |
+| PCL层 | 13+ | ~2,550行+ | 外设配置+平台配置（现有，需扩展） |
+| PDL层 | 17 | ~6,400行 | MCU/BMC/Satellite驱动（现有） |
+| ACL层 | 4 | ~1,150行 | 业务功能映射+O(1)查找（新增） |
+| 应用层 | 19 | ~6,750行 | 4个进程+15个线程（新增） |
+| 共享内存定义 | 5 | ~880行 | 遥测+日志+心跳+快照（新增） |
+| 测试代码 | 13 | ~5,350行 | 单元+集成+压力测试（新增） |
+| **新增代码** | **47** | **~15,250行** | 本次架构优化新增代码 |
+| **现有代码** | **40** | **~10,520行** | 现有OSAL/HAL/PCL/PDL层 |
+| **总计** | **87** | **~25,770行** | 完整PMC系统代码量 |
 
+---
+
+## 13.
 ---
 
 ## 13.
