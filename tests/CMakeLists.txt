@@ -31,6 +31,7 @@ set(OSAL_TEST_SOURCES
     unit/osal/test_osal_signal.c
     unit/osal/test_osal_stress.c
     unit/osal/test_osal_sched.c
+    unit/osal/test_osal_shm.c
 )
 
 # HAL Unit Tests
