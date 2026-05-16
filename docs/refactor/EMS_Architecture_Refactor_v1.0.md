@@ -6105,6 +6105,10 @@ kill -HUP $(pgrep pmc_logger)
 
 ---
 
+
+
+---
+
 ## 15. 附录
 
 ### 15.1 术语表
@@ -6132,17 +6136,16 @@ kill -HUP $(pgrep pmc_logger)
 
 1. EMS架构文档
 
-- /home/wanguo/EMS/docs/ARCHITECTURE.md
+- docs/ARCHITECTURE.md
 
-- /home/wanguo/EMS/docs/CODING_STANDARDS.md
+- docs/CODING_STANDARDS.md
 
-- /home/wanguo/EMS/CLAUDE.md
 
 2. Refactor方案
 
-- /home/wanguo/EMS/docs/refactor/EMS_Architecture_Refactor_v3.0_SingleProcess.md
+- docs/refactor/EMS_Architecture_Refactor_v3.0_SingleProcess.md
 
-- /home/wanguo/EMS/docs/refactor/EMS_Architecture_Refactor_v3.1_MultiProcess_Final.md
+- docs/refactor/EMS_Architecture_Refactor_v3.1_MultiProcess_Final.md
 
 3. Linux实时编程
 
