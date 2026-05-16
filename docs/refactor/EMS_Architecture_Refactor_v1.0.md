@@ -1916,98 +1916,170 @@ PMC方案最适合：
 
 ## 12. 关键文件清单
 
-###12.1 OSAL层新增文件
+### 12.1 整体目录结构
 
-osal/include/sys/osal_process_mgmt.h    # 进程管理接口
+```
+EMS/
+├── osal/                                    # 操作系统抽象层
+│   ├── include/
+│   │   ├── sys/
+│   │   │   ├── osal_process_mgmt.h         # 进程管理接口（fork/exec/wait/kill）
+│   │   │   └── osal_sched.h                # 实时调度接口（SCHED_FIFO/CPU亲和性/内存锁定）
+│   │   └── ipc/
+│   │       └── osal_shm.h                  # 共享内存接口（shm_open/mmap/双缓冲）
+│   └── src/
+│       └── posix/
+│           ├── osal_process_mgmt.c         # 进程管理实现
+│           ├── osal_sched.c                # 实时调度实现
+│           └── osal_shm.c                  # 共享内存实现
+│
+├── acl/                                     # 应用配置层（新增）
+│   ├── include/
+│   │   ├── pmc_acl_types.h                 # PMC业务功能枚举（遥控/遥测/健康管理）
+│   │   └── acl_config.h                    # ACL配置结构（设备映射+数据类型）
+│   ├── src/
+│   │   └── acl_core.c                      # ACL核心实现（O(1)查找表）
+│   └── config/
+│       └── pmc_v1/
+│           └── pmc_acl_config.c            # PMC v1.0配置（BMC/MCU/FPGA映射）
+│
+├── processes/                               # 进程目录（新增）
+│   ├── supervisor/
+│   │   └── supervisor.c                    # Supervisor进程（<300行，心跳检测+进程重启）
+│   │
+│   ├── telecommand/
+│   │   ├── telecommand.c                   # Telecommand进程主程序（实时调度SCHED_FIFO 99）
+│   │   ├── can_rx_thread.c                 # CAN接收线程（2ms应答关键路径）
+│   │   ├── tc_exec_thread.c                # 遥控执行线程（异步执行，避免阻塞）
+│   │   └── tm_realtime_thread.c            # 实时遥测线程（PDL查询，<500μs）
+│   │
+│   ├── telemetry/
+│   │   ├── telemetry.c                     # Telemetry进程主程序（后台采集）
+│   │   ├── cache_collector.c               # 缓存采集线程（1秒周期，双缓冲写入）
+│   │   ├── health_monitor.c                # 健康监控线程（5秒周期，异常检测）
+│   │   └── status_snapshot.c               # 状态快照线程（10秒周期，JSON格式）
+│   │
+│   ├── firmware/
+│   │   ├── firmware.c                      # Firmware进程主程序（固件升级）
+│   │   ├── upgrade_control.c               # 升级控制线程（A/B分区管理）
+│   │   └── verify_thread.c                 # 校验线程（CRC32+签名验证）
+│   │
+│   └── logger/
+│       ├── logger.c                        # Logger进程主程序（日志收集）
+│       ├── log_collector.c                 # 日志收集线程（共享内存环形缓冲区）
+│       ├── status_archiver.c               # 状态归档线程（JSON压缩存储）
+│       ├── crash_analyzer.c                # 崩溃分析线程（coredump+backtrace）
+│       └── log_rotator.c                   # 日志轮转线程（按大小/时间轮转）
+│
+├── common/                                  # 公共定义
+│   └── include/
+│       ├── shm_layout.h                    # 共享内存布局定义（总体结构）
+│       ├── telemetry_cache.h               # 遥测缓冲区结构（双缓冲，无锁读写）
+│       ├── log_ring_buffer.h               # 日志环形缓冲区（4096条目，原子操作）
+│       ├── heartbeat_table.h               # 心跳表结构（原子时间戳，5秒周期）
+│       └── status_snapshot.h               # 状态快照结构（服务器+外设状态）
+│
+└── tests/                                   # 测试目录
+    ├── unit/                                # 单元测试
+    │   ├── acl/
+    │   │   └── test_acl_lookup.c           # ACL查找测试（O(1)性能验证）
+    │   └── osal/
+    │       ├── test_osal_process.c         # 进程管理测试（fork/exec/wait）
+    │       ├── test_osal_shm.c             # 共享内存测试（双缓冲/原子操作）
+    │       └── test_osal_sched.c           # 实时调度测试（SCHED_FIFO/优先级）
+    │
+    ├── integration/                         # 集成测试
+    │   ├── test_2ms_latency.c              # 2ms延迟测试（关键路径验证）
+    │   ├── test_process_crash.c            # 进程崩溃测试（三级恢复机制）
+    │   └── test_seu_simulation.c           # SEU模拟测试（数据损坏+恢复）
+    │
+    └── stress/                              # 压力测试
+        ├── test_high_frequency.c           # 高频压力测试（每秒100条命令）
+        └── test_long_term.c                # 长期稳定性测试（7×24小时）
+```
 
-osal/include/ipc/osal_shm.h             # 共享内存接口
+### 12.2 关键文件说明
 
-osal/include/sys/osal_sched.h           # 实时调度接口
+#### OSAL层扩展（3个头文件 + 3个实现文件）
 
-osal/src/posix/osal_process_mgmt.c      # 进程管理实现
+| 文件 | 行数估算 | 说明 |
+|------|---------|------|
+| `osal_process_mgmt.h` | ~150行 | 进程管理接口：fork/exec/wait/kill/getpid |
+| `osal_sched.h` | ~100行 | 实时调度接口：SCHED_FIFO/CPU亲和性/内存锁定 |
+| `osal_shm.h` | ~120行 | 共享内存接口：shm_open/mmap/双缓冲管理 |
+| `osal_process_mgmt.c` | ~300行 | 进程管理实现（POSIX封装） |
+| `osal_sched.c` | ~200行 | 实时调度实现（sched_setscheduler/mlockall） |
+| `osal_shm.c` | ~250行 | 共享内存实现（mmap/原子操作） |
 
-osal/src/posix/osal_shm.c               # 共享内存实现
+#### ACL层（2个头文件 + 2个实现文件）
 
-osal/src/posix/osal_sched.c             # 实时调度实现
+| 文件 | 行数估算 | 说明 |
+|------|---------|------|
+| `pmc_acl_types.h` | ~200行 | PMC业务功能枚举（遥控/遥测/健康管理） |
+| `acl_config.h` | ~150行 | ACL配置结构（设备映射+数据类型） |
+| `acl_core.c` | ~300行 | ACL核心实现（O(1)查找表初始化） |
+| `pmc_acl_config.c` | ~500行 | PMC v1.0配置（BMC/MCU/FPGA映射表） |
 
-### 12.2 ACL层文件
+#### 进程文件（4个进程 + 15个线程文件）
 
-acl/include/pmc_acl_types.h             # PMC业务功能枚举
+| 进程/线程 | 文件 | 行数估算 | 说明 |
+|----------|------|---------|------|
+| **Supervisor** | `supervisor.c` | ~300行 | 最小化监控进程，心跳检测+进程重启 |
+| **Telecommand** | `telecommand.c` | ~400行 | 实时进程主程序，SCHED_FIFO 99 |
+| | `can_rx_thread.c` | ~500行 | CAN接收线程，2ms应答关键路径 |
+| | `tc_exec_thread.c` | ~400行 | 遥控执行线程，异步执行避免阻塞 |
+| | `tm_realtime_thread.c` | ~350行 | 实时遥测线程，PDL查询<500μs |
+| **Telemetry** | `telemetry.c` | ~350行 | 后台采集进程主程序 |
+| | `cache_collector.c` | ~450行 | 缓存采集线程，1秒周期双缓冲写入 |
+| | `health_monitor.c` | ~400行 | 健康监控线程，5秒周期异常检测 |
+| | `status_snapshot.c` | ~300行 | 状态快照线程，10秒周期JSON格式 |
+| **Firmware** | `firmware.c` | ~350行 | 固件升级进程主程序 |
+| | `upgrade_control.c` | ~600行 | 升级控制线程，A/B分区管理 |
+| | `verify_thread.c` | ~300行 | 校验线程，CRC32+签名验证 |
+| **Logger** | `logger.c` | ~300行 | 日志收集进程主程序 |
+| | `log_collector.c` | ~400行 | 日志收集线程，共享内存环形缓冲区 |
+| | `status_archiver.c` | ~350行 | 状态归档线程，JSON压缩存储 |
+| | `crash_analyzer.c` | ~450行 | 崩溃分析线程，coredump+backtrace |
+| | `log_rotator.c` | ~250行 | 日志轮转线程，按大小/时间轮转 |
 
-acl/include/acl_config.h                # ACL配置结构
+#### 共享内存定义（5个头文件）
 
-acl/src/acl_core.c                      # ACL核心实现
+| 文件 | 行数估算 | 说明 |
+|------|---------|------|
+| `shm_layout.h` | ~150行 | 共享内存总体布局（遥测+日志+心跳+快照） |
+| `telemetry_cache.h` | ~200行 | 遥测缓冲区结构（双缓冲，无锁读写） |
+| `log_ring_buffer.h` | ~180行 | 日志环形缓冲区（4096条目，原子操作） |
+| `heartbeat_table.h` | ~100行 | 心跳表结构（原子时间戳，5秒周期） |
+| `status_snapshot.h` | ~250行 | 状态快照结构（服务器+外设状态） |
 
-acl/config/pmc_v1/pmc_acl_config.c      # PMC v1.0配置
+#### 测试文件（9个测试文件）
 
-### 12.3 进程文件
+| 文件 | 行数估算 | 说明 |
+|------|---------|------|
+| `test_acl_lookup.c` | ~300行 | ACL查找测试，验证O(1)性能 |
+| `test_osal_process.c` | ~400行 | 进程管理测试，fork/exec/wait |
+| `test_osal_shm.c` | ~450行 | 共享内存测试，双缓冲/原子操作 |
+| `test_osal_sched.c` | ~350行 | 实时调度测试，SCHED_FIFO/优先级 |
+| `test_2ms_latency.c` | ~500行 | 2ms延迟测试，关键路径验证 |
+| `test_process_crash.c` | ~600行 | 进程崩溃测试，三级恢复机制 |
+| `test_seu_simulation.c` | ~450行 | SEU模拟测试，数据损坏+恢复 |
+| `test_high_frequency.c` | ~400行 | 高频压力测试，每秒100条命令 |
+| `test_long_term.c` | ~350行 | 长期稳定性测试，7×24小时 |
 
-processes/supervisor/supervisor.c       # Supervisor进程
+### 12.3 代码量统计
 
-processes/telecommand/telecommand.c     # Telecommand进程
+| 模块 | 文件数 | 总行数估算 | 说明 |
+|------|-------|-----------|------|
+| OSAL层扩展 | 6 | ~1,120行 | 进程管理+实时调度+共享内存 |
+| ACL层 | 4 | ~1,150行 | 业务功能映射+O(1)查找 |
+| 进程代码 | 19 | ~6,750行 | 4个进程+15个线程 |
+| 共享内存定义 | 5 | ~880行 | 遥测+日志+心跳+快照 |
+| 测试代码 | 9 | ~3,800行 | 单元+集成+压力测试 |
+| **总计** | **43** | **~13,700行** | 不含现有OSAL/HAL/PCL/PDL层 |
 
-processes/telecommand/can_rx_thread.c   # CAN接收线程
+---
 
-processes/telecommand/tc_exec_thread.c  # 遥控执行线程
-
-processes/telecommand/tm_realtime_thread.c # 实时遥测线程
-
-processes/telemetry/telemetry.c         # Telemetry进程
-
-processes/telemetry/cache_collector.c   # 缓存采集线程
-
-processes/telemetry/health_monitor.c    # 健康监控线程
-
-processes/telemetry/status_snapshot.c   # 状态快照线程
-
-processes/firmware/firmware.c           # Firmware进程
-
-processes/firmware/upgrade_control.c    # 升级控制线程
-
-processes/firmware/verify_thread.c      # 校验线程
-
-processes/logger/logger.c               # Logger进程
-
-processes/logger/log_collector.c        # 日志收集线程
-
-processes/logger/status_archiver.c      # 状态归档线程
-
-processes/logger/crash_analyzer.c       # 崩溃分析线程
-
-processes/logger/log_rotator.c          # 日志轮转线程
-
-### 12.4 共享内存定义
-
-common/include/shm_layout.h             # 共享内存布局定义
-
-common/include/telemetry_cache.h        # 遥测缓冲区结构
-
-common/include/log_ring_buffer.h        # 日志环形缓冲区
-
-common/include/heartbeat_table.h        # 心跳表结构
-
-common/include/status_snapshot.h        # 状态快照结构
-
-### 12.5 测试文件
-
-tests/unit/acl/test_acl_lookup.c        # ACL查找测试
-
-tests/unit/osal/test_osal_process.c     # 进程管理测试
-
-tests/unit/osal/test_osal_shm.c         # 共享内存测试
-
-tests/unit/osal/test_osal_sched.c       # 实时调度测试
-
-tests/integration/test_2ms_latency.c    # 2ms延迟测试
-
-tests/integration/test_process_crash.c  # 进程崩溃测试
-
-tests/integration/test_seu_simulation.c # SEU模拟测试
-
-tests/stress/test_high_frequency.c      # 高频压力测试
-
-tests/stress/test_long_term.c           # 长期稳定性测试
-
+## 13.
 ---
 
 ## 13. 配置文件示例
