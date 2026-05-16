@@ -1,4 +1,4 @@
-# PMC架构优化方案 - 单核SoC硬实时版
+# PMC架构设计方案
 
 ## 摘要
 
@@ -1636,2112 +1636,1032 @@ make test
 - [ ] 内存泄漏检查通过
 - [ ] 多线程压力测试通过
 
-
-## 4. APP 设计 （业务进程）
-
-### 4.1 进程架构
-
-```text
-╔═══════════════════════════════════════════════════════════════════════════════════════╗
-║                          Supervisor Process (监控进程)                                 ║
-║  ┌─────────────────────────────────────────────────────────────────────────────────┐  ║
-║  │ • 最小化设计 (<300行代码)                                                        │  ║
-║  │ • 心跳监控 (共享内存原子时间戳, 2秒周期)                                         │  ║
-║  │ • 进程崩溃立即重启 (5次/300秒限制)                                               │  ║
-║  │ • 喂硬件看门狗 (5秒周期)                                                         │  ║
-║  │ • 故障日志持久化 (/var/log/pmc/supervisor.log)                                   │  ║
-║  └─────────────────────────────────────────────────────────────────────────────────┘  ║
-╚═══════════════════════════════════════════════════════════════════════════════════════╝
-                    │                    │                    │                    │
-        ┌───────────┴───────────┬────────┴────────┬───────────┴──────────┬─────────┴────────────┐
-        │                       │                 │                      │                      │
-╔═══════▼═══════════════╗ ╔═════▼═════════════╗ ╔═▼═══════════════╗ ╔═▼═══════════════╗ ╔═▼══════════════════╗
-║   Telecommand Process ║ ║ Telemetry Process ║ ║ Firmware Process║ ║  Logger Process ║ ║ Hardware Watchdog  ║
-║   (实时优先级)        ║ ║  (普通优先级)      ║ ║  (低优先级)     ║ ║  (低优先级)     ║ ║  (硬件看门狗)      ║
-╠═══════════════════════╣ ╠═══════════════════╣ ╠═════════════════╣ ╠═════════════════╣ ╠════════════════════╣
-║ SCHED_FIFO            ║ ║ SCHED_OTHER       ║ ║ SCHED_BATCH     ║ ║ SCHED_OTHER     ║ ║ 10秒超时           ║
-║ Priority: 99          ║ ║ Priority: 0       ║ ║ Nice: 19        ║ ║ Nice: 10        ║ ║ 系统复位           ║
-║ CPU绑定: CPU0         ║ ║ Nice: 10          ║ ║                 ║ ║                 ║ ║                    ║
-╠═══════════════════════╣ ╠═══════════════════╣ ╠═════════════════╣ ╠═════════════════╣ ╚════════════════════╝
-║ 【核心功能】          ║ ║ 【核心功能】      ║ ║ 【核心功能】    ║ ║ 【核心功能】    ║
-║ • 遥控命令接收        ║ ║ • 遥测数据采集    ║ ║ • 固件升级      ║ ║ • 日志收集      ║
-║ • 命令解析 (2ms应答)  ║ ║ • 数据打包        ║ ║ • 校验恢复      ║ ║ • 状态归档      ║
-║ • 安全校验            ║ ║ • 周期上报        ║ ║ • 分区管理      ║ ║ • 崩溃分析      ║
-║ • 命令下发            ║ ║ • 健康监控        ║ ║ • 回滚机制      ║ ║ • 日志轮转      ║
-╠═══════════════════════╣ ╠═══════════════════╣ ╠═════════════════╣ ╠═════════════════╣
-║ 【内部线程】          ║ ║ 【内部线程】      ║ ║ 【内部线程】    ║ ║ 【内部线程】    ║
-║ ├─ CAN接收线程        ║ ║ ├─ 缓存采集线程   ║ ║ ├─ 升级控制     ║ ║ ├─ 日志聚合     ║
-║ │  (最高优先级)       ║ ║ │  (1秒周期)      ║ ║ │  (分片传输)   ║ ║ │  (实时收集)   ║
-║ ├─ 遥控执行线程       ║ ║ ├─ 健康监控线程   ║ ║ └─ 校验线程     ║ ║ ├─ 状态快照     ║
-║ │  (异步执行)         ║ ║ │  (5秒周期)      ║ ║    (CRC/SHA256) ║ ║ │  (10秒周期)   ║
-║ └─ 实时遥测线程       ║ ║ └─ 状态快照线程   ║ ║                 ║ ║ ├─ 崩溃分析     ║
-║    (实时查询PDL)      ║ ║    (10秒周期)     ║ ║                 ║ ║ └─ 日志轮转     ║
-╚═══════════════════════╝ ╚═══════════════════╝ ╚═════════════════╝ ╚═════════════════╝
-        │                         │                       │                   │
-        └─────────────────────────┴───────────────────────┴───────────────────┘
-                                          │
-        ┌─────────────────────────────────▼─────────────────────────────────────┐
-        │                    Shared Memory (共享内存区)                          │
-        ├────────────────────────────────────────────────────────────────────────┤
-        │ • 遥测缓冲区 (双缓冲, 原子切换, 无锁读写)                              │
-        │ • 心跳表 (原子时间戳, 纳秒精度)                                        │
-        │ • 日志环形缓冲区 (1MB, 无锁写入, 4096条目)                             │
-        │ • 状态快照区 (服务器状态、外设状态、通信状态)                          │
-        │ • 命令队列 (环形缓冲, 256条目)                                         │
-        └────────────────────────────────────────────────────────────────────────┘
-```
+---
 
 
+## 4. HAL 设计（硬件抽象层）
 
-#### 4.1.1 Supervisor进程（监控进程）
+### 4.1 设计原则
 
-**职责**：
+**HAL（Hardware Abstraction Layer）是硬件抽象层，提供统一的硬件驱动接口，屏蔽不同平台的硬件差异。**
 
-- 启动和监控所有子进程
+#### 4.1.1 核心理念
 
-- 心跳检测（2秒周期，共享内存原子时间戳）
+- ✅ **硬件抽象**：封装硬件寄存器操作，提供统一的驱动接口
+- ✅ **平台隔离**：Linux/RTOS平台实现分离，上层代码无需修改
+- ✅ **句柄管理**：使用不透明句柄，隐藏内部实现细节
+- ✅ **OSAL依赖**：所有系统调用必须通过OSAL封装，不直接调用系统API
 
-- 进程崩溃检测和立即重启
+#### 4.1.2 HAL层职责
 
-- 喂硬件看门狗（5秒周期）
+**HAL层负责**：
+- ✅ 硬件设备初始化和配置
+- ✅ 数据收发接口（阻塞/非阻塞/超时）
+- ✅ 错误处理和统计信息
+- ✅ 平台特定实现（Linux/RTOS）
 
-- 故障日志记录（持久化到Flash）
+**HAL层禁止**：
+- ❌ 包含业务逻辑（业务逻辑在PDL层）
+- ❌ 直接调用系统API（必须通过OSAL）
+- ❌ 跨平台代码混合（平台实现必须分离）
 
-**设计原则**：
-
-- 代码量<300行（降低自身故障概率）
-
-- 不依赖任何业务逻辑
-
-- 使用最简单的IPC机制（信号+共享内存心跳表）
-
-**重启策略**：
-
-```c
-typedef struct {
-  uint32_t crash_count;           // 崩溃次数
-  uint32_t max_restart;           // 最大重启次数：5
-  uint32_t restart_window_sec;    // 重启窗口：300秒
-  time_t   last_crash_time;       // 最后崩溃时间
-} process_recovery_t;
-
-// 重启逻辑
-if (进程崩溃) {
-  if (time_since_last_crash > 300秒) {
-	  crash_count = 0;  // 重置计数
-  }
-
-  if (crash_count < 5) {
-	  立即重启进程;
-	  crash_count++;
-	  记录崩溃日志;
-  } else {
-	  记录严重故障;
-	  触发硬件看门狗复位;  // 系统级恢复
-  }
-}
-
-心跳监控：
-// 共享内存心跳表
-typedef struct {
-  _Atomic uint64_t telecommand_heartbeat;  // 纳秒时间戳
-  _Atomic uint64_t telemetry_heartbeat;
-  _Atomic uint64_t firmware_heartbeat;
-  _Atomic uint64_t logger_heartbeat;
-} heartbeat_table_t;
-
-// Supervisor检查逻辑（2秒周期）
-uint64_t now = get_monotonic_ns();
-uint64_t last_hb = atomic_load(&hb_table->telecommand_heartbeat);
-if (now - last_hb > 5000000000ULL) {  // 5秒超时
-  LOG_ERROR("Supervisor", "telecommand进程心跳超时");
-  restart_process(PROC_TELECOMMAND);
-}
+#### 4.1.3 HAL层架构
 
 ```
-
-#### 4.1.2 Telecommand进程（实时遥控遥测）
-
-职责：
-
-- 接收卫星平台遥控/遥测命令（CAN）
-
-- 2ms内完成应答
-
-- 遥控命令异步执行
-
-- 实时型遥测实时查询
-
-
-实时调度配置：
-
-```
-// 1. CPU亲和性绑定（单核SoC绑定到CPU0）
-cpu_set_t cpuset;
-CPU_ZERO(&cpuset);
-CPU_SET(0, &cpuset);
-sched_setaffinity(0, sizeof(cpuset), &cpuset);
-
-// 2. 实时调度策略（最高优先级）
-struct sched_param param;
-param.sched_priority = 99;
-sched_setscheduler(0, SCHED_FIFO, &param);
-
-// 3. 内存锁定（避免缺页中断）
-mlockall(MCL_CURRENT | MCL_FUTURE);
-
-// 4. 预分配所有内存（避免运行时分配）
-static uint8_t cmd_buffer[1024];
-static uint8_t resp_buffer[1024];
-static cmd_queue_t cmd_queue[256];
-
-```
-
-线程架构：
-
-``` text
-telecommand_process (SCHED_FIFO, priority=99)
-│
-├── can_rx_thread（最高优先级，实时线程）
-│   ├── 接收卫星CAN命令
-│   ├── 命令类型判断：
-│   │   ├── 遥控命令 → 放入遥控队列 → 立即应答STATUS_OK
-│   │   ├── 快遥命令 → 立即处理 → 2ms内应答
-│   │   └── 慢遥命令 → 立即处理 → 2ms内应答
-│   └── 延迟分析：
-│       ├── 命令解析：<50μs
-│       ├── ACL查询：<10μs（O(1)直接索引）
-│       ├── 缓存型遥测：<200μs（共享内存读取）
-│       ├── 实时型遥测：<800μs（PDL查询）
-│       └── 应答发送：<100μs
-│
-├── telecontrol_thread（高优先级）
-│   ├── 从遥控队列取命令
-│   ├── ACL查询设备映射
-│   ├── 调用PDL接口：
-│   │   ├── PDL_BMC_PowerOn/Off/Reset（可能耗时1-5秒）
-│   │   ├── PDL_MCU_SendCommand（<500ms）
-│   │   └── PDL_Satellite_SendResponse（发送执行结果）
-│   └── 异步执行（不阻塞应答）
-│
-└── realtime_tm_thread（高优先级）
-  ├── 处理"实时型"遥测
-  ├── 直接查询PDL：
-  │   ├── PDL_BMC_GetPowerState（从BMC缓存读，<200μs）
-  │   └── PDL_MCU_GetStatus（CAN查询，<300μs）
-  └── 更新共享内存缓存（供can_rx_thread快速读取）
-```
-
-2ms应答路径优化：
-
-``` C 
-// CAN接收线程（关键路径）
-void* can_rx_thread_func(void* arg)
-{
-  while (1) {
-	  // 1. 接收CAN命令（<50μs）
-	  can_frame_t frame;
-	  HAL_CAN_Receive(can_handle, &frame, TIMEOUT_INFINITE);
-
-	  uint64_t start_ns = get_monotonic_ns();
-
-	  // 2. 解析命令（<50μs）
-	  uint8_t cmd_type = frame.data[0];
-	  uint32_t param = *(uint32_t*)&frame.data[1];
-
-	  // 3. ACL查询（<10μs，O(1)直接索引）
-	  const acl_config_t *cfg = &g_acl_table[cmd_type];
-
-	  // 4. 处理命令
-	  if (cmd_type == CMD_TYPE_TELECONTROL) {
-		  // 遥控：放入队列，立即应答
-		  cmd_queue_push(&g_tc_queue, cmd_type, param);
-		  send_response(STATUS_OK, 0);  // <100μs
-
-	  } else if (cmd_type == CMD_TYPE_TELEMETRY) {
-		  // 遥测：根据数据类型处理
-		  if (cfg->data_type == TM_TYPE_CACHED) {
-			  // 缓存型：从共享内存读（<10μs）
-			  telemetry_data_t *data = get_cached_tm(cfg->tm_id);
-			  send_telemetry_response(cfg->tm_id, data);  // <100μs
-		  } else {
-			  // 实时型：优先实时查询，超时降级到缓存
-			  telemetry_data_t data;
-			  tm_freshness_t freshness;
-			  int32_t ret = handle_realtime_telemetry(cfg, &data, &freshness);
-			  
-			  if (ret == OSAL_SUCCESS) {
-				  // 在应答中携带新鲜度标记
-				  send_telemetry_response_with_freshness(cfg->tm_id, &data, freshness);
-			  } else {
-				  // 缓存也无效，返回错误
-				  send_response(STATUS_ERROR, OSAL_ERR_NOT_AVAILABLE);
-			  }
-		  }
-	  }
-
-	  uint64_t end_ns = get_monotonic_ns();
-	  uint64_t latency_us = (end_ns - start_ns) / 1000;
-
-	  // 记录延迟（用于性能分析）
-	  if (latency_us > 2000) {
-		  LOG_WARN("TC", "应答超时: %lu us", latency_us);
-	  }
-  }
-}
-```
-
-#### 4.1.3 Telemetry进程（后台遥测采集）
-
-职责：
-
-- 周期性采集缓存型遥测数据
-
-- 写入共享内存双缓冲区
-
-- 健康监控（服务器、BMC、MCU状态）
-
-- 状态快照（供logger进程归档）
-
-线程架构：
-
-``` text
-telemetry_process (SCHED_OTHER, priority=0, nice=10)
-│
-├── cache_collector_thread（1秒周期）
-│   ├── 采集缓存型遥测：
-│   │   ├── PDL_BMC_ReadSensors（CPU温度、电压、电流）
-│   │   ├── PDL_MCU_GetStatus（板卡温度、电源状态）
-│   │   └── 系统状态（内存、CPU使用率）
-│   ├── 写入双缓冲区：
-│   │   ├── write_idx = read_idx ^ 1;  // 切换缓冲区
-│   │   ├── buffer[write_idx] = new_data;
-│   │   └── atomic_store(&read_idx, write_idx);  // 原子切换
-│   └── 容错：采集失败不影响遥控
-│
-├── health_monitor_thread（5秒周期）
-│   ├── 监控服务器健康状态：
-│   │   ├── BMC连接状态（ping/心跳）
-│   │   ├── 服务器电源状态
-│   │   └── 温度/电压异常检测
-│   ├── 监控MCU状态：
-│   │   ├── CAN通信状态
-│   │   └── 看门狗状态
-│   └── 更新心跳时间戳（供Supervisor监控）
-│
-└── status_snapshot_thread（10秒周期）
-  ├── 生成状态快照：
-  │   ├── 服务器状态（电源、温度、风扇）
-  │   ├── 外设状态（BMC、MCU、FPGA）
-  │   └── 通信状态（CAN、以太网）
-  └── 写入共享内存（供logger进程归档）
-```
-
-双缓冲设计（无锁）：
-
-``` C 
-typedef struct {
-  float cpu_temp;
-  float board_temp;
-  float voltage_12v;
-  float voltage_5v;
-  float current;
-  uint32_t fan_speed;
-  uint64_t timestamp_ns;
-  tm_freshness_t freshness;  // 新增：新鲜度标记
-  bool valid;
-} telemetry_data_t;
-
-typedef struct {
-  telemetry_data_t buffer[2];
-  _Atomic uint32_t read_index;   // 0或1
-} telemetry_cache_t;
-
-// 全局遥测缓存（所有遥测项，包括实时型）
-typedef struct {
-  telemetry_data_t data;
-  uint64_t timestamp_ns;
-  tm_freshness_t freshness;   // FRESH / STALE / INVALID
-  bool valid;
-} telemetry_cache_entry_t;
-
-static telemetry_cache_entry_t g_tm_cache[TM_FUNC_MAX];
-
-// 写入（telemetry进程）
-void update_telemetry_cache(telemetry_cache_t *cache, const telemetry_data_t *data)
-{
-  uint32_t read_idx = atomic_load(&cache->read_index);
-  uint32_t write_idx = read_idx ^ 1;  // 切换缓冲区
-
-  cache->buffer[write_idx] = *data;   // 写入新数据
-
-  atomic_store(&cache->read_index, write_idx);  // 原子切换
-}
-
-// 读取（telecommand进程）
-void get_cached_telemetry(telemetry_cache_t *cache, telemetry_data_t *data)
-{
-  uint32_t read_idx = atomic_load(&cache->read_index);
-  *data = cache->buffer[read_idx];  // 无锁读取
-}
-```
-
-**Telemetry进程的采集策略（包括实时型遥测的缓存）**：
-
-```c
-void* cache_collector_thread(void* arg)
-{
-  while (1) {
-	  uint64_t now = get_monotonic_ns();
-	  
-	  // 遍历所有遥测项（包括实时型）
-	  for (uint32_t i = 0; i < TM_FUNC_MAX; i++) {
-		  const acl_tm_config_t *cfg = &g_acl_table.tm_table[i];
-		  telemetry_cache_entry_t *cache = &g_tm_cache[i];
-		  
-		  // 根据数据类型决定采集周期
-		  uint32_t max_age_ms;
-		  if (cfg->data_type == TM_TYPE_REALTIME) {
-			  max_age_ms = 500;   // 实时型：500ms采集一次（作为降级备份）
-		  } else {
-			  max_age_ms = 1000;  // 缓存型：1秒采集一次
-		  }
-		  
-		  uint64_t age_ms = (now - cache->timestamp_ns) / 1000000;
-		  if (age_ms >= max_age_ms) {
-			  // 采集数据
-			  telemetry_data_t data;
-			  int32_t ret = collect_telemetry(cfg, &data);
-			  
-			  if (ret == OSAL_SUCCESS) {
-				  cache->data = data;
-				  cache->timestamp_ns = now;
-				  
-				  // 如果之前是STALE，现在恢复为FRESH
-				  if (cache->freshness == TM_STALE) {
-					  cache->freshness = TM_FRESH;
-					  LOG_INFO("TM", "缓存已更新为FRESH: %d", i);
-				  }
-				  
-				  cache->valid = true;
-			  }
-		  }
-	  }
-	  
-	  OSAL_TaskDelay(100);  // 100ms周期检查
-  }
-}
-```
-
-#### 4.1.4 Firmware进程（固件升级管理）
-
-职责：
-
-- 管理板固件升级（主备分区A/B）
-
-- FPGA固件升级
-
-- 固件校验和恢复
-
-- 升级期间不会收到遥控遥测（卫星平台保证）
-
-线程架构：
-
-``` text
-firmware_process (SCHED_BATCH, nice=19)
-│
-├── upgrade_control_thread（低优先级）
-│   ├── 接收升级命令（从卫星平台）
-│   ├── 下载固件数据（分片传输）
-│   ├── 写入备份分区（A/B切换）
-│   └── 升级流程：
-│       1. 接收升级命令 → 进入升级模式
-│       2. 擦除备份分区
-│       3. 接收固件数据（分片，带CRC校验）
-│       4. 写入备份分区
-│       5. 校验固件完整性（CRC32/SHA256）
-│       6. 设置启动标志（原子操作）
-│       7. 重启系统（从备份分区启动）
-│       8. 启动成功 → 提交升级
-│       9. 启动失败 → 自动回滚到主分区
-│
-└── verify_thread（低优先级）
-  ├── CRC32校验
-  ├── 签名验证（可选，航天级要求）
-  └── 分区切换（原子操作）
-```
-
-主备分区机制：
-
-``` C
-typedef struct {
-  uint32_t magic;           // 魔数：0xDEADBEEF
-  uint32_t version;         // 固件版本
-  uint32_t size;            // 固件大小
-  uint32_t crc32;           // CRC32校验
-  uint8_t  sha256[32];      // SHA256签名（可选）
-  uint32_t boot_count;      // 启动次数
-  uint32_t boot_success;    // 启动成功标志
-} firmware_header_t;
-
-// 启动逻辑（Bootloader）
-if (partition_B.boot_success == 0 && partition_B.boot_count < 3) {
-  // 尝试从B分区启动
-  boot_from_partition_B();
-  partition_B.boot_count++;
-} else if (partition_B.boot_count >= 3) {
-  // B分区启动失败3次，回滚到A分区
-  boot_from_partition_A();
-  partition_B.boot_success = 0;
-  partition_B.boot_count = 0;
-} else {
-  // 正常从A分区启动
-  boot_from_partition_A();
-}
-
-// 应用启动后（firmware进程）
-if (current_partition == B && boot_count > 0) {
-  // 标记启动成功
-  partition_B.boot_success = 1;
-  partition_B.boot_count = 0;
-}
-```
-
-#### 4.1.5 Logger进程（日志收集）
-
-职责：
-
-- 收集所有进程的运行日志
-
-- 收集服务器和外设状态信息
-
-- 收集崩溃日志和coredump
-
-- 日志轮转和压缩
-
-- 日志持久化到Flash
-
-线程架构：
-
-``` text
-logger_process (SCHED_OTHER, priority=0, nice=10)
-│
-├── log_collector_thread（实时收集）
-│   ├── 从共享内存日志环形缓冲区读取日志
-│   ├── 日志来源：
-│   │   ├── Supervisor进程日志
-│   │   ├── Telecommand进程日志
-│   │   ├── Telemetry进程日志
-│   │   ├── Firmware进程日志
-│   │   └── 内核日志（dmesg）
-│   ├── 日志分类：
-│   │   ├── ERROR：错误日志（立即写入Flash）
-│   │   ├── WARN：警告日志
-│   │   ├── INFO：信息日志
-│   │   └── DEBUG：调试日志（可配置关闭）
-│   └── 写入日志文件：
-│       ├── /var/log/pmc/supervisor.log
-│       ├── /var/log/pmc/telecommand.log
-│       ├── /var/log/pmc/telemetry.log
-│       └── /var/log/pmc/firmware.log
-│
-├── status_archiver_thread（10秒周期）
-│   ├── 从共享内存读取状态快照
-│   ├── 归档内容：
-│   │   ├── 服务器状态：
-│   │   │   ├── 电源状态（开/关/未知）
-│   │   │   ├── CPU温度、板卡温度
-│   │   │   ├── 电压（12V/5V/3
-│   │   │   ├── 电流、功率
-│   │   │   └── 风扇转速
-│   │   ├── 外设状态：
-│   │   │   ├── BMC连接状态（主通道/备份通道）
-│   │   │   ├── MCU通信状态（CAN总线状态）
-│   │   │   ├── FPGA状态（配置状态、温度）
-│   │   │   └── 看门狗状态
-│   │   ├── 通信状态：
-│   │   │   ├── CAN总线统计（收发计数、错误计数）
-│   │   │   ├── 以太网统计（丢包率、延迟）
-│   │   │   └── 串口统计
-│   │   └── 系统状态：
-│   │       ├── CPU使用率、内存使用率
-│   │       ├── 进程状态（运行/崩溃/重启次数）
-│   │       └── 系统运行时间
-│   └── 写入状态日志：
-│       └── /var/log/pmc/status.log（JSON格式）
-│
-├── crash_analyzer_thread（事件触发）
-│   ├── 监听进程崩溃信号（SIGCHLD）
-│   ├── 收集崩溃信息：
-│   │   ├── 进程名称、PID
-│   │   ├── 崩溃时间、信号类型（SIGSEGV/SIGABRT）
-│   │   ├── 崩溃前日志（最后100行）
-│   │   ├── Coredump文件（如果启用）
-│   │   └── 调用栈（backtrace）
-│   ├── 生成崩溃报告：
-│   │   └── /var/log/pmc/crash/crash_<timestamp>.log
-│   └── 通知Supervisor（触发重启）
-│
-└── log_rotator_thread（每小时执行）
-  ├── 日志轮转策略：
-  │   ├── 单个日志文件最大10MB
-  │   ├── 保留最近7天日志
-  │   ├── 超过限制自动压缩（gzip）
-  │   └── 压缩后移动到归档目录
-  ├── 日志文件管理：
-  │   ├── /var/log/pmc/*.log（当前日志）
-  │   ├── /var/log/pmc/archive/*.log.gz（归档日志）
-  │   └── /var/log/pmc/crash/*.log（崩溃日志，永久保留）
-  └── Flash空间管理：
-	  ├── 监控Flash剩余空间
-	  ├── 空间不足时删除最旧归档
-	  └── 保留最近24小时日志（不可删除）
-```
-
-共享内存日志环形缓冲区：
-
-``` C
-#define LOG_RING_BUFFER_SIZE (1024 * 1024)  // 1MB
-
-typedef struct {
-  uint64_t timestamp_ns;
-  uint32_t pid;
-  uint8_t  level;  // ERROR/WARN/INFO/DEBUG
-  char     module[16];
-  char     message[256];
-} log_entry_t;
-
-typedef struct {
-  log_entry_t entries[4096];  // 环形缓冲区
-  _Atomic uint32_t write_index;
-  _Atomic uint32_t read_index;
-  _Atomic uint32_t lost_count;  // 丢失日志计数
-} log_ring_buffer_t;
-
-// 写入日志（各进程）
-void LOG_Write(uint8_t level, const char *module, const char *fmt, .)
-{
-  log_entry_t entry;
-  entry.timestamp_ns = get_monotonic_ns();
-  entry.pid = getpid();
-  entry.level = level;
-  strncpy(entry.module, module, 16);
-
-  va_list args;
-  va_start(args, fmt);
-  vsnprintf(entry.message, 256, fmt, args);
-  va_end(args);
-
-  uint32_t write_idx = atomic_fetch_add(&g_log_buffer->write_index, 1) % 4096;
-  g_log_buffer->entries[write_idx] = entry;
-}
-
-// 读取日志（logger进程）
-bool LOG_Read(log_entry_t *entry)
-{
-  uint32_t read_idx = atomic_load(&g_log_buffer->read_index);
-  uint32_t write_idx = atomic_load(&g_log_buffer->write_index);
-
-  if (read_idx == write_idx) {
-	  return false;  // 无新日志
-  }
-
-  *entry = g_log_buffer->entries[read_idx % 4096];
-  atomic_store(&g_log_buffer->read_index, read_idx + 1);
-  return true;
-}
-```
-
-日志格式示例：
-
-1. 运行日志（/var/log/pmc/telecommand.log）
-
-``` text
-2026-05-16 10:23:45.123456 [INFO] [TC] CAN命令接收: cmd=0x01, param=0x00
-2026-05-16 10:23:45.123789 [INFO] [TC] ACL查询: TC_POWER_ON -> BMC[0]
-2026-05-16 10:23:45.124012 [INFO] [TC] 应答发送: status=OK, latency=556us
-2026-05-16 10:23:46.234567 [ERROR] [TC] BMC通信超时: ip=192.168.1.100, timeout=500ms
-2026-05-16 10:23:46.234890 [WARN] [TC] 切换到备份通道: IPMI over Serial
-```
-
-2. 状态日志（/var/log/pmc/status.log，JSON格式）
-
-``` json
-{
-"timestamp": "2026-05-16T10:23:50.000Z",
-"server": {
-  "power_state": "on",
-  "cpu_temp": 65.5,
-  "board_temp": 45.2,
-  "voltage_12v": 12.05,
-  "voltage_5v": 5.02,
-  "current": 3.5,
-  "fan_speed": 4500
-},
-"peripherals": {
-  "bmc": {
-	"connected": true,
-	"channel": "primary",
-	"protocol": "redfish",
-	"response_time_ms": 120
-  },
-  "mcu": {
-	"connected": true,
-	"can_status": "ok",
-	"temp": 42.0,
-	"watchdog_enabled": true
-  },
-  "fpga": {
-	"temp": 55.0
-  }
-},
-"communication": {
-  "can": {
-	"tx_count": 12345,
-	"rx_count": 12340,
-	"error_count": 5
-  },
-  "ethernet": {
-	"packet_loss": 0.01,
-	"latency_ms": 2.5
-  }
-},
-"system": {
-  "cpu_usage": 35.5,
-  "memory_usage": 45.2,
-  "uptime_sec": 86400,
-  "processes": {
-	"telecommand": "running",
-	"telemetry": "running",
-	"firmware": "running",
-	"logger": "running"
-  }
-}
-}
-```
-
-3. 崩溃日志（/var/log/pmc/crash/crash_20260516_102350.log）
-
-``` text
-=== Process Crash Report ===
-Time: 2026-05-16 10:23:50.123456
-Process: telemetry
-PID: 1234
-Signal: SIGSEGV (Segmentation fault)
-Address: 0x00000000 (NULL pointer dereference)
-
-=== Last 10 Log Entries ===
-2026-05-16 10:23:49.123456 [INFO] [TM] 开始采集遥测数据
-2026-05-16 10:23:49.234567 [INFO] [TM] BMC传感器读取成功
-2026-05-16 10:23:49.345678 [ERROR] [TM] MCU通信失败: timeout
-2026-05-16 10:23:50.123456 [ERROR] [TM] 进程崩溃: SIGSEGV
-
-=== Backtrace ===
-#0  0x00007f1234567890 in cache_collector_thread () at telemetry.c:123
-#1  0x00007f1234567900 in pthread_start () at pthread.c:456
-#2  0x00007f1234567910 in clone () at clone.S:78
-
-=== Coredump ===
-Coredump saved to: /var/log/pmc/crash/core.1234
-
-=== Recovery Action ===
-Supervisor restarted telemetry process at 2026-05-16 10:23:51.000000
+hal/
+├── include/                        # HAL公开接口
+│   ├── hal_can.h                  # CAN驱动接口
+│   ├── hal_serial.h               # 串口驱动接口
+│   ├── hal_i2c.h                  # I2C驱动接口
+│   ├── hal_spi.h                  # SPI驱动接口
+│   ├── hal_watchdog.h             # 看门狗接口
+│   └── config/                    # 配置类型定义
+│       ├── can_types.h            # CAN类型定义
+│       ├── i2c_types.h            # I2C类型定义
+│       └── spi_types.h            # SPI类型定义
+└── src/
+    ├── linux/                     # Linux平台实现
+    │   ├── hal_can_linux.c
+    │   ├── hal_serial_linux.c
+    │   ├── hal_i2c_linux.c
+    │   └── hal_spi_linux.c
+    └── rtos/                      # RTOS平台实现（预留）
+        └── ...
 ```
 
 ---
 
+### 4.2 CAN驱动设计
 
+**功能**：提供统一的CAN总线访问接口，支持标准帧和扩展帧。
 
-### 4.2. 可靠性设计
+#### 4.2.1 接口设计
 
-#### 4.2.1 三级故障恢复
+```c
+/* CAN句柄（不透明） */
+typedef void* hal_can_handle_t;
 
-| 级别              | 触发条件                     | 恢复机制                 | 恢复时间 | 适用场景                  |
-| ----------------- | ---------------------------- | ------------------------ | -------- | ------------------------- |
-| **级别1：线程级** | 线程崩溃                     | 进程内检测并重启线程     | <100ms   | 非关键线程（如日志线程）  |
-| **级别2：进程级** | 进程崩溃                     | Supervisor检测并重启进程 | <1秒     | 所有进程（5次/300秒限制） |
-| **级别3：系统级** | Supervisor崩溃或进程重启超限 | 硬件看门狗触发系统复位   | 10秒     | 系统级故障，从主分区启动  |
-
-#### 4.2.2 进程隔离效果
-
-| 场景      | 崩溃进程        | 检测机制           | 恢复时间 | 影响范围                                                     | 恢复后状态                                       |
-| --------- | --------------- | ------------------ | -------- | ------------------------------------------------------------ | ------------------------------------------------ |
-| **场景1** | Telemetry进程   | Supervisor心跳超时 | <1秒     | 缓存型遥测返回旧数据（标记stale）<br>实时型遥测正常<br>遥控功能不受影响 | 1秒内恢复正常采集                                |
-| **场景2** | Telecommand进程 | Supervisor心跳超时 | <1秒     | 遥控遥测短暂中断<br>卫星平台检测到心跳丢失                   | 立即恢复通信<br>连续崩溃5次→系统复位             |
-| **场景3** | Firmware进程    | Supervisor心跳超时 | <1秒     | 固件升级中断<br>遥控遥测不受影响                             | 未完成→保持当前分区<br>已完成→下次从备份分区启动 |
-
-#### 4.2.3 辐射容错
-
-单粒子翻转（SEU）防护：
-
-``` C
-// 1. 进程级隔离
-//    SEU翻转只影响单个进程地址空间
-//    其他进程不受影响
-
-// 2. 关键数据保护
+/* CAN配置 */
 typedef struct {
-  uint32_t magic;      // 魔数：0xDEADBEEF
-  uint32_t data;       // 实际数据
-  uint32_t crc32;      // CRC32校验
-} protected_data_t;
+    const char *interface;       /* CAN接口名（如"can0"） */
+    uint32_t    baudrate;        /* 波特率（如500000） */
+    uint32_t    rx_timeout;      /* 接收超时（ms） */
+    uint32_t    tx_timeout;      /* 发送超时（ms） */
+} hal_can_config_t;
 
-// 3. 周期性校验（每秒）
-void verify_critical_data(protected_data_t *data)
-{
-  if (data->magic != 0xDEADBEEF || calc_crc32(&data->data) != data->crc32) {
-	  LOG_ERROR("SEU", "数据损坏检测，恢复中.");
-	  restore_from_backup(data);
-  }
+/* CAN帧结构（标准定义） */
+typedef struct {
+    uint32_t can_id;             /* CAN ID（11位或29位） */
+    uint8_t  can_dlc;            /* 数据长度（0-8） */
+    uint8_t  data[8];            /* 数据 */
+    uint8_t  flags;              /* 标志（扩展帧/远程帧） */
+} can_frame_t;
+
+/* 初始化CAN驱动 */
+int32_t HAL_CAN_Init(const hal_can_config_t *config, hal_can_handle_t *handle);
+
+/* 关闭CAN驱动 */
+int32_t HAL_CAN_Deinit(hal_can_handle_t handle);
+
+/* 发送CAN帧 */
+int32_t HAL_CAN_Send(hal_can_handle_t handle, const can_frame_t *frame);
+
+/* 接收CAN帧 */
+int32_t HAL_CAN_Recv(hal_can_handle_t handle, can_frame_t *frame, int32_t timeout);
+
+/* 设置CAN过滤器 */
+int32_t HAL_CAN_SetFilter(hal_can_handle_t handle, uint32_t filter_id, uint32_t filter_mask);
+
+/* 获取CAN统计信息 */
+int32_t HAL_CAN_GetStats(hal_can_handle_t handle, uint32_t *tx_count, uint32_t *rx_count, uint32_t *err_count);
+
+/* 设置错误回调 */
+int32_t HAL_CAN_SetErrorCallback(hal_can_handle_t handle, void (*callback)(hal_can_handle_t handle, int32_t error_code));
+
+/* 设置错误恢复阈值 */
+int32_t HAL_CAN_SetErrorThreshold(hal_can_handle_t handle, uint32_t threshold);
+```
+
+#### 4.2.2 Linux平台实现要点
+
+```c
+/* 内部句柄结构 */
+typedef struct {
+    int32_t  sockfd;             /* SocketCAN文件描述符 */
+    char     interface[16];      /* 接口名 */
+    uint32_t baudrate;
+    uint32_t rx_timeout;
+    uint32_t tx_timeout;
+    uint32_t tx_count;
+    uint32_t rx_count;
+    uint32_t err_count;
+    void (*error_callback)(hal_can_handle_t, int32_t);
+} hal_can_context_t;
+
+/* 初始化实现（Linux SocketCAN） */
+int32_t HAL_CAN_Init(const hal_can_config_t *config, hal_can_handle_t *handle) {
+    hal_can_context_t *ctx = OSAL_Malloc(sizeof(hal_can_context_t));
+    
+    /* 1. 创建SocketCAN套接字（使用OSAL封装） */
+    ctx->sockfd = OSAL_socket(PF_CAN, SOCK_RAW, CAN_RAW);
+    
+    /* 2. 绑定到CAN接口 */
+    struct sockaddr_can addr;
+    addr.can_family = AF_CAN;
+    addr.can_ifindex = if_nametoindex(config->interface);
+    OSAL_bind(ctx->sockfd, (struct sockaddr *)&addr, sizeof(addr));
+    
+    /* 3. 设置超时 */
+    struct timeval tv;
+    tv.tv_sec = config->rx_timeout / 1000;
+    tv.tv_usec = (config->rx_timeout % 1000) * 1000;
+    OSAL_setsockopt(ctx->sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+    
+    *handle = (hal_can_handle_t)ctx;
+    return OSAL_SUCCESS;
 }
 
-// 4. 共享内存ECC保护（硬件支持）
-//    使用支持ECC的DDR内存
-//    单比特错误自动纠正
-//    双比特错误触发中断
-
-单粒子闩锁（SEL）防护：
-// 1. 硬件看门狗强制复位
-//    Supervisor喂狗周期：5秒
-//    看门狗超时：10秒
-//    超时后硬件复位
-
-// 2. 电源监控芯片
-//    监控异常电流（SEL特征）
-//    检测到异常 → 触发电源复位
-```
-
-#### 4.2.4 降级运行模式
-
-| 模式          | 运行进程                        | 可用功能                                | 受限功能             | 触发条件             |
-| ------------- | ------------------------------- | --------------------------------------- | -------------------- | -------------------- |
-| **正常模式**  | 全部4个进程                     | 遥控、遥测（缓存+实时）、固件升级、日志 | 无                   | 系统正常运行         |
-| **降级模式1** | Telecommand + Firmware + Logger | 遥控、实时型遥测、固件升级、日志        | 缓存型遥测返回旧数据 | Telemetry进程崩溃    |
-| **降级模式2** | Telecommand + Logger            | 遥控、日志                              | 遥测功能不可用       | Telemetry连续崩溃5次 |
-| **安全模式**  | 仅Supervisor                    | 喂看门狗                                | 遥控遥测全部不可用   | Telecommand进程禁用  |
-| **系统复位**  | 重启中                          | 无                                      | 全部功能暂停         | 硬件看门狗触发       |
-
----
-
-### 4.3. 单核SoC优化策略
-
-#### 4.3.1 CPU调度优化
-
-``` C
-// 1. Telecommand进程：实时调度，最高优先级
-struct sched_param param;
-param.sched_priority = 99;
-sched_setscheduler(0, SCHED_FIFO, &param);
-
-// 2. Telemetry进程：普通调度，低优先级
-param.sched_priority = 0;
-sched_setscheduler(0, SCHED_OTHER, &param);
-setpriority(PRIO_PROCESS, 0, 10);  // nice=10
-
-// 3. Firmware进程：批处理调度，最低优先级
-sched_setscheduler(0, SCHED_BATCH, &param);
-setpriority(PRIO_PROCESS, 0, 19);  // nice=19
-
-// 4. Logger进程：普通调度，低优先级
-param.sched_priority = 0;
-sched_setscheduler(0, SCHED_OTHER, &param);
-setpriority(PRIO_PROCESS, 0, 10);  // nice=10
-
-// 5. CPU亲和性绑定（单核SoC绑定到CPU0）
-cpu_set_t cpuset;
-CPU_ZERO(&cpuset);
-CPU_SET(0, &cpuset);
-sched_setaffinity(0, sizeof(cpuset), &cpuset);
-```
-
-调度效果：
-
-**CPU时间片分配（单核）**：
-
-| 进程        | 调度策略    | 优先级  | CPU时间片分配         | 说明                      |
-| ----------- | ----------- | ------- | --------------------- | ------------------------- |
-| Telecommand | SCHED_FIFO  | 99      | 抢占所有其他进程      | 独占CPU时间片，保证实时性 |
-| Telemetry   | SCHED_OTHER | nice=10 | Telecommand空闲时运行 | 后台采集，不影响实时性    |
-| Logger      | SCHED_OTHER | nice=10 | Telecommand空闲时运行 | 日志收集，低优先级        |
-| Firmware    | SCHED_BATCH | nice=19 | 系统空闲时运行        | 最低优先级，升级时独占    |
-
-**实时性保证**：
-
-| 场景          | 处理流程               | 实时性保证   |
-| ------------- | ---------------------- | ------------ |
-| 遥控命令到达  | Telecommand立即抢占CPU | 2ms内应答    |
-| 快遥/慢遥到达 | Telecommand立即抢占CPU | 2ms内应答    |
-| 后台采集      | Telemetry在空闲时运行  | 不影响实时性 |
-
-#### 4.3.2 中断优化
-
-``` shell
-# 1. CAN中断线程化（Linux PREEMPT_RT内核）
-
-chrt -f 98 $(pgrep irq/.*can)
-
-# 2. 禁用不必要的中断
-
-echo 0 > /proc/irq/XX/smp_affinity  # 禁用非关键中断
-
-# 3. 中断亲和性绑定到CPU0
-
-echo 1 > /proc/irq/YY/smp_affinity  # CAN中断绑定到CPU0
-```
-
-#### 4.3.3 内存优化
-
-``` C
-// 1. 预分配所有内存（避免运行时分配）
-static telemetry_cache_t g_tm_cache;
-static cmd_queue_t g_cmd_queue[256];
-static uint8_t g_can_tx_buffer[1024];
-static uint8_t g_can_rx_buffer[1024];
-
-// 2. 锁定内存（避免swap和缺页中断）
-mlockall(MCL_CURRENT | MCL_FUTURE);
-
-// 3. 使用栈内存（避免堆分配）
-void handle_command(void)
-{
-  uint8_t buffer[1024];  // 栈分配，无malloc开销
-  // .
+/* 发送实现 */
+int32_t HAL_CAN_Send(hal_can_handle_t handle, const can_frame_t *frame) {
+    hal_can_context_t *ctx = (hal_can_context_t *)handle;
+    
+    /* 构造Linux CAN帧 */
+    struct can_frame linux_frame;
+    linux_frame.can_id = frame->can_id;
+    linux_frame.can_dlc = frame->can_dlc;
+    OSAL_Memcpy(linux_frame.data, frame->data, frame->can_dlc);
+    
+    /* 发送（使用OSAL封装） */
+    int32_t ret = OSAL_write(ctx->sockfd, &linux_frame, sizeof(linux_frame));
+    if (ret == sizeof(linux_frame)) {
+        ctx->tx_count++;
+        return OSAL_SUCCESS;
+    }
+    
+    ctx->err_count++;
+    return OSAL_ERR_GENERIC;
 }
 
-// 4. 共享内存使用大页（减少TLB miss）
-int shm_fd = shm_open("/pmc_shm", O_CREAT | O_RDWR, 0666);
-ftruncate(shm_fd, 2 * 1024 * 1024);  // 2MB
-void *shm = mmap(NULL, 2 * 1024 * 1024, PROT_READ | PROT_WRITE,
-			   MAP_SHARED | MAP_HUGETLB, shm_fd, 0);
-```
-
-#### 4.3.4 缓存优化
-
-``` C
-// 1. 数据结构对齐（避免false sharing）
-typedef struct {
-  _Atomic uint32_t read_index;
-  uint8_t padding1[60];  // 填充到64字节（缓存行大小）
-  _Atomic uint32_t write_index;
-  uint8_t padding2[60];
-} cache_aligned_queue_t;
-
-// 2. 热路径数据局部性
-typedef struct {
-  // 热数据（频繁访问）
-  _Atomic uint64_t heartbeat;
-  uint32_t cmd_count;
-  uint32_t error_count;
-
-  // 冷数据（偶尔访问）
-  char name[64];
-  uint32_t config_flags;
-} hot_cold_separated_t;
-
-// 3. 预取关键数据
-__builtin_prefetch(&g_acl_table, 0, 3);  // 预取ACL查找表
-
+/* 接收实现 */
+int32_t HAL_CAN_Recv(hal_can_handle_t handle, can_frame_t *frame, int32_t timeout) {
+    hal_can_context_t *ctx = (hal_can_context_t *)handle;
+    
+    /* 设置超时（如果指定） */
+    if (timeout >= 0) {
+        struct timeval tv;
+        tv.tv_sec = timeout / 1000;
+        tv.tv_usec = (timeout % 1000) * 1000;
+        OSAL_setsockopt(ctx->sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+    }
+    
+    /* 接收（使用OSAL封装） */
+    struct can_frame linux_frame;
+    int32_t ret = OSAL_read(ctx->sockfd, &linux_frame, sizeof(linux_frame));
+    if (ret == sizeof(linux_frame)) {
+        frame->can_id = linux_frame.can_id;
+        frame->can_dlc = linux_frame.can_dlc;
+        OSAL_Memcpy(frame->data, linux_frame.data, linux_frame.can_dlc);
+        ctx->rx_count++;
+        return OSAL_SUCCESS;
+    }
+    
+    if (ret == OSAL_ERR_TIMEOUT) {
+        return OSAL_ERR_TIMEOUT;
+    }
+    
+    ctx->err_count++;
+    return OSAL_ERR_GENERIC;
+}
 ```
 
 ---
 
-### 4.4 进程系统配置
+### 4.3 串口驱动设计
 
-```ini
-# /etc/pmc/pmc.conf
+**功能**：提供统一的串口访问接口，支持多种波特率和配置。
 
-# PMC系统配置文件
+#### 4.3.1 接口设计
 
-[system]
-platform = ti/am625
-product = pmc_v1
-version = 1.0.0
+```c
+/* 串口句柄（不透明） */
+typedef void* hal_serial_handle_t;
 
-[supervisor]
-heartbeat_interval_ms = 2000
-heartbeat_timeout_ms = 5000
-watchdog_feed_interval_ms = 5000
-max_restart_count = 5
-restart_window_sec = 300
+/* 串口配置 */
+typedef struct {
+    uint32_t baud_rate;          /* 波特率 */
+    uint8_t  data_bits;          /* 数据位（5/6/7/8） */
+    uint8_t  stop_bits;          /* 停止位（1/2） */
+    uint8_t  parity;             /* 校验位（NONE/ODD/EVEN） */
+    uint8_t  flow_control;       /* 流控（NONE/HW/SW） */
+} hal_serial_config_t;
 
-[telecommand]
-sched_policy = SCHED_FIFO
-sched_priority = 99
-cpu_affinity = 0
-memory_lock = true
-can_device = can0
-can_bitrate = 500000
-cmd_timeout_ms = 100
+/* 打开串口设备 */
+int32_t HAL_Serial_Open(const char *device, const hal_serial_config_t *config, hal_serial_handle_t *handle);
 
-[telemetry]
-sched_policy = SCHED_OTHER
-sched_priority = 0
-nice = 10
-cache_collect_interval_ms = 1000
-health_check_interval_ms = 5000
-status_snapshot_interval_ms = 10000
+/* 关闭串口设备 */
+int32_t HAL_Serial_Close(hal_serial_handle_t handle);
 
-[firmware]
-sched_policy = SCHED_BATCH
-nice = 19
-partition_a = /dev/mmcblk0p1
-partition_b = /dev/mmcblk0p2
-max_boot_attempts = 3
+/* 写入数据 */
+int32_t HAL_Serial_Write(hal_serial_handle_t handle, const void *buffer, uint32_t size, int32_t timeout);
 
-[logger]
-sched_policy = SCHED_OTHER
-nice = 10
-log_level = INFO
-log_dir = /var/log/pmc
-max_log_size_mb = 10
-max_archive_days = 7
-crash_log_dir = /var/log/pmc/crash
+/* 读取数据 */
+int32_t HAL_Serial_Read(hal_serial_handle_t handle, void *buffer, uint32_t size, int32_t timeout);
 
+/* 刷新缓冲区 */
+int32_t HAL_Serial_Flush(hal_serial_handle_t handle);
+
+/* 设置串口配置 */
+int32_t HAL_Serial_SetConfig(hal_serial_handle_t handle, const hal_serial_config_t *config);
+```
+
+#### 4.3.2 Linux平台实现要点
+
+```c
+/* 内部句柄结构 */
+typedef struct {
+    int32_t fd;                  /* 文件描述符 */
+    char    device[64];          /* 设备路径 */
+    hal_serial_config_t config;  /* 当前配置 */
+} hal_serial_context_t;
+
+/* 打开串口实现 */
+int32_t HAL_Serial_Open(const char *device, const hal_serial_config_t *config, hal_serial_handle_t *handle) {
+    hal_serial_context_t *ctx = OSAL_Malloc(sizeof(hal_serial_context_t));
+    
+    /* 1. 打开设备（使用OSAL封装） */
+    ctx->fd = OSAL_open(device, O_RDWR | O_NOCTTY | O_NDELAY);
+    if (ctx->fd < 0) {
+        OSAL_Free(ctx);
+        return OSAL_ERR_GENERIC;
+    }
+    
+    /* 2. 配置串口参数 */
+    struct termios options;
+    OSAL_tcgetattr(ctx->fd, &options);
+    
+    /* 设置波特率 */
+    speed_t baud = B115200;  /* 根据config->baud_rate映射 */
+    cfsetispeed(&options, baud);
+    cfsetospeed(&options, baud);
+    
+    /* 设置数据位 */
+    options.c_cflag &= ~CSIZE;
+    switch (config->data_bits) {
+        case 5: options.c_cflag |= CS5; break;
+        case 6: options.c_cflag |= CS6; break;
+        case 7: options.c_cflag |= CS7; break;
+        case 8: options.c_cflag |= CS8; break;
+    }
+    
+    /* 设置校验位 */
+    if (config->parity == HAL_SERIAL_PARITY_NONE) {
+        options.c_cflag &= ~PARENB;
+    } else if (config->parity == HAL_SERIAL_PARITY_ODD) {
+        options.c_cflag |= PARENB | PARODD;
+    } else if (config->parity == HAL_SERIAL_PARITY_EVEN) {
+        options.c_cflag |= PARENB;
+        options.c_cflag &= ~PARODD;
+    }
+    
+    /* 设置停止位 */
+    if (config->stop_bits == 2) {
+        options.c_cflag |= CSTOPB;
+    } else {
+        options.c_cflag &= ~CSTOPB;
+    }
+    
+    /* 应用配置 */
+    OSAL_tcsetattr(ctx->fd, TCSANOW, &options);
+    
+    OSAL_Memcpy(&ctx->config, config, sizeof(hal_serial_config_t));
+    *handle = (hal_serial_handle_t)ctx;
+    return OSAL_SUCCESS;
+}
 ```
 
 ---
 
+### 4.4 I2C驱动设计
 
+**功能**：提供统一的I2C总线访问接口，支持标准速率和快速速率。
 
-## 5. ACL 设计（业务配置层）
+#### 4.4.1 接口设计
 
-### 5.0 ACL设计理念
+```c
+/* I2C句柄（不透明） */
+typedef void* hal_i2c_handle_t;
 
-ACL（Application Configuration Layer，业务配置层）是连接业务逻辑和硬件实现的桥梁，它通过配置映射将抽象的业务功能映射到具体的硬件设备。
-
-#### 5.0.1 设计目标
-
-1. **业务与硬件解耦**：业务代码只关心功能（如"服务器上电"），不关心具体硬件（BMC还是MCU）
-2. **配置驱动**：通过修改配置文件即可适配不同硬件平台，无需修改业务代码
-3. **O(1)查询性能**：使用数组直接索引，查询配置的时间复杂度为O(1)
-4. **类型安全**：使用枚举类型而非字符串，编译时检查错误
-5. **易于维护**：配置集中管理，清晰可见业务功能与硬件的映射关系
-
-#### 5.0.2 ACL在架构中的位置
-
-```text
-┌─────────────────────────────────────────────────────────────┐
-│                    Application Layer                        │
-│  ┌──────────────────┬──────────────────┬─────────────────┐  │
-│  │ Telecommand Proc │ Telemetry Proc   │ Firmware Proc   │  │
-│  │                  │                  │                 │  │
-│  │ handle_tc(       │ handle_tm(       │ handle_fw(      │  │
-│  │   TC_POWER_ON)   │   TM_CPU_TEMP)   │   FW_UPGRADE)   │  │
-│  └────────┬─────────┴────────┬─────────┴────────┬────────┘  │
-└───────────┼──────────────────┼──────────────────┼───────────┘
-            │                  │                  │
-            │ 业务功能枚举      │                  │
-            ▼                  ▼                  ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    ACL Configuration Layer                  │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │  ACL Lookup Table (O(1) 直接索引)                    │   │
-│  │  ┌────────────────────────────────────────────────┐  │   │
-│  │  │ TC_POWER_ON  → BMC[0]                          │  │   │
-│  │  │ TC_MCU_RESET → MCU[0]                          │  │   │
-│  │  │ TM_CPU_TEMP  → BMC[0], CACHED                  │  │   │
-│  │  │ TM_MCU_STATUS→ MCU[0], REALTIME, 800μs timeout │  │   │
-│  │  └────────────────────────────────────────────────┘  │   │
-│  └──────────────────────────────────────────────────────┘   │
-└───────────┬──────────────────┬──────────────────┬───────────┘
-            │ device_type +    │                  │
-            │ logic_index      │                  │
-            ▼                  ▼                  ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    PDL Layer (外设驱动层)                    │
-│  ┌──────────────┬──────────────┬──────────────────────────┐ │
-│  │ BMC Service  │ MCU Service  │ Satellite Service        │ │
-│  │ PDL_BMC_*()  │ PDL_MCU_*()  │ PDL_Satellite_*()        │ │
-│  └──────────────┴──────────────┴──────────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
-```
-
-#### 5.0.3 核心设计原则
-
-**原则1：业务功能枚举化**
-- 所有业务功能（遥控/遥测/健康管理）都定义为枚举类型
-- 枚举值作为数组索引，实现O(1)查询
-- 编译时类型检查，避免运行时错误
-
-**原则2：配置与代码分离**
-- 配置数据放在独立的.c文件中（如`acl_pmc_v1.c`）
-- 业务代码通过ACL API查询配置，不直接访问配置数组
-- 不同产品/版本使用不同配置文件，共享同一套业务代码
-
-**原则3：逻辑索引而非物理索引**
-- ACL使用逻辑索引（logic_index），如"第0个BMC"、"第1个MCU"
-- 物理索引（如CAN ID、I2C地址）由PCL层管理
-- 业务层不需要知道硬件的物理连接细节
-
-**原则4：配置完整性**
-- 每个业务功能必须配置设备类型、逻辑索引、使能状态
-- 遥测功能额外配置数据类型（缓存/实时）和超时时间
-- 配置缺失或错误在初始化时检测，而非运行时
-
-**原则5：命名规范**
-- ACL配置文件命名：`acl_{project}_{product}_{version}.c`
-- 关注业务功能，不关注硬件平台
-- 示例：`acl_pmc_v1.c`、`acl_pmc_v2.c`、`acl_pmc_v1_invalidation.c`
-
-### 5.1 PMC业务功能枚举
-``` C
-/************************************************
-* acl/include/pmc_acl_types.h
-* PMC业务功能枚举定义
-************************************************/
-
-/**
-* @brief 遥测数据类型
-*/
-typedef enum {
-  TM_TYPE_CACHED = 0,    // 缓存型：后台采集，从共享内存读取
-  TM_TYPE_REALTIME = 1   // 实时型：优先实时查询，超时降级到缓存
-} tm_data_type_t;
-
-/**
-* @brief 遥测数据新鲜度标记
-*/
-typedef enum {
-  TM_FRESH = 0,      // 新鲜数据：采集时间在有效期内
-  TM_STALE = 1,      // 过期数据：受遥控命令影响，等待更新
-  TM_INVALID = 2     // 无效数据：从未采集过
-} tm_freshness_t;
-
-/**
-* @brief PMC遥控功能枚举
-*/
-typedef enum {
-  /* 服务器电源控制 */
-  TC_SERVER_POWER_ON = 0,
-  TC_SERVER_POWER_OFF,
-  TC_SERVER_POWER_RESET,
-  TC_SERVER_POWER_CYCLE,
-
-  /* 服务器复位控制 */
-  TC_SERVER_SOFT_RESET,
-  TC_SERVER_HARD_RESET,
-
-  /* MCU控制 */
-  TC_MCU_RESET,
-  TC_MCU_POWER_CTRL,
-
-  /* FPGA控制 */
-  TC_FPGA_RESET,
-  TC_FPGA_CONFIG_LOAD,
-
-  /* 固件升级 */
-  TC_FIRMWARE_UPGRADE_START,
-  TC_FIRMWARE_UPGRADE_DATA,
-  TC_FIRMWARE_UPGRADE_VERIFY,
-  TC_FIRMWARE_UPGRADE_COMMIT,
-
-  /* 系统控制 */
-  TC_SYSTEM_RESET,
-  TC_WATCHDOG_ENABLE,
-  TC_WATCHDOG_DISABLE,
-
-  TC_FUNC_MAX
-} pmc_tc_function_t;
-
-/**
-* @brief PMC遥测功能枚举
-*/
-typedef enum {
-  /* 服务器状态遥测（缓存型） */
-  TM_SERVER_CPU_TEMP = 0,        // 缓存型
-  TM_SERVER_BOARD_TEMP,          // 缓存型
-  TM_SERVER_FAN_SPEED,           // 缓存型
-  TM_SERVER_VOLTAGE_12V,         // 缓存型
-  TM_SERVER_VOLTAGE_5V,          // 缓存型
-  TM_SERVER_VOLTAGE_3V3,         // 缓存型
-  TM_SERVER_CURRENT,             // 缓存型
-
-  /* 服务器状态遥测（实时型） */
-  TM_SERVER_POWER_STATUS,        // 实时型
-
-  /* MCU状态遥测 */
-  TM_MCU_STATUS,                 // 实时型
-  TM_MCU_TEMP,                   // 缓存型
-  TM_MCU_VOLTAGE,                // 缓存型
-  TM_MCU_UPTIME,                 // 缓存型
-
-  /* FPGA状态遥测 */
-  TM_FPGA_STATUS,                // 实时型
-  TM_FPGA_TEMP,                  // 缓存型
-  TM_FPGA_CONFIG_STATUS,         // 实时型
-
-  /* 系统健康遥测 */
-  TM_SYSTEM_UPTIME,              // 缓存型
-  TM_WATCHDOG_STATUS,            // 实时型
-  TM_ERROR_COUNT,                // 缓存型
-
-  TM_FUNC_MAX
-} pmc_tm_function_t;
-
-/**
-* @brief PMC健康管理功能枚举
-*/
-typedef enum {
-  /* 健康检查项 */
-  HM_SERVER_ALIVE = 0,
-  HM_BMC_REACHABLE,
-  HM_MCU_RESPONSIVE,
-  HM_CAN_BUS_STATUS,
-  HM_ETHERNET_STATUS,
-
-  /* 故障检测 */
-  HM_POWER_FAULT,
-  HM_TEMP_OVER_LIMIT,
-  HM_VOLTAGE_OUT_RANGE,
-
-  HM_FUNC_MAX
-} pmc_hm_function_t;
-```
-
-### 5.2 ACL配置结构
-
-``` C
-/************************************************
-* acl/include/acl_config.h
-* ACL配置结构定义
-************************************************/
-
-typedef enum {
-  ACL_DEVICE_SATELLITE = 0,
-  ACL_DEVICE_BMC,
-  ACL_DEVICE_MCU,
-  ACL_DEVICE_FPGA,
-  ACL_DEVICE_MAX
-} acl_device_type_t;
-
-/**
-* @brief 遥控功能配置
-*/
+/* I2C配置 */
 typedef struct {
-  pmc_tc_function_t function;
-  acl_device_type_t device_type;
-  uint32_t logic_index;
-  bool enabled;
-} acl_tc_config_t;
+    const char *device;          /* I2C设备（如"/dev/i2c-0"） */
+    uint32_t    timeout;         /* 传输超时（ms） */
+} hal_i2c_config_t;
 
-/**
-* @brief 遥测功能配置
-*/
+/* I2C消息结构 */
 typedef struct {
-  pmc_tm_function_t function;
-  acl_device_type_t device_type;
-  uint32_t logic_index;
-  tm_data_type_t data_type;      // 缓存型/实时型
-  uint32_t realtime_timeout_us;  // 实时查询超时（微秒），仅实时型有效
-  bool enabled;
-} acl_tm_config_t;
+    uint16_t addr;               /* 从设备地址（7位） */
+    uint16_t flags;              /* 标志（读/写） */
+    uint16_t len;                /* 数据长度 */
+    uint8_t *buf;                /* 数据缓冲区 */
+} i2c_msg_t;
 
-/**
-* @brief ACL查找表（O(1)直接索引）
-*/
+/* 打开I2C设备 */
+int32_t HAL_I2C_Open(const hal_i2c_config_t *config, hal_i2c_handle_t *handle);
+
+/* 关闭I2C设备 */
+int32_t HAL_I2C_Close(hal_i2c_handle_t handle);
+
+/* 写入数据到I2C从设备 */
+int32_t HAL_I2C_Write(hal_i2c_handle_t handle, uint16_t slave_addr, const uint8_t *buffer, uint32_t size);
+
+/* 从I2C从设备读取数据 */
+int32_t HAL_I2C_Read(hal_i2c_handle_t handle, uint16_t slave_addr, uint8_t *buffer, uint32_t size);
+
+/* 写寄存器操作 */
+int32_t HAL_I2C_WriteReg(hal_i2c_handle_t handle, uint16_t slave_addr, uint8_t reg_addr, const uint8_t *buffer, uint32_t size);
+
+/* 读寄存器操作 */
+int32_t HAL_I2C_ReadReg(hal_i2c_handle_t handle, uint16_t slave_addr, uint8_t reg_addr, uint8_t *buffer, uint32_t size);
+
+/* 执行I2C传输（支持组合传输） */
+int32_t HAL_I2C_Transfer(hal_i2c_handle_t handle, i2c_msg_t *msgs, uint32_t num);
+```
+
+#### 4.4.2 设计特点
+
+- **寄存器访问**：提供专用的寄存器读写接口，简化常见操作
+- **组合传输**：支持I2C组合传输（先写后读），避免总线释放
+- **超时保护**：所有操作支持超时，防止总线挂死
+
+---
+
+### 4.5 SPI驱动设计
+
+**功能**：提供统一的SPI总线访问接口，支持全双工传输。
+
+#### 4.5.1 接口设计
+
+```c
+/* SPI句柄（不透明） */
+typedef void* hal_spi_handle_t;
+
+/* SPI配置 */
 typedef struct {
-  acl_tc_config_t tc_table[TC_FUNC_MAX];
-  acl_tm_config_t tm_table[TM_FUNC_MAX];
-} acl_lookup_table_t;
-```
+    const char *device;          /* SPI设备（如"/dev/spidev0.0"） */
+    uint8_t     mode;            /* SPI模式（0-3） */
+    uint8_t     bits_per_word;   /* 每字位数（通常为8） */
+    uint32_t    max_speed_hz;    /* 最大速率（Hz） */
+    uint32_t    timeout;         /* 传输超时（ms） */
+} hal_spi_config_t;
 
-### 5.3 ACL配置示例
-
-``` C
-/************************************************
-/************************************************
-* acl/config/pmc_v1/acl_pmc_v1.c
-* PMC v1.0应用配置
-* 命名规范：acl_{project}_{product}_{version}.c
-* 说明：ACL配置关注业务功能，不关注硬件平台
-************************************************/
-* PMC v1.0配置（BMC通过Redfish，MCU通过CAN）
-************************************************/
-
-static const acl_tc_config_t g_pmc_tc_configs[] = {
-  /* 服务器电源控制 → BMC */
-  { TC_SERVER_POWER_ON,      ACL_DEVICE_BMC, 0, true },
-  { TC_SERVER_POWER_OFF,     ACL_DEVICE_BMC, 0, true },
-  { TC_SERVER_POWER_RESET,   ACL_DEVICE_BMC, 0, true },
-  { TC_SERVER_SOFT_RESET,    ACL_DEVICE_BMC, 0, true },
-  { TC_SERVER_HARD_RESET,    ACL_DEVICE_BMC, 0, true },
-
-  /* MCU控制 → MCU[0] */
-  { TC_MCU_RESET,            ACL_DEVICE_MCU, 0, true },
-  { TC_MCU_POWER_CTRL,       ACL_DEVICE_MCU, 1, true },  // MCU[1]是电源管理
-
-  /* FPGA控制 → FPGA[0] */
-  { TC_FPGA_RESET,           ACL_DEVICE_FPGA, 0, true },
-  { TC_FPGA_CONFIG_LOAD,     ACL_DEVICE_FPGA, 0, true },
-
-  /* 看门狗控制 → MCU[2] */
-  { TC_WATCHDOG_ENABLE,      ACL_DEVICE_MCU, 2, true },
-  { TC_WATCHDOG_DISABLE,     ACL_DEVICE_MCU, 2, true },
-};
-
-static const acl_tm_config_t g_pmc_tm_configs[] = {
-  /* 服务器遥测（缓存型） → BMC */
-  { TM_SERVER_CPU_TEMP,      ACL_DEVICE_BMC, 0, TM_TYPE_CACHED,   0,    true },
-  { TM_SERVER_BOARD_TEMP,    ACL_DEVICE_BMC, 0, TM_TYPE_CACHED,   0,    true },
-  { TM_SERVER_FAN_SPEED,     ACL_DEVICE_BMC, 0, TM_TYPE_CACHED,   0,    true },
-  { TM_SERVER_VOLTAGE_12V,   ACL_DEVICE_MCU, 1, TM_TYPE_CACHED,   0,    true },
-  { TM_SERVER_VOLTAGE_5V,    ACL_DEVICE_MCU, 1, TM_TYPE_CACHED,   0,    true },
-  { TM_SERVER_CURRENT,       ACL_DEVICE_MCU, 1, TM_TYPE_CACHED,   0,    true },
-
-  /* 服务器遥测（实时型） → BMC，1ms超时 */
-  { TM_SERVER_POWER_STATUS,  ACL_DEVICE_BMC, 0, TM_TYPE_REALTIME, 1000, true },
-
-  /* MCU遥测（实时型） → MCU，800μs超时 */
-  { TM_MCU_STATUS,           ACL_DEVICE_MCU, 0, TM_TYPE_REALTIME, 800,  true },
-  { TM_MCU_TEMP,             ACL_DEVICE_MCU, 0, TM_TYPE_CACHED,   0,    true },
-  { TM_MCU_VOLTAGE,          ACL_DEVICE_MCU, 0, TM_TYPE_CACHED,   0,    true },
-
-  /* FPGA遥测（实时型） → FPGA，1ms超时 */
-  { TM_FPGA_STATUS,          ACL_DEVICE_FPGA, 0, TM_TYPE_REALTIME, 1000, true },
-  { TM_FPGA_TEMP,            ACL_DEVICE_FPGA, 0, TM_TYPE_CACHED,   0,    true },
-
-  /* 系统遥测 */
-  { TM_SYSTEM_UPTIME,        ACL_DEVICE_MCU, 0, TM_TYPE_CACHED,   0,    true },
-  { TM_WATCHDOG_STATUS,      ACL_DEVICE_MCU, 2, TM_TYPE_REALTIME, 800,  true },
-};
-
-/**
-* @brief 初始化ACL查找表（O(1)直接索引）
-*/
-int32_t ACL_Init(acl_lookup_table_t *table)
-{
-  // 初始化遥控查找表
-  for (uint32_t i = 0; i < sizeof(g_pmc_tc_configs) / sizeof(acl_tc_config_t); i++) {
-	  const acl_tc_config_t *cfg = &g_pmc_tc_configs[i];
-	  table->tc_table[cfg->function] = *cfg;
-  }
-
-  // 初始化遥测查找表
-  for (uint32_t i = 0; i < sizeof(g_pmc_tm_configs) / sizeof(acl_tm_config_t); i++) {
-	  const acl_tm_config_t *cfg = &g_pmc_tm_configs[i];
-	  table->tm_table[cfg->function] = *cfg;
-  }
-
-  return OSAL_SUCCESS;
-}
-
-/**
-* @brief 查询遥控配置（O(1)）
-*/
-const acl_tc_config_t* ACL_GetTcConfig(const acl_lookup_table_t *table, pmc_tc_function_t function)
-{
-  if (function >= TC_FUNC_MAX) {
-	  return NULL;
-  }
-  return &table->tc_table[function];
-}
-
-/**
-* @brief 查询遥测配置（O(1)）
-*/
-const acl_tm_config_t* ACL_GetTmConfig(const acl_lookup_table_t *table, pmc_tm_function_t function)
-{
-  if (function >= TM_FUNC_MAX) {
-	  return NULL;
-  }
-  return &table->tm_table[function];
-}
-```
-
-###  5.4 ACL使用示例
-
-``` C
-/************************************************
-* telecommand进程中的命令处理
-************************************************/
-
-// 全局ACL查找表
-static acl_lookup_table_t g_acl_table;
-
-// 初始化
-ACL_Init(&g_acl_table);
-
-// 处理遥控命令
-int32_t handle_telecommand(pmc_tc_function_t cmd_type, uint32_t param)
-{
-  // 1. 通过ACL查询设备映射（O(1)）
-  const acl_tc_config_t *cfg = ACL_GetTcConfig(&g_acl_table, cmd_type);
-  if (cfg == NULL || !cfg->enabled) {
-	  LOG_ERROR("TC", "命令未配置: %d", cmd_type);
-	  return OSAL_ERR_NOT_FOUND;
-  }
-
-  // 2. 根据设备类型调用PDL接口
-  int32_t ret;
-  switch (cfg->device_type) {
-	  case ACL_DEVICE_BMC:
-		  if (cmd_type == TC_SERVER_POWER_ON) {
-			  ret = PDL_BMC_PowerOn(cfg->logic_index);
-		  } else if (cmd_type == TC_SERVER_POWER_OFF) {
-			  ret = PDL_BMC_PowerOff(cfg->logic_index);
-		  } else if (cmd_type == TC_SERVER_POWER_RESET) {
-			  ret = PDL_BMC_PowerReset(cfg->logic_index);
-		  }
-		  break;
-
-	  case ACL_DEVICE_MCU:
-		  if (cmd_type == TC_MCU_RESET) {
-			  ret = PDL_MCU_Reset(cfg->logic_index);
-		  } else if (cmd_type == TC_WATCHDOG_ENABLE) {
-			  ret = PDL_MCU_SendCommand(cfg->logic_index, MCU_CMD_WDT_ENABLE, 0);
-		  }
-		  break;
-
-	  case ACL_DEVICE_FPGA:
-		  if (cmd_type == TC_FPGA_RESET) {
-			  ret = PDL_FPGA_Reset(cfg->logic_index);
-		  }
-		  break;
-
-	  default:
-		  ret = OSAL_ERR_NOT_SUPPORTED;
-  }
-
-  return ret;
-}
-
-// 处理遥测命令
-int32_t handle_telemetry(pmc_tm_function_t tm_type, telemetry_data_t *data)
-{
-  // 1. 通过ACL查询设备映射（O(1)）
-  const acl_tm_config_t *cfg = ACL_GetTmConfig(&g_acl_table, tm_type);
-  if (cfg == NULL || !cfg->enabled) {
-	  LOG_ERROR("TM", "遥测未配置: %d", tm_type);
-	  return OSAL_ERR_NOT_FOUND;
-  }
-
-  // 2. 根据数据类型处理
-  if (cfg->data_type == TM_TYPE_CACHED) {
-	  // 缓存型：从共享内存读取（<10μs）
-	  get_cached_telemetry(tm_type, data);
-  } else {
-	  // 实时型：优先实时查询，超时降级到缓存
-	  tm_freshness_t freshness;
-	  int32_t ret = handle_realtime_telemetry(cfg, data, &freshness);
-	  
-	  if (ret != OSAL_SUCCESS) {
-		  LOG_ERROR("TM", "实时遥测失败且缓存无效: %d", tm_type);
-		  return ret;
-	  }
-	  
-	  // 在应答中携带新鲜度标记
-	  data->freshness = freshness;
-  }
-
-  return OSAL_SUCCESS;
-}
-
-/**
-* @brief 处理实时型遥测（优先实时查询 + 缓存降级）
-*/
-int32_t handle_realtime_telemetry(const acl_tm_config_t *cfg, 
-                                   telemetry_data_t *out_data,
-                                   tm_freshness_t *out_freshness)
-{
-  telemetry_cache_entry_t *cache = &g_tm_cache[cfg->function];
-  
-  // 1. 尝试实时查询（带超时）
-  int32_t ret = query_realtime_tm_with_timeout(cfg, out_data, cfg->realtime_timeout_us);
-  
-  if (ret == OSAL_SUCCESS) {
-	  // 实时查询成功
-	  *out_freshness = TM_FRESH;
-	  
-	  // 更新缓存
-	  cache->data = *out_data;
-	  cache->timestamp_ns = get_monotonic_ns();
-	  cache->freshness = TM_FRESH;
-	  
-	  return OSAL_SUCCESS;
-  }
-  
-  // 2. 实时查询失败，降级到缓存
-  if (cache->valid) {
-	  LOG_WARN("TM", "实时查询超时，使用缓存数据（%s）", 
-			   cache->freshness == TM_FRESH ? "FRESH" : "STALE");
-	  
-	  *out_data = cache->data;
-	  *out_freshness = cache->freshness;  // 可能是STALE
-	  
-	  return OSAL_SUCCESS;
-  }
-  
-  // 3. 缓存也无效（从未采集过）
-  LOG_ERROR("TM", "实时查询失败且缓存无效");
-  *out_freshness = TM_INVALID;
-  return OSAL_ERR_NOT_AVAILABLE;
-}
-```
-
-### 5.5 遥控命令对遥测缓存的影响映射
-
-为了保证实时型遥测数据的准确性，需要在遥控命令执行后标记相关遥测缓存为STALE（过期），等待Telemetry进程重新采集。
-
-```c
-/************************************************
-/************************************************
-* acl/config/pmc_v1/acl_pmc_v1_invalidation.c
-* PMC v1.0遥控命令失效映射
-************************************************/
-* 遥控命令对遥测数据的影响映射
-************************************************/
-
-/**
-* @brief 遥控命令失效映射
-*/
+/* SPI传输结构 */
 typedef struct {
-  pmc_tc_function_t tc_function;
-  pmc_tm_function_t affected_tm[8];  // 受影响的遥测项（最多8个）
-  uint32_t affected_count;
-} tc_tm_invalidation_map_t;
+    const uint8_t *tx_buf;       /* 发送缓冲区 */
+    uint8_t       *rx_buf;       /* 接收缓冲区 */
+    uint32_t       len;          /* 传输长度 */
+    uint32_t       speed_hz;     /* 传输速率 */
+    uint16_t       delay_usecs;  /* 传输后延迟（us） */
+    uint8_t        bits_per_word;/* 每字位数 */
+    uint8_t        cs_change;    /* 片选变化标志 */
+} spi_transfer_t;
 
-static const tc_tm_invalidation_map_t g_invalidation_map[] = {
-  // 电源控制命令 → 影响电源状态遥测
-  {
-	  .tc_function = TC_SERVER_POWER_ON,
-	  .affected_tm = { TM_SERVER_POWER_STATUS },
-	  .affected_count = 1
-  },
-  {
-	  .tc_function = TC_SERVER_POWER_OFF,
-	  .affected_tm = { TM_SERVER_POWER_STATUS },
-	  .affected_count = 1
-  },
-  {
-	  .tc_function = TC_SERVER_POWER_RESET,
-	  .affected_tm = { TM_SERVER_POWER_STATUS, TM_SERVER_CPU_TEMP },
-	  .affected_count = 2
-  },
-  
-  // MCU复位 → 影响MCU状态遥测
-  {
-	  .tc_function = TC_MCU_RESET,
-	  .affected_tm = { TM_MCU_STATUS, TM_MCU_TEMP, TM_MCU_VOLTAGE },
-	  .affected_count = 3
-  },
-  
-  // FPGA复位 → 影响FPGA状态遥测
-  {
-	  .tc_function = TC_FPGA_RESET,
-	  .affected_tm = { TM_FPGA_STATUS, TM_FPGA_CONFIG_STATUS },
-	  .affected_count = 2
-  },
-  
-  // 看门狗控制 → 影响看门狗状态遥测
-  {
-	  .tc_function = TC_WATCHDOG_ENABLE,
-	  .affected_tm = { TM_WATCHDOG_STATUS },
-	  .affected_count = 1
-  },
-  {
-	  .tc_function = TC_WATCHDOG_DISABLE,
-	  .affected_tm = { TM_WATCHDOG_STATUS },
-	  .affected_count = 1
-  },
-};
+/* 打开SPI设备 */
+int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle);
 
-/**
-* @brief 遥控命令执行后，自动失效相关遥测缓存
-*/
-void ACL_InvalidateAffectedTelemetry(pmc_tc_function_t tc_function)
-{
-  for (uint32_t i = 0; i < ARRAY_SIZE(g_invalidation_map); i++) {
-	  const tc_tm_invalidation_map_t *map = &g_invalidation_map[i];
-	  
-	  if (map->tc_function == tc_function) {
-		  for (uint32_t j = 0; j < map->affected_count; j++) {
-			  pmc_tm_function_t tm_func = map->affected_tm[j];
-			  g_tm_cache[tm_func].freshness = TM_STALE;
-			  
-			  LOG_DEBUG("ACL", "遥测缓存标记为STALE: %d", tm_func);
-		  }
-		  break;
-	  }
-  }
-}
+/* 关闭SPI设备 */
+int32_t HAL_SPI_Close(hal_spi_handle_t handle);
+
+/* SPI写操作 */
+int32_t HAL_SPI_Write(hal_spi_handle_t handle, const uint8_t *buffer, uint32_t size);
+
+/* SPI读操作 */
+int32_t HAL_SPI_Read(hal_spi_handle_t handle, uint8_t *buffer, uint32_t size);
+
+/* SPI全双工传输 */
+int32_t HAL_SPI_Transfer(hal_spi_handle_t handle, const uint8_t *tx_buffer, uint8_t *rx_buffer, uint32_t size);
+
+/* SPI批量传输（支持多段传输） */
+int32_t HAL_SPI_TransferMulti(hal_spi_handle_t handle, spi_transfer_t *transfers, uint32_t num);
+
+/* 设置SPI配置 */
+int32_t HAL_SPI_SetConfig(hal_spi_handle_t handle, const hal_spi_config_t *config);
 ```
 
-### 5.6 Telecommand进程中的遥控命令处理（完整版）
+#### 4.5.2 设计特点
+
+- **全双工支持**：同时发送和接收数据
+- **批量传输**：支持多段传输，减少片选切换开销
+- **灵活配置**：支持运行时修改速率、模式等参数
+
+---
+
+### 4.6 看门狗驱动设计
+
+**功能**：提供统一的看门狗接口，用于系统复位保护。
+
+#### 4.6.1 接口设计
 
 ```c
-/************************************************
-* telecommand进程中的命令处理（包含缓存失效）
-************************************************/
+/* 看门狗句柄（不透明） */
+typedef void* hal_watchdog_handle_t;
 
-// 处理遥控命令
-int32_t handle_telecommand(pmc_tc_function_t cmd_type, uint32_t param)
-{
-  // 1. 通过ACL查询设备映射（O(1)）
-  const acl_tc_config_t *cfg = ACL_GetTcConfig(&g_acl_table, cmd_type);
-  if (cfg == NULL || !cfg->enabled) {
-	  LOG_ERROR("TC", "命令未配置: %d", cmd_type);
-	  return OSAL_ERR_NOT_FOUND;
-  }
-
-  // 2. 根据设备类型调用PDL接口
-  int32_t ret;
-  switch (cfg->device_type) {
-	  case ACL_DEVICE_BMC:
-		  if (cmd_type == TC_SERVER_POWER_ON) {
-			  ret = PDL_BMC_PowerOn(cfg->logic_index);
-		  } else if (cmd_type == TC_SERVER_POWER_OFF) {
-			  ret = PDL_BMC_PowerOff(cfg->logic_index);
-		  } else if (cmd_type == TC_SERVER_POWER_RESET) {
-			  ret = PDL_BMC_PowerReset(cfg->logic_index);
-		  }
-		  break;
-
-	  case ACL_DEVICE_MCU:
-		  if (cmd_type == TC_MCU_RESET) {
-			  ret = PDL_MCU_Reset(cfg->logic_index);
-		  } else if (cmd_type == TC_WATCHDOG_ENABLE) {
-			  ret = PDL_MCU_SendCommand(cfg->logic_index, MCU_CMD_WDT_ENABLE, 0);
-		  }
-		  break;
-
-	  case ACL_DEVICE_FPGA:
-		  if (cmd_type == TC_FPGA_RESET) {
-			  ret = PDL_FPGA_Reset(cfg->logic_index);
-		  }
-		  break;
-
-	  default:
-		  ret = OSAL_ERR_NOT_SUPPORTED;
-  }
-  
-  // 3. 遥控命令执行成功后，失效相关遥测缓存
-  if (ret == OSAL_SUCCESS) {
-	  ACL_InvalidateAffectedTelemetry(cmd_type);
-  }
-
-  return ret;
-}
-```
-
-### 5.7 ACL设计要点
-
-#### 5.7.1 查找表初始化
-
-ACL查找表在系统启动时初始化一次，之后只读访问，无需加锁。
-
-```c
-/************************************************
- * ACL查找表初始化流程
- ************************************************/
-
-// 全局查找表（只读，无需加锁）
-static acl_lookup_table_t g_acl_table;
-static bool g_acl_initialized = false;
-
-int32_t ACL_Init(void)
-{
-    if (g_acl_initialized) {
-        LOG_WARN("ACL", "ACL已初始化，跳过");
-        return OSAL_OK;
-    }
-
-    // 1. 清零查找表
-    memset(&g_acl_table, 0, sizeof(acl_lookup_table_t));
-
-    // 2. 初始化遥控查找表
-    for (uint32_t i = 0; i < ARRAY_SIZE(g_pmc_tc_configs); i++) {
-        const acl_tc_config_t *cfg = &g_pmc_tc_configs[i];
-        
-        // 检查枚举值范围
-        if (cfg->function >= TC_FUNC_MAX) {
-            LOG_ERROR("ACL", "遥控功能枚举越界: %d", cfg->function);
-            return -OSAL_EINVAL;
-        }
-        
-        // 检查重复配置
-        if (g_acl_table.tc_table[cfg->function].enabled) {
-            LOG_ERROR("ACL", "遥控功能重复配置: %d", cfg->function);
-            return -OSAL_EINVAL;
-        }
-        
-        g_acl_table.tc_table[cfg->function] = *cfg;
-    }
-
-    // 3. 初始化遥测查找表
-    for (uint32_t i = 0; i < ARRAY_SIZE(g_pmc_tm_configs); i++) {
-        const acl_tm_config_t *cfg = &g_pmc_tm_configs[i];
-        
-        // 检查枚举值范围
-        if (cfg->function >= TM_FUNC_MAX) {
-            LOG_ERROR("ACL", "遥测功能枚举越界: %d", cfg->function);
-            return -OSAL_EINVAL;
-        }
-        
-        // 检查重复配置
-        if (g_acl_table.tm_table[cfg->function].enabled) {
-            LOG_ERROR("ACL", "遥测功能重复配置: %d", cfg->function);
-            return -OSAL_EINVAL;
-        }
-        
-        // 检查实时型遥测的超时配置
-        if (cfg->data_type == TM_TYPE_REALTIME && cfg->realtime_timeout_us == 0) {
-            LOG_ERROR("ACL", "实时型遥测未配置超时: %d", cfg->function);
-            return -OSAL_EINVAL;
-        }
-        
-        g_acl_table.tm_table[cfg->function] = *cfg;
-    }
-
-    // 4. 初始化失效映射表
-    int32_t ret = ACL_InitInvalidationMap();
-    if (ret != OSAL_OK) {
-        LOG_ERROR("ACL", "初始化失效映射表失败: %d", ret);
-        return ret;
-    }
-
-    g_acl_initialized = true;
-    LOG_INFO("ACL", "ACL初始化完成: TC=%zu, TM=%zu",
-             ARRAY_SIZE(g_pmc_tc_configs),
-             ARRAY_SIZE(g_pmc_tm_configs));
-
-    return OSAL_OK;
-}
-```
-
-#### 5.7.2 配置查询接口
-
-```c
-/************************************************
- * ACL配置查询接口（线程安全，无锁）
- ************************************************/
-
-/**
- * @brief 查询遥控配置
- * @return 配置指针（只读），失败返回NULL
- */
-const acl_tc_config_t* ACL_GetTcConfig(pmc_tc_function_t function)
-{
-    if (!g_acl_initialized) {
-        LOG_ERROR("ACL", "ACL未初始化");
-        return NULL;
-    }
-
-    if (function >= TC_FUNC_MAX) {
-        LOG_ERROR("ACL", "遥控功能枚举越界: %d", function);
-        return NULL;
-    }
-
-    const acl_tc_config_t *cfg = &g_acl_table.tc_table[function];
-    if (!cfg->enabled) {
-        LOG_DEBUG("ACL", "遥控功能未使能: %d", function);
-        return NULL;
-    }
-
-    return cfg;
-}
-
-/**
- * @brief 查询遥测配置
- * @return 配置指针（只读），失败返回NULL
- */
-const acl_tm_config_t* ACL_GetTmConfig(pmc_tm_function_t function)
-{
-    if (!g_acl_initialized) {
-        LOG_ERROR("ACL", "ACL未初始化");
-        return NULL;
-    }
-
-    if (function >= TM_FUNC_MAX) {
-        LOG_ERROR("ACL", "遥测功能枚举越界: %d", function);
-        return NULL;
-    }
-
-    const acl_tm_config_t *cfg = &g_acl_table.tm_table[function];
-    if (!cfg->enabled) {
-        LOG_DEBUG("ACL", "遥测功能未使能: %d", function);
-        return NULL;
-    }
-
-    return cfg;
-}
-
-/**
- * @brief 检查遥控功能是否使能
- */
-bool ACL_IsTcEnabled(pmc_tc_function_t function)
-{
-    if (!g_acl_initialized || function >= TC_FUNC_MAX) {
-        return false;
-    }
-    return g_acl_table.tc_table[function].enabled;
-}
-
-/**
- * @brief 检查遥测功能是否使能
- */
-bool ACL_IsTmEnabled(pmc_tm_function_t function)
-{
-    if (!g_acl_initialized || function >= TM_FUNC_MAX) {
-        return false;
-    }
-    return g_acl_table.tm_table[function].enabled;
-}
-```
-
-#### 5.7.3 配置验证
-
-在系统启动时验证ACL配置的完整性和一致性。
-
-```c
-/************************************************
- * ACL配置验证
- ************************************************/
-
-/**
- * @brief 验证ACL配置
- */
-int32_t ACL_ValidateConfig(void)
-{
-    uint32_t error_count = 0;
-
-    // 1. 验证遥控配置
-    for (uint32_t i = 0; i < TC_FUNC_MAX; i++) {
-        const acl_tc_config_t *cfg = &g_acl_table.tc_table[i];
-        
-        if (!cfg->enabled) {
-            continue;  // 未使能的功能跳过
-        }
-
-        // 检查设备类型
-        if (cfg->device_type >= ACL_DEVICE_MAX) {
-            LOG_ERROR("ACL", "TC[%d]: 无效的设备类型 %d", i, cfg->device_type);
-            error_count++;
-        }
-
-        // 检查逻辑索引（假设最多支持4个同类设备）
-        if (cfg->logic_index >= 4) {
-            LOG_WARN("ACL", "TC[%d]: 逻辑索引过大 %d", i, cfg->logic_index);
-        }
-    }
-
-    // 2. 验证遥测配置
-    for (uint32_t i = 0; i < TM_FUNC_MAX; i++) {
-        const acl_tm_config_t *cfg = &g_acl_table.tm_table[i];
-        
-        if (!cfg->enabled) {
-            continue;
-        }
-
-        // 检查设备类型
-        if (cfg->device_type >= ACL_DEVICE_MAX) {
-            LOG_ERROR("ACL", "TM[%d]: 无效的设备类型 %d", i, cfg->device_type);
-            error_count++;
-        }
-
-        // 检查数据类型
-        if (cfg->data_type != TM_TYPE_CACHED && cfg->data_type != TM_TYPE_REALTIME) {
-            LOG_ERROR("ACL", "TM[%d]: 无效的数据类型 %d", i, cfg->data_type);
-            error_count++;
-        }
-
-        // 检查实时型遥测的超时配置
-        if (cfg->data_type == TM_TYPE_REALTIME) {
-            if (cfg->realtime_timeout_us == 0) {
-                LOG_ERROR("ACL", "TM[%d]: 实时型遥测未配置超时", i);
-                error_count++;
-            } else if (cfg->realtime_timeout_us > 10000) {  // 超过10ms
-                LOG_WARN("ACL", "TM[%d]: 实时型遥测超时过长 %uμs", 
-                         i, cfg->realtime_timeout_us);
-            }
-        }
-    }
-
-    // 3. 验证失效映射表
-    for (uint32_t i = 0; i < ARRAY_SIZE(g_invalidation_map); i++) {
-        const tc_tm_invalidation_map_t *map = &g_invalidation_map[i];
-        
-        // 检查遥控功能是否使能
-        if (!ACL_IsTcEnabled(map->tc_function)) {
-            LOG_WARN("ACL", "失效映射[%d]: 遥控功能未使能 %d", 
-                     i, map->tc_function);
-        }
-
-        // 检查受影响的遥测功能
-        for (uint32_t j = 0; j < map->affected_count; j++) {
-            pmc_tm_function_t tm_func = map->affected_tm[j];
-            
-            if (tm_func >= TM_FUNC_MAX) {
-                LOG_ERROR("ACL", "失效映射[%d]: 遥测功能枚举越界 %d", i, tm_func);
-                error_count++;
-            }
-            
-            // 只有实时型遥测才需要失效处理
-            const acl_tm_config_t *tm_cfg = ACL_GetTmConfig(tm_func);
-            if (tm_cfg && tm_cfg->data_type != TM_TYPE_REALTIME) {
-                LOG_WARN("ACL", "失效映射[%d]: 遥测[%d]不是实时型", i, tm_func);
-            }
-        }
-    }
-
-    if (error_count > 0) {
-        LOG_ERROR("ACL", "配置验证失败: %u个错误", error_count);
-        return -OSAL_EINVAL;
-    }
-
-    LOG_INFO("ACL", "配置验证通过");
-    return OSAL_OK;
-}
-```
-
-#### 5.7.4 配置统计与调试
-
-提供配置统计信息，便于调试和运维。
-
-```c
-/************************************************
- * ACL配置统计
- ************************************************/
-
+/* 看门狗配置 */
 typedef struct {
-    uint32_t tc_enabled_count;
-    uint32_t tc_disabled_count;
-    uint32_t tm_enabled_count;
-    uint32_t tm_disabled_count;
-    uint32_t tm_cached_count;
-    uint32_t tm_realtime_count;
-    uint32_t invalidation_map_count;
-} acl_statistics_t;
+    const char *device;          /* 看门狗设备（如"/dev/watchdog"） */
+    uint32_t    timeout_sec;     /* 超时时间（秒） */
+    bool        enable_on_open;  /* 打开时自动启用 */
+} hal_watchdog_config_t;
 
-/**
- * @brief 获取ACL配置统计信息
- */
-void ACL_GetStatistics(acl_statistics_t *stats)
-{
-    memset(stats, 0, sizeof(acl_statistics_t));
+/* 打开看门狗设备 */
+int32_t HAL_Watchdog_Open(const hal_watchdog_config_t *config, hal_watchdog_handle_t *handle);
 
-    // 统计遥控配置
-    for (uint32_t i = 0; i < TC_FUNC_MAX; i++) {
-        if (g_acl_table.tc_table[i].enabled) {
-            stats->tc_enabled_count++;
-        } else {
-            stats->tc_disabled_count++;
-        }
-    }
+/* 关闭看门狗设备 */
+int32_t HAL_Watchdog_Close(hal_watchdog_handle_t handle);
 
-    // 统计遥测配置
-    for (uint32_t i = 0; i < TM_FUNC_MAX; i++) {
-        const acl_tm_config_t *cfg = &g_acl_table.tm_table[i];
-        
-        if (cfg->enabled) {
-            stats->tm_enabled_count++;
-            
-            if (cfg->data_type == TM_TYPE_CACHED) {
-                stats->tm_cached_count++;
-            } else {
-                stats->tm_realtime_count++;
-            }
-        } else {
-            stats->tm_disabled_count++;
-        }
-    }
+/* 喂狗 */
+int32_t HAL_Watchdog_Kick(hal_watchdog_handle_t handle);
 
-    stats->invalidation_map_count = ARRAY_SIZE(g_invalidation_map);
+/* 启用看门狗 */
+int32_t HAL_Watchdog_Enable(hal_watchdog_handle_t handle);
+
+/* 禁用看门狗 */
+int32_t HAL_Watchdog_Disable(hal_watchdog_handle_t handle);
+
+/* 设置超时时间 */
+int32_t HAL_Watchdog_SetTimeout(hal_watchdog_handle_t handle, uint32_t timeout_sec);
+
+/* 获取剩余时间 */
+int32_t HAL_Watchdog_GetTimeLeft(hal_watchdog_handle_t handle, uint32_t *time_left_sec);
+```
+
+---
+
+### 4.7 HAL层设计要点
+
+#### 4.7.1 句柄管理模式
+
+**所有HAL驱动使用统一的句柄管理模式**：
+
+```c
+/* 1. 不透明句柄类型 */
+typedef void* hal_xxx_handle_t;
+
+/* 2. 内部上下文结构（对外不可见） */
+typedef struct {
+    /* 硬件相关字段 */
+    int32_t fd;
+    /* 配置字段 */
+    hal_xxx_config_t config;
+    /* 统计字段 */
+    uint32_t tx_count;
+    uint32_t rx_count;
+    uint32_t err_count;
+} hal_xxx_context_t;
+
+/* 3. 初始化时分配上下文 */
+int32_t HAL_XXX_Init(const hal_xxx_config_t *config, hal_xxx_handle_t *handle) {
+    hal_xxx_context_t *ctx = OSAL_Malloc(sizeof(hal_xxx_context_t));
+    /* 初始化硬件 */
+    *handle = (hal_xxx_handle_t)ctx;
+    return OSAL_SUCCESS;
 }
 
-/**
- * @brief 打印ACL配置统计信息
- */
-void ACL_PrintStatistics(void)
-{
-    acl_statistics_t stats;
-    ACL_GetStatistics(&stats);
-
-    LOG_INFO("ACL", "========== ACL配置统计 ==========");
-    LOG_INFO("ACL", "遥控功能: 使能=%u, 禁用=%u, 总计=%u",
-             stats.tc_enabled_count, stats.tc_disabled_count, TC_FUNC_MAX);
-    LOG_INFO("ACL", "遥测功能: 使能=%u, 禁用=%u, 总计=%u",
-             stats.tm_enabled_count, stats.tm_disabled_count, TM_FUNC_MAX);
-    LOG_INFO("ACL", "  - 缓存型: %u", stats.tm_cached_count);
-    LOG_INFO("ACL", "  - 实时型: %u", stats.tm_realtime_count);
-    LOG_INFO("ACL", "失效映射: %u", stats.invalidation_map_count);
-    LOG_INFO("ACL", "================================");
+/* 4. 操作时转换句柄 */
+int32_t HAL_XXX_Operation(hal_xxx_handle_t handle, ...) {
+    hal_xxx_context_t *ctx = (hal_xxx_context_t *)handle;
+    /* 使用ctx访问内部字段 */
 }
 
-/**
- * @brief 打印ACL配置详情（调试用）
- */
-void ACL_DumpConfig(void)
-{
-    LOG_INFO("ACL", "========== 遥控配置 ==========");
-    for (uint32_t i = 0; i < TC_FUNC_MAX; i++) {
-        const acl_tc_config_t *cfg = &g_acl_table.tc_table[i];
-        if (cfg->enabled) {
-            LOG_INFO("ACL", "TC[%2u]: device=%u, index=%u",
-                     i, cfg->device_type, cfg->logic_index);
-        }
-    }
-
-    LOG_INFO("ACL", "========== 遥测配置 ==========");
-    for (uint32_t i = 0; i < TM_FUNC_MAX; i++) {
-        const acl_tm_config_t *cfg = &g_acl_table.tm_table[i];
-        if (cfg->enabled) {
-            LOG_INFO("ACL", "TM[%2u]: device=%u, index=%u, type=%s, timeout=%uμs",
-                     i, cfg->device_type, cfg->logic_index,
-                     cfg->data_type == TM_TYPE_CACHED ? "CACHED" : "REALTIME",
-                     cfg->realtime_timeout_us);
-        }
-    }
+/* 5. 反初始化时释放上下文 */
+int32_t HAL_XXX_Deinit(hal_xxx_handle_t handle) {
+    hal_xxx_context_t *ctx = (hal_xxx_context_t *)handle;
+    /* 关闭硬件 */
+    OSAL_Free(ctx);
+    return OSAL_SUCCESS;
 }
 ```
 
-### 5.8 ACL性能优化
+#### 4.7.2 错误处理
 
-#### 5.8.1 O(1)查询性能
-
-ACL使用数组直接索引，查询性能为O(1)，无需遍历或哈希查找。
+**统一的错误码和错误处理机制**：
 
 ```c
-// 性能对比
+/* 错误码（来自OSAL层） */
+#define OSAL_SUCCESS        0
+#define OSAL_ERR_GENERIC   -1
+#define OSAL_ERR_TIMEOUT   -2
+#define OSAL_ERR_INVALID_POINTER -3
+#define OSAL_ERR_NOT_SUPPORTED -4
 
-// ❌ 方案1：链表遍历 - O(n)
-for (node = list_head; node != NULL; node = node->next) {
-    if (node->function == target_function) {
-        return node->config;
+/* 所有HAL接口返回int32_t状态码 */
+int32_t HAL_XXX_Operation(...) {
+    if (/* 参数检查失败 */) {
+        return OSAL_ERR_INVALID_POINTER;
     }
-}
-
-// ❌ 方案2：哈希表 - O(1)平均，但有哈希计算开销
-uint32_t hash = hash_function(target_function);
-return hash_table[hash];
-
-// ✅ 方案3：数组直接索引 - O(1)，无额外开销
-return &g_acl_table.tc_table[target_function];
-```
-
-**性能测试结果**（在ARM Cortex-A53 @ 1.5GHz上测试）：
-- 数组直接索引：~5ns（1-2条指令）
-- 哈希表查找：~50ns（包含哈希计算）
-- 链表遍历：~200ns（平均遍历一半）
-
-#### 5.8.2 缓存友好性
-
-ACL查找表是连续内存，缓存命中率高。
-
-```c
-// 查找表内存布局（连续）
-struct acl_lookup_table_t {
-    acl_tc_config_t tc_table[TC_FUNC_MAX];  // 连续数组
-    acl_tm_config_t tm_table[TM_FUNC_MAX];  // 连续数组
-};
-
-// 假设TC_FUNC_MAX=20, TM_FUNC_MAX=30
-// sizeof(acl_tc_config_t) = 16字节
-// sizeof(acl_tm_config_t) = 24字节
-// 总大小 = 20*16 + 30*24 = 320 + 720 = 1040字节
-// 可以完全放入L1 Cache（通常32KB）
-```
-
-#### 5.8.3 无锁设计
-
-ACL查找表在初始化后只读，无需加锁，支持多线程并发访问。
-
-```c
-// 初始化阶段（单线程，启动时）
-ACL_Init();  // 写入查找表
-
-// 运行阶段（多线程，只读访问）
-// Telecommand进程
-const acl_tc_config_t *cfg = ACL_GetTcConfig(TC_POWER_ON);  // 无锁读
-
-// Telemetry进程
-const acl_tm_config_t *cfg = ACL_GetTmConfig(TM_CPU_TEMP);  // 无锁读
-
-// Firmware进程
-const acl_tc_config_t *cfg = ACL_GetTcConfig(TC_FW_UPGRADE);  // 无锁读
-```
-
-### 5.9 ACL扩展性
-
-#### 5.9.1 新增业务功能
-
-新增业务功能只需3步：
-
-**步骤1：扩展枚举定义**
-```c
-// acl/include/pmc_acl_types.h
-typedef enum {
-    // ... 现有功能 ...
-    TC_NEW_FUNCTION,  // 新增功能
-    TC_FUNC_MAX
-} pmc_tc_function_t;
-```
-
-**步骤2：添加配置**
-```c
-// acl/config/pmc_v1/acl_pmc_v1.c
-static const acl_tc_config_t g_pmc_tc_configs[] = {
-    // ... 现有配置 ...
-    { TC_NEW_FUNCTION, ACL_DEVICE_MCU, 0, true },  // 新增配置
-};
-```
-
-**步骤3：实现业务逻辑**
-```c
-// app/telecommand/tc_handler.c
-if (cmd_type == TC_NEW_FUNCTION) {
-    ret = PDL_MCU_NewFunction(cfg->logic_index);
+    
+    if (/* 操作超时 */) {
+        return OSAL_ERR_TIMEOUT;
+    }
+    
+    if (/* 操作失败 */) {
+        return OSAL_ERR_GENERIC;
+    }
+    
+    return OSAL_SUCCESS;
 }
 ```
 
-#### 5.9.2 支持新硬件平台
+#### 4.7.3 平台隔离
 
-支持新硬件平台只需修改配置文件，无需修改业务代码。
+**Linux和RTOS平台实现完全分离**：
 
-```c
-// 原配置：acl_pmc_v1.c（BMC通过Redfish）
-{ TC_SERVER_POWER_ON, ACL_DEVICE_BMC, 0, true },
-
-// 新配置：acl_pmc_v2.c（改用MCU控制）
-{ TC_SERVER_POWER_ON, ACL_DEVICE_MCU, 0, true },
-
-// 业务代码无需修改，自动适配新硬件
+```
+hal/src/
+├── linux/                   # Linux平台实现
+│   ├── hal_can_linux.c     # 使用SocketCAN
+│   ├── hal_serial_linux.c  # 使用termios
+│   ├── hal_i2c_linux.c     # 使用i2c-dev
+│   └── hal_spi_linux.c     # 使用spidev
+└── rtos/                    # RTOS平台实现（预留）
+    ├── hal_can_rtos.c      # 使用RTOS CAN驱动
+    ├── hal_serial_rtos.c   # 使用RTOS串口驱动
+    ├── hal_i2c_rtos.c      # 使用RTOS I2C驱动
+    └── hal_spi_rtos.c      # 使用RTOS SPI驱动
 ```
 
-#### 5.9.3 多产品支持
+**编译时选择平台实现**：
 
-不同产品使用不同的ACL配置文件。
-
-```text
-acl/config/
-├── pmc_v1/
-│   ├── acl_pmc_v1.c              # PMC v1.0配置
-│   └── acl_pmc_v1_invalidation.c
-├── pmc_v2/
-│   ├── acl_pmc_v2.c              # PMC v2.0配置（功能更多）
-│   └── acl_pmc_v2_invalidation.c
-└── demo/
-    ├── acl_demo_v1.c             # Demo产品配置（功能简化）
-    └── acl_demo_v1_invalidation.c
-```
-
-编译时通过CMake选择配置：
 ```cmake
 # CMakeLists.txt
-set(ACL_CONFIG "pmc_v1" CACHE STRING "ACL configuration: pmc_v1, pmc_v2, demo")
-
-if(ACL_CONFIG STREQUAL "pmc_v1")
-    target_sources(acl PRIVATE
-        acl/config/pmc_v1/acl_pmc_v1.c
-        acl/config/pmc_v1/acl_pmc_v1_invalidation.c
+if(PLATFORM STREQUAL "linux")
+    target_sources(hal PRIVATE
+        src/linux/hal_can_linux.c
+        src/linux/hal_serial_linux.c
+        src/linux/hal_i2c_linux.c
+        src/linux/hal_spi_linux.c
     )
-elseif(ACL_CONFIG STREQUAL "pmc_v2")
-    target_sources(acl PRIVATE
-        acl/config/pmc_v2/acl_pmc_v2.c
-        acl/config/pmc_v2/acl_pmc_v2_invalidation.c
+elseif(PLATFORM STREQUAL "rtos")
+    target_sources(hal PRIVATE
+        src/rtos/hal_can_rtos.c
+        src/rtos/hal_serial_rtos.c
+        src/rtos/hal_i2c_rtos.c
+        src/rtos/hal_spi_rtos.c
     )
 endif()
 ```
 
+#### 4.7.4 OSAL依赖
+
+**HAL层所有系统调用必须通过OSAL封装**：
+
+```c
+/* ❌ 错误：直接调用系统API */
+int fd = open("/dev/can0", O_RDWR);
+write(fd, buffer, size);
+close(fd);
+
+/* ✅ 正确：使用OSAL封装 */
+int32_t fd = OSAL_open("/dev/can0", O_RDWR);
+OSAL_write(fd, buffer, size);
+OSAL_close(fd);
+```
+
+**优势**：
+- ✅ 平台无关：OSAL层处理平台差异
+- ✅ 类型安全：使用OSAL固定大小类型（int32_t而非int）
+- ✅ 错误统一：OSAL统一错误码和错误处理
+
+---
+
+
+## 5. PCL 设计（外设配置层）
+
+### 5.1 PCL设计原则
+
+**PCL（Peripheral Configuration Library）是外设配置层，提供纯数据结构的硬件配置。**
+
+#### 5.1.1 核心理念
+
+- ✅ **纯数据结构**：只包含配置数据，不包含任何函数实现或业务逻辑
+- ✅ **平台组织**：按`vendor/chip/product`三级目录组织配置文件
+- ✅ **类型安全**：使用强类型结构体，编译期检查
+- ✅ **硬件抽象**：配置描述硬件连接关系，不涉及业务逻辑
+
+#### 5.1.2 配置层次
+
+```
+pcl/
+├── include/
+│   ├── api/pcl_api.h              # PCL公开API
+│   ├── peripheral/                 # 外设配置类型定义
+│   │   ├── pcl_satellite.h        # 卫星平台配置类型
+│   │   ├── pcl_bmc.h              # BMC配置类型
+│   │   ├── pcl_mcu.h              # MCU配置类型
+│   │   └── pcl_hardware_interface.h # 硬件接口配置（CAN/UART/I2C/SPI）
+│   └── internal/                   # PCL内部头文件
+│       ├── pcl_board.h            # 板级配置结构
+│       └── pcl_common.h           # 公共定义
+└── platform/                       # 平台配置实现
+    ├── ti/am625/pmc_v1/           # TI AM625 PMC v1.0产品
+    │   └── pcl_ti_am625_pmc_v1.c  # 硬件配置数据（命名规范：pcl_{platform}_{chip}_{project}_{version}.c）
+    └── vendor_demo/demo_board/    # 演示平台
+        └── pcl_vendor_demo_demo_board_v1.c
+```
+
+#### 5.1.3 配置数据流
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  PCL配置数据流                                               │
+│                                                              │
+│  1. 编译时：选择平台配置                                     │
+│     CMake: -DPCL_PLATFORM=ti/am625/pmc_v1                   │
+│                                                              │
+│  2. 初始化：PCL_Init()加载配置                               │
+│     pcl/platform/ti/am625/pmc_v1/pcl_ti_am625_pmc_v1.c       │
+│                                                              │
+│  3. PDL层读取：PDL_XXX_Init()从PCL获取配置                  │
+│     const pcl_mcu_cfg_t *cfg = PCL_GetMCUConfig(0);         │
+│     PDL_MCU_Init(cfg, &handle);                             │
+│                                                              │
+│  4. PDL层调用HAL：根据配置初始化HAL层                        │
+│     if (cfg->interface_type == PCL_HW_INTERFACE_CAN) {      │
+│         HAL_CAN_Init(&cfg->interface_cfg.can, &can_handle); │
+│     }                                                        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 5.2 硬件接口配置
+
+**PCL提供统一的硬件接口配置类型，支持CAN/UART/I2C/SPI/GPIO等。**
+
+#### 5.2.1 硬件接口类型枚举
+
+```c
+/* 硬件接口类型 */
+typedef enum {
+    PCL_HW_INTERFACE_NONE = 0,
+    PCL_HW_INTERFACE_CAN,        /* CAN总线 */
+    PCL_HW_INTERFACE_UART,       /* 串口 */
+    PCL_HW_INTERFACE_I2C,        /* I2C总线 */
+    PCL_HW_INTERFACE_SPI,        /* SPI总线 */
+    PCL_HW_INTERFACE_SPACEWIRE,  /* SpaceWire（航天专用） */
+    PCL_HW_INTERFACE_1553B,      /* MIL-STD-1553B（航天专用） */
+    PCL_HW_INTERFACE_ETHERNET,   /* 以太网 */
+    PCL_HW_INTERFACE_MAX
+} pcl_hw_interface_type_t;
+```
+
+#### 5.2.2 CAN接口配置
+
+```c
+/* CAN接口配置 */
+typedef struct {
+    const char *device;          /* CAN设备名（如"can0"） */
+    uint32_t    bitrate;         /* 波特率（如500000） */
+    uint32_t    tx_id;           /* 发送CAN ID */
+    uint32_t    rx_id;           /* 接收CAN ID */
+    bool        loopback;        /* 回环模式（测试用） */
+    bool        listen_only;     /* 只听模式（监控用） */
+} pcl_can_cfg_t;
+```
+
+#### 5.2.3 UART接口配置
+
+```c
+/* UART接口配置 */
+typedef struct {
+    const char *device;          /* 串口设备（如"/dev/ttyS0"） */
+    uint32_t    baudrate;        /* 波特率 */
+    uint8_t     data_bits;       /* 数据位（5-8） */
+    uint8_t     stop_bits;       /* 停止位（1-2） */
+    int8_t      parity;          /* 校验位（'N'/'E'/'O'） */
+    uint8_t     flow_control;    /* 流控（0=无，1=硬件，2=软件） */
+} pcl_uart_cfg_t;
+```
+
+#### 5.2.4 I2C接口配置
+
+```c
+/* I2C接口配置 */
+typedef struct {
+    uint8_t  bus;                /* I2C总线号 */
+    uint16_t addr;               /* 从设备地址（7位或10位） */
+    uint32_t speed;              /* 速率（Hz，如100000=100kHz） */
+} pcl_i2c_cfg_t;
+```
+
+#### 5.2.5 SPI接口配置
+
+```c
+/* SPI接口配置 */
+typedef struct {
+    const char *device;          /* SPI设备（如"/dev/spidev0.0"） */
+    uint8_t     mode;            /* SPI模式（0-3） */
+    uint8_t     bits_per_word;   /* 每字位数（通常为8） */
+    uint32_t    max_speed_hz;    /* 最大速率（Hz） */
+} pcl_spi_cfg_t;
+```
+
+#### 5.2.6 GPIO配置
+
+```c
+/* GPIO配置 */
+typedef struct {
+    uint32_t gpio_num;           /* GPIO编号 */
+    uint8_t  direction;          /* 方向（0=输入，1=输出） */
+    uint8_t  active_level;       /* 有效电平（0=低，1=高） */
+} pcl_gpio_config_t;
+```
+
+---
+
+### 5.3 外设配置结构
+
+#### 5.3.1 卫星平台配置
+
+```c
+/* 卫星平台配置 */
+typedef struct {
+    /* 外设基本信息 */
+    const char *name;                    /* 卫星平台名称（如"satellite_bus"） */
+    const char *description;             /* 描述信息 */
+    bool        enabled;                 /* 是否启用 */
+
+    /* 硬件通信接口配置（使用联合体） */
+    pcl_hw_interface_type_t interface_type;
+    union {
+        pcl_spacewire_cfg_t spacewire;   /* SpaceWire接口 */
+        pcl_1553b_cfg_t     mil1553b;    /* 1553B接口 */
+        pcl_can_cfg_t       can;         /* CAN接口 */
+        pcl_uart_cfg_t      uart;        /* 串口接口 */
+    } interface_cfg;
+
+    /* 卫星平台特定配置 */
+    uint32_t cmd_timeout_ms;             /* 命令超时（ms） */
+    uint32_t retry_count;                /* 重试次数 */
+    bool     enable_telemetry;           /* 启用遥测 */
+
+    /* GPIO控制（可选） */
+    pcl_gpio_config_t *power_gpio;       /* 电源控制GPIO */
+    pcl_gpio_config_t *reset_gpio;       /* 复位GPIO */
+} pcl_satellite_cfg_t;
+```
+
+#### 5.3.2 BMC配置
+
+```c
+/* BMC外设配置 */
+typedef struct {
+    /* 外设基本信息 */
+    const char *name;                    /* BMC名称（如"payload_bmc"） */
+    const char *description;             /* 描述信息 */
+    bool        enabled;                 /* 是否启用 */
+
+    /* 主通道配置 */
+    struct {
+        bool               enabled;      /* 是否启用 */
+        pcl_bmc_protocol_t protocol;     /* 协议类型（IPMI/Redfish） */
+        union {
+            pcl_bmc_ipmi_lan_cfg_t  ipmi_lan;   /* IPMI over LAN */
+            pcl_bmc_redfish_cfg_t   redfish;    /* Redfish */
+        } cfg;
+    } primary_channel;
+
+    /* 备份通道配置（通常是IPMI over Serial） */
+    struct {
+        bool               enabled;      /* 是否启用 */
+        pcl_bmc_protocol_t protocol;     /* 协议类型 */
+        pcl_bmc_ipmi_serial_cfg_t cfg;   /* IPMI over Serial */
+    } backup_channel;
+
+    /* BMC特定配置 */
+    uint32_t cmd_timeout_ms;             /* 命令超时（ms） */
+    uint32_t retry_count;                /* 重试次数 */
+    bool     auto_switch;                /* 自动切换通道 */
+    uint32_t failover_threshold;         /* 故障切换阈值（连续失败次数） */
+    uint32_t health_check_interval;      /* 健康检查间隔（ms） */
+
+    /* GPIO控制（可选） */
+    pcl_gpio_config_t *power_gpio;       /* 电源控制GPIO */
+    pcl_gpio_config_t *reset_gpio;       /* 复位GPIO */
+} pcl_bmc_cfg_t;
+```
+
+#### 5.3.3 MCU配置
+
+```c
+/* MCU外设配置 */
+typedef struct {
+    /* 外设基本信息 */
+    const char *name;                    /* MCU名称（如"stm32_mcu"） */
+    const char *description;             /* 描述信息 */
+    bool        enabled;                 /* 是否启用 */
+
+    /* 硬件通信接口配置（使用联合体） */
+    pcl_hw_interface_type_t interface_type;
+    union {
+        pcl_can_cfg_t  can;              /* CAN接口 */
+        pcl_uart_cfg_t uart;             /* 串口接口 */
+        pcl_i2c_cfg_t  i2c;              /* I2C接口 */
+        pcl_spi_cfg_t  spi;              /* SPI接口 */
+    } interface_cfg;
+
+    /* MCU特定配置 */
+    uint32_t cmd_timeout_ms;             /* 命令超时（ms） */
+    uint32_t retry_count;                /* 重试次数 */
+    bool     enable_crc;                 /* 启用CRC校验 */
+
+    /* GPIO控制（可选） */
+    pcl_gpio_config_t *reset_gpio;       /* 复位GPIO */
+    pcl_gpio_config_t *irq_gpio;         /* 中断GPIO */
+} pcl_mcu_cfg_t;
+```
+
+---
+
+### 5.4 板级配置
+
+**板级配置将所有外设配置组织在一起，形成完整的硬件配置描述。**
+
+```c
+/* 板级配置 */
+typedef struct {
+    const char *platform;                /* 平台标识（如"ti/am625"） */
+    const char *product;                 /* 产品标识（如"pmc_v1"） */
+    const char *version;                 /* 版本号（如"1.0.0"） */
+
+    /* 外设配置数组（以NULL结尾） */
+    const pcl_satellite_cfg_t **satellites;  /* 卫星平台配置数组 */
+    const pcl_bmc_cfg_t       **bmcs;        /* BMC配置数组 */
+    const pcl_mcu_cfg_t       **mcus;        /* MCU配置数组 */
+    const pcl_sensor_cfg_t    **sensors;     /* 传感器配置数组 */
+    const pcl_storage_cfg_t   **storages;    /* 存储配置数组 */
+} pcl_board_config_t;
+```
+
+---
+
+### 5.5 PCL API设计
+
+**PCL提供简洁的API供PDL层查询配置。**
+
+```c
+/* 初始化PCL（加载平台配置） */
+int32_t PCL_Init(const char *platform_name);
+
+/* 获取板级配置 */
+const pcl_board_config_t *PCL_GetBoardConfig(void);
+
+/* 获取外设配置（按索引） */
+const pcl_satellite_cfg_t *PCL_GetSatelliteConfig(uint32_t index);
+const pcl_bmc_cfg_t       *PCL_GetBMCConfig(uint32_t index);
+const pcl_mcu_cfg_t       *PCL_GetMCUConfig(uint32_t index);
+
+/* 获取外设配置（按名称） */
+const pcl_satellite_cfg_t *PCL_FindSatelliteByName(const char *name);
+const pcl_bmc_cfg_t       *PCL_FindBMCByName(const char *name);
+const pcl_mcu_cfg_t       *PCL_FindMCUByName(const char *name);
+
+/* 获取外设数量 */
+uint32_t PCL_GetSatelliteCount(void);
+uint32_t PCL_GetBMCCount(void);
+uint32_t PCL_GetMCUCount(void);
+```
+
+---
+
+### 5.6 平台配置示例
+
+- **卫星平台**：1个CAN接口（can0，500kbps，ID 0x200/0x100）
+- **BMC**：1个双通道配置（主通道Redfish网络，备份通道IPMI串口）
+- **MCU**：3个MCU（电源控制CAN、电源监控I2C、看门狗CAN）
+
+**配置特点**：
+- ✅ 类型安全：编译期检查配置正确性
+- ✅ 灵活性：支持多种硬件接口组合
+- ✅ 可扩展：新增外设只需添加配置项
+- ✅ 平台隔离：不同平台配置完全独立
+
+**完整的PMC v1.0平台配置示例）**：
+
+```C
+/************************************************
+* pcl/platform/ti/am625/pmc_v1/pcl_ti_am625_pmc_v1.c
+* PMC v1.0硬件配置
+* 命名规范：pcl_{platform}_{chip}_{project}_{version}.c
+************************************************/
+
+// 卫星平台接口（CAN）
+static const pcl_satellite_cfg_t satellite_can = {
+  .name = "satellite_can",
+  .interface_type = PCL_HW_INTERFACE_CAN,
+  .interface_cfg.can = {
+	  .device = "can0",
+	  .bitrate = 500000,
+	  .tx_id = 0x200,
+	  .rx_id = 0x100,
+	  .loopback = false,
+	  .listen_only = false
+  },
+  .cmd_timeout_ms = 100,
+  .retry_count = 3
+};
+
+// BMC接口（Redfish主通道 + IPMI串口备份）
+static const pcl_bmc_cfg_t bmc_payload = {
+  .name = "bmc_payload",
+  .primary_channel = {
+	  .enabled = true,
+	  .protocol = PCL_BMC_PROTOCOL_REDFISH,
+	  .cfg.redfish = {
+		  .ip_addr = "192.168.1.100",
+		  .port = 443,
+		  .username = "admin",
+		  .password = "admin",
+		  .timeout_ms = 500
+	  }
+  },
+  .backup_channel = {
+	  .enabled = true,
+	  .protocol = PCL_BMC_PROTOCOL_IPMI,
+	  .cfg.ipmi_serial = {
+		  .device = "/dev/ttyS2",
+		  .baudrate = 115200,
+		  .timeout_ms = 1000
+	  }
+  },
+  .auto_switch = true,
+  .failover_threshold = 3,
+  .health_check_interval = 5000
+};
+
+// MCU接口（CAN）
+static const pcl_mcu_cfg_t mcu_power_ctrl = {
+  .name = "mcu_power",
+  .interface_type = PCL_HW_INTERFACE_CAN,
+  .interface_cfg.can = {
+	  .device = "can0",
+	  .bitrate = 500000,
+	  .tx_id = 0x300,
+	  .rx_id = 0x301
+  },
+  .cmd_timeout_ms = 500,
+  .retry_count = 3,
+  .enable_crc = true
+};
+
+static const pcl_mcu_cfg_t mcu_power_monitor = {
+  .name = "mcu_monitor",
+  .interface_type = PCL_HW_INTERFACE_I2C,
+  .interface_cfg.i2c = {
+	  .bus = 1,
+	  .addr = 0x50,
+	  .speed = 100000
+  },
+  .cmd_timeout_ms = 200,
+  .retry_count = 3
+};
+
+static const pcl_mcu_cfg_t mcu_watchdog = {
+  .name = "mcu_watchdog",
+  .interface_type = PCL_HW_INTERFACE_CAN,
+  .interface_cfg.can = {
+	  .device = "can0",
+	  .bitrate = 500000,
+	  .tx_id = 0x400,
+	  .rx_id = 0x401
+  },
+  .cmd_timeout_ms = 100,
+  .retry_count = 1
+};
+
+// 板级配置
+static const pcl_board_config_t pmc_v1_board = {
+  .platform = "ti/am625",
+  .product = "pmc_v1",
+  .version = "1.0.0",
+
+  .satellites = {
+	  &satellite_can,
+	  NULL
+  },
+
+  .bmcs = {
+	  &bmc_payload,
+	  NULL
+  },
+
+  .mcus = {
+	  &mcu_power_ctrl,    // MCU[0]
+	  &mcu_power_monitor, // MCU[1]
+	  &mcu_watchdog,      // MCU[2]
+	  NULL
+  }
+};
+```
 ---
 
 ## 6. PDL 设计（外设驱动层）
@@ -4151,1030 +3071,2111 @@ int32_t PDL_MCU_SendCommand(mcu_handle_t handle, uint8_t cmd_code, const uint8_t
 
 ---
 
-## 7. PCL 设计（外设配置层）
+## 7. ACL 设计（业务配置层）
 
-### 7.1 PCL硬件配置示例
+### 7.1 ACL设计理念
 
-```C
-/************************************************
-* pcl/platform/ti/am625/pmc_v1/pcl_ti_am625_pmc_v1.c
-* PMC v1.0硬件配置
-* 命名规范：pcl_{platform}_{chip}_{project}_{version}.c
-************************************************/
+ACL（Application Configuration Layer，业务配置层）是连接业务逻辑和硬件实现的桥梁，它通过配置映射将抽象的业务功能映射到具体的硬件设备。
 
-// 卫星平台接口（CAN）
-static const pcl_satellite_cfg_t satellite_can = {
-  .name = "satellite_can",
-  .interface_type = PCL_HW_INTERFACE_CAN,
-  .interface_cfg.can = {
-	  .device = "can0",
-	  .bitrate = 500000,
-	  .tx_id = 0x200,
-	  .rx_id = 0x100,
-	  .loopback = false,
-	  .listen_only = false
-  },
-  .cmd_timeout_ms = 100,
-  .retry_count = 3
-};
+#### 7.1.1 设计目标
 
-// BMC接口（Redfish主通道 + IPMI串口备份）
-static const pcl_bmc_cfg_t bmc_payload = {
-  .name = "bmc_payload",
-  .primary_channel = {
-	  .enabled = true,
-	  .protocol = PCL_BMC_PROTOCOL_REDFISH,
-	  .cfg.redfish = {
-		  .ip_addr = "192.168.1.100",
-		  .port = 443,
-		  .username = "admin",
-		  .password = "admin",
-		  .timeout_ms = 500
-	  }
-  },
-  .backup_channel = {
-	  .enabled = true,
-	  .protocol = PCL_BMC_PROTOCOL_IPMI,
-	  .cfg.ipmi_serial = {
-		  .device = "/dev/ttyS2",
-		  .baudrate = 115200,
-		  .timeout_ms = 1000
-	  }
-  },
-  .auto_switch = true,
-  .failover_threshold = 3,
-  .health_check_interval = 5000
-};
+1. **业务与硬件解耦**：业务代码只关心功能（如"服务器上电"），不关心具体硬件（BMC还是MCU）
+2. **配置驱动**：通过修改配置文件即可适配不同硬件平台，无需修改业务代码
+3. **O(1)查询性能**：使用数组直接索引，查询配置的时间复杂度为O(1)
+4. **类型安全**：使用枚举类型而非字符串，编译时检查错误
+5. **易于维护**：配置集中管理，清晰可见业务功能与硬件的映射关系
 
-// MCU接口（CAN）
-static const pcl_mcu_cfg_t mcu_power_ctrl = {
-  .name = "mcu_power",
-  .interface_type = PCL_HW_INTERFACE_CAN,
-  .interface_cfg.can = {
-	  .device = "can0",
-	  .bitrate = 500000,
-	  .tx_id = 0x300,
-	  .rx_id = 0x301
-  },
-  .cmd_timeout_ms = 500,
-  .retry_count = 3,
-  .enable_crc = true
-};
+#### 7.1.2 ACL在架构中的位置
 
-static const pcl_mcu_cfg_t mcu_power_monitor = {
-  .name = "mcu_monitor",
-  .interface_type = PCL_HW_INTERFACE_I2C,
-  .interface_cfg.i2c = {
-	  .bus = 1,
-	  .addr = 0x50,
-	  .speed = 100000
-  },
-  .cmd_timeout_ms = 200,
-  .retry_count = 3
-};
-
-static const pcl_mcu_cfg_t mcu_watchdog = {
-  .name = "mcu_watchdog",
-  .interface_type = PCL_HW_INTERFACE_CAN,
-  .interface_cfg.can = {
-	  .device = "can0",
-	  .bitrate = 500000,
-	  .tx_id = 0x400,
-	  .rx_id = 0x401
-  },
-  .cmd_timeout_ms = 100,
-  .retry_count = 1
-};
-
-// 板级配置
-static const pcl_board_config_t pmc_v1_board = {
-  .platform = "ti/am625",
-  .product = "pmc_v1",
-  .version = "1.0.0",
-
-  .satellites = {
-	  &satellite_can,
-	  NULL
-  },
-
-  .bmcs = {
-	  &bmc_payload,
-	  NULL
-  },
-
-  .mcus = {
-	  &mcu_power_ctrl,    // MCU[0]
-	  &mcu_power_monitor, // MCU[1]
-	  &mcu_watchdog,      // MCU[2]
-	  NULL
-  }
-};
-```
-
-### 7.2 PCL设计原则
-
-**PCL（Peripheral Configuration Library）是外设配置层，提供纯数据结构的硬件配置。**
-
-#### 7.2.1 核心理念
-
-- ✅ **纯数据结构**：只包含配置数据，不包含任何函数实现或业务逻辑
-- ✅ **平台组织**：按`vendor/chip/product`三级目录组织配置文件
-- ✅ **类型安全**：使用强类型结构体，编译期检查
-- ✅ **硬件抽象**：配置描述硬件连接关系，不涉及业务逻辑
-
-#### 7.2.2 配置层次
-
-```
-pcl/
-├── include/
-│   ├── api/pcl_api.h              # PCL公开API
-│   ├── peripheral/                 # 外设配置类型定义
-│   │   ├── pcl_satellite.h        # 卫星平台配置类型
-│   │   ├── pcl_bmc.h              # BMC配置类型
-│   │   ├── pcl_mcu.h              # MCU配置类型
-│   │   └── pcl_hardware_interface.h # 硬件接口配置（CAN/UART/I2C/SPI）
-│   └── internal/                   # PCL内部头文件
-│       ├── pcl_board.h            # 板级配置结构
-│       └── pcl_common.h           # 公共定义
-└── platform/                       # 平台配置实现
-    ├── ti/am625/pmc_v1/           # TI AM625 PMC v1.0产品
-    │   └── pcl_ti_am625_pmc_v1.c  # 硬件配置数据（命名规范：pcl_{platform}_{chip}_{project}_{version}.c）
-    └── vendor_demo/demo_board/    # 演示平台
-        └── pcl_vendor_demo_demo_board_v1.c
-```
-
-#### 7.2.3 配置数据流
-
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
-│  PCL配置数据流                                               │
-│                                                              │
-│  1. 编译时：选择平台配置                                     │
-│     CMake: -DPCL_PLATFORM=ti/am625/pmc_v1                   │
-│                                                              │
-│  2. 初始化：PCL_Init()加载配置                               │
-│     pcl/platform/ti/am625/pmc_v1/pcl_ti_am625_pmc_v1.c       │
-│                                                              │
-│  3. PDL层读取：PDL_XXX_Init()从PCL获取配置                  │
-│     const pcl_mcu_cfg_t *cfg = PCL_GetMCUConfig(0);         │
-│     PDL_MCU_Init(cfg, &handle);                             │
-│                                                              │
-│  4. PDL层调用HAL：根据配置初始化HAL层                        │
-│     if (cfg->interface_type == PCL_HW_INTERFACE_CAN) {      │
-│         HAL_CAN_Init(&cfg->interface_cfg.can, &can_handle); │
-│     }                                                        │
+│                    Application Layer                        │
+│  ┌──────────────────┬──────────────────┬─────────────────┐  │
+│  │ Telecommand Proc │ Telemetry Proc   │ Firmware Proc   │  │
+│  │                  │                  │                 │  │
+│  │ handle_tc(       │ handle_tm(       │ handle_fw(      │  │
+│  │   TC_POWER_ON)   │   TM_CPU_TEMP)   │   FW_UPGRADE)   │  │
+│  └────────┬─────────┴────────┬─────────┴────────┬────────┘  │
+└───────────┼──────────────────┼──────────────────┼───────────┘
+            │                  │                  │
+            │ 业务功能枚举      │                  │
+            ▼                  ▼                  ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    ACL Configuration Layer                  │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │  ACL Lookup Table (O(1) 直接索引)                    │   │
+│  │  ┌────────────────────────────────────────────────┐  │   │
+│  │  │ TC_POWER_ON  → BMC[0]                          │  │   │
+│  │  │ TC_MCU_RESET → MCU[0]                          │  │   │
+│  │  │ TM_CPU_TEMP  → BMC[0], CACHED                  │  │   │
+│  │  │ TM_MCU_STATUS→ MCU[0], REALTIME, 800μs timeout │  │   │
+│  │  └────────────────────────────────────────────────┘  │   │
+│  └──────────────────────────────────────────────────────┘   │
+└───────────┬──────────────────┬──────────────────┬───────────┘
+            │ device_type +    │                  │
+            │ logic_index      │                  │
+            ▼                  ▼                  ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    PDL Layer (外设驱动层)                    │
+│  ┌──────────────┬──────────────┬──────────────────────────┐ │
+│  │ BMC Service  │ MCU Service  │ Satellite Service        │ │
+│  │ PDL_BMC_*()  │ PDL_MCU_*()  │ PDL_Satellite_*()        │ │
+│  └──────────────┴──────────────┴──────────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
 ```
 
----
+#### 7.1.3 核心设计原则
 
-### 7.3 硬件接口配置
+**原则1：业务功能枚举化**
+- 所有业务功能（遥控/遥测/健康管理）都定义为枚举类型
+- 枚举值作为数组索引，实现O(1)查询
+- 编译时类型检查，避免运行时错误
 
-**PCL提供统一的硬件接口配置类型，支持CAN/UART/I2C/SPI/GPIO等。**
+**原则2：配置与代码分离**
+- 配置数据放在独立的.c文件中（如`acl_pmc_v1.c`）
+- 业务代码通过ACL API查询配置，不直接访问配置数组
+- 不同产品/版本使用不同配置文件，共享同一套业务代码
 
-#### 7.3.1 硬件接口类型枚举
+**原则3：逻辑索引而非物理索引**
+- ACL使用逻辑索引（logic_index），如"第0个BMC"、"第1个MCU"
+- 物理索引（如CAN ID、I2C地址）由PCL层管理
+- 业务层不需要知道硬件的物理连接细节
 
-```c
-/* 硬件接口类型 */
+**原则4：配置完整性**
+- 每个业务功能必须配置设备类型、逻辑索引、使能状态
+- 遥测功能额外配置数据类型（缓存/实时）和超时时间
+- 配置缺失或错误在初始化时检测，而非运行时
+
+**原则5：命名规范**
+- ACL配置文件命名：`acl_{project}_{product}_{version}.c`
+- 关注业务功能，不关注硬件平台
+- 示例：`acl_pmc_v1.c`、`acl_pmc_v2.c`、`acl_pmc_v1_invalidation.c`
+
+### 7.2  实现示例
+
+#### 7.2.1 PMC业务功能枚举
+
+``` C
+/************************************************
+* acl/include/pmc_acl_types.h
+* PMC业务功能枚举定义
+************************************************/
+
+/**
+* @brief 遥测数据类型
+*/
 typedef enum {
-    PCL_HW_INTERFACE_NONE = 0,
-    PCL_HW_INTERFACE_CAN,        /* CAN总线 */
-    PCL_HW_INTERFACE_UART,       /* 串口 */
-    PCL_HW_INTERFACE_I2C,        /* I2C总线 */
-    PCL_HW_INTERFACE_SPI,        /* SPI总线 */
-    PCL_HW_INTERFACE_SPACEWIRE,  /* SpaceWire（航天专用） */
-    PCL_HW_INTERFACE_1553B,      /* MIL-STD-1553B（航天专用） */
-    PCL_HW_INTERFACE_ETHERNET,   /* 以太网 */
-    PCL_HW_INTERFACE_MAX
-} pcl_hw_interface_type_t;
+  TM_TYPE_CACHED = 0,    // 缓存型：后台采集，从共享内存读取
+  TM_TYPE_REALTIME = 1   // 实时型：优先实时查询，超时降级到缓存
+} tm_data_type_t;
+
+/**
+* @brief 遥测数据新鲜度标记
+*/
+typedef enum {
+  TM_FRESH = 0,      // 新鲜数据：采集时间在有效期内
+  TM_STALE = 1,      // 过期数据：受遥控命令影响，等待更新
+  TM_INVALID = 2     // 无效数据：从未采集过
+} tm_freshness_t;
+
+/**
+* @brief PMC遥控功能枚举
+*/
+typedef enum {
+  /* 服务器电源控制 */
+  TC_SERVER_POWER_ON = 0,
+  TC_SERVER_POWER_OFF,
+  TC_SERVER_POWER_RESET,
+  TC_SERVER_POWER_CYCLE,
+
+  /* 服务器复位控制 */
+  TC_SERVER_SOFT_RESET,
+  TC_SERVER_HARD_RESET,
+
+  /* MCU控制 */
+  TC_MCU_RESET,
+  TC_MCU_POWER_CTRL,
+
+  /* FPGA控制 */
+  TC_FPGA_RESET,
+  TC_FPGA_CONFIG_LOAD,
+
+  /* 固件升级 */
+  TC_FIRMWARE_UPGRADE_START,
+  TC_FIRMWARE_UPGRADE_DATA,
+  TC_FIRMWARE_UPGRADE_VERIFY,
+  TC_FIRMWARE_UPGRADE_COMMIT,
+
+  /* 系统控制 */
+  TC_SYSTEM_RESET,
+  TC_WATCHDOG_ENABLE,
+  TC_WATCHDOG_DISABLE,
+
+  TC_FUNC_MAX
+} pmc_tc_function_t;
+
+/**
+* @brief PMC遥测功能枚举
+*/
+typedef enum {
+  /* 服务器状态遥测（缓存型） */
+  TM_SERVER_CPU_TEMP = 0,        // 缓存型
+  TM_SERVER_BOARD_TEMP,          // 缓存型
+  TM_SERVER_FAN_SPEED,           // 缓存型
+  TM_SERVER_VOLTAGE_12V,         // 缓存型
+  TM_SERVER_VOLTAGE_5V,          // 缓存型
+  TM_SERVER_VOLTAGE_3V3,         // 缓存型
+  TM_SERVER_CURRENT,             // 缓存型
+
+  /* 服务器状态遥测（实时型） */
+  TM_SERVER_POWER_STATUS,        // 实时型
+
+  /* MCU状态遥测 */
+  TM_MCU_STATUS,                 // 实时型
+  TM_MCU_TEMP,                   // 缓存型
+  TM_MCU_VOLTAGE,                // 缓存型
+  TM_MCU_UPTIME,                 // 缓存型
+
+  /* FPGA状态遥测 */
+  TM_FPGA_STATUS,                // 实时型
+  TM_FPGA_TEMP,                  // 缓存型
+  TM_FPGA_CONFIG_STATUS,         // 实时型
+
+  /* 系统健康遥测 */
+  TM_SYSTEM_UPTIME,              // 缓存型
+  TM_WATCHDOG_STATUS,            // 实时型
+  TM_ERROR_COUNT,                // 缓存型
+
+  TM_FUNC_MAX
+} pmc_tm_function_t;
+
+/**
+* @brief PMC健康管理功能枚举
+*/
+typedef enum {
+  /* 健康检查项 */
+  HM_SERVER_ALIVE = 0,
+  HM_BMC_REACHABLE,
+  HM_MCU_RESPONSIVE,
+  HM_CAN_BUS_STATUS,
+  HM_ETHERNET_STATUS,
+
+  /* 故障检测 */
+  HM_POWER_FAULT,
+  HM_TEMP_OVER_LIMIT,
+  HM_VOLTAGE_OUT_RANGE,
+
+  HM_FUNC_MAX
+} pmc_hm_function_t;
 ```
 
-#### 7.3.2 CAN接口配置
+#### 7.2.2 ACL配置结构
 
-```c
-/* CAN接口配置 */
+``` C
+/************************************************
+* acl/include/acl_config.h
+* ACL配置结构定义
+************************************************/
+
+typedef enum {
+  ACL_DEVICE_SATELLITE = 0,
+  ACL_DEVICE_BMC,
+  ACL_DEVICE_MCU,
+  ACL_DEVICE_FPGA,
+  ACL_DEVICE_MAX
+} acl_device_type_t;
+
+/**
+* @brief 遥控功能配置
+*/
 typedef struct {
-    const char *device;          /* CAN设备名（如"can0"） */
-    uint32_t    bitrate;         /* 波特率（如500000） */
-    uint32_t    tx_id;           /* 发送CAN ID */
-    uint32_t    rx_id;           /* 接收CAN ID */
-    bool        loopback;        /* 回环模式（测试用） */
-    bool        listen_only;     /* 只听模式（监控用） */
-} pcl_can_cfg_t;
-```
+  pmc_tc_function_t function;
+  acl_device_type_t device_type;
+  uint32_t logic_index;
+  bool enabled;
+} acl_tc_config_t;
 
-#### 7.3.3 UART接口配置
-
-```c
-/* UART接口配置 */
+/**
+* @brief 遥测功能配置
+*/
 typedef struct {
-    const char *device;          /* 串口设备（如"/dev/ttyS0"） */
-    uint32_t    baudrate;        /* 波特率 */
-    uint8_t     data_bits;       /* 数据位（5-8） */
-    uint8_t     stop_bits;       /* 停止位（1-2） */
-    int8_t      parity;          /* 校验位（'N'/'E'/'O'） */
-    uint8_t     flow_control;    /* 流控（0=无，1=硬件，2=软件） */
-} pcl_uart_cfg_t;
-```
+  pmc_tm_function_t function;
+  acl_device_type_t device_type;
+  uint32_t logic_index;
+  tm_data_type_t data_type;      // 缓存型/实时型
+  uint32_t realtime_timeout_us;  // 实时查询超时（微秒），仅实时型有效
+  bool enabled;
+} acl_tm_config_t;
 
-#### 7.3.4 I2C接口配置
-
-```c
-/* I2C接口配置 */
+/**
+* @brief ACL查找表（O(1)直接索引）
+*/
 typedef struct {
-    uint8_t  bus;                /* I2C总线号 */
-    uint16_t addr;               /* 从设备地址（7位或10位） */
-    uint32_t speed;              /* 速率（Hz，如100000=100kHz） */
-} pcl_i2c_cfg_t;
+  acl_tc_config_t tc_table[TC_FUNC_MAX];
+  acl_tm_config_t tm_table[TM_FUNC_MAX];
+} acl_lookup_table_t;
 ```
 
-#### 7.3.5 SPI接口配置
-
-```c
-/* SPI接口配置 */
-typedef struct {
-    const char *device;          /* SPI设备（如"/dev/spidev0.0"） */
-    uint8_t     mode;            /* SPI模式（0-3） */
-    uint8_t     bits_per_word;   /* 每字位数（通常为8） */
-    uint32_t    max_speed_hz;    /* 最大速率（Hz） */
-} pcl_spi_cfg_t;
-```
-
-#### 7.3.6 GPIO配置
-
-```c
-/* GPIO配置 */
-typedef struct {
-    uint32_t gpio_num;           /* GPIO编号 */
-    uint8_t  direction;          /* 方向（0=输入，1=输出） */
-    uint8_t  active_level;       /* 有效电平（0=低，1=高） */
-} pcl_gpio_config_t;
-```
-
----
-
-### 7.4 外设配置结构
-
-#### 7.4.1 卫星平台配置
-
-```c
-/* 卫星平台配置 */
-typedef struct {
-    /* 外设基本信息 */
-    const char *name;                    /* 卫星平台名称（如"satellite_bus"） */
-    const char *description;             /* 描述信息 */
-    bool        enabled;                 /* 是否启用 */
-
-    /* 硬件通信接口配置（使用联合体） */
-    pcl_hw_interface_type_t interface_type;
-    union {
-        pcl_spacewire_cfg_t spacewire;   /* SpaceWire接口 */
-        pcl_1553b_cfg_t     mil1553b;    /* 1553B接口 */
-        pcl_can_cfg_t       can;         /* CAN接口 */
-        pcl_uart_cfg_t      uart;        /* 串口接口 */
-    } interface_cfg;
-
-    /* 卫星平台特定配置 */
-    uint32_t cmd_timeout_ms;             /* 命令超时（ms） */
-    uint32_t retry_count;                /* 重试次数 */
-    bool     enable_telemetry;           /* 启用遥测 */
-
-    /* GPIO控制（可选） */
-    pcl_gpio_config_t *power_gpio;       /* 电源控制GPIO */
-    pcl_gpio_config_t *reset_gpio;       /* 复位GPIO */
-} pcl_satellite_cfg_t;
-```
-
-#### 7.4.2 BMC配置
-
-```c
-/* BMC外设配置 */
-typedef struct {
-    /* 外设基本信息 */
-    const char *name;                    /* BMC名称（如"payload_bmc"） */
-    const char *description;             /* 描述信息 */
-    bool        enabled;                 /* 是否启用 */
-
-    /* 主通道配置 */
-    struct {
-        bool               enabled;      /* 是否启用 */
-        pcl_bmc_protocol_t protocol;     /* 协议类型（IPMI/Redfish） */
-        union {
-            pcl_bmc_ipmi_lan_cfg_t  ipmi_lan;   /* IPMI over LAN */
-            pcl_bmc_redfish_cfg_t   redfish;    /* Redfish */
-        } cfg;
-    } primary_channel;
-
-    /* 备份通道配置（通常是IPMI over Serial） */
-    struct {
-        bool               enabled;      /* 是否启用 */
-        pcl_bmc_protocol_t protocol;     /* 协议类型 */
-        pcl_bmc_ipmi_serial_cfg_t cfg;   /* IPMI over Serial */
-    } backup_channel;
-
-    /* BMC特定配置 */
-    uint32_t cmd_timeout_ms;             /* 命令超时（ms） */
-    uint32_t retry_count;                /* 重试次数 */
-    bool     auto_switch;                /* 自动切换通道 */
-    uint32_t failover_threshold;         /* 故障切换阈值（连续失败次数） */
-    uint32_t health_check_interval;      /* 健康检查间隔（ms） */
-
-    /* GPIO控制（可选） */
-    pcl_gpio_config_t *power_gpio;       /* 电源控制GPIO */
-    pcl_gpio_config_t *reset_gpio;       /* 复位GPIO */
-} pcl_bmc_cfg_t;
-```
-
-#### 7.4.3 MCU配置
-
-```c
-/* MCU外设配置 */
-typedef struct {
-    /* 外设基本信息 */
-    const char *name;                    /* MCU名称（如"stm32_mcu"） */
-    const char *description;             /* 描述信息 */
-    bool        enabled;                 /* 是否启用 */
-
-    /* 硬件通信接口配置（使用联合体） */
-    pcl_hw_interface_type_t interface_type;
-    union {
-        pcl_can_cfg_t  can;              /* CAN接口 */
-        pcl_uart_cfg_t uart;             /* 串口接口 */
-        pcl_i2c_cfg_t  i2c;              /* I2C接口 */
-        pcl_spi_cfg_t  spi;              /* SPI接口 */
-    } interface_cfg;
-
-    /* MCU特定配置 */
-    uint32_t cmd_timeout_ms;             /* 命令超时（ms） */
-    uint32_t retry_count;                /* 重试次数 */
-    bool     enable_crc;                 /* 启用CRC校验 */
-
-    /* GPIO控制（可选） */
-    pcl_gpio_config_t *reset_gpio;       /* 复位GPIO */
-    pcl_gpio_config_t *irq_gpio;         /* 中断GPIO */
-} pcl_mcu_cfg_t;
-```
-
----
-
-### 7.5 板级配置
-
-**板级配置将所有外设配置组织在一起，形成完整的硬件配置描述。**
-
-```c
-/* 板级配置 */
-typedef struct {
-    const char *platform;                /* 平台标识（如"ti/am625"） */
-    const char *product;                 /* 产品标识（如"pmc_v1"） */
-    const char *version;                 /* 版本号（如"1.0.0"） */
-
-    /* 外设配置数组（以NULL结尾） */
-    const pcl_satellite_cfg_t **satellites;  /* 卫星平台配置数组 */
-    const pcl_bmc_cfg_t       **bmcs;        /* BMC配置数组 */
-    const pcl_mcu_cfg_t       **mcus;        /* MCU配置数组 */
-    const pcl_sensor_cfg_t    **sensors;     /* 传感器配置数组 */
-    const pcl_storage_cfg_t   **storages;    /* 存储配置数组 */
-} pcl_board_config_t;
-```
-
----
-
-### 7.6 PCL API设计
-
-**PCL提供简洁的API供PDL层查询配置。**
-
-```c
-/* 初始化PCL（加载平台配置） */
-int32_t PCL_Init(const char *platform_name);
-
-/* 获取板级配置 */
-const pcl_board_config_t *PCL_GetBoardConfig(void);
-
-/* 获取外设配置（按索引） */
-const pcl_satellite_cfg_t *PCL_GetSatelliteConfig(uint32_t index);
-const pcl_bmc_cfg_t       *PCL_GetBMCConfig(uint32_t index);
-const pcl_mcu_cfg_t       *PCL_GetMCUConfig(uint32_t index);
-
-/* 获取外设配置（按名称） */
-const pcl_satellite_cfg_t *PCL_FindSatelliteByName(const char *name);
-const pcl_bmc_cfg_t       *PCL_FindBMCByName(const char *name);
-const pcl_mcu_cfg_t       *PCL_FindMCUByName(const char *name);
-
-/* 获取外设数量 */
-uint32_t PCL_GetSatelliteCount(void);
-uint32_t PCL_GetBMCCount(void);
-uint32_t PCL_GetMCUCount(void);
-```
-
----
-
-### 7.7 平台配置示例
-
-**完整的PMC v1.0平台配置示例（已在7.1节展示）**：
-
-- **卫星平台**：1个CAN接口（can0，500kbps，ID 0x200/0x100）
-- **BMC**：1个双通道配置（主通道Redfish网络，备份通道IPMI串口）
-- **MCU**：3个MCU（电源控制CAN、电源监控I2C、看门狗CAN）
-
-**配置特点**：
-- ✅ 类型安全：编译期检查配置正确性
-- ✅ 灵活性：支持多种硬件接口组合
-- ✅ 可扩展：新增外设只需添加配置项
-- ✅ 平台隔离：不同平台配置完全独立
-
----
-
-## 8. HAL 设计（硬件抽象层）
-
-### 8.1 设计原则
-
-**HAL（Hardware Abstraction Layer）是硬件抽象层，提供统一的硬件驱动接口，屏蔽不同平台的硬件差异。**
-
-#### 8.1.1 核心理念
-
-- ✅ **硬件抽象**：封装硬件寄存器操作，提供统一的驱动接口
-- ✅ **平台隔离**：Linux/RTOS平台实现分离，上层代码无需修改
-- ✅ **句柄管理**：使用不透明句柄，隐藏内部实现细节
-- ✅ **OSAL依赖**：所有系统调用必须通过OSAL封装，不直接调用系统API
-
-#### 8.1.2 HAL层职责
-
-**HAL层负责**：
-- ✅ 硬件设备初始化和配置
-- ✅ 数据收发接口（阻塞/非阻塞/超时）
-- ✅ 错误处理和统计信息
-- ✅ 平台特定实现（Linux/RTOS）
-
-**HAL层禁止**：
-- ❌ 包含业务逻辑（业务逻辑在PDL层）
-- ❌ 直接调用系统API（必须通过OSAL）
-- ❌ 跨平台代码混合（平台实现必须分离）
-
-#### 8.1.3 HAL层架构
-
-```
-hal/
-├── include/                        # HAL公开接口
-│   ├── hal_can.h                  # CAN驱动接口
-│   ├── hal_serial.h               # 串口驱动接口
-│   ├── hal_i2c.h                  # I2C驱动接口
-│   ├── hal_spi.h                  # SPI驱动接口
-│   ├── hal_watchdog.h             # 看门狗接口
-│   └── config/                    # 配置类型定义
-│       ├── can_types.h            # CAN类型定义
-│       ├── i2c_types.h            # I2C类型定义
-│       └── spi_types.h            # SPI类型定义
-└── src/
-    ├── linux/                     # Linux平台实现
-    │   ├── hal_can_linux.c
-    │   ├── hal_serial_linux.c
-    │   ├── hal_i2c_linux.c
-    │   └── hal_spi_linux.c
-    └── rtos/                      # RTOS平台实现（预留）
-        └── ...
-```
-
----
-
-### 8.2 CAN驱动设计
-
-**功能**：提供统一的CAN总线访问接口，支持标准帧和扩展帧。
-
-#### 8.2.1 接口设计
-
-```c
-/* CAN句柄（不透明） */
-typedef void* hal_can_handle_t;
-
-/* CAN配置 */
-typedef struct {
-    const char *interface;       /* CAN接口名（如"can0"） */
-    uint32_t    baudrate;        /* 波特率（如500000） */
-    uint32_t    rx_timeout;      /* 接收超时（ms） */
-    uint32_t    tx_timeout;      /* 发送超时（ms） */
-} hal_can_config_t;
-
-/* CAN帧结构（标准定义） */
-typedef struct {
-    uint32_t can_id;             /* CAN ID（11位或29位） */
-    uint8_t  can_dlc;            /* 数据长度（0-8） */
-    uint8_t  data[8];            /* 数据 */
-    uint8_t  flags;              /* 标志（扩展帧/远程帧） */
-} can_frame_t;
-
-/* 初始化CAN驱动 */
-int32_t HAL_CAN_Init(const hal_can_config_t *config, hal_can_handle_t *handle);
-
-/* 关闭CAN驱动 */
-int32_t HAL_CAN_Deinit(hal_can_handle_t handle);
-
-/* 发送CAN帧 */
-int32_t HAL_CAN_Send(hal_can_handle_t handle, const can_frame_t *frame);
-
-/* 接收CAN帧 */
-int32_t HAL_CAN_Recv(hal_can_handle_t handle, can_frame_t *frame, int32_t timeout);
-
-/* 设置CAN过滤器 */
-int32_t HAL_CAN_SetFilter(hal_can_handle_t handle, uint32_t filter_id, uint32_t filter_mask);
-
-/* 获取CAN统计信息 */
-int32_t HAL_CAN_GetStats(hal_can_handle_t handle, uint32_t *tx_count, uint32_t *rx_count, uint32_t *err_count);
-
-/* 设置错误回调 */
-int32_t HAL_CAN_SetErrorCallback(hal_can_handle_t handle, void (*callback)(hal_can_handle_t handle, int32_t error_code));
-
-/* 设置错误恢复阈值 */
-int32_t HAL_CAN_SetErrorThreshold(hal_can_handle_t handle, uint32_t threshold);
-```
-
-#### 8.2.2 Linux平台实现要点
-
-```c
-/* 内部句柄结构 */
-typedef struct {
-    int32_t  sockfd;             /* SocketCAN文件描述符 */
-    char     interface[16];      /* 接口名 */
-    uint32_t baudrate;
-    uint32_t rx_timeout;
-    uint32_t tx_timeout;
-    uint32_t tx_count;
-    uint32_t rx_count;
-    uint32_t err_count;
-    void (*error_callback)(hal_can_handle_t, int32_t);
-} hal_can_context_t;
-
-/* 初始化实现（Linux SocketCAN） */
-int32_t HAL_CAN_Init(const hal_can_config_t *config, hal_can_handle_t *handle) {
-    hal_can_context_t *ctx = OSAL_Malloc(sizeof(hal_can_context_t));
-    
-    /* 1. 创建SocketCAN套接字（使用OSAL封装） */
-    ctx->sockfd = OSAL_socket(PF_CAN, SOCK_RAW, CAN_RAW);
-    
-    /* 2. 绑定到CAN接口 */
-    struct sockaddr_can addr;
-    addr.can_family = AF_CAN;
-    addr.can_ifindex = if_nametoindex(config->interface);
-    OSAL_bind(ctx->sockfd, (struct sockaddr *)&addr, sizeof(addr));
-    
-    /* 3. 设置超时 */
-    struct timeval tv;
-    tv.tv_sec = config->rx_timeout / 1000;
-    tv.tv_usec = (config->rx_timeout % 1000) * 1000;
-    OSAL_setsockopt(ctx->sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-    
-    *handle = (hal_can_handle_t)ctx;
-    return OSAL_SUCCESS;
+#### 7.2.3 ACL配置示例
+
+``` C
+/************************************************
+/************************************************
+* acl/config/pmc_v1/acl_pmc_v1.c
+* PMC v1.0应用配置
+* 命名规范：acl_{project}_{product}_{version}.c
+* 说明：ACL配置关注业务功能，不关注硬件平台
+************************************************/
+* PMC v1.0配置（BMC通过Redfish，MCU通过CAN）
+************************************************/
+
+static const acl_tc_config_t g_pmc_tc_configs[] = {
+  /* 服务器电源控制 → BMC */
+  { TC_SERVER_POWER_ON,      ACL_DEVICE_BMC, 0, true },
+  { TC_SERVER_POWER_OFF,     ACL_DEVICE_BMC, 0, true },
+  { TC_SERVER_POWER_RESET,   ACL_DEVICE_BMC, 0, true },
+  { TC_SERVER_SOFT_RESET,    ACL_DEVICE_BMC, 0, true },
+  { TC_SERVER_HARD_RESET,    ACL_DEVICE_BMC, 0, true },
+
+  /* MCU控制 → MCU[0] */
+  { TC_MCU_RESET,            ACL_DEVICE_MCU, 0, true },
+  { TC_MCU_POWER_CTRL,       ACL_DEVICE_MCU, 1, true },  // MCU[1]是电源管理
+
+  /* FPGA控制 → FPGA[0] */
+  { TC_FPGA_RESET,           ACL_DEVICE_FPGA, 0, true },
+  { TC_FPGA_CONFIG_LOAD,     ACL_DEVICE_FPGA, 0, true },
+
+  /* 看门狗控制 → MCU[2] */
+  { TC_WATCHDOG_ENABLE,      ACL_DEVICE_MCU, 2, true },
+  { TC_WATCHDOG_DISABLE,     ACL_DEVICE_MCU, 2, true },
+};
+
+static const acl_tm_config_t g_pmc_tm_configs[] = {
+  /* 服务器遥测（缓存型） → BMC */
+  { TM_SERVER_CPU_TEMP,      ACL_DEVICE_BMC, 0, TM_TYPE_CACHED,   0,    true },
+  { TM_SERVER_BOARD_TEMP,    ACL_DEVICE_BMC, 0, TM_TYPE_CACHED,   0,    true },
+  { TM_SERVER_FAN_SPEED,     ACL_DEVICE_BMC, 0, TM_TYPE_CACHED,   0,    true },
+  { TM_SERVER_VOLTAGE_12V,   ACL_DEVICE_MCU, 1, TM_TYPE_CACHED,   0,    true },
+  { TM_SERVER_VOLTAGE_5V,    ACL_DEVICE_MCU, 1, TM_TYPE_CACHED,   0,    true },
+  { TM_SERVER_CURRENT,       ACL_DEVICE_MCU, 1, TM_TYPE_CACHED,   0,    true },
+
+  /* 服务器遥测（实时型） → BMC，1ms超时 */
+  { TM_SERVER_POWER_STATUS,  ACL_DEVICE_BMC, 0, TM_TYPE_REALTIME, 1000, true },
+
+  /* MCU遥测（实时型） → MCU，800μs超时 */
+  { TM_MCU_STATUS,           ACL_DEVICE_MCU, 0, TM_TYPE_REALTIME, 800,  true },
+  { TM_MCU_TEMP,             ACL_DEVICE_MCU, 0, TM_TYPE_CACHED,   0,    true },
+  { TM_MCU_VOLTAGE,          ACL_DEVICE_MCU, 0, TM_TYPE_CACHED,   0,    true },
+
+  /* FPGA遥测（实时型） → FPGA，1ms超时 */
+  { TM_FPGA_STATUS,          ACL_DEVICE_FPGA, 0, TM_TYPE_REALTIME, 1000, true },
+  { TM_FPGA_TEMP,            ACL_DEVICE_FPGA, 0, TM_TYPE_CACHED,   0,    true },
+
+  /* 系统遥测 */
+  { TM_SYSTEM_UPTIME,        ACL_DEVICE_MCU, 0, TM_TYPE_CACHED,   0,    true },
+  { TM_WATCHDOG_STATUS,      ACL_DEVICE_MCU, 2, TM_TYPE_REALTIME, 800,  true },
+};
+
+/**
+* @brief 初始化ACL查找表（O(1)直接索引）
+*/
+int32_t ACL_Init(acl_lookup_table_t *table)
+{
+  // 初始化遥控查找表
+  for (uint32_t i = 0; i < sizeof(g_pmc_tc_configs) / sizeof(acl_tc_config_t); i++) {
+	  const acl_tc_config_t *cfg = &g_pmc_tc_configs[i];
+	  table->tc_table[cfg->function] = *cfg;
+  }
+
+  // 初始化遥测查找表
+  for (uint32_t i = 0; i < sizeof(g_pmc_tm_configs) / sizeof(acl_tm_config_t); i++) {
+	  const acl_tm_config_t *cfg = &g_pmc_tm_configs[i];
+	  table->tm_table[cfg->function] = *cfg;
+  }
+
+  return OSAL_SUCCESS;
 }
 
-/* 发送实现 */
-int32_t HAL_CAN_Send(hal_can_handle_t handle, const can_frame_t *frame) {
-    hal_can_context_t *ctx = (hal_can_context_t *)handle;
-    
-    /* 构造Linux CAN帧 */
-    struct can_frame linux_frame;
-    linux_frame.can_id = frame->can_id;
-    linux_frame.can_dlc = frame->can_dlc;
-    OSAL_Memcpy(linux_frame.data, frame->data, frame->can_dlc);
-    
-    /* 发送（使用OSAL封装） */
-    int32_t ret = OSAL_write(ctx->sockfd, &linux_frame, sizeof(linux_frame));
-    if (ret == sizeof(linux_frame)) {
-        ctx->tx_count++;
-        return OSAL_SUCCESS;
-    }
-    
-    ctx->err_count++;
-    return OSAL_ERR_GENERIC;
+/**
+* @brief 查询遥控配置（O(1)）
+*/
+const acl_tc_config_t* ACL_GetTcConfig(const acl_lookup_table_t *table, pmc_tc_function_t function)
+{
+  if (function >= TC_FUNC_MAX) {
+	  return NULL;
+  }
+  return &table->tc_table[function];
 }
 
-/* 接收实现 */
-int32_t HAL_CAN_Recv(hal_can_handle_t handle, can_frame_t *frame, int32_t timeout) {
-    hal_can_context_t *ctx = (hal_can_context_t *)handle;
-    
-    /* 设置超时（如果指定） */
-    if (timeout >= 0) {
-        struct timeval tv;
-        tv.tv_sec = timeout / 1000;
-        tv.tv_usec = (timeout % 1000) * 1000;
-        OSAL_setsockopt(ctx->sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-    }
-    
-    /* 接收（使用OSAL封装） */
-    struct can_frame linux_frame;
-    int32_t ret = OSAL_read(ctx->sockfd, &linux_frame, sizeof(linux_frame));
-    if (ret == sizeof(linux_frame)) {
-        frame->can_id = linux_frame.can_id;
-        frame->can_dlc = linux_frame.can_dlc;
-        OSAL_Memcpy(frame->data, linux_frame.data, linux_frame.can_dlc);
-        ctx->rx_count++;
-        return OSAL_SUCCESS;
-    }
-    
-    if (ret == OSAL_ERR_TIMEOUT) {
-        return OSAL_ERR_TIMEOUT;
-    }
-    
-    ctx->err_count++;
-    return OSAL_ERR_GENERIC;
+/**
+* @brief 查询遥测配置（O(1)）
+*/
+const acl_tm_config_t* ACL_GetTmConfig(const acl_lookup_table_t *table, pmc_tm_function_t function)
+{
+  if (function >= TM_FUNC_MAX) {
+	  return NULL;
+  }
+  return &table->tm_table[function];
 }
 ```
 
----
+#### 7.2.4 ACL使用示例
 
-### 8.3 串口驱动设计
+``` C
+/************************************************
+* telecommand进程中的命令处理
+************************************************/
 
-**功能**：提供统一的串口访问接口，支持多种波特率和配置。
+// 全局ACL查找表
+static acl_lookup_table_t g_acl_table;
 
-#### 8.3.1 接口设计
+// 初始化
+ACL_Init(&g_acl_table);
 
-```c
-/* 串口句柄（不透明） */
-typedef void* hal_serial_handle_t;
+// 处理遥控命令
+int32_t handle_telecommand(pmc_tc_function_t cmd_type, uint32_t param)
+{
+  // 1. 通过ACL查询设备映射（O(1)）
+  const acl_tc_config_t *cfg = ACL_GetTcConfig(&g_acl_table, cmd_type);
+  if (cfg == NULL || !cfg->enabled) {
+	  LOG_ERROR("TC", "命令未配置: %d", cmd_type);
+	  return OSAL_ERR_NOT_FOUND;
+  }
 
-/* 串口配置 */
-typedef struct {
-    uint32_t baud_rate;          /* 波特率 */
-    uint8_t  data_bits;          /* 数据位（5/6/7/8） */
-    uint8_t  stop_bits;          /* 停止位（1/2） */
-    uint8_t  parity;             /* 校验位（NONE/ODD/EVEN） */
-    uint8_t  flow_control;       /* 流控（NONE/HW/SW） */
-} hal_serial_config_t;
+  // 2. 根据设备类型调用PDL接口
+  int32_t ret;
+  switch (cfg->device_type) {
+	  case ACL_DEVICE_BMC:
+		  if (cmd_type == TC_SERVER_POWER_ON) {
+			  ret = PDL_BMC_PowerOn(cfg->logic_index);
+		  } else if (cmd_type == TC_SERVER_POWER_OFF) {
+			  ret = PDL_BMC_PowerOff(cfg->logic_index);
+		  } else if (cmd_type == TC_SERVER_POWER_RESET) {
+			  ret = PDL_BMC_PowerReset(cfg->logic_index);
+		  }
+		  break;
 
-/* 打开串口设备 */
-int32_t HAL_Serial_Open(const char *device, const hal_serial_config_t *config, hal_serial_handle_t *handle);
+	  case ACL_DEVICE_MCU:
+		  if (cmd_type == TC_MCU_RESET) {
+			  ret = PDL_MCU_Reset(cfg->logic_index);
+		  } else if (cmd_type == TC_WATCHDOG_ENABLE) {
+			  ret = PDL_MCU_SendCommand(cfg->logic_index, MCU_CMD_WDT_ENABLE, 0);
+		  }
+		  break;
 
-/* 关闭串口设备 */
-int32_t HAL_Serial_Close(hal_serial_handle_t handle);
+	  case ACL_DEVICE_FPGA:
+		  if (cmd_type == TC_FPGA_RESET) {
+			  ret = PDL_FPGA_Reset(cfg->logic_index);
+		  }
+		  break;
 
-/* 写入数据 */
-int32_t HAL_Serial_Write(hal_serial_handle_t handle, const void *buffer, uint32_t size, int32_t timeout);
+	  default:
+		  ret = OSAL_ERR_NOT_SUPPORTED;
+  }
 
-/* 读取数据 */
-int32_t HAL_Serial_Read(hal_serial_handle_t handle, void *buffer, uint32_t size, int32_t timeout);
+  return ret;
+}
 
-/* 刷新缓冲区 */
-int32_t HAL_Serial_Flush(hal_serial_handle_t handle);
+// 处理遥测命令
+int32_t handle_telemetry(pmc_tm_function_t tm_type, telemetry_data_t *data)
+{
+  // 1. 通过ACL查询设备映射（O(1)）
+  const acl_tm_config_t *cfg = ACL_GetTmConfig(&g_acl_table, tm_type);
+  if (cfg == NULL || !cfg->enabled) {
+	  LOG_ERROR("TM", "遥测未配置: %d", tm_type);
+	  return OSAL_ERR_NOT_FOUND;
+  }
 
-/* 设置串口配置 */
-int32_t HAL_Serial_SetConfig(hal_serial_handle_t handle, const hal_serial_config_t *config);
-```
+  // 2. 根据数据类型处理
+  if (cfg->data_type == TM_TYPE_CACHED) {
+	  // 缓存型：从共享内存读取（<10μs）
+	  get_cached_telemetry(tm_type, data);
+  } else {
+	  // 实时型：优先实时查询，超时降级到缓存
+	  tm_freshness_t freshness;
+	  int32_t ret = handle_realtime_telemetry(cfg, data, &freshness);
+	  
+	  if (ret != OSAL_SUCCESS) {
+		  LOG_ERROR("TM", "实时遥测失败且缓存无效: %d", tm_type);
+		  return ret;
+	  }
+	  
+	  // 在应答中携带新鲜度标记
+	  data->freshness = freshness;
+  }
 
-#### 8.3.2 Linux平台实现要点
+  return OSAL_SUCCESS;
+}
 
-```c
-/* 内部句柄结构 */
-typedef struct {
-    int32_t fd;                  /* 文件描述符 */
-    char    device[64];          /* 设备路径 */
-    hal_serial_config_t config;  /* 当前配置 */
-} hal_serial_context_t;
-
-/* 打开串口实现 */
-int32_t HAL_Serial_Open(const char *device, const hal_serial_config_t *config, hal_serial_handle_t *handle) {
-    hal_serial_context_t *ctx = OSAL_Malloc(sizeof(hal_serial_context_t));
-    
-    /* 1. 打开设备（使用OSAL封装） */
-    ctx->fd = OSAL_open(device, O_RDWR | O_NOCTTY | O_NDELAY);
-    if (ctx->fd < 0) {
-        OSAL_Free(ctx);
-        return OSAL_ERR_GENERIC;
-    }
-    
-    /* 2. 配置串口参数 */
-    struct termios options;
-    OSAL_tcgetattr(ctx->fd, &options);
-    
-    /* 设置波特率 */
-    speed_t baud = B115200;  /* 根据config->baud_rate映射 */
-    cfsetispeed(&options, baud);
-    cfsetospeed(&options, baud);
-    
-    /* 设置数据位 */
-    options.c_cflag &= ~CSIZE;
-    switch (config->data_bits) {
-        case 5: options.c_cflag |= CS5; break;
-        case 6: options.c_cflag |= CS6; break;
-        case 7: options.c_cflag |= CS7; break;
-        case 8: options.c_cflag |= CS8; break;
-    }
-    
-    /* 设置校验位 */
-    if (config->parity == HAL_SERIAL_PARITY_NONE) {
-        options.c_cflag &= ~PARENB;
-    } else if (config->parity == HAL_SERIAL_PARITY_ODD) {
-        options.c_cflag |= PARENB | PARODD;
-    } else if (config->parity == HAL_SERIAL_PARITY_EVEN) {
-        options.c_cflag |= PARENB;
-        options.c_cflag &= ~PARODD;
-    }
-    
-    /* 设置停止位 */
-    if (config->stop_bits == 2) {
-        options.c_cflag |= CSTOPB;
-    } else {
-        options.c_cflag &= ~CSTOPB;
-    }
-    
-    /* 应用配置 */
-    OSAL_tcsetattr(ctx->fd, TCSANOW, &options);
-    
-    OSAL_Memcpy(&ctx->config, config, sizeof(hal_serial_config_t));
-    *handle = (hal_serial_handle_t)ctx;
-    return OSAL_SUCCESS;
+/**
+* @brief 处理实时型遥测（优先实时查询 + 缓存降级）
+*/
+int32_t handle_realtime_telemetry(const acl_tm_config_t *cfg, 
+                                   telemetry_data_t *out_data,
+                                   tm_freshness_t *out_freshness)
+{
+  telemetry_cache_entry_t *cache = &g_tm_cache[cfg->function];
+  
+  // 1. 尝试实时查询（带超时）
+  int32_t ret = query_realtime_tm_with_timeout(cfg, out_data, cfg->realtime_timeout_us);
+  
+  if (ret == OSAL_SUCCESS) {
+	  // 实时查询成功
+	  *out_freshness = TM_FRESH;
+	  
+	  // 更新缓存
+	  cache->data = *out_data;
+	  cache->timestamp_ns = get_monotonic_ns();
+	  cache->freshness = TM_FRESH;
+	  
+	  return OSAL_SUCCESS;
+  }
+  
+  // 2. 实时查询失败，降级到缓存
+  if (cache->valid) {
+	  LOG_WARN("TM", "实时查询超时，使用缓存数据（%s）", 
+			   cache->freshness == TM_FRESH ? "FRESH" : "STALE");
+	  
+	  *out_data = cache->data;
+	  *out_freshness = cache->freshness;  // 可能是STALE
+	  
+	  return OSAL_SUCCESS;
+  }
+  
+  // 3. 缓存也无效（从未采集过）
+  LOG_ERROR("TM", "实时查询失败且缓存无效");
+  *out_freshness = TM_INVALID;
+  return OSAL_ERR_NOT_AVAILABLE;
 }
 ```
 
----
+#### 7.2.5 遥控命令对遥测缓存的影响映射
 
-### 8.4 I2C驱动设计
-
-**功能**：提供统一的I2C总线访问接口，支持标准速率和快速速率。
-
-#### 8.4.1 接口设计
+为了保证实时型遥测数据的准确性，需要在遥控命令执行后标记相关遥测缓存为STALE（过期），等待Telemetry进程重新采集。
 
 ```c
-/* I2C句柄（不透明） */
-typedef void* hal_i2c_handle_t;
+/************************************************
+/************************************************
+* acl/config/pmc_v1/acl_pmc_v1_invalidation.c
+* PMC v1.0遥控命令失效映射
+************************************************/
+* 遥控命令对遥测数据的影响映射
+************************************************/
 
-/* I2C配置 */
+/**
+* @brief 遥控命令失效映射
+*/
 typedef struct {
-    const char *device;          /* I2C设备（如"/dev/i2c-0"） */
-    uint32_t    timeout;         /* 传输超时（ms） */
-} hal_i2c_config_t;
+  pmc_tc_function_t tc_function;
+  pmc_tm_function_t affected_tm[8];  // 受影响的遥测项（最多8个）
+  uint32_t affected_count;
+} tc_tm_invalidation_map_t;
 
-/* I2C消息结构 */
-typedef struct {
-    uint16_t addr;               /* 从设备地址（7位） */
-    uint16_t flags;              /* 标志（读/写） */
-    uint16_t len;                /* 数据长度 */
-    uint8_t *buf;                /* 数据缓冲区 */
-} i2c_msg_t;
+static const tc_tm_invalidation_map_t g_invalidation_map[] = {
+  // 电源控制命令 → 影响电源状态遥测
+  {
+	  .tc_function = TC_SERVER_POWER_ON,
+	  .affected_tm = { TM_SERVER_POWER_STATUS },
+	  .affected_count = 1
+  },
+  {
+	  .tc_function = TC_SERVER_POWER_OFF,
+	  .affected_tm = { TM_SERVER_POWER_STATUS },
+	  .affected_count = 1
+  },
+  {
+	  .tc_function = TC_SERVER_POWER_RESET,
+	  .affected_tm = { TM_SERVER_POWER_STATUS, TM_SERVER_CPU_TEMP },
+	  .affected_count = 2
+  },
+  
+  // MCU复位 → 影响MCU状态遥测
+  {
+	  .tc_function = TC_MCU_RESET,
+	  .affected_tm = { TM_MCU_STATUS, TM_MCU_TEMP, TM_MCU_VOLTAGE },
+	  .affected_count = 3
+  },
+  
+  // FPGA复位 → 影响FPGA状态遥测
+  {
+	  .tc_function = TC_FPGA_RESET,
+	  .affected_tm = { TM_FPGA_STATUS, TM_FPGA_CONFIG_STATUS },
+	  .affected_count = 2
+  },
+  
+  // 看门狗控制 → 影响看门狗状态遥测
+  {
+	  .tc_function = TC_WATCHDOG_ENABLE,
+	  .affected_tm = { TM_WATCHDOG_STATUS },
+	  .affected_count = 1
+  },
+  {
+	  .tc_function = TC_WATCHDOG_DISABLE,
+	  .affected_tm = { TM_WATCHDOG_STATUS },
+	  .affected_count = 1
+  },
+};
 
-/* 打开I2C设备 */
-int32_t HAL_I2C_Open(const hal_i2c_config_t *config, hal_i2c_handle_t *handle);
-
-/* 关闭I2C设备 */
-int32_t HAL_I2C_Close(hal_i2c_handle_t handle);
-
-/* 写入数据到I2C从设备 */
-int32_t HAL_I2C_Write(hal_i2c_handle_t handle, uint16_t slave_addr, const uint8_t *buffer, uint32_t size);
-
-/* 从I2C从设备读取数据 */
-int32_t HAL_I2C_Read(hal_i2c_handle_t handle, uint16_t slave_addr, uint8_t *buffer, uint32_t size);
-
-/* 写寄存器操作 */
-int32_t HAL_I2C_WriteReg(hal_i2c_handle_t handle, uint16_t slave_addr, uint8_t reg_addr, const uint8_t *buffer, uint32_t size);
-
-/* 读寄存器操作 */
-int32_t HAL_I2C_ReadReg(hal_i2c_handle_t handle, uint16_t slave_addr, uint8_t reg_addr, uint8_t *buffer, uint32_t size);
-
-/* 执行I2C传输（支持组合传输） */
-int32_t HAL_I2C_Transfer(hal_i2c_handle_t handle, i2c_msg_t *msgs, uint32_t num);
-```
-
-#### 8.4.2 设计特点
-
-- **寄存器访问**：提供专用的寄存器读写接口，简化常见操作
-- **组合传输**：支持I2C组合传输（先写后读），避免总线释放
-- **超时保护**：所有操作支持超时，防止总线挂死
-
----
-
-### 8.5 SPI驱动设计
-
-**功能**：提供统一的SPI总线访问接口，支持全双工传输。
-
-#### 8.5.1 接口设计
-
-```c
-/* SPI句柄（不透明） */
-typedef void* hal_spi_handle_t;
-
-/* SPI配置 */
-typedef struct {
-    const char *device;          /* SPI设备（如"/dev/spidev0.0"） */
-    uint8_t     mode;            /* SPI模式（0-3） */
-    uint8_t     bits_per_word;   /* 每字位数（通常为8） */
-    uint32_t    max_speed_hz;    /* 最大速率（Hz） */
-    uint32_t    timeout;         /* 传输超时（ms） */
-} hal_spi_config_t;
-
-/* SPI传输结构 */
-typedef struct {
-    const uint8_t *tx_buf;       /* 发送缓冲区 */
-    uint8_t       *rx_buf;       /* 接收缓冲区 */
-    uint32_t       len;          /* 传输长度 */
-    uint32_t       speed_hz;     /* 传输速率 */
-    uint16_t       delay_usecs;  /* 传输后延迟（us） */
-    uint8_t        bits_per_word;/* 每字位数 */
-    uint8_t        cs_change;    /* 片选变化标志 */
-} spi_transfer_t;
-
-/* 打开SPI设备 */
-int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle);
-
-/* 关闭SPI设备 */
-int32_t HAL_SPI_Close(hal_spi_handle_t handle);
-
-/* SPI写操作 */
-int32_t HAL_SPI_Write(hal_spi_handle_t handle, const uint8_t *buffer, uint32_t size);
-
-/* SPI读操作 */
-int32_t HAL_SPI_Read(hal_spi_handle_t handle, uint8_t *buffer, uint32_t size);
-
-/* SPI全双工传输 */
-int32_t HAL_SPI_Transfer(hal_spi_handle_t handle, const uint8_t *tx_buffer, uint8_t *rx_buffer, uint32_t size);
-
-/* SPI批量传输（支持多段传输） */
-int32_t HAL_SPI_TransferMulti(hal_spi_handle_t handle, spi_transfer_t *transfers, uint32_t num);
-
-/* 设置SPI配置 */
-int32_t HAL_SPI_SetConfig(hal_spi_handle_t handle, const hal_spi_config_t *config);
-```
-
-#### 8.5.2 设计特点
-
-- **全双工支持**：同时发送和接收数据
-- **批量传输**：支持多段传输，减少片选切换开销
-- **灵活配置**：支持运行时修改速率、模式等参数
-
----
-
-### 8.6 看门狗驱动设计
-
-**功能**：提供统一的看门狗接口，用于系统复位保护。
-
-#### 8.6.1 接口设计
-
-```c
-/* 看门狗句柄（不透明） */
-typedef void* hal_watchdog_handle_t;
-
-/* 看门狗配置 */
-typedef struct {
-    const char *device;          /* 看门狗设备（如"/dev/watchdog"） */
-    uint32_t    timeout_sec;     /* 超时时间（秒） */
-    bool        enable_on_open;  /* 打开时自动启用 */
-} hal_watchdog_config_t;
-
-/* 打开看门狗设备 */
-int32_t HAL_Watchdog_Open(const hal_watchdog_config_t *config, hal_watchdog_handle_t *handle);
-
-/* 关闭看门狗设备 */
-int32_t HAL_Watchdog_Close(hal_watchdog_handle_t handle);
-
-/* 喂狗 */
-int32_t HAL_Watchdog_Kick(hal_watchdog_handle_t handle);
-
-/* 启用看门狗 */
-int32_t HAL_Watchdog_Enable(hal_watchdog_handle_t handle);
-
-/* 禁用看门狗 */
-int32_t HAL_Watchdog_Disable(hal_watchdog_handle_t handle);
-
-/* 设置超时时间 */
-int32_t HAL_Watchdog_SetTimeout(hal_watchdog_handle_t handle, uint32_t timeout_sec);
-
-/* 获取剩余时间 */
-int32_t HAL_Watchdog_GetTimeLeft(hal_watchdog_handle_t handle, uint32_t *time_left_sec);
-```
-
----
-
-### 8.7 HAL层设计要点
-
-#### 8.7.1 句柄管理模式
-
-**所有HAL驱动使用统一的句柄管理模式**：
-
-```c
-/* 1. 不透明句柄类型 */
-typedef void* hal_xxx_handle_t;
-
-/* 2. 内部上下文结构（对外不可见） */
-typedef struct {
-    /* 硬件相关字段 */
-    int32_t fd;
-    /* 配置字段 */
-    hal_xxx_config_t config;
-    /* 统计字段 */
-    uint32_t tx_count;
-    uint32_t rx_count;
-    uint32_t err_count;
-} hal_xxx_context_t;
-
-/* 3. 初始化时分配上下文 */
-int32_t HAL_XXX_Init(const hal_xxx_config_t *config, hal_xxx_handle_t *handle) {
-    hal_xxx_context_t *ctx = OSAL_Malloc(sizeof(hal_xxx_context_t));
-    /* 初始化硬件 */
-    *handle = (hal_xxx_handle_t)ctx;
-    return OSAL_SUCCESS;
-}
-
-/* 4. 操作时转换句柄 */
-int32_t HAL_XXX_Operation(hal_xxx_handle_t handle, ...) {
-    hal_xxx_context_t *ctx = (hal_xxx_context_t *)handle;
-    /* 使用ctx访问内部字段 */
-}
-
-/* 5. 反初始化时释放上下文 */
-int32_t HAL_XXX_Deinit(hal_xxx_handle_t handle) {
-    hal_xxx_context_t *ctx = (hal_xxx_context_t *)handle;
-    /* 关闭硬件 */
-    OSAL_Free(ctx);
-    return OSAL_SUCCESS;
+/**
+* @brief 遥控命令执行后，自动失效相关遥测缓存
+*/
+void ACL_InvalidateAffectedTelemetry(pmc_tc_function_t tc_function)
+{
+  for (uint32_t i = 0; i < ARRAY_SIZE(g_invalidation_map); i++) {
+	  const tc_tm_invalidation_map_t *map = &g_invalidation_map[i];
+	  
+	  if (map->tc_function == tc_function) {
+		  for (uint32_t j = 0; j < map->affected_count; j++) {
+			  pmc_tm_function_t tm_func = map->affected_tm[j];
+			  g_tm_cache[tm_func].freshness = TM_STALE;
+			  
+			  LOG_DEBUG("ACL", "遥测缓存标记为STALE: %d", tm_func);
+		  }
+		  break;
+	  }
+  }
 }
 ```
 
-#### 8.7.2 错误处理
-
-**统一的错误码和错误处理机制**：
+#### 7.2.6 Telecommand进程中的遥控命令处理（完整版）
 
 ```c
-/* 错误码（来自OSAL层） */
-#define OSAL_SUCCESS        0
-#define OSAL_ERR_GENERIC   -1
-#define OSAL_ERR_TIMEOUT   -2
-#define OSAL_ERR_INVALID_POINTER -3
-#define OSAL_ERR_NOT_SUPPORTED -4
+/************************************************
+* telecommand进程中的命令处理（包含缓存失效）
+************************************************/
 
-/* 所有HAL接口返回int32_t状态码 */
-int32_t HAL_XXX_Operation(...) {
-    if (/* 参数检查失败 */) {
-        return OSAL_ERR_INVALID_POINTER;
+// 处理遥控命令
+int32_t handle_telecommand(pmc_tc_function_t cmd_type, uint32_t param)
+{
+  // 1. 通过ACL查询设备映射（O(1)）
+  const acl_tc_config_t *cfg = ACL_GetTcConfig(&g_acl_table, cmd_type);
+  if (cfg == NULL || !cfg->enabled) {
+	  LOG_ERROR("TC", "命令未配置: %d", cmd_type);
+	  return OSAL_ERR_NOT_FOUND;
+  }
+
+  // 2. 根据设备类型调用PDL接口
+  int32_t ret;
+  switch (cfg->device_type) {
+	  case ACL_DEVICE_BMC:
+		  if (cmd_type == TC_SERVER_POWER_ON) {
+			  ret = PDL_BMC_PowerOn(cfg->logic_index);
+		  } else if (cmd_type == TC_SERVER_POWER_OFF) {
+			  ret = PDL_BMC_PowerOff(cfg->logic_index);
+		  } else if (cmd_type == TC_SERVER_POWER_RESET) {
+			  ret = PDL_BMC_PowerReset(cfg->logic_index);
+		  }
+		  break;
+
+	  case ACL_DEVICE_MCU:
+		  if (cmd_type == TC_MCU_RESET) {
+			  ret = PDL_MCU_Reset(cfg->logic_index);
+		  } else if (cmd_type == TC_WATCHDOG_ENABLE) {
+			  ret = PDL_MCU_SendCommand(cfg->logic_index, MCU_CMD_WDT_ENABLE, 0);
+		  }
+		  break;
+
+	  case ACL_DEVICE_FPGA:
+		  if (cmd_type == TC_FPGA_RESET) {
+			  ret = PDL_FPGA_Reset(cfg->logic_index);
+		  }
+		  break;
+
+	  default:
+		  ret = OSAL_ERR_NOT_SUPPORTED;
+  }
+  
+  // 3. 遥控命令执行成功后，失效相关遥测缓存
+  if (ret == OSAL_SUCCESS) {
+	  ACL_InvalidateAffectedTelemetry(cmd_type);
+  }
+
+  return ret;
+}
+```
+
+### 7.3 ACL设计要点
+
+#### 7.3.1 查找表初始化
+
+ACL查找表在系统启动时初始化一次，之后只读访问，无需加锁。
+
+```c
+/************************************************
+ * ACL查找表初始化流程
+ ************************************************/
+
+// 全局查找表（只读，无需加锁）
+static acl_lookup_table_t g_acl_table;
+static bool g_acl_initialized = false;
+
+int32_t ACL_Init(void)
+{
+    if (g_acl_initialized) {
+        LOG_WARN("ACL", "ACL已初始化，跳过");
+        return OSAL_OK;
     }
-    
-    if (/* 操作超时 */) {
-        return OSAL_ERR_TIMEOUT;
+
+    // 1. 清零查找表
+    memset(&g_acl_table, 0, sizeof(acl_lookup_table_t));
+
+    // 2. 初始化遥控查找表
+    for (uint32_t i = 0; i < ARRAY_SIZE(g_pmc_tc_configs); i++) {
+        const acl_tc_config_t *cfg = &g_pmc_tc_configs[i];
+        
+        // 检查枚举值范围
+        if (cfg->function >= TC_FUNC_MAX) {
+            LOG_ERROR("ACL", "遥控功能枚举越界: %d", cfg->function);
+            return -OSAL_EINVAL;
+        }
+        
+        // 检查重复配置
+        if (g_acl_table.tc_table[cfg->function].enabled) {
+            LOG_ERROR("ACL", "遥控功能重复配置: %d", cfg->function);
+            return -OSAL_EINVAL;
+        }
+        
+        g_acl_table.tc_table[cfg->function] = *cfg;
     }
-    
-    if (/* 操作失败 */) {
-        return OSAL_ERR_GENERIC;
+
+    // 3. 初始化遥测查找表
+    for (uint32_t i = 0; i < ARRAY_SIZE(g_pmc_tm_configs); i++) {
+        const acl_tm_config_t *cfg = &g_pmc_tm_configs[i];
+        
+        // 检查枚举值范围
+        if (cfg->function >= TM_FUNC_MAX) {
+            LOG_ERROR("ACL", "遥测功能枚举越界: %d", cfg->function);
+            return -OSAL_EINVAL;
+        }
+        
+        // 检查重复配置
+        if (g_acl_table.tm_table[cfg->function].enabled) {
+            LOG_ERROR("ACL", "遥测功能重复配置: %d", cfg->function);
+            return -OSAL_EINVAL;
+        }
+        
+        // 检查实时型遥测的超时配置
+        if (cfg->data_type == TM_TYPE_REALTIME && cfg->realtime_timeout_us == 0) {
+            LOG_ERROR("ACL", "实时型遥测未配置超时: %d", cfg->function);
+            return -OSAL_EINVAL;
+        }
+        
+        g_acl_table.tm_table[cfg->function] = *cfg;
     }
-    
-    return OSAL_SUCCESS;
+
+    // 4. 初始化失效映射表
+    int32_t ret = ACL_InitInvalidationMap();
+    if (ret != OSAL_OK) {
+        LOG_ERROR("ACL", "初始化失效映射表失败: %d", ret);
+        return ret;
+    }
+
+    g_acl_initialized = true;
+    LOG_INFO("ACL", "ACL初始化完成: TC=%zu, TM=%zu",
+             ARRAY_SIZE(g_pmc_tc_configs),
+             ARRAY_SIZE(g_pmc_tm_configs));
+
+    return OSAL_OK;
 }
 ```
 
-#### 8.7.3 平台隔离
+#### 7.3.2 配置查询接口
 
-**Linux和RTOS平台实现完全分离**：
+```c
+/************************************************
+ * ACL配置查询接口（线程安全，无锁）
+ ************************************************/
 
+/**
+ * @brief 查询遥控配置
+ * @return 配置指针（只读），失败返回NULL
+ */
+const acl_tc_config_t* ACL_GetTcConfig(pmc_tc_function_t function)
+{
+    if (!g_acl_initialized) {
+        LOG_ERROR("ACL", "ACL未初始化");
+        return NULL;
+    }
+
+    if (function >= TC_FUNC_MAX) {
+        LOG_ERROR("ACL", "遥控功能枚举越界: %d", function);
+        return NULL;
+    }
+
+    const acl_tc_config_t *cfg = &g_acl_table.tc_table[function];
+    if (!cfg->enabled) {
+        LOG_DEBUG("ACL", "遥控功能未使能: %d", function);
+        return NULL;
+    }
+
+    return cfg;
+}
+
+/**
+ * @brief 查询遥测配置
+ * @return 配置指针（只读），失败返回NULL
+ */
+const acl_tm_config_t* ACL_GetTmConfig(pmc_tm_function_t function)
+{
+    if (!g_acl_initialized) {
+        LOG_ERROR("ACL", "ACL未初始化");
+        return NULL;
+    }
+
+    if (function >= TM_FUNC_MAX) {
+        LOG_ERROR("ACL", "遥测功能枚举越界: %d", function);
+        return NULL;
+    }
+
+    const acl_tm_config_t *cfg = &g_acl_table.tm_table[function];
+    if (!cfg->enabled) {
+        LOG_DEBUG("ACL", "遥测功能未使能: %d", function);
+        return NULL;
+    }
+
+    return cfg;
+}
+
+/**
+ * @brief 检查遥控功能是否使能
+ */
+bool ACL_IsTcEnabled(pmc_tc_function_t function)
+{
+    if (!g_acl_initialized || function >= TC_FUNC_MAX) {
+        return false;
+    }
+    return g_acl_table.tc_table[function].enabled;
+}
+
+/**
+ * @brief 检查遥测功能是否使能
+ */
+bool ACL_IsTmEnabled(pmc_tm_function_t function)
+{
+    if (!g_acl_initialized || function >= TM_FUNC_MAX) {
+        return false;
+    }
+    return g_acl_table.tm_table[function].enabled;
+}
 ```
-hal/src/
-├── linux/                   # Linux平台实现
-│   ├── hal_can_linux.c     # 使用SocketCAN
-│   ├── hal_serial_linux.c  # 使用termios
-│   ├── hal_i2c_linux.c     # 使用i2c-dev
-│   └── hal_spi_linux.c     # 使用spidev
-└── rtos/                    # RTOS平台实现（预留）
-    ├── hal_can_rtos.c      # 使用RTOS CAN驱动
-    ├── hal_serial_rtos.c   # 使用RTOS串口驱动
-    ├── hal_i2c_rtos.c      # 使用RTOS I2C驱动
-    └── hal_spi_rtos.c      # 使用RTOS SPI驱动
+
+#### 7.3.3 配置验证
+
+在系统启动时验证ACL配置的完整性和一致性。
+
+```c
+/************************************************
+ * ACL配置验证
+ ************************************************/
+
+/**
+ * @brief 验证ACL配置
+ */
+int32_t ACL_ValidateConfig(void)
+{
+    uint32_t error_count = 0;
+
+    // 1. 验证遥控配置
+    for (uint32_t i = 0; i < TC_FUNC_MAX; i++) {
+        const acl_tc_config_t *cfg = &g_acl_table.tc_table[i];
+        
+        if (!cfg->enabled) {
+            continue;  // 未使能的功能跳过
+        }
+
+        // 检查设备类型
+        if (cfg->device_type >= ACL_DEVICE_MAX) {
+            LOG_ERROR("ACL", "TC[%d]: 无效的设备类型 %d", i, cfg->device_type);
+            error_count++;
+        }
+
+        // 检查逻辑索引（假设最多支持4个同类设备）
+        if (cfg->logic_index >= 4) {
+            LOG_WARN("ACL", "TC[%d]: 逻辑索引过大 %d", i, cfg->logic_index);
+        }
+    }
+
+    // 2. 验证遥测配置
+    for (uint32_t i = 0; i < TM_FUNC_MAX; i++) {
+        const acl_tm_config_t *cfg = &g_acl_table.tm_table[i];
+        
+        if (!cfg->enabled) {
+            continue;
+        }
+
+        // 检查设备类型
+        if (cfg->device_type >= ACL_DEVICE_MAX) {
+            LOG_ERROR("ACL", "TM[%d]: 无效的设备类型 %d", i, cfg->device_type);
+            error_count++;
+        }
+
+        // 检查数据类型
+        if (cfg->data_type != TM_TYPE_CACHED && cfg->data_type != TM_TYPE_REALTIME) {
+            LOG_ERROR("ACL", "TM[%d]: 无效的数据类型 %d", i, cfg->data_type);
+            error_count++;
+        }
+
+        // 检查实时型遥测的超时配置
+        if (cfg->data_type == TM_TYPE_REALTIME) {
+            if (cfg->realtime_timeout_us == 0) {
+                LOG_ERROR("ACL", "TM[%d]: 实时型遥测未配置超时", i);
+                error_count++;
+            } else if (cfg->realtime_timeout_us > 10000) {  // 超过10ms
+                LOG_WARN("ACL", "TM[%d]: 实时型遥测超时过长 %uμs", 
+                         i, cfg->realtime_timeout_us);
+            }
+        }
+    }
+
+    // 3. 验证失效映射表
+    for (uint32_t i = 0; i < ARRAY_SIZE(g_invalidation_map); i++) {
+        const tc_tm_invalidation_map_t *map = &g_invalidation_map[i];
+        
+        // 检查遥控功能是否使能
+        if (!ACL_IsTcEnabled(map->tc_function)) {
+            LOG_WARN("ACL", "失效映射[%d]: 遥控功能未使能 %d", 
+                     i, map->tc_function);
+        }
+
+        // 检查受影响的遥测功能
+        for (uint32_t j = 0; j < map->affected_count; j++) {
+            pmc_tm_function_t tm_func = map->affected_tm[j];
+            
+            if (tm_func >= TM_FUNC_MAX) {
+                LOG_ERROR("ACL", "失效映射[%d]: 遥测功能枚举越界 %d", i, tm_func);
+                error_count++;
+            }
+            
+            // 只有实时型遥测才需要失效处理
+            const acl_tm_config_t *tm_cfg = ACL_GetTmConfig(tm_func);
+            if (tm_cfg && tm_cfg->data_type != TM_TYPE_REALTIME) {
+                LOG_WARN("ACL", "失效映射[%d]: 遥测[%d]不是实时型", i, tm_func);
+            }
+        }
+    }
+
+    if (error_count > 0) {
+        LOG_ERROR("ACL", "配置验证失败: %u个错误", error_count);
+        return -OSAL_EINVAL;
+    }
+
+    LOG_INFO("ACL", "配置验证通过");
+    return OSAL_OK;
+}
 ```
 
-**编译时选择平台实现**：
+#### 7.3.4 配置统计与调试
 
+提供配置统计信息，便于调试和运维。
+
+```c
+/************************************************
+ * ACL配置统计
+ ************************************************/
+
+typedef struct {
+    uint32_t tc_enabled_count;
+    uint32_t tc_disabled_count;
+    uint32_t tm_enabled_count;
+    uint32_t tm_disabled_count;
+    uint32_t tm_cached_count;
+    uint32_t tm_realtime_count;
+    uint32_t invalidation_map_count;
+} acl_statistics_t;
+
+/**
+ * @brief 获取ACL配置统计信息
+ */
+void ACL_GetStatistics(acl_statistics_t *stats)
+{
+    memset(stats, 0, sizeof(acl_statistics_t));
+
+    // 统计遥控配置
+    for (uint32_t i = 0; i < TC_FUNC_MAX; i++) {
+        if (g_acl_table.tc_table[i].enabled) {
+            stats->tc_enabled_count++;
+        } else {
+            stats->tc_disabled_count++;
+        }
+    }
+
+    // 统计遥测配置
+    for (uint32_t i = 0; i < TM_FUNC_MAX; i++) {
+        const acl_tm_config_t *cfg = &g_acl_table.tm_table[i];
+        
+        if (cfg->enabled) {
+            stats->tm_enabled_count++;
+            
+            if (cfg->data_type == TM_TYPE_CACHED) {
+                stats->tm_cached_count++;
+            } else {
+                stats->tm_realtime_count++;
+            }
+        } else {
+            stats->tm_disabled_count++;
+        }
+    }
+
+    stats->invalidation_map_count = ARRAY_SIZE(g_invalidation_map);
+}
+
+/**
+ * @brief 打印ACL配置统计信息
+ */
+void ACL_PrintStatistics(void)
+{
+    acl_statistics_t stats;
+    ACL_GetStatistics(&stats);
+
+    LOG_INFO("ACL", "========== ACL配置统计 ==========");
+    LOG_INFO("ACL", "遥控功能: 使能=%u, 禁用=%u, 总计=%u",
+             stats.tc_enabled_count, stats.tc_disabled_count, TC_FUNC_MAX);
+    LOG_INFO("ACL", "遥测功能: 使能=%u, 禁用=%u, 总计=%u",
+             stats.tm_enabled_count, stats.tm_disabled_count, TM_FUNC_MAX);
+    LOG_INFO("ACL", "  - 缓存型: %u", stats.tm_cached_count);
+    LOG_INFO("ACL", "  - 实时型: %u", stats.tm_realtime_count);
+    LOG_INFO("ACL", "失效映射: %u", stats.invalidation_map_count);
+    LOG_INFO("ACL", "================================");
+}
+
+/**
+ * @brief 打印ACL配置详情（调试用）
+ */
+void ACL_DumpConfig(void)
+{
+    LOG_INFO("ACL", "========== 遥控配置 ==========");
+    for (uint32_t i = 0; i < TC_FUNC_MAX; i++) {
+        const acl_tc_config_t *cfg = &g_acl_table.tc_table[i];
+        if (cfg->enabled) {
+            LOG_INFO("ACL", "TC[%2u]: device=%u, index=%u",
+                     i, cfg->device_type, cfg->logic_index);
+        }
+    }
+
+    LOG_INFO("ACL", "========== 遥测配置 ==========");
+    for (uint32_t i = 0; i < TM_FUNC_MAX; i++) {
+        const acl_tm_config_t *cfg = &g_acl_table.tm_table[i];
+        if (cfg->enabled) {
+            LOG_INFO("ACL", "TM[%2u]: device=%u, index=%u, type=%s, timeout=%uμs",
+                     i, cfg->device_type, cfg->logic_index,
+                     cfg->data_type == TM_TYPE_CACHED ? "CACHED" : "REALTIME",
+                     cfg->realtime_timeout_us);
+        }
+    }
+}
+```
+
+### 7.4 ACL性能优化
+
+#### 7.4.1 O(1)查询性能
+
+ACL使用数组直接索引，查询性能为O(1)，无需遍历或哈希查找。
+
+```c
+// 性能对比
+
+// ❌ 方案1：链表遍历 - O(n)
+for (node = list_head; node != NULL; node = node->next) {
+    if (node->function == target_function) {
+        return node->config;
+    }
+}
+
+// ❌ 方案2：哈希表 - O(1)平均，但有哈希计算开销
+uint32_t hash = hash_function(target_function);
+return hash_table[hash];
+
+// ✅ 方案3：数组直接索引 - O(1)，无额外开销
+return &g_acl_table.tc_table[target_function];
+```
+
+**性能测试结果**（在ARM Cortex-A53 @ 1.5GHz上测试）：
+- 数组直接索引：~5ns（1-2条指令）
+- 哈希表查找：~50ns（包含哈希计算）
+- 链表遍历：~200ns（平均遍历一半）
+
+#### 7.4.2 缓存友好性
+
+ACL查找表是连续内存，缓存命中率高。
+
+```c
+// 查找表内存布局（连续）
+struct acl_lookup_table_t {
+    acl_tc_config_t tc_table[TC_FUNC_MAX];  // 连续数组
+    acl_tm_config_t tm_table[TM_FUNC_MAX];  // 连续数组
+};
+
+// 假设TC_FUNC_MAX=20, TM_FUNC_MAX=30
+// sizeof(acl_tc_config_t) = 16字节
+// sizeof(acl_tm_config_t) = 24字节
+// 总大小 = 20*16 + 30*24 = 320 + 720 = 1040字节
+// 可以完全放入L1 Cache（通常32KB）
+```
+
+#### 7.4.3 无锁设计
+
+ACL查找表在初始化后只读，无需加锁，支持多线程并发访问。
+
+```c
+// 初始化阶段（单线程，启动时）
+ACL_Init();  // 写入查找表
+
+// 运行阶段（多线程，只读访问）
+// Telecommand进程
+const acl_tc_config_t *cfg = ACL_GetTcConfig(TC_POWER_ON);  // 无锁读
+
+// Telemetry进程
+const acl_tm_config_t *cfg = ACL_GetTmConfig(TM_CPU_TEMP);  // 无锁读
+
+// Firmware进程
+const acl_tc_config_t *cfg = ACL_GetTcConfig(TC_FW_UPGRADE);  // 无锁读
+```
+
+### 7.5 ACL扩展性
+
+#### 7.5.1 新增业务功能
+
+新增业务功能只需3步：
+
+**步骤1：扩展枚举定义**
+```c
+// acl/include/pmc_acl_types.h
+typedef enum {
+    // ... 现有功能 ...
+    TC_NEW_FUNCTION,  // 新增功能
+    TC_FUNC_MAX
+} pmc_tc_function_t;
+```
+
+**步骤2：添加配置**
+```c
+// acl/config/pmc_v1/acl_pmc_v1.c
+static const acl_tc_config_t g_pmc_tc_configs[] = {
+    // ... 现有配置 ...
+    { TC_NEW_FUNCTION, ACL_DEVICE_MCU, 0, true },  // 新增配置
+};
+```
+
+**步骤3：实现业务逻辑**
+```c
+// app/telecommand/tc_handler.c
+if (cmd_type == TC_NEW_FUNCTION) {
+    ret = PDL_MCU_NewFunction(cfg->logic_index);
+}
+```
+
+#### 7.5.2 支持新硬件平台
+
+支持新硬件平台只需修改配置文件，无需修改业务代码。
+
+```c
+// 原配置：acl_pmc_v1.c（BMC通过Redfish）
+{ TC_SERVER_POWER_ON, ACL_DEVICE_BMC, 0, true },
+
+// 新配置：acl_pmc_v2.c（改用MCU控制）
+{ TC_SERVER_POWER_ON, ACL_DEVICE_MCU, 0, true },
+
+// 业务代码无需修改，自动适配新硬件
+```
+
+#### 7.5.3 多产品支持
+
+不同产品使用不同的ACL配置文件。
+
+```text
+acl/config/
+├── pmc_v1/
+│   ├── acl_pmc_v1.c              # PMC v1.0配置
+│   └── acl_pmc_v1_invalidation.c
+├── pmc_v2/
+│   ├── acl_pmc_v2.c              # PMC v2.0配置（功能更多）
+│   └── acl_pmc_v2_invalidation.c
+└── demo/
+    ├── acl_demo_v1.c             # Demo产品配置（功能简化）
+    └── acl_demo_v1_invalidation.c
+```
+
+编译时通过CMake选择配置：
 ```cmake
 # CMakeLists.txt
-if(PLATFORM STREQUAL "linux")
-    target_sources(hal PRIVATE
-        src/linux/hal_can_linux.c
-        src/linux/hal_serial_linux.c
-        src/linux/hal_i2c_linux.c
-        src/linux/hal_spi_linux.c
+set(ACL_CONFIG "pmc_v1" CACHE STRING "ACL configuration: pmc_v1, pmc_v2, demo")
+
+if(ACL_CONFIG STREQUAL "pmc_v1")
+    target_sources(acl PRIVATE
+        acl/config/pmc_v1/acl_pmc_v1.c
+        acl/config/pmc_v1/acl_pmc_v1_invalidation.c
     )
-elseif(PLATFORM STREQUAL "rtos")
-    target_sources(hal PRIVATE
-        src/rtos/hal_can_rtos.c
-        src/rtos/hal_serial_rtos.c
-        src/rtos/hal_i2c_rtos.c
-        src/rtos/hal_spi_rtos.c
+elseif(ACL_CONFIG STREQUAL "pmc_v2")
+    target_sources(acl PRIVATE
+        acl/config/pmc_v2/acl_pmc_v2.c
+        acl/config/pmc_v2/acl_pmc_v2_invalidation.c
     )
 endif()
 ```
 
-#### 8.7.4 OSAL依赖
+---
 
-**HAL层所有系统调用必须通过OSAL封装**：
+## 8. APP 设计 （业务进程）
 
-```c
-/* ❌ 错误：直接调用系统API */
-int fd = open("/dev/can0", O_RDWR);
-write(fd, buffer, size);
-close(fd);
+### 8.1 进程架构
 
-/* ✅ 正确：使用OSAL封装 */
-int32_t fd = OSAL_open("/dev/can0", O_RDWR);
-OSAL_write(fd, buffer, size);
-OSAL_close(fd);
+```text
+╔═══════════════════════════════════════════════════════════════════════════════════════╗
+║                          Supervisor Process (监控进程)                                 ║
+║  ┌─────────────────────────────────────────────────────────────────────────────────┐  ║
+║  │ • 最小化设计 (<300行代码)                                                        │  ║
+║  │ • 心跳监控 (共享内存原子时间戳, 2秒周期)                                         │  ║
+║  │ • 进程崩溃立即重启 (5次/300秒限制)                                               │  ║
+║  │ • 喂硬件看门狗 (5秒周期)                                                         │  ║
+║  │ • 故障日志持久化 (/var/log/pmc/supervisor.log)                                   │  ║
+║  └─────────────────────────────────────────────────────────────────────────────────┘  ║
+╚═══════════════════════════════════════════════════════════════════════════════════════╝
+                    │                    │                    │                    │
+        ┌───────────┴───────────┬────────┴────────┬───────────┴──────────┬─────────┴────────────┐
+        │                       │                 │                      │                      │
+╔═══════▼═══════════════╗ ╔═════▼═════════════╗ ╔═▼═══════════════╗ ╔═▼═══════════════╗ ╔═▼══════════════════╗
+║   Telecommand Process ║ ║ Telemetry Process ║ ║ Firmware Process║ ║  Logger Process ║ ║ Hardware Watchdog  ║
+║   (实时优先级)        ║ ║  (普通优先级)      ║ ║  (低优先级)     ║ ║  (低优先级)     ║ ║  (硬件看门狗)      ║
+╠═══════════════════════╣ ╠═══════════════════╣ ╠═════════════════╣ ╠═════════════════╣ ╠════════════════════╣
+║ SCHED_FIFO            ║ ║ SCHED_OTHER       ║ ║ SCHED_BATCH     ║ ║ SCHED_OTHER     ║ ║ 10秒超时           ║
+║ Priority: 99          ║ ║ Priority: 0       ║ ║ Nice: 19        ║ ║ Nice: 10        ║ ║ 系统复位           ║
+║ CPU绑定: CPU0         ║ ║ Nice: 10          ║ ║                 ║ ║                 ║ ║                    ║
+╠═══════════════════════╣ ╠═══════════════════╣ ╠═════════════════╣ ╠═════════════════╣ ╚════════════════════╝
+║ 【核心功能】          ║ ║ 【核心功能】      ║ ║ 【核心功能】    ║ ║ 【核心功能】    ║
+║ • 遥控命令接收        ║ ║ • 遥测数据采集    ║ ║ • 固件升级      ║ ║ • 日志收集      ║
+║ • 命令解析 (2ms应答)  ║ ║ • 数据打包        ║ ║ • 校验恢复      ║ ║ • 状态归档      ║
+║ • 安全校验            ║ ║ • 周期上报        ║ ║ • 分区管理      ║ ║ • 崩溃分析      ║
+║ • 命令下发            ║ ║ • 健康监控        ║ ║ • 回滚机制      ║ ║ • 日志轮转      ║
+╠═══════════════════════╣ ╠═══════════════════╣ ╠═════════════════╣ ╠═════════════════╣
+║ 【内部线程】          ║ ║ 【内部线程】      ║ ║ 【内部线程】    ║ ║ 【内部线程】    ║
+║ ├─ CAN接收线程        ║ ║ ├─ 缓存采集线程   ║ ║ ├─ 升级控制     ║ ║ ├─ 日志聚合     ║
+║ │  (最高优先级)       ║ ║ │  (1秒周期)      ║ ║ │  (分片传输)   ║ ║ │  (实时收集)   ║
+║ ├─ 遥控执行线程       ║ ║ ├─ 健康监控线程   ║ ║ └─ 校验线程     ║ ║ ├─ 状态快照     ║
+║ │  (异步执行)         ║ ║ │  (5秒周期)      ║ ║    (CRC/SHA256) ║ ║ │  (10秒周期)   ║
+║ └─ 实时遥测线程       ║ ║ └─ 状态快照线程   ║ ║                 ║ ║ ├─ 崩溃分析     ║
+║    (实时查询PDL)      ║ ║    (10秒周期)     ║ ║                 ║ ║ └─ 日志轮转     ║
+╚═══════════════════════╝ ╚═══════════════════╝ ╚═════════════════╝ ╚═════════════════╝
+        │                         │                       │                   │
+        └─────────────────────────┴───────────────────────┴───────────────────┘
+                                          │
+        ┌─────────────────────────────────▼─────────────────────────────────────┐
+        │                    Shared Memory (共享内存区)                          │
+        ├────────────────────────────────────────────────────────────────────────┤
+        │ • 遥测缓冲区 (双缓冲, 原子切换, 无锁读写)                              │
+        │ • 心跳表 (原子时间戳, 纳秒精度)                                        │
+        │ • 日志环形缓冲区 (1MB, 无锁写入, 4096条目)                             │
+        │ • 状态快照区 (服务器状态、外设状态、通信状态)                          │
+        │ • 命令队列 (环形缓冲, 256条目)                                         │
+        └────────────────────────────────────────────────────────────────────────┘
 ```
 
-**优势**：
-- ✅ 平台无关：OSAL层处理平台差异
-- ✅ 类型安全：使用OSAL固定大小类型（int32_t而非int）
-- ✅ 错误统一：OSAL统一错误码和错误处理
+
+
+#### 8.1.1 Supervisor进程（监控进程）
+
+**职责**：
+
+- 启动和监控所有子进程
+
+- 心跳检测（2秒周期，共享内存原子时间戳）
+
+- 进程崩溃检测和立即重启
+
+- 喂硬件看门狗（5秒周期）
+
+- 故障日志记录（持久化到Flash）
+
+**设计原则**：
+
+- 代码量<300行（降低自身故障概率）
+
+- 不依赖任何业务逻辑
+
+- 使用最简单的IPC机制（信号+共享内存心跳表）
+
+**重启策略**：
+
+```c
+typedef struct {
+  uint32_t crash_count;           // 崩溃次数
+  uint32_t max_restart;           // 最大重启次数：5
+  uint32_t restart_window_sec;    // 重启窗口：300秒
+  time_t   last_crash_time;       // 最后崩溃时间
+} process_recovery_t;
+
+// 重启逻辑
+if (进程崩溃) {
+  if (time_since_last_crash > 300秒) {
+	  crash_count = 0;  // 重置计数
+  }
+
+  if (crash_count < 5) {
+	  立即重启进程;
+	  crash_count++;
+	  记录崩溃日志;
+  } else {
+	  记录严重故障;
+	  触发硬件看门狗复位;  // 系统级恢复
+  }
+}
+
+心跳监控：
+// 共享内存心跳表
+typedef struct {
+  _Atomic uint64_t telecommand_heartbeat;  // 纳秒时间戳
+  _Atomic uint64_t telemetry_heartbeat;
+  _Atomic uint64_t firmware_heartbeat;
+  _Atomic uint64_t logger_heartbeat;
+} heartbeat_table_t;
+
+// Supervisor检查逻辑（2秒周期）
+uint64_t now = get_monotonic_ns();
+uint64_t last_hb = atomic_load(&hb_table->telecommand_heartbeat);
+if (now - last_hb > 5000000000ULL) {  // 5秒超时
+  LOG_ERROR("Supervisor", "telecommand进程心跳超时");
+  restart_process(PROC_TELECOMMAND);
+}
+
+```
+
+#### 8.1.2 Telecommand进程（实时遥控遥测）
+
+职责：
+
+- 接收卫星平台遥控/遥测命令（CAN）
+
+- 2ms内完成应答
+
+- 遥控命令异步执行
+
+- 实时型遥测实时查询
+
+
+实时调度配置：
+
+```
+// 1. CPU亲和性绑定（单核SoC绑定到CPU0）
+cpu_set_t cpuset;
+CPU_ZERO(&cpuset);
+CPU_SET(0, &cpuset);
+sched_setaffinity(0, sizeof(cpuset), &cpuset);
+
+// 2. 实时调度策略（最高优先级）
+struct sched_param param;
+param.sched_priority = 99;
+sched_setscheduler(0, SCHED_FIFO, &param);
+
+// 3. 内存锁定（避免缺页中断）
+mlockall(MCL_CURRENT | MCL_FUTURE);
+
+// 4. 预分配所有内存（避免运行时分配）
+static uint8_t cmd_buffer[1024];
+static uint8_t resp_buffer[1024];
+static cmd_queue_t cmd_queue[256];
+
+```
+
+线程架构：
+
+``` text
+telecommand_process (SCHED_FIFO, priority=99)
+│
+├── can_rx_thread（最高优先级，实时线程）
+│   ├── 接收卫星CAN命令
+│   ├── 命令类型判断：
+│   │   ├── 遥控命令 → 放入遥控队列 → 立即应答STATUS_OK
+│   │   ├── 快遥命令 → 立即处理 → 2ms内应答
+│   │   └── 慢遥命令 → 立即处理 → 2ms内应答
+│   └── 延迟分析：
+│       ├── 命令解析：<50μs
+│       ├── ACL查询：<10μs（O(1)直接索引）
+│       ├── 缓存型遥测：<200μs（共享内存读取）
+│       ├── 实时型遥测：<800μs（PDL查询）
+│       └── 应答发送：<100μs
+│
+├── telecontrol_thread（高优先级）
+│   ├── 从遥控队列取命令
+│   ├── ACL查询设备映射
+│   ├── 调用PDL接口：
+│   │   ├── PDL_BMC_PowerOn/Off/Reset（可能耗时1-5秒）
+│   │   ├── PDL_MCU_SendCommand（<500ms）
+│   │   └── PDL_Satellite_SendResponse（发送执行结果）
+│   └── 异步执行（不阻塞应答）
+│
+└── realtime_tm_thread（高优先级）
+  ├── 处理"实时型"遥测
+  ├── 直接查询PDL：
+  │   ├── PDL_BMC_GetPowerState（从BMC缓存读，<200μs）
+  │   └── PDL_MCU_GetStatus（CAN查询，<300μs）
+  └── 更新共享内存缓存（供can_rx_thread快速读取）
+```
+
+2ms应答路径优化：
+
+``` C 
+// CAN接收线程（关键路径）
+void* can_rx_thread_func(void* arg)
+{
+  while (1) {
+	  // 1. 接收CAN命令（<50μs）
+	  can_frame_t frame;
+	  HAL_CAN_Receive(can_handle, &frame, TIMEOUT_INFINITE);
+
+	  uint64_t start_ns = get_monotonic_ns();
+
+	  // 2. 解析命令（<50μs）
+	  uint8_t cmd_type = frame.data[0];
+	  uint32_t param = *(uint32_t*)&frame.data[1];
+
+	  // 3. ACL查询（<10μs，O(1)直接索引）
+	  const acl_config_t *cfg = &g_acl_table[cmd_type];
+
+	  // 4. 处理命令
+	  if (cmd_type == CMD_TYPE_TELECONTROL) {
+		  // 遥控：放入队列，立即应答
+		  cmd_queue_push(&g_tc_queue, cmd_type, param);
+		  send_response(STATUS_OK, 0);  // <100μs
+
+	  } else if (cmd_type == CMD_TYPE_TELEMETRY) {
+		  // 遥测：根据数据类型处理
+		  if (cfg->data_type == TM_TYPE_CACHED) {
+			  // 缓存型：从共享内存读（<10μs）
+			  telemetry_data_t *data = get_cached_tm(cfg->tm_id);
+			  send_telemetry_response(cfg->tm_id, data);  // <100μs
+		  } else {
+			  // 实时型：优先实时查询，超时降级到缓存
+			  telemetry_data_t data;
+			  tm_freshness_t freshness;
+			  int32_t ret = handle_realtime_telemetry(cfg, &data, &freshness);
+			  
+			  if (ret == OSAL_SUCCESS) {
+				  // 在应答中携带新鲜度标记
+				  send_telemetry_response_with_freshness(cfg->tm_id, &data, freshness);
+			  } else {
+				  // 缓存也无效，返回错误
+				  send_response(STATUS_ERROR, OSAL_ERR_NOT_AVAILABLE);
+			  }
+		  }
+	  }
+
+	  uint64_t end_ns = get_monotonic_ns();
+	  uint64_t latency_us = (end_ns - start_ns) / 1000;
+
+	  // 记录延迟（用于性能分析）
+	  if (latency_us > 2000) {
+		  LOG_WARN("TC", "应答超时: %lu us", latency_us);
+	  }
+  }
+}
+```
+
+#### 8.1.3 Telemetry进程（后台遥测采集）
+
+职责：
+
+- 周期性采集缓存型遥测数据
+
+- 写入共享内存双缓冲区
+
+- 健康监控（服务器、BMC、MCU状态）
+
+- 状态快照（供logger进程归档）
+
+线程架构：
+
+``` text
+telemetry_process (SCHED_OTHER, priority=0, nice=10)
+│
+├── cache_collector_thread（1秒周期）
+│   ├── 采集缓存型遥测：
+│   │   ├── PDL_BMC_ReadSensors（CPU温度、电压、电流）
+│   │   ├── PDL_MCU_GetStatus（板卡温度、电源状态）
+│   │   └── 系统状态（内存、CPU使用率）
+│   ├── 写入双缓冲区：
+│   │   ├── write_idx = read_idx ^ 1;  // 切换缓冲区
+│   │   ├── buffer[write_idx] = new_data;
+│   │   └── atomic_store(&read_idx, write_idx);  // 原子切换
+│   └── 容错：采集失败不影响遥控
+│
+├── health_monitor_thread（5秒周期）
+│   ├── 监控服务器健康状态：
+│   │   ├── BMC连接状态（ping/心跳）
+│   │   ├── 服务器电源状态
+│   │   └── 温度/电压异常检测
+│   ├── 监控MCU状态：
+│   │   ├── CAN通信状态
+│   │   └── 看门狗状态
+│   └── 更新心跳时间戳（供Supervisor监控）
+│
+└── status_snapshot_thread（10秒周期）
+  ├── 生成状态快照：
+  │   ├── 服务器状态（电源、温度、风扇）
+  │   ├── 外设状态（BMC、MCU、FPGA）
+  │   └── 通信状态（CAN、以太网）
+  └── 写入共享内存（供logger进程归档）
+```
+
+双缓冲设计（无锁）：
+
+``` C 
+typedef struct {
+  float cpu_temp;
+  float board_temp;
+  float voltage_12v;
+  float voltage_5v;
+  float current;
+  uint32_t fan_speed;
+  uint64_t timestamp_ns;
+  tm_freshness_t freshness;  // 新增：新鲜度标记
+  bool valid;
+} telemetry_data_t;
+
+typedef struct {
+  telemetry_data_t buffer[2];
+  _Atomic uint32_t read_index;   // 0或1
+} telemetry_cache_t;
+
+// 全局遥测缓存（所有遥测项，包括实时型）
+typedef struct {
+  telemetry_data_t data;
+  uint64_t timestamp_ns;
+  tm_freshness_t freshness;   // FRESH / STALE / INVALID
+  bool valid;
+} telemetry_cache_entry_t;
+
+static telemetry_cache_entry_t g_tm_cache[TM_FUNC_MAX];
+
+// 写入（telemetry进程）
+void update_telemetry_cache(telemetry_cache_t *cache, const telemetry_data_t *data)
+{
+  uint32_t read_idx = atomic_load(&cache->read_index);
+  uint32_t write_idx = read_idx ^ 1;  // 切换缓冲区
+
+  cache->buffer[write_idx] = *data;   // 写入新数据
+
+  atomic_store(&cache->read_index, write_idx);  // 原子切换
+}
+
+// 读取（telecommand进程）
+void get_cached_telemetry(telemetry_cache_t *cache, telemetry_data_t *data)
+{
+  uint32_t read_idx = atomic_load(&cache->read_index);
+  *data = cache->buffer[read_idx];  // 无锁读取
+}
+```
+
+**Telemetry进程的采集策略（包括实时型遥测的缓存）**：
+
+```c
+void* cache_collector_thread(void* arg)
+{
+  while (1) {
+	  uint64_t now = get_monotonic_ns();
+	  
+	  // 遍历所有遥测项（包括实时型）
+	  for (uint32_t i = 0; i < TM_FUNC_MAX; i++) {
+		  const acl_tm_config_t *cfg = &g_acl_table.tm_table[i];
+		  telemetry_cache_entry_t *cache = &g_tm_cache[i];
+		  
+		  // 根据数据类型决定采集周期
+		  uint32_t max_age_ms;
+		  if (cfg->data_type == TM_TYPE_REALTIME) {
+			  max_age_ms = 500;   // 实时型：500ms采集一次（作为降级备份）
+		  } else {
+			  max_age_ms = 1000;  // 缓存型：1秒采集一次
+		  }
+		  
+		  uint64_t age_ms = (now - cache->timestamp_ns) / 1000000;
+		  if (age_ms >= max_age_ms) {
+			  // 采集数据
+			  telemetry_data_t data;
+			  int32_t ret = collect_telemetry(cfg, &data);
+			  
+			  if (ret == OSAL_SUCCESS) {
+				  cache->data = data;
+				  cache->timestamp_ns = now;
+				  
+				  // 如果之前是STALE，现在恢复为FRESH
+				  if (cache->freshness == TM_STALE) {
+					  cache->freshness = TM_FRESH;
+					  LOG_INFO("TM", "缓存已更新为FRESH: %d", i);
+				  }
+				  
+				  cache->valid = true;
+			  }
+		  }
+	  }
+	  
+	  OSAL_TaskDelay(100);  // 100ms周期检查
+  }
+}
+```
+
+#### 8.1.4 Firmware进程（固件升级管理）
+
+职责：
+
+- 管理板固件升级（主备分区A/B）
+
+- FPGA固件升级
+
+- 固件校验和恢复
+
+- 升级期间不会收到遥控遥测（卫星平台保证）
+
+线程架构：
+
+``` text
+firmware_process (SCHED_BATCH, nice=19)
+│
+├── upgrade_control_thread（低优先级）
+│   ├── 接收升级命令（从卫星平台）
+│   ├── 下载固件数据（分片传输）
+│   ├── 写入备份分区（A/B切换）
+│   └── 升级流程：
+│       1. 接收升级命令 → 进入升级模式
+│       2. 擦除备份分区
+│       3. 接收固件数据（分片，带CRC校验）
+│       4. 写入备份分区
+│       5. 校验固件完整性（CRC32/SHA256）
+│       6. 设置启动标志（原子操作）
+│       7. 重启系统（从备份分区启动）
+│       8. 启动成功 → 提交升级
+│       9. 启动失败 → 自动回滚到主分区
+│
+└── verify_thread（低优先级）
+  ├── CRC32校验
+  ├── 签名验证（可选，航天级要求）
+  └── 分区切换（原子操作）
+```
+
+主备分区机制：
+
+``` C
+typedef struct {
+  uint32_t magic;           // 魔数：0xDEADBEEF
+  uint32_t version;         // 固件版本
+  uint32_t size;            // 固件大小
+  uint32_t crc32;           // CRC32校验
+  uint8_t  sha256[32];      // SHA256签名（可选）
+  uint32_t boot_count;      // 启动次数
+  uint32_t boot_success;    // 启动成功标志
+} firmware_header_t;
+
+// 启动逻辑（Bootloader）
+if (partition_B.boot_success == 0 && partition_B.boot_count < 3) {
+  // 尝试从B分区启动
+  boot_from_partition_B();
+  partition_B.boot_count++;
+} else if (partition_B.boot_count >= 3) {
+  // B分区启动失败3次，回滚到A分区
+  boot_from_partition_A();
+  partition_B.boot_success = 0;
+  partition_B.boot_count = 0;
+} else {
+  // 正常从A分区启动
+  boot_from_partition_A();
+}
+
+// 应用启动后（firmware进程）
+if (current_partition == B && boot_count > 0) {
+  // 标记启动成功
+  partition_B.boot_success = 1;
+  partition_B.boot_count = 0;
+}
+```
+
+#### 8.1.5 Logger进程（日志收集）
+
+职责：
+
+- 收集所有进程的运行日志
+
+- 收集服务器和外设状态信息
+
+- 收集崩溃日志和coredump
+
+- 日志轮转和压缩
+
+- 日志持久化到Flash
+
+线程架构：
+
+``` text
+logger_process (SCHED_OTHER, priority=0, nice=10)
+│
+├── log_collector_thread（实时收集）
+│   ├── 从共享内存日志环形缓冲区读取日志
+│   ├── 日志来源：
+│   │   ├── Supervisor进程日志
+│   │   ├── Telecommand进程日志
+│   │   ├── Telemetry进程日志
+│   │   ├── Firmware进程日志
+│   │   └── 内核日志（dmesg）
+│   ├── 日志分类：
+│   │   ├── ERROR：错误日志（立即写入Flash）
+│   │   ├── WARN：警告日志
+│   │   ├── INFO：信息日志
+│   │   └── DEBUG：调试日志（可配置关闭）
+│   └── 写入日志文件：
+│       ├── /var/log/pmc/supervisor.log
+│       ├── /var/log/pmc/telecommand.log
+│       ├── /var/log/pmc/telemetry.log
+│       └── /var/log/pmc/firmware.log
+│
+├── status_archiver_thread（10秒周期）
+│   ├── 从共享内存读取状态快照
+│   ├── 归档内容：
+│   │   ├── 服务器状态：
+│   │   │   ├── 电源状态（开/关/未知）
+│   │   │   ├── CPU温度、板卡温度
+│   │   │   ├── 电压（12V/5V/3
+│   │   │   ├── 电流、功率
+│   │   │   └── 风扇转速
+│   │   ├── 外设状态：
+│   │   │   ├── BMC连接状态（主通道/备份通道）
+│   │   │   ├── MCU通信状态（CAN总线状态）
+│   │   │   ├── FPGA状态（配置状态、温度）
+│   │   │   └── 看门狗状态
+│   │   ├── 通信状态：
+│   │   │   ├── CAN总线统计（收发计数、错误计数）
+│   │   │   ├── 以太网统计（丢包率、延迟）
+│   │   │   └── 串口统计
+│   │   └── 系统状态：
+│   │       ├── CPU使用率、内存使用率
+│   │       ├── 进程状态（运行/崩溃/重启次数）
+│   │       └── 系统运行时间
+│   └── 写入状态日志：
+│       └── /var/log/pmc/status.log（JSON格式）
+│
+├── crash_analyzer_thread（事件触发）
+│   ├── 监听进程崩溃信号（SIGCHLD）
+│   ├── 收集崩溃信息：
+│   │   ├── 进程名称、PID
+│   │   ├── 崩溃时间、信号类型（SIGSEGV/SIGABRT）
+│   │   ├── 崩溃前日志（最后100行）
+│   │   ├── Coredump文件（如果启用）
+│   │   └── 调用栈（backtrace）
+│   ├── 生成崩溃报告：
+│   │   └── /var/log/pmc/crash/crash_<timestamp>.log
+│   └── 通知Supervisor（触发重启）
+│
+└── log_rotator_thread（每小时执行）
+  ├── 日志轮转策略：
+  │   ├── 单个日志文件最大10MB
+  │   ├── 保留最近7天日志
+  │   ├── 超过限制自动压缩（gzip）
+  │   └── 压缩后移动到归档目录
+  ├── 日志文件管理：
+  │   ├── /var/log/pmc/*.log（当前日志）
+  │   ├── /var/log/pmc/archive/*.log.gz（归档日志）
+  │   └── /var/log/pmc/crash/*.log（崩溃日志，永久保留）
+  └── Flash空间管理：
+	  ├── 监控Flash剩余空间
+	  ├── 空间不足时删除最旧归档
+	  └── 保留最近24小时日志（不可删除）
+```
+
+共享内存日志环形缓冲区：
+
+``` C
+#define LOG_RING_BUFFER_SIZE (1024 * 1024)  // 1MB
+
+typedef struct {
+  uint64_t timestamp_ns;
+  uint32_t pid;
+  uint8_t  level;  // ERROR/WARN/INFO/DEBUG
+  char     module[16];
+  char     message[256];
+} log_entry_t;
+
+typedef struct {
+  log_entry_t entries[4096];  // 环形缓冲区
+  _Atomic uint32_t write_index;
+  _Atomic uint32_t read_index;
+  _Atomic uint32_t lost_count;  // 丢失日志计数
+} log_ring_buffer_t;
+
+// 写入日志（各进程）
+void LOG_Write(uint8_t level, const char *module, const char *fmt, .)
+{
+  log_entry_t entry;
+  entry.timestamp_ns = get_monotonic_ns();
+  entry.pid = getpid();
+  entry.level = level;
+  strncpy(entry.module, module, 16);
+
+  va_list args;
+  va_start(args, fmt);
+  vsnprintf(entry.message, 256, fmt, args);
+  va_end(args);
+
+  uint32_t write_idx = atomic_fetch_add(&g_log_buffer->write_index, 1) % 4096;
+  g_log_buffer->entries[write_idx] = entry;
+}
+
+// 读取日志（logger进程）
+bool LOG_Read(log_entry_t *entry)
+{
+  uint32_t read_idx = atomic_load(&g_log_buffer->read_index);
+  uint32_t write_idx = atomic_load(&g_log_buffer->write_index);
+
+  if (read_idx == write_idx) {
+	  return false;  // 无新日志
+  }
+
+  *entry = g_log_buffer->entries[read_idx % 4096];
+  atomic_store(&g_log_buffer->read_index, read_idx + 1);
+  return true;
+}
+```
+
+日志格式示例：
+
+1. 运行日志（/var/log/pmc/telecommand.log）
+
+``` text
+2026-05-16 10:23:45.123456 [INFO] [TC] CAN命令接收: cmd=0x01, param=0x00
+2026-05-16 10:23:45.123789 [INFO] [TC] ACL查询: TC_POWER_ON -> BMC[0]
+2026-05-16 10:23:45.124012 [INFO] [TC] 应答发送: status=OK, latency=556us
+2026-05-16 10:23:46.234567 [ERROR] [TC] BMC通信超时: ip=192.168.1.100, timeout=500ms
+2026-05-16 10:23:46.234890 [WARN] [TC] 切换到备份通道: IPMI over Serial
+```
+
+2. 状态日志（/var/log/pmc/status.log，JSON格式）
+
+``` json
+{
+"timestamp": "2026-05-16T10:23:50.000Z",
+"server": {
+  "power_state": "on",
+  "cpu_temp": 65.5,
+  "board_temp": 45.2,
+  "voltage_12v": 12.05,
+  "voltage_5v": 5.02,
+  "current": 3.5,
+  "fan_speed": 4500
+},
+"peripherals": {
+  "bmc": {
+	"connected": true,
+	"channel": "primary",
+	"protocol": "redfish",
+	"response_time_ms": 120
+  },
+  "mcu": {
+	"connected": true,
+	"can_status": "ok",
+	"temp": 42.0,
+	"watchdog_enabled": true
+  },
+  "fpga": {
+	"temp": 55.0
+  }
+},
+"communication": {
+  "can": {
+	"tx_count": 12345,
+	"rx_count": 12340,
+	"error_count": 5
+  },
+  "ethernet": {
+	"packet_loss": 0.01,
+	"latency_ms": 2.5
+  }
+},
+"system": {
+  "cpu_usage": 35.5,
+  "memory_usage": 45.2,
+  "uptime_sec": 86400,
+  "processes": {
+	"telecommand": "running",
+	"telemetry": "running",
+	"firmware": "running",
+	"logger": "running"
+  }
+}
+}
+```
+
+3. 崩溃日志（/var/log/pmc/crash/crash_20260516_102350.log）
+
+``` text
+=== Process Crash Report ===
+Time: 2026-05-16 10:23:50.123456
+Process: telemetry
+PID: 1234
+Signal: SIGSEGV (Segmentation fault)
+Address: 0x00000000 (NULL pointer dereference)
+
+=== Last 10 Log Entries ===
+2026-05-16 10:23:49.123456 [INFO] [TM] 开始采集遥测数据
+2026-05-16 10:23:49.234567 [INFO] [TM] BMC传感器读取成功
+2026-05-16 10:23:49.345678 [ERROR] [TM] MCU通信失败: timeout
+2026-05-16 10:23:50.123456 [ERROR] [TM] 进程崩溃: SIGSEGV
+
+=== Backtrace ===
+#0  0x00007f1234567890 in cache_collector_thread () at telemetry.c:123
+#1  0x00007f1234567900 in pthread_start () at pthread.c:456
+#2  0x00007f1234567910 in clone () at clone.S:78
+
+=== Coredump ===
+Coredump saved to: /var/log/pmc/crash/core.1234
+
+=== Recovery Action ===
+Supervisor restarted telemetry process at 2026-05-16 10:23:51.000000
+```
+
+---
+
+
+
+### 8.2. 可靠性设计
+
+#### 8.2.1 三级故障恢复
+
+| 级别              | 触发条件                     | 恢复机制                 | 恢复时间 | 适用场景                  |
+| ----------------- | ---------------------------- | ------------------------ | -------- | ------------------------- |
+| **级别1：线程级** | 线程崩溃                     | 进程内检测并重启线程     | <100ms   | 非关键线程（如日志线程）  |
+| **级别2：进程级** | 进程崩溃                     | Supervisor检测并重启进程 | <1秒     | 所有进程（5次/300秒限制） |
+| **级别3：系统级** | Supervisor崩溃或进程重启超限 | 硬件看门狗触发系统复位   | 10秒     | 系统级故障，从主分区启动  |
+
+#### 8.2.2 进程隔离效果
+
+| 场景      | 崩溃进程        | 检测机制           | 恢复时间 | 影响范围                                                     | 恢复后状态                                       |
+| --------- | --------------- | ------------------ | -------- | ------------------------------------------------------------ | ------------------------------------------------ |
+| **场景1** | Telemetry进程   | Supervisor心跳超时 | <1秒     | 缓存型遥测返回旧数据（标记stale）<br>实时型遥测正常<br>遥控功能不受影响 | 1秒内恢复正常采集                                |
+| **场景2** | Telecommand进程 | Supervisor心跳超时 | <1秒     | 遥控遥测短暂中断<br>卫星平台检测到心跳丢失                   | 立即恢复通信<br>连续崩溃5次→系统复位             |
+| **场景3** | Firmware进程    | Supervisor心跳超时 | <1秒     | 固件升级中断<br>遥控遥测不受影响                             | 未完成→保持当前分区<br>已完成→下次从备份分区启动 |
+
+#### 8.2.3 辐射容错
+
+单粒子翻转（SEU）防护：
+
+``` C
+// 1. 进程级隔离
+//    SEU翻转只影响单个进程地址空间
+//    其他进程不受影响
+
+// 2. 关键数据保护
+typedef struct {
+  uint32_t magic;      // 魔数：0xDEADBEEF
+  uint32_t data;       // 实际数据
+  uint32_t crc32;      // CRC32校验
+} protected_data_t;
+
+// 3. 周期性校验（每秒）
+void verify_critical_data(protected_data_t *data)
+{
+  if (data->magic != 0xDEADBEEF || calc_crc32(&data->data) != data->crc32) {
+	  LOG_ERROR("SEU", "数据损坏检测，恢复中.");
+	  restore_from_backup(data);
+  }
+}
+
+// 4. 共享内存ECC保护（硬件支持）
+//    使用支持ECC的DDR内存
+//    单比特错误自动纠正
+//    双比特错误触发中断
+
+单粒子闩锁（SEL）防护：
+// 1. 硬件看门狗强制复位
+//    Supervisor喂狗周期：5秒
+//    看门狗超时：10秒
+//    超时后硬件复位
+
+// 2. 电源监控芯片
+//    监控异常电流（SEL特征）
+//    检测到异常 → 触发电源复位
+```
+
+#### 8.2.4 降级运行模式
+
+| 模式          | 运行进程                        | 可用功能                                | 受限功能             | 触发条件             |
+| ------------- | ------------------------------- | --------------------------------------- | -------------------- | -------------------- |
+| **正常模式**  | 全部4个进程                     | 遥控、遥测（缓存+实时）、固件升级、日志 | 无                   | 系统正常运行         |
+| **降级模式1** | Telecommand + Firmware + Logger | 遥控、实时型遥测、固件升级、日志        | 缓存型遥测返回旧数据 | Telemetry进程崩溃    |
+| **降级模式2** | Telecommand + Logger            | 遥控、日志                              | 遥测功能不可用       | Telemetry连续崩溃5次 |
+| **安全模式**  | 仅Supervisor                    | 喂看门狗                                | 遥控遥测全部不可用   | Telecommand进程禁用  |
+| **系统复位**  | 重启中                          | 无                                      | 全部功能暂停         | 硬件看门狗触发       |
+
+---
+
+### 8.3. 单核SoC优化策略
+
+#### 8.3.1 CPU调度优化
+
+``` C
+// 1. Telecommand进程：实时调度，最高优先级
+struct sched_param param;
+param.sched_priority = 99;
+sched_setscheduler(0, SCHED_FIFO, &param);
+
+// 2. Telemetry进程：普通调度，低优先级
+param.sched_priority = 0;
+sched_setscheduler(0, SCHED_OTHER, &param);
+setpriority(PRIO_PROCESS, 0, 10);  // nice=10
+
+// 3. Firmware进程：批处理调度，最低优先级
+sched_setscheduler(0, SCHED_BATCH, &param);
+setpriority(PRIO_PROCESS, 0, 19);  // nice=19
+
+// 4. Logger进程：普通调度，低优先级
+param.sched_priority = 0;
+sched_setscheduler(0, SCHED_OTHER, &param);
+setpriority(PRIO_PROCESS, 0, 10);  // nice=10
+
+// 5. CPU亲和性绑定（单核SoC绑定到CPU0）
+cpu_set_t cpuset;
+CPU_ZERO(&cpuset);
+CPU_SET(0, &cpuset);
+sched_setaffinity(0, sizeof(cpuset), &cpuset);
+```
+
+调度效果：
+
+**CPU时间片分配（单核）**：
+
+| 进程        | 调度策略    | 优先级  | CPU时间片分配         | 说明                      |
+| ----------- | ----------- | ------- | --------------------- | ------------------------- |
+| Telecommand | SCHED_FIFO  | 99      | 抢占所有其他进程      | 独占CPU时间片，保证实时性 |
+| Telemetry   | SCHED_OTHER | nice=10 | Telecommand空闲时运行 | 后台采集，不影响实时性    |
+| Logger      | SCHED_OTHER | nice=10 | Telecommand空闲时运行 | 日志收集，低优先级        |
+| Firmware    | SCHED_BATCH | nice=19 | 系统空闲时运行        | 最低优先级，升级时独占    |
+
+**实时性保证**：
+
+| 场景          | 处理流程               | 实时性保证   |
+| ------------- | ---------------------- | ------------ |
+| 遥控命令到达  | Telecommand立即抢占CPU | 2ms内应答    |
+| 快遥/慢遥到达 | Telecommand立即抢占CPU | 2ms内应答    |
+| 后台采集      | Telemetry在空闲时运行  | 不影响实时性 |
+
+#### 8.3.2 中断优化
+
+``` shell
+# 1. CAN中断线程化（Linux PREEMPT_RT内核）
+
+chrt -f 98 $(pgrep irq/.*can)
+
+# 2. 禁用不必要的中断
+
+echo 0 > /proc/irq/XX/smp_affinity  # 禁用非关键中断
+
+# 3. 中断亲和性绑定到CPU0
+
+echo 1 > /proc/irq/YY/smp_affinity  # CAN中断绑定到CPU0
+```
+
+#### 8.3.3 内存优化
+
+``` C
+// 1. 预分配所有内存（避免运行时分配）
+static telemetry_cache_t g_tm_cache;
+static cmd_queue_t g_cmd_queue[256];
+static uint8_t g_can_tx_buffer[1024];
+static uint8_t g_can_rx_buffer[1024];
+
+// 2. 锁定内存（避免swap和缺页中断）
+mlockall(MCL_CURRENT | MCL_FUTURE);
+
+// 3. 使用栈内存（避免堆分配）
+void handle_command(void)
+{
+  uint8_t buffer[1024];  // 栈分配，无malloc开销
+  // .
+}
+
+// 4. 共享内存使用大页（减少TLB miss）
+int shm_fd = shm_open("/pmc_shm", O_CREAT | O_RDWR, 0666);
+ftruncate(shm_fd, 2 * 1024 * 1024);  // 2MB
+void *shm = mmap(NULL, 2 * 1024 * 1024, PROT_READ | PROT_WRITE,
+			   MAP_SHARED | MAP_HUGETLB, shm_fd, 0);
+```
+
+#### 8.3.4 缓存优化
+
+``` C
+// 1. 数据结构对齐（避免false sharing）
+typedef struct {
+  _Atomic uint32_t read_index;
+  uint8_t padding1[60];  // 填充到64字节（缓存行大小）
+  _Atomic uint32_t write_index;
+  uint8_t padding2[60];
+} cache_aligned_queue_t;
+
+// 2. 热路径数据局部性
+typedef struct {
+  // 热数据（频繁访问）
+  _Atomic uint64_t heartbeat;
+  uint32_t cmd_count;
+  uint32_t error_count;
+
+  // 冷数据（偶尔访问）
+  char name[64];
+  uint32_t config_flags;
+} hot_cold_separated_t;
+
+// 3. 预取关键数据
+__builtin_prefetch(&g_acl_table, 0, 3);  // 预取ACL查找表
+
+```
+
+---
+
+### 8.4 进程系统配置
+
+```ini
+# /etc/pmc/pmc.conf
+
+# PMC系统配置文件
+
+[system]
+platform = ti/am625
+product = pmc_v1
+version = 1.0.0
+
+[supervisor]
+heartbeat_interval_ms = 2000
+heartbeat_timeout_ms = 5000
+watchdog_feed_interval_ms = 5000
+max_restart_count = 5
+restart_window_sec = 300
+
+[telecommand]
+sched_policy = SCHED_FIFO
+sched_priority = 99
+cpu_affinity = 0
+memory_lock = true
+can_device = can0
+can_bitrate = 500000
+cmd_timeout_ms = 100
+
+[telemetry]
+sched_policy = SCHED_OTHER
+sched_priority = 0
+nice = 10
+cache_collect_interval_ms = 1000
+health_check_interval_ms = 5000
+status_snapshot_interval_ms = 10000
+
+[firmware]
+sched_policy = SCHED_BATCH
+nice = 19
+partition_a = /dev/mmcblk0p1
+partition_b = /dev/mmcblk0p2
+max_boot_attempts = 3
+
+[logger]
+sched_policy = SCHED_OTHER
+nice = 10
+log_level = INFO
+log_dir = /var/log/pmc
+max_log_size_mb = 10
+max_archive_days = 7
+crash_log_dir = /var/log/pmc/crash
+
+```
 
 ---
 
@@ -6155,11 +6156,11 @@ kill -HUP $(pgrep pmc_logger)
 
 技术支持：
 
-- 邮箱：support@pmc-project.com
+- 邮箱：guohaoprc@163.com
 
-- 文档：https://docs.pmc-project.com
+- 文档：https://github.com/wanguo99/EMS/tree/master/docs
 
-- 问题跟踪：https://github.com/pmc-project/issues
+- 问题跟踪：https://github.com/wanguo99/EMS/issues
 
 ---
 验证清单
@@ -6226,24 +6227,5 @@ kill -HUP $(pgrep pmc_logger)
 
 ---
 方案版本：v1.0
-最后更新：2026-05-16
-作者：EMS Architecture Team
-审核：待审核
-
----
-方案涵盖了：
-
-1. ✅ **2ms硬实时**：关键路径优化、实时调度
-
-2. ✅ **航空级可靠性**：进程隔离、三级故障恢复、抗辐射
-
-3. ✅ **单核SoC优化**：CPU绑定、内存锁定、调度优化
-
-4. ✅ **遥测分类**：缓存型/实时型
-
-5. ✅ **完整日志**：运行日志、状态日志、崩溃日志
-
-6. ✅ **详细实施计划**：14周分阶段实施
-
-7. ✅ **验证方案**：功能、性能、可靠性测试
-
+最后更新：2026-05-17
+作者：wanguo
