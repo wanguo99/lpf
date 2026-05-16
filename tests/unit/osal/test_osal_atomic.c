@@ -289,19 +289,177 @@ TEST_CASE(test_atomic_boundary_values)
 }
 
 /*===========================================================================
+ * 64位原子操作测试
+ *===========================================================================*/
+
+TEST_CASE(test_atomic64_init_and_load)
+{
+    osal_atomic_uint64_t atomic;
+
+    /* 测试初始化为0 */
+    OSAL_AtomicInit64(&atomic, 0);
+    TEST_ASSERT_EQUAL(0ULL, OSAL_AtomicLoad64(&atomic));
+
+    /* 测试初始化为大值 */
+    OSAL_AtomicInit64(&atomic, 0x123456789ABCDEF0ULL);
+    TEST_ASSERT_EQUAL(0x123456789ABCDEF0ULL, OSAL_AtomicLoad64(&atomic));
+
+    /* 测试初始化为最大值 */
+    OSAL_AtomicInit64(&atomic, UINT64_MAX);
+    TEST_ASSERT_EQUAL(UINT64_MAX, OSAL_AtomicLoad64(&atomic));
+}
+
+TEST_CASE(test_atomic64_store)
+{
+    osal_atomic_uint64_t atomic;
+
+    OSAL_AtomicInit64(&atomic, 0);
+
+    /* 测试存储不同值 */
+    OSAL_AtomicStore64(&atomic, 1000000000000ULL);
+    TEST_ASSERT_EQUAL(1000000000000ULL, OSAL_AtomicLoad64(&atomic));
+
+    OSAL_AtomicStore64(&atomic, 0xFEDCBA9876543210ULL);
+    TEST_ASSERT_EQUAL(0xFEDCBA9876543210ULL, OSAL_AtomicLoad64(&atomic));
+}
+
+TEST_CASE(test_atomic64_increment_decrement)
+{
+    osal_atomic_uint64_t atomic;
+
+    OSAL_AtomicInit64(&atomic, 1000000000000ULL);
+
+    /* 测试自增 */
+    TEST_ASSERT_EQUAL(1000000000001ULL, OSAL_AtomicIncrement64(&atomic));
+    TEST_ASSERT_EQUAL(1000000000001ULL, OSAL_AtomicLoad64(&atomic));
+
+    /* 测试自减 */
+    TEST_ASSERT_EQUAL(1000000000000ULL, OSAL_AtomicDecrement64(&atomic));
+    TEST_ASSERT_EQUAL(1000000000000ULL, OSAL_AtomicLoad64(&atomic));
+}
+
+TEST_CASE(test_atomic64_fetch_add_sub)
+{
+    osal_atomic_uint64_t atomic;
+
+    OSAL_AtomicInit64(&atomic, 1000000000000ULL);
+
+    /* 测试fetch_add */
+    uint64_t old_value = OSAL_AtomicFetchAdd64(&atomic, 500000000000ULL);
+    TEST_ASSERT_EQUAL(1000000000000ULL, old_value);
+    TEST_ASSERT_EQUAL(1500000000000ULL, OSAL_AtomicLoad64(&atomic));
+
+    /* 测试fetch_sub */
+    old_value = OSAL_AtomicFetchSub64(&atomic, 300000000000ULL);
+    TEST_ASSERT_EQUAL(1500000000000ULL, old_value);
+    TEST_ASSERT_EQUAL(1200000000000ULL, OSAL_AtomicLoad64(&atomic));
+}
+
+TEST_CASE(test_atomic64_compare_exchange)
+{
+    osal_atomic_uint64_t atomic;
+
+    OSAL_AtomicInit64(&atomic, 0x123456789ABCDEF0ULL);
+
+    /* 测试CAS成功 */
+    bool result = OSAL_AtomicCompareExchange64(&atomic, 0x123456789ABCDEF0ULL, 0xFEDCBA9876543210ULL);
+    TEST_ASSERT_TRUE(result);
+    TEST_ASSERT_EQUAL(0xFEDCBA9876543210ULL, OSAL_AtomicLoad64(&atomic));
+
+    /* 测试CAS失败 */
+    result = OSAL_AtomicCompareExchange64(&atomic, 0x123456789ABCDEF0ULL, 0x1111111111111111ULL);
+    TEST_ASSERT_FALSE(result);
+    TEST_ASSERT_EQUAL(0xFEDCBA9876543210ULL, OSAL_AtomicLoad64(&atomic));
+}
+
+TEST_CASE(test_atomic64_overflow)
+{
+    osal_atomic_uint64_t atomic;
+
+    /* 测试上溢 */
+    OSAL_AtomicInit64(&atomic, UINT64_MAX);
+    OSAL_AtomicIncrement64(&atomic);
+    TEST_ASSERT_EQUAL(0ULL, OSAL_AtomicLoad64(&atomic));
+
+    /* 测试下溢 */
+    OSAL_AtomicInit64(&atomic, 0);
+    OSAL_AtomicDecrement64(&atomic);
+    TEST_ASSERT_EQUAL(UINT64_MAX, OSAL_AtomicLoad64(&atomic));
+}
+
+/* 64位原子时间戳多线程测试 */
+typedef struct {
+    osal_atomic_uint64_t *timestamp;
+    uint32_t iterations;
+} atomic64_thread_data_t;
+
+static void* atomic64_increment_thread(void *arg)
+{
+    atomic64_thread_data_t *data = (atomic64_thread_data_t *)arg;
+
+    for (uint32_t i = 0; i < data->iterations; i++) {
+        OSAL_AtomicIncrement64(data->timestamp);
+    }
+
+    return NULL;
+}
+
+TEST_CASE(test_atomic64_multithread_timestamp)
+{
+    osal_atomic_uint64_t timestamp;
+    osal_thread_t threads[THREAD_COUNT];
+    atomic64_thread_data_t thread_data[THREAD_COUNT];
+
+    OSAL_AtomicInit64(&timestamp, 0);
+
+    /* 创建多个线程同时更新时间戳 */
+    for (int32_t i = 0; i < THREAD_COUNT; i++) {
+        thread_data[i].timestamp = &timestamp;
+        thread_data[i].iterations = ITERATIONS_PER_THREAD;
+
+        int32_t ret = OSAL_ThreadCreate(&threads[i],
+                                       atomic64_increment_thread, &thread_data[i]);
+        TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
+    }
+
+    /* 等待所有线程完成 */
+    OSAL_msleep(1000);
+
+    /* 验证时间戳值 */
+    uint64_t expected = (uint64_t)THREAD_COUNT * ITERATIONS_PER_THREAD;
+    uint64_t actual = OSAL_AtomicLoad64(&timestamp);
+    TEST_ASSERT_EQUAL(expected, actual);
+
+    /* 清理线程 */
+    for (int32_t i = 0; i < THREAD_COUNT; i++) {
+        OSAL_ThreadJoin(threads[i]);
+    }
+}
+
+/*===========================================================================
  * 测试套件注册
  *===========================================================================*/
 
 TEST_MODULE_BEGIN(test_osal_atomic, "OSAL")
-    TEST_CASE_REGISTER(test_atomic_init_and_load, "Init and load")
-    TEST_CASE_REGISTER(test_atomic_store, "Store")
-    TEST_CASE_REGISTER(test_atomic_increment, "Increment")
-    TEST_CASE_REGISTER(test_atomic_decrement, "Decrement")
-    TEST_CASE_REGISTER(test_atomic_fetch_add, "Fetch add")
-    TEST_CASE_REGISTER(test_atomic_fetch_sub, "Fetch sub")
-    TEST_CASE_REGISTER(test_atomic_compare_exchange, "Compare exchange")
-    TEST_CASE_REGISTER(test_atomic_multithread_increment, "Multithread increment")
-    TEST_CASE_REGISTER(test_atomic_multithread_cas, "Multithread CAS")
-    TEST_CASE_REGISTER(test_atomic_overflow, "Overflow")
-    TEST_CASE_REGISTER(test_atomic_boundary_values, "Boundary values")
+    /* 32位原子操作测试 */
+    TEST_CASE_REGISTER(test_atomic_init_and_load, "32-bit init and load")
+    TEST_CASE_REGISTER(test_atomic_store, "32-bit store")
+    TEST_CASE_REGISTER(test_atomic_increment, "32-bit increment")
+    TEST_CASE_REGISTER(test_atomic_decrement, "32-bit decrement")
+    TEST_CASE_REGISTER(test_atomic_fetch_add, "32-bit fetch add")
+    TEST_CASE_REGISTER(test_atomic_fetch_sub, "32-bit fetch sub")
+    TEST_CASE_REGISTER(test_atomic_compare_exchange, "32-bit compare exchange")
+    TEST_CASE_REGISTER(test_atomic_multithread_increment, "32-bit multithread increment")
+    TEST_CASE_REGISTER(test_atomic_multithread_cas, "32-bit multithread CAS")
+    TEST_CASE_REGISTER(test_atomic_overflow, "32-bit overflow")
+    TEST_CASE_REGISTER(test_atomic_boundary_values, "32-bit boundary values")
+
+    /* 64位原子操作测试 */
+    TEST_CASE_REGISTER(test_atomic64_init_and_load, "64-bit init and load")
+    TEST_CASE_REGISTER(test_atomic64_store, "64-bit store")
+    TEST_CASE_REGISTER(test_atomic64_increment_decrement, "64-bit increment/decrement")
+    TEST_CASE_REGISTER(test_atomic64_fetch_add_sub, "64-bit fetch add/sub")
+    TEST_CASE_REGISTER(test_atomic64_compare_exchange, "64-bit compare exchange")
+    TEST_CASE_REGISTER(test_atomic64_overflow, "64-bit overflow")
+    TEST_CASE_REGISTER(test_atomic64_multithread_timestamp, "64-bit multithread timestamp")
 TEST_MODULE_END(test_osal_atomic, "OSAL")
