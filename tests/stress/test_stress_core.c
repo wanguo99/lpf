@@ -63,14 +63,14 @@ static void* worker_thread_func(void *arg) {
         double latency_us = (double)(end_us - start_us);
 
         /* 更新统计 */
-        OSAL_AtomicInc64(&ctx->total_operations);
+        OSAL_AtomicIncrement64(&ctx->total_operations);
 
         if (result == 0) {
-            OSAL_AtomicInc64(&ctx->successful_ops);
+            OSAL_AtomicIncrement64(&ctx->successful_ops);
         } else if (result == -OSAL_ERR_TIMEOUT) {
-            OSAL_AtomicInc64(&ctx->timeout_ops);
+            OSAL_AtomicIncrement64(&ctx->timeout_ops);
         } else {
-            OSAL_AtomicInc64(&ctx->failed_ops);
+            OSAL_AtomicIncrement64(&ctx->failed_ops);
             if (ctx->config.stop_on_error) {
                 ctx->should_stop = true;
             }
@@ -106,8 +106,8 @@ stress_context_t* stress_context_create(const char *name,
         return NULL;
     }
 
-    OSAL_memset(ctx, 0, sizeof(stress_context_t));
-    OSAL_strncpy(ctx->name, name, sizeof(ctx->name) - 1);
+    OSAL_Memset(ctx, 0, sizeof(stress_context_t));
+    OSAL_Strncpy(ctx->name, name, sizeof(ctx->name) - 1);
     ctx->name[sizeof(ctx->name) - 1] = '\0';
     ctx->config = *config;
 
@@ -116,7 +116,7 @@ stress_context_t* stress_context_create(const char *name,
     OSAL_AtomicInit64(&ctx->successful_ops, 0);
     OSAL_AtomicInit64(&ctx->failed_ops, 0);
     OSAL_AtomicInit64(&ctx->timeout_ops, 0);
-    OSAL_AtomicInit32(&ctx->error_count, 0);
+    OSAL_AtomicInit(&ctx->error_count, 0);
 
     /* 创建互斥锁 */
     if (OSAL_MutexCreate(&ctx->stats_mutex) != 0) {
@@ -125,7 +125,7 @@ stress_context_t* stress_context_create(const char *name,
     }
 
     if (OSAL_MutexCreate(&ctx->error_mutex) != 0) {
-        OSAL_MutexDestroy(ctx->stats_mutex);
+        OSAL_MutexDelete(ctx->stats_mutex);
         OSAL_Free(ctx);
         return NULL;
     }
@@ -136,10 +136,10 @@ stress_context_t* stress_context_create(const char *name,
 void stress_context_destroy(stress_context_t *ctx) {
     if (ctx) {
         if (ctx->stats_mutex) {
-            OSAL_MutexDestroy(ctx->stats_mutex);
+            OSAL_MutexDelete(ctx->stats_mutex);
         }
         if (ctx->error_mutex) {
-            OSAL_MutexDestroy(ctx->error_mutex);
+            OSAL_MutexDelete(ctx->error_mutex);
         }
         OSAL_Free(ctx);
     }
@@ -154,7 +154,7 @@ int32_t stress_run(stress_context_t *ctx,
 
     ctx->running = true;
     ctx->should_stop = false;
-    ctx->start_time_ms = OSAL_GetTime();
+    ctx->start_time_ms = OSAL_GetMonotonicTime() / 1000;
 
     /* 创建工作线程 */
     osal_thread_t *threads = (osal_thread_t*)OSAL_Malloc(
@@ -176,11 +176,9 @@ int32_t stress_run(stress_context_t *ctx,
         args[i].thread_id = i;
 
         char thread_name[32];
-        OSAL_snprintf(thread_name, sizeof(thread_name), "stress_worker_%u", i);
+        OSAL_Snprintf(thread_name, sizeof(thread_name), "stress_worker_%u", i);
 
-        if (OSAL_ThreadCreate(&threads[i], thread_name,
-                              worker_thread_func, &args[i],
-                              OSAL_PRIORITY_NORMAL, 0) != 0) {
+        if (OSAL_ThreadCreate(&threads[i], worker_thread_func, &args[i]) != 0) {
             /* 创建失败，停止已启动的线程 */
             ctx->should_stop = true;
             for (uint32_t j = 0; j < i; j++) {
@@ -194,7 +192,7 @@ int32_t stress_run(stress_context_t *ctx,
         /* Ramp-up延迟 */
         if (ctx->config.ramp_up_sec > 0 && i < ctx->config.thread_count - 1) {
             uint32_t delay_ms = (ctx->config.ramp_up_sec * 1000) / ctx->config.thread_count;
-            OSAL_sleep(delay_ms);
+            OSAL_msleep(delay_ms);
         }
     }
 
@@ -202,7 +200,7 @@ int32_t stress_run(stress_context_t *ctx,
     if (ctx->config.duration_sec > 0) {
         uint32_t elapsed_sec = 0;
         while (elapsed_sec < ctx->config.duration_sec && !ctx->should_stop) {
-            OSAL_sleep(1000);
+            OSAL_msleep(1000);
             elapsed_sec++;
         }
         ctx->should_stop = true;
@@ -232,15 +230,15 @@ int32_t stress_get_stats(stress_context_t *ctx, stress_stats_t *stats) {
         return -1;
     }
 
-    OSAL_memset(stats, 0, sizeof(stress_stats_t));
+    OSAL_Memset(stats, 0, sizeof(stress_stats_t));
 
     stats->total_operations = OSAL_AtomicLoad64(&ctx->total_operations);
     stats->successful_ops = OSAL_AtomicLoad64(&ctx->successful_ops);
     stats->failed_ops = OSAL_AtomicLoad64(&ctx->failed_ops);
     stats->timeout_ops = OSAL_AtomicLoad64(&ctx->timeout_ops);
-    stats->error_count = OSAL_AtomicLoad32(&ctx->error_count);
+    stats->error_count = OSAL_AtomicLoad(&ctx->error_count);
 
-    uint64_t elapsed_ms = OSAL_GetTime() - ctx->start_time_ms;
+    uint64_t elapsed_ms = (OSAL_GetMonotonicTime() / 1000) - ctx->start_time_ms;
     stats->elapsed_time_ms = elapsed_ms;
 
     if (elapsed_ms > 0) {
@@ -295,11 +293,11 @@ void stress_print_report(stress_context_t *ctx) {
 void stress_record_error(stress_context_t *ctx, const char *error_msg) {
     if (!ctx || !error_msg) return;
 
-    OSAL_AtomicInc32(&ctx->error_count);
+    OSAL_AtomicIncrement(&ctx->error_count);
 
     OSAL_MutexLock(ctx->error_mutex);
     if (ctx->error_msg_count < MAX_ERROR_MESSAGES) {
-        OSAL_strncpy(ctx->error_messages[ctx->error_msg_count], error_msg, 127);
+        OSAL_Strncpy(ctx->error_messages[ctx->error_msg_count], error_msg, 127);
         ctx->error_messages[ctx->error_msg_count][127] = '\0';
         ctx->error_msg_count++;
     }

@@ -16,6 +16,14 @@
 extern bool g_test_failed;
 extern const char *g_current_test;
 
+/* Fail test immediately */
+#define TEST_FAIL() \
+    do { \
+        OSAL_Printf("[  FAILED  ] %s:%d\n", __FILE__, __LINE__); \
+        g_test_failed = true; \
+        return; \
+    } while(0)
+
 /* Core assertion - fails test but continues */
 #define TEST_EXPECT(condition) \
     do { \
