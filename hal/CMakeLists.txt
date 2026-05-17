@@ -24,23 +24,23 @@ target_include_directories(hal_public_api INTERFACE
 if(APPLE)
     # macOS平台：使用打桩实现（仅用于编译）
     set(HAL_SOURCES
-        ${HAL_SRC_DIR}/macos/hal_can.c
-        ${HAL_SRC_DIR}/macos/hal_serial.c
-        ${HAL_SRC_DIR}/macos/hal_i2c.c
-        ${HAL_SRC_DIR}/macos/hal_spi.c
-        ${HAL_SRC_DIR}/macos/hal_watchdog.c
-        ${HAL_SRC_DIR}/macos/hal_gpio.c
+        ${HAL_SRC_DIR}/macos/hal_can_macos.c
+        ${HAL_SRC_DIR}/macos/hal_serial_macos.c
+        ${HAL_SRC_DIR}/macos/hal_i2c_macos.c
+        ${HAL_SRC_DIR}/macos/hal_spi_macos.c
+        ${HAL_SRC_DIR}/macos/hal_watchdog_macos.c
+        ${HAL_SRC_DIR}/macos/hal_gpio_macos.c
     )
     message(STATUS "HAL: Using macOS stub implementation (compile-only)")
 else()
     # Linux/其他平台：使用真实硬件实现
     set(HAL_SOURCES
-        ${HAL_SRC_DIR}/linux/hal_can.c
-        ${HAL_SRC_DIR}/linux/hal_serial.c
-        ${HAL_SRC_DIR}/linux/hal_i2c.c
-        ${HAL_SRC_DIR}/linux/hal_spi.c
-        ${HAL_SRC_DIR}/linux/hal_watchdog.c
-        ${HAL_SRC_DIR}/linux/hal_gpio.c
+        ${HAL_SRC_DIR}/linux/hal_can_linux.c
+        ${HAL_SRC_DIR}/linux/hal_serial_linux.c
+        ${HAL_SRC_DIR}/linux/hal_i2c_linux.c
+        ${HAL_SRC_DIR}/linux/hal_spi_linux.c
+        ${HAL_SRC_DIR}/linux/hal_watchdog_linux.c
+        ${HAL_SRC_DIR}/linux/hal_gpio_linux.c
     )
     message(STATUS "HAL: Using Linux hardware implementation")
 endif()
