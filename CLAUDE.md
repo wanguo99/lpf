@@ -56,7 +56,7 @@ cmake --build build -j$(nproc)
 ./build/bin/ems-test -i    # Interactive menu (recommended)
 ./build/bin/ems-test -a    # Run all tests
 ./build/bin/ems-test -L OSAL  # Run OSAL layer tests
-./build/bin/ems-test -m test_osal_task  # Run specific module
+./build/bin/ems-test -m test_osal_task  # Run specific module (without .c extension)
 
 # Busybox-style shortcuts (via symlinks)
 ./build/bin/osal-test -a    # Run only OSAL tests
@@ -96,7 +96,7 @@ Apps → PDL → HAL → OSAL → Linux System Calls
 **HAL** (Hardware Abstraction Layer)
 - **Only layer allowed to include hardware-specific headers** (`<linux/can.h>`, `<net/if.h>`)
 - **Must use OSAL wrappers for all system calls** (never direct `socket()`, `open()`, etc.)
-- Provides: CAN, UART, I2C, SPI drivers
+- Provides: CAN, UART, I2C, SPI, GPIO, Watchdog drivers
 - Platform-specific code in `hal/src/linux/` (future: `ti_am62/`, `nxp_imx8/`)
 
 **PCL** (Peripheral Configuration Library)
@@ -113,7 +113,7 @@ Apps → PDL → HAL → OSAL → Linux System Calls
 
 **Apps** (Application Layer)
 - **Must be completely platform-independent**
-- Currently contains only sample_app (reference implementation)
+- Currently contains sample_app (reference implementation) and watchdog_app (watchdog demonstration)
 
 ## Critical Rules
 
@@ -250,19 +250,39 @@ static void task_entry(void *arg)
 
 **Critical**: Never use `while(1)` - tasks must check `OSAL_TaskShouldShutdown()` for graceful shutdown.
 
+## Buildroot Integration
+
+EMS supports Buildroot integration for embedded Linux systems:
+
+```bash
+# 1. Copy configuration files to Buildroot
+cp -r docs/buildroot/* <buildroot>/package/ems/
+
+# 2. Enable EMS in menuconfig
+make menuconfig
+# Navigate to: Target packages -> Libraries -> ems
+
+# 3. Build
+make ems
+```
+
+Detailed integration guide: [docs/buildroot/README.md](docs/buildroot/README.md)
+
 ## Development Workflows
 
 ### Adding New OSAL Interface
-1. Add interface declaration in `osal/include/`
-2. Implement POSIX version in `osal/src/posix/`
-3. Add unit tests in `tests/osal/`
-4. Update `osal/README.md`
+1. Add interface declaration in `osal/include/` (e.g., `osal_timer.h`)
+2. Implement POSIX version in `osal/src/posix/` (e.g., `osal_timer.c`)
+3. Add unit tests in `tests/unit/osal/` (e.g., `test_osal_timer.c`)
+4. Update `osal/CMakeLists.txt` to include new source file
+5. Update `osal/README.md` if adding major functionality
 
 ### Adding New HAL Driver
-1. Add driver interface in `hal/include/`
-2. Add driver config in `hal/include/config/`
-3. Implement Linux version in `hal/src/linux/` (using OSAL wrappers)
-4. Add unit tests in `tests/hal/`
+1. Add driver interface in `hal/include/` (e.g., `hal_gpio.h`)
+2. Add driver config in `hal/include/config/` (e.g., `hal_gpio_config.h`)
+3. Implement Linux version in `hal/src/linux/` (using OSAL wrappers, e.g., `hal_gpio.c`)
+4. Add unit tests in `tests/unit/hal/` (e.g., `test_hal_gpio.c`)
+5. Update `hal/CMakeLists.txt` to include new driver source
 
 ### Adding New PDL Service
 1. Add service interface in `pdl/include/` (e.g., `pdl_satellite.h`)
@@ -279,10 +299,11 @@ static void task_entry(void *arg)
 
 ### Adding New Test
 1. Create test file in `tests/unit/<layer>/` (e.g., `test_osal_timer.c`)
-2. Use `TEST_MODULE_BEGIN/END` macros
-3. Add source file to `tests/CMakeLists.txt`
+2. Use `TEST_MODULE_BEGIN/END` and `TEST_CASE` macros
+3. Add source file to `tests/CMakeLists.txt` in the appropriate section
 4. Build and run: `cmake --build build && ./build/bin/ems-test -m test_osal_timer`
 5. For fast iteration: `cd build && make osal_tests -j$(nproc) && cd ..`
+6. Test module name should match filename without `.c` extension
 
 **Test template**:
 ```c
@@ -341,10 +362,15 @@ TEST_MODULE_END()
 # Install toolchains on Ubuntu/Debian:
 sudo apt-get install gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu gcc-riscv64-linux-gnu
 
-# Cross-compile
-cmake --preset arm32 && cmake --build build/arm32
-cmake --preset arm64 && cmake --build build/arm64
-cmake --preset riscv64 && cmake --build build/riscv64
+# Cross-compile using toolchain files
+cmake -B build -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/arm32-linux-gnueabihf.cmake
+cmake --build build -j$(nproc)
+
+cmake -B build -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/aarch64-linux-gnu.cmake
+cmake --build build -j$(nproc)
+
+cmake -B build -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/riscv64-linux-gnu.cmake
+cmake --build build -j$(nproc)
 ```
 
 **Architecture-Specific Compiler Flags**:
@@ -353,8 +379,10 @@ cmake --preset riscv64 && cmake --build build/riscv64
 - RISC-V 64: `-march=rv64imafdc -mabi=lp64d`
 
 ### Hardware-Related Test Failures
-- CAN tests require `can0` device
-- Serial tests require `/dev/ttyS0`
+- CAN tests require `can0` or `vcan0` device
+- Serial tests require `/dev/ttyS0` or `/dev/ttyUSB0`
+- GPIO tests require `/sys/class/gpio` access
+- Watchdog tests require `/dev/watchdog` device
 - These failures are expected without hardware
 - Use `-i` interactive mode to skip hardware-dependent tests
 
@@ -389,7 +417,7 @@ sudo ./build/release/bin/ems-test -m test_hal_serial
 
 ```
 build/
-├── bin/              # Executables (sample_app, ems-test)
+├── bin/              # Executables (sample_app, watchdog_app, ems-test, osal-test, hal-test, etc.)
 └── lib/              # Static libraries (libosal.a, libhal.a, libpdl.a, libpcl.a)
 ```
 
@@ -448,26 +476,27 @@ ps -eLf | grep ems-test
 
 ## Project Stats
 
-- **Code Size**: ~22,000 lines (15,500 production + 4,500 test)
-- **Files**: 133 C/H files
-- **Test Coverage**: 142+ test cases across all layers
-  - OSAL: 50+ tests (10 modules)
-  - HAL: 72 tests (CAN, UART, I2C, SPI)
-  - PCL: 5+ tests
-  - PDL: 15+ tests (Satellite, BMC, MCU)
+- **Code Size**: ~23,000 lines (13,000 production + 10,000 test)
+- **Files**: 151 C/H files
+- **Test Coverage**: 406 test cases across all layers
+  - OSAL: 200 tests (19 modules)
+  - HAL: 89 tests (6 modules: CAN, UART, I2C, SPI, GPIO, Watchdog)
+  - PCL: 22 tests
+  - PDL: 95 tests (Satellite, BMC, MCU, Watchdog)
 - **Layers**: 5 (OSAL/HAL/PCL/PDL/Apps)
 - **Platforms**: TI AM6254, vendor_demo (extensible)
-- **Build System**: CMake 3.19+, supports native and cross-compilation
+- **Build System**: CMake 3.16+, supports native and cross-compilation
 
 ## Important Files
 
 - [CMakeLists.txt](CMakeLists.txt) - Main build config
-- [CMakePresets.json](CMakePresets.json) - CMake presets for different targets
 - [build.sh](build.sh) - Build script wrapper
+- [cmake/toolchains/](cmake/toolchains/) - Cross-compilation toolchain files
 - [osal/include/osal.h](osal/include/osal.h) - OSAL main header
 - [osal/include/osal_types.h](osal/include/osal_types.h) - Type definitions
 - [tests/core/main.c](tests/core/main.c) - Test runner entry
 - [apps/sample_app/src/main.c](apps/sample_app/src/main.c) - Sample application
+- [apps/watchdog_app/src/main.c](apps/watchdog_app/src/main.c) - Watchdog application
 
 ## Performance Considerations
 
