@@ -60,14 +60,22 @@ set(PDL_TEST_SOURCES
     unit/pdl/test_pdl_watchdog.c
 )
 
-# System Tests (currently empty)
-set(SYSTEM_TEST_SOURCES
-    # Add system test files here when available
+# Performance Tests (暂时禁用，需要修复API不匹配问题)
+set(PERFORMANCE_TEST_SOURCES
+    # performance/test_perf_core.c
+    # performance/osal/test_perf_osal.c
 )
 
-# Stress Tests (currently empty)
+# Stress Tests (暂时禁用，需要修复API不匹配问题)
 set(STRESS_TEST_SOURCES
-    # Add stress test files here when available
+    # stress/test_stress_core.c
+    # stress/osal/test_stress_osal.c
+)
+
+# System Tests (暂时禁用，需要重写以移除lambda表达式)
+set(SYSTEM_TEST_SOURCES
+    # system/test_system_core.c
+    # system/integration/test_system_integration.c
 )
 
 # Combine all test sources
@@ -76,8 +84,9 @@ set(ALL_TEST_SOURCES
     ${HAL_TEST_SOURCES}
     ${PCL_TEST_SOURCES}
     ${PDL_TEST_SOURCES}
-    ${SYSTEM_TEST_SOURCES}
+    ${PERFORMANCE_TEST_SOURCES}
     ${STRESS_TEST_SOURCES}
+    ${SYSTEM_TEST_SOURCES}
 )
 
 # ============================================================================
@@ -113,6 +122,7 @@ target_link_libraries(ems-test
     ems::pcl
     ems::pdl
     Threads::Threads
+    m  # 数学库（性能测试需要sqrt等函数）
 )
 
 # macOS 不需要 librt

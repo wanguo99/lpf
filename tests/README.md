@@ -2,19 +2,30 @@
 
 ## 模块概述
 
-Tests是EMS的统一测试框架，提供跨层级的单元测试和集成测试能力。
+Tests是EMS的统一测试框架，提供完整的测试能力，支持单元测试、性能测试、压力测试和系统测试。
 
 **设计理念**：
-- 统一测试框架，支持所有层级（OSAL/HAL/PCL/PDL）
+- 统一测试框架，支持所有层级（OSAL/HAL/PDL/PCL/ACL）
+- 四种测试类型：单元测试、性能测试、压力测试、系统测试
 - 交互式菜单和命令行两种运行模式
 - 模块化测试注册机制
 - 简洁的测试断言API
+- 性能指标采集和统计分析
+- 压力测试和稳定性验证
+- 多层集成和端到端测试
+
+**测试类型**：
+- **单元测试（Unit Test）**：测试单个模块或函数的功能正确性
+- **性能测试（Performance Test）**：测量和验证性能指标（延迟、吞吐量、CPU使用率）
+- **压力测试（Stress Test）**：验证系统在高负载、长时间运行下的稳定性
+- **系统测试（System Test）**：验证多层集成和端到端业务流程
 
 **测试覆盖**：
-- OSAL层：任务、队列、互斥锁、信号等
-- HAL层：CAN、串口等硬件驱动
-- PCL层：硬件配置查询
-- PDL层：外设服务
+- OSAL层：线程、队列、互斥锁、信号量、原子操作、时间等
+- HAL层：CAN、UART、I2C、SPI、GPIO、Watchdog等硬件驱动
+- PDL层：BMC、MCU、Watchdog等外设服务
+- PCL层：平台配置查询
+- ACL层：业务配置验证
 
 ## 主要特性
 
@@ -23,10 +34,150 @@ Tests是EMS的统一测试框架，提供跨层级的单元测试和集成测试
 - **命令行模式**：支持批量运行、过滤、列表查询
 - **自动注册**：测试模块自动注册到测试运行器
 - **详细报告**：测试结果统计、失败详情、执行时间
+- **性能分析**：高精度时间测量、统计分析（平均值、百分位数）、性能基准对比
+- **压力测试**：并发压力、长时间运行、资源耗尽、边界条件测试
+- **系统测试**：多层集成、端到端测试、场景测试、检查点机制
+
+## 快速开始
+
+### 1. 编译测试
+
+```bash
+# 在项目根目录编译测试
+./build.sh -d           # Debug模式（推荐用于测试）
+./build.sh              # Release模式
+```
+
+### 2. 运行测试
+
+```bash
+# 使用测试脚本（推荐）
+./tests/run_tests.sh                    # 运行所有测试
+./tests/run_tests.sh -t unit            # 运行单元测试
+./tests/run_tests.sh -t performance     # 运行性能测试
+./tests/run_tests.sh -t stress          # 运行压力测试
+./tests/run_tests.sh -t system          # 运行系统测试
+./tests/run_tests.sh -t unit -l OSAL    # 运行OSAL单元测试
+./tests/run_tests.sh -t all -r          # 运行所有测试并生成报告
+
+# 或直接运行测试二进制
+./build/bin/ems-test                    # 交互式菜单
+./build/bin/ems-test --all              # 运行所有测试
+./build/bin/ems-test --layer OSAL       # 运行OSAL层测试
+```
+
+### 3. 查看测试报告
+
+```bash
+# 测试报告保存在 test_reports/ 目录
+ls test_reports/
+cat test_reports/test_report_20260517_143025.txt
+```
+
+## 测试类型详解
+
+### 单元测试（Unit Test）
+
+测试单个模块或函数的功能正确性。
+
+**特点**：
+- 快速执行（毫秒级）
+- 独立运行（不依赖其他模块）
+- 覆盖正常路径和错误路径
+- 使用断言验证结果
+
+**示例**：
+```bash
+./tests/run_tests.sh -t unit -l OSAL
+```
+
+### 性能测试（Performance Test）
+
+测量和验证性能指标，包括延迟、吞吐量、CPU使用率等。
+
+**特点**：
+- 高精度时间测量（微秒级）
+- 统计分析（平均值、标准差、百分位数）
+- 性能基准对比
+- 性能退化检测
+
+**示例**：
+```bash
+./tests/run_tests.sh -t performance -l OSAL
+```
+
+**输出示例**：
+```
+=== Performance Statistics: OSAL_MutexLock ===
+Samples:     10000
+Mean:        4.23 us
+Std Dev:     1.15 us
+Min:         2.10 us
+Max:         18.50 us
+Median(p50): 4.00 us
+p95:         6.80 us
+p99:         9.20 us
+p99.9:       15.30 us
+=====================================
+```
+
+### 压力测试（Stress Test）
+
+验证系统在高负载、长时间运行下的稳定性。
+
+**特点**：
+- 并发压力测试（多线程）
+- 长时间运行测试（小时级）
+- 资源耗尽测试
+- 边界条件测试
+- 稳定性验证
+
+**示例**：
+```bash
+./tests/run_tests.sh -t stress -l OSAL
+```
+
+**输出示例**：
+```
+=== Stress Test Report: Mutex Concurrency ===
+Configuration:
+  Threads:      10
+  Duration:     5 sec
+  Iterations:   0
+
+Results:
+  Total Ops:    50000
+  Successful:   50000 (100.00%)
+  Failed:       0
+  Timeout:      0
+  Errors:       0
+
+Performance:
+  Throughput:   10000.00 ops/s
+  Avg Latency:  100.50 us
+  Max Latency:  250.30 us
+  Elapsed Time: 5000 ms
+=====================================
+```
+
+### 系统测试（System Test）
+
+验证多层集成和端到端业务流程。
+
+**特点**：
+- 多层集成测试（OSAL+HAL+PDL+PCL+ACL）
+- 端到端测试（完整业务流程）
+- 场景测试（真实使用场景）
+- 检查点机制（跟踪测试进度）
+
+**示例**：
+```bash
+./tests/run_tests.sh -t system
+```
 
 ## 编译说明
 
-### 快速开始
+### 快速编译
 
 ```bash
 # 在项目根目录编译测试

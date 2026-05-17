@@ -128,7 +128,8 @@ static void* gpio_isr_thread(void *arg)
 
     /* 清除初始中断 */
     lseek(ctx->value_fd, 0, SEEK_SET);
-    read(ctx->value_fd, value_str, sizeof(value_str));
+    ssize_t bytes_read = read(ctx->value_fd, value_str, sizeof(value_str));
+    (void)bytes_read;  /* Suppress unused result warning */
 
     while (ctx->running) {
         int ret = poll(&pfd, 1, 1000);  /* 1秒超时 */
@@ -137,7 +138,8 @@ static void* gpio_isr_thread(void *arg)
             if (!ctx->enabled) {
                 /* 清除中断但不调用回调 */
                 lseek(ctx->value_fd, 0, SEEK_SET);
-                read(ctx->value_fd, value_str, sizeof(value_str));
+                bytes_read = read(ctx->value_fd, value_str, sizeof(value_str));
+                (void)bytes_read;  /* Suppress unused result warning */
                 continue;
             }
 
