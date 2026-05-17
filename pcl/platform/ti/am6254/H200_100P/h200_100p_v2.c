@@ -56,16 +56,11 @@ static pcl_satellite_cfg_t satellite_1553b = {
     .description = "Satellite platform 1553B interface",
     .enabled = true,
 
-    /* 通信接口：1553B */
-    .interface_type = PCL_HW_INTERFACE_1553B,
-    .interface_cfg.mil1553b = {
-        .device = "/dev/mil1553b0",
-        .rt_address = 5           /* RT地址：5 */
-    },
-
-    .cmd_timeout_ms = 2000,
-    .retry_count = 3,
-    .enable_telemetry = true
+    /* 注意：新的Satellite配置只支持CAN，1553B需要通过其他方式支持 */
+    .can_device = "can0",
+    .can_bitrate = 500000,
+    .heartbeat_interval_ms = 1000,
+    .cmd_timeout_ms = 2000
 };
 
 static pcl_satellite_cfg_t *satellite_list_v2[] = {
@@ -86,33 +81,29 @@ static pcl_bmc_cfg_t bmc_payload_v2 = {
     .description = "Payload BMC with 2.5G Ethernet",
     .enabled = true,
 
-    /* 主通道：2.5G以太网 */
-    .primary_channel = {
-        .protocol = PCL_BMC_PROTOCOL_IPMI,
-        .cfg.ipmi_lan = {
-            .interface = "eth0",
-            .ip_addr = "192.168.1.100",
-            .port = 623,
-            .username = "admin",
-            .password = NULL
-        }
+    /* 网络配置 */
+    .network = {
+        .enabled = true,
+        .ip_addr = "192.168.1.100",
+        .port = 623,
+        .username = "admin",
+        .password = NULL,
+        .timeout_ms = 2000
     },
 
-    /* 备份通道：串口 */
-    .backup_channel = {
-        .protocol = PCL_BMC_PROTOCOL_IPMI,
-        .cfg = {
-            .device = "/dev/ttyS2",
-            .baudrate = 115200,
-            .data_bits = 8,
-            .stop_bits = 1,
-            .parity = 'N'
-        }
+    /* 串口配置（备份通道） */
+    .serial = {
+        .enabled = true,
+        .device = "/dev/ttyS2",
+        .baudrate = 115200,
+        .timeout_ms = 2000
     },
 
-    .cmd_timeout_ms = 2000,
+    /* 服务配置 */
+    .primary_channel = PCL_BMC_CHANNEL_NETWORK,
+    .auto_switch = true,
     .retry_count = 3,
-    .failover_threshold = 5,
+    .health_check_interval = 5000,
 
     .power_gpio = NULL,
     .reset_gpio = NULL

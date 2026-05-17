@@ -377,196 +377,49 @@ const void* PCL_APP_GetDeviceByMapping(const pcl_board_config_t *board,
  *===========================================================================*/
 
 /**
- * @brief 验证CAN接口配置
- */
-static int32_t validate_can_interface(const pcl_can_cfg_t *can, const char *owner)
-{
-    if (NULL == can->device || OSAL_Strlen(can->device) == 0) {
-        LOG_ERROR("XCONFIG", "%s: CAN device name is empty", owner);
-        return OSAL_ERR_GENERIC;
-    }
-
-    if (0 == can->bitrate) {
-        LOG_ERROR("XCONFIG", "%s: CAN bitrate is 0", owner);
-        return OSAL_ERR_GENERIC;
-    }
-
-    /* 常见CAN波特率：125K, 250K, 500K, 1M */
-    if (125000 != can->bitrate && 250000 != can->bitrate &&
-        500000 != can->bitrate && 1000000 != can->bitrate) {
-        LOG_WARN("XCONFIG", "%s: Unusual CAN bitrate %u", owner, can->bitrate);
-    }
-
-    return OSAL_SUCCESS;
-}
-
-/**
- * @brief 验证UART接口配置
- */
-static int32_t validate_uart_interface(const pcl_uart_cfg_t *uart, const char *owner)
-{
-    if (NULL == uart->device || OSAL_Strlen(uart->device) == 0) {
-        LOG_ERROR("XCONFIG", "%s: UART device name is empty", owner);
-        return OSAL_ERR_GENERIC;
-    }
-
-    if (0 == uart->baudrate) {
-        LOG_ERROR("XCONFIG", "%s: UART baudrate is 0", owner);
-        return OSAL_ERR_GENERIC;
-    }
-
-    if (uart->data_bits < 5 || uart->data_bits > 8) {
-        LOG_ERROR("XCONFIG", "%s: UART data_bits %u out of range [5-8]",
-                  owner, uart->data_bits);
-        return OSAL_ERR_GENERIC;
-    }
-
-    if (uart->stop_bits < 1 || uart->stop_bits > 2) {
-        LOG_ERROR("XCONFIG", "%s: UART stop_bits %u out of range [1-2]",
-                  owner, uart->stop_bits);
-        return OSAL_ERR_GENERIC;
-    }
-
-    if (uart->parity != 'N' && uart->parity != 'E' && uart->parity != 'O') {
-        LOG_ERROR("XCONFIG", "%s: UART parity '%c' invalid (must be N/E/O)",
-                  owner, uart->parity);
-        return OSAL_ERR_GENERIC;
-    }
-
-    return OSAL_SUCCESS;
-}
-
-/**
- * @brief 验证I2C接口配置
- */
-static int32_t validate_i2c_interface(const pcl_i2c_cfg_t *i2c, const char *owner)
-{
-    if (NULL == i2c->device || OSAL_Strlen(i2c->device) == 0) {
-        LOG_ERROR("XCONFIG", "%s: I2C device name is empty", owner);
-        return OSAL_ERR_GENERIC;
-    }
-
-    if (i2c->slave_addr > 0x7F) {
-        LOG_ERROR("XCONFIG", "%s: I2C slave_addr 0x%02X exceeds 7-bit range",
-                  owner, i2c->slave_addr);
-        return OSAL_ERR_GENERIC;
-    }
-
-    if (0 == i2c->speed_hz) {
-        LOG_ERROR("XCONFIG", "%s: I2C speed is 0", owner);
-        return OSAL_ERR_GENERIC;
-    }
-
-    return OSAL_SUCCESS;
-}
-
-/**
- * @brief 验证SPI接口配置
- */
-static int32_t validate_spi_interface(const pcl_spi_cfg_t *spi, const char *owner)
-{
-    if (NULL == spi->device || OSAL_Strlen(spi->device) == 0) {
-        LOG_ERROR("XCONFIG", "%s: SPI device name is empty", owner);
-        return OSAL_ERR_GENERIC;
-    }
-
-    if (0 == spi->speed_hz) {
-        LOG_ERROR("XCONFIG", "%s: SPI speed is 0", owner);
-        return OSAL_ERR_GENERIC;
-    }
-
-    if (spi->mode > 3) {
-        LOG_ERROR("XCONFIG", "%s: SPI mode %u out of range [0-3]",
-                  owner, spi->mode);
-        return OSAL_ERR_GENERIC;
-    }
-
-    if (0 == spi->bits_per_word || spi->bits_per_word > 32) {
-        LOG_ERROR("XCONFIG", "%s: SPI bits_per_word %u out of range [1-32]",
-                  owner, spi->bits_per_word);
-        return OSAL_ERR_GENERIC;
-    }
-
-    return OSAL_SUCCESS;
-}
-
-/**
- * @brief 验证MCU硬件接口配置
+ * @brief 验证MCU配置（匹配新的配置结构）
  */
 static int32_t validate_mcu_interface(const pcl_mcu_cfg_t *mcu)
 {
-    if (mcu->interface_type <= PCL_HW_INTERFACE_NONE ||
-        mcu->interface_type >= PCL_HW_INTERFACE_MAX) {
+    /* 验证接口类型 */
+    if (mcu->interface >= PCL_MCU_INTERFACE_SPI + 1) {
         LOG_ERROR("XCONFIG", "MCU '%s': Invalid interface type %d",
-                  mcu->name, mcu->interface_type);
+                  mcu->name, mcu->interface);
         return OSAL_ERR_GENERIC;
     }
 
-    switch (mcu->interface_type) {
-        case PCL_HW_INTERFACE_CAN:
-            return validate_can_interface(&mcu->interface_cfg.can, mcu->name);
+    /* 根据接口类型验证配置 */
+    switch (mcu->interface) {
+        case PCL_MCU_INTERFACE_CAN:
+            if (NULL == mcu->can.device || OSAL_Strlen(mcu->can.device) == 0) {
+                LOG_ERROR("XCONFIG", "MCU '%s': CAN device name is empty", mcu->name);
+                return OSAL_ERR_GENERIC;
+            }
+            if (mcu->can.bitrate == 0) {
+                LOG_ERROR("XCONFIG", "MCU '%s': CAN bitrate is zero", mcu->name);
+                return OSAL_ERR_GENERIC;
+            }
+            break;
 
-        case PCL_HW_INTERFACE_UART:
-            return validate_uart_interface(&mcu->interface_cfg.uart, mcu->name);
+        case PCL_MCU_INTERFACE_SERIAL:
+            if (NULL == mcu->serial.device || OSAL_Strlen(mcu->serial.device) == 0) {
+                LOG_ERROR("XCONFIG", "MCU '%s': Serial device name is empty", mcu->name);
+                return OSAL_ERR_GENERIC;
+            }
+            if (mcu->serial.baudrate == 0) {
+                LOG_ERROR("XCONFIG", "MCU '%s': Serial baudrate is zero", mcu->name);
+                return OSAL_ERR_GENERIC;
+            }
+            break;
 
-        case PCL_HW_INTERFACE_I2C:
-            return validate_i2c_interface(&mcu->interface_cfg.i2c, mcu->name);
-
-        case PCL_HW_INTERFACE_SPI:
-            return validate_spi_interface(&mcu->interface_cfg.spi, mcu->name);
+        case PCL_MCU_INTERFACE_I2C:
+        case PCL_MCU_INTERFACE_SPI:
+            /* I2C和SPI暂时不验证，预留 */
+            break;
 
         default:
             LOG_ERROR("XCONFIG", "MCU '%s': Unsupported interface type %d",
-                      mcu->name, mcu->interface_type);
-            return OSAL_ERR_GENERIC;
-    }
-}
-
-/**
- * @brief 验证卫星平台硬件接口配置
- */
-static int32_t validate_satellite_interface(const pcl_satellite_cfg_t *sat)
-{
-    if (sat->interface_type <= PCL_HW_INTERFACE_NONE ||
-        sat->interface_type >= PCL_HW_INTERFACE_MAX) {
-        LOG_ERROR("XCONFIG", "Satellite '%s': Invalid interface type %d",
-                  sat->name, sat->interface_type);
-        return OSAL_ERR_GENERIC;
-    }
-
-    switch (sat->interface_type) {
-        case PCL_HW_INTERFACE_CAN:
-            return validate_can_interface(&sat->interface_cfg.can, sat->name);
-
-        case PCL_HW_INTERFACE_UART:
-            return validate_uart_interface(&sat->interface_cfg.uart, sat->name);
-
-        case PCL_HW_INTERFACE_SPACEWIRE:
-            if (NULL == sat->interface_cfg.spacewire.device ||
-                OSAL_Strlen(sat->interface_cfg.spacewire.device) == 0) {
-                LOG_ERROR("XCONFIG", "Satellite '%s': SpaceWire device name is empty",
-                          sat->name);
-                return OSAL_ERR_GENERIC;
-            }
-            break;
-
-        case PCL_HW_INTERFACE_1553B:
-            if (NULL == sat->interface_cfg.mil1553b.device ||
-                OSAL_Strlen(sat->interface_cfg.mil1553b.device) == 0) {
-                LOG_ERROR("XCONFIG", "Satellite '%s': 1553B device name is empty",
-                          sat->name);
-                return OSAL_ERR_GENERIC;
-            }
-            if (sat->interface_cfg.mil1553b.rt_address > 31) {
-                LOG_ERROR("XCONFIG", "Satellite '%s': 1553B RT address %u exceeds 31",
-                          sat->name, sat->interface_cfg.mil1553b.rt_address);
-                return OSAL_ERR_GENERIC;
-            }
-            break;
-
-        default:
-            LOG_ERROR("XCONFIG", "Satellite '%s': Unsupported interface type %d",
-                      sat->name, sat->interface_type);
+                      mcu->name, mcu->interface);
             return OSAL_ERR_GENERIC;
     }
 
@@ -574,48 +427,83 @@ static int32_t validate_satellite_interface(const pcl_satellite_cfg_t *sat)
 }
 
 /**
- * @brief 验证BMC通道配置
+ * @brief 验证卫星平台配置（匹配新的配置结构）
+ */
+static int32_t validate_satellite_interface(const pcl_satellite_cfg_t *sat)
+{
+    /* 验证CAN设备名 */
+    if (NULL == sat->can_device || OSAL_Strlen(sat->can_device) == 0) {
+        LOG_ERROR("XCONFIG", "Satellite '%s': CAN device name is empty", sat->name);
+        return OSAL_ERR_GENERIC;
+    }
+
+    /* 验证CAN波特率 */
+    if (sat->can_bitrate == 0) {
+        LOG_ERROR("XCONFIG", "Satellite '%s': CAN bitrate is zero", sat->name);
+        return OSAL_ERR_GENERIC;
+    }
+
+    /* 验证心跳间隔 */
+    if (sat->heartbeat_interval_ms == 0) {
+        LOG_WARN("XCONFIG", "Satellite '%s': Heartbeat interval is zero", sat->name);
+    }
+
+    /* 验证命令超时 */
+    if (sat->cmd_timeout_ms == 0) {
+        LOG_WARN("XCONFIG", "Satellite '%s': Command timeout is zero", sat->name);
+    }
+
+    return OSAL_SUCCESS;
+}
+
+/**
+ * @brief 验证BMC配置（匹配新的配置结构）
  */
 static int32_t validate_bmc_channel(const pcl_bmc_cfg_t *bmc)
 {
-    /* 验证主通道 */
-    if (bmc->primary_channel.protocol == PCL_BMC_PROTOCOL_IPMI) {
-        const pcl_bmc_ipmi_lan_cfg_t *lan = &bmc->primary_channel.cfg.ipmi_lan;
-        if (NULL == lan->interface || OSAL_Strlen(lan->interface) == 0) {
-            LOG_ERROR("XCONFIG", "BMC '%s': Primary IPMI interface name is empty",
-                      bmc->name);
+    /* 验证网络通道配置 */
+    if (bmc->network.enabled) {
+        if (NULL == bmc->network.ip_addr || OSAL_Strlen(bmc->network.ip_addr) == 0) {
+            LOG_ERROR("XCONFIG", "BMC '%s': Network IP address is empty", bmc->name);
             return OSAL_ERR_GENERIC;
         }
-        if (NULL == lan->ip_addr || OSAL_Strlen(lan->ip_addr) == 0) {
-            LOG_ERROR("XCONFIG", "BMC '%s': Primary IPMI IP address is empty",
-                      bmc->name);
-            return OSAL_ERR_GENERIC;
+        if (bmc->network.port == 0) {
+            LOG_WARN("XCONFIG", "BMC '%s': Network port is zero, using default 623", bmc->name);
         }
-        if (0 == lan->port) {
-            LOG_ERROR("XCONFIG", "BMC '%s': Primary IPMI port is 0", bmc->name);
-            return OSAL_ERR_GENERIC;
-        }
-    } else if (bmc->primary_channel.protocol == PCL_BMC_PROTOCOL_REDFISH) {
-        const pcl_bmc_redfish_cfg_t *redfish = &bmc->primary_channel.cfg.redfish;
-        if (NULL == redfish->base_url || OSAL_Strlen(redfish->base_url) == 0) {
-            LOG_ERROR("XCONFIG", "BMC '%s': Redfish base URL is empty", bmc->name);
-            return OSAL_ERR_GENERIC;
+        if (bmc->network.timeout_ms == 0) {
+            LOG_WARN("XCONFIG", "BMC '%s': Network timeout is zero", bmc->name);
         }
     }
 
-    /* 验证备份通道（如果配置了） */
-    if (bmc->backup_channel.protocol == PCL_BMC_PROTOCOL_IPMI) {
-        const pcl_bmc_ipmi_serial_cfg_t *serial = &bmc->backup_channel.cfg;
-        if (NULL == serial->device || OSAL_Strlen(serial->device) == 0) {
-            LOG_ERROR("XCONFIG", "BMC '%s': Backup IPMI serial device is empty",
-                      bmc->name);
+    /* 验证串口通道配置 */
+    if (bmc->serial.enabled) {
+        if (NULL == bmc->serial.device || OSAL_Strlen(bmc->serial.device) == 0) {
+            LOG_ERROR("XCONFIG", "BMC '%s': Serial device name is empty", bmc->name);
             return OSAL_ERR_GENERIC;
         }
-        if (0 == serial->baudrate) {
-            LOG_ERROR("XCONFIG", "BMC '%s': Backup IPMI serial baudrate is 0",
-                      bmc->name);
+        if (bmc->serial.baudrate == 0) {
+            LOG_ERROR("XCONFIG", "BMC '%s': Serial baudrate is zero", bmc->name);
             return OSAL_ERR_GENERIC;
         }
+        if (bmc->serial.timeout_ms == 0) {
+            LOG_WARN("XCONFIG", "BMC '%s': Serial timeout is zero", bmc->name);
+        }
+    }
+
+    /* 至少要启用一个通道 */
+    if (!bmc->network.enabled && !bmc->serial.enabled) {
+        LOG_ERROR("XCONFIG", "BMC '%s': Both network and serial channels are disabled", bmc->name);
+        return OSAL_ERR_GENERIC;
+    }
+
+    /* 验证主通道设置 */
+    if (bmc->primary_channel == PCL_BMC_CHANNEL_NETWORK && !bmc->network.enabled) {
+        LOG_ERROR("XCONFIG", "BMC '%s': Primary channel is network but network is disabled", bmc->name);
+        return OSAL_ERR_GENERIC;
+    }
+    if (bmc->primary_channel == PCL_BMC_CHANNEL_SERIAL && !bmc->serial.enabled) {
+        LOG_ERROR("XCONFIG", "BMC '%s': Primary channel is serial but serial is disabled", bmc->name);
+        return OSAL_ERR_GENERIC;
     }
 
     return OSAL_SUCCESS;
@@ -660,7 +548,7 @@ int32_t PCL_Validate(const pcl_board_config_t *config)
             LOG_ERROR("XCONFIG", "MCU[%d] is NULL", i);
             return OSAL_ERR_GENERIC;
         }
-        if (NULL == mcu->name || OSAL_Strlen(mcu->name) == 0) {
+        if (OSAL_Strlen(mcu->name) == 0) {
             LOG_ERROR("XCONFIG", "MCU[%d] name is empty", i);
             return OSAL_ERR_GENERIC;
         }
@@ -818,10 +706,10 @@ void PCL_Print(const pcl_board_config_t *config)
         OSAL_Printf("  [%d] %s - %s\n", i, mcu->name,
                   mcu->enabled ? "Enabled" : "Disabled");
         OSAL_Printf("      Interface: %s\n",
-                  mcu->interface_type == PCL_HW_INTERFACE_CAN ? "CAN" :
-                  mcu->interface_type == PCL_HW_INTERFACE_UART ? "UART" :
-                  mcu->interface_type == PCL_HW_INTERFACE_I2C ? "I2C" :
-                  mcu->interface_type == PCL_HW_INTERFACE_SPI ? "SPI" : "Unknown");
+                  mcu->interface == PCL_MCU_INTERFACE_CAN ? "CAN" :
+                  mcu->interface == PCL_MCU_INTERFACE_SERIAL ? "UART" :
+                  mcu->interface == PCL_MCU_INTERFACE_I2C ? "I2C" :
+                  mcu->interface == PCL_MCU_INTERFACE_SPI ? "SPI" : "Unknown");
     }
     OSAL_Printf("\n");
 

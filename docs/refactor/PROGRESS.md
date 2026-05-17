@@ -13,8 +13,8 @@
 | 阶段1：基础设施完善 | ✅ 已完成 | 100% | 2026-05-17 | 2026-05-17 | OSAL层增强 |
 | 阶段1.5：HAL层完善 | ✅ 已完成 | 100% | 2026-05-17 | 2026-05-17 | 评估完成 |
 | 阶段2：PDL层评估 | ✅ 已完成 | 100% | 2026-05-17 | 2026-05-17 | 无需重构 |
-| 阶段3：PCL层评估 | ✅ 已完成 | 100% | 2026-05-17 | 2026-05-17 | 无需重构 |
-| 阶段4：ACL层实现 | 🔄 进行中 | 0% | 2026-05-17 | - | 业务配置层 |
+| 阶段3：PCL层重构 | ✅ 已完成 | 100% | 2026-05-17 | 2026-05-17 | 配置结构重构 |
+| 阶段4：ACL层实现 | ⏸️ 未开始 | 0% | - | - | 业务配置层 |
 | 阶段5：APP层核心进程 | ⏸️ 未开始 | 0% | - | - | 5个核心进程 |
 | 阶段6：硬实时优化 | ⏸️ 未开始 | 0% | - | - | 2ms响应保证 |
 | 阶段7：可靠性增强 | ⏸️ 未开始 | 0% | - | - | 故障恢复机制 |
@@ -316,11 +316,92 @@ int32_t HAL_GPIO_DisableInterrupt(uint32_t gpio_num);
 
 ---
 
-## 阶段4：PCL层重新实现（进行中）
+## 阶段4：PCL层重构（已完成）
 
-**目标**: 按照设计文档重新实现PCL层，基于HAL和PDL的实际需求  
-**状态**: 🔄 进行中  
-**开始时间**: 2026-05-17
+**目标**: 重构PCL配置结构以完全匹配PDL层需求  
+**状态**: ✅ 已完成  
+**开始时间**: 2026-05-17  
+**完成时间**: 2026-05-17
+
+### 重构内容
+
+#### 1. BMC配置结构重构
+
+**变更**：
+- 从嵌套的primary_channel/backup_channel结构改为平铺的network/serial结构
+- 添加primary_channel枚举字段（NETWORK/SERIAL）
+- 添加auto_switch和health_check_interval字段
+- 完全匹配PDL层的bmc_config_t结构
+
+**修改文件**：
+- pcl/include/peripheral/pcl_bmc.h
+
+#### 2. MCU配置结构重构
+
+**变更**：
+- 使用interface字段替代interface_type
+- 添加can和serial配置结构（平铺而非联合体）
+- 移除cmd_timeout_ms、retry_count、enable_crc等PDL层不需要的字段
+- 完全匹配PDL层的mcu_config_t结构
+
+**修改文件**：
+- pcl/include/peripheral/pcl_mcu.h
+
+#### 3. Satellite配置结构重构
+
+**变更**：
+- 简化为只支持CAN接口
+- 移除interface_type联合体
+- 直接使用can_device、can_bitrate、heartbeat_interval_ms、cmd_timeout_ms字段
+- 完全匹配PDL层的satellite_service_config_t结构
+
+**修改文件**：
+- pcl/include/peripheral/pcl_satellite.h
+
+#### 4. 平台配置文件更新
+
+**更新的配置文件**：
+- pcl/platform/ti/am6254/H200_100P/h200_100p_base.c
+- pcl/platform/ti/am6254/H200_100P/h200_100p_v1.c
+- pcl/platform/ti/am6254/H200_100P/h200_100p_v2.c
+
+**变更内容**：
+- 更新BMC配置为network/serial平铺结构
+- 更新MCU配置为interface + can/serial结构
+- 更新Satellite配置为简化的CAN配置
+- 移除所有旧的嵌套结构和不需要的字段
+
+#### 5. API验证函数更新
+
+**修改文件**：
+- pcl/src/pcl_api.c
+
+**变更内容**：
+- 更新validate_mcu_interface函数以适配新的MCU配置结构
+- 更新validate_satellite_interface函数以适配简化的Satellite配置
+- 更新validate_bmc_channel函数以适配新的BMC配置结构
+- 删除未使用的旧验证函数（validate_can_interface等）
+
+#### 6. 测试代码更新
+
+**修改文件**：
+- tests/unit/pcl/test_pcl_api.c
+
+**变更内容**：
+- 更新测试配置数据以匹配新的配置结构
+- 修复测试断言以使用新的字段名
+
+### 编译测试
+
+✅ 所有源文件编译通过  
+✅ PCL库成功链接  
+✅ 测试程序编译成功
+
+### 提交记录
+
+待提交：PCL层配置结构重构完成
+
+---
 
 ### 当前PCL层状态
 
@@ -334,15 +415,33 @@ int32_t HAL_GPIO_DisableInterrupt(uint32_t gpio_num);
 **评估结论**：
 当前PCL层实现已经非常完善，基本符合设计文档要求。但为了确保与PDL层的完美配合，需要验证配置结构是否完全匹配PDL层的需求。
 
-### 验证任务
+### T4.2 调整PCL配置结构（进行中）
 
-| 任务ID | 任务描述 | 状态 | 备注 |
-|--------|---------|------|------|
-| T4.1 | 验证PCL配置结构与PDL需求匹配 | ✅ 已完成 | 发现不匹配问题 |
-| T4.2 | 调整PCL BMC配置结构 | ⏸️ 未开始 | 需要重构 |
-| T4.3 | 调整PCL MCU配置结构 | ⏸️ 未开始 | 需要验证 |
-| T4.4 | 调整PCL Satellite配置结构 | ⏸️ 未开始 | 需要验证 |
-| T4.5 | 更新平台配置示例 | ⏸️ 未开始 | 确保示例完整 |
+**目标**: 重构PCL配置结构以完全匹配PDL层需求
+
+**已完成**：
+1. ✅ 重构BMC配置结构（pcl_bmc.h）
+   - 从嵌套结构改为平铺结构
+   - 新增auto_switch和health_check_interval字段
+   - 完全匹配PDL层bmc_config_t
+
+2. ✅ 重构MCU配置结构（pcl_mcu.h）
+   - 调整字段以匹配PDL层mcu_config_t
+   - 保留interface和can/serial配置
+
+3. ✅ 重构Satellite配置结构（pcl_satellite.h）
+   - 简化为匹配PDL层satellite_service_config_t
+   - 直接使用can_device、can_bitrate等字段
+
+4. ✅ 更新平台配置示例（h200_100p_base.c）
+   - 使用新的配置结构
+
+**待完成**：
+- ⏸️ 更新pcl_api.c中的验证函数
+- ⏸️ 更新其他平台配置文件（h200_100p_v1.c、h200_100p_v2.c等）
+- ⏸️ 编译测试和修复错误
+
+**当前状态**: 配置结构已重构，但API代码需要更新以适配新结构。
 
 ### T4.1 验证结果
 

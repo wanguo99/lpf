@@ -200,13 +200,13 @@ static pcl_sensor_cfg_t sensor_board_temp = {
 
     .interface_type = PCL_HW_INTERFACE_I2C,
     .interface_cfg.i2c = {
-        .bus = 1,
-        .addr = 0x48,
-        .speed = 100000           /* 100kHz */
+        .device = "/dev/i2c-1",
+        .slave_addr = 0x48,
+        .speed_hz = 100000           /* 100kHz */
     },
 
-    .sensor_type = PCL_SENSOR_TYPE_TEMPERATURE,
-    .sample_interval_ms = 1000,   /* 1秒采样 */
+    .type = SENSOR_TYPE_TEMPERATURE,
+    .sample_rate = 1,   /* 1Hz采样 */
     .power_gpio = &gpio_sensor_power
 };
 
@@ -219,15 +219,15 @@ static pcl_sensor_cfg_t *sensor_list[] = {
  * 板级配置
  *===========================================================================*/
 
-const pcl_board_config_t pcl_board_ti_am6254_h200_100p_base = {
+const pcl_board_config_t pcl_h200_100p_base = {
     .platform = "ti/am6254",
     .product = "H200_100P",
     .version = "base",
 
-    .satellites = (const pcl_satellite_cfg_t **)satellite_list,
-    .bmcs = (const pcl_bmc_cfg_t **)bmc_list,
-    .mcus = (const pcl_mcu_cfg_t **)mcu_list,
-    .sensors = (const pcl_sensor_cfg_t **)sensor_list,
+    .satellites = (pcl_satellite_cfg_t **)satellite_list,
+    .bmcs = (pcl_bmc_cfg_t **)bmc_list,
+    .mcus = (pcl_mcu_cfg_t **)mcu_list,
+    .sensors = (pcl_sensor_cfg_t **)sensor_list,
     .storages = NULL,
     .apps = NULL
 };

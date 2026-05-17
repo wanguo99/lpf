@@ -48,17 +48,13 @@ static pcl_mcu_cfg_t mcu_backup = {
     .enabled = true,
 
     /* 通信接口：CAN */
-    .interface_type = PCL_HW_INTERFACE_CAN,
-    .interface_cfg.can = {
+    .interface = PCL_MCU_INTERFACE_CAN,
+    .can = {
         .device = "can1",
         .bitrate = 500000,
         .tx_id = 0x400,
         .rx_id = 0x500
     },
-
-    .cmd_timeout_ms = 500,
-    .retry_count = 3,
-    .enable_crc = true,
 
     .reset_gpio = &gpio_mcu2_reset,
     .irq_gpio = NULL
@@ -82,17 +78,10 @@ static pcl_satellite_cfg_t satellite_backup = {
     .description = "Satellite platform backup CAN interface",
     .enabled = true,
 
-    .interface_type = PCL_HW_INTERFACE_CAN,
-    .interface_cfg.can = {
-        .device = "can2",
-        .bitrate = 500000,
-        .tx_id = 0x301,
-        .rx_id = 0x101
-    },
-
-    .cmd_timeout_ms = 1000,
-    .retry_count = 3,
-    .enable_telemetry = true
+    .can_device = "can2",
+    .can_bitrate = 500000,
+    .heartbeat_interval_ms = 1000,
+    .cmd_timeout_ms = 500
 };
 
 static pcl_satellite_cfg_t *satellite_list_v1[] = {

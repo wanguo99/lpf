@@ -19,19 +19,11 @@ static const pcl_mcu_cfg_t test_mcu = {
     .name = "test_mcu",
     .description = "Test MCU",
     .enabled = true,
-    .interface_type = PCL_HW_INTERFACE_UART,
-    .interface_cfg = {
-        .uart = {
-            .device = "/dev/ttyS0",
-            .baudrate = 115200,
-            .data_bits = 8,
-            .stop_bits = 1,
-            .parity = 'N'
-        }
+    .interface = PCL_MCU_INTERFACE_SERIAL,
+    .serial = {
+        .device = "/dev/ttyS0",
+        .baudrate = 115200
     },
-    .cmd_timeout_ms = 1000,
-    .retry_count = 3,
-    .enable_crc = true,
     .reset_gpio = NULL,
     .irq_gpio = NULL
 };
@@ -40,30 +32,29 @@ static const pcl_bmc_cfg_t test_bmc = {
     .name = "test_bmc",
     .description = "Test BMC",
     .enabled = true,
-    .primary_channel = {
-        .protocol = PCL_BMC_PROTOCOL_REDFISH,
-        .cfg = {
-            .redfish = {
-                .base_url = "https://192.168.1.100",
-                .username = "admin",
-                .password = "admin",
-                .use_https = true
-            }
-        }
+
+    /* 网络配置 */
+    .network = {
+        .enabled = true,
+        .ip_addr = "192.168.1.100",
+        .port = 623,
+        .username = "admin",
+        .password = "admin",
+        .timeout_ms = 5000
     },
-    .backup_channel = {
-        .protocol = PCL_BMC_PROTOCOL_IPMI,
-        .cfg = {
-            .device = "/dev/ttyS1",
-            .baudrate = 115200,
-            .data_bits = 8,
-            .stop_bits = 1,
-            .parity = 'N'
-        }
+
+    /* 串口配置 */
+    .serial = {
+        .enabled = true,
+        .device = "/dev/ttyS1",
+        .baudrate = 115200,
+        .timeout_ms = 5000
     },
-    .cmd_timeout_ms = 5000,
+
+    .primary_channel = PCL_BMC_CHANNEL_NETWORK,
+    .auto_switch = true,
     .retry_count = 3,
-    .failover_threshold = 3,
+    .health_check_interval = 5000,
     .power_gpio = NULL,
     .reset_gpio = NULL
 };
@@ -72,18 +63,10 @@ static const pcl_satellite_cfg_t test_satellite = {
     .name = "test_satellite",
     .description = "Test satellite",
     .enabled = true,
-    .interface_type = PCL_HW_INTERFACE_CAN,
-    .interface_cfg = {
-        .can = {
-            .device = "can0",
-            .bitrate = 500000,
-            .tx_id = 0x100,
-            .rx_id = 0x200
-        }
-    },
+    .can_device = "can0",
+    .can_bitrate = 500000,
+    .heartbeat_interval_ms = 1000,
     .cmd_timeout_ms = 1000,
-    .retry_count = 3,
-    .enable_telemetry = true,
     .power_gpio = NULL,
     .reset_gpio = NULL
 };
@@ -314,7 +297,7 @@ TEST_CASE(test_pcl_hw_find_mcu_success)
     const pcl_mcu_cfg_t *mcu = PCL_HW_FindMCU(&test_board_v1, "test_mcu");
     TEST_ASSERT_NOT_NULL(mcu);
     TEST_ASSERT_STRING_EQUAL("test_mcu", mcu->name);
-    TEST_ASSERT_EQUAL(PCL_HW_INTERFACE_UART, mcu->interface_type);
+    TEST_ASSERT_EQUAL(PCL_MCU_INTERFACE_SERIAL, mcu->interface);
 
     PCL_Cleanup();
 }
@@ -375,7 +358,7 @@ TEST_CASE(test_pcl_hw_find_bmc_success)
     const pcl_bmc_cfg_t *bmc = PCL_HW_FindBMC(&test_board_v1, "test_bmc");
     TEST_ASSERT_NOT_NULL(bmc);
     TEST_ASSERT_STRING_EQUAL("test_bmc", bmc->name);
-    TEST_ASSERT_EQUAL(PCL_BMC_PROTOCOL_REDFISH, bmc->primary_channel.protocol);
+    TEST_ASSERT_EQUAL(PCL_BMC_CHANNEL_NETWORK, bmc->primary_channel);
 
     PCL_Cleanup();
 }
@@ -388,7 +371,7 @@ TEST_CASE(test_pcl_hw_find_satellite_success)
     const pcl_satellite_cfg_t *sat = PCL_HW_FindSatellite(&test_board_v1, "test_satellite");
     TEST_ASSERT_NOT_NULL(sat);
     TEST_ASSERT_STRING_EQUAL("test_satellite", sat->name);
-    TEST_ASSERT_EQUAL(PCL_HW_INTERFACE_CAN, sat->interface_type);
+    TEST_ASSERT_STRING_EQUAL("can0", sat->can_device);
 
     PCL_Cleanup();
 }
