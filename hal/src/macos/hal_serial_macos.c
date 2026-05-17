@@ -16,8 +16,6 @@ int32_t HAL_Serial_Open(const char *device, const hal_serial_config_t *config,
     (void)device;
     (void)config;
     (void)handle;
-
-    LOG_WARN("HAL_SERIAL", "Serial driver not implemented on macOS (stub only)");
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
@@ -30,9 +28,8 @@ int32_t HAL_Serial_Close(hal_serial_handle_t handle)
 int32_t HAL_Serial_Write(hal_serial_handle_t handle, const void *buffer,
                        uint32_t size, int32_t timeout)
 {
-    if (NULL == handle || NULL == buffer)
-        return OSAL_ERR_INVALID_POINTER;
-
+    (void)handle;
+    (void)buffer;
     (void)size;
     (void)timeout;
     return OSAL_ERR_NOT_IMPLEMENTED;
@@ -41,9 +38,8 @@ int32_t HAL_Serial_Write(hal_serial_handle_t handle, const void *buffer,
 int32_t HAL_Serial_Read(hal_serial_handle_t handle, void *buffer,
                       uint32_t size, int32_t timeout)
 {
-    if (NULL == handle || NULL == buffer)
-        return OSAL_ERR_INVALID_POINTER;
-
+    (void)handle;
+    (void)buffer;
     (void)size;
     (void)timeout;
     return OSAL_ERR_NOT_IMPLEMENTED;

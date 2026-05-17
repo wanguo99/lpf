@@ -14,8 +14,6 @@ int32_t HAL_CAN_Init(const hal_can_config_t *config, hal_can_handle_t *handle)
 {
     (void)config;
     (void)handle;
-
-    LOG_WARN("HAL_CAN", "CAN driver not implemented on macOS (stub only)");
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
@@ -53,17 +51,11 @@ int32_t HAL_CAN_GetStats(hal_can_handle_t handle,
                        uint32_t *rx_count,
                        uint32_t *err_count)
 {
-    if (NULL == handle)
-        return OSAL_ERR_INVALID_ID;
-
-    if (tx_count != NULL)
-        *tx_count = 0;
-    if (rx_count != NULL)
-        *rx_count = 0;
-    if (err_count != NULL)
-        *err_count = 0;
-
-    return OSAL_SUCCESS;
+    (void)handle;
+    (void)tx_count;
+    (void)rx_count;
+    (void)err_count;
+    return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
 int32_t HAL_CAN_SetErrorCallback(hal_can_handle_t handle,
@@ -84,11 +76,6 @@ int32_t HAL_CAN_SetErrorThreshold(hal_can_handle_t handle, uint32_t threshold)
 int32_t HAL_CAN_GetErrorInfo(hal_can_handle_t handle, hal_can_error_info_t *info)
 {
     (void)handle;
-
-    if (info != NULL) {
-        OSAL_Memset(info, 0, sizeof(hal_can_error_info_t));
-        info->state = CAN_ERROR_ACTIVE;
-    }
-
+    (void)info;
     return OSAL_ERR_NOT_IMPLEMENTED;
 }

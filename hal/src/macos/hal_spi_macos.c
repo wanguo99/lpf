@@ -14,8 +14,6 @@ int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
 {
     (void)config;
     (void)handle;
-
-    LOG_WARN("HAL_SPI", "SPI driver not implemented on macOS (stub only)");
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 

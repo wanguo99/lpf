@@ -14,8 +14,6 @@ int32_t HAL_I2C_Open(const hal_i2c_config_t *config, hal_i2c_handle_t *handle)
 {
     (void)config;
     (void)handle;
-
-    LOG_WARN("HAL_I2C", "I2C driver not implemented on macOS (stub only)");
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
