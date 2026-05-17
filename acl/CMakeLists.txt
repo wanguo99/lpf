@@ -1,8 +1,8 @@
 # ACL层（Application Configuration Layer）
 # 业务配置层：定义业务功能到硬件设备的映射
 
-# ACL配置选择（默认pmc_v1）
-set(ACL_CONFIG "pmc_v1" CACHE STRING "ACL configuration: pmc_v1, pmc_v2, demo")
+# ACL配置选择（默认H200_100P）
+set(ACL_CONFIG "H200_100P" CACHE STRING "ACL configuration: H200_100P, pmc_v2, demo")
 
 # ACL核心源文件
 set(ACL_SOURCES
@@ -11,12 +11,12 @@ set(ACL_SOURCES
 )
 
 # 根据配置选择对应的配置文件
-if(ACL_CONFIG STREQUAL "pmc_v1")
+if(ACL_CONFIG STREQUAL "H200_100P")
     list(APPEND ACL_SOURCES
-        config/pmc_v1/acl_pmc_v1.c
-        config/pmc_v1/acl_pmc_v1_invalidation.c
+        config/H200_100P/acl_h200_100p.c
+        config/H200_100P/acl_h200_100p_invalidation.c
     )
-    message(STATUS "ACL配置: PMC v1.0")
+    message(STATUS "ACL配置: H200_100P")
 elseif(ACL_CONFIG STREQUAL "pmc_v2")
     list(APPEND ACL_SOURCES
         config/pmc_v2/acl_pmc_v2.c

@@ -1,6 +1,6 @@
 /**
- * @file acl_pmc_v1.c
- * @brief PMC v1.0应用配置
+ * @file acl_h200_100p.c
+ * @brief H200_100P应用配置
  * @note 命名规范：acl_{project}_{product}_{version}.c
  *       ACL配置关注业务功能，不关注硬件平台
  */

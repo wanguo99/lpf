@@ -1,6 +1,6 @@
 /**
- * @file acl_pmc_v1_invalidation.c
- * @brief PMC v1.0遥控命令失效映射
+ * @file acl_h200_100p_invalidation.c
+ * @brief H200_100P遥控命令失效映射
  * @note 定义遥控命令对遥测数据的影响关系
  */
 
