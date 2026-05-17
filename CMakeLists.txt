@@ -111,6 +111,10 @@ add_subdirectory(pdl)
 add_library(ems::pdl_public_api ALIAS pdl_public_api)
 add_library(ems::pdl ALIAS pdl)
 
+# 4.5. ACL层（业务配置层）
+add_subdirectory(acl)
+add_library(ems::acl ALIAS acl)
+
 # 5. Apps层（应用层）
 add_subdirectory(apps)
 
