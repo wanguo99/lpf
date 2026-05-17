@@ -44,37 +44,36 @@ const uint32_t g_pmc_tc_config_count = sizeof(g_pmc_tc_configs) / sizeof(acl_tc_
 
 /**
  * @brief PMC v1.0遥测配置表
- * @note 缓存型：有效期 = 更新周期 * 2（允许一次更新失败）
- *       实时型：有效期很短（100ms），强制实时查询
+ * @note 所有遥测都从缓存读取，后台进程负责更新
+ *       validity_ms：有效期，超过此时间标记为STALE
+ *       update_period_ms：后台采集周期
  */
 const acl_tm_config_t g_pmc_tm_configs[] = {
-    /* 服务器遥测（缓存型） → BMC，1秒更新周期，2秒有效期 */
-    { TM_SERVER_CPU_TEMP,      ACL_DEVICE_BMC, 0, TM_TYPE_CACHED,   2000, 1000, 0,    true },
-    { TM_SERVER_BOARD_TEMP,    ACL_DEVICE_BMC, 0, TM_TYPE_CACHED,   2000, 1000, 0,    true },
-    { TM_SERVER_FAN_SPEED,     ACL_DEVICE_BMC, 0, TM_TYPE_CACHED,   4000, 2000, 0,    true },
-    { TM_SERVER_VOLTAGE_12V,   ACL_DEVICE_MCU, 1, TM_TYPE_CACHED,   4000, 2000, 0,    true },
-    { TM_SERVER_VOLTAGE_5V,    ACL_DEVICE_MCU, 1, TM_TYPE_CACHED,   4000, 2000, 0,    true },
-    { TM_SERVER_VOLTAGE_3V3,   ACL_DEVICE_MCU, 1, TM_TYPE_CACHED,   4000, 2000, 0,    true },
-    { TM_SERVER_CURRENT,       ACL_DEVICE_MCU, 1, TM_TYPE_CACHED,   4000, 2000, 0,    true },
+    /* 服务器遥测 → BMC，1秒更新周期，2秒有效期 */
+    { TM_SERVER_CPU_TEMP,      ACL_DEVICE_BMC, 0, 2000, 1000, true },
+    { TM_SERVER_BOARD_TEMP,    ACL_DEVICE_BMC, 0, 2000, 1000, true },
+    { TM_SERVER_FAN_SPEED,     ACL_DEVICE_BMC, 0, 4000, 2000, true },
+    { TM_SERVER_VOLTAGE_12V,   ACL_DEVICE_MCU, 1, 4000, 2000, true },
+    { TM_SERVER_VOLTAGE_5V,    ACL_DEVICE_MCU, 1, 4000, 2000, true },
+    { TM_SERVER_VOLTAGE_3V3,   ACL_DEVICE_MCU, 1, 4000, 2000, true },
+    { TM_SERVER_CURRENT,       ACL_DEVICE_MCU, 1, 4000, 2000, true },
+    { TM_SERVER_POWER_STATUS,  ACL_DEVICE_BMC, 0, 500,  100,  true },
 
-    /* 服务器遥测（实时型） → BMC，100ms有效期，1ms超时 */
-    { TM_SERVER_POWER_STATUS,  ACL_DEVICE_BMC, 0, TM_TYPE_REALTIME, 100,  0,    1000, true },
+    /* MCU遥测 → MCU，2秒更新周期，4秒有效期 */
+    { TM_MCU_STATUS,           ACL_DEVICE_MCU, 0, 500,  100,  true },
+    { TM_MCU_TEMP,             ACL_DEVICE_MCU, 0, 4000, 2000, true },
+    { TM_MCU_VOLTAGE,          ACL_DEVICE_MCU, 0, 4000, 2000, true },
+    { TM_MCU_UPTIME,           ACL_DEVICE_MCU, 0, 4000, 2000, true },
 
-    /* MCU遥测（实时型） → MCU，100ms有效期，800μs超时 */
-    { TM_MCU_STATUS,           ACL_DEVICE_MCU, 0, TM_TYPE_REALTIME, 100,  0,    800,  true },
-    { TM_MCU_TEMP,             ACL_DEVICE_MCU, 0, TM_TYPE_CACHED,   4000, 2000, 0,    true },
-    { TM_MCU_VOLTAGE,          ACL_DEVICE_MCU, 0, TM_TYPE_CACHED,   4000, 2000, 0,    true },
-    { TM_MCU_UPTIME,           ACL_DEVICE_MCU, 0, TM_TYPE_CACHED,   4000, 2000, 0,    true },
-
-    /* FPGA遥测（实时型） → FPGA，100ms有效期，1ms超时 */
-    { TM_FPGA_STATUS,          ACL_DEVICE_FPGA, 0, TM_TYPE_REALTIME, 100,  0,    1000, true },
-    { TM_FPGA_TEMP,            ACL_DEVICE_FPGA, 0, TM_TYPE_CACHED,   4000, 2000, 0,    true },
-    { TM_FPGA_CONFIG_STATUS,   ACL_DEVICE_FPGA, 0, TM_TYPE_REALTIME, 100,  0,    1000, true },
+    /* FPGA遥测 → FPGA，2秒更新周期，4秒有效期 */
+    { TM_FPGA_STATUS,          ACL_DEVICE_FPGA, 0, 500,  100,  true },
+    { TM_FPGA_TEMP,            ACL_DEVICE_FPGA, 0, 4000, 2000, true },
+    { TM_FPGA_CONFIG_STATUS,   ACL_DEVICE_FPGA, 0, 500,  100,  true },
 
     /* 系统遥测 */
-    { TM_SYSTEM_UPTIME,        ACL_DEVICE_MCU, 0, TM_TYPE_CACHED,   4000, 2000, 0,    true },
-    { TM_WATCHDOG_STATUS,      ACL_DEVICE_MCU, 2, TM_TYPE_REALTIME, 100,  0,    800,  true },
-    { TM_ERROR_COUNT,          ACL_DEVICE_MCU, 0, TM_TYPE_CACHED,   4000, 2000, 0,    true },
+    { TM_SYSTEM_UPTIME,        ACL_DEVICE_MCU, 0, 4000, 2000, true },
+    { TM_WATCHDOG_STATUS,      ACL_DEVICE_MCU, 2, 500,  100,  true },
+    { TM_ERROR_COUNT,          ACL_DEVICE_MCU, 0, 4000, 2000, true },
 };
 
 const uint32_t g_pmc_tm_config_count = sizeof(g_pmc_tm_configs) / sizeof(acl_tm_config_t);

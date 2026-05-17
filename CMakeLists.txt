@@ -115,7 +115,7 @@ add_library(ems::pdl ALIAS pdl)
 add_subdirectory(acl)
 add_library(ems::acl ALIAS acl)
 
-# 5. Apps层（应用层）
+# 5. Apps层（应用程序）
 add_subdirectory(apps)
 
 # ============================================================================

@@ -7,6 +7,7 @@ set(ACL_CONFIG "pmc_v1" CACHE STRING "ACL configuration: pmc_v1, pmc_v2, demo")
 # ACL核心源文件
 set(ACL_SOURCES
     src/acl_api.c
+    src/acl_telemetry_cache.c
 )
 
 # 根据配置选择对应的配置文件

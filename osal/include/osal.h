@@ -31,6 +31,7 @@
 #include "sys/osal_time.h"
 #include "sys/osal_process.h"
 #include "sys/osal_thread.h"
+#include "sys/osal_sched.h"
 
 /* NET - 网络相关 */
 #include "net/osal_socket.h"

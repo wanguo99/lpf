@@ -67,9 +67,9 @@ int32_t ACL_Init(void)
             return OSAL_ERR_INVALID_SIZE;
         }
 
-        /* 检查实时型遥测的超时配置 */
-        if (cfg->data_type == TM_TYPE_REALTIME && cfg->realtime_timeout_us == 0) {
-            LOG_ERROR("ACL", "实时型遥测未配置超时: %d", cfg->function);
+        /* 检查有效期配置 */
+        if (cfg->validity_ms == 0) {
+            LOG_ERROR("ACL", "遥测未配置有效期: %d", cfg->function);
             return OSAL_ERR_INVALID_SIZE;
         }
 
@@ -227,37 +227,22 @@ int32_t ACL_ValidateConfig(void)
             error_count++;
         }
 
-        /* 检查数据类型 */
-        if (cfg->data_type != TM_TYPE_CACHED && cfg->data_type != TM_TYPE_REALTIME) {
-            LOG_ERROR("ACL", "TM[%u]: 无效的数据类型 %d", i, cfg->data_type);
+        /* 检查有效期配置 */
+        if (cfg->validity_ms == 0) {
+            LOG_ERROR("ACL", "TM[%u]: 未配置有效期", i);
             error_count++;
         }
 
-        /* 检查实时型遥测的超时配置 */
-        if (cfg->data_type == TM_TYPE_REALTIME) {
-            if (cfg->realtime_timeout_us == 0) {
-                LOG_ERROR("ACL", "TM[%u]: 实时型遥测未配置超时", i);
-                error_count++;
-            } else if (cfg->realtime_timeout_us > cfg->validity_ms * 1000) {
-                LOG_WARN("ACL", "TM[%u]: 实时超时(%uμs) > 有效期(%ums)",
-                         i, cfg->realtime_timeout_us, cfg->validity_ms);
-            }
+        /* 检查更新周期配置 */
+        if (cfg->update_period_ms == 0) {
+            LOG_ERROR("ACL", "TM[%u]: 未配置更新周期", i);
+            error_count++;
         }
 
-        /* 检查缓存型遥测的配置 */
-        if (cfg->data_type == TM_TYPE_CACHED) {
-            if (cfg->validity_ms == 0) {
-                LOG_ERROR("ACL", "TM[%u]: 缓存型遥测未配置有效期", i);
-                error_count++;
-            }
-            if (cfg->update_period_ms == 0) {
-                LOG_ERROR("ACL", "TM[%u]: 缓存型遥测未配置更新周期", i);
-                error_count++;
-            }
-            if (cfg->update_period_ms > cfg->validity_ms) {
-                LOG_WARN("ACL", "TM[%u]: 更新周期(%ums) > 有效期(%ums)",
-                         i, cfg->update_period_ms, cfg->validity_ms);
-            }
+        /* 检查更新周期与有效期的关系 */
+        if (cfg->update_period_ms > cfg->validity_ms) {
+            LOG_WARN("ACL", "TM[%u]: 更新周期(%ums) > 有效期(%ums)",
+                     i, cfg->update_period_ms, cfg->validity_ms);
         }
     }
 
@@ -285,12 +270,6 @@ int32_t ACL_ValidateConfig(void)
             if (tm_func >= TM_FUNC_MAX) {
                 LOG_ERROR("ACL", "失效映射[%u]: 遥测功能枚举越界 %d", i, tm_func);
                 error_count++;
-            }
-
-            /* 只有实时型遥测才需要失效处理 */
-            const acl_tm_config_t *tm_cfg = ACL_GetTmConfig(tm_func);
-            if (tm_cfg && tm_cfg->data_type != TM_TYPE_REALTIME) {
-                LOG_WARN("ACL", "失效映射[%u]: 遥测[%d]不是实时型", i, tm_func);
             }
         }
     }
@@ -326,12 +305,6 @@ void ACL_GetStatistics(acl_statistics_t *stats)
 
         if (cfg->enabled) {
             stats->tm_enabled_count++;
-
-            if (cfg->data_type == TM_TYPE_CACHED) {
-                stats->tm_cached_count++;
-            } else {
-                stats->tm_realtime_count++;
-            }
         } else {
             stats->tm_disabled_count++;
         }
@@ -353,8 +326,6 @@ void ACL_PrintStatistics(void)
              stats.tc_enabled_count, stats.tc_disabled_count, TC_FUNC_MAX);
     LOG_INFO("ACL", "遥测功能: 使能=%u, 禁用=%u, 总计=%u",
              stats.tm_enabled_count, stats.tm_disabled_count, TM_FUNC_MAX);
-    LOG_INFO("ACL", "  - 缓存型: %u", stats.tm_cached_count);
-    LOG_INFO("ACL", "  - 实时型: %u", stats.tm_realtime_count);
     LOG_INFO("ACL", "失效映射: %u", stats.invalidation_map_count);
     LOG_INFO("ACL", "================================");
 }
@@ -377,10 +348,9 @@ void ACL_DumpConfig(void)
     for (uint32_t i = 0; i < TM_FUNC_MAX; i++) {
         const acl_tm_config_t *cfg = &g_acl_table.tm_table[i];
         if (cfg->enabled) {
-            const char *type_str = (cfg->data_type == TM_TYPE_CACHED) ? "CACHED" : "REALTIME";
-            LOG_INFO("ACL", "TM[%2u]: device=%u, index=%u, type=%s, timeout=%uμs",
+            LOG_INFO("ACL", "TM[%2u]: device=%u, index=%u, validity=%ums, period=%ums",
                      i, cfg->device_type, cfg->logic_index,
-                     type_str, cfg->realtime_timeout_us);
+                     cfg->validity_ms, cfg->update_period_ms);
         }
     }
 }

@@ -9,3 +9,9 @@ endif()
 if(BUILD_WATCHDOG_APP)
     add_subdirectory(watchdog_app)
 endif()
+
+# 添加遥控进程（实时）
+add_subdirectory(telecommand)
+
+# 添加遥测进程（后台）
+add_subdirectory(telemetry)

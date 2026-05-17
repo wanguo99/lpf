@@ -10,15 +10,8 @@
 #include "osal_types.h"
 
 /**
- * @brief 遥测数据类型
- */
-typedef enum {
-    TM_TYPE_CACHED = 0,    /* 缓存型：后台采集，从共享内存读取 */
-    TM_TYPE_REALTIME = 1   /* 实时型：优先实时查询，超时降级到缓存 */
-} tm_data_type_t;
-
-/**
  * @brief 遥测数据新鲜度标记
+ * @note 所有遥测都从缓存读取，通过新鲜度标记体现数据质量
  */
 typedef enum {
     TM_STATUS_INVALID = 0,   /* 无效：从未更新或已失效 */
@@ -64,35 +57,34 @@ typedef enum {
 
 /**
  * @brief PMC遥测功能枚举
+ * @note 所有遥测都从缓存读取，通过时间戳和新鲜度标记体现数据质量
  */
 typedef enum {
-    /* 服务器状态遥测（缓存型） */
-    TM_SERVER_CPU_TEMP = 0,        /* 缓存型 */
-    TM_SERVER_BOARD_TEMP,          /* 缓存型 */
-    TM_SERVER_FAN_SPEED,           /* 缓存型 */
-    TM_SERVER_VOLTAGE_12V,         /* 缓存型 */
-    TM_SERVER_VOLTAGE_5V,          /* 缓存型 */
-    TM_SERVER_VOLTAGE_3V3,         /* 缓存型 */
-    TM_SERVER_CURRENT,             /* 缓存型 */
-
-    /* 服务器状态遥测（实时型） */
-    TM_SERVER_POWER_STATUS,        /* 实时型 */
+    /* 服务器状态遥测 */
+    TM_SERVER_CPU_TEMP = 0,
+    TM_SERVER_BOARD_TEMP,
+    TM_SERVER_FAN_SPEED,
+    TM_SERVER_VOLTAGE_12V,
+    TM_SERVER_VOLTAGE_5V,
+    TM_SERVER_VOLTAGE_3V3,
+    TM_SERVER_CURRENT,
+    TM_SERVER_POWER_STATUS,
 
     /* MCU状态遥测 */
-    TM_MCU_STATUS,                 /* 实时型 */
-    TM_MCU_TEMP,                   /* 缓存型 */
-    TM_MCU_VOLTAGE,                /* 缓存型 */
-    TM_MCU_UPTIME,                 /* 缓存型 */
+    TM_MCU_STATUS,
+    TM_MCU_TEMP,
+    TM_MCU_VOLTAGE,
+    TM_MCU_UPTIME,
 
     /* FPGA状态遥测 */
-    TM_FPGA_STATUS,                /* 实时型 */
-    TM_FPGA_TEMP,                  /* 缓存型 */
-    TM_FPGA_CONFIG_STATUS,         /* 实时型 */
+    TM_FPGA_STATUS,
+    TM_FPGA_TEMP,
+    TM_FPGA_CONFIG_STATUS,
 
     /* 系统健康遥测 */
-    TM_SYSTEM_UPTIME,              /* 缓存型 */
-    TM_WATCHDOG_STATUS,            /* 实时型 */
-    TM_ERROR_COUNT,                /* 缓存型 */
+    TM_SYSTEM_UPTIME,
+    TM_WATCHDOG_STATUS,
+    TM_ERROR_COUNT,
 
     TM_FUNC_MAX
 } pmc_tm_function_t;

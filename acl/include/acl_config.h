@@ -33,15 +33,14 @@ typedef struct {
 
 /**
  * @brief 遥测功能配置
+ * @note 所有遥测都从缓存读取，通过时间戳和新鲜度标记体现数据质量
  */
 typedef struct {
     pmc_tm_function_t function;    /* 遥测功能枚举 */
     acl_device_type_t device_type; /* 设备类型 */
-    uint32_t logic_index;          /* 逻辑索引 */
-    tm_data_type_t data_type;      /* 缓存型/实时型 */
-    uint32_t validity_ms;          /* 有效期（毫秒） */
-    uint32_t update_period_ms;     /* 更新周期（毫秒） */
-    uint32_t realtime_timeout_us;  /* 实时查询超时（微秒），仅实时型有效 */
+    uint32_t logic_index;          /* 逻辑索引（第几个同类设备） */
+    uint32_t validity_ms;          /* 有效期（毫秒），超过此时间标记为STALE */
+    uint32_t update_period_ms;     /* 后台更新周期（毫秒） */
     bool enabled;                  /* 是否使能 */
 } acl_tm_config_t;
 
