@@ -2,6 +2,8 @@
  * OSAL - 共享内存封装（POSIX实现，重点支持Linux）
  ************************************************************************/
 
+#define _DEFAULT_SOURCE  /* 启用MADV_WILLNEED等非POSIX扩展 */
+
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -157,7 +159,7 @@ int32_t OSAL_ShmMap(osal_shm_t shm, size_t offset, size_t size, int32_t flags, v
 
 #ifdef __linux__
     /* Linux特有优化：建议内核预读页面 */
-    madvise(mapped_addr, size, MADV_WILLNEED);
+    (void)madvise(mapped_addr, size, MADV_WILLNEED);
 
     /* 对于实时应用，锁定页面防止交换 */
     /* 注意：这需要足够的内存限制权限 */

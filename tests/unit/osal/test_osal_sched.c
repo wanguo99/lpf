@@ -308,7 +308,7 @@ static void *sched_test_thread(void *arg)
     }
 
     /* 运行一段时间 */
-    usleep(100000);  /* 100ms */
+    OSAL_msleep(100);  /* 100ms */
 
     thread_running = false;
     return NULL;
@@ -332,7 +332,7 @@ TEST_CASE(test_osal_sched_thread_policy)
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     /* 等待线程启动 */
-    usleep(10000);  /* 10ms */
+    OSAL_msleep(10);  /* 10ms */
 
     /* 设置线程调度策略 */
     ret = OSAL_SchedSetPolicy(thread, OSAL_SCHED_FIFO, test_priority);

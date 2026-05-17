@@ -5,6 +5,7 @@
  ************************************************************************/
 
 #include "hal_gpio.h"
+#include "osal.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -164,7 +165,6 @@ static void* gpio_isr_thread(void *arg)
 
 int32_t HAL_GPIO_Init(uint32_t gpio_num, const hal_gpio_config_t *config)
 {
-    char path[256];
     int32_t ret;
 
     if (!config || gpio_num >= MAX_GPIO_PINS) {
@@ -178,7 +178,7 @@ int32_t HAL_GPIO_Init(uint32_t gpio_num, const hal_gpio_config_t *config)
     }
 
     /* 等待sysfs文件创建 */
-    usleep(100000);  /* 100ms */
+    OSAL_msleep(100);  /* 100ms */
 
     /* 设置方向 */
     ret = HAL_GPIO_SetDirection(gpio_num, config->direction);
