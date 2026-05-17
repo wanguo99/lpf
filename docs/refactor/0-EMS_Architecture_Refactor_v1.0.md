@@ -398,1369 +398,456 @@ CPU1职责（周期性采集）：
 │                 │         读取（<50μs）                │ 写入（<10μs）  │
 │                 └──────────────┬───────────────────────┘                │
 │                                │                                        │
-│         ┌──────────────────────▼──────────────────────────┐            │
-│         │         POSIX共享内存（遥测缓存）                │            │
-│         │  • shm_open + mmap (DDR, 4MB)                   │            │
-│         │  • pthread_rwlock (并发保护)                    │            │
-│         │  • 时间戳 + 有效期 + 新鲜度标志                 │            │
-│         └──────────────────────────────────────────────────┘            │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
-**通信机制详解**：
-
-| 通信方向 | 机制 | 延迟 | 用途 | 数据类型 |
-|---------|------|------|------|---------|
-| **Telemetry → Telecommand** | POSIX共享内存写入 | <10μs | 遥测数据缓存更新 | 大块数据（高频） |
-| **Telecommand → Telemetry** | POSIX共享内存读取 | <50μs | 遥测数据快速读取 | 大块数据（高频） |
-| **并发保护** | pthread_rwlock | <1μs | 读写锁保护 | 同步原语 |
-
-**共享内存详细布局**：
-
-```c
-/************************************************
- * 共享内存布局（DDR，4MB，物理地址连续）
- * 基地址：通过shm_open动态分配
- * 访问方式：mmap映射到进程地址空间
- ************************************************/
-
-#define ACL_TM_CACHE_SHM_NAME    "/acl_tm_cache"
-#define ACL_TM_CACHE_SIZE        (4 * 1024 * 1024)  // 4MB
-
-typedef struct {
-    /************************************************
-     * 遥测缓存条目（每个遥测项一个条目）
-     ************************************************/
-    struct {
-        uint8_t data[ACL_TM_MAX_DATA_SIZE];  // 遥测数据（最大256字节）
-        uint32_t size;                        // 数据大小
-        uint64_t timestamp_us;                // 采集时间戳（微秒）
-        uint32_t validity_ms;                 // 有效期（毫秒）
-        tm_freshness_t freshness;             // 新鲜度标记
-        pthread_rwlock_t lock;                // 读写锁
-        uint8_t padding[32];                  // 缓存行对齐
-    } entries[TM_FUNC_MAX] __attribute__((aligned(64)));
-    
-    /************************************************
-     * 全局元数据
-     ************************************************/
-    uint32_t magic;                           // 魔数校验（0x544D4341）
-    uint32_t version;                         // 版本号
-    uint64_t init_timestamp_us;               // 初始化时间戳
-    
-} acl_tm_cache_t;
-     * 区域4：日志环形缓冲区（1MB）
-     * R5F写，Logger进程(A53)读
-     ************************************************/
-    struct {
-        _Atomic uint32_t write_pos;             // 写入位置（环形）
-        _Atomic uint32_t read_pos;              // 读取位置（环形）
-        uint32_t entry_size;                    // 每条日志大小（256字节）
-        uint32_t max_entries;                   // 最大条目数（4096）
-        
-        // 日志条目数组
-        struct {
-            uint64_t timestamp_ns;              // 时间戳
-            uint8_t  level;                     // 日志级别（DEBUG/INFO/WARN/ERROR）
-            uint8_t  module;                    // 模块ID
-            uint16_t line;                      // 行号
-            char     message[248];              // 日志消息
-        } entries[4096];
-    } log_ring_buffer __attribute__((aligned(64)));
-    
-    /************************************************
-     * 区域5：RPMsg通信缓冲区（256KB）
-     * A53写，R5F读（控制命令）
-     ************************************************/
-    struct {
-        _Atomic uint32_t write_pos;             // 写入位置
-        _Atomic uint32_t read_pos;              // 读取位置
-        uint32_t max_messages;                  // 最大消息数（256）
-        
-        // 消息队列
-        struct {
-            uint32_t msg_type;                  // 消息类型（固件升级/配置更新/日志请求）
-            uint32_t msg_len;                   // 消息长度
-            uint8_t  payload[1016];             // 消息负载（1KB对齐）
-        } messages[256];
-    } rpmsg_buffer __attribute__((aligned(64)));
-    
-    /************************************************
-     * 区域6：遥控命令失效映射表（128KB）
-     * 编译时生成，R5F和A53共享只读
-     ************************************************/
-    struct {
-        uint32_t version;                       // 映射表版本
-        uint32_t entry_count;                   // 条目数量
-        
-        // 失效映射条目（遥控命令 → 失效的遥测ID列表）
-        struct {
-            uint16_t tc_id;                     // 遥控命令ID
-            uint16_t invalidated_tm_count;      // 失效的遥测数量
-            uint16_t invalidated_tm_ids[32];    // 失效的遥测ID列表
-        } entries[1024];
-    } tc_invalidation_map __attribute__((aligned(64)));
-    
-} ipc_shared_memory_t;
-
-// 编译时检查共享内存大小
-_Static_assert(sizeof(ipc_shared_memory_t) <= IPC_SHM_SIZE, 
-               "Shared memory layout exceeds 4MB");
-```
-
-**共享内存访问协议**：
-
-```c
-/************************************************
- * 遥测缓存访问协议（双缓冲无锁读写）
- ************************************************/
-
-// A53侧写入（Telemetry进程）
-void telemetry_cache_write(ipc_shared_memory_t *shm, telemetry_entry_t *entries, uint32_t count) {
-    // 1. 获取非活动缓冲区索引
-    uint32_t active = atomic_load(&shm->telemetry_cache.active_buffer);
-    uint32_t inactive = 1 - active;
-    
-    // 2. 写入非活动缓冲区（无锁，不影响R5F读取）
-    shm->telemetry_cache.buffers[inactive].entry_count = count;
-    shm->telemetry_cache.buffers[inactive].timestamp_ns = get_time_ns();
-    memcpy(shm->telemetry_cache.buffers[inactive].entries, entries, 
-           count * sizeof(telemetry_entry_t));
-    
-    // 3. 计算CRC32
-    shm->telemetry_cache.buffers[inactive].crc32 = 
-        crc32(&shm->telemetry_cache.buffers[inactive], 
-              sizeof(shm->telemetry_cache.buffers[inactive]) - 4);
-    
-    // 4. 原子切换活动缓冲区
-    atomic_store(&shm->telemetry_cache.active_buffer, inactive);
-    atomic_fetch_add(&shm->telemetry_cache.write_sequence, 1);
-    
-    // 5. 通过Mailbox通知R5F（可选，如果R5F在等待）
-    mailbox_send_interrupt(MAILBOX_R5F, MAILBOX_MSG_TM_UPDATED);
-}
-
-// R5F侧读取（CAN_RX_Task）
-int32_t telemetry_cache_read(ipc_shared_memory_t *shm, uint16_t tm_id, uint32_t *value) {
-    // 1. 获取当前活动缓冲区
-    uint32_t active = atomic_load(&shm->telemetry_cache.active_buffer);
-    uint32_t seq_before = atomic_load(&shm->telemetry_cache.write_sequence);
-    
-    // 2. 读取数据（无锁，A53可能在写另一个缓冲区）
-    uint32_t count = shm->telemetry_cache.buffers[active].entry_count;
-    for (uint32_t i = 0; i < count; i++) {
-        if (shm->telemetry_cache.buffers[active].entries[i].tm_id == tm_id) {
-            *value = shm->telemetry_cache.buffers[active].entries[i].value;
-            
-            // 3. 检查是否在读取期间发生了切换
-            uint32_t seq_after = atomic_load(&shm->telemetry_cache.write_sequence);
-            if (seq_before != seq_after) {
-                // 发生了切换，重新读取
-                return telemetry_cache_read(shm, tm_id, value);
-            }
-            
-            return OS_SUCCESS;
-        }
-    }
-    
-    return OS_ERROR;  // 未找到
-}
-
-/************************************************
- * 日志环形缓冲区访问协议（无锁SPSC）
- ************************************************/
-
-// R5F侧写入（所有任务）
-void log_write(ipc_shared_memory_t *shm, uint8_t level, uint8_t module, 
-               uint16_t line, const char *message) {
-    // 1. 原子获取写入位置
-    uint32_t write_pos = atomic_fetch_add(&shm->log_ring_buffer.write_pos, 1);
-    uint32_t index = write_pos % shm->log_ring_buffer.max_entries;
-    
-    // 2. 写入日志条目（无锁，单生产者）
-    shm->log_ring_buffer.entries[index].timestamp_ns = get_time_ns();
-    shm->log_ring_buffer.entries[index].level = level;
-    shm->log_ring_buffer.entries[index].module = module;
-    shm->log_ring_buffer.entries[index].line = line;
-    strncpy(shm->log_ring_buffer.entries[index].message, message, 247);
-    shm->log_ring_buffer.entries[index].message[247] = '\0';
-    
-    // 3. 内存屏障（确保写入完成后再更新write_pos）
-    atomic_thread_fence(memory_order_release);
-}
-
-// A53侧读取（Logger进程）
-int32_t log_read(ipc_shared_memory_t *shm, log_entry_t *entry) {
-    // 1. 检查是否有新日志
-    uint32_t read_pos = atomic_load(&shm->log_ring_buffer.read_pos);
-    uint32_t write_pos = atomic_load(&shm->log_ring_buffer.write_pos);
-    
-    if (read_pos == write_pos) {
-        return OS_ERROR;  // 无新日志
-    }
-    
-    // 2. 读取日志条目
-    uint32_t index = read_pos % shm->log_ring_buffer.max_entries;
-    memcpy(entry, &shm->log_ring_buffer.entries[index], sizeof(log_entry_t));
-    
-    // 3. 更新读取位置
-    atomic_store(&shm->log_ring_buffer.read_pos, read_pos + 1);
-    
-    return OS_SUCCESS;
-}
-```
 
 #### 2.2.4 遥控命令处理流程
 
-**命令分类与处理策略**：
-
-| 命令类型 | 处理核心 | 处理路径 | 延迟目标 | 示例 |
-|---------|---------|---------|---------|------|
-| **简单遥控** | R5F独立处理 | R5F本地执行 | <1.3ms | GPIO控制、CAN发送到MCU |
-| **复杂遥控** | R5F转发A53 | R5F→A53→执行→R5F | <100ms | BMC电源控制、固件升级 |
-| **实时遥测** | R5F查询 | R5F读共享内存 | <800μs | 从缓存读取CPU温度 |
-| **慢速遥测** | R5F转发A53 | R5F→A53→查询→R5F | <100ms | BMC实时传感器读取 |
-
-**完整数据流图**：
+**纯A53架构下的遥控处理**：
 
 ```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        遥控命令处理流程                                       │
-└─────────────────────────────────────────────────────────────────────────────┘
-
-卫星平台 ──CAN帧──> R5F (CAN中断，<10μs)
-                     │
-                     ├─ CAN_RX_Task (优先级255)
-                     │   ├─ 接收CAN帧 (<50μs)
-                     │   ├─ CRC校验 (<20μs)
-                     │   ├─ 协议解析 (<100μs)
-                     │   └─ 命令分类 (<30μs)
-                     │
-                     ├──────────┬──────────┬──────────┐
-                     │          │          │          │
-                     ▼          ▼          ▼          ▼
-              ┌──────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐
-              │简单遥控  │ │实时遥测 │ │复杂遥控 │ │慢速遥测 │
-              └──────────┘ └─────────┘ └─────────┘ └─────────┘
-                   │            │           │           │
-                   │            │           │           │
-        ┌──────────▼────────┐   │           │           │
-        │ Telecontrol_Task  │   │           │           │
-        │ (优先级180)       │   │           │           │
-        │ • 查ACL配置       │   │           │           │
-        │ • 调PDL接口       │   │           │           │
-        │ • GPIO/CAN操作    │   │           │           │
-        │ • 延迟<500μs      │   │           │           │
-        └──────────┬────────┘   │           │           │
-                   │            │           │           │
-                   │    ┌───────▼────────┐  │           │
-                   │    │ Realtime_TM_   │  │           │
-                   │    │ Task (优先级200)│  │           │
-                   │    │ • 读共享内存    │  │           │
-                   │    │ • 查遥测缓存    │  │           │
-                   │    │ • 延迟<800μs    │  │           │
-                   │    └───────┬────────┘  │           │
-                   │            │           │           │
-                   │            │    ┌──────▼──────┐    │
-                   │            │    │ IPC_Handler │    │
-                   │            │    │ _Task       │    │
-                   │            │    │ (优先级100) │    │
-                   │            │    │ • RPMsg发送 │    │
-                   │            │    │ • 等待应答  │    │
-                   │            │    │ • 延迟<100ms│    │
-                   │            │    └──────┬──────┘    │
-                   │            │           │           │
-                   │            │           ▼           ▼
-                   │            │      ┌─────────────────────┐
-                   │            │      │   A53 Linux         │
-                   │            │      │ • Telemetry进程     │
-                   │            │      │ • 调用PDL_BMC       │
-                   │            │      │ • 网络请求          │
-                   │            │      │ • 返回结果          │
-                   │            │      └─────────┬───────────┘
-                   │            │                │
-                   │            │                ▼
-                   │            │      ┌─────────────────────┐
-                   │            │      │ 共享内存/RPMsg      │
-                   │            │      └─────────┬───────────┘
-                   │            │                │
-                   ├────────────┴────────────────┘
-                   │
-                   ▼
-            ┌──────────────┐
-            │ 封装CAN应答  │
-            │ • 结果打包   │
-            │ • CRC计算    │
-            │ • 延迟<100μs │
-            └──────┬───────┘
-                   │
-                   ▼
-            ┌──────────────┐
-            │ CAN发送      │
-            │ • 硬件FIFO   │
-            │ • 延迟<50μs  │
-            └──────┬───────┘
-                   │
-                   ▼
-              卫星平台 (收到应答)
-
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        时间预算分析                                          │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ 简单遥控（R5F独立处理）：                                                    │
-│   CAN中断(10μs) + 接收(50μs) + 解析(100μs) + 分类(30μs) +                  │
-│   执行(500μs) + 封装(100μs) + 发送(50μs) = 840μs < 1.3ms ✓                 │
-│                                                                             │
-│ 实时遥测（R5F读共享内存）：                                                  │
-│   CAN中断(10μs) + 接收(50μs) + 解析(100μs) + 分类(30μs) +                  │
-│   查询(800μs) + 封装(100μs) + 发送(50μs) = 1140μs < 1.3ms ✓                │
-│                                                                             │
-│ 复杂遥控（R5F转发A53）：                                                     │
-│   R5F处理(200μs) + RPMsg(100μs) + A53处理(50ms) + 返回(100μs) +            │
-│   R5F应答(200μs) = ~51ms < 100ms ✓                                         │
-└─────────────────────────────────────────────────────────────────────────────┘
+卫星平台 ──CAN命令──> Telecommand进程（CPU0，实时）
+                          │
+                          ├─ 1. CAN接收（<20μs）
+                          │    • 从CAN总线接收命令帧
+                          │    • 解析命令ID和参数
+                          │
+                          ├─ 2. ACL配置查询（<5μs）
+                          │    • 查询遥控命令配置（O(1)数组索引）
+                          │    • 获取目标设备类型和逻辑索引
+                          │
+                          ├─ 3. PDL设备操作（<1ms）
+                          │    • 根据设备类型调用PDL接口
+                          │    • BMC: Redfish/IPMI命令
+                          │    • MCU: CAN命令
+                          │    • FPGA: 寄存器操作
+                          │
+                          ├─ 4. 失效相关遥测（<10μs）
+                          │    • 查询失效映射表
+                          │    • 标记受影响的遥测为STALE
+                          │
+                          └─ 5. CAN应答（<20μs）
+                               • 构造应答帧
+                               • 发送到卫星平台
+                               
+总延迟：<1.5ms（满足2ms要求）
 ```
 
-**命令分类逻辑**：
+**遥控命令分类**：
+
+| 命令类型 | 处理方式 | 延迟 | 示例 |
+|---------|---------|------|------|
+| **快速遥控** | Telecommand进程直接处理 | <1ms | GPIO控制、MCU CAN命令 |
+| **慢速遥控** | Telecommand进程调用PDL | <100ms | BMC Redfish命令、固件升级 |
+
+**关键代码示例**：
 
 ```c
-/************************************************
- * R5F侧命令分类（CAN_RX_Task）
- ************************************************/
-
-typedef enum {
-    CMD_CLASS_SIMPLE_TC,      // 简单遥控（R5F独立处理）
-    CMD_CLASS_REALTIME_TM,    // 实时遥测（R5F读共享内存）
-    CMD_CLASS_COMPLEX_TC,     // 复杂遥控（转发A53）
-    CMD_CLASS_SLOW_TM         // 慢速遥测（转发A53）
-} command_class_t;
-
-command_class_t classify_command(uint16_t cmd_id) {
-    // 查询ACL配置表（编译时生成，存储在TCM）
-    acl_tc_config_t *cfg = acl_get_tc_config(cmd_id);
-    
-    if (cfg->device_type == ACL_DEVICE_MCU && cfg->interface == ACL_IF_CAN) {
-        // MCU通过CAN控制，R5F可以直接处理
-        return CMD_CLASS_SIMPLE_TC;
+// Telecommand进程：遥控命令处理
+int32_t handle_telecommand(pmc_tc_function_t cmd_type, uint32_t param) {
+    // 1. 查询ACL配置（O(1)）
+    const acl_tc_config_t *cfg = ACL_GetTcConfig(cmd_type);
+    if (!cfg || !cfg->enabled) {
+        return OSAL_ERR_INVALID_PARAM;
     }
     
-    if (cfg->device_type == ACL_DEVICE_SATELLITE && cfg->cmd_type == ACL_CMD_TM) {
-        // 遥测命令
-        if (cfg->tm_type == TM_TYPE_CACHED) {
-            // 缓存型遥测，R5F从共享内存读取
-            return CMD_CLASS_REALTIME_TM;
-        } else {
-            // 实时型遥测，需要A53实时查询
-            return CMD_CLASS_SLOW_TM;
-        }
+    // 2. 根据设备类型调用PDL
+    int32_t ret = OSAL_ERR_NOT_IMPLEMENTED;
+    
+    switch (cfg->device_type) {
+        case ACL_DEVICE_BMC:
+            // 调用BMC PDL接口
+            ret = PDL_BMC_ExecuteCommand(cfg->logic_index, cmd_type, param);
+            break;
+            
+        case ACL_DEVICE_MCU:
+            // 调用MCU PDL接口
+            ret = PDL_MCU_ExecuteCommand(cfg->logic_index, cmd_type, param);
+            break;
+            
+        case ACL_DEVICE_FPGA:
+            // 调用FPGA PDL接口
+            ret = PDL_FPGA_ExecuteCommand(cfg->logic_index, cmd_type, param);
+            break;
+            
+        default:
+            return OSAL_ERR_INVALID_PARAM;
     }
     
-    if (cfg->device_type == ACL_DEVICE_BMC) {
-        // BMC需要网络通信，必须转发A53
-        return CMD_CLASS_COMPLEX_TC;
+    // 3. 失效相关遥测
+    if (ret == OSAL_SUCCESS) {
+        ACL_InvalidateAffectedTelemetry(cmd_type);
     }
     
-    // 默认转发A53
-    return CMD_CLASS_COMPLEX_TC;
+    return ret;
 }
 ```
+
+**实时性保证**：
+
+1. **实时调度**：SCHED_FIFO优先级99，抢占所有非实时任务
+2. **CPU绑定**：独占CPU0，避免进程迁移开销
+3. **内存锁定**：mlockall防止页错误
+4. **确定性路径**：所有操作都是O(1)或有界延迟
+
+---
 
 #### 2.2.5 遥测数据处理流程
 
-**遥测分类与采集策略**：
-
-| 遥测类型 | 采集核心 | 采集周期 | 存储位置 | 应答延迟 | 示例 |
-|---------|---------|---------|---------|---------|------|
-| **缓存型遥测** | A53后台采集 | 100ms-1s | 共享内存 | <800μs | CPU温度、内存使用率 |
-| **实时型遥测** | A53实时查询 | 按需 | 临时缓冲 | <100ms | 服务器开关机状态 |
-| **快遥** | A53后台采集 | 1s | 共享内存 | <800μs | 关键传感器 |
-| **慢遥** | A53后台采集 | 2s | 共享内存 | <800μs | 非关键传感器 |
-
-**完整数据流图**：
+**纯A53架构下的遥测处理（统一缓存模型）**：
 
 ```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        遥测数据采集与应答流程                                 │
-└─────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                    A53侧：后台遥测采集（Telemetry进程）                       │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ┌──────────────────────────────────────────────────────────────────────┐  │
-│  │ Cache_Collector_Thread (1秒周期)                                     │  │
-│  │ ├─ 遍历ACL配置表（缓存型遥测列表）                                    │  │
-│  │ ├─ 调用PDL接口采集数据                                                │  │
-│  │ │   ├─ PDL_BMC_ReadSensors() → Redfish/IPMI                          │  │
-│  │ │   ├─ PDL_MCU_GetStatus() → CAN                                     │  │
-│  │ │   └─ PDL_Satellite_GetHealth() → 本地状态                          │  │
-│  │ ├─ 更新遥测缓存（双缓冲写入）                                         │  │
-│  │ │   ├─ 写入非活动缓冲区                                               │  │
-│  │ │   ├─ 计算CRC32                                                     │  │
-│  │ │   └─ 原子切换活动缓冲区                                             │  │
-│  │ └─ 写入共享内存（R5F可读）                                            │  │
-│  └──────────────────────────────────────────────────────────────────────┘  │
-│                                                                             │
-│  ┌──────────────────────────────────────────────────────────────────────┐  │
-│  │ Health_Monitor_Thread (5秒周期)                                      │  │
-│  │ ├─ 检查外设连接状态                                                   │  │
-│  │ ├─ 检查通信错误计数                                                   │  │
-│  │ ├─ 检查R5F心跳                                                        │  │
-│  │ └─ 更新健康状态到共享内存                                             │  │
-│  └──────────────────────────────────────────────────────────────────────┘  │
-│                                                                             │
-│  ┌──────────────────────────────────────────────────────────────────────┐  │
-│  │ Status_Snapshot_Thread (10秒周期)                                    │  │
-│  │ ├─ 收集完整系统状态                                                   │  │
-│  │ ├─ 序列化为JSON格式                                                   │  │
-│  │ └─ 写入共享内存（用于日志归档）                                       │  │
-│  └──────────────────────────────────────────────────────────────────────┘  │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-                        ┌───────────────────────┐
-                        │   共享内存（DDR）      │
-                        │ • 遥测缓存（双缓冲）   │
-                        │ • 状态快照            │
-                        │ • 心跳表              │
-                        └───────────┬───────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                    R5F侧：遥测应答（Realtime_TM_Task）                        │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  卫星平台 ──遥测请求(CAN)──> R5F (CAN中断)                                  │
-│                               │                                             │
-│                               ▼                                             │
-│                    ┌──────────────────────┐                                │
-│                    │ CAN_RX_Task          │                                │
-│                    │ • 解析遥测请求       │                                │
-│                    │ • 提取遥测ID         │                                │
-│                    │ • 唤醒Realtime_TM    │                                │
-│                    └──────────┬───────────┘                                │
-│                               │                                             │
-│                               ▼                                             │
-│                    ┌──────────────────────┐                                │
-│                    │ Realtime_TM_Task     │                                │
-│                    │ (优先级200)          │                                │
-│                    └──────────┬───────────┘                                │
-│                               │                                             │
-│                    ┌──────────▼───────────┐                                │
-│                    │ 查询ACL配置          │                                │
-│                    │ • 遥测类型？         │                                │
-│                    └──────────┬───────────┘                                │
-│                               │                                             │
-│                ┌──────────────┴──────────────┐                             │
-│                ▼                             ▼                             │
-│     ┌──────────────────┐          ┌──────────────────┐                    │
-│     │ 缓存型遥测       │          │ 实时型遥测       │                    │
-│     │ • 读共享内存     │          │ • RPMsg请求A53   │                    │
-│     │ • 查遥测缓存     │          │ • 等待应答       │                    │
-│     │ • 检查新鲜度     │          │ • 超时降级到缓存 │                    │
-│     │ • 延迟<10μs      │          │ • 延迟<100ms     │                    │
-│     └──────────┬───────┘          └──────────┬───────┘                    │
-│                │                             │                             │
-│                └──────────────┬──────────────┘                             │
-│                               ▼                                             │
-│                    ┌──────────────────────┐                                │
-│                    │ 封装CAN应答          │                                │
-│                    │ • 遥测值             │                                │
-│                    │ • 新鲜度标记         │                                │
-│                    │ • 时间戳             │                                │
-│                    │ • CRC校验            │                                │
-│                    └──────────┬───────────┘                                │
-│                               │                                             │
-│                               ▼                                             │
-│                    ┌──────────────────────┐                                │
-│                    │ CAN发送              │                                │
-│                    └──────────┬───────────┘                                │
-│                               │                                             │
-│                               ▼                                             │
-│                          卫星平台 (收到遥测数据)                             │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                    Telemetry进程（CPU1，后台）                       │
+│                                                                      │
+│  周期性采集循环（100ms周期）：                                        │
+│  ┌────────────────────────────────────────────────────────────┐    │
+│  │ for each 遥测配置项:                                        │    │
+│  │   1. 检查更新周期（是否需要采集）                            │    │
+│  │   2. 调用PDL接口采集数据                                    │    │
+│  │      • BMC: Redfish/IPMI查询                               │    │
+│  │      • MCU: CAN查询                                        │    │
+│  │      • FPGA: 寄存器读取                                    │    │
+│  │   3. 写入共享内存缓存                                       │    │
+│  │      • 更新数据                                            │    │
+│  │      • 更新时间戳                                          │    │
+│  │      • 计算新鲜度（FRESH/STALE/INVALID）                   │    │
+│  │   4. 异常检测                                              │    │
+│  │      • 温度超限                                            │    │
+│  │      • 电压异常                                            │    │
+│  │      • 设备离线                                            │    │
+│  └────────────────────────────────────────────────────────────┘    │
+│                                                                      │
+└──────────────────────────┬───────────────────────────────────────────┘
+                           │ 写入
+                           ↓
+              ┌────────────────────────────┐
+              │   POSIX共享内存（4MB）      │
+              │  • 遥测缓存条目数组         │
+              │  • pthread_rwlock保护      │
+              │  • 时间戳 + 新鲜度标志      │
+              └────────────────────────────┘
+                           │ 读取（<50μs）
+                           ↓
+┌─────────────────────────────────────────────────────────────────────┐
+│                  Telecommand进程（CPU0，实时）                        │
+│                                                                      │
+│  遥测请求处理：                                                       │
+│  1. 从共享内存读取缓存数据（<50μs）                                   │
+│  2. 检查新鲜度标志                                                   │
+│     • FRESH: 数据新鲜，直接返回                                      │
+│     • STALE: 数据过期但可用，返回并标记                               │
+│     • INVALID: 数据无效，返回错误码                                  │
+│  3. 构造遥测应答帧                                                   │
+│  4. CAN发送到卫星平台（<20μs）                                       │
+│                                                                      │
+│  总延迟：<100μs（远小于2ms要求）                                      │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-**数据新鲜度管理**：
+**遥测数据新鲜度计算**：
 
 ```c
-/************************************************
- * 遥测数据新鲜度标记
- ************************************************/
-
-typedef enum {
-    TM_FRESH = 0,      // 新鲜数据：采集时间在有效期内
-    TM_STALE = 1,      // 过期数据：受遥控命令影响，等待更新
-    TM_INVALID = 2     // 无效数据：从未采集过或采集失败
-} tm_freshness_t;
-
-/************************************************
- * 遥控命令失效遥测数据（R5F侧）
- ************************************************/
-
-void invalidate_telemetry_by_tc(ipc_shared_memory_t *shm, uint16_t tc_id) {
-    // 1. 查询失效映射表（编译时生成，存储在共享内存）
-    tc_invalidation_entry_t *entry = find_invalidation_entry(
-        &shm->tc_invalidation_map, tc_id);
+// 新鲜度计算逻辑
+tm_freshness_t calculate_freshness(uint64_t timestamp_us, uint32_t validity_ms) {
+    uint64_t now_us = OSAL_GetTimeUs();
+    uint64_t age_ms = (now_us - timestamp_us) / 1000;
     
-    if (entry == NULL) {
-        return;  // 该遥控命令不影响任何遥测
-    }
-    
-    // 2. 标记相关遥测为STALE
-    for (uint32_t i = 0; i < entry->invalidated_tm_count; i++) {
-        uint16_t tm_id = entry->invalidated_tm_ids[i];
-        
-        // 在遥测缓存中查找并标记
-        uint32_t active = atomic_load(&shm->telemetry_cache.active_buffer);
-        for (uint32_t j = 0; j < shm->telemetry_cache.buffers[active].entry_count; j++) {
-            if (shm->telemetry_cache.buffers[active].entries[j].tm_id == tm_id) {
-                shm->telemetry_cache.buffers[active].entries[j].freshness = TM_STALE;
-            }
-        }
-    }
-    
-    // 3. 通知A53重新采集（通过Mailbox）
-    mailbox_send_interrupt(MAILBOX_A53, MAILBOX_MSG_TM_INVALIDATED);
-}
-
-/************************************************
- * A53侧重新采集（Telemetry进程）
- ************************************************/
-
-void handle_tm_invalidation(ipc_shared_memory_t *shm) {
-    // 1. 扫描遥测缓存，找到所有STALE条目
-    uint32_t active = atomic_load(&shm->telemetry_cache.active_buffer);
-    for (uint32_t i = 0; i < shm->telemetry_cache.buffers[active].entry_count; i++) {
-        if (shm->telemetry_cache.buffers[active].entries[i].freshness == TM_STALE) {
-            uint16_t tm_id = shm->telemetry_cache.buffers[active].entries[i].tm_id;
-            
-            // 2. 立即重新采集
-            uint32_t new_value;
-            int32_t ret = collect_telemetry(tm_id, &new_value);
-            
-            if (ret == OS_SUCCESS) {
-                // 3. 更新缓存并标记为FRESH
-                shm->telemetry_cache.buffers[active].entries[i].value = new_value;
-                shm->telemetry_cache.buffers[active].entries[i].freshness = TM_FRESH;
-                shm->telemetry_cache.buffers[active].entries[i].timestamp_ns = get_time_ns();
-            }
-        }
+    if (age_ms > validity_ms * 2) {
+        return TM_STATUS_INVALID;  // 超过2倍有效期，数据无效
+    } else if (age_ms > validity_ms) {
+        return TM_STATUS_STALE;    // 超过有效期，数据过期但可用
+    } else {
+        return TM_STATUS_FRESH;    // 在有效期内，数据新鲜
     }
 }
 ```
 
-**R5F硬实时路径（总计<1.3ms）**：
+**遥测缓存访问示例**：
 
-```text
-卫星CAN命令 → CAN中断触发（0μs）
-    ↓
-中断处理程序（10μs）：保存上下文 + 唤醒CAN_RX_Task
-    ↓
-CAN_RX_Task调度（5μs）：FreeRTOS调度
-    ↓
-命令解析（200μs）：协议解析 + 校验
-    ↓
-命令分类（50μs）：
-    ├─ 实时型遥测 → Realtime_TM_Task（800μs）
-    │   ├─ 从物理设备读取最新数据
-    │   └─ 封装应答
-    └─ 遥控命令 → Telecontrol_Task（500μs）
-        ├─ 调用PDL接口控制外设
-        └─ 封装应答
-    ↓
-应答封装（100μs）
-    ↓
-CAN发送（100μs）
-    ↓
-总计：1265μs（<1.3ms）
+```c
+// Telemetry进程：写入缓存
+int32_t update_telemetry_cache(pmc_tm_function_t tm_id, const uint8_t *data, uint32_t size) {
+    // 1. 采集数据（调用PDL）
+    const acl_tm_config_t *cfg = ACL_GetTmConfig(tm_id);
+    uint8_t tm_data[256];
+    uint32_t tm_size = 0;
+    
+    int32_t ret = collect_telemetry_from_device(cfg, tm_data, &tm_size);
+    if (ret != OSAL_SUCCESS) {
+        return ret;
+    }
+    
+    // 2. 写入共享内存缓存
+    return ACL_TelemetryCache_Write(tm_id, tm_data, tm_size);
+}
 
-抖动控制：±20μs（FreeRTOS调度抖动）
-最坏情况：1.3ms + 0.02ms = 1.32ms < 2ms ✓
+// Telecommand进程：读取缓存（<50μs）
+int32_t handle_telemetry_request(pmc_tm_function_t tm_id, telemetry_response_t *response) {
+    // 从缓存读取（快速，无阻塞）
+    int32_t ret = ACL_TelemetryCache_Read(tm_id, response);
+    if (ret != OSAL_SUCCESS) {
+        return ret;
+    }
+    
+    // 检查新鲜度
+    if (response->freshness == TM_STATUS_INVALID) {
+        LOG_WARN("TC", "遥测数据无效: %d", tm_id);
+        return OSAL_ERR_TIMEOUT;
+    }
+    
+    if (response->freshness == TM_STATUS_STALE) {
+        LOG_DEBUG("TC", "遥测数据过期: %d, age=%ums", tm_id, response->age_ms);
+        // 仍然返回数据，但卫星平台知道数据已过期
+    }
+    
+    return OSAL_SUCCESS;
+}
 ```
 
-**关键优化**：
-1. **TCM零等待**：R5F代码和关键数据存储在TCM（256KB），零等待访问
-2. **中断优先级**：CAN中断最高优先级（255），不可被抢占
-3. **FreeRTOS调度**：可预测调度，抖动<20μs
-4. **预分配**：所有缓冲区启动时预分配，运行时零malloc
-5. **零拷贝**：CAN数据直接在TCM中处理，无需额外拷贝
+**遥测周期配置**：
 
-#### 2.2.4 故障隔离（安全岛设计）
+| 遥测类型 | 更新周期 | 有效期 | 新鲜度判断 | 示例 |
+|---------|---------|-------|-----------|------|
+| **快遥** | 100ms | 500ms | >500ms=STALE, >1s=INVALID | 电源状态、MCU状态 |
+| **慢遥** | 2s | 4s | >4s=STALE, >8s=INVALID | 温度、电压、风扇转速 |
 
-**R5F作为安全岛**：
+---
+
+#### 2.2.6 故障隔离与自恢复
+
+**进程隔离设计**：
 
 ```text
-R5F安全岛特性：
-├─ 独立电源域（可选）
-├─ 独立时钟源
-├─ 独立看门狗
-├─ 独立CAN控制器
-├─ A53崩溃时，R5F仍可维持遥控遥测
-└─ R5F崩溃时，A53可通过RemoteProc复位R5F
+┌─────────────────────────────────────────────────────────────────────┐
+│                         Supervisor进程（CPU2）                        │
+│                                                                      │
+│  职责：                                                               │
+│  • 监控所有进程健康状态（心跳检测）                                    │
+│  • 检测进程崩溃（通过信号或心跳超时）                                  │
+│  • 自动重启崩溃的进程                                                 │
+│  • 记录故障日志                                                       │
+│  • 系统级故障恢复（重启整个系统）                                      │
+│                                                                      │
+└──────────────────────────┬───────────────────────────────────────────┘
+                           │ 监控
+                           ↓
+        ┌──────────────────────────────────────────┐
+        │                                          │
+        ↓                                          ↓
+┌──────────────────┐                    ┌──────────────────┐
+│ Telecommand进程  │                    │ Telemetry进程    │
+│ （CPU0，实时）   │                    │ （CPU1，后台）   │
+│                  │                    │                  │
+│ 故障影响：       │                    │ 故障影响：       │
+│ • 无法处理遥控   │                    │ • 缓存不更新     │
+│ • 无法应答遥测   │                    │ • 数据变STALE    │
+│                  │                    │                  │
+│ 恢复策略：       │                    │ 恢复策略：       │
+│ • Supervisor重启 │                    │ • Supervisor重启 │
+│ • <1秒恢复服务   │                    │ • <5秒恢复采集   │
+└──────────────────┘                    └──────────────────┘
 ```
 
-**故障恢复机制**：
+**故障检测机制**：
 
-| 故障场景 | 检测机制 | 恢复措施 | 恢复时间 |
+1. **心跳检测**：
+   - 每个进程定期更新心跳时间戳（共享内存）
+   - Supervisor进程检测心跳超时（2秒）
+   - 超时则判定进程卡死，执行重启
+
+2. **信号捕获**：
+   - 捕获SIGSEGV、SIGABRT等崩溃信号
+   - 记录崩溃日志（堆栈、寄存器）
+   - 通知Supervisor进程
+
+3. **看门狗**：
+   - 硬件看门狗（5秒超时）
+   - Supervisor进程定期喂狗
+   - 系统级死锁保护
+
+**自恢复策略**：
+
+| 故障类型 | 检测方式 | 恢复策略 | 恢复时间 |
 |---------|---------|---------|---------|
-| **R5F崩溃** | A53监控R5F心跳（共享内存） | A53通过RemoteProc复位R5F | <1秒 |
-| **A53崩溃** | R5F监控A53心跳（共享内存） | R5F独立运行，维持遥控遥测 | 无需恢复 |
-| **R5F任务死锁** | Watchdog_Task监控其他任务心跳 | 硬件看门狗复位整个系统 | <5秒 |
-| **核间通信故障** | RPMsg超时检测 | 降级到本地缓存模式 | 立即 |
+| **进程崩溃** | 信号捕获 | Supervisor重启进程 | <1秒 |
+| **进程卡死** | 心跳超时 | Supervisor杀死并重启 | <2秒 |
+| **Supervisor崩溃** | 硬件看门狗 | 系统复位 | <5秒 |
+| **系统死锁** | 硬件看门狗 | 系统复位 | <5秒 |
 
-#### 2.2.5 资源分配
+**恢复代码示例**：
+
+```c
+// Supervisor进程：监控和自动重启
+void supervisor_monitor_loop(void) {
+    while (running) {
+        // 1. 检查Telecommand进程心跳
+        if (check_process_heartbeat("telecommand", 2000) == TIMEOUT) {
+            LOG_ERROR("SUPERVISOR", "Telecommand进程心跳超时，重启中...");
+            restart_process("telecommand");
+        }
+        
+        // 2. 检查Telemetry进程心跳
+        if (check_process_heartbeat("telemetry", 2000) == TIMEOUT) {
+            LOG_ERROR("SUPERVISOR", "Telemetry进程心跳超时，重启中...");
+            restart_process("telemetry");
+        }
+        
+        // 3. 喂硬件看门狗
+        HAL_Watchdog_Feed();
+        
+        // 4. 休眠500ms
+        OSAL_msleep(500);
+    }
+}
+
+// 进程重启函数
+int32_t restart_process(const char *process_name) {
+    // 1. 杀死旧进程
+    pid_t pid = get_process_pid(process_name);
+    if (pid > 0) {
+        kill(pid, SIGKILL);
+        waitpid(pid, NULL, 0);
+    }
+    
+    // 2. 启动新进程
+    pid = fork();
+    if (pid == 0) {
+        // 子进程：执行目标程序
+        execl(process_name, process_name, NULL);
+        exit(1);
+    }
+    
+    // 3. 记录重启日志
+    LOG_INFO("SUPERVISOR", "进程 %s 已重启，PID=%d", process_name, pid);
+    
+    return OSAL_SUCCESS;
+}
+```
+
+---
+
+#### 2.2.7 资源分配
+
+**CPU分配**：
+
+| CPU核心 | 进程 | 调度策略 | 优先级 | 职责 |
+|--------|------|---------|-------|------|
+| **CPU0** | Telecommand | SCHED_FIFO | 99 | 实时遥控处理，<1.5ms响应 |
+| **CPU1** | Telemetry | SCHED_OTHER | 0 | 后台遥测采集，100ms周期 |
+| **CPU2** | Supervisor | SCHED_OTHER | 0 | 进程监控和自动重启 |
+| **CPU3** | Logger | SCHED_OTHER | 0 | 日志收集和持久化 |
 
 **内存分配**：
 
-| 区域 | 大小 | 用途 | 访问权限 |
-|------|------|------|---------|
-| **R5F TCM** | 256KB | R5F代码+关键数据，零等待 | R5F独占 |
-| **R5F DDR** | 8MB | 遥测缓存、日志缓冲区 | R5F独占 |
-| **共享内存** | 4MB | 核间通信（遥测、心跳、日志） | R5F写，A53读 |
-| **A53 DDR** | 512MB | Linux系统+应用 | A53独占 |
+| 内存区域 | 大小 | 用途 | 访问方式 |
+|---------|------|------|---------|
+| **共享内存** | 4MB | 遥测缓存 | POSIX shm_open + mmap |
+| **进程堆栈** | 8MB/进程 | 进程私有内存 | malloc |
+| **代码段** | ~2MB | 可执行文件 | 只读映射 |
 
-**外设分配**：
-
-| 外设 | 分配 | 访问方式 | 优先级 |
-|------|------|---------|--------|
-| **CAN0** | R5F独占 | 直接寄存器操作 | 硬实时 |
-| **CAN1** | R5F优先，A53备用 | 仲裁访问 | 硬实时 |
-| **硬件看门狗** | R5F独占 | 直接寄存器操作 | 最高 |
-| **Mailbox** | 共享 | 核间中断 | 高 |
-| **Ethernet** | A53独占 | Linux驱动 | 低 |
-| **UART0** | A53独占 | Linux驱动（调试串口） | 低 |
-| **eMMC/SD** | A53独占 | Linux驱动（文件系统） | 低 |
-| **I2C/SPI** | R5F优先，A53备用 | 仲裁访问 | 中 |
-| **GPIO** | 共享 | 仲裁访问（电源控制） | 中 |
-
-**CPU分配（A53侧）**：
-
-| 进程 | 核心 | 调度策略 | 优先级 | 职责 |
-|------|------|---------|--------|------|
-| **Supervisor** | CPU1 | SCHED_FIFO | 50 | 监控R5F心跳、进程监控、故障恢复 |
-| **Telemetry** | CPU3 | SCHED_FIFO | 70 | 后台遥测采集、通过共享内存同步到R5F |
-| **Firmware** | CPU0 | SCHED_OTHER | 0 | 固件升级、通过RPMsg通知R5F |
-| **Logger** | CPU0 | SCHED_OTHER | 0 | 日志收集、通过RPMsg请求R5F日志 |
-
-#### 2.2.8 R5F任务架构设计
-
-**R5F侧任务列表（FreeRTOS）**：
-
-| 任务名称 | 优先级 | 栈大小 | 周期/触发 | 职责 | 时间预算 |
-|---------|--------|--------|----------|------|---------|
-| **CAN_RX_Task** | 255（最高） | 2KB | CAN中断触发 | CAN接收、命令解析、分发 | <200μs |
-| **Watchdog_Task** | 250 | 1KB | 100ms周期 | 喂硬件看门狗、监控任务心跳 | <50μs |
-| **Realtime_TM_Task** | 200 | 2KB | 命令触发 | 实时遥测查询、共享内存读取 | <800μs |
-| **Telecontrol_Task** | 180 | 2KB | 命令触发 | 简单遥控执行、PDL调用 | <500μs |
-| **IPC_Handler_Task** | 100 | 2KB | RPMsg触发 | 处理A53命令、复杂遥控转发 | <100ms |
-| **Heartbeat_Task** | 50 | 1KB | 1秒周期 | 更新心跳、监控A53、状态上报 | <100μs |
-
-**任务间通信机制**：
-
-```c
-/************************************************
- * R5F任务间通信（FreeRTOS队列）
- ************************************************/
-
-// 命令队列（CAN_RX_Task → 其他任务）
-typedef struct {
-    QueueHandle_t realtime_tm_queue;    // 实时遥测命令队列（深度32）
-    QueueHandle_t telecontrol_queue;    // 遥控命令队列（深度32）
-    QueueHandle_t ipc_queue;            // IPC命令队列（深度16）
-} r5f_task_queues_t;
-
-// 命令消息结构
-typedef struct {
-    uint16_t cmd_id;                    // 命令ID
-    uint32_t seq_num;                   // 序列号
-    uint8_t  payload[64];               // 命令负载
-    uint64_t timestamp_ns;              // 接收时间戳
-} r5f_command_msg_t;
-
-/************************************************
- * R5F任务实现示例
- ************************************************/
-
-// CAN_RX_Task：CAN接收和命令分发
-void CAN_RX_Task(void *arg) {
-    r5f_task_queues_t *queues = (r5f_task_queues_t *)arg;
-    can_frame_t frame;
-    
-    while (1) {
-        // 1. 等待CAN中断信号（阻塞）
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-        
-        uint64_t start_time = get_time_ns();
-        
-        // 2. 从CAN硬件FIFO读取帧
-        if (HAL_CAN_Receive(CAN0, &frame, 0) == OS_SUCCESS) {
-            // 3. CRC校验
-            if (verify_crc(&frame)) {
-                // 4. 协议解析
-                r5f_command_msg_t cmd;
-                parse_can_frame(&frame, &cmd);
-                
-                // 5. 命令分类和分发
-                command_class_t class = classify_command(cmd.cmd_id);
-                
-                switch (class) {
-                    case CMD_CLASS_REALTIME_TM:
-                        xQueueSend(queues->realtime_tm_queue, &cmd, 0);
-                        break;
-                    case CMD_CLASS_SIMPLE_TC:
-                        xQueueSend(queues->telecontrol_queue, &cmd, 0);
-                        break;
-                    case CMD_CLASS_COMPLEX_TC:
-                    case CMD_CLASS_SLOW_TM:
-                        xQueueSend(queues->ipc_queue, &cmd, 0);
-                        break;
-                }
-                
-                // 6. 性能统计
-                uint64_t latency_us = (get_time_ns() - start_time) / 1000;
-                update_realtime_stats(latency_us);
-            }
-        }
-    }
-}
-
-// Realtime_TM_Task：实时遥测处理
-void Realtime_TM_Task(void *arg) {
-    r5f_task_queues_t *queues = (r5f_task_queues_t *)arg;
-    r5f_command_msg_t cmd;
-    ipc_shared_memory_t *shm = get_shared_memory();
-    
-    while (1) {
-        // 1. 等待命令（阻塞）
-        if (xQueueReceive(queues->realtime_tm_queue, &cmd, portMAX_DELAY) == pdTRUE) {
-            uint64_t start_time = get_time_ns();
-            
-            // 2. 从共享内存读取遥测缓存
-            uint32_t tm_value;
-            int32_t ret = telemetry_cache_read(shm, cmd.cmd_id, &tm_value);
-            
-            // 3. 封装CAN应答
-            can_frame_t response;
-            build_tm_response(&response, cmd.seq_num, tm_value, ret);
-            
-            // 4. 发送CAN应答
-            HAL_CAN_Send(CAN0, &response, 100);
-            
-            // 5. 性能统计
-            uint64_t latency_us = (get_time_ns() - start_time) / 1000;
-            update_realtime_stats(latency_us);
-        }
-    }
-}
-
-// Watchdog_Task：看门狗和任务监控
-void Watchdog_Task(void *arg) {
-    static uint64_t task_heartbeats[6] = {0};
-    
-    while (1) {
-        // 1. 喂硬件看门狗
-        HAL_Watchdog_Feed();
-        
-        // 2. 检查各任务心跳（通过任务通知计数）
-        for (int i = 0; i < 6; i++) {
-            uint64_t current_hb = get_task_heartbeat(i);
-            if (current_hb == task_heartbeats[i]) {
-                // 任务心跳未更新，可能死锁
-                LOG_ERROR("WDT", "Task %d heartbeat timeout", i);
-                // 不喂狗，触发硬件看门狗复位
-                return;
-            }
-            task_heartbeats[i] = current_hb;
-        }
-        
-        // 3. 延迟100ms
-        vTaskDelay(pdMS_TO_TICKS(100));
-    }
-}
-
-// Heartbeat_Task：心跳和状态上报
-void Heartbeat_Task(void *arg) {
-    ipc_shared_memory_t *shm = get_shared_memory();
-    
-    while (1) {
-        // 1. 更新R5F心跳到共享内存
-        atomic_store(&shm->heartbeat.r5f_heartbeat_ns, get_time_ns());
-        
-        // 2. 更新R5F任务状态位图
-        uint32_t task_status = get_all_task_status();
-        atomic_store(&shm->heartbeat.r5f_task_status, task_status);
-        
-        // 3. 检查A53心跳
-        uint64_t a53_hb = atomic_load(&shm->heartbeat.a53_heartbeat_ns);
-        if (get_time_ns() - a53_hb > 5000000000ULL) {  // 5秒超时
-            LOG_ERROR("R5F", "A53 heartbeat timeout");
-            // 进入降级模式
-            enable_r5f_degraded_mode();
-        }
-        
-        // 4. 延迟1秒
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-}
-```
-
-**R5F启动流程**：
-
-```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        R5F启动流程                                           │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  1. Bootloader阶段（A53 U-Boot）                                             │
-│     ├─ 加载Linux内核到DDR                                                    │
-│     ├─ 加载R5F固件到DDR（/lib/firmware/r5f_firmware.elf）                    │
-│     └─ 启动Linux内核                                                         │
-│                                                                             │
-│  2. Linux启动阶段（A53）                                                     │
-│     ├─ 加载RemoteProc驱动                                                    │
-│     ├─ 加载RPMsg驱动                                                         │
-│     ├─ 初始化共享内存（/dev/shm/pmc_ipc）                                    │
-│     └─ 通过RemoteProc启动R5F                                                 │
-│        echo "start" > /sys/class/remoteproc/remoteproc0/state               │
-│                                                                             │
-│  3. R5F固件加载阶段（RemoteProc驱动）                                        │
-│     ├─ 从DDR拷贝固件到TCM（代码段）                                          │
-│     ├─ 初始化TCM数据段                                                       │
-│     ├─ 配置MPU（TCM可执行，DDR可读写）                                       │
-│     ├─ 配置中断向量表                                                        │
-│     └─ 释放R5F复位，开始执行                                                 │
-│                                                                             │
-│  4. R5F初始化阶段（FreeRTOS）                                                │
-│     ├─ 初始化FreeRTOS内核                                                    │
-│     ├─ 初始化OSAL层（FreeRTOS实现）                                          │
-│     ├─ 初始化HAL层（CAN/GPIO/Watchdog）                                      │
-│     ├─ 加载ACL配置（从TCM读取，编译时链接）                                  │
-│     ├─ 初始化PDL层（Satellite/MCU服务）                                      │
-│     ├─ 映射共享内存（DDR，0xA0000000）                                       │
-│     ├─ 初始化RPMsg通信                                                       │
-│     └─ 创建6个任务                                                           │
-│                                                                             │
-│  5. R5F运行阶段                                                              │
-│     ├─ 所有任务进入就绪状态                                                  │
-│     ├─ FreeRTOS调度器开始运行                                                │
-│     ├─ Heartbeat_Task发送心跳到A53                                           │
-│     ├─ CAN_RX_Task等待CAN中断                                                │
-│     └─ 系统进入正常运行状态                                                  │
-│                                                                             │
-│  总启动时间：<500ms                                                          │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-#### 2.2.9 ACL配置加载机制
-
-**ACL配置在多核环境下的部署策略**：
-
-| 配置项 | R5F侧 | A53侧 | 同步机制 |
-|--------|-------|-------|---------|
-| **遥控命令映射** | 编译时链接到TCM | 运行时从文件加载 | 编译时保证一致 |
-| **遥测数据映射** | 编译时链接到TCM | 运行时从文件加载 | 编译时保证一致 |
-| **遥控失效映射** | 编译时链接到共享内存 | 只读访问共享内存 | 编译时生成 |
-| **设备配置** | 简化版（只包含CAN设备） | 完整版（所有设备） | 各自独立 |
-
-**R5F侧ACL配置加载**：
-
-```c
-/************************************************
- * R5F侧ACL配置（编译时生成，链接到TCM）
- ************************************************/
-
-// ACL配置表（编译时生成，存储在TCM）
-typedef struct {
-    uint32_t version;                           // 配置版本号
-    uint32_t tc_count;                          // 遥控命令数量
-    uint32_t tm_count;                          // 遥测数据数量
-    
-    // 遥控命令配置表（数组索引 = 命令ID）
-    struct {
-        uint16_t cmd_id;                        // 命令ID
-        uint8_t  device_type;                   // 设备类型（MCU/SATELLITE）
-        uint8_t  device_index;                  // 设备索引
-        uint8_t  interface_type;                // 接口类型（CAN/GPIO）
-        uint8_t  cmd_class;                     // 命令分类（简单/复杂）
-        uint16_t timeout_ms;                    // 超时时间
-    } tc_config[256];
-    
-    // 遥测数据配置表（数组索引 = 遥测ID）
-    struct {
-        uint16_t tm_id;                         // 遥测ID
-        uint8_t  tm_type;                       // 遥测类型（缓存/实时）
-        uint8_t  data_type;                     // 数据类型（uint8/uint16/uint32）
-        uint16_t cache_index;                   // 缓存索引（在共享内存中的位置）
-        uint16_t timeout_ms;                    // 超时时间
-    } tm_config[512];
-    
-} r5f_acl_config_t __attribute__((section(".tcm_data")));
-
-// 全局ACL配置实例（链接到TCM）
-r5f_acl_config_t g_r5f_acl_config __attribute__((section(".tcm_data"))) = {
-    .version = 0x00010000,  // v1.0
-    .tc_count = 32,
-    .tm_count = 128,
-    
-    // 遥控命令配置（编译时生成）
-    .tc_config = {
-        {.cmd_id = TC_SERVER_POWER_ON, .device_type = ACL_DEVICE_BMC, 
-         .device_index = 0, .cmd_class = CMD_CLASS_COMPLEX_TC, .timeout_ms = 5000},
-        {.cmd_id = TC_MCU_RESET, .device_type = ACL_DEVICE_MCU, 
-         .device_index = 0, .cmd_class = CMD_CLASS_SIMPLE_TC, .timeout_ms = 1000},
-        // ... 更多配置
-    },
-    
-    // 遥测数据配置（编译时生成）
-    .tm_config = {
-        {.tm_id = TM_CPU_TEMP, .tm_type = TM_TYPE_CACHED, 
-         .data_type = DATA_TYPE_UINT16, .cache_index = 0, .timeout_ms = 100},
-        {.tm_id = TM_SERVER_POWER_STATE, .tm_type = TM_TYPE_REALTIME, 
-         .data_type = DATA_TYPE_UINT8, .cache_index = 1, .timeout_ms = 5000},
-        // ... 更多配置
-    }
-};
-
-// R5F侧ACL查询接口（O(1)查找）
-acl_tc_config_t* acl_get_tc_config(uint16_t cmd_id) {
-    if (cmd_id < g_r5f_acl_config.tc_count) {
-        return &g_r5f_acl_config.tc_config[cmd_id];
-    }
-    return NULL;
-}
-
-acl_tm_config_t* acl_get_tm_config(uint16_t tm_id) {
-    if (tm_id < g_r5f_acl_config.tm_count) {
-        return &g_r5f_acl_config.tm_config[tm_id];
-    }
-    return NULL;
-}
-```
-
-**A53侧ACL配置加载**：
-
-```c
-/************************************************
- * A53侧ACL配置（运行时从文件加载）
- ************************************************/
-
-// A53侧ACL配置文件路径
-#define ACL_CONFIG_FILE  "/etc/pmc/acl_pmc_v1.conf"
-
-// A53侧ACL配置加载
-int32_t acl_load_config_a53(const char *config_file) {
-    FILE *fp = fopen(config_file, "r");
-    if (fp == NULL) {
-        LOG_ERROR("ACL", "Failed to open config file: %s", config_file);
-        return OS_ERROR;
-    }
-    
-    // 1. 读取配置文件（JSON格式）
-    char buffer[64 * 1024];
-    size_t len = fread(buffer, 1, sizeof(buffer), fp);
-    fclose(fp);
-    
-    // 2. 解析JSON配置
-    cJSON *root = cJSON_Parse(buffer);
-    if (root == NULL) {
-        LOG_ERROR("ACL", "Failed to parse config file");
-        return OS_ERROR;
-    }
-    
-    // 3. 加载遥控命令配置
-    cJSON *tc_array = cJSON_GetObjectItem(root, "telecommands");
-    int tc_count = cJSON_GetArraySize(tc_array);
-    for (int i = 0; i < tc_count; i++) {
-        cJSON *tc = cJSON_GetArrayItem(tc_array, i);
-        // 解析并存储配置
-        // ...
-    }
-    
-    // 4. 加载遥测数据配置
-    cJSON *tm_array = cJSON_GetObjectItem(root, "telemetry");
-    int tm_count = cJSON_GetArraySize(tm_array);
-    for (int i = 0; i < tm_count; i++) {
-        cJSON *tm = cJSON_GetArrayItem(tm_array, i);
-        // 解析并存储配置
-        // ...
-    }
-    
-    cJSON_Delete(root);
-    
-    LOG_INFO("ACL", "Loaded %d TC configs and %d TM configs", tc_count, tm_count);
-    return OS_SUCCESS;
-}
-```
-
-**配置一致性保证**：
+**实时性配置**：
 
 ```bash
-#!/bin/bash
-# 配置生成脚本（编译时执行）
+# 1. CPU隔离（可选）
+# 在内核启动参数中添加：
+isolcpus=0,1
 
-# 1. 从JSON配置生成R5F的C代码（编译时链接）
-python3 tools/acl_gen_r5f.py \
-    --input config/acl_pmc_v1.json \
-    --output r5f/acl/acl_config_generated.c
+# 2. 中断亲和性（可选）
+# 将CAN中断绑定到CPU0：
+echo 1 > /proc/irq/<CAN_IRQ>/smp_affinity
 
-# 2. 拷贝JSON配置到A53文件系统（运行时加载）
-cp config/acl_pmc_v1.json buildroot/overlay/etc/pmc/acl_pmc_v1.conf
+# 3. 实时调度配置
+# 在应用代码中设置：
+struct sched_param param = { .sched_priority = 99 };
+sched_setscheduler(0, SCHED_FIFO, &param);
 
-# 3. 生成遥控失效映射表（编译时链接到共享内存）
-python3 tools/acl_gen_invalidation.py \
-    --input config/acl_pmc_v1.json \
-    --output shared/acl_invalidation_map.c
+# 4. CPU亲和性
+cpu_set_t cpuset;
+CPU_ZERO(&cpuset);
+CPU_SET(0, &cpuset);
+sched_setaffinity(0, sizeof(cpuset), &cpuset);
 
-# 4. 校验R5F和A53配置一致性
-python3 tools/acl_verify_consistency.py \
-    --r5f r5f/acl/acl_config_generated.c \
-    --a53 config/acl_pmc_v1.json
+# 5. 内存锁定
+mlockall(MCL_CURRENT | MCL_FUTURE);
 ```
 
 ---
 
-### 2.3. 关键文件清单
+#### 2.2.8 ACL配置加载机制
 
-#### 2.3.1 整体目录结构
+**配置加载流程**：
 
-```
-EMS/
-├── osal/                                    # 操作系统抽象层
-│   ├── include/
-│   │   ├── sys/
-│   │   │   ├── osal_process_mgmt.h         # 进程管理接口（fork/exec/wait/kill）
-│   │   │   └── osal_sched.h                # 实时调度接口（SCHED_FIFO/CPU亲和性/内存锁定）
-│   │   ├── ipc/
-│   │   │   ├── osal_shm.h                  # 共享内存接口（shm_open/mmap）
-│   │   │   ├── osal_rpmsg.h                # RPMsg接口（核间消息传递）
-│   │   │   ├── osal_mailbox.h              # Mailbox接口（核间中断）
-│   │   │   ├── osal_log_ring_buffer.h      # 日志环形缓冲区（通用IPC机制，4096条目）
-│   │   │   └── osal_heartbeat_table.h      # 心跳表（通用IPC机制，原子时间戳）
-│   │   └── multicore/
-│   │       ├── osal_multicore.h            # 多核抽象接口（CPU亲和性、实时调度）
-│   │       └── osal_remoteproc.h           # RemoteProc接口（R5F启动/停止/复位）
-│   └── src/
-│       ├── posix/                          # Linux实现（A53侧）
-│       │   ├── osal_process_mgmt.c         # 进程管理实现
-│       │   ├── osal_sched.c                # 实时调度实现
-│       │   ├── osal_shm.c                  # 共享内存实现
-│       │   ├── osal_rpmsg.c                # RPMsg实现（/dev/rpmsg_*）
-│       │   ├── osal_mailbox.c              # Mailbox实现（/dev/mailbox_*）
-│       │   ├── osal_log_ring_buffer.c      # 日志环形缓冲区实现
-│       │   ├── osal_heartbeat_table.c      # 心跳表实现
-│       │   └── osal_remoteproc.c           # RemoteProc实现（/sys/class/remoteproc/）
-│       └── freertos/                       # FreeRTOS实现（R5F侧）
-│           ├── osal_task.c                 # 任务管理实现
-│           ├── osal_queue.c                # 队列实现
-│           ├── osal_mutex.c                # 互斥锁实现
-│           ├── osal_rpmsg.c                # RPMsg实现（TI IPC库）
-│           ├── osal_mailbox.c              # Mailbox实现（TI IPC库）
-│           └── osal_shm.c                  # 共享内存实现（DDR映射）
-│
-├── hal/                                     # 硬件抽象层（现有）
-│   ├── include/
-│   │   ├── hal_gpio.h                      # GPIO抽象接口
-│   │   ├── hal_uart.h                      # UART抽象接口
-│   │   ├── hal_i2c.h                       # I2C抽象接口
-│   │   ├── hal_spi.h                       # SPI抽象接口
-│   │   ├── hal_can.h                       # CAN抽象接口
-│   │   └── hal_watchdog.h                  # 看门狗抽象接口
-│   └── src/
-│       ├── linux/                          # Linux平台实现（A53侧）
-│       │   ├── hal_gpio_linux.c
-│       │   ├── hal_uart_linux.c
-│       │   ├── hal_i2c_linux.c
-│       │   ├── hal_spi_linux.c
-│       │   ├── hal_can_linux.c
-│       │   └── hal_watchdog_linux.c
-│       └── ti_r5f/                         # TI R5F平台实现（R5F侧）
-│           ├── hal_gpio_r5f.c              # GPIO寄存器操作
-│           ├── hal_uart_r5f.c              # UART寄存器操作
-│           ├── hal_i2c_r5f.c               # I2C寄存器操作
-│           ├── hal_spi_r5f.c               # SPI寄存器操作
-│           ├── hal_can_r5f.c               # CAN寄存器操作（MCAN）
-│           └── hal_watchdog_r5f.c          # 看门狗寄存器操作
-│
-├── pcl/                                     # 外设配置层（现有）
-│   ├── include/
-│   │   ├── api/
-│   │   │   └── pcl_api.h                   # PCL统一查询接口
-│   │   ├── internal/
-│   │   │   ├── pcl.h                       # PCL内部接口
-│   │   │   ├── pcl_common.h                # PCL通用类型定义
-│   │   │   └── pcl_board.h                 # 板级配置接口
-│   │   └── peripheral/
-│   │       ├── pcl_mcu.h                   # MCU外设配置结构
-│   │       ├── pcl_bmc.h                   # BMC外设配置结构
-│   │       ├── pcl_satellite.h             # Satellite外设配置结构
-│   │       ├── pcl_sensor.h                # 传感器配置结构
-│   │       ├── pcl_storage.h               # 存储配置结构
-│   │       └── pcl_hardware_interface.h    # 硬件接口配置（CAN/UART/I2C/SPI）
-│   ├── src/
-│   │   ├── pcl_api.c                       # PCL查询接口实现
-│   │   └── pcl_register.c                  # PCL注册机制实现
-│   └── platform/
-│       ├── ti/
-│       │   └── am6254/
-│       │       ├── carrier_board_v1/
-│       │       │   └── ti_am6254_carrier_board_v1.c    # TI AM6254载板v1硬件配置
-│       │       └── carrier_board_v2/
-│       │           └── ti_am6254_carrier_board_v2.c    # TI AM6254载板v2硬件配置
-│       └── vendor_demo/
-│           └── platform_demo/
-│               └── vendor_demo_platform_demo_v1.c      # Demo平台硬件配置
-│
-├── pdl/                                     # 外设驱动层（现有）
-│   ├── include/
-│   │   ├── pdl_mcu.h                       # MCU驱动接口（独立）
-│   │   ├── pdl_bmc.h                       # BMC驱动接口（独立）
-│   │   ├── pdl_satellite.h                 # Satellite驱动接口（独立）
-│   │   └── pdl_watchdog.h                  # 看门狗驱动接口
-│   └── src/
-│       ├── pdl_mcu/                        # MCU驱动实现（独立模块）
-│       │   ├── pdl_mcu.c                   # MCU核心模块（对外API）
-│       │   ├── pdl_mcu_protocol.c          # MCU协议处理模块
-│       │   ├── pdl_mcu_can.c               # MCU CAN通信模块
-│       │   ├── pdl_mcu_serial.c            # MCU串口通信模块
-│       │   └── pdl_mcu_internal.h          # MCU内部头文件
-│       ├── pdl_bmc/                        # BMC驱动实现（独立模块）
-│       │   ├── pdl_bmc.c                   # BMC核心模块（对外API）
-│       │   ├── pdl_bmc_redfish.c           # Redfish协议实现
-│       │   ├── pdl_bmc_ipmi.c              # IPMI协议实现
-│       │   ├── pdl_bmc_transport.c         # BMC传输层（网络/串口）
-│       │   └── pdl_bmc_internal.h          # BMC内部头文件
-│       ├── pdl_satellite/                  # Satellite驱动实现（独立模块）
-│       │   ├── pdl_satellite.c             # Satellite核心模块（对外API）
-│       │   ├── pdl_satellite_can.c         # Satellite CAN通信模块
-│       │   └── pdl_satellite_internal.h    # Satellite内部头文件
-│       └── pdl_watchdog.c                  # 看门狗驱动实现
-│
-├── acl/                                     # 应用配置层（新增）
-│   ├── include/
-│   │   ├── pmc_acl_types.h                 # PMC业务功能枚举（遥控/遥测/健康管理）
-│   │   ├── acl_config.h                    # ACL配置结构（设备映射+数据类型）
-│   │   ├── acl_telemetry_cache.h           # 遥测缓冲区结构（业务数据，双缓冲无锁读写）
-│   │   └── acl_status_snapshot.h           # 状态快照结构（业务数据，服务器+外设状态）
-│   ├── src/
-│   │   ├── acl_core.c                      # ACL核心实现（O(1)查找表）
-│   │   ├── acl_telemetry_cache.c           # 遥测缓存管理实现
-│   │   └── acl_status_snapshot.c           # 状态快照管理实现
-│   └── config/
-│       └── pmc_v1/
-│           ├── acl_pmc_v1.c                # PMC v1.0配置（命名规范：acl_{project}_{product}_{version}.c）
-│           └── acl_pmc_v1_invalidation.c   # 遥控命令失效映射
-│
-├── apps/                                     # 应用层（新增）
-│   ├── supervisor/
-│   │   ├── supervisor.c                    # Supervisor进程（<1000行，心跳检测+进程重启）
-│   │   └── pmc_shm_layout.h                # PMC共享内存布局定义（应用级设计决策）
-│   │
-│   ├── telecommand/
-│   │   ├── telecommand.c                   # Telecommand进程主程序（CAN接收+遥控处理）
-│   │   ├── can_rx_handler.c                # CAN接收处理线程（2ms应答关键路径）
-│   │   ├── realtime_tm_handler.c           # 实时遥测处理线程（PDL查询<500μs）
-│   │   └── telecontrol_executor.c          # 遥控执行线程（异步执行）
-│   │
-│   ├── telemetry/
-│   │   ├── telemetry.c                     # Telemetry进程主程序（后台采集）
-│   │   ├── cache_collector.c               # 缓存采集线程（1秒周期，双缓冲写入）
-│   │   ├── health_monitor.c                # 健康监控线程（5秒周期，异常检测）
-│   │   └── status_snapshot.c               # 状态快照线程（10秒周期，JSON格式）
-│   │
-│   ├── firmware/
-│   │   ├── firmware.c                      # Firmware进程主程序（固件升级）
-│   │   ├── upgrade_control.c               # 升级控制线程（A/B分区管理）
-│   │   └── verify_thread.c                 # 校验线程（CRC32+签名验证）
-│   │
-│   └── logger/
-│       ├── logger.c                        # Logger进程主程序（日志收集）
-│       ├── log_collector.c                 # 日志收集线程（共享内存环形缓冲区）
-│       ├── status_archiver.c               # 状态归档线程（JSON压缩存储）
-│       ├── crash_analyzer.c                # 崩溃分析线程（coredump+backtrace）
-│       └── log_rotator.c                   # 日志轮转线程（按大小/时间轮转）
-│
-│
-└── tests/                                   # 测试目录
-    ├── unit/                                # 单元测试
-    │   ├── acl/
-    │   │   └── test_acl_lookup.c           # ACL查找测试（O(1)性能验证）
-    │   ├── osal/
-    │   │   ├── test_osal_process.c         # 进程管理测试（fork/exec/wait）
-    │   │   ├── test_osal_shm.c             # 共享内存测试（双缓冲/原子操作）
-    │   │   └── test_osal_sched.c           # 实时调度测试（SCHED_FIFO/优先级）
-    │   ├── pdl/
-    │   │   ├── test_pdl_mcu.c              # MCU驱动测试
-    │   │   ├── test_pdl_bmc.c              # BMC驱动测试
-    │   │   └── test_pdl_satellite.c        # Satellite驱动测试
-    │   └── pcl/
-    │       └── test_pcl_api.c              # PCL查询接口测试
-    │
-    ├── integration/                         # 集成测试
-    │   ├── test_2ms_latency.c              # 2ms延迟测试（关键路径验证）
-    │   ├── test_process_crash.c            # 进程崩溃测试（三级恢复机制）
-    │   └── test_seu_simulation.c           # SEU模拟测试（数据损坏+恢复）
-    │
-    └── stress/                              # 压力测试
-        ├── test_high_frequency.c           # 高频压力测试（每秒100条命令）
-        └── test_long_term.c                # 长期稳定性测试（7×24小时）
+```text
+系统启动
+    ↓
+ACL_Init()
+    ↓
+1. 加载遥控配置表（g_pmc_tc_configs）
+   • 编译时静态链接
+   • O(1)数组索引访问
+    ↓
+2. 加载遥测配置表（g_pmc_tm_configs）
+   • 编译时静态链接
+   • O(1)数组索引访问
+    ↓
+3. 加载失效映射表（g_invalidation_map）
+   • 编译时静态链接
+   • 遥控命令 → 失效遥测列表
+    ↓
+4. 初始化遥测缓存
+   • 创建POSIX共享内存
+   • 初始化pthread_rwlock
+   • 所有条目标记为INVALID
+    ↓
+配置加载完成
 ```
 
-#### 2.3.2 关键文件说明
+**配置选择机制**：
 
-- OSAL层扩展（进程间通信 + 多核支持）
+```cmake
+# CMakeLists.txt中选择配置
+set(ACL_CONFIG "H200_100P" CACHE STRING "ACL configuration")
 
-| 文件                     | 行数估算 | 说明                                        |
-| ------------------------ | -------- | ------------------------------------------- |
-| `osal_process_mgmt.h`    | ~150行   | 进程管理接口：fork/exec/wait/kill/getpid    |
-| `osal_sched.h`           | ~100行   | 实时调度接口：SCHED_FIFO/CPU亲和性/内存锁定 |
-| `osal_shm.h`             | ~120行   | 共享内存接口：shm_open/mmap/munmap          |
-| `osal_multicore.h`       | ~150行   | 多核抽象接口：CPU亲和性、实时调度           |
-| `osal_log_ring_buffer.h` | ~150行   | 日志环形缓冲区接口（通用IPC机制）           |
-| `osal_heartbeat_table.h` | ~100行   | 心跳表接口（通用IPC机制）                   |
-| `osal_process_mgmt.c`    | ~300行   | 进程管理实现（POSIX封装）                   |
-| `osal_sched.c`           | ~200行   | 实时调度实现（sched_setscheduler/mlockall） |
-| `osal_shm.c`             | ~250行   | 共享内存实现（mmap/原子操作）               |
-| `osal_log_ring_buffer.c` | ~200行   | 日志环形缓冲区实现（无锁读写）              |
-| `osal_heartbeat_table.c` | ~150行   | 心跳表实现（原子操作）                      |
+if(ACL_CONFIG STREQUAL "H200_100P")
+    list(APPEND ACL_SOURCES
+        config/H200_100P/acl_h200_100p.c
+        config/H200_100P/acl_h200_100p_invalidation.c
+    )
+elseif(ACL_CONFIG STREQUAL "demo")
+    list(APPEND ACL_SOURCES
+        config/demo/acl_demo_v1.c
+        config/demo/acl_demo_v1_invalidation.c
+    )
+endif()
+```
 
-- HAL层（现有，5个头文件 + 5个实现文件）
+**配置示例**：
 
-| 文件            | 行数估算  | 说明                                |
-| --------------- | --------- | ----------------------------------- |
-| `hal_gpio.h`    | ~100行    | GPIO抽象接口（输入/输出/中断）      |
-| `hal_uart.h`    | ~120行    | UART抽象接口（配置/收发/流控）      |
-| `hal_i2c.h`     | ~100行    | I2C抽象接口（主模式/从模式）        |
-| `hal_spi.h`     | ~100行    | SPI抽象接口（主模式/从模式）        |
-| `hal_can.h`     | ~150行    | CAN抽象接口（标准帧/扩展帧/过滤）   |
-| `hal_*_linux.c` | ~200行/个 | Linux平台实现（5个文件，共~1000行） |
+```c
+// acl_h200_100p.c
+const acl_tc_config_t g_pmc_tc_configs[] = {
+    // 服务器电源控制 → BMC
+    { TC_SERVER_POWER_ON,    ACL_DEVICE_BMC, 0, true },
+    { TC_SERVER_POWER_OFF,   ACL_DEVICE_BMC, 0, true },
+    
+    // MCU控制 → MCU[0]
+    { TC_MCU_RESET,          ACL_DEVICE_MCU, 0, true },
+    
+    // ... 更多配置
+};
 
-- PCL层（现有，10个头文件 + 2个实现文件 + 平台配置）
-
-| 文件                                      | 行数估算  | 说明                              |
-| ----------------------------------------- | --------- | --------------------------------- |
-| `pcl_api.h`                               | ~150行    | PCL统一查询接口（按逻辑索引查询） |
-| `pcl_common.h`                            | ~200行    | PCL通用类型定义（设备配置结构）   |
-| `pcl_mcu.h`                               | ~150行    | MCU外设配置结构                   |
-| `pcl_bmc.h`                               | ~200行    | BMC外设配置结构（Redfish/IPMI）   |
-| `pcl_satellite.h`                         | ~150行    | Satellite外设配置结构             |
-| `pcl_sensor.h`                            | ~100行    | 传感器配置结构                    |
-| `pcl_storage.h`                           | ~100行    | 存储配置结构                      |
-| `pcl_hardware_interface.h`                | ~200行    | 硬件接口配置（CAN/UART/I2C/SPI）  |
-| `pcl_api.c`                               | ~400行    | PCL查询接口实现                   |
-| `pcl_register.c`                          | ~300行    | PCL注册机制实现                   |
-| `{platform}_{chip}_{project}_{version}.c` | ~500行/个 | 平台硬件配置（按命名规范）        |
-
-- PDL层（现有，4个头文件 + 13个实现文件）
-
-| 文件                  | 行数估算 | 说明                                    |
-| --------------------- | -------- | --------------------------------------- |
-| `pdl_mcu.h`           | ~300行   | MCU驱动接口（电源/复位/看门狗/传感器）  |
-| `pdl_bmc.h`           | ~400行   | BMC驱动接口（Redfish/IPMI/电源/传感器） |
-| `pdl_satellite.h`     | ~250行   | Satellite驱动接口（遥控/遥测/心跳）     |
-| `pdl_watchdog.h`      | ~150行   | 看门狗驱动接口                          |
-| `pdl_mcu.c`           | ~600行   | MCU核心模块（对外API）                  |
-| `pdl_mcu_protocol.c`  | ~500行   | MCU协议处理模块                         |
-| `pdl_mcu_can.c`       | ~400行   | MCU CAN通信模块                         |
-| `pdl_mcu_serial.c`    | ~350行   | MCU串口通信模块                         |
-| `pdl_bmc.c`           | ~700行   | BMC核心模块（对外API）                  |
-| `pdl_bmc_redfish.c`   | ~800行   | Redfish协议实现                         |
-| `pdl_bmc_ipmi.c`      | ~600行   | IPMI协议实现                            |
-| `pdl_bmc_transport.c` | ~500行   | BMC传输层（网络/串口）                  |
-| `pdl_satellite.c`     | ~500行   | Satellite核心模块（对外API）            |
-| `pdl_satellite_can.c` | ~400行   | Satellite CAN通信模块                   |
-| `pdl_watchdog.c`      | ~300行   | 看门狗驱动实现                          |
-
-- ACL层（新增，4个头文件 + 4个实现文件 + 配置文件）
-
-| 文件                     | 行数估算 | 说明                                       |
-| ------------------------ | -------- | ------------------------------------------ |
-| `pmc_acl_types.h`        | ~200行   | PMC业务功能枚举（遥控/遥测/健康管理）      |
-| `acl_config.h`           | ~150行   | ACL配置结构（设备映射+数据类型）           |
-| `acl_telemetry_cache.h`  | ~200行   | 遥测缓冲区结构（业务数据，双缓冲无锁读写） |
-| `acl_status_snapshot.h`  | ~150行   | 状态快照结构（业务数据，服务器+外设状态）  |
-| `acl_core.c`                 | ~300行   | ACL核心实现（O(1)查找表初始化）            |
-| `acl_telemetry_cache.c`      | ~250行   | 遥测缓存管理实现                           |
-| `acl_status_snapshot.c`      | ~200行   | 状态快照管理实现                           |
-| `acl_pmc_v1.c`               | ~500行   | PMC v1.0配置（BMC/MCU/FPGA映射表）         |
-| `acl_pmc_v1_invalidation.c`  | ~200行   | 遥控命令失效映射                           |
-
-- 应用层（5个Linux进程）
-
-| 进程/线程       | 文件                   | 行数估算 | 说明                                  |
-| --------------- | ---------------------- | -------- | ------------------------------------- |
-| **Supervisor**  | `supervisor.c`         | ~800行   | 监控进程，心跳检测+进程重启+故障恢复  |
-|                 | `pmc_shm_layout.h`     | ~150行   | PMC共享内存布局定义（应用级设计决策） |
-| **Telecommand** | `telecommand.c`        | ~600行   | 遥控进程主程序，CAN接收+遥控处理      |
-|                 | `can_rx_handler.c`     | ~500行   | CAN接收处理线程，2ms应答关键路径      |
-|                 | `realtime_tm_handler.c`| ~400行   | 实时遥测处理线程，PDL查询<500μs       |
-|                 | `telecontrol_executor.c`| ~450行  | 遥控执行线程，异步执行                |
-| **Telemetry**   | `telemetry.c`          | ~350行   | 后台采集进程主程序                    |
-|                 | `cache_collector.c`    | ~450行   | 缓存采集线程，1秒周期双缓冲写入       |
-|                 | `health_monitor.c`     | ~400行   | 健康监控线程，5秒周期异常检测         |
-|                 | `status_snapshot.c`    | ~300行   | 状态快照线程，10秒周期JSON格式        |
-| **Firmware**    | `firmware.c`           | ~350行   | 固件升级进程主程序                    |
-|                 | `upgrade_control.c`    | ~600行   | 升级控制线程，A/B分区管理             |
-|                 | `verify_thread.c`      | ~300行   | 校验线程，CRC32+签名验证              |
-| **Logger**      | `logger.c`             | ~300行   | 日志收集进程主程序                    |
-|                 | `log_collector.c`      | ~400行   | 日志收集线程，共享内存环形缓冲区      |
-|                 | `status_archiver.c`    | ~350行   | 状态归档线程，JSON压缩存储            |
-|                 | `crash_analyzer.c`     | ~450行   | 崩溃分析线程，coredump+backtrace      |
-|                 | `log_rotator.c`        | ~250行   | 日志轮转线程，按大小/时间轮转         |
-
-- 测试文件（多核和实时性测试）
-
-| 文件                          | 行数估算 | 说明                              |
-| ----------------------------- | -------- | --------------------------------- |
-| `test_acl_lookup.c`           | ~300行   | ACL查找测试，验证O(1)性能         |
-| `test_osal_process.c`         | ~400行   | 进程管理测试，fork/exec/wait      |
-| `test_osal_shm.c`             | ~450行   | 共享内存测试，mmap/munmap         |
-| `test_osal_sched.c`           | ~350行   | 实时调度测试，SCHED_FIFO/优先级   |
-| `test_osal_multicore.c`       | ~400行   | 多核测试，CPU亲和性、核心隔离     |
-| `test_osal_log_ring_buffer.c` | ~350行   | 日志环形缓冲区测试，无锁读写      |
-| `test_osal_heartbeat_table.c` | ~300行   | 心跳表测试，原子操作              |
-| `test_pdl_mcu.c`              | ~400行   | MCU驱动测试                       |
-| `test_pdl_bmc.c`              | ~450行   | BMC驱动测试                       |
-| `test_pdl_satellite.c`        | ~400行   | Satellite驱动测试                 |
-| `test_pcl_api.c`              | ~350行   | PCL查询接口测试                   |
-| `test_2ms_latency.c`          | ~600行   | 2ms延迟测试，验证实时路径         |
-| `test_process_crash.c`        | ~450行   | 进程崩溃测试，三级恢复机制        |
-| `test_seu_simulation.c`       | ~500行   | SEU模拟测试，数据损坏+恢复        |
-| `test_high_frequency.c`       | ~550行   | 高频压力测试，每秒100条命令       |
-| `test_long_term.c`            | ~600行   | 长期稳定性测试，7×24小时          |
-| `test_acl_telemetry_cache.c`  | ~400行   | 遥测缓存测试，FRESH/STALE/INVALID |
-| `test_acl_status_snapshot.c`  | ~300行   | 状态快照测试，JSON序列化          |
-
-#### 2.3.3 代码量统计
-
-| 模块           | 文件数 | 总行数估算    | 说明                                                 |
-| -------------- | ------ | ------------- | ---------------------------------------------------- |
-| **OSAL层扩展** | 10     | ~2,020行      | 进程管理+实时调度+共享内存+日志缓冲区+心跳表（新增） |
-| **HAL层**      | 10     | ~1,570行      | GPIO/UART/I2C/SPI/CAN抽象（现有）                    |
-| **PCL层**      | 13+    | ~2,550行+     | 外设配置+平台配置（现有，需扩展）                    |
-| **PDL层**      | 17     | ~6,400行      | MCU/BMC/Satellite驱动（现有）                        |
-| **ACL层**      | 9      | ~2,000行      | 业务功能映射+遥测缓存+状态快照（新增）               |
-| **应用层**     | 18     | ~7,350行      | 5个进程+18个线程+共享内存布局（新增）                |
-| **测试代码**   | 18     | ~7,050行      | 单元+集成+压力测试（新增）                           |
-| **新增代码**   | **55** | **~18,420行** | 本次架构优化新增代码                                 |
-| **现有代码**   | **40** | **~10,520行** | 现有OSAL/HAL/PCL/PDL层                               |
-| **总计**       | **95** | **~28,940行** | 完整PMC系统代码量                                    |
-| **应用层**     | 18     | ~6,900行      | 4个进程+15个线程+共享内存布局（新增）                |
-| **测试代码**   | 15     | ~5,650行      | 单元+集成+压力测试（新增）                           |
-| **新增代码**   | **52** | **~16,570行** | 本次架构优化新增代码                                 |
-| **现有代码**   | **40** | **~10,520行** | 现有OSAL/HAL/PCL/PDL层                               |
-| **总计**       | **92** | **~27,090行** | 完整PMC系统代码量                                    |
-
-
+const acl_tm_config_t g_pmc_tm_configs[] = {
+    // 服务器遥测 → BMC，1秒更新，2秒有效期
+    { TM_SERVER_CPU_TEMP,    ACL_DEVICE_BMC, 0, 2000, 1000, true },
+    { TM_SERVER_BOARD_TEMP,  ACL_DEVICE_BMC, 0, 2000, 1000, true },
+    
+    // MCU遥测 → MCU，2秒更新，4秒有效期
+    { TM_MCU_STATUS,         ACL_DEVICE_MCU, 0, 4000, 2000, true },
+    
+    // ... 更多配置
+};
+```
 
 ---
-
-
-
 
 ## 3. 详细设计文档索引
 
@@ -1780,7 +867,7 @@ EMS/
 - **HAL层** - 硬件抽象层
   - 硬件驱动接口（CAN/UART/I2C/SPI/GPIO/Watchdog）
   - Linux平台实现（A53侧）
-  - TI R5F平台实现（R5F侧，寄存器操作）
+  - TI Linux平台实现（系统调用封装）
   - 平台移植指南
   - 详细设计：[1-2-hal_design.md](./1-2-hal_design.md)
 
@@ -1848,7 +935,7 @@ EMS/
   - 详细设计：[3-1-testing_strategy.md](./3-1-testing_strategy.md)
 
 - **实施计划**
-  - 启动流程（R5F/A53双核启动）
+  - 启动流程（纯A53多进程启动）
   - 开发阶段划分
   - 里程碑与交付物
   - 风险评估与应对
@@ -1862,7 +949,6 @@ EMS/
 
 1. ✅ **满足2ms硬实时**
 
-- **R5F硬实时路径**：关键路径全部在R5F完成，无Linux调度干扰
 
 - **FreeRTOS调度**：确定性实时响应，抖动±20μs
 
@@ -1872,25 +958,22 @@ EMS/
 
 2. ✅ **航空级可靠性**
 
-- **硬件级故障隔离**（R5F独立运行，A53崩溃不影响R5F）
 
 - **进程级故障隔离**（A53侧MMU硬件保护）
 
-- **抗辐射**（R5F独立电源域 + ECC内存 + 硬件隔离）
 
 - **三级故障恢复**（任务级 → 核心级 → 系统级）
 
-- **降级运行**（R5F独立运行模式 + A53降级模式）
 
 3. ✅ **多核异构优化**
 
 - **A53侧**：4核负载均衡，处理复杂业务（Redfish/IPMI/固件升级/日志）
 
-- **R5F侧**：双核实时处理，保证硬实时（CAN接收/遥控遥测应答）
+- **Telecommand进程：实时遥控处理，SCHED_FIFO保证确定性
 
 - **核间通信**：RPMsg消息传递（<100μs）+ 共享内存（<10μs）+ 硬件Mailbox（<5μs）
 
-- **负载分离**：A53负载<22%，R5F负载<15%，互不干扰
+- **负载分离：Telecommand进程CPU0独占，Telemetry进程CPU1独占
 
 4. ✅ **业务解耦**
 
@@ -1940,7 +1023,6 @@ EMS/
 
 - ✅ 更可靠（硬件级隔离 vs 线程隔离）
 
-- ✅ 更抗辐射（R5F独立电源域 vs 共享内存）
 
 - ✅ 符合航天标准（NASA/ESA要求硬件级隔离）
 
@@ -1948,15 +1030,12 @@ EMS/
 
 相比v3.1多进程：
 
-- ✅ 更实时（R5F硬实时<1.32ms vs Linux软实时<1.24ms）
 
 - ✅ 确定性保证（FreeRTOS调度±20μs vs Linux调度±50μs）
 
-- ✅ 故障隔离更强（R5F独立运行 vs 进程隔离）
 
 - ✅ 独立Logger进程（vs 手动实现）
 
-- ⚖️ 需要异构SoC（A53+R5F vs 纯A53）
 
 ### 4.3 适用场景
 
@@ -1966,7 +1045,6 @@ PMC方案最适合：
 
 - ✅ 硬实时要求（<2ms响应）
 
-- ✅ 多核异构SoC平台（A53+R5F）
 
 - ✅ 长期无人值守
 
