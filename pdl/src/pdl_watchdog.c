@@ -5,7 +5,6 @@
 #include "pdl_watchdog.h"
 #include "hal_watchdog.h"
 #include "osal.h"
-#include <stdatomic.h>
 
 typedef struct
 {
@@ -18,7 +17,7 @@ typedef struct
     /* 自动模式相关 */
     osal_thread_t kick_thread;
     volatile bool running;
-    _Atomic uint32_t kick_count;
+    osal_atomic_uint32_t kick_count;
 } watchdog_context_t;
 
 /**
@@ -36,9 +35,9 @@ static void *watchdog_kick_thread(void *arg)
         int32_t ret = HAL_WATCHDOG_Kick(ctx->hal_handle);
         if (ret == OSAL_SUCCESS)
         {
-            atomic_fetch_add(&ctx->kick_count, 1);
+            OSAL_AtomicFetchAdd(&ctx->kick_count, 1);
             LOG_DEBUG("PDL_WDT", "[%s] Kicked (count=%u)",
-                     ctx->name, atomic_load(&ctx->kick_count));
+                     ctx->name, OSAL_AtomicLoad(&ctx->kick_count));
         }
         else
         {
@@ -78,7 +77,7 @@ int32_t PDL_WATCHDOG_Init(const watchdog_config_t *config, watchdog_handle_t *ha
     ctx->kick_interval_ms = config->kick_interval_ms;
     ctx->enabled = false;
     ctx->running = false;
-    atomic_init(&ctx->kick_count, 0);
+    OSAL_AtomicInit(&ctx->kick_count, 0);
 
     /* 初始化HAL层 */
     hal_watchdog_config_t hal_config = {
@@ -129,7 +128,7 @@ int32_t PDL_WATCHDOG_Deinit(watchdog_handle_t handle)
     HAL_WATCHDOG_Deinit(ctx->hal_handle);
 
     LOG_INFO("PDL_WDT", "Watchdog service deinitialized: %s (kicked %u times)",
-             ctx->name, atomic_load(&ctx->kick_count));
+             ctx->name, OSAL_AtomicLoad(&ctx->kick_count));
 
     OSAL_Free(ctx);
     return OSAL_SUCCESS;
@@ -216,7 +215,7 @@ int32_t PDL_WATCHDOG_Kick(watchdog_handle_t handle)
     int32_t ret = HAL_WATCHDOG_Kick(ctx->hal_handle);
     if (ret == OSAL_SUCCESS)
     {
-        atomic_fetch_add(&ctx->kick_count, 1);
+        OSAL_AtomicFetchAdd(&ctx->kick_count, 1);
     }
 
     return ret;
@@ -240,7 +239,7 @@ int32_t PDL_WATCHDOG_GetStatus(watchdog_handle_t handle, watchdog_status_t *stat
     status->running = ctx->running;
     status->kick_interval_ms = ctx->kick_interval_ms;
     status->mode = ctx->mode;
-    status->kick_count = atomic_load(&ctx->kick_count);
+    status->kick_count = OSAL_AtomicLoad(&ctx->kick_count);
 
     /* 获取HAL层超时时间 */
     uint32_t timeout = 0;
