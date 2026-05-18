@@ -180,6 +180,6 @@ int main(void)
 ## 相关文档
 
 - [架构设计](ARCHITECTURE.md)
-- [OSAL使用指南](../../osal/docs/USAGE_GUIDE.md)
-- [HAL使用指南](../../hal/docs/USAGE_GUIDE.md)
-- [PDL使用指南](../../pdl/docs/USAGE_GUIDE.md)
+- [OSAL使用指南](../../../../core/osal/docs/USAGE_GUIDE.md)
+- [HAL使用指南](../../../../core/hal/docs/USAGE_GUIDE.md)
+- [PDL使用指南](../../../../core/pdl/docs/USAGE_GUIDE.md)

@@ -136,7 +136,7 @@ EMS采用清晰的分层架构：
 
 **提供接口**：任务管理、队列、互斥锁、日志、文件I/O、网络、时间服务、内存操作、字符串操作
 
-**文档**: [osal/README.md](osal/README.md) | [详细文档](osal/docs/)
+**文档**: [core/osal/README.md](core/osal/README.md) | [详细文档](core/osal/docs/)
 
 ### HAL - 硬件抽象层
 硬件驱动封装，提供CAN、串口、I2C、SPI等硬件接口。**必须使用OSAL接口，禁止直接系统调用。**
@@ -145,28 +145,28 @@ EMS采用清晰的分层架构：
 
 **支持硬件**：CAN总线、串口(UART)、I2C总线、SPI总线、GPIO、Watchdog
 
-**文档**: [hal/README.md](hal/README.md) | [详细文档](hal/docs/)
+**文档**: [core/hal/README.md](core/hal/README.md) | [详细文档](core/hal/docs/)
 
 ### PDL - 外设驱动层
 统一管理外部系统、BMC设备、MCU等外设服务，对应用提供访问外设的统一接口。**必须使用OSAL接口，读取PCL配置。**
 
 **特性**：统一外设管理、多通道冗余、自动故障切换、心跳机制
 
-**文档**: [pdl/README.md](pdl/README.md) | [详细文档](pdl/docs/)
+**文档**: [core/pdl/README.md](core/pdl/README.md) | [详细文档](core/pdl/docs/)
 
 ### ACL - 应用配置层（配置库）
 业务功能到设备的映射配置，被Apps层读取。**不参与调用链，纯配置数据。**
 
 **特性**：O(1)查找、业务解耦、配置驱动
 
-**文档**: [acl/README.md](acl/README.md)
+**文档**: [core/acl/README.md](core/acl/README.md)
 
 ### PCL - 外设配置库（配置库）
 参考设备树架构，以外设为单位的硬件配置库，被PDL层读取。**不参与调用链，纯配置数据。**
 
 **特性**：外设为单位、配置与代码分离、接口内嵌、运行时查询
 
-**文档**: [pcl/README.md](pcl/README.md) | [详细文档](pcl/docs/)
+**文档**: [core/pcl/README.md](core/pcl/README.md) | [详细文档](core/pcl/docs/)
 
 ### Apps - 应用层
 业务应用层，读取ACL配置，调用PDL接口。**必须使用OSAL接口。**
@@ -186,22 +186,29 @@ EMS采用清晰的分层架构：
 
 ```
 ems/
-├── osal/                   # 操作系统抽象层
-│   ├── include/           # 公共头文件
-│   ├── src/posix/         # POSIX实现
-│   └── docs/              # 文档
-├── hal/                    # 硬件抽象层
-│   ├── include/           # 驱动接口
-│   ├── src/linux/         # Linux实现
-│   └── docs/              # 文档
-├── pdl/                    # 外设驱动层
-│   ├── include/           # 服务接口
-│   ├── src/               # 服务实现
-│   └── docs/              # 文档
-├── pcl/                # 硬件配置库
-│   ├── include/           # 配置接口
-│   ├── platform/          # 平台配置
-│   └── docs/              # 文档
+├── core/                   # 框架核心模块
+│   ├── osal/              # 操作系统抽象层
+│   │   ├── include/       # 公共头文件
+│   │   ├── src/posix/     # POSIX实现
+│   │   └── docs/          # 文档
+│   ├── hal/               # 硬件抽象层
+│   │   ├── include/       # 驱动接口
+│   │   ├── src/linux/     # Linux实现
+│   │   └── docs/          # 文档
+│   ├── pdl/               # 外设驱动层
+│   │   ├── include/       # 服务接口
+│   │   ├── src/           # 服务实现
+│   │   └── docs/          # 文档
+│   ├── pcl/               # 硬件配置库
+│   │   ├── include/       # 配置接口
+│   │   ├── platform/      # 平台配置
+│   │   └── docs/          # 文档
+│   └── acl/               # 应用配置层
+│       ├── include/       # 配置接口
+│       └── docs/          # 文档
+├── projects/               # 产品实现
+│   ├── pmc_h200/          # PMC H200项目
+│   └── samples/           # 示例项目
 ├── apps/                   # 应用层
 │   ├── sample_app/        # 示例应用
 │   └── docs/              # 文档
@@ -251,18 +258,18 @@ ems/
 ## 文档导航
 
 ### 模块文档
-- [OSAL层](osal/README.md) - 操作系统抽象层（任务、队列、互斥锁、日志等）
-- [HAL层](hal/README.md) - 硬件抽象层（CAN、串口等驱动）
-- [PDL层](pdl/README.md) - 外设驱动层（外部系统、BMC设备、MCU服务）
-- [PCL层](pcl/README.md) - 硬件配置库（设备树式配置管理）
+- [OSAL层](core/osal/README.md) - 操作系统抽象层（任务、队列、互斥锁、日志等）
+- [HAL层](core/hal/README.md) - 硬件抽象层（CAN、串口等驱动）
+- [PDL层](core/pdl/README.md) - 外设驱动层（外部系统、BMC设备、MCU服务）
+- [PCL层](core/pcl/README.md) - 硬件配置库（设备树式配置管理）
 - [Apps层](apps/README.md) - 应用层（示例应用）
 - [Tests层](tests/README.md) - 测试框架（70+测试用例）
 
 ### 详细文档
-- [OSAL详细文档](osal/docs/) - API参考、设计文档
-- [HAL详细文档](hal/docs/) - 驱动开发、移植指南
-- [PDL详细文档](pdl/docs/) - 服务设计、协议文档
-- [PCL详细文档](pcl/docs/) - 配置规范、平台适配
+- [OSAL详细文档](core/osal/docs/) - API参考、设计文档
+- [HAL详细文档](core/hal/docs/) - 驱动开发、移植指南
+- [PDL详细文档](core/pdl/docs/) - 服务设计、协议文档
+- [PCL详细文档](core/pcl/docs/) - 配置规范、平台适配
 - [Apps详细文档](apps/docs/) - 应用开发指南
 
 ### 项目文档

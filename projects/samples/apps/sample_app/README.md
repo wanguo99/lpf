@@ -170,7 +170,7 @@ cd ..
 
 ## 参考文档
 
-- [OSAL接口文档](../../osal/README.md)
-- [HAL接口文档](../../hal/README.md)
-- [PDL接口文档](../../pdl/README.md)
-- [编码规范](../../docs/CODING_STANDARDS.md)
+- [OSAL接口文档](../../../../core/osal/README.md)
+- [HAL接口文档](../../../../core/hal/README.md)
+- [PDL接口文档](../../../../core/pdl/README.md)
+- [编码规范](../../../../docs/CODING_STANDARDS.md)

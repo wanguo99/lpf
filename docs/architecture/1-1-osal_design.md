@@ -28,7 +28,7 @@ OSAL（Operating System Abstraction Layer，操作系统抽象层）是EMS架构
 - 参数约定：输出参数使用指针，输入参数使用值或const指针
 
 **原则3：平台差异隔离**
-- 平台相关实现放在`osal/src/{platform}/`目录下
+- 平台相关实现放在`core/osal/src/{platform}/`目录下
 - 使用条件编译隔离平台差异，但不在头文件中暴露平台宏
 - 通过配置系统选择平台，而非手动定义宏
 

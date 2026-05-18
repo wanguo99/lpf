@@ -502,7 +502,7 @@ typedef void (*satellite_cmd_callback_t)(uint8 cmd_type, const uint8 *data, void
 
 ### 5.3 OSAL 类型系统
 
-**所有类型定义在 `osal/include/osal_types.h` 中。**
+**所有类型定义在 `core/osal/include/osal_types.h` 中。**
 
 #### 5.3.1 固定宽度整数类型
 
