@@ -14,18 +14,18 @@
  *===========================================================================*/
 
 /* TI AM625平台 - H200载荷板 */
-extern const pcl_board_config_t pcl_h200_100p_base;
-extern const pcl_board_config_t pcl_h200_100p_v1;
-extern const pcl_board_config_t pcl_h200_100p_v2;
+extern const pcl_platform_config_t pcl_h200_100p_base;
+extern const pcl_platform_config_t pcl_h200_100p_v1;
+extern const pcl_platform_config_t pcl_h200_100p_v2;
 
 /* 其他平台配置可以在这里添加 */
-/* extern const pcl_board_config_t pcl_xxx; */
+/* extern const pcl_platform_config_t pcl_xxx; */
 
 /*===========================================================================
  * 配置注册表
  *===========================================================================*/
 
-static const pcl_board_config_t* g_all_configs[] = {
+static const pcl_platform_config_t* g_all_configs[] = {
     &pcl_h200_100p_base,
     &pcl_h200_100p_v1,
     &pcl_h200_100p_v2,
@@ -56,11 +56,10 @@ int32_t PCL_RegisterAll(void)
         if (OSAL_SUCCESS == ret) {
             success_count++;
         } else {
-            LOG_ERROR("XCONFIG", "Failed to register config[%d]: %s/%s/%s",
+            LOG_ERROR("PCL", "Failed to register config[%d]: %s/%s",
                       i,
-                      g_all_configs[i]->platform,
-                      g_all_configs[i]->product,
-                      g_all_configs[i]->version);
+                      g_all_configs[i]->platform_name,
+                      g_all_configs[i]->product_name);
         }
     }
 
@@ -80,12 +79,12 @@ int32_t PCL_RegisterAll(void)
  *
  * @return 配置指针，失败返回NULL
  */
-const pcl_board_config_t* PCL_SelectDefault(void)
+const pcl_platform_config_t* PCL_SelectDefault(void)
 {
     const char *platform = NULL;
     const char *product = NULL;
     const char *version = NULL;
-    const pcl_board_config_t *config = NULL;
+    const pcl_platform_config_t *config = NULL;
 
     /* 1. 尝试从环境变量读取 */
     platform = OSAL_getenv("PCL_PLATFORM");
@@ -122,8 +121,8 @@ const pcl_board_config_t* PCL_SelectDefault(void)
     /* 3. 使用第一个配置作为默认 */
     if (CONFIG_COUNT > 0) {
         config = g_all_configs[0];
-        LOG_INFO("XCONFIG", "Using first config as default: %s/%s/%s",
-                 config->platform, config->product, config->version);
+        LOG_INFO("PCL", "Using first config as default: %s/%s",
+                 config->platform_name, config->product_name);
         return config;
     }
 

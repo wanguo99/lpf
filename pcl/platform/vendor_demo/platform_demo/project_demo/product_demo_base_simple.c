@@ -1,5 +1,15 @@
 /************************************************************************
- * TI AM625平台 - H200-100P载荷板基础配置
+ * 演示平台 - 演示项目载荷板基础配置（简化版）
+ *
+ * 平台：vendor_demo
+ * 芯片：platform_demo  
+ * 项目：project_demo
+ * 产品：product_demo_base
+ *
+ * 设计原则：
+ * - 只配置硬件外设（MCU、BMC、FPGA、Switch）
+ * - 不包含业务逻辑、应用映射、传感器、存储等
+ * - 配置以外设为单位，简洁明了
  ************************************************************************/
 
 #include "internal/pcl.h"
@@ -9,14 +19,12 @@
  *===========================================================================*/
 
 static pcl_mcu_cfg_t mcu_stm32 = {
-    .pcl_name = "stm32_mcu",
-    .description = "STM32 MCU for payload control",
+    .name = "stm32_mcu",
+    .description = "STM32 MCU",
     .enabled = true,
     
-    .name = "stm32_mcu",
-    .interface = PCL_MCU_INTERFACE_SERIAL,
-    
-    .serial = {
+    .interface_type = PCL_HW_INTERFACE_UART,
+    .interface_cfg.uart = {
         .device = "/dev/ttyS1",
         .baudrate = 115200,
         .data_bits = 8,
@@ -46,26 +54,31 @@ static pcl_bmc_cfg_t bmc_payload = {
     .description = "Payload BMC",
     .enabled = true,
     
-    .network = {
-        .enabled = true,
-        .ip_addr = "192.168.1.100",
-        .port = 623,
-        .username = "admin",
-        .password = NULL,
-        .timeout_ms = 2000
+    .primary_channel = {
+        .protocol = PCL_BMC_PROTOCOL_IPMI,
+        .cfg.ipmi_lan = {
+            .interface = "eth0",
+            .ip_addr = "192.168.1.100",
+            .port = 623,
+            .username = "admin",
+            .password = NULL
+        }
     },
     
-    .serial = {
-        .enabled = true,
-        .device = "/dev/ttyS2",
-        .baudrate = 115200,
-        .timeout_ms = 2000
+    .backup_channel = {
+        .protocol = PCL_BMC_PROTOCOL_IPMI,
+        .cfg = {
+            .device = "/dev/ttyS2",
+            .baudrate = 115200,
+            .data_bits = 8,
+            .stop_bits = 1,
+            .parity = 'N'
+        }
     },
     
-    .primary_channel = PCL_BMC_CHANNEL_NETWORK,
-    .auto_switch = true,
+    .cmd_timeout_ms = 2000,
     .retry_count = 3,
-    .health_check_interval = 5000,
+    .failover_threshold = 5,
     
     .power_gpio = NULL,
     .reset_gpio = NULL
@@ -81,7 +94,7 @@ static pcl_bmc_cfg_t *pcl_bmc_arr[] = {
  *===========================================================================*/
 
 static pcl_fpga_cfg_t *pcl_fpga_arr[] = {
-    NULL
+    NULL  /* 当前平台无FPGA */
 };
 
 /*===========================================================================
@@ -89,18 +102,18 @@ static pcl_fpga_cfg_t *pcl_fpga_arr[] = {
  *===========================================================================*/
 
 static pcl_switch_cfg_t *pcl_switch_arr[] = {
-    NULL
+    NULL  /* 当前平台无Switch */
 };
 
 /*===========================================================================
  * 平台配置注册
  *===========================================================================*/
 
-const pcl_platform_config_t pcl_h200_100p_base = {
-    .platform_name = "ti/am6254",
-    .chip_name = "am6254",
-    .project_name = "H200_100P",
-    .product_name = "h200_100p_base",
+pcl_platform_config_t platform_config_product_demo_base = {
+    .platform_name = "vendor_demo",
+    .chip_name = "platform_demo",
+    .project_name = "project_demo",
+    .product_name = "product_demo_base",
     
     .mcu_arr = pcl_mcu_arr,
     .bmc_arr = pcl_bmc_arr,

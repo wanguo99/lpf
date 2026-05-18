@@ -114,4 +114,22 @@ typedef struct {
     uint8_t       rt_address;       /* RT地址（0-31） */
 } pcl_1553b_cfg_t;
 
+/*===========================================================================
+ * 硬件接口配置联合体
+ *===========================================================================*/
+
+/**
+ * @brief 硬件接口配置联合体
+ */
+typedef union {
+    pcl_can_cfg_t       can;
+    pcl_uart_cfg_t      uart;
+    pcl_i2c_cfg_t       i2c;
+    pcl_spi_cfg_t       spi;
+    pcl_ethernet_cfg_t  ethernet;
+    pcl_usb_cfg_t       usb;
+    pcl_spacewire_cfg_t spacewire;
+    pcl_1553b_cfg_t     bus1553b;
+} pcl_hw_interface_cfg_t;
+
 #endif /* PCL_HARDWARE_INTERFACE_H */
