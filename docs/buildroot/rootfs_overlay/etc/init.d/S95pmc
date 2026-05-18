@@ -1,0 +1,73 @@
+#!/bin/sh
+#
+# PMC (Payload Management Controller) 启动脚本
+# 用于SysVinit系统
+#
+
+DAEMON="pmc_supervisor"
+PIDFILE="/var/run/pmc/pmc_supervisor.pid"
+CONTROL_SCRIPT="/usr/local/bin/pmc_control.sh"
+
+start() {
+    printf "Starting PMC system: "
+
+    if [ -x "$CONTROL_SCRIPT" ]; then
+        $CONTROL_SCRIPT start > /dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            echo "OK"
+        else
+            echo "FAIL"
+        fi
+    else
+        echo "FAIL (control script not found)"
+    fi
+}
+
+stop() {
+    printf "Stopping PMC system: "
+
+    if [ -x "$CONTROL_SCRIPT" ]; then
+        $CONTROL_SCRIPT stop > /dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            echo "OK"
+        else
+            echo "FAIL"
+        fi
+    else
+        echo "FAIL (control script not found)"
+    fi
+}
+
+restart() {
+    stop
+    sleep 1
+    start
+}
+
+status() {
+    if [ -x "$CONTROL_SCRIPT" ]; then
+        $CONTROL_SCRIPT status
+    else
+        echo "Control script not found"
+    fi
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart|reload)
+        restart
+        ;;
+    status)
+        status
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|status}"
+        exit 1
+esac
+
+exit $?

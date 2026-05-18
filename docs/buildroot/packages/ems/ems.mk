@@ -28,7 +28,7 @@ EMS_CONF_OPTS = \
 	-DBUILD_TESTING=$(if $(BR2_PACKAGE_EMS_TESTS),ON,OFF) \
 	-DBUILD_SHARED_LIBS=$(if $(BR2_STATIC_LIBS),OFF,ON) \
 	-DBUILD_SAMPLE_APP=$(if $(BR2_PACKAGE_EMS_SAMPLE_APP),ON,OFF) \
-	-DBUILD_WATCHDOG_APP=$(if $(BR2_PACKAGE_EMS_WATCHDOG_APP),ON,OFF) \
+	-DBUILD_PMC_APP=$(if $(BR2_PACKAGE_EMS_PMC),ON,OFF) \
 	-DINSTALL_HEADERS=ON
 
 # 安装配置文件
@@ -42,6 +42,24 @@ EMS_POST_INSTALL_TARGET_HOOKS += EMS_INSTALL_CONFIG
 define EMS_INSTALL_INIT_SYSV
 	$(INSTALL) -D -m 0755 $(EMS_PKGDIR)/S90ems \
 		$(TARGET_DIR)/etc/init.d/S90ems
+	$(if $(BR2_PACKAGE_EMS_PMC), \
+		$(INSTALL) -D -m 0755 $(BR2_EXTERNAL_EMS_PATH)/rootfs_overlay/etc/init.d/S95pmc \
+			$(TARGET_DIR)/etc/init.d/S95pmc)
 endef
+
+# 安装 systemd 服务
+define EMS_INSTALL_INIT_SYSTEMD
+	$(if $(BR2_PACKAGE_EMS_PMC), \
+		$(INSTALL) -D -m 0644 $(BR2_EXTERNAL_EMS_PATH)/rootfs_overlay/etc/systemd/system/pmc.service \
+			$(TARGET_DIR)/usr/lib/systemd/system/pmc.service)
+endef
+
+# 安装 PMC 控制脚本
+define EMS_INSTALL_PMC_SCRIPTS
+	$(if $(BR2_PACKAGE_EMS_PMC), \
+		$(INSTALL) -D -m 0755 $(BR2_EXTERNAL_EMS_PATH)/rootfs_overlay/usr/local/bin/pmc_control.sh \
+			$(TARGET_DIR)/usr/local/bin/pmc_control.sh)
+endef
+EMS_POST_INSTALL_TARGET_HOOKS += EMS_INSTALL_PMC_SCRIPTS
 
 $(eval $(cmake-package))

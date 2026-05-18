@@ -11,29 +11,36 @@ config BR2_PACKAGE_EMS
 	  - HAL: Hardware Abstraction Layer (CAN, UART, I2C, SPI)
 	  - PCL: Peripheral Configuration Library
 	  - PDL: Peripheral Driver Layer
+	  - PMC: Payload Management Controller (5-process application)
 
 	  https://github.com/wanguo99/EMS
 
-if BR2_PACKAGE_EMS
-
 config BR2_PACKAGE_EMS_SAMPLE_APP
 	bool "install sample application"
+	depends on BR2_PACKAGE_EMS
 	default y
 	help
 	  Install the EMS sample application to /usr/bin/sample_app
 
-config BR2_PACKAGE_EMS_WATCHDOG_APP
-	bool "install watchdog application"
+config BR2_PACKAGE_EMS_PMC
+	bool "install PMC application"
+	depends on BR2_PACKAGE_EMS
 	default y
 	help
-	  Install the EMS watchdog application to /usr/bin/watchdog_app
+	  Install PMC (Payload Management Controller) application.
+
+	  PMC is a 5-process architecture application:
+	  - pmc_comm: Communication process
+	  - pmc_collector: Data collection process
+	  - pmc_health: Health monitoring process
+	  - pmc_supervisor: Process supervisor
+	  - pmc_logger: Log management process
 
 config BR2_PACKAGE_EMS_TESTS
 	bool "install unit tests"
+	depends on BR2_PACKAGE_EMS
 	help
 	  Build and install the EMS unit test suite to /usr/bin/ems-test
-
-endif
 
 comment "ems needs a toolchain w/ threads, dynamic library"
 	depends on !BR2_TOOLCHAIN_HAS_THREADS || BR2_STATIC_LIBS
