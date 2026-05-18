@@ -14,6 +14,7 @@
 #define OS_SIGNAL_TERM      15  /* SIGTERM - 终止信号 */
 #define OS_SIGNAL_HUP       1   /* SIGHUP - 挂起信号 */
 #define OS_SIGNAL_QUIT      3   /* SIGQUIT - 退出信号 */
+#define OS_SIGNAL_KILL      9   /* SIGKILL - 强制终止信号 */
 #define OS_SIGNAL_USR1      10  /* SIGUSR1 - 用户自定义信号1 */
 #define OS_SIGNAL_USR2      12  /* SIGUSR2 - 用户自定义信号2 */
 
@@ -22,6 +23,7 @@
 #define SIGTERM     OS_SIGNAL_TERM
 #define SIGHUP      OS_SIGNAL_HUP
 #define SIGQUIT     OS_SIGNAL_QUIT
+#define SIGKILL     OS_SIGNAL_KILL
 #define SIGUSR1     OS_SIGNAL_USR1
 #define SIGUSR2     OS_SIGNAL_USR2
 

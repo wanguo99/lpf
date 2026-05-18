@@ -1,9 +1,7 @@
 #include "pmc_supervisor.h"
 #include "libpmc_ipc.h"
-#include <signal.h>
-#include <sys/wait.h>
-#include <stdlib.h>
-#include <unistd.h>
+#include "sys/osal_signal.h"
+#include "sys/osal_process.h"
 
 /* 全局变量 */
 static pmc_process_heartbeat_t *g_heartbeat = NULL;
@@ -14,7 +12,7 @@ typedef struct {
     const char *name;
     const char *path;
     pmc_process_id_t id;
-    pid_t pid;
+    osal_id_t pid;
     uint32_t restart_count;
 } process_info_t;
 
@@ -28,59 +26,47 @@ static process_info_t g_processes[] = {
 #define PROCESS_COUNT (sizeof(g_processes) / sizeof(g_processes[0]))
 
 /* 信号处理 */
-static void signal_handler(int sig)
+static void signal_handler(int32_t sig)
 {
     if (sig == SIGTERM || sig == SIGINT) {
         g_running = false;
         LOG_INFO("SUPERVISOR", "收到退出信号");
-    } else if (sig == SIGCHLD) {
-        /* 子进程退出 */
-        int status;
-        pid_t pid = waitpid(-1, &status, WNOHANG);
-        if (pid > 0) {
-            LOG_WARN("SUPERVISOR", "子进程退出: pid=%d, status=%d", pid, status);
-        }
     }
+    /* SIGCHLD处理移除，改用轮询检查子进程状态 */
 }
 
 /* 启动进程 */
 static int32_t start_process(process_info_t *proc)
 {
-    pid_t pid = fork();
+    char *argv[] = {(char *)proc->name, NULL};
+    int32_t ret = OSAL_ProcessCreate(&proc->pid, proc->path, argv, NULL);
 
-    if (pid < 0) {
-        LOG_ERROR("SUPERVISOR", "fork失败: %s", proc->name);
-        return OSAL_ERR_GENERIC;
-    } else if (pid == 0) {
-        /* 子进程 */
-        execl(proc->path, proc->name, NULL);
-        LOG_ERROR("SUPERVISOR", "execl失败: %s", proc->name);
-        exit(1);
-    } else {
-        /* 父进程 */
-        proc->pid = pid;
-        LOG_INFO("SUPERVISOR", "启动进程: %s (pid=%d)", proc->name, pid);
-        return OSAL_SUCCESS;
+    if (ret != OSAL_SUCCESS) {
+        LOG_ERROR("SUPERVISOR", "启动进程失败: %s, ret=%d", proc->name, ret);
+        return ret;
     }
+
+    LOG_INFO("SUPERVISOR", "启动进程: %s (pid=%u)", proc->name, (uint32_t)proc->pid);
+    return OSAL_SUCCESS;
 }
 
 /* 停止进程 */
 static int32_t stop_process(process_info_t *proc)
 {
-    if (proc->pid <= 0) {
+    if (proc->pid == 0) {
         return OSAL_SUCCESS;
     }
 
-    LOG_INFO("SUPERVISOR", "停止进程: %s (pid=%d)", proc->name, proc->pid);
+    LOG_INFO("SUPERVISOR", "停止进程: %s (pid=%u)", proc->name, (uint32_t)proc->pid);
 
     /* 发送SIGTERM */
-    kill(proc->pid, SIGTERM);
+    OSAL_ProcessKill(proc->pid, SIGTERM);
 
     /* 等待进程退出（最多5秒） */
     for (int32_t i = 0; i < 50; i++) {
-        int status;
-        pid_t ret = waitpid(proc->pid, &status, WNOHANG);
-        if (ret == proc->pid) {
+        int32_t status;
+        int32_t ret = OSAL_ProcessWait(proc->pid, &status, 0);
+        if (ret == OSAL_SUCCESS) {
             LOG_INFO("SUPERVISOR", "进程已退出: %s", proc->name);
             proc->pid = 0;
             return OSAL_SUCCESS;
@@ -90,8 +76,8 @@ static int32_t stop_process(process_info_t *proc)
 
     /* 强制杀死 */
     LOG_WARN("SUPERVISOR", "强制杀死进程: %s", proc->name);
-    kill(proc->pid, SIGKILL);
-    waitpid(proc->pid, NULL, 0);
+    OSAL_ProcessKill(proc->pid, SIGKILL);
+    OSAL_ProcessWait(proc->pid, NULL, -1);  /* 阻塞等待 */
     proc->pid = 0;
 
     return OSAL_SUCCESS;
@@ -145,9 +131,8 @@ int32_t PMC_Supervisor_Init(void)
     LOG_INFO("SUPERVISOR", "Supervisor进程初始化...");
 
     /* 注册信号处理 */
-    signal(SIGTERM, signal_handler);
-    signal(SIGINT, signal_handler);
-    signal(SIGCHLD, signal_handler);
+    OSAL_SignalRegister(SIGTERM, signal_handler);
+    OSAL_SignalRegister(SIGINT, signal_handler);
 
     /* 初始化心跳 */
     ret = PMC_Heartbeat_Init(&g_heartbeat);

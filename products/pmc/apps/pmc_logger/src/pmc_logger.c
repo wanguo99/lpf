@@ -1,6 +1,6 @@
 #include "pmc_logger.h"
 #include "libpmc_ipc.h"
-#include <signal.h>
+#include "sys/osal_signal.h"
 
 /* 全局变量 */
 static pmc_log_ringbuffer_t *g_log_ring = NULL;
@@ -58,8 +58,8 @@ int32_t PMC_Logger_Init(void)
     LOG_INFO("LOGGER", "Logger进程初始化...");
 
     /* 注册信号处理 */
-    signal(SIGTERM, signal_handler);
-    signal(SIGINT, signal_handler);
+    OSAL_SignalRegister(SIGTERM, signal_handler);
+    OSAL_SignalRegister(SIGINT, signal_handler);
 
     /* 初始化日志环形缓冲区 */
     ret = PMC_Log_Init(&g_log_ring);

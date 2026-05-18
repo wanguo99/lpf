@@ -1,6 +1,6 @@
 #include "pmc_health.h"
 #include "libpmc_ipc.h"
-#include <signal.h>
+#include "sys/osal_signal.h"
 
 /* 全局变量 */
 static pmc_process_heartbeat_t *g_heartbeat = NULL;
@@ -14,7 +14,7 @@ static osal_thread_t g_cpld_hb_thread = 0;
 static osal_thread_t g_watchdog_thread = 0;
 
 /* 信号处理 */
-static void signal_handler(int sig)
+static void signal_handler(int32_t sig)
 {
     if (sig == SIGTERM || sig == SIGINT) {
         g_running = false;
@@ -133,8 +133,8 @@ int32_t PMC_Health_Init(void)
     LOG_INFO("HEALTH", "Health进程初始化...");
 
     /* 注册信号处理 */
-    signal(SIGTERM, signal_handler);
-    signal(SIGINT, signal_handler);
+    OSAL_SignalRegister(SIGTERM, signal_handler);
+    OSAL_SignalRegister(SIGINT, signal_handler);
 
     /* 初始化心跳 */
     ret = PMC_Heartbeat_Init(&g_heartbeat);

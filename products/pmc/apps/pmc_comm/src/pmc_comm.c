@@ -1,7 +1,7 @@
 #include "pmc_comm.h"
 #include "libpmc_ipc.h"
 #include "libpmc_protocol.h"
-#include <signal.h>
+#include "sys/osal_signal.h"
 
 /* 全局变量 */
 static pmc_tm_cache_t *g_tm_cache = NULL;
@@ -9,7 +9,7 @@ static pmc_process_heartbeat_t *g_heartbeat = NULL;
 static volatile bool g_running = true;
 
 /* 信号处理 */
-static void signal_handler(int sig)
+static void signal_handler(int32_t sig)
 {
     if (sig == SIGTERM || sig == SIGINT) {
         g_running = false;
@@ -25,8 +25,8 @@ int32_t PMC_Comm_Init(void)
     LOG_INFO("COMM", "Communication进程初始化...");
 
     /* 注册信号处理 */
-    signal(SIGTERM, signal_handler);
-    signal(SIGINT, signal_handler);
+    OSAL_SignalRegister(SIGTERM, signal_handler);
+    OSAL_SignalRegister(SIGINT, signal_handler);
 
     /* 初始化遥测缓存 */
     ret = PMC_TM_Cache_Init(&g_tm_cache);
