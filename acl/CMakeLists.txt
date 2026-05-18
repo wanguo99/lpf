@@ -13,20 +13,20 @@ set(ACL_SOURCES
 # 根据配置选择对应的配置文件
 if(ACL_CONFIG STREQUAL "H200_100P")
     list(APPEND ACL_SOURCES
-        config/H200_100P/acl_h200_100p.c
-        config/H200_100P/acl_h200_100p_invalidation.c
+        configs/H200_100P/acl_h200_100p.c
+        configs/H200_100P/acl_h200_100p_invalidation.c
     )
     message(STATUS "ACL配置: H200_100P")
 elseif(ACL_CONFIG STREQUAL "pmc_v2")
     list(APPEND ACL_SOURCES
-        config/pmc_v2/acl_pmc_v2.c
-        config/pmc_v2/acl_pmc_v2_invalidation.c
+        configs/pmc_v2/acl_pmc_v2.c
+        configs/pmc_v2/acl_pmc_v2_invalidation.c
     )
     message(STATUS "ACL配置: PMC v2.0")
 elseif(ACL_CONFIG STREQUAL "demo")
     list(APPEND ACL_SOURCES
-        config/demo/acl_demo_v1.c
-        config/demo/acl_demo_v1_invalidation.c
+        configs/demo/acl_demo_v1.c
+        configs/demo/acl_demo_v1_invalidation.c
     )
     message(STATUS "ACL配置: Demo")
 else()

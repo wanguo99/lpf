@@ -8,7 +8,7 @@
 # 目录变量
 set(PCL_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(PCL_INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
-set(PCL_PLATFORM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/platform)
+set(PCL_PLATFORM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/configs)
 
 add_library(pcl_public_api INTERFACE)
 
