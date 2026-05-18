@@ -1,36 +1,23 @@
 # ACL层（Application Configuration Layer）
 # 业务配置层：定义业务功能到硬件设备的映射
 
-# ACL配置选择（默认H200_100P）
-set(ACL_CONFIG "H200_100P" CACHE STRING "ACL configuration: H200_100P, pmc_v2, demo")
-
-# ACL核心源文件
+# ACL核心源文件（仅包含框架代码）
 set(ACL_SOURCES
     src/acl_api.c
     src/acl_telemetry_cache.c
 )
 
-# 根据配置选择对应的配置文件
-if(ACL_CONFIG STREQUAL "H200_100P")
-    list(APPEND ACL_SOURCES
-        configs/H200_100P/acl_h200_100p.c
-        configs/H200_100P/acl_h200_100p_invalidation.c
-    )
-    message(STATUS "ACL配置: H200_100P")
-elseif(ACL_CONFIG STREQUAL "pmc_v2")
-    list(APPEND ACL_SOURCES
-        configs/pmc_v2/acl_pmc_v2.c
-        configs/pmc_v2/acl_pmc_v2_invalidation.c
-    )
-    message(STATUS "ACL配置: PMC v2.0")
-elseif(ACL_CONFIG STREQUAL "demo")
-    list(APPEND ACL_SOURCES
-        configs/demo/acl_demo_v1.c
-        configs/demo/acl_demo_v1_invalidation.c
-    )
-    message(STATUS "ACL配置: Demo")
+# ACL配置源文件由项目层提供（通过ACL_CONFIG_SOURCES变量）
+# 项目层应该在包含此文件前设置：
+#   set(ACL_CONFIG_SOURCES
+#       ${PROJECT_SOURCE_DIR}/acl/acl_xxx.c
+#       ${PROJECT_SOURCE_DIR}/acl/acl_xxx_invalidation.c
+#   )
+if(DEFINED ACL_CONFIG_SOURCES)
+    list(APPEND ACL_SOURCES ${ACL_CONFIG_SOURCES})
+    message(STATUS "ACL configured with project-specific sources")
 else()
-    message(FATAL_ERROR "未知的ACL配置: ${ACL_CONFIG}")
+    message(WARNING "No ACL_CONFIG_SOURCES defined - building ACL framework only")
 endif()
 
 # 创建ACL静态库

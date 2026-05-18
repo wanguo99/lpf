@@ -1,4 +1,12 @@
-# PMC H200 项目构建配置
+# PMC H200_AM625 项目构建配置
+
+# ============================================================================
+# 产品线和项目宏定义
+# ============================================================================
+add_compile_definitions(
+    PRODUCT_PMC
+    PROJECT_H200_AM625
+)
 
 # ============================================================================
 # PCL 配置层
@@ -38,26 +46,26 @@ option(BUILD_PMC_HEALTH "Build PMC health monitor application" ON)
 option(BUILD_PMC_LOGGER "Build PMC logger application" ON)
 
 # ============================================================================
-# 应用程序
+# 应用程序（位于产品线级别的 apps/ 目录）
 # ============================================================================
 if(BUILD_PMC_SUPERVISOR)
-    add_subdirectory(apps/pmc_supervisor)
+    add_subdirectory(../apps/pmc_supervisor ${CMAKE_CURRENT_BINARY_DIR}/apps/pmc_supervisor)
 endif()
 
 if(BUILD_PMC_COLLECTOR)
-    add_subdirectory(apps/pmc_collector)
+    add_subdirectory(../apps/pmc_collector ${CMAKE_CURRENT_BINARY_DIR}/apps/pmc_collector)
 endif()
 
 if(BUILD_PMC_COMM)
-    add_subdirectory(apps/pmc_comm)
+    add_subdirectory(../apps/pmc_comm ${CMAKE_CURRENT_BINARY_DIR}/apps/pmc_comm)
 endif()
 
 if(BUILD_PMC_HEALTH)
-    add_subdirectory(apps/pmc_health)
+    add_subdirectory(../apps/pmc_health ${CMAKE_CURRENT_BINARY_DIR}/apps/pmc_health)
 endif()
 
 if(BUILD_PMC_LOGGER)
-    add_subdirectory(apps/pmc_logger)
+    add_subdirectory(../apps/pmc_logger ${CMAKE_CURRENT_BINARY_DIR}/apps/pmc_logger)
 endif()
 
 # ============================================================================

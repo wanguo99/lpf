@@ -7,15 +7,29 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 # ============================================================================
-# 项目选择
+# 产品线和项目选择
 # ============================================================================
-set(PROJECT_NAME "pmc_h200" CACHE STRING "Project to build")
-set_property(CACHE PROJECT_NAME PROPERTY STRINGS
-    "pmc_h200"
+set(PRODUCT "pmc" CACHE STRING "Product line to build")
+set_property(CACHE PRODUCT PROPERTY STRINGS
+    "pmc"
     "samples"
 )
 
-message(STATUS "Selected project: ${PROJECT_NAME}")
+# 根据产品线设置可用的项目列表
+if(PRODUCT STREQUAL "pmc")
+    set(PRODUCT_PROJECT "h200_am625" CACHE STRING "Project to build")
+    set_property(CACHE PRODUCT_PROJECT PROPERTY STRINGS
+        "h200_am625"
+    )
+elseif(PRODUCT STREQUAL "samples")
+    set(PRODUCT_PROJECT "project_demo" CACHE STRING "Project to build")
+    set_property(CACHE PRODUCT_PROJECT PROPERTY STRINGS
+        "project_demo"
+    )
+endif()
+
+message(STATUS "Selected product: ${PRODUCT}")
+message(STATUS "Selected project: ${PRODUCT_PROJECT}")
 
 # ============================================================================
 # 构建选项
@@ -117,18 +131,25 @@ add_subdirectory(core/pdl)
 add_library(ems::pdl_public_api ALIAS pdl_public_api)
 add_library(ems::pdl ALIAS pdl)
 
-# 5. ACL层（应用配置层）
+# 5. 确定项目路径（用于ACL配置）
+set(PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/products/${PRODUCT}/${PRODUCT_PROJECT})
+
+if(NOT EXISTS ${PROJECT_DIR}/CMakeLists.txt)
+    message(FATAL_ERROR "Project '${PRODUCT}/${PRODUCT_PROJECT}' not found at ${PROJECT_DIR}")
+endif()
+
+# 6. ACL层（应用配置层）
+# 项目需要在其acl/目录下提供配置源文件
+file(GLOB ACL_CONFIG_SOURCES "${PROJECT_DIR}/acl/*.c")
+if(ACL_CONFIG_SOURCES)
+    message(STATUS "Found ACL config sources in ${PROJECT_DIR}/acl/")
+endif()
 add_subdirectory(core/acl)
 add_library(ems::acl ALIAS acl)
 
-# 6. 项目层（Projects）
-set(PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/projects/${PROJECT_NAME})
-if(NOT EXISTS ${PROJECT_DIR}/CMakeLists.txt)
-    message(FATAL_ERROR "Project '${PROJECT_NAME}' not found at ${PROJECT_DIR}")
-endif()
-
-message(STATUS "Building project: ${PROJECT_NAME}")
-add_subdirectory(projects/${PROJECT_NAME})
+# 7. 项目层（Products）
+message(STATUS "Building from: ${PROJECT_DIR}")
+add_subdirectory(${PROJECT_DIR} ${CMAKE_CURRENT_BINARY_DIR}/project)
 
 # ============================================================================
 # 测试框架（可选）
