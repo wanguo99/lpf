@@ -4,7 +4,6 @@
 
 #include "test_framework.h"
 #include "sys/osal_process.h"
-#include <string.h>
 
 /*===========================================================================
  * 测试用例

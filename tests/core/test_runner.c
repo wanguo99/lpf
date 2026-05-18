@@ -7,7 +7,6 @@
 #include "test_assert.h"
 #include "osal.h"
 #include <stdarg.h>
-#include <stdio.h>
 
 #define MAX_SUITES 128
 #define LOG_BUF_SIZE 512
@@ -42,7 +41,7 @@ static void log_printf(const char *fmt, ...)
         char buf[LOG_BUF_SIZE];
         va_list args;
         va_start(args, fmt);
-        vsnprintf(buf, sizeof(buf), fmt, args);
+        OSAL_Vsnprintf(buf, sizeof(buf), fmt, args);
         va_end(args);
         OSAL_write(g_test_log_fd, buf, OSAL_Strlen(buf));
     }

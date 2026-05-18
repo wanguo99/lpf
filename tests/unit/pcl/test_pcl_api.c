@@ -10,7 +10,7 @@
  * - 配置验证
  */
 
-#include "pcl_api.h"
+#include "api/pcl_api.h"
 #include "osal.h"
 
 /* 测试用的配置数据 */

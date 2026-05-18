@@ -5,7 +5,6 @@
 #include "test_framework.h"
 #include "sys/osal_thread.h"
 #include "sys/osal_time.h"
-#include <string.h>
 
 /*===========================================================================
  * 测试辅助变量

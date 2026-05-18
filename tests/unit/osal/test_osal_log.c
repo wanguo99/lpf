@@ -5,7 +5,6 @@
  */
 
 #include "osal.h"
-#include <unistd.h>  /* for unlink */
 #include <stdbool.h>
 
 /* 测试日志文件路径 */
@@ -30,7 +29,7 @@ TEST_CASE(test_osal_log_init_success)
 
     /* 清理 */
     OSAL_LogShutdown();
-    unlink(TEST_LOG_FILE);
+    OSAL_unlink(TEST_LOG_FILE);
 }
 
 /* 测试用例: 日志初始化 - 空路径（仅终端输出） */
@@ -66,7 +65,7 @@ TEST_CASE(test_osal_log_init_different_levels)
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
     OSAL_LogShutdown();
 
-    unlink(TEST_LOG_FILE);
+    OSAL_unlink(TEST_LOG_FILE);
 }
 
 /*===========================================================================
@@ -91,7 +90,7 @@ TEST_CASE(test_osal_log_write_basic)
 
     /* 清理 */
     OSAL_LogShutdown();
-    unlink(TEST_LOG_FILE);
+    OSAL_unlink(TEST_LOG_FILE);
 }
 
 /* 测试用例: 日志写入 - 格式化 */
@@ -109,7 +108,7 @@ TEST_CASE(test_osal_log_write_formatted)
 
     /* 清理 */
     OSAL_LogShutdown();
-    unlink(TEST_LOG_FILE);
+    OSAL_unlink(TEST_LOG_FILE);
 }
 
 /* 测试用例: 日志写入 - 长消息 */
@@ -131,7 +130,7 @@ TEST_CASE(test_osal_log_write_long_message)
 
     /* 清理 */
     OSAL_LogShutdown();
-    unlink(TEST_LOG_FILE);
+    OSAL_unlink(TEST_LOG_FILE);
 }
 
 /*===========================================================================
@@ -167,7 +166,7 @@ TEST_CASE(test_osal_log_set_level)
 
     /* 清理 */
     OSAL_LogShutdown();
-    unlink(TEST_LOG_FILE);
+    OSAL_unlink(TEST_LOG_FILE);
 }
 
 /*===========================================================================
@@ -194,9 +193,9 @@ TEST_CASE(test_osal_log_rotation_basic)
 
     /* 清理 */
     OSAL_LogShutdown();
-    unlink(TEST_LOG_FILE);
-    unlink("/tmp/osal_test.log.1");
-    unlink("/tmp/osal_test.log.2");
+    OSAL_unlink(TEST_LOG_FILE);
+    OSAL_unlink("/tmp/osal_test.log.1");
+    OSAL_unlink("/tmp/osal_test.log.2");
 }
 
 /*===========================================================================
@@ -218,7 +217,7 @@ TEST_CASE(test_osal_printf)
 
     /* 清理 */
     OSAL_LogShutdown();
-    unlink(TEST_LOG_FILE);
+    OSAL_unlink(TEST_LOG_FILE);
 }
 
 /*===========================================================================
@@ -269,7 +268,7 @@ TEST_CASE(test_osal_log_multithread)
 
     /* 清理 */
     OSAL_LogShutdown();
-    unlink(TEST_LOG_FILE);
+    OSAL_unlink(TEST_LOG_FILE);
 }
 
 /*===========================================================================
@@ -336,7 +335,7 @@ TEST_CASE(test_osal_log_performance)
 
     // 清理
     OSAL_LogShutdown();
-    unlink(TEST_LOG_FILE);
+    OSAL_unlink(TEST_LOG_FILE);
 }
 */
 

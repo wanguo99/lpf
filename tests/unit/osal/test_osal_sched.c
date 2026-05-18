@@ -7,7 +7,6 @@
 #include "osal.h"
 #include "sys/osal_sched.h"
 #include "sys/osal_thread.h"
-#include <unistd.h>
 
 /*===========================================================================
  * 调度策略和优先级测试

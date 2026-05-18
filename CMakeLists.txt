@@ -7,13 +7,36 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 # ============================================================================
+# 产品线和项目选择
+# ============================================================================
+set(PRODUCT "pmc" CACHE STRING "Product line to build")
+set_property(CACHE PRODUCT PROPERTY STRINGS
+    "pmc"
+    "samples"
+)
+
+# 根据产品线设置可用的项目列表
+if(PRODUCT STREQUAL "pmc")
+    set(PRODUCT_PROJECT "h200_am625" CACHE STRING "Project to build")
+    set_property(CACHE PRODUCT_PROJECT PROPERTY STRINGS
+        "h200_am625"
+    )
+elseif(PRODUCT STREQUAL "samples")
+    set(PRODUCT_PROJECT "project_demo" CACHE STRING "Project to build")
+    set_property(CACHE PRODUCT_PROJECT PROPERTY STRINGS
+        "project_demo"
+    )
+endif()
+
+message(STATUS "Selected product: ${PRODUCT}")
+message(STATUS "Selected project: ${PRODUCT_PROJECT}")
+
+# ============================================================================
 # 构建选项
 # ============================================================================
 option(BUILD_TESTING "Build unit tests" ON)
 option(BUILD_SHARED_LIBS "Build shared libraries instead of static" ON)
 option(INSTALL_HEADERS "Install header files" ON)
-option(BUILD_SAMPLE_APP "Build sample application" ON)
-option(BUILD_WATCHDOG_APP "Build watchdog application" ON)
 
 # ============================================================================
 # 安装路径配置（Buildroot 兼容）
@@ -76,7 +99,7 @@ find_package(Threads REQUIRED)
 # ============================================================================
 # 模块化构建
 # ============================================================================
-# 依赖层次：OSAL → HAL → XConfig → PDL → Apps
+# 依赖层次：OSAL → HAL → PCL → PDL → ACL → Projects
 #
 # 每个模块提供两个库：
 # 1. <module>_public_api - 接口库（仅头文件），供上层使用
@@ -87,39 +110,46 @@ find_package(Threads REQUIRED)
 # - PRIVATE依赖下层的实现库（运行时链接）
 
 # 1. OSAL层（操作系统抽象层）
-add_subdirectory(osal)
+add_subdirectory(core/osal)
 
 # 为后续模块创建命名空间别名
 add_library(ems::osal_public_api ALIAS osal_public_api)
 add_library(ems::osal ALIAS osal)
 
-# 1.5 Test Library（测试库 - 仅在启用测试时构建）
-# 现在由统一的tests/CMakeLists.txt管理
-
 # 2. HAL层（硬件抽象层）
-add_subdirectory(hal)
+add_subdirectory(core/hal)
 add_library(ems::hal_public_api ALIAS hal_public_api)
 add_library(ems::hal ALIAS hal)
 
-# 3. XConfig层（硬件配置库）
-add_subdirectory(pcl)
+# 3. PCL层（外设配置层）
+add_subdirectory(core/pcl)
 add_library(ems::pcl_public_api ALIAS pcl_public_api)
 add_library(ems::pcl ALIAS pcl)
 
 # 4. PDL层（外设驱动层）
-add_subdirectory(pdl)
+add_subdirectory(core/pdl)
 add_library(ems::pdl_public_api ALIAS pdl_public_api)
 add_library(ems::pdl ALIAS pdl)
 
-# 4.5. ACL层（业务配置层）
-add_subdirectory(acl)
+# 5. 确定项目路径（用于ACL配置）
+set(PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/products/${PRODUCT}/${PRODUCT_PROJECT})
+
+if(NOT EXISTS ${PROJECT_DIR}/CMakeLists.txt)
+    message(FATAL_ERROR "Project '${PRODUCT}/${PRODUCT_PROJECT}' not found at ${PROJECT_DIR}")
+endif()
+
+# 6. ACL层（应用配置层）
+# 项目需要在其acl/目录下提供配置源文件
+file(GLOB ACL_CONFIG_SOURCES "${PROJECT_DIR}/acl/*.c")
+if(ACL_CONFIG_SOURCES)
+    message(STATUS "Found ACL config sources in ${PROJECT_DIR}/acl/")
+endif()
+add_subdirectory(core/acl)
 add_library(ems::acl ALIAS acl)
 
-# 4.6. Libs层（应用公共库）
-add_subdirectory(libs)
-
-# 5. Apps层（应用程序）
-add_subdirectory(apps)
+# 7. 项目层（Products）
+message(STATUS "Building from: ${PROJECT_DIR}")
+add_subdirectory(${PROJECT_DIR} ${CMAKE_CURRENT_BINARY_DIR}/project)
 
 # ============================================================================
 # 测试框架（可选）
@@ -148,11 +178,10 @@ message(STATUS "  Libraries: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 message(STATUS "  Headers: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
 message(STATUS "")
 message(STATUS "Build options:")
+message(STATUS "  PROJECT_NAME: ${PROJECT_NAME}")
 message(STATUS "  BUILD_TESTING: ${BUILD_TESTING}")
 message(STATUS "  BUILD_SHARED_LIBS: ${BUILD_SHARED_LIBS}")
 message(STATUS "  INSTALL_HEADERS: ${INSTALL_HEADERS}")
-message(STATUS "  BUILD_SAMPLE_APP: ${BUILD_SAMPLE_APP}")
-message(STATUS "  BUILD_WATCHDOG_APP: ${BUILD_WATCHDOG_APP}")
 message(STATUS "")
 message(STATUS "Output: ${CMAKE_BINARY_DIR}")
 message(STATUS "========================================")

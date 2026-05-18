@@ -5,7 +5,6 @@
  */
 
 #include "osal.h"
-#include <unistd.h>  /* for unlink */
 
 /* 测试文件路径 */
 #define TEST_FILE_PATH "/tmp/osal_test_file.txt"
@@ -30,7 +29,7 @@ TEST_CASE(test_osal_file_open_close_success)
     TEST_ASSERT_EQUAL(0, ret);
 
     /* 清理 */
-    unlink(TEST_FILE_PATH);
+    OSAL_unlink(TEST_FILE_PATH);
 }
 
 /* 测试用例: open - 只读模式 */
@@ -49,7 +48,7 @@ TEST_CASE(test_osal_file_open_readonly)
     TEST_ASSERT_TRUE(fd >= 0);
 
     OSAL_close(fd);
-    unlink(TEST_FILE_PATH);
+    OSAL_unlink(TEST_FILE_PATH);
 }
 
 /* 测试用例: open - 文件不存在 */
@@ -58,7 +57,7 @@ TEST_CASE(test_osal_file_open_not_exist)
     int32_t fd;
 
     /* 确保文件不存在 */
-    unlink(TEST_FILE_PATH);
+    OSAL_unlink(TEST_FILE_PATH);
 
     /* 尝试打开不存在的文件（不创建） */
     fd = OSAL_open(TEST_FILE_PATH, OSAL_O_RDONLY, 0);
@@ -71,7 +70,7 @@ TEST_CASE(test_osal_file_open_excl)
     int32_t fd1, fd2;
 
     /* 清理 */
-    unlink(TEST_FILE_PATH);
+    OSAL_unlink(TEST_FILE_PATH);
 
     /* 创建新文件 */
     fd1 = OSAL_open(TEST_FILE_PATH, OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_EXCL,
@@ -84,7 +83,7 @@ TEST_CASE(test_osal_file_open_excl)
                     OSAL_S_IRUSR | OSAL_S_IWUSR);
     TEST_ASSERT_TRUE(fd2 < 0);
 
-    unlink(TEST_FILE_PATH);
+    OSAL_unlink(TEST_FILE_PATH);
 }
 
 /*===========================================================================
@@ -118,7 +117,7 @@ TEST_CASE(test_osal_file_write_read_success)
     TEST_ASSERT_EQUAL(0, OSAL_Strncmp(read_buffer, write_data, OSAL_Strlen(write_data)));
 
     OSAL_close(fd);
-    unlink(TEST_FILE_PATH);
+    OSAL_unlink(TEST_FILE_PATH);
 }
 
 /* 测试用例: write - 追加模式 */
@@ -153,7 +152,7 @@ TEST_CASE(test_osal_file_write_append)
     TEST_ASSERT_EQUAL((osal_ssize_t)(OSAL_Strlen(data1) + OSAL_Strlen(data2)), ret);
 
     OSAL_close(fd);
-    unlink(TEST_FILE_PATH);
+    OSAL_unlink(TEST_FILE_PATH);
 }
 
 /* 测试用例: read - EOF */
@@ -180,7 +179,7 @@ TEST_CASE(test_osal_file_read_eof)
     TEST_ASSERT_EQUAL(0, ret);
 
     OSAL_close(fd);
-    unlink(TEST_FILE_PATH);
+    OSAL_unlink(TEST_FILE_PATH);
 }
 
 /*===========================================================================
@@ -211,7 +210,7 @@ TEST_CASE(test_osal_file_lseek_set)
     TEST_ASSERT_EQUAL('5', buffer[0]);
 
     OSAL_close(fd);
-    unlink(TEST_FILE_PATH);
+    OSAL_unlink(TEST_FILE_PATH);
 }
 
 /* 测试用例: lseek - SEEK_CUR */
@@ -246,7 +245,7 @@ TEST_CASE(test_osal_file_lseek_cur)
     TEST_ASSERT_EQUAL('5', buffer[0]);
 
     OSAL_close(fd);
-    unlink(TEST_FILE_PATH);
+    OSAL_unlink(TEST_FILE_PATH);
 }
 
 /* 测试用例: lseek - SEEK_END */
@@ -271,7 +270,7 @@ TEST_CASE(test_osal_file_lseek_end)
     TEST_ASSERT_EQUAL((osal_ssize_t)(OSAL_Strlen(data) - 5), pos);
 
     OSAL_close(fd);
-    unlink(TEST_FILE_PATH);
+    OSAL_unlink(TEST_FILE_PATH);
 }
 
 /*===========================================================================
@@ -302,7 +301,7 @@ TEST_CASE(test_osal_file_fcntl_flags)
     TEST_ASSERT_TRUE((flags & OSAL_O_NONBLOCK) != 0);
 
     OSAL_close(fd);
-    unlink(TEST_FILE_PATH);
+    OSAL_unlink(TEST_FILE_PATH);
 }
 
 /*===========================================================================
@@ -324,7 +323,7 @@ TEST_CASE(test_osal_file_write_empty)
     TEST_ASSERT_EQUAL(0, ret);
 
     OSAL_close(fd);
-    unlink(TEST_FILE_PATH);
+    OSAL_unlink(TEST_FILE_PATH);
 }
 
 /* 测试用例: read - 空缓冲区 */
@@ -345,7 +344,7 @@ TEST_CASE(test_osal_file_read_empty)
     TEST_ASSERT_EQUAL(0, ret);
 
     OSAL_close(fd);
-    unlink(TEST_FILE_PATH);
+    OSAL_unlink(TEST_FILE_PATH);
 }
 
 /* 测试用例: close - 无效文件描述符 */

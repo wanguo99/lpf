@@ -132,14 +132,14 @@ PCL - Read by PDL layer (hardware configuration)
 - **Only layer allowed to call system APIs and standard library functions**
 - Wraps ALL system calls and standard library for upper layers
 - Provides: task management, queues, mutexes, logging, file I/O, networking, time services, memory operations (`OSAL_Memcpy`, `OSAL_Strlen`), string operations
-- Platform-specific code in `osal/src/posix/` (future: `freertos/`, `vxworks/`)
+- Platform-specific code in `core/osal/src/posix/` (future: `freertos/`, `vxworks/`)
 - **All other layers (Apps/PDL/HAL) MUST use OSAL wrappers**
 
 **HAL** (Hardware Abstraction Layer)
 - **Only layer allowed to include hardware-specific headers** (`<linux/can.h>`, `<net/if.h>`)
 - **MUST use OSAL wrappers for ALL operations** (never direct `socket()`, `open()`, `memcpy()`, `strlen()`, etc.)
 - Provides: CAN, UART, I2C, SPI, GPIO, Watchdog drivers
-- Platform-specific code in `hal/src/linux/` (future: `ti_am62/`, `nxp_imx8/`)
+- Platform-specific code in `core/hal/src/linux/` (future: `ti_am62/`, `nxp_imx8/`)
 
 **PDL** (Peripheral Driver Layer)
 - Unified management of satellite/BMC/MCU peripherals
@@ -153,14 +153,14 @@ PCL - Read by PDL layer (hardware configuration)
 - **Not in call chain, read by Apps layer**
 - Maps business functions (e.g., "server power on") to device types and indexes
 - **O(1) lookup performance** using enum-indexed arrays
-- Configuration files in `acl/config/<product>/`
+- Configuration files in `core/acl/config/<product>/`
 - Pure data structures, no business logic
 
 **PCL** (Peripheral Configuration Library) - **Configuration Library**
 - **Not in call chain, read by PDL layer**
 - Device-tree-like hardware configuration (pure data structures)
 - **Must be completely platform-independent**
-- Configuration organized by peripheral: `platform/<vendor>/<chip>/<product>/`
+- Configuration organized by peripheral: `core/pcl/platform/<vendor>/<chip>/<product>/`
 - Pure data structures, no business logic
 
 **Apps** (Application Layer)
@@ -193,7 +193,7 @@ int32 sockfd = OSAL_socket(PF_CAN, SOCK_RAW, CAN_RAW);  // CORRECT
 OSAL_bind(sockfd, ...);  // CORRECT
 ```
 
-### Data Types (from osal/include/osal_types.h)
+### Data Types (from core/osal/include/osal_types.h)
 
 **CRITICAL: This project strictly prohibits using C native data types. You MUST use OSAL-wrapped types.**
 
@@ -325,27 +325,27 @@ Detailed integration guide: [docs/buildroot/README.md](docs/buildroot/README.md)
 ## Development Workflows
 
 ### Adding New OSAL Interface
-1. Add interface declaration in `osal/include/` (e.g., `osal_timer.h`)
-2. Implement POSIX version in `osal/src/posix/` (e.g., `osal_timer.c`)
+1. Add interface declaration in `core/osal/include/` (e.g., `osal_timer.h`)
+2. Implement POSIX version in `core/osal/src/posix/` (e.g., `osal_timer.c`)
 3. Add unit tests in `tests/unit/osal/` (e.g., `test_osal_timer.c`)
-4. Update `osal/CMakeLists.txt` to include new source file
-5. Update `osal/README.md` if adding major functionality
+4. Update `core/osal/CMakeLists.txt` to include new source file
+5. Update `core/osal/README.md` if adding major functionality
 
 ### Adding New HAL Driver
-1. Add driver interface in `hal/include/` (e.g., `hal_gpio.h`)
-2. Add driver config in `hal/include/config/` (e.g., `hal_gpio_config.h`)
-3. Implement Linux version in `hal/src/linux/` (using OSAL wrappers, e.g., `hal_gpio.c`)
+1. Add driver interface in `core/hal/include/` (e.g., `hal_gpio.h`)
+2. Add driver config in `core/hal/include/config/` (e.g., `hal_gpio_config.h`)
+3. Implement Linux version in `core/hal/src/linux/` (using OSAL wrappers, e.g., `hal_gpio.c`)
 4. Add unit tests in `tests/unit/hal/` (e.g., `test_hal_gpio.c`)
-5. Update `hal/CMakeLists.txt` to include new driver source
+5. Update `core/hal/CMakeLists.txt` to include new driver source
 
 ### Adding New PDL Service
-1. Add service interface in `pdl/include/` (e.g., `pdl_satellite.h`)
-2. Implement service in `pdl/src/` (using HAL and PCL APIs)
+1. Add service interface in `core/pdl/include/` (e.g., `pdl_satellite.h`)
+2. Implement service in `core/pdl/src/` (using HAL and PCL APIs)
 3. Add unit tests in `tests/pdl/`
-4. Update `pdl/README.md`
+4. Update `core/pdl/README.md`
 
 ### Adding New Platform Configuration
-1. Create platform directory: `pcl/platform/<vendor>/<chip>/<product>/`
+1. Create platform directory: `core/pcl/platform/<vendor>/<chip>/<product>/`
 2. Add hardware config file (defines peripheral interfaces)
 3. Add application config file (maps apps to peripherals)
 4. Register platform in PCL initialization
@@ -547,8 +547,8 @@ ps -eLf | grep ems-test
 - [CMakeLists.txt](CMakeLists.txt) - Main build config
 - [build.sh](build.sh) - Build script wrapper
 - [cmake/toolchains/](cmake/toolchains/) - Cross-compilation toolchain files
-- [osal/include/osal.h](osal/include/osal.h) - OSAL main header
-- [osal/include/osal_types.h](osal/include/osal_types.h) - Type definitions
+- [core/osal/include/osal.h](core/osal/include/osal.h) - OSAL main header
+- [core/osal/include/osal_types.h](core/osal/include/osal_types.h) - Type definitions
 - [tests/core/main.c](tests/core/main.c) - Test runner entry
 - [apps/sample_app/src/main.c](apps/sample_app/src/main.c) - Sample application
 - [apps/watchdog_app/src/main.c](apps/watchdog_app/src/main.c) - Watchdog application

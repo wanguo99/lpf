@@ -4,7 +4,6 @@
 
 #include "test_framework.h"
 #include "hal_gpio.h"
-#include <unistd.h>
 
 /*===========================================================================
  * 测试用例

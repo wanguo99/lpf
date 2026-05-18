@@ -480,15 +480,15 @@ typedef struct {
 #### 2.3.1 硬件配置 (Hardware Config)
 
 **文件**：
-- `pcl/include/hw_config_types.h` - 配置数据结构定义
-- `pcl/include/hw_config_api.h` - 配置API接口
-- `pcl/src/hw_config_api.c` - 配置管理实现
-- `pcl/src/hw_config_register.c` - 配置注册实现
+- `core/pcl/include/hw_config_types.h` - 配置数据结构定义
+- `core/pcl/include/hw_config_api.h` - 配置API接口
+- `core/pcl/src/hw_config_api.c` - 配置管理实现
+- `core/pcl/src/hw_config_register.c` - 配置注册实现
 
 **配置组织**：
 ```
-pcl/platform/{vendor}/{soc}/{product}_{variant}.c
-例如：pcl/platform/ti/am625/h200_payload_base.c
+core/pcl/platform/{vendor}/{soc}/{product}_{variant}.c
+例如：core/pcl/platform/ti/am625/h200_payload_base.c
 ```
 
 **硬件配置结构**：
@@ -1103,15 +1103,16 @@ void Protocol_Converter_GetStats(uint32 *cmd_count, uint32 *success_count,
 
 ```
 ems/
-├── osal/include/config/          # OSAL层配置
-│   ├── task_config.h             # 任务栈大小、优先级
-│   ├── queue_config.h            # 队列深度配置
-│   └── log_config.h              # 日志级别、文件路径
-├── hal/include/config/           # HAL层配置
-│   ├── can_types.h               # CAN帧类型定义
-│   ├── can_config.h              # CAN接口、波特率
-│   └── uart_config.h             # 串口设备、波特率
-├── pdl/include/config/           # PDL层配置（预留）
+├── core/                         # 框架核心模块
+│   ├── osal/include/config/      # OSAL层配置
+│   │   ├── task_config.h         # 任务栈大小、优先级
+│   │   ├── queue_config.h        # 队列深度配置
+│   │   └── log_config.h          # 日志级别、文件路径
+│   ├── hal/include/config/       # HAL层配置
+│   │   ├── can_types.h           # CAN帧类型定义
+│   │   ├── can_config.h          # CAN接口、波特率
+│   │   └── uart_config.h         # 串口设备、波特率
+│   └── pdl/include/config/       # PDL层配置（预留）
 └── apps/*/include/config/        # Apps层配置
     ├── can_gateway/include/config/
     │   ├── app_config.h          # 系统版本号
@@ -1358,8 +1359,8 @@ static int32 execute_ipmi_command(uint8_t cmd_type, uint32_t param, uint32_t *re
 
 ### 7.2 移植步骤
 
-1. 实现OSAL接口（`osal/src/<platform>/`）
-2. 实现HAL驱动（`hal/src/<platform>/`）
+1. 实现OSAL接口（`core/osal/src/<platform>/`）
+2. 实现HAL驱动（`core/hal/src/<platform>/`）
 3. 修改CMakeLists.txt添加平台支持
 4. 运行测试验证
 

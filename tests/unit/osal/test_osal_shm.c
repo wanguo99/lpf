@@ -5,9 +5,13 @@
 #include "test_framework.h"
 #include "ipc/osal_shm.h"
 #include "lib/osal_errno.h"
-#include <string.h>
+#include "sys/osal_process.h"
+
+/* 测试多进程场景需要使用fork，这是POSIX特定的测试 */
+#ifdef __linux__
 #include <unistd.h>
 #include <sys/wait.h>
+#endif
 
 #define TEST_SHM_NAME   "/ems_test_shm"
 #define TEST_SHM_SIZE   4096
@@ -98,7 +102,7 @@ TEST_CASE(test_osal_shm_map_unmap) {
     struct test_data *data = (struct test_data *)addr;
     data->magic = 0x12345678;
     data->counter = 100;
-    strcpy(data->message, "Hello from shared memory");
+    OSAL_Strcpy(data->message, "Hello from shared memory");
 
     /* 验证数据 */
     TEST_ASSERT_EQUAL(0x12345678, data->magic);
@@ -160,7 +164,7 @@ TEST_CASE(test_osal_shm_multiprocess) {
         /* 修改共享数据 */
         struct test_data *child_data = (struct test_data *)child_addr;
         child_data->counter = 999;
-        strcpy(child_data->message, "Modified by child");
+        OSAL_Strcpy(child_data->message, "Modified by child");
 
         /* 同步到磁盘 */
         OSAL_ShmSync(child_addr, TEST_SHM_SIZE, false);
