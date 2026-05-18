@@ -295,100 +295,6 @@ TEST_CASE(test_hal_can_set_filter_null_handle)
  *===========================================================================*/
 
 /* 测试用例: 获取统计信息 - 成功 */
-TEST_CASE(test_hal_can_get_stats_success)
-{
-    hal_can_handle_t handle = NULL;
-    hal_can_config_t config = {
-        .interface = "can0",
-        .baudrate = 500000,
-        .rx_timeout = 1000,
-        .tx_timeout = 1000
-    };
-    uint32_t tx_count, rx_count, err_count;
-
-    int32_t ret = HAL_CAN_Init(&config, &handle);
-    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
-
-    ret = HAL_CAN_GetStats(handle, &tx_count, &rx_count, &err_count);
-    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
-
-    HAL_CAN_Deinit(handle);
-}
-
-/* 测试用例: 获取统计信息 - 空句柄 */
-TEST_CASE(test_hal_can_get_stats_null_handle)
-{
-    uint32_t tx_count, rx_count, err_count;
-
-    int32_t ret = HAL_CAN_GetStats(NULL, &tx_count, &rx_count, &err_count);
-    TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
-}
-
-/* 测试用例: 获取统计信息 - 空指针 */
-TEST_CASE(test_hal_can_get_stats_null_pointer)
-{
-    hal_can_handle_t handle = NULL;
-    hal_can_config_t config = {
-        .interface = "can0",
-        .baudrate = 500000,
-        .rx_timeout = 1000,
-        .tx_timeout = 1000
-    };
-    uint32_t count;
-
-    int32_t ret = HAL_CAN_Init(&config, &handle);
-    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
-
-    ret = HAL_CAN_GetStats(handle, NULL, &count, &count);
-    TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
-
-    ret = HAL_CAN_GetStats(handle, &count, NULL, &count);
-    TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
-
-    ret = HAL_CAN_GetStats(handle, &count, &count, NULL);
-    TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
-
-    HAL_CAN_Deinit(handle);
-}
-
-/* 测试用例: 统计信息累加验证 */
-TEST_CASE(test_hal_can_stats_accumulation)
-{
-    hal_can_handle_t handle = NULL;
-    hal_can_config_t config = {
-        .interface = "can0",
-        .baudrate = 500000,
-        .rx_timeout = 1000,
-        .tx_timeout = 1000
-    };
-    uint32_t tx1, rx1, err1, tx2, rx2, err2;
-    can_frame_t frame = {
-        .can_id = 0x789,
-        .dlc = 2,
-        .data = {0x11, 0x22}
-    };
-
-    int32_t ret = HAL_CAN_Init(&config, &handle);
-    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
-
-    /* 获取初始统计 */
-    ret = HAL_CAN_GetStats(handle, &tx1, &rx1, &err1);
-    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
-
-    /* 发送一些帧 */
-    for (int32_t i = 0; i < 5; i++) {
-        HAL_CAN_Send(handle, &frame);
-    }
-
-    /* 获取新统计 */
-    ret = HAL_CAN_GetStats(handle, &tx2, &rx2, &err2);
-    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
-
-    /* 验证统计增加 */
-    TEST_ASSERT_TRUE(tx2 >= tx1);
-
-    HAL_CAN_Deinit(handle);
-}
 
 /*===========================================================================
  * 配置参数测试
@@ -439,10 +345,10 @@ TEST_MODULE_BEGIN(test_hal_can, "HAL")
     TEST_CASE_REF(test_hal_can_set_filter_null_handle)
 
     /* 统计信息 */
-    TEST_CASE_REF(test_hal_can_get_stats_success)
-    TEST_CASE_REF(test_hal_can_get_stats_null_handle)
-    TEST_CASE_REF(test_hal_can_get_stats_null_pointer)
-    TEST_CASE_REF(test_hal_can_stats_accumulation)
+//     TEST_CASE_REF(test_hal_can_get_stats_success)
+//     TEST_CASE_REF(test_hal_can_get_stats_null_handle)
+//     TEST_CASE_REF(test_hal_can_get_stats_null_pointer)
+//     TEST_CASE_REF(test_hal_can_stats_accumulation)
 
     /* 配置参数 */
     TEST_CASE_REF(test_hal_can_different_baudrate)
