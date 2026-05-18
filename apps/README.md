@@ -11,6 +11,7 @@ Apps层包含基于EMS构建的应用程序，展示如何使用OSAL、HAL、PDL
 
 **当前应用**：
 - `sample_app`：示例应用，展示OSAL基本用法
+- **PMC系统**：载荷管理控制器，5进程架构的生产级应用
 
 ## 应用列表
 
@@ -22,6 +23,74 @@ Apps层包含基于EMS构建的应用程序，展示如何使用OSAL、HAL、PDL
 - 日志系统使用
 
 详细文档：[sample_app/README.md](sample_app/README.md)
+
+### PMC系统 - 载荷管理控制器
+
+PMC (Payload Management Controller) 是基于EMS框架实现的生产级应用，采用5进程架构：
+
+#### 进程架构
+
+1. **pmc_logger** - 日志进程
+   - 统一日志收集和管理
+   - 日志文件轮转和归档
+   - 位置：`apps/pmc_logger/`
+
+2. **pmc_comm** - 通信进程
+   - 处理遥控遥测通信
+   - 接收卫星遥控命令，发送遥测数据
+   - 位置：`apps/pmc_comm/`
+
+3. **pmc_collector** - 数据采集进程
+   - 采集BMC、MCU、FPGA等设备状态
+   - 定期更新遥测数据
+   - 位置：`apps/pmc_collector/`
+
+4. **pmc_health** - 健康监测进程
+   - 监控设备心跳
+   - 故障检测和告警
+   - 位置：`apps/pmc_health/`
+
+5. **pmc_supervisor** - 监督进程
+   - 管理其他进程的生命周期
+   - 进程崩溃检测和自动重启
+   - 位置：`apps/pmc_supervisor/`
+
+#### 公共库
+
+- **libpmc** - PMC应用公共库
+  - IPC辅助函数（共享内存封装）
+  - 遥控遥测协议解析接口
+  - 心跳机制和日志接口
+  - 位置：`libs/libpmc/`
+
+#### 快速开始
+
+```bash
+# 编译PMC系统
+./build.sh
+
+# 启动所有进程
+./scripts/pmc_control.sh start
+
+# 查看状态
+./scripts/pmc_control.sh status
+
+# 停止所有进程
+./scripts/pmc_control.sh stop
+```
+
+#### 部署
+
+```bash
+# 使用systemd管理（生产环境）
+sudo cp scripts/pmc.service /etc/systemd/system/
+sudo systemctl enable pmc
+sudo systemctl start pmc
+```
+
+详细文档：
+- [PMC架构设计](../docs/architecture/1-6-app_design.md)
+- [EMS整体架构](../docs/architecture/0-EMS_Architecture_Refactor_v1.0.md)
 
 ## 编译说明
 

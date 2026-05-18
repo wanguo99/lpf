@@ -5,13 +5,20 @@ if(BUILD_SAMPLE_APP)
     add_subdirectory(sample_app)
 endif()
 
-# 添加看门狗应用
-if(BUILD_WATCHDOG_APP)
-    add_subdirectory(watchdog_app)
-endif()
+# PMC产品 - 5进程架构
+# 注意：这些进程依赖libpmc库，确保libs目录已在根CMakeLists.txt中添加
 
-# 添加遥控进程（实时）
-add_subdirectory(telecommand)
+# 1. Communication进程 - 遥控遥测通信
+add_subdirectory(pmc_comm)
 
-# 添加遥测进程（后台）
-add_subdirectory(telemetry)
+# 2. Collector进程 - 数据采集
+add_subdirectory(pmc_collector)
+
+# 3. Health进程 - 健康监测
+add_subdirectory(pmc_health)
+
+# 4. Supervisor进程 - 进程监督管理
+add_subdirectory(pmc_supervisor)
+
+# 5. Logger进程 - 日志管理
+add_subdirectory(pmc_logger)
