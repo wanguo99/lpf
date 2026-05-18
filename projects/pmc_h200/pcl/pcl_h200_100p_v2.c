@@ -2,7 +2,7 @@
  * TI AM625平台 - H200-100P载荷板V2配置
  ************************************************************************/
 
-#include "internal/pcl.h"
+#include "pcl_config.h"
 
 static pcl_mcu_cfg_t *pcl_mcu_arr[] = { NULL };
 static pcl_bmc_cfg_t *pcl_bmc_arr[] = { NULL };

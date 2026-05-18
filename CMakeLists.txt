@@ -7,13 +7,22 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 # ============================================================================
+# 项目选择
+# ============================================================================
+set(PROJECT_NAME "pmc_h200" CACHE STRING "Project to build")
+set_property(CACHE PROJECT_NAME PROPERTY STRINGS
+    "pmc_h200"
+    "samples"
+)
+
+message(STATUS "Selected project: ${PROJECT_NAME}")
+
+# ============================================================================
 # 构建选项
 # ============================================================================
 option(BUILD_TESTING "Build unit tests" ON)
 option(BUILD_SHARED_LIBS "Build shared libraries instead of static" ON)
 option(INSTALL_HEADERS "Install header files" ON)
-option(BUILD_SAMPLE_APP "Build sample application" ON)
-option(BUILD_WATCHDOG_APP "Build watchdog application" ON)
 
 # ============================================================================
 # 安装路径配置（Buildroot 兼容）
@@ -115,11 +124,14 @@ add_library(ems::pdl ALIAS pdl)
 add_subdirectory(acl)
 add_library(ems::acl ALIAS acl)
 
-# 4.6. Libs层（应用公共库）
-add_subdirectory(libs)
+# 5. 项目层（Projects）
+set(PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/projects/${PROJECT_NAME})
+if(NOT EXISTS ${PROJECT_DIR}/CMakeLists.txt)
+    message(FATAL_ERROR "Project '${PROJECT_NAME}' not found at ${PROJECT_DIR}")
+endif()
 
-# 5. Apps层（应用程序）
-add_subdirectory(apps)
+message(STATUS "Building project: ${PROJECT_NAME}")
+add_subdirectory(projects/${PROJECT_NAME})
 
 # ============================================================================
 # 测试框架（可选）
@@ -148,11 +160,10 @@ message(STATUS "  Libraries: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 message(STATUS "  Headers: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
 message(STATUS "")
 message(STATUS "Build options:")
+message(STATUS "  PROJECT_NAME: ${PROJECT_NAME}")
 message(STATUS "  BUILD_TESTING: ${BUILD_TESTING}")
 message(STATUS "  BUILD_SHARED_LIBS: ${BUILD_SHARED_LIBS}")
 message(STATUS "  INSTALL_HEADERS: ${INSTALL_HEADERS}")
-message(STATUS "  BUILD_SAMPLE_APP: ${BUILD_SAMPLE_APP}")
-message(STATUS "  BUILD_WATCHDOG_APP: ${BUILD_WATCHDOG_APP}")
 message(STATUS "")
 message(STATUS "Output: ${CMAKE_BINARY_DIR}")
 message(STATUS "========================================")

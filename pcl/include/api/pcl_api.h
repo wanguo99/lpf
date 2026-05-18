@@ -15,7 +15,7 @@
 #ifndef PCL_API_H
 #define PCL_API_H
 
-#include "pcl_board.h"
+#include "../pcl_board.h"
 
 /*===========================================================================
  * 配置库初始化

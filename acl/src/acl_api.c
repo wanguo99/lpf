@@ -1,84 +1,45 @@
 /**
  * @file acl_api.c
- * @brief ACL层API实现
+ * @brief ACL层API实现（通用）
  */
 
 #include "acl_api.h"
-#include "acl_config.h"
 #include "osal.h"
 
-/* 全局查找表（只读，无需加锁） */
-static acl_lookup_table_t g_acl_table;
-static bool g_acl_initialized = false;
-
-/* 外部配置数据（由配置文件提供） */
-extern const acl_tc_config_t g_pmc_tc_configs[];
-extern const uint32_t g_pmc_tc_config_count;
-extern const acl_tm_config_t g_pmc_tm_configs[];
-extern const uint32_t g_pmc_tm_config_count;
-extern const tc_tm_invalidation_map_t g_invalidation_map[];
-extern const uint32_t g_invalidation_map_count;
+/* 全局配置表 */
+static const acl_config_table_t *g_acl_table = NULL;
 
 /**
  * @brief 初始化ACL层
  */
 int32_t ACL_Init(void)
 {
-    if (g_acl_initialized) {
-        LOG_WARN("ACL", "ACL已初始化，跳过");
-        return OSAL_SUCCESS;
+    g_acl_table = NULL;
+    OSAL_Print(OSAL_PRINT_INFO, "ACL: Initialized\n");
+    return OSAL_SUCCESS;
+}
+
+/**
+ * @brief 注册配置表
+ */
+int32_t ACL_RegisterTable(const acl_config_table_t *table)
+{
+    if (NULL == table) {
+        OSAL_Print(OSAL_PRINT_ERROR, "ACL: Invalid table pointer\n");
+        return OSAL_ERR_INVALID_PARAM;
     }
 
-    /* 1. 清零查找表 */
-    OSAL_Memset(&g_acl_table, 0, sizeof(acl_lookup_table_t));
-
-    /* 2. 初始化遥控查找表 */
-    for (uint32_t i = 0; i < g_pmc_tc_config_count; i++) {
-        const acl_tc_config_t *cfg = &g_pmc_tc_configs[i];
-
-        /* 检查枚举值范围 */
-        if (cfg->function >= TC_FUNC_MAX) {
-            LOG_ERROR("ACL", "遥控功能枚举越界: %d", cfg->function);
-            return OSAL_ERR_INVALID_SIZE;
-        }
-
-        /* 检查重复配置 */
-        if (g_acl_table.tc_table[cfg->function].enabled) {
-            LOG_ERROR("ACL", "遥控功能重复配置: %d", cfg->function);
-            return OSAL_ERR_INVALID_SIZE;
-        }
-
-        g_acl_table.tc_table[cfg->function] = *cfg;
+    if (NULL != g_acl_table) {
+        OSAL_Print(OSAL_PRINT_WARNING, "ACL: Table already registered, overwriting\n");
     }
 
-    /* 3. 初始化遥测查找表 */
-    for (uint32_t i = 0; i < g_pmc_tm_config_count; i++) {
-        const acl_tm_config_t *cfg = &g_pmc_tm_configs[i];
+    g_acl_table = table;
 
-        /* 检查枚举值范围 */
-        if (cfg->function >= TM_FUNC_MAX) {
-            LOG_ERROR("ACL", "遥测功能枚举越界: %d", cfg->function);
-            return OSAL_ERR_INVALID_SIZE;
-        }
-
-        /* 检查重复配置 */
-        if (g_acl_table.tm_table[cfg->function].enabled) {
-            LOG_ERROR("ACL", "遥测功能重复配置: %d", cfg->function);
-            return OSAL_ERR_INVALID_SIZE;
-        }
-
-        /* 检查有效期配置 */
-        if (cfg->validity_ms == 0) {
-            LOG_ERROR("ACL", "遥测未配置有效期: %d", cfg->function);
-            return OSAL_ERR_INVALID_SIZE;
-        }
-
-        g_acl_table.tm_table[cfg->function] = *cfg;
-    }
-
-    g_acl_initialized = true;
-    LOG_INFO("ACL", "ACL初始化完成: TC=%u, TM=%u",
-             g_pmc_tc_config_count, g_pmc_tm_config_count);
+    OSAL_Print(OSAL_PRINT_INFO, "ACL: Registered table '%s' (TC:%u, TM:%u, INV:%u)\n",
+               table->name,
+               table->tc_count,
+               table->tm_count,
+               table->inv_count);
 
     return OSAL_SUCCESS;
 }
@@ -86,271 +47,151 @@ int32_t ACL_Init(void)
 /**
  * @brief 查询遥控配置
  */
-const acl_tc_config_t* ACL_GetTcConfig(pmc_tc_function_t function)
+const acl_tc_config_t* ACL_GetTcConfig(uint32_t function_id)
 {
-    if (!g_acl_initialized) {
-        LOG_ERROR("ACL", "ACL未初始化");
+    if (NULL == g_acl_table || NULL == g_acl_table->tc_table) {
         return NULL;
     }
 
-    if (function >= TC_FUNC_MAX) {
-        LOG_ERROR("ACL", "遥控功能枚举越界: %d", function);
-        return NULL;
+    /* O(1)直接索引 */
+    if (function_id < g_acl_table->tc_count) {
+        return &g_acl_table->tc_table[function_id];
     }
 
-    const acl_tc_config_t *cfg = &g_acl_table.tc_table[function];
-    if (!cfg->enabled) {
-        LOG_DEBUG("ACL", "遥控功能未使能: %d", function);
-        return NULL;
-    }
-
-    return cfg;
+    return NULL;
 }
 
 /**
  * @brief 查询遥测配置
  */
-const acl_tm_config_t* ACL_GetTmConfig(pmc_tm_function_t function)
+const acl_tm_config_t* ACL_GetTmConfig(uint32_t function_id)
 {
-    if (!g_acl_initialized) {
-        LOG_ERROR("ACL", "ACL未初始化");
+    if (NULL == g_acl_table || NULL == g_acl_table->tm_table) {
         return NULL;
     }
 
-    if (function >= TM_FUNC_MAX) {
-        LOG_ERROR("ACL", "遥测功能枚举越界: %d", function);
-        return NULL;
+    /* O(1)直接索引 */
+    if (function_id < g_acl_table->tm_count) {
+        return &g_acl_table->tm_table[function_id];
     }
 
-    const acl_tm_config_t *cfg = &g_acl_table.tm_table[function];
-    if (!cfg->enabled) {
-        LOG_DEBUG("ACL", "遥测功能未使能: %d", function);
-        return NULL;
-    }
-
-    return cfg;
+    return NULL;
 }
 
 /**
  * @brief 检查遥控功能是否使能
  */
-bool ACL_IsTcEnabled(pmc_tc_function_t function)
+bool ACL_IsTcEnabled(uint32_t function_id)
 {
-    if (!g_acl_initialized || function >= TC_FUNC_MAX) {
-        return false;
-    }
-    return g_acl_table.tc_table[function].enabled;
+    const acl_tc_config_t *config = ACL_GetTcConfig(function_id);
+    return (NULL != config) && config->enabled;
 }
 
 /**
  * @brief 检查遥测功能是否使能
  */
-bool ACL_IsTmEnabled(pmc_tm_function_t function)
+bool ACL_IsTmEnabled(uint32_t function_id)
 {
-    if (!g_acl_initialized || function >= TM_FUNC_MAX) {
-        return false;
-    }
-    return g_acl_table.tm_table[function].enabled;
+    const acl_tm_config_t *config = ACL_GetTmConfig(function_id);
+    return (NULL != config) && config->enabled;
 }
 
 /**
- * @brief 遥控命令执行后，失效相关遥测缓存
+ * @brief 获取失效映射
  */
-void ACL_InvalidateAffectedTelemetry(pmc_tc_function_t tc_function)
+int32_t ACL_GetInvalidationMap(uint32_t source_tm_id,
+                                uint32_t *affected_ids,
+                                uint32_t max_count,
+                                uint32_t *actual_count)
 {
-    for (uint32_t i = 0; i < g_invalidation_map_count; i++) {
-        const tc_tm_invalidation_map_t *map = &g_invalidation_map[i];
-
-        if (map->tc_function == tc_function) {
-            for (uint32_t j = 0; j < map->affected_count; j++) {
-                pmc_tm_function_t tm_func = map->affected_tm[j];
-                LOG_DEBUG("ACL", "遥测缓存标记为STALE: %d (由TC %d触发)",
-                         tm_func, tc_function);
-            }
-            break;
-        }
+    if (NULL == affected_ids || NULL == actual_count) {
+        return OSAL_ERR_INVALID_PARAM;
     }
-}
 
-/**
- * @brief 验证ACL配置
- */
-int32_t ACL_ValidateConfig(void)
-{
-    uint32_t error_count = 0;
+    *actual_count = 0;
 
-    /* 1. 验证遥控配置 */
-    for (uint32_t i = 0; i < TC_FUNC_MAX; i++) {
-        const acl_tc_config_t *cfg = &g_acl_table.tc_table[i];
+    if (NULL == g_acl_table || NULL == g_acl_table->inv_map) {
+        return OSAL_SUCCESS;
+    }
 
-        if (!cfg->enabled) {
-            continue;
-        }
-
-        /* 检查枚举值是否匹配索引 */
-        if (cfg->function != i) {
-            LOG_ERROR("ACL", "TC[%u]: 枚举值不匹配 (expected=%u, actual=%u)",
-                     i, i, cfg->function);
-            error_count++;
-        }
-
-        /* 检查设备类型 */
-        if (cfg->device_type >= ACL_DEVICE_MAX) {
-            LOG_ERROR("ACL", "TC[%u]: 无效的设备类型 %d", i, cfg->device_type);
-            error_count++;
-        }
-
-        /* 检查逻辑索引（假设最多支持4个同类设备） */
-        if (cfg->logic_index >= 4) {
-            LOG_WARN("ACL", "TC[%u]: 逻辑索引过大 %u", i, cfg->logic_index);
+    /* 查找源遥测ID */
+    for (uint32_t i = 0; i < g_acl_table->inv_count; i++) {
+        const acl_invalidation_map_t *map = &g_acl_table->inv_map[i];
+        if (map->source_tm_id == source_tm_id) {
+            /* 复制受影响的ID */
+            uint32_t copy_count = (map->affected_count < max_count) ?
+                                   map->affected_count : max_count;
+            OSAL_Memcpy(affected_ids, map->affected_tm_ids, copy_count * sizeof(uint32_t));
+            *actual_count = map->affected_count;
+            return OSAL_SUCCESS;
         }
     }
 
-    /* 2. 验证遥测配置 */
-    for (uint32_t i = 0; i < TM_FUNC_MAX; i++) {
-        const acl_tm_config_t *cfg = &g_acl_table.tm_table[i];
-
-        if (!cfg->enabled) {
-            continue;
-        }
-
-        /* 检查枚举值是否匹配索引 */
-        if (cfg->function != i) {
-            LOG_ERROR("ACL", "TM[%u]: 枚举值不匹配 (expected=%u, actual=%u)",
-                     i, i, cfg->function);
-            error_count++;
-        }
-
-        /* 检查设备类型 */
-        if (cfg->device_type >= ACL_DEVICE_MAX) {
-            LOG_ERROR("ACL", "TM[%u]: 无效的设备类型 %d", i, cfg->device_type);
-            error_count++;
-        }
-
-        /* 检查有效期配置 */
-        if (cfg->validity_ms == 0) {
-            LOG_ERROR("ACL", "TM[%u]: 未配置有效期", i);
-            error_count++;
-        }
-
-        /* 检查更新周期配置 */
-        if (cfg->update_period_ms == 0) {
-            LOG_ERROR("ACL", "TM[%u]: 未配置更新周期", i);
-            error_count++;
-        }
-
-        /* 检查更新周期与有效期的关系 */
-        if (cfg->update_period_ms > cfg->validity_ms) {
-            LOG_WARN("ACL", "TM[%u]: 更新周期(%ums) > 有效期(%ums)",
-                     i, cfg->update_period_ms, cfg->validity_ms);
-        }
-    }
-
-    /* 3. 验证失效映射表 */
-    for (uint32_t i = 0; i < g_invalidation_map_count; i++) {
-        const tc_tm_invalidation_map_t *map = &g_invalidation_map[i];
-
-        /* 检查遥控功能枚举范围 */
-        if (map->tc_function >= TC_FUNC_MAX) {
-            LOG_ERROR("ACL", "失效映射[%u]: 遥控功能枚举越界 %d", i, map->tc_function);
-            error_count++;
-            continue;
-        }
-
-        /* 检查遥控功能是否使能 */
-        if (!ACL_IsTcEnabled(map->tc_function)) {
-            LOG_WARN("ACL", "失效映射[%u]: 遥控功能未使能 %d",
-                     i, map->tc_function);
-        }
-
-        /* 检查受影响的遥测功能 */
-        for (uint32_t j = 0; j < map->affected_count; j++) {
-            pmc_tm_function_t tm_func = map->affected_tm[j];
-
-            if (tm_func >= TM_FUNC_MAX) {
-                LOG_ERROR("ACL", "失效映射[%u]: 遥测功能枚举越界 %d", i, tm_func);
-                error_count++;
-            }
-        }
-    }
-
-    if (error_count > 0) {
-        LOG_ERROR("ACL", "配置验证失败: %u个错误", error_count);
-        return OSAL_ERR_INVALID_SIZE;
-    }
-
-    LOG_INFO("ACL", "配置验证通过");
     return OSAL_SUCCESS;
 }
 
 /**
- * @brief 获取ACL配置统计信息
+ * @brief 获取配置统计信息
  */
-void ACL_GetStatistics(acl_statistics_t *stats)
+int32_t ACL_GetStatistics(acl_statistics_t *stats)
 {
+    if (NULL == stats) {
+        return OSAL_ERR_INVALID_PARAM;
+    }
+
     OSAL_Memset(stats, 0, sizeof(acl_statistics_t));
 
+    if (NULL == g_acl_table) {
+        return OSAL_SUCCESS;
+    }
+
     /* 统计遥控配置 */
-    for (uint32_t i = 0; i < TC_FUNC_MAX; i++) {
-        if (g_acl_table.tc_table[i].enabled) {
-            stats->tc_enabled_count++;
-        } else {
-            stats->tc_disabled_count++;
+    if (NULL != g_acl_table->tc_table) {
+        for (uint32_t i = 0; i < g_acl_table->tc_count; i++) {
+            if (g_acl_table->tc_table[i].enabled) {
+                stats->tc_enabled_count++;
+            } else {
+                stats->tc_disabled_count++;
+            }
         }
     }
 
     /* 统计遥测配置 */
-    for (uint32_t i = 0; i < TM_FUNC_MAX; i++) {
-        const acl_tm_config_t *cfg = &g_acl_table.tm_table[i];
-
-        if (cfg->enabled) {
-            stats->tm_enabled_count++;
-        } else {
-            stats->tm_disabled_count++;
+    if (NULL != g_acl_table->tm_table) {
+        for (uint32_t i = 0; i < g_acl_table->tm_count; i++) {
+            if (g_acl_table->tm_table[i].enabled) {
+                stats->tm_enabled_count++;
+            } else {
+                stats->tm_disabled_count++;
+            }
         }
     }
 
-    stats->invalidation_map_count = g_invalidation_map_count;
+    stats->invalidation_map_count = g_acl_table->inv_count;
+
+    return OSAL_SUCCESS;
 }
 
 /**
- * @brief 打印ACL配置统计信息
+ * @brief 打印配置信息
  */
-void ACL_PrintStatistics(void)
+void ACL_PrintConfig(void)
 {
+    if (NULL == g_acl_table) {
+        OSAL_Print(OSAL_PRINT_INFO, "ACL: No table registered\n");
+        return;
+    }
+
+    OSAL_Print(OSAL_PRINT_INFO, "ACL Configuration: %s\n", g_acl_table->name);
+    OSAL_Print(OSAL_PRINT_INFO, "  TC entries: %u\n", g_acl_table->tc_count);
+    OSAL_Print(OSAL_PRINT_INFO, "  TM entries: %u\n", g_acl_table->tm_count);
+    OSAL_Print(OSAL_PRINT_INFO, "  Invalidation maps: %u\n", g_acl_table->inv_count);
+
     acl_statistics_t stats;
-    ACL_GetStatistics(&stats);
-
-    LOG_INFO("ACL", "========== ACL配置统计 ==========");
-    LOG_INFO("ACL", "遥控功能: 使能=%u, 禁用=%u, 总计=%u",
-             stats.tc_enabled_count, stats.tc_disabled_count, TC_FUNC_MAX);
-    LOG_INFO("ACL", "遥测功能: 使能=%u, 禁用=%u, 总计=%u",
-             stats.tm_enabled_count, stats.tm_disabled_count, TM_FUNC_MAX);
-    LOG_INFO("ACL", "失效映射: %u", stats.invalidation_map_count);
-    LOG_INFO("ACL", "================================");
-}
-
-/**
- * @brief 打印ACL配置详情（调试用）
- */
-void ACL_DumpConfig(void)
-{
-    LOG_INFO("ACL", "========== 遥控配置 ==========");
-    for (uint32_t i = 0; i < TC_FUNC_MAX; i++) {
-        const acl_tc_config_t *cfg = &g_acl_table.tc_table[i];
-        if (cfg->enabled) {
-            LOG_INFO("ACL", "TC[%2u]: device=%u, index=%u",
-                     i, cfg->device_type, cfg->logic_index);
-        }
-    }
-
-    LOG_INFO("ACL", "========== 遥测配置 ==========");
-    for (uint32_t i = 0; i < TM_FUNC_MAX; i++) {
-        const acl_tm_config_t *cfg = &g_acl_table.tm_table[i];
-        if (cfg->enabled) {
-            LOG_INFO("ACL", "TM[%2u]: device=%u, index=%u, validity=%ums, period=%ums",
-                     i, cfg->device_type, cfg->logic_index,
-                     cfg->validity_ms, cfg->update_period_ms);
-        }
+    if (OSAL_SUCCESS == ACL_GetStatistics(&stats)) {
+        OSAL_Print(OSAL_PRINT_INFO, "  TC enabled: %u, disabled: %u\n",
+                   stats.tc_enabled_count, stats.tc_disabled_count);
+        OSAL_Print(OSAL_PRINT_INFO, "  TM enabled: %u, disabled: %u\n",
+                   stats.tm_enabled_count, stats.tm_disabled_count);
     }
 }
