@@ -2,6 +2,9 @@
 #define LIBPMC_IPC_H
 
 #include "osal.h"
+#include "ipc/osal_shm.h"
+#include "ipc/osal_mutex.h"
+#include "sys/osal_time.h"
 
 /* 共享内存名称定义 */
 #define PMC_SHM_TELEMETRY_CACHE    "/pmc_tm_cache"
@@ -38,18 +41,18 @@ typedef enum {
 
 /* 遥测缓存条目 */
 typedef struct {
-    uint32 tm_id;                           /* 遥测ID */
-    uint8 data[PMC_TM_MAX_DATA_SIZE];       /* 遥测数据 */
-    uint32 data_size;                       /* 数据长度 */
-    uint64 timestamp_us;                    /* 时间戳(微秒) */
-    uint32 validity_ms;                     /* 有效期(毫秒) */
+    uint32_t tm_id;                         /* 遥测ID */
+    uint8_t data[PMC_TM_MAX_DATA_SIZE];     /* 遥测数据 */
+    uint32_t data_size;                     /* 数据长度 */
+    uint64_t timestamp_us;                  /* 时间戳(微秒) */
+    uint32_t validity_ms;                   /* 有效期(毫秒) */
     pmc_tm_freshness_t freshness;           /* 新鲜度 */
-    osal_id_t rwlock;                       /* 读写锁ID */
+    osal_mutex_t *rwlock;                   /* 读写锁 */
 } pmc_tm_cache_entry_t;
 
 /* 遥测缓存共享内存 */
 typedef struct {
-    uint32 entry_count;                     /* 条目数量 */
+    uint32_t entry_count;                   /* 条目数量 */
     pmc_tm_cache_entry_t entries[PMC_TM_MAX_COUNT];
 } pmc_tm_cache_t;
 
@@ -59,16 +62,16 @@ typedef struct {
     bool mcu_online;                        /* MCU在线 */
     bool fpga_online;                       /* FPGA在线 */
     bool cpld_online;                       /* CPLD在线 */
-    int32 cpu_temp;                         /* CPU温度(℃) */
-    int32 board_temp;                       /* 板卡温度(℃) */
-    uint32 voltage_54v;                     /* 54V电压(mV) */
-    uint32 voltage_12v;                     /* 12V电压(mV) */
-    osal_id_t mutex;                        /* 互斥锁ID */
+    int32_t cpu_temp;                       /* CPU温度(℃) */
+    int32_t board_temp;                     /* 板卡温度(℃) */
+    uint32_t voltage_54v;                   /* 54V电压(mV) */
+    uint32_t voltage_12v;                   /* 12V电压(mV) */
+    osal_mutex_t *mutex;                    /* 互斥锁 */
 } pmc_system_status_t;
 
 /* 进程心跳 */
 typedef struct {
-    _Atomic uint64 heartbeat_us[PMC_PROCESS_MAX];  /* 心跳时间戳(微秒) */
+    _Atomic uint64_t heartbeat_us[PMC_PROCESS_MAX];  /* 心跳时间戳(微秒) */
 } pmc_process_heartbeat_t;
 
 /* 日志环形缓冲区 */
@@ -77,35 +80,35 @@ typedef struct {
 
 typedef struct {
     char entries[PMC_LOG_ENTRY_COUNT][PMC_LOG_ENTRY_SIZE];
-    _Atomic uint32 write_index;             /* 写索引 */
-    _Atomic uint32 read_index;              /* 读索引 */
+    _Atomic uint32_t write_index;           /* 写索引 */
+    _Atomic uint32_t read_index;            /* 读索引 */
 } pmc_log_ringbuffer_t;
 
 /* IPC辅助函数 - 遥测缓存操作 */
-int32 PMC_TM_Cache_Init(pmc_tm_cache_t **cache);
-int32 PMC_TM_Cache_Write(pmc_tm_cache_t *cache, uint32 tm_id,
-                          const uint8 *data, uint32 size, uint32 validity_ms);
-int32 PMC_TM_Cache_Read(pmc_tm_cache_t *cache, uint32 tm_id,
-                         uint8 *data, uint32 *size, pmc_tm_freshness_t *freshness);
+int32_t PMC_TM_Cache_Init(pmc_tm_cache_t **cache);
+int32_t PMC_TM_Cache_Write(pmc_tm_cache_t *cache, uint32_t tm_id,
+                          const uint8_t *data, uint32_t size, uint32_t validity_ms);
+int32_t PMC_TM_Cache_Read(pmc_tm_cache_t *cache, uint32_t tm_id,
+                         uint8_t *data, uint32_t *size, pmc_tm_freshness_t *freshness);
 void PMC_TM_Cache_Cleanup(pmc_tm_cache_t *cache);
 
 /* IPC辅助函数 - 系统状态操作 */
-int32 PMC_Status_Init(pmc_system_status_t **status);
-int32 PMC_Status_Write(pmc_system_status_t *status, const pmc_system_status_t *new_status);
-int32 PMC_Status_Read(pmc_system_status_t *status, pmc_system_status_t *out_status);
+int32_t PMC_Status_Init(pmc_system_status_t **status);
+int32_t PMC_Status_Write(pmc_system_status_t *status, const pmc_system_status_t *new_status);
+int32_t PMC_Status_Read(pmc_system_status_t *status, pmc_system_status_t *out_status);
 void PMC_Status_Cleanup(pmc_system_status_t *status);
 
 /* IPC辅助函数 - 进程心跳操作 */
-int32 PMC_Heartbeat_Init(pmc_process_heartbeat_t **heartbeat);
-int32 PMC_Heartbeat_Update(pmc_process_heartbeat_t *heartbeat, pmc_process_id_t process_id);
-int32 PMC_Heartbeat_Check(pmc_process_heartbeat_t *heartbeat, pmc_process_id_t process_id,
-                           uint32 timeout_ms, bool *alive);
+int32_t PMC_Heartbeat_Init(pmc_process_heartbeat_t **heartbeat);
+int32_t PMC_Heartbeat_Update(pmc_process_heartbeat_t *heartbeat, pmc_process_id_t process_id);
+int32_t PMC_Heartbeat_Check(pmc_process_heartbeat_t *heartbeat, pmc_process_id_t process_id,
+                           uint32_t timeout_ms, bool *alive);
 void PMC_Heartbeat_Cleanup(pmc_process_heartbeat_t *heartbeat);
 
 /* IPC辅助函数 - 日志操作 */
-int32 PMC_Log_Init(pmc_log_ringbuffer_t **log_ring);
-int32 PMC_Log_Write(pmc_log_ringbuffer_t *log_ring, const char *log_entry);
-int32 PMC_Log_Read(pmc_log_ringbuffer_t *log_ring, char *log_entry, uint32 size);
+int32_t PMC_Log_Init(pmc_log_ringbuffer_t **log_ring);
+int32_t PMC_Log_Write(pmc_log_ringbuffer_t *log_ring, const char *log_entry);
+int32_t PMC_Log_Read(pmc_log_ringbuffer_t *log_ring, char *log_entry, uint32_t size);
 void PMC_Log_Cleanup(pmc_log_ringbuffer_t *log_ring);
 
 #endif /* LIBPMC_IPC_H */

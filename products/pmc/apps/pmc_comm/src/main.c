@@ -2,7 +2,7 @@
 
 int main(int argc, char *argv[])
 {
-    int32 ret;
+    int32_t ret;
 
     (void)argc;
     (void)argv;
@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 
     /* 初始化 */
     ret = PMC_Comm_Init();
-    if (ret != OS_SUCCESS) {
+    if (ret != OSAL_SUCCESS) {
         LOG_ERROR("MAIN", "初始化失败: %d", ret);
         return 1;
     }
@@ -23,5 +23,5 @@ int main(int argc, char *argv[])
     PMC_Comm_Cleanup();
 
     LOG_INFO("MAIN", "PMC Communication进程退出: %d", ret);
-    return (ret == OS_SUCCESS) ? 0 : 1;
+    return (ret == OSAL_SUCCESS) ? 0 : 1;
 }

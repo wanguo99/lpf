@@ -26,35 +26,35 @@ typedef enum {
 
 /* 遥测缓存条目 */
 typedef struct {
-    uint32 tm_id;
-    uint8 data[TM_MAX_DATA_SIZE];
-    uint32 data_size;
-    uint64 timestamp_us;
-    uint32 validity_ms;
+    uint32_t tm_id;
+    uint8_t data[TM_MAX_DATA_SIZE];
+    uint32_t data_size;
+    uint64_t timestamp_us;
+    uint32_t validity_ms;
     tm_freshness_t freshness;
     osal_id_t rwlock;
 } tm_cache_entry_t;
 
 /* 遥测缓存 */
 typedef struct {
-    uint32 entry_count;
+    uint32_t entry_count;
     tm_cache_entry_t entries[TM_MAX_COUNT];
 } tm_cache_t;
 
 /* 进程心跳 */
 typedef struct {
-    _Atomic uint64 comm_heartbeat;
-    _Atomic uint64 collector_heartbeat;
-    _Atomic uint64 health_heartbeat;
-    _Atomic uint64 supervisor_heartbeat;
-    _Atomic uint64 logger_heartbeat;
+    _Atomic uint64_t comm_heartbeat;
+    _Atomic uint64_t collector_heartbeat;
+    _Atomic uint64_t health_heartbeat;
+    _Atomic uint64_t supervisor_heartbeat;
+    _Atomic uint64_t logger_heartbeat;
 } process_heartbeat_t;
 
 /* Communication进程初始化 */
-int32 PMC_Comm_Init(void);
+int32_t PMC_Comm_Init(void);
 
 /* Communication进程运行 */
-int32 PMC_Comm_Run(void);
+int32_t PMC_Comm_Run(void);
 
 /* Communication进程清理 */
 void PMC_Comm_Cleanup(void);

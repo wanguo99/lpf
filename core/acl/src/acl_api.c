@@ -15,7 +15,7 @@ static const acl_config_table_t *g_acl_table = NULL;
 int32_t ACL_Init(void)
 {
     g_acl_table = NULL;
-    OSAL_Print(OSAL_PRINT_INFO, "ACL: Initialized\n");
+    LOG_INFO("ACL", "Initialized");
     return OSAL_SUCCESS;
 }
 
@@ -25,17 +25,17 @@ int32_t ACL_Init(void)
 int32_t ACL_RegisterTable(const acl_config_table_t *table)
 {
     if (NULL == table) {
-        OSAL_Print(OSAL_PRINT_ERROR, "ACL: Invalid table pointer\n");
-        return OSAL_ERR_INVALID_PARAM;
+        LOG_ERROR("ACL", "Invalid table pointer");
+        return OSAL_ERR_INVALID_POINTER;
     }
 
     if (NULL != g_acl_table) {
-        OSAL_Print(OSAL_PRINT_WARNING, "ACL: Table already registered, overwriting\n");
+        LOG_WARN("ACL", "Table already registered, overwriting");
     }
 
     g_acl_table = table;
 
-    OSAL_Print(OSAL_PRINT_INFO, "ACL: Registered table '%s' (TC:%u, TM:%u, INV:%u)\n",
+    LOG_INFO("ACL", "Registered table '%s' (TC:%u, TM:%u, INV:%u)",
                table->name,
                table->tc_count,
                table->tm_count,
@@ -105,7 +105,7 @@ int32_t ACL_GetInvalidationMap(uint32_t source_tm_id,
                                 uint32_t *actual_count)
 {
     if (NULL == affected_ids || NULL == actual_count) {
-        return OSAL_ERR_INVALID_PARAM;
+        return OSAL_ERR_INVALID_POINTER;
     }
 
     *actual_count = 0;
@@ -136,7 +136,7 @@ int32_t ACL_GetInvalidationMap(uint32_t source_tm_id,
 int32_t ACL_GetStatistics(acl_statistics_t *stats)
 {
     if (NULL == stats) {
-        return OSAL_ERR_INVALID_PARAM;
+        return OSAL_ERR_INVALID_POINTER;
     }
 
     OSAL_Memset(stats, 0, sizeof(acl_statistics_t));
@@ -178,20 +178,20 @@ int32_t ACL_GetStatistics(acl_statistics_t *stats)
 void ACL_PrintConfig(void)
 {
     if (NULL == g_acl_table) {
-        OSAL_Print(OSAL_PRINT_INFO, "ACL: No table registered\n");
+        LOG_INFO("ACL", "No table registered");
         return;
     }
 
-    OSAL_Print(OSAL_PRINT_INFO, "ACL Configuration: %s\n", g_acl_table->name);
-    OSAL_Print(OSAL_PRINT_INFO, "  TC entries: %u\n", g_acl_table->tc_count);
-    OSAL_Print(OSAL_PRINT_INFO, "  TM entries: %u\n", g_acl_table->tm_count);
-    OSAL_Print(OSAL_PRINT_INFO, "  Invalidation maps: %u\n", g_acl_table->inv_count);
+    LOG_INFO("ACL", "Configuration: %s", g_acl_table->name);
+    LOG_INFO("ACL", "  TC entries: %u", g_acl_table->tc_count);
+    LOG_INFO("ACL", "  TM entries: %u", g_acl_table->tm_count);
+    LOG_INFO("ACL", "  Invalidation maps: %u", g_acl_table->inv_count);
 
     acl_statistics_t stats;
     if (OSAL_SUCCESS == ACL_GetStatistics(&stats)) {
-        OSAL_Print(OSAL_PRINT_INFO, "  TC enabled: %u, disabled: %u\n",
+        LOG_INFO("ACL", "  TC enabled: %u, disabled: %u",
                    stats.tc_enabled_count, stats.tc_disabled_count);
-        OSAL_Print(OSAL_PRINT_INFO, "  TM enabled: %u, disabled: %u\n",
+        LOG_INFO("ACL", "  TM enabled: %u, disabled: %u",
                    stats.tm_enabled_count, stats.tm_disabled_count);
     }
 }

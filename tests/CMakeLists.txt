@@ -118,15 +118,15 @@ add_executable(ems-test
 
 target_include_directories(ems-test PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../osal/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../hal/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../pcl/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../pcl/include/api
-    ${CMAKE_CURRENT_SOURCE_DIR}/../pcl/include/internal
-    ${CMAKE_CURRENT_SOURCE_DIR}/../pcl/include/peripheral
-    ${CMAKE_CURRENT_SOURCE_DIR}/../acl/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../pdl/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../pdl/src/pdl_bmc
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/osal/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/hal/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/pcl/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/pcl/include/api
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/pcl/include/internal
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/pcl/include/peripheral
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/acl/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/pdl/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/pdl/src/pdl_bmc
 )
 
 target_link_libraries(ems-test
@@ -136,6 +136,8 @@ target_link_libraries(ems-test
     ems::pcl
     ems::acl
     ems::pdl
+    pmc_h200_pcl_config
+    pmc_h200_acl_config
     Threads::Threads
     m  # 数学库（性能测试需要sqrt等函数）
 )

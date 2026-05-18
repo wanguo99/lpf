@@ -14,9 +14,10 @@
  *===========================================================================*/
 
 /* TI AM625平台 - H200载荷板 */
-extern const pcl_platform_config_t pcl_h200_100p_base;
-extern const pcl_platform_config_t pcl_h200_100p_v1;
-extern const pcl_platform_config_t pcl_h200_100p_v2;
+/* 注意：产品特定配置已移至 products/ 目录，由产品自己管理 */
+/* extern const pcl_platform_config_t pcl_h200_100p_base; */
+/* extern const pcl_platform_config_t pcl_h200_100p_v1; */
+/* extern const pcl_platform_config_t pcl_h200_100p_v2; */
 
 /* 其他平台配置可以在这里添加 */
 /* extern const pcl_platform_config_t pcl_xxx; */
@@ -26,9 +27,10 @@ extern const pcl_platform_config_t pcl_h200_100p_v2;
  *===========================================================================*/
 
 static const pcl_platform_config_t* g_all_configs[] = {
-    &pcl_h200_100p_base,
-    &pcl_h200_100p_v1,
-    &pcl_h200_100p_v2,
+    /* 产品特定配置已移至 products/ 目录 */
+    /* &pcl_h200_100p_base, */
+    /* &pcl_h200_100p_v1, */
+    /* &pcl_h200_100p_v2, */
     /* 在这里添加新的配置 */
 };
 
@@ -41,32 +43,14 @@ static const pcl_platform_config_t* g_all_configs[] = {
 /**
  * @brief 注册所有硬件配置
  *
+ * 注意：产品特定配置已移至 products/ 目录，由产品自己管理和注册
+ *
  * @return OSAL_SUCCESS 成功
- * @return OSAL_ERR_GENERIC 失败
  */
 int32_t PCL_RegisterAll(void)
 {
-    int32_t ret;
-    uint32_t success_count = 0;
-
-    LOG_INFO("XCONFIG", "Registering %d hardware configurations...", CONFIG_COUNT);
-
-    for (uint32_t i = 0; i < CONFIG_COUNT; i++) {
-        ret = PCL_Register(g_all_configs[i]);
-        if (OSAL_SUCCESS == ret) {
-            success_count++;
-        } else {
-            LOG_ERROR("PCL", "Failed to register config[%d]: %s/%s",
-                      i,
-                      g_all_configs[i]->platform_name,
-                      g_all_configs[i]->product_name);
-        }
-    }
-
-    LOG_INFO("XCONFIG", "Registered %d/%d configurations successfully",
-             success_count, CONFIG_COUNT);
-
-    return (success_count > 0) ? OSAL_SUCCESS : OSAL_ERR_GENERIC;
+    LOG_INFO("XCONFIG", "No built-in configurations to register (product configs managed separately)");
+    return OSAL_SUCCESS;
 }
 
 /**

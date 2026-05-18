@@ -19,9 +19,9 @@ static void signal_handler(int sig)
 }
 
 /* 初始化 */
-int32 PMC_Collector_Init(void)
+int32_t PMC_Collector_Init(void)
 {
-    int32 ret;
+    int32_t ret;
 
     LOG_INFO("COLLECTOR", "Collector进程初始化...");
 
@@ -31,14 +31,14 @@ int32 PMC_Collector_Init(void)
 
     /* 初始化遥测缓存 */
     ret = PMC_TM_Cache_Init(&g_tm_cache);
-    if (ret != OS_SUCCESS) {
+    if (ret != OSAL_SUCCESS) {
         LOG_ERROR("COLLECTOR", "初始化遥测缓存失败: %d", ret);
         return ret;
     }
 
     /* 初始化心跳 */
     ret = PMC_Heartbeat_Init(&g_heartbeat);
-    if (ret != OS_SUCCESS) {
+    if (ret != OSAL_SUCCESS) {
         LOG_ERROR("COLLECTOR", "初始化心跳失败: %d", ret);
         PMC_TM_Cache_Cleanup(g_tm_cache);
         return ret;
@@ -46,7 +46,7 @@ int32 PMC_Collector_Init(void)
 
     /* 初始化系统状态 */
     ret = PMC_Status_Init(&g_status);
-    if (ret != OS_SUCCESS) {
+    if (ret != OSAL_SUCCESS) {
         LOG_ERROR("COLLECTOR", "初始化系统状态失败: %d", ret);
         PMC_TM_Cache_Cleanup(g_tm_cache);
         PMC_Heartbeat_Cleanup(g_heartbeat);
@@ -54,17 +54,17 @@ int32 PMC_Collector_Init(void)
     }
 
     /* 绑定到CPU1（建议） */
-    ret = OSAL_ThreadSetAffinity(OSAL_ThreadGetId(), 1);
-    if (ret != OS_SUCCESS) {
+    ret = OSAL_SchedSetAffinity(OSAL_ThreadSelf(), 1);
+    if (ret != OSAL_SUCCESS) {
         LOG_WARN("COLLECTOR", "绑定CPU1失败: %d", ret);
     }
 
     LOG_INFO("COLLECTOR", "Collector进程初始化完成");
-    return OS_SUCCESS;
+    return OSAL_SUCCESS;
 }
 
 /* 采集服务器遥测（BMC） */
-static int32 collect_server_telemetry(void)
+static int32_t collect_server_telemetry(void)
 {
     /* TODO: 通过PDL_BMC接口采集服务器遥测
      * - CPU温度
@@ -73,8 +73,8 @@ static int32 collect_server_telemetry(void)
      */
 
     /* 模拟数据 */
-    uint8 data[4];
-    int32 cpu_temp = 45;  /* 45℃ */
+    uint8_t data[4];
+    int32_t cpu_temp = 45;  /* 45℃ */
 
     data[0] = (cpu_temp >> 24) & 0xFF;
     data[1] = (cpu_temp >> 16) & 0xFF;
@@ -84,11 +84,11 @@ static int32 collect_server_telemetry(void)
     /* 写入缓存，有效期2秒 */
     PMC_TM_Cache_Write(g_tm_cache, PMC_TM_CPU_TEMP, data, 4, 2000);
 
-    return OS_SUCCESS;
+    return OSAL_SUCCESS;
 }
 
 /* 采集电源遥测（MCU） */
-static int32 collect_power_telemetry(void)
+static int32_t collect_power_telemetry(void)
 {
     /* TODO: 通过PDL_MCU接口采集电源遥测
      * - 54V电压
@@ -97,8 +97,8 @@ static int32 collect_power_telemetry(void)
      */
 
     /* 模拟数据 */
-    uint8 data[4];
-    uint32 voltage_54v = 54000;  /* 54V = 54000mV */
+    uint8_t data[4];
+    uint32_t voltage_54v = 54000;  /* 54V = 54000mV */
 
     data[0] = (voltage_54v >> 24) & 0xFF;
     data[1] = (voltage_54v >> 16) & 0xFF;
@@ -108,19 +108,19 @@ static int32 collect_power_telemetry(void)
     /* 写入缓存，有效期500ms */
     PMC_TM_Cache_Write(g_tm_cache, PMC_TM_VOLTAGE_54V, data, 4, 500);
 
-    return OS_SUCCESS;
+    return OSAL_SUCCESS;
 }
 
 /* 采集温度遥测（I2C） */
-static int32 collect_temperature_telemetry(void)
+static int32_t collect_temperature_telemetry(void)
 {
     /* TODO: 通过HAL_I2C接口采集温度传感器数据
      * - PCB温度
      */
 
     /* 模拟数据 */
-    uint8 data[4];
-    int32 board_temp = 40;  /* 40℃ */
+    uint8_t data[4];
+    int32_t board_temp = 40;  /* 40℃ */
 
     data[0] = (board_temp >> 24) & 0xFF;
     data[1] = (board_temp >> 16) & 0xFF;
@@ -130,11 +130,11 @@ static int32 collect_temperature_telemetry(void)
     /* 写入缓存，有效期4秒 */
     PMC_TM_Cache_Write(g_tm_cache, PMC_TM_BOARD_TEMP, data, 4, 4000);
 
-    return OS_SUCCESS;
+    return OSAL_SUCCESS;
 }
 
 /* 更新系统状态 */
-static int32 update_system_status(void)
+static int32_t update_system_status(void)
 {
     pmc_system_status_t status;
 
@@ -151,14 +151,14 @@ static int32 update_system_status(void)
     /* 写入共享内存 */
     PMC_Status_Write(g_status, &status);
 
-    return OS_SUCCESS;
+    return OSAL_SUCCESS;
 }
 
 /* 主循环 */
-int32 PMC_Collector_Run(void)
+int32_t PMC_Collector_Run(void)
 {
-    uint32 fast_cycle_count = 0;  /* 快遥周期计数 */
-    uint32 slow_cycle_count = 0;  /* 慢遥周期计数 */
+    uint32_t fast_cycle_count = 0;  /* 快遥周期计数 */
+    uint32_t slow_cycle_count = 0;  /* 慢遥周期计数 */
 
     LOG_INFO("COLLECTOR", "Collector进程开始运行");
 
@@ -181,14 +181,14 @@ int32 PMC_Collector_Run(void)
         update_system_status();
 
         /* 休眠100ms */
-        OSAL_TaskDelay(100);
+        OSAL_msleep(100);
 
         fast_cycle_count++;
         slow_cycle_count++;
     }
 
     LOG_INFO("COLLECTOR", "Collector进程退出");
-    return OS_SUCCESS;
+    return OSAL_SUCCESS;
 }
 
 /* 清理 */

@@ -122,17 +122,17 @@ int32_t PMC_ACL_Init(void)
     /* 初始化ACL框架 */
     ret = ACL_Init();
     if (OSAL_SUCCESS != ret) {
-        OSAL_Print(OSAL_PRINT_ERROR, "PMC_ACL_Init: ACL_Init failed, ret=%d\n", ret);
+        LOG_ERROR("PMC_ACL", "ACL_Init failed, ret=%d", ret);
         return ret;
     }
 
     /* 注册PMC配置表 */
     ret = ACL_RegisterTable(&g_pmc_acl_table);
     if (OSAL_SUCCESS != ret) {
-        OSAL_Print(OSAL_PRINT_ERROR, "PMC_ACL_Init: ACL_RegisterTable failed, ret=%d\n", ret);
+        LOG_ERROR("PMC_ACL", "ACL_RegisterTable failed, ret=%d", ret);
         return ret;
     }
 
-    OSAL_Print(OSAL_PRINT_INFO, "PMC ACL: Initialized\n");
+    LOG_INFO("PMC_ACL", "Initialized");
     return OSAL_SUCCESS;
 }

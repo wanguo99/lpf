@@ -9,7 +9,7 @@
 #define ACL_TELEMETRY_CACHE_H
 
 #include "osal_types.h"
-#include "pmc_acl_types.h"
+#include "acl_types.h"
 
 /**
  * @brief 遥测缓存条目
@@ -20,7 +20,7 @@ typedef struct {
     uint32_t data_len;              /* 数据长度 */
     uint64_t timestamp_us;          /* 采集时间戳（微秒） */
     uint32_t validity_ms;           /* 有效期（毫秒） */
-    tm_freshness_t freshness;       /* 新鲜度状态 */
+    acl_tm_status_t freshness;      /* 新鲜度状态 */
     bool valid;                     /* 是否有效（是否曾经更新过） */
     uint32_t update_count;          /* 更新次数 */
     uint32_t read_count;            /* 读取次数 */
@@ -36,7 +36,7 @@ typedef struct {
     uint32_t data_len;              /* 数据长度 */
     uint64_t timestamp_us;          /* 采集时间戳（微秒） */
     uint32_t age_ms;                /* 数据年龄（当前时间 - 采集时间） */
-    tm_freshness_t freshness;       /* 新鲜度：INVALID/FRESH/STALE */
+    acl_tm_status_t freshness;      /* 新鲜度：INVALID/FRESH/STALE */
     uint32_t checksum;              /* CRC32校验和 */
 } telemetry_response_t;
 
