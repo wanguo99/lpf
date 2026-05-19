@@ -131,6 +131,7 @@ target_include_directories(ems-test PRIVATE
 
 target_link_libraries(ems-test
     ems::osal_public_api
+    ems::hal_public_api
     ems::osal
     ems::hal
     ems::pcl

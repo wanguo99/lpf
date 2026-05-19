@@ -20,6 +20,7 @@ set(SAMPLES_PCL_SOURCES
 add_library(samples_pcl_config STATIC ${SAMPLES_PCL_SOURCES})
 target_link_libraries(samples_pcl_config
     PUBLIC ems::pcl_public_api
+    PUBLIC ems::hal_public_api
     PRIVATE ems::osal
 )
 

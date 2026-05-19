@@ -25,6 +25,7 @@ set(PMC_H200_PCL_SOURCES
 add_library(pmc_h200_pcl_config STATIC ${PMC_H200_PCL_SOURCES})
 target_link_libraries(pmc_h200_pcl_config
     PUBLIC ems::pcl_public_api
+    PUBLIC ems::hal_public_api
     PRIVATE ems::osal
 )
 

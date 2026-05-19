@@ -54,6 +54,9 @@ target_include_directories(pcl PRIVATE
 # 依赖OSAL接口库（仅头文件依赖）
 target_link_libraries(pcl PUBLIC ems::osal_public_api)
 
+# 依赖HAL接口库（仅头文件依赖，用于串口常量定义）
+target_link_libraries(pcl PUBLIC ems::hal_public_api)
+
 # 链接OSAL实现库（运行时依赖）
 target_link_libraries(pcl PRIVATE ems::osal)
 
