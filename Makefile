@@ -206,4 +206,4 @@ help:
 	@echo "Available presets:"
 	@ls -1 configs/*_defconfig 2>/dev/null | sed 's|configs/||' | sed 's|^|  |' || echo "  (none)"
 
-.DEFAULT_GOAL := help
+.DEFAULT_GOAL := all
