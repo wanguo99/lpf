@@ -2,6 +2,24 @@
 # 通用编译规则库
 # ============================================================================
 
+# 详细程度控制（V=参数支持）
+ifeq ("$(origin V)", "command line")
+  KBUILD_VERBOSE = $(V)
+endif
+ifndef KBUILD_VERBOSE
+  KBUILD_VERBOSE = 0
+endif
+
+ifeq ($(KBUILD_VERBOSE),1)
+  quiet =
+  Q =
+else
+  quiet = quiet_
+  Q = @
+endif
+
+export quiet Q KBUILD_VERBOSE
+
 # 编译器设置
 CC ?= $(CROSS_COMPILE)gcc
 AR ?= $(CROSS_COMPILE)ar
@@ -11,6 +29,9 @@ LD ?= $(CROSS_COMPILE)ld
 CFLAGS := -Wall -Wextra -fPIC
 CFLAGS += -I$(srctree)/include
 CFLAGS += -I$(objtree)/include/generated
+
+# 依赖跟踪：自动生成.d文件跟踪头文件依赖
+CFLAGS += -MMD -MP
 
 # 根据构建类型设置优化级别
 ifeq ($(CONFIG_BUILD_TYPE_DEBUG),y)
@@ -48,3 +69,26 @@ endef
 define kconfig_get_value
 $(shell grep "^\#define $(1)" $(AUTOCONF_H) 2>/dev/null | awk '{print $$3}' | tr -d '"')
 endef
+
+# ============================================================================
+# 编译命令定义（静默输出支持）
+# ============================================================================
+
+# 静默编译C文件
+quiet_cmd_cc_o_c = CC      $@
+      cmd_cc_o_c = $(CC) $(CFLAGS) $(CFLAGS_MODULE) -c -o $@ $<
+
+# 静默链接共享库
+quiet_cmd_ld_so = LD      $@
+      cmd_ld_so = $(CC) -shared -o $@ $^ $(LDLIBS)
+
+# 静默创建静态库
+quiet_cmd_ar_a = AR      $@
+      cmd_ar_a = rm -f $@; $(AR) rcs $@ $^
+
+# 静默链接可执行文件
+quiet_cmd_ld_exe = LD      $@
+      cmd_ld_exe = $(CC) -o $@ $^ $(LDFLAGS) $(LDLIBS)
+
+# 执行命令的宏
+cmd = @$(if $($(quiet)cmd_$(1)),echo '  $($(quiet)cmd_$(1))' &&) $(cmd_$(1))

@@ -45,19 +45,20 @@ all: $(LIB_DIR)/$(LIB_NAME)
 # 编译规则
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
-	@echo "  CC      $@"
-	@$(CC) $(CFLAGS) $(CFLAGS_MODULE) -c $< -o $@
+	$(call cmd,cc_o_c)
 
 # 链接规则
 $(LIB_DIR)/$(LIB_NAME): $(OBJS) | $(LIB_DIR)
-	@echo "  LD      $@"
-	@$(CC) -shared -o $@ $^ $(LDLIBS)
+	$(call cmd,ld_so)
 
 # 创建输出目录
 $(LIB_DIR):
 	@mkdir -p $@
 
 # 清理
+# 包含依赖文件（自动跟踪头文件变化）
+-include $(OBJS:.o=.d)
+
 clean:
 	@rm -rf $(BUILD_DIR)
 	@rm -f $(LIB_DIR)/$(LIB_NAME)
