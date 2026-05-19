@@ -10,8 +10,8 @@ ifeq ($(origin OUTPUT), command line)
   OUTPUT_DIR := $(OUTPUT)
 endif
 
-# 默认输出到 build/
-OUTPUT_DIR ?= $(CURDIR)/build
+# 默认输出到源码目录（Linux 内核风格）
+OUTPUT_DIR ?= $(CURDIR)
 
 # 转换为绝对路径
 override OUTPUT_DIR := $(abspath $(OUTPUT_DIR))
@@ -131,8 +131,13 @@ $(CONF) $(MCONF):
 # ============================================================================
 clean:
 	@echo "Cleaning build artifacts..."
-	@rm -rf $(OUTPUT_DIR)/core $(OUTPUT_DIR)/products
-	@rm -rf $(OUTPUT_DIR)/lib $(OUTPUT_DIR)/bin
+	@if [ "$(OUTPUT_DIR)" != "$(CURDIR)" ]; then \
+		rm -rf $(OUTPUT_DIR)/core $(OUTPUT_DIR)/products; \
+		rm -rf $(OUTPUT_DIR)/lib $(OUTPUT_DIR)/bin; \
+	else \
+		find core products -type f \( -name '*.o' -o -name '*.so' -o -name '*.a' \) -delete 2>/dev/null || true; \
+		rm -rf lib bin; \
+	fi
 	@echo "Clean complete."
 
 distclean: clean

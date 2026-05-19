@@ -1,0 +1,50 @@
+# ============================================================================
+# 通用编译规则库
+# ============================================================================
+
+# 编译器设置
+CC ?= $(CROSS_COMPILE)gcc
+AR ?= $(CROSS_COMPILE)ar
+LD ?= $(CROSS_COMPILE)ld
+
+# 通用编译标志
+CFLAGS := -Wall -Wextra -fPIC
+CFLAGS += -I$(srctree)/include
+CFLAGS += -I$(objtree)/include/generated
+
+# 根据构建类型设置优化级别
+ifeq ($(CONFIG_BUILD_TYPE_DEBUG),y)
+  CFLAGS += -g -O0 -DDEBUG
+else ifeq ($(CONFIG_BUILD_TYPE_RELEASE),y)
+  CFLAGS += -O2 -DNDEBUG
+endif
+
+# 架构相关标志
+ifeq ($(CONFIG_ARCH_ARM32),y)
+  CFLAGS += -march=armv7-a -mfpu=neon -mfloat-abi=hard
+endif
+
+# 读取 Kconfig 配置
+AUTOCONF_H := $(objtree)/include/generated/autoconf.h
+ifneq ($(wildcard $(AUTOCONF_H)),)
+  # 配置文件存在，可以使用
+  KCONFIG_AVAILABLE := y
+else
+  KCONFIG_AVAILABLE := n
+endif
+
+# ============================================================================
+# 辅助函数
+# ============================================================================
+
+# 检查 Kconfig 配置是否启用
+# 用法: $(call kconfig_is_set,CONFIG_XXX)
+define kconfig_is_set
+$(shell grep -q "^\#define $(1) 1" $(AUTOCONF_H) 2>/dev/null && echo y || echo n)
+endef
+
+# 获取 Kconfig 配置值
+# 用法: $(call kconfig_get_value,CONFIG_XXX)
+define kconfig_get_value
+$(shell grep "^\#define $(1)" $(AUTOCONF_H) 2>/dev/null | awk '{print $$3}' | tr -d '"')
+endef
