@@ -106,7 +106,7 @@ static pcl_bmc_cfg_t bmc_payload_v2 = {
             .baudrate = 115200,
             .data_bits = 8,
             .stop_bits = 1,
-            .parity = 'N'
+            .parity = HAL_SERIAL_PARITY_NONE
         }
     },
 
@@ -144,7 +144,7 @@ static pcl_sensor_cfg_t sensor_gps = {
         .baudrate = 9600,         /* GPS标准波特率 */
         .data_bits = 8,
         .stop_bits = 1,
-        .parity = 'N'
+        .parity = HAL_SERIAL_PARITY_NONE
     },
 
     .sample_rate = 1,             /* 1Hz */

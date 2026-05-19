@@ -5,6 +5,7 @@
  */
 
 #include "pdl_mcu.h"
+#include "pcl_hardware_interface.h"
 #include "osal.h"
 
 /*===========================================================================
@@ -34,7 +35,7 @@ static void create_serial_config(mcu_config_t *config)
     config->serial.baudrate = 115200;
     config->serial.data_bits = 8;
     config->serial.stop_bits = 1;
-    config->serial.parity = 'N';
+    config->serial.parity = HAL_SERIAL_PARITY_NONE;
     config->cmd_timeout_ms = 5000;
     config->retry_count = 3;
     config->enable_crc = true;

@@ -24,7 +24,7 @@ static pcl_mcu_cfg_t test_mcu = {
         .baudrate = 115200,
         .data_bits = 8,
         .stop_bits = 1,
-        .parity = 'N'
+        .parity = HAL_SERIAL_PARITY_NONE
     },
     .cmd_timeout_ms = 500,
     .retry_count = 3,

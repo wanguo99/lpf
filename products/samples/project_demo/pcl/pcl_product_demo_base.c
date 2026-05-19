@@ -79,7 +79,7 @@ static pcl_mcu_cfg_t mcu_stm32 = {
         .baudrate = 115200,
         .data_bits = 8,
         .stop_bits = 1,
-        .parity = 'N'
+        .parity = HAL_SERIAL_PARITY_NONE
     },
 
     /* MCU特定配置 */
@@ -132,7 +132,7 @@ static pcl_bmc_cfg_t bmc_payload = {
             .baudrate = 115200,
             .data_bits = 8,
             .stop_bits = 1,
-            .parity = 'N'
+            .parity = HAL_SERIAL_PARITY_NONE
         }
     },
 

@@ -170,7 +170,7 @@ int32_t bmc_transport_serial_init(const char *device, uint32_t baudrate, uint32_
         .baud_rate = baudrate,
         .data_bits = 8,
         .stop_bits = 1,
-        .parity = 'N'
+        .parity = HAL_SERIAL_PARITY_NONE
     };
 
     if (OSAL_SUCCESS != HAL_Serial_Open(device, &serial_config, &ctx->serial_handle))

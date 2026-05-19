@@ -55,7 +55,7 @@ typedef struct
         uint32_t baudrate;              /* 波特率 */
         uint8_t data_bits;              /* 数据位（5-8） */
         uint8_t stop_bits;              /* 停止位（1-2） */
-        int8_t parity;                /* 校验位（'N'/'E'/'O'） */
+        uint8_t parity;                /* 校验位（0=无/1=奇/2=偶） */
     } serial;
 
     /* 通用配置 */

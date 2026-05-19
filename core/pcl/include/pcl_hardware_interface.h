@@ -15,6 +15,7 @@
 #define PCL_HARDWARE_INTERFACE_H
 
 #include "osal_types.h"
+#include "hal_serial.h"  /* 串口校验位常量定义 */
 
 /*===========================================================================
  * 硬件接口类型枚举
@@ -58,7 +59,7 @@ typedef struct {
     uint32_t       baudrate;        /* 波特率 */
     uint8_t        data_bits;       /* 数据位（5-8） */
     uint8_t        stop_bits;       /* 停止位（1-2） */
-    int8_t         parity;          /* 校验位（'N'/'E'/'O'） */
+    uint8_t        parity;          /* 校验位（HAL_SERIAL_PARITY_NONE/ODD/EVEN） */
 } pcl_uart_cfg_t;
 
 /**
