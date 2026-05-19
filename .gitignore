@@ -63,3 +63,21 @@ build/
 target/
 
 *.DS_Store
+
+# Kconfig generated files
+.config
+.config.old
+include/config/
+include/generated/
+
+# Kconfig tools (built binaries)
+scripts/kconfig/conf
+scripts/kconfig/mconf
+scripts/kconfig/nconf
+scripts/kconfig/*.o
+scripts/kconfig/lxdialog/*.o
+scripts/kconfig/parser.tab.c
+scripts/kconfig/parser.tab.h
+scripts/kconfig/lexer.lex.c
+scripts/kconfig/.*.cmd
+scripts/kconfig/*.cmd
