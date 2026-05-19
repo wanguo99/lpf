@@ -63,34 +63,52 @@ products: core
 menuconfig: $(MCONF)
 	@mkdir -p $(CONFIG_DIR) $(GENERATED_DIR)
 	@echo "Starting menuconfig..."
-	@KCONFIG_CONFIG=$(KCONFIG_CONFIG) $< Kconfig
+	@KCONFIG_CONFIG=$(KCONFIG_CONFIG) \
+		KCONFIG_AUTOHEADER=$(AUTOCONF_H) \
+		KCONFIG_AUTOCONFIG=$(CONFIG_DIR)/auto.conf \
+		$< Kconfig
 	@$(MAKE) syncconfig
 
 config: $(CONF)
 	@mkdir -p $(CONFIG_DIR) $(GENERATED_DIR)
-	@KCONFIG_CONFIG=$(KCONFIG_CONFIG) $< --oldaskconfig Kconfig
+	@KCONFIG_CONFIG=$(KCONFIG_CONFIG) \
+		KCONFIG_AUTOHEADER=$(AUTOCONF_H) \
+		KCONFIG_AUTOCONFIG=$(CONFIG_DIR)/auto.conf \
+		$< --oldaskconfig Kconfig
 	@$(MAKE) syncconfig
 
 defconfig: $(CONF)
 	@mkdir -p $(CONFIG_DIR) $(GENERATED_DIR)
 	@echo "Loading default configuration..."
-	@KCONFIG_CONFIG=$(KCONFIG_CONFIG) $< --defconfig=defconfig Kconfig
+	@KCONFIG_CONFIG=$(KCONFIG_CONFIG) \
+		KCONFIG_AUTOHEADER=$(AUTOCONF_H) \
+		KCONFIG_AUTOCONFIG=$(CONFIG_DIR)/auto.conf \
+		$< --defconfig=defconfig Kconfig
 	@$(MAKE) syncconfig
 
 %_defconfig: configs/%_defconfig $(CONF)
 	@mkdir -p $(CONFIG_DIR) $(GENERATED_DIR)
 	@echo "Loading configuration: $*"
-	@KCONFIG_CONFIG=$(KCONFIG_CONFIG) $(CONF) --defconfig=$< Kconfig
+	@KCONFIG_CONFIG=$(KCONFIG_CONFIG) \
+		KCONFIG_AUTOHEADER=$(AUTOCONF_H) \
+		KCONFIG_AUTOCONFIG=$(CONFIG_DIR)/auto.conf \
+		$(CONF) --defconfig=$< Kconfig
 	@$(MAKE) syncconfig
 
 savedefconfig: $(CONF)
 	@echo "Saving minimal configuration to defconfig..."
-	@KCONFIG_CONFIG=$(KCONFIG_CONFIG) $< --savedefconfig=defconfig Kconfig
+	@KCONFIG_CONFIG=$(KCONFIG_CONFIG) \
+		KCONFIG_AUTOHEADER=$(AUTOCONF_H) \
+		KCONFIG_AUTOCONFIG=$(CONFIG_DIR)/auto.conf \
+		$< --savedefconfig=defconfig Kconfig
 	@echo "Configuration saved."
 
 oldconfig: $(CONF)
 	@mkdir -p $(CONFIG_DIR) $(GENERATED_DIR)
-	@KCONFIG_CONFIG=$(KCONFIG_CONFIG) $< --oldconfig Kconfig
+	@KCONFIG_CONFIG=$(KCONFIG_CONFIG) \
+		KCONFIG_AUTOHEADER=$(AUTOCONF_H) \
+		KCONFIG_AUTOCONFIG=$(CONFIG_DIR)/auto.conf \
+		$< --oldconfig Kconfig
 	@$(MAKE) syncconfig
 
 syncconfig: $(CONF)

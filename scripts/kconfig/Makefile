@@ -30,6 +30,13 @@ mconf-objs := mconf.o mnconf-common.o confdata.o expr.o lexer.lex.o menu.o parse
 mconf: $(mconf-objs)
 	$(HOSTCC) -o $@ $^ $(NCURSES_LIBS)
 
+# Parser generation (must be done first)
+parser.tab.c parser.tab.h: parser.y
+	bison -d -o parser.tab.c -t -l $<
+
+lexer.lex.c: lexer.l parser.tab.h
+	flex -o $@ -L $<
+
 # Compilation rules
 %.o: %.c
 	$(HOSTCC) $(HOSTCFLAGS) -c -o $@ $<
@@ -37,12 +44,8 @@ mconf: $(mconf-objs)
 lxdialog/%.o: lxdialog/%.c
 	$(HOSTCC) $(HOSTCFLAGS) $(NCURSES_CFLAGS) -c -o $@ $<
 
-# Parser generation (if flex/bison available and sources need regeneration)
-parser.tab.c parser.tab.h: parser.y
-	bison -o parser.tab.c -t -l $<
-
-lexer.lex.c: lexer.l
-	flex -o $@ -L $<
+# lexer.lex.o depends on parser.tab.h
+lexer.lex.o: lexer.lex.c parser.tab.h
 
 # Clean
 clean:
