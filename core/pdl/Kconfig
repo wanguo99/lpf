@@ -17,3 +17,10 @@ config PDL_MCU_SUPPORT
 	default y
 	help
 	  Enable MCU peripheral support.
+
+config PDL_WATCHDOG_SUPPORT
+	bool "Watchdog peripheral support"
+	default y
+	depends on HAL_WATCHDOG
+	help
+	  Enable watchdog peripheral support.

@@ -20,27 +20,70 @@ target_include_directories(pdl_public_api INTERFACE
 # 2. 实现库 (pdl) - 包含外设驱动实现
 # ============================================================================
 
-# PDL 源文件（所有平台通用）
-set(PDL_SOURCES
-    # MCU外设驱动（独立封装）
-    ${PDL_SRC_DIR}/pdl_mcu/pdl_mcu.c
-    ${PDL_SRC_DIR}/pdl_mcu/pdl_mcu_can.c
-    ${PDL_SRC_DIR}/pdl_mcu/pdl_mcu_serial.c
-    ${PDL_SRC_DIR}/pdl_mcu/pdl_mcu_protocol.c
+# PDL 源文件（根据 Kconfig 条件编译）
+set(PDL_SOURCES "")
+set(KCONFIG_HEADER "${CMAKE_SOURCE_DIR}/include/generated/autoconf.h")
 
-    # 卫星平台服务（独立封装）
-    ${PDL_SRC_DIR}/pdl_satellite/pdl_satellite.c
-    ${PDL_SRC_DIR}/pdl_satellite/pdl_satellite_can.c
+if(EXISTS ${KCONFIG_HEADER})
+    # 使用 Kconfig 条件编译
+    kconfig_is_set(CONFIG_PDL_MCU_SUPPORT PDL_MCU)
+    kconfig_is_set(CONFIG_PDL_SATELLITE_SUPPORT PDL_SATELLITE)
+    kconfig_is_set(CONFIG_PDL_BMC_SUPPORT PDL_BMC)
+    kconfig_is_set(CONFIG_PDL_WATCHDOG_SUPPORT PDL_WATCHDOG)
 
-    # BMC服务（独立封装）
-    ${PDL_SRC_DIR}/pdl_bmc/pdl_bmc.c
-    ${PDL_SRC_DIR}/pdl_bmc/pdl_bmc_transport.c
-    ${PDL_SRC_DIR}/pdl_bmc/pdl_bmc_ipmi.c
-    ${PDL_SRC_DIR}/pdl_bmc/pdl_bmc_redfish.c
+    if(PDL_MCU)
+        list(APPEND PDL_SOURCES
+            ${PDL_SRC_DIR}/pdl_mcu/pdl_mcu.c
+            ${PDL_SRC_DIR}/pdl_mcu/pdl_mcu_can.c
+            ${PDL_SRC_DIR}/pdl_mcu/pdl_mcu_serial.c
+            ${PDL_SRC_DIR}/pdl_mcu/pdl_mcu_protocol.c
+        )
+        message(STATUS "PDL: MCU driver enabled")
+    endif()
 
-    # Watchdog服务
-    ${PDL_SRC_DIR}/pdl_watchdog.c
-)
+    if(PDL_SATELLITE)
+        list(APPEND PDL_SOURCES
+            ${PDL_SRC_DIR}/pdl_satellite/pdl_satellite.c
+            ${PDL_SRC_DIR}/pdl_satellite/pdl_satellite_can.c
+        )
+        message(STATUS "PDL: Satellite driver enabled")
+    endif()
+
+    if(PDL_BMC)
+        list(APPEND PDL_SOURCES
+            ${PDL_SRC_DIR}/pdl_bmc/pdl_bmc.c
+            ${PDL_SRC_DIR}/pdl_bmc/pdl_bmc_transport.c
+            ${PDL_SRC_DIR}/pdl_bmc/pdl_bmc_ipmi.c
+            ${PDL_SRC_DIR}/pdl_bmc/pdl_bmc_redfish.c
+        )
+        message(STATUS "PDL: BMC driver enabled")
+    endif()
+
+    if(PDL_WATCHDOG)
+        list(APPEND PDL_SOURCES ${PDL_SRC_DIR}/pdl_watchdog.c)
+        message(STATUS "PDL: Watchdog driver enabled")
+    endif()
+
+    if(NOT PDL_SOURCES)
+        message(FATAL_ERROR "PDL: No drivers enabled. Check Kconfig settings.")
+    endif()
+else()
+    # 回退：构建所有驱动
+    message(WARNING "PDL: Kconfig not found, building all drivers")
+    set(PDL_SOURCES
+        ${PDL_SRC_DIR}/pdl_mcu/pdl_mcu.c
+        ${PDL_SRC_DIR}/pdl_mcu/pdl_mcu_can.c
+        ${PDL_SRC_DIR}/pdl_mcu/pdl_mcu_serial.c
+        ${PDL_SRC_DIR}/pdl_mcu/pdl_mcu_protocol.c
+        ${PDL_SRC_DIR}/pdl_satellite/pdl_satellite.c
+        ${PDL_SRC_DIR}/pdl_satellite/pdl_satellite_can.c
+        ${PDL_SRC_DIR}/pdl_bmc/pdl_bmc.c
+        ${PDL_SRC_DIR}/pdl_bmc/pdl_bmc_transport.c
+        ${PDL_SRC_DIR}/pdl_bmc/pdl_bmc_ipmi.c
+        ${PDL_SRC_DIR}/pdl_bmc/pdl_bmc_redfish.c
+        ${PDL_SRC_DIR}/pdl_watchdog.c
+    )
+endif()
 
 # 创建PDL库（类型由BUILD_SHARED_LIBS控制）
 add_library(pdl ${PDL_SOURCES})
@@ -99,4 +142,5 @@ install(EXPORT pdl-targets
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pdl
 )
 
-message(STATUS "PDL configured (MCU + Satellite + BMC + Watchdog drivers)")
+list(LENGTH PDL_SOURCES source_count)
+message(STATUS "PDL configured (${source_count} source files)")

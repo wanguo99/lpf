@@ -43,35 +43,52 @@ target_link_libraries(pmc_h200_acl_config
 )
 
 # ============================================================================
-# 应用程序构建选项
+# 应用程序构建选项（从 Kconfig 读取）
 # ============================================================================
-option(BUILD_PMC_SUPERVISOR "Build PMC supervisor application" ON)
-option(BUILD_PMC_COLLECTOR "Build PMC collector application" ON)
-option(BUILD_PMC_COMM "Build PMC communication application" ON)
-option(BUILD_PMC_HEALTH "Build PMC health monitor application" ON)
-option(BUILD_PMC_LOGGER "Build PMC logger application" ON)
+set(KCONFIG_HEADER "${CMAKE_SOURCE_DIR}/include/generated/autoconf.h")
+
+if(EXISTS ${KCONFIG_HEADER})
+    # 从 Kconfig 读取应用构建选项
+    kconfig_is_set(CONFIG_BUILD_PMC_SUPERVISOR BUILD_PMC_SUPERVISOR)
+    kconfig_is_set(CONFIG_BUILD_PMC_COLLECTOR BUILD_PMC_COLLECTOR)
+    kconfig_is_set(CONFIG_BUILD_PMC_COMM BUILD_PMC_COMM)
+    kconfig_is_set(CONFIG_BUILD_PMC_HEALTH BUILD_PMC_HEALTH)
+    kconfig_is_set(CONFIG_BUILD_PMC_LOGGER BUILD_PMC_LOGGER)
+else()
+    # 回退：使用 CMake option
+    option(BUILD_PMC_SUPERVISOR "Build PMC supervisor application" ON)
+    option(BUILD_PMC_COLLECTOR "Build PMC collector application" ON)
+    option(BUILD_PMC_COMM "Build PMC communication application" ON)
+    option(BUILD_PMC_HEALTH "Build PMC health monitor application" ON)
+    option(BUILD_PMC_LOGGER "Build PMC logger application" ON)
+endif()
 
 # ============================================================================
 # 应用程序（位于产品线级别的 apps/ 目录）
 # ============================================================================
 if(BUILD_PMC_SUPERVISOR)
     add_subdirectory(../apps/pmc_supervisor ${CMAKE_CURRENT_BINARY_DIR}/apps/pmc_supervisor)
+    message(STATUS "PMC: Building supervisor application")
 endif()
 
 if(BUILD_PMC_COLLECTOR)
     add_subdirectory(../apps/pmc_collector ${CMAKE_CURRENT_BINARY_DIR}/apps/pmc_collector)
+    message(STATUS "PMC: Building collector application")
 endif()
 
 if(BUILD_PMC_COMM)
     add_subdirectory(../apps/pmc_comm ${CMAKE_CURRENT_BINARY_DIR}/apps/pmc_comm)
+    message(STATUS "PMC: Building comm application")
 endif()
 
 if(BUILD_PMC_HEALTH)
     add_subdirectory(../apps/pmc_health ${CMAKE_CURRENT_BINARY_DIR}/apps/pmc_health)
+    message(STATUS "PMC: Building health application")
 endif()
 
 if(BUILD_PMC_LOGGER)
     add_subdirectory(../apps/pmc_logger ${CMAKE_CURRENT_BINARY_DIR}/apps/pmc_logger)
+    message(STATUS "PMC: Building logger application")
 endif()
 
 # ============================================================================

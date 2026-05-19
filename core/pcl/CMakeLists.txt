@@ -27,13 +27,10 @@ set(PCL_SOURCES
     ${PCL_SRC_DIR}/pcl_register.c
 )
 
-# 平台配置源文件（递归查找所有平台配置）
-file(GLOB_RECURSE PLATFORM_CONFIGS
-    ${PCL_PLATFORM_DIR}/ti/am6254/*/*.c
-    ${PCL_PLATFORM_DIR}/vendor_demo/*/*/*/*.c
-    # 其他平台配置可以在这里添加
-    # ${PCL_PLATFORM_DIR}/xilinx/zynq/*/*.c
-)
+# 平台配置源文件
+# 注意：PCL 核心库不包含平台配置数据
+# 平台配置由产品层提供（如 products/pmc/h200_am625/pcl/）
+set(PLATFORM_CONFIGS "")
 
 # 创建PCL库（类型由BUILD_SHARED_LIBS控制）
 add_library(pcl
@@ -112,5 +109,4 @@ if(BUILD_PCL_EXAMPLES)
     )
 endif()
 
-list(LENGTH PLATFORM_CONFIGS config_count)
-message(STATUS "PCL configured (${config_count} platform configs)")
+message(STATUS "PCL configured (core API only, platform configs provided by product layer)")
