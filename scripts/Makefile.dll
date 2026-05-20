@@ -1,0 +1,221 @@
+# ============================================================================
+# Windows DLL 构建框架 (Makefile.dll)
+# ============================================================================
+# 用于构建 Windows 动态链接库 (.dll)
+#
+# 使用方法：
+# 1. 在模块 Makefile 中定义以下变量：
+#    - DLL_NAME: DLL 名称（不含后缀，如 osal）
+#    - SRCS: 源文件列表（相对于 SRC_DIR）
+#    - EXPORT_HEADERS: 需要导出的头文件列表
+#    - CFLAGS_DLL: DLL 特定的编译标志
+#    - LDLIBS: 链接库
+#    - DEF_FILE: 可选的 .def 文件（导出符号定义）
+#
+# 2. 包含此文件：include $(srctree)/scripts/Makefile.dll
+#
+# 示例：
+#   DLL_NAME := osal
+#   SRCS := lib/osal_errno.c ipc/osal_mutex.c
+#   EXPORT_HEADERS := osal.h osal_types.h
+#   DEF_FILE := osal.def
+#   include $(srctree)/scripts/Makefile.dll
+#
+# 注意：
+# - 需要 MinGW-w64 交叉编译工具链
+# - 设置 CROSS_COMPILE=x86_64-w64-mingw32-
+# ============================================================================
+
+ifndef DLL_NAME
+$(error DLL_NAME is not defined. Please define it before including Makefile.dll)
+endif
+
+# 包含通用规则库
+include $(srctree)/scripts/Makefile.rules
+
+# ============================================================================
+# Windows 交叉编译设置
+# ============================================================================
+
+# 检查是否设置了 Windows 交叉编译工具链
+ifeq ($(CROSS_COMPILE),)
+  $(warning CROSS_COMPILE is not set. For Windows DLL, use: CROSS_COMPILE=x86_64-w64-mingw32-)
+  $(warning Attempting to use default MinGW-w64 toolchain...)
+  CROSS_COMPILE := x86_64-w64-mingw32-
+endif
+
+# 重新定义编译器（使用 MinGW）
+CC := $(CROSS_COMPILE)gcc
+CXX := $(CROSS_COMPILE)g++
+AR := $(CROSS_COMPILE)ar
+DLLTOOL := $(CROSS_COMPILE)dlltool
+WINDRES := $(CROSS_COMPILE)windres
+
+# ============================================================================
+# 默认值和路径设置
+# ============================================================================
+
+# 源文件目录（默认为当前模块的 src/）
+SRC_DIR ?= $(srctree)/core/$(DLL_NAME)/src
+
+# 头文件目录（默认为当前模块的 include/）
+INC_DIR ?= $(srctree)/core/$(DLL_NAME)/include
+
+# 构建输出目录
+BUILD_DIR ?= $(objtree)/core/$(DLL_NAME)
+
+# DLL 输出目录
+DLL_DIR := $(objtree)/bin
+
+# 导入库输出目录
+LIB_DIR := $(objtree)/lib
+
+# 顶层 include 目录（用于导出头文件）
+EXPORT_INC_DIR := $(srctree)/include/$(DLL_NAME)
+
+# ============================================================================
+# 目标文件名生成
+# ============================================================================
+
+TARGET_DLL := $(DLL_DIR)/$(DLL_NAME).dll
+TARGET_LIB := $(LIB_DIR)/lib$(DLL_NAME).dll.a  # 导入库（.a 格式）
+TARGET_DEF := $(BUILD_DIR)/$(DLL_NAME).def     # 自动生成的 .def 文件
+
+TARGETS := $(TARGET_DLL) $(TARGET_LIB)
+
+# ============================================================================
+# 源文件和目标文件处理
+# ============================================================================
+
+# 支持条件编译：SRCS-$(CONFIG_XXX) += file.c
+SRCS_ALL := $(SRCS)
+SRCS_ALL += $(foreach cfg,$(filter CONFIG_%,$(.VARIABLES)),$(SRCS-$(cfg)))
+
+# 将源文件转换为目标文件路径
+OBJS := $(patsubst %.c,$(BUILD_DIR)/%.o,$(SRCS_ALL))
+
+# 资源文件支持（.rc）
+RC_SRCS := $(filter %.rc,$(SRCS_ALL))
+RC_OBJS := $(patsubst %.rc,$(BUILD_DIR)/%.res.o,$(RC_SRCS))
+
+# ============================================================================
+# 编译标志
+# ============================================================================
+
+# 添加模块头文件路径
+CFLAGS_DLL += -I$(INC_DIR)
+
+# 添加顶层 include 路径（用于跨模块引用）
+CFLAGS_DLL += -I$(srctree)/include
+
+# Windows DLL 特定标志
+CFLAGS_DLL += -D_WIN32 -DWIN32 -D_WINDOWS
+CFLAGS_DLL += -D__USE_MINGW_ANSI_STDIO=1  # 支持 C99 printf
+
+# 导出符号（如果没有 .def 文件）
+ifndef DEF_FILE
+  CFLAGS_DLL += -DDLL_EXPORT
+endif
+
+# 链接标志
+LDFLAGS += -Wl,--enable-auto-import
+LDFLAGS += -Wl,--enable-runtime-pseudo-reloc
+
+# 如果提供了 .def 文件，使用它
+ifdef DEF_FILE
+  LDFLAGS += -Wl,--def,$(DEF_FILE)
+endif
+
+# Windows 系统库
+LDLIBS += -lws2_32 -lwinmm -lkernel32
+
+# ============================================================================
+# 构建目标
+# ============================================================================
+
+.PHONY: all clean headers_install
+
+all: $(TARGETS)
+
+# 链接 DLL 和生成导入库
+$(TARGET_DLL) $(TARGET_LIB): $(OBJS) $(RC_OBJS) | $(DLL_DIR) $(LIB_DIR)
+	@echo "  LD [DLL] $(TARGET_DLL)"
+	$(Q)$(CC) -shared -o $(TARGET_DLL) $(OBJS) $(RC_OBJS) \
+		$(LDFLAGS) $(LDLIBS) \
+		-Wl,--out-implib,$(TARGET_LIB)
+
+# 编译规则 - C 文件
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(call cmd,cc_o_c_shared)
+
+# 编译规则 - 资源文件
+$(BUILD_DIR)/%.res.o: $(SRC_DIR)/%.rc
+	@mkdir -p $(dir $@)
+	@echo "  WINDRES $@"
+	$(Q)$(WINDRES) -i $< -o $@
+
+# 创建输出目录
+$(DLL_DIR) $(LIB_DIR):
+	@mkdir -p $@
+
+# ============================================================================
+# 头文件导出
+# ============================================================================
+
+headers_install:
+ifdef EXPORT_HEADERS
+	@echo "  INSTALL $(DLL_NAME) headers"
+	@mkdir -p $(EXPORT_INC_DIR)
+	@for header in $(EXPORT_HEADERS); do \
+		src="$(INC_DIR)/$$header"; \
+		dst="$(EXPORT_INC_DIR)/$$header"; \
+		mkdir -p $$(dirname $$dst); \
+		cp -f $$src $$dst; \
+	done
+else
+	@echo "  SKIP    $(DLL_NAME) (no headers to export)"
+endif
+
+# ============================================================================
+# 安装
+# ============================================================================
+
+install:
+	@echo "  INSTALL $(DLL_NAME).dll"
+	@mkdir -p $(INSTALL_BIN_PATH)
+	@mkdir -p $(INSTALL_LIB_PATH)
+	@cp -f $(TARGET_DLL) $(INSTALL_BIN_PATH)/
+	@cp -f $(TARGET_LIB) $(INSTALL_LIB_PATH)/
+
+# ============================================================================
+# 清理
+# ============================================================================
+
+clean:
+	@echo "  CLEAN   $(DLL_NAME)"
+	@rm -rf $(BUILD_DIR)
+	@rm -f $(TARGETS)
+
+# ============================================================================
+# 依赖跟踪
+# ============================================================================
+
+# 包含自动生成的依赖文件（.d 文件）
+-include $(OBJS:.o=.d)
+
+# ============================================================================
+# 辅助信息
+# ============================================================================
+
+.PHONY: info
+
+info:
+	@echo "DLL Build Information:"
+	@echo "  DLL Name:     $(DLL_NAME)"
+	@echo "  Target DLL:   $(TARGET_DLL)"
+	@echo "  Import Lib:   $(TARGET_LIB)"
+	@echo "  Cross Compile: $(CROSS_COMPILE)"
+	@echo "  CC:           $(CC)"
+	@echo "  Sources:      $(SRCS_ALL)"
+	@echo "  Objects:      $(OBJS)"
