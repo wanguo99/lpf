@@ -33,8 +33,16 @@ include $(srctree)/scripts/Makefile.rules
 # 默认值和路径设置
 # ============================================================================
 
-# 库类型默认为共享库
-LIB_TYPE ?= shared
+# 从 Kconfig 读取库类型配置
+# CONFIG_BUILD_SHARED_LIBS: 是否构建共享库
+# 如果未定义 LIB_TYPE，则根据 Kconfig 配置自动设置
+ifndef LIB_TYPE
+  ifeq ($(CONFIG_BUILD_SHARED_LIBS),y)
+    LIB_TYPE := shared
+  else
+    LIB_TYPE := static
+  endif
+endif
 
 # 源文件目录（默认为当前模块的 src/）
 SRC_DIR ?= $(srctree)/core/$(LIB_NAME)/src

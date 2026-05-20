@@ -2,11 +2,6 @@
 # CCM 库层构建
 # ============================================================================
 
-# 必须在包含 Makefile.lib 之前定义
-GENERATED_DIR ?= $(objtree)/include/generated
-
-include $(srctree)/scripts/Makefile.lib
-
 # 库列表
 LIBS := libccm
 

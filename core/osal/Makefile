@@ -1,13 +1,22 @@
 # ============================================================================
-# OSAL 模块构建 - 使用通用构建框架
+# OSAL 模块构建 - 使用通用库构建框架
 # ============================================================================
 
-# 模块配置
-MODULE_NAME := osal
-MODULE_TYPE := shared_lib
+# 库配置
+LIB_NAME := osal
+
+# 库类型从 Kconfig 读取
+ifdef CONFIG_OSAL_LIB_TYPE_SHARED
+  LIB_TYPE := shared
+else ifdef CONFIG_OSAL_LIB_TYPE_STATIC
+  LIB_TYPE := static
+else ifdef CONFIG_OSAL_LIB_TYPE_BOTH
+  LIB_TYPE := both
+endif
+# 如果未设置，使用全局默认值（在 Makefile.lib 中处理）
 
 # 源文件目录（POSIX 实现）
-SRC_DIR := $(srctree)/core/$(MODULE_NAME)/src/posix
+SRC_DIR := $(srctree)/core/$(LIB_NAME)/src/posix
 
 # 源文件列表（相对于 SRC_DIR）
 SRCS := \
@@ -68,5 +77,5 @@ ifeq ($(shell uname -s),Linux)
   LDLIBS += -lrt
 endif
 
-# 包含通用构建框架
-include $(srctree)/scripts/Makefile.build
+# 包含通用库构建框架
+include $(srctree)/scripts/Makefile.lib

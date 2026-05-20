@@ -1,58 +1,44 @@
 # ============================================================================
-# libccm 构建
+# libccm 库构建 - 使用通用库构建框架
 # ============================================================================
 
-# 必须在包含 Makefile.lib 之前定义
-GENERATED_DIR ?= $(objtree)/include/generated
+# 库配置
+LIB_NAME := ccm
 
-include $(srctree)/scripts/Makefile.lib
-
-# 库名称
-LIB_NAME := libccm.a
-
-# 输出目录
-BUILD_DIR ?= $(objtree)/products/ccm/libs/libccm
-LIB_DIR := $(objtree)/lib
+# 库类型从 Kconfig 读取
+ifdef CONFIG_CCM_LIB_TYPE_SHARED
+  LIB_TYPE := shared
+else ifdef CONFIG_CCM_LIB_TYPE_STATIC
+  LIB_TYPE := static
+else ifdef CONFIG_CCM_LIB_TYPE_BOTH
+  LIB_TYPE := both
+endif
+# 如果未设置，使用全局默认值（在 Makefile.lib 中处理）
 
 # 源文件目录
 SRC_DIR := $(srctree)/products/ccm/libs/libccm/src
-INC_DIR := $(srctree)/products/ccm/libs/libccm/include
 
 # 源文件列表
 SRCS := \
 	libccm_ipc.c \
 	libccm_protocol.c
 
-# 目标文件
-OBJS := $(patsubst %.c,$(BUILD_DIR)/%.o,$(SRCS))
+# 导出的头文件
+EXPORT_HEADERS := \
+	libccm.h \
+	libccm_types.h
+
+# 头文件目录
+INC_DIR := $(srctree)/products/ccm/libs/libccm/include
 
 # 编译标志
-CFLAGS_MODULE := -I$(INC_DIR)
-CFLAGS_MODULE += -I$(srctree)/core/osal/include
-CFLAGS_MODULE += -I$(srctree)/core/hal/include
+CFLAGS_LIB := -I$(INC_DIR)
+CFLAGS_LIB += -I$(srctree)/core/osal/include
+CFLAGS_LIB += -I$(srctree)/core/hal/include
+CFLAGS_LIB += -I$(srctree)/include
 
-# 默认目标
-.PHONY: all clean
+# 链接库
+LDLIBS := -losal
 
-all: $(LIB_DIR)/$(LIB_NAME)
-	@echo "libccm built successfully"
-
-# 编译规则
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
-	@mkdir -p $(dir $@)
-	@echo "  CC      $@"
-	@$(CC) $(CFLAGS) $(CFLAGS_MODULE) -c $< -o $@
-
-# 静态库链接规则
-$(LIB_DIR)/$(LIB_NAME): $(OBJS) | $(LIB_DIR)
-	@echo "  AR      $@"
-	@$(AR) rcs $@ $^
-
-# 创建输出目录
-$(LIB_DIR):
-	@mkdir -p $@
-
-# 清理
-clean:
-	@rm -rf $(BUILD_DIR)
-	@rm -f $(LIB_DIR)/$(LIB_NAME)
+# 包含通用库构建框架
+include $(srctree)/scripts/Makefile.lib

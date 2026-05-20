@@ -1,79 +1,43 @@
 # ============================================================================
-# H200_AM625 产品配置构建
+# H200 AM625 产品配置构建 - 使用通用库构建框架
 # ============================================================================
 
-# 必须在包含 Makefile.lib 之前定义
-GENERATED_DIR ?= $(objtree)/include/generated
+# 库配置
+LIB_NAME := h200_am625
 
-include $(srctree)/scripts/Makefile.lib
-
-# 模块名称
-MODULE := h200_am625
-LIB_NAME := libh200_am625.a
-
-# 输出目录
-BUILD_DIR ?= $(objtree)/products/ccm/$(MODULE)
-LIB_DIR := $(objtree)/lib
+# 库类型：静态库
+LIB_TYPE := static
 
 # 源文件目录
-PCL_SRC_DIR := $(srctree)/products/ccm/$(MODULE)/pcl
-ACL_SRC_DIR := $(srctree)/products/ccm/$(MODULE)/acl
+SRC_DIR := $(srctree)/products/ccm/h200_am625
 
 # PCL 源文件
-PCL_SRCS := \
-	pcl_h200_100p_base.c \
-	pcl_h200_100p_v1.c \
-	pcl_h200_100p_v2.c
+SRCS := \
+	pcl/pcl_h200_100p_base.c \
+	pcl/pcl_h200_100p_v1.c \
+	pcl/pcl_h200_100p_v2.c \
+	acl/ccm_acl_config.c
 
-# ACL 源文件（仅包含 CMake 实际编译的文件）
-ACL_SRCS := \
-	ccm_acl_config.c
+# 导出的头文件
+EXPORT_HEADERS := \
+	h200_am625_config.h
 
-# 所有源文件
-SRCS := $(PCL_SRCS) $(ACL_SRCS)
-
-# 目标文件
-PCL_OBJS := $(patsubst %.c,$(BUILD_DIR)/pcl/%.o,$(PCL_SRCS))
-ACL_OBJS := $(patsubst %.c,$(BUILD_DIR)/acl/%.o,$(ACL_SRCS))
-OBJS := $(PCL_OBJS) $(ACL_OBJS)
+# 头文件目录
+INC_DIR := $(srctree)/products/ccm/h200_am625
 
 # 编译标志
-CFLAGS_MODULE := -I$(srctree)/core/osal/include
-CFLAGS_MODULE += -I$(srctree)/core/hal/include
-CFLAGS_MODULE += -I$(srctree)/core/pcl/include
-CFLAGS_MODULE += -I$(srctree)/core/pcl/include/api
-CFLAGS_MODULE += -I$(srctree)/core/pdl/include
-CFLAGS_MODULE += -I$(srctree)/core/acl/include
-CFLAGS_MODULE += -I$(srctree)/products/ccm/$(MODULE)/acl
+CFLAGS_LIB := -I$(INC_DIR)
+CFLAGS_LIB += -I$(INC_DIR)/acl
+CFLAGS_LIB += -I$(srctree)/core/osal/include
+CFLAGS_LIB += -I$(srctree)/core/hal/include
+CFLAGS_LIB += -I$(srctree)/core/pcl/include
+CFLAGS_LIB += -I$(srctree)/core/pcl/include/api
+CFLAGS_LIB += -I$(srctree)/core/pdl/include
+CFLAGS_LIB += -I$(srctree)/core/acl/include
+CFLAGS_LIB += -I$(srctree)/include
 
-# 默认目标
-.PHONY: all clean
+# 链接库
+LDLIBS := -lacl -lpdl -lpcl -lhal -losal
 
-all: $(LIB_DIR)/$(LIB_NAME)
-	@echo "H200_AM625 product config built successfully"
-
-# PCL 编译规则
-$(BUILD_DIR)/pcl/%.o: $(PCL_SRC_DIR)/%.c
-	@mkdir -p $(dir $@)
-	@echo "  CC      $@"
-	@$(CC) $(CFLAGS) $(CFLAGS_MODULE) -c $< -o $@
-
-# ACL 编译规则
-$(BUILD_DIR)/acl/%.o: $(ACL_SRC_DIR)/%.c
-	@mkdir -p $(dir $@)
-	@echo "  CC      $@"
-	@$(CC) $(CFLAGS) $(CFLAGS_MODULE) -c $< -o $@
-
-# 静态库链接规则
-$(LIB_DIR)/$(LIB_NAME): $(OBJS) | $(LIB_DIR)
-	@echo "  AR      $@"
-	@$(AR) rcs $@ $^
-
-# 创建输出目录
-$(LIB_DIR):
-	@mkdir -p $@
-
-# 清理
-clean:
-	@rm -rf $(BUILD_DIR)
-	@rm -f $(LIB_DIR)/$(LIB_NAME)
+# 包含通用库构建框架
+include $(srctree)/scripts/Makefile.lib

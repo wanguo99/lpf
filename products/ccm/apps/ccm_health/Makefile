@@ -5,7 +5,10 @@
 # 必须在包含 Makefile.lib 之前定义
 GENERATED_DIR ?= $(objtree)/include/generated
 
-include $(srctree)/scripts/Makefile.lib
+# 应用配置
+APP_NAME := ccm_health
+
+include $(srctree)/scripts/Makefile.app
 
 # 应用名称
 APP_NAME := ccm_health
