@@ -61,6 +61,8 @@ dkms.conf
 output/
 build/
 target/
+/bin/
+/lib/
 
 *.DS_Store
 
@@ -81,3 +83,28 @@ scripts/kconfig/parser.tab.h
 scripts/kconfig/lexer.lex.c
 scripts/kconfig/.*.cmd
 scripts/kconfig/*.cmd
+
+# 编辑器备份文件
+*~
+*.swp
+*.swo
+.*.swp
+*.orig
+*.rej
+*.bak
+\#*\#
+*%
+
+# Tags文件
+tags
+TAGS
+cscope*
+GPATH
+GRTAGS
+GSYMS
+GTAGS
+
+# IDE文件
+.vscode/
+.idea/
+*.code-workspace
