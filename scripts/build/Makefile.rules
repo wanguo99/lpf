@@ -135,6 +135,10 @@ quiet_cmd_cc_o_c_static = CC      $@
 quiet_cmd_cc_o_c_app = CC      $@
       cmd_cc_o_c_app = $(CC) $(CFLAGS) $(CFLAGS_APP) -c -o $@ $<
 
+# 静默编译C文件（通用，带依赖跟踪）
+quiet_cmd_cc_o_c = CC      $@
+      cmd_cc_o_c = $(CC) $(CFLAGS) $(CFLAGS_EXTRA) -MMD -MP -c -o $@ $<
+
 # 静默编译C++文件（共享库 PIC）
 quiet_cmd_cxx_o_cpp_shared = CXX [PIC] $@
       cmd_cxx_o_cpp_shared = $(CXX) $(CXXFLAGS) $(CXXFLAGS_SHARED) -c -o $@ $<
@@ -169,6 +173,50 @@ quiet_cmd_ld_dll = LD [DLL] $@
 
 # 执行命令的宏
 cmd = @$(if $($(quiet)cmd_$(1)),echo '  $($(quiet)cmd_$(1))' &&) $(cmd_$(1))
+
+# ============================================================================
+# if_changed 机制（参考 Linux 内核）
+# ============================================================================
+# 避免不必要的重新编译：只在命令改变或依赖改变时重新构建
+#
+# 工作原理：
+# 1. 为每个目标保存上次使用的命令到 .$(target).cmd 文件
+# 2. 比较当前命令和上次命令
+# 3. 只在命令改变或依赖改变时重新构建（依赖由 .d 文件处理）
+
+# 命令文件目录（与 .o 文件同目录）
+cmd-dir = $(dir $@)
+
+# 保存命令到 .cmd 文件
+# 用法: $(call cmd_and_record,cc_o_c)
+define cmd_and_record
+	$(cmd_$(1))
+	@echo 'cmd_$@ := $(cmd_$(1))' > $(cmd-dir).$(notdir $@).cmd
+endef
+
+# 读取上次的命令
+# 用法: $(call read_cmd,target)
+read_cmd = $(shell [ -f $(dir $(1)).$(notdir $(1)).cmd ] && cat $(dir $(1)).$(notdir $(1)).cmd 2>/dev/null)
+
+# 比较命令是否改变
+# 用法: $(call cmd_changed,cc_o_c,target)
+cmd_changed = $(filter-out $(subst ','\'',$(cmd_$(1))),$(subst ','\'',$(call read_cmd,$@)))
+
+# if_changed: 只在命令改变时执行
+# 用法: $(call if_changed,cc_o_c)
+define if_changed
+	$(if $(strip $(cmd_changed) $(filter-out FORCE,$?)),\
+		@$(if $($(quiet)cmd_$(1)),echo '  $($(quiet)cmd_$(1))';) \
+		$(cmd_$(1)); \
+		echo 'cmd_$@ := $(subst ','\'',$(cmd_$(1)))' > $(cmd-dir).$(notdir $@).cmd)
+endef
+
+# if_changed_dep: 结合依赖文件的 if_changed
+# 用法: $(call if_changed_dep,cc_o_c)
+# 注意：依赖跟踪由 -MMD -MP 和 .d 文件自动处理，这里只需检查命令
+define if_changed_dep
+	$(call if_changed,$(1))
+endef
 
 # ============================================================================
 # 安装路径

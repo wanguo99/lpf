@@ -29,18 +29,13 @@ endif
 # ============================================================================
 # 源文件收集（obj-y）
 # ============================================================================
-
-# 收集所有 obj-y 和 obj-$(CONFIG_XXX)
-obj-y-all := $(obj-y)
-obj-y-all += $(foreach cfg,$(filter CONFIG_%,$(.VARIABLES)),$(obj-$(cfg)))
-
-# 子目录递归
-subdir-y-all := $(subdir-y)
-subdir-y-all += $(foreach cfg,$(filter CONFIG_%,$(.VARIABLES)),$(subdir-$(cfg)))
+# 注意：obj-y 已经在 Makefile.rules 中展开了 obj-$(CONFIG_XXX)
+# 这里直接使用展开后的 obj-y，避免重复展开
 
 # 从子目录收集 obj-y（递归）
-ifdef subdir-y-all
-  subdir-objs := $(foreach dir,$(subdir-y-all),\
+# 注意：subdir-y 也已经在 Makefile.rules 中展开了 subdir-$(CONFIG_XXX)
+ifdef subdir-y
+  subdir-objs := $(foreach dir,$(subdir-y),\
     $(addprefix $(dir),\
       $(shell $(MAKE) -C $(dir) \
         -f $(scriptdir)/build/Makefile.subdir \
@@ -51,44 +46,52 @@ ifdef subdir-y-all
         print-objs)))
   # 过滤掉 make 的诊断消息（Entering/Leaving directory 等）
   subdir-objs := $(filter %.o %.a %.so,$(subdir-objs))
-  obj-y-all += $(subdir-objs)
+  obj-y += $(subdir-objs)
 endif
 
 # ============================================================================
 # 构建类型处理（obj-e/s/d/m）
 # ============================================================================
+# 注意：obj-e/s/d/m 已经在 Makefile.rules 中展开了对应的 CONFIG_ 变量
+# 但 Makefile.rules 目前只展开了 obj-y/lib-y/subdir-y
+# 这里需要手动展开 obj-e/s/d/m（TODO: 可以移到 Makefile.rules）
 
 TARGETS :=
 
 # 可执行文件（obj-e）
-obj-e-all := $(obj-e)
-obj-e-all += $(foreach cfg,$(filter CONFIG_%,$(.VARIABLES)),$(obj-e-$(cfg)))
+# 注意：Makefile.rules 没有展开 obj-e-$(CONFIG_XXX)，这里需要手动展开
+obj-e-expanded := $(obj-e)
+obj-e-expanded += $(foreach cfg,$(filter CONFIG_%,$(.VARIABLES)),\
+  $(if $(filter y,$($(cfg))),$(obj-e-$(cfg))))
 
-$(foreach target,$(obj-e-all),\
+$(foreach target,$(obj-e-expanded),\
   $(eval $(target)-type := executable)\
   $(eval TARGETS += $(target)))
 
 # 静态库（obj-s）
-obj-s-all := $(obj-s)
-obj-s-all += $(foreach cfg,$(filter CONFIG_%,$(.VARIABLES)),$(obj-s-$(cfg)))
+obj-s-expanded := $(obj-s)
+obj-s-expanded += $(foreach cfg,$(filter CONFIG_%,$(.VARIABLES)),\
+  $(if $(filter y,$($(cfg))),$(obj-s-$(cfg))))
 
-$(foreach target,$(obj-s-all),\
+$(foreach target,$(obj-s-expanded),\
   $(eval $(target)-type := static)\
   $(eval TARGETS += $(target)))
 
 # 动态库（obj-d）
-obj-d-all := $(obj-d)
-obj-d-all += $(foreach cfg,$(filter CONFIG_%,$(.VARIABLES)),$(obj-d-$(cfg)))
+obj-d-expanded := $(obj-d)
+obj-d-expanded += $(foreach cfg,$(filter CONFIG_%,$(.VARIABLES)),\
+  $(if $(filter y,$($(cfg))),$(obj-d-$(cfg))))
 
-$(foreach target,$(obj-d-all),\
+$(foreach target,$(obj-d-expanded),\
   $(eval $(target)-type := dynamic)\
   $(eval TARGETS += $(target)))
 
 # 内核模块（obj-m）
-obj-m-all := $(obj-m)
-obj-m-all += $(foreach cfg,$(filter CONFIG_%,$(.VARIABLES)),$(obj-m-$(cfg)))
+obj-m-expanded := $(obj-m)
+obj-m-expanded += $(foreach cfg,$(filter CONFIG_%,$(.VARIABLES)),\
+  $(if $(filter y,$($(cfg))),$(obj-m-$(cfg))))
 
-$(foreach target,$(obj-m-all),\
+$(foreach target,$(obj-m-expanded),\
   $(eval $(target)-type := module)\
   $(eval TARGETS += $(target)))
 
@@ -109,9 +112,9 @@ $(1): $(2)
 	@$$(AR) rcs $$@ $$^
 endef
 
-ifneq ($(strip $(obj-s-all)),)
-$(foreach target,$(obj-s-all),\
-  $(eval $(call STATIC_LIB_template,$($(target)-target-path),$(strip $(addprefix $(OBJ_OUTPUT_BASE)/,$(if $($(target)-objs),$($(target)-objs),$(obj-y-all)))))))
+ifneq ($(strip $(obj-s-expanded)),)
+$(foreach target,$(obj-s-expanded),\
+  $(eval $(call STATIC_LIB_template,$($(target)-target-path),$(strip $(addprefix $(OBJ_OUTPUT_BASE)/,$(if $($(target)-objs),$($(target)-objs),$(obj-y)))))))
 endif
 
 # 动态库规则
@@ -122,9 +125,9 @@ $(1): $(2)
 	@$$(CC) -shared $$(CFLAGS) $$(LDFLAGS) -o $$@ $$^ $$(LDLIBS)
 endef
 
-ifneq ($(strip $(obj-d-all)),)
-$(foreach target,$(obj-d-all),\
-  $(eval $(call DYNAMIC_LIB_template,$($(target)-target-path),$(strip $(addprefix $(OBJ_OUTPUT_BASE)/,$(if $($(target)-objs),$($(target)-objs),$(obj-y-all)))))))
+ifneq ($(strip $(obj-d-expanded)),)
+$(foreach target,$(obj-d-expanded),\
+  $(eval $(call DYNAMIC_LIB_template,$($(target)-target-path),$(strip $(addprefix $(OBJ_OUTPUT_BASE)/,$(if $($(target)-objs),$($(target)-objs),$(obj-y)))))))
 endif
 
 # 可执行文件规则
@@ -135,9 +138,9 @@ $(1): $(2)
 	@$$(CC) $$(CFLAGS) $$(LDFLAGS) -o $$@ $$^ $$(LDLIBS)
 endef
 
-ifneq ($(strip $(obj-e-all)),)
-$(foreach target,$(obj-e-all),\
-  $(eval $(call EXECUTABLE_template,$($(target)-target-path),$(strip $(addprefix $(OBJ_OUTPUT_BASE)/,$(if $($(target)-objs),$($(target)-objs),$(obj-y-all)))))))
+ifneq ($(strip $(obj-e-expanded)),)
+$(foreach target,$(obj-e-expanded),\
+  $(eval $(call EXECUTABLE_template,$($(target)-target-path),$(strip $(addprefix $(OBJ_OUTPUT_BASE)/,$(if $($(target)-objs),$($(target)-objs),$(obj-y)))))))
 endif
 
 # ============================================================================
@@ -151,17 +154,15 @@ CFLAGS_EXTRA += $(CFLAGS_LIB) $(CFLAGS_APP)
 # 编译规则（.c → .o）
 # ============================================================================
 
-# 通用编译规则
+# 通用编译规则（使用 if_changed_dep 避免不必要的重新编译）
 $(OBJ_OUTPUT_BASE)/%.o: $(CURDIR)/%.c
 	@mkdir -p $(dir $@)
-	@echo "  CC      $@"
-	@$(CC) $(CFLAGS) $(CFLAGS_EXTRA) -MMD -MP -c -o $@ $<
+	$(call if_changed_dep,cc_o_c)
 
 # 如果源文件在 src/ 子目录
 $(OBJ_OUTPUT_BASE)/%.o: $(CURDIR)/src/%.c
 	@mkdir -p $(dir $@)
-	@echo "  CC      $@"
-	@$(CC) $(CFLAGS) $(CFLAGS_EXTRA) -MMD -MP -c -o $@ $<
+	$(call if_changed_dep,cc_o_c)
 
 # ============================================================================
 # 依赖文件包含
@@ -181,6 +182,7 @@ clean:
 	@echo "  CLEAN   $(MODULE_REL_PATH)"
 	@find $(OBJ_OUTPUT_BASE) -name "*.o" -delete 2>/dev/null || true
 	@find $(OBJ_OUTPUT_BASE) -name "*.d" -delete 2>/dev/null || true
+	@find $(OBJ_OUTPUT_BASE) -name ".*.cmd" -delete 2>/dev/null || true
 	@rm -f $(foreach target,$(TARGETS),$(BIN_OUTPUT_DIR)/$(target))
 
 # ============================================================================
