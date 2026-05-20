@@ -8,7 +8,7 @@ GENERATED_DIR ?= $(objtree)/include/generated
 # 应用配置
 APP_NAME := ccm_logger
 
-include $(srctree)/scripts/Makefile.app
+include $(scriptdir)/build/Makefile.app
 
 # 应用名称
 APP_NAME := ccm_logger

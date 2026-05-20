@@ -36,4 +36,4 @@ EXPORT_HEADERS := \
 LDLIBS := -L$(objtree)/lib -losal
 
 # 包含通用库构建框架
-include $(srctree)/scripts/Makefile.lib
+include $(scriptdir)/build/Makefile.lib

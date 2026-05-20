@@ -10,12 +10,12 @@
 #    - KERNEL_DIR: 内核源码目录（默认 /lib/modules/$(shell uname -r)/build）
 #    - CFLAGS_KO: 模块特定的编译标志
 #
-# 2. 包含此文件：include $(srctree)/scripts/Makefile.ko
+# 2. 包含此文件：include $(srctree)/scripts/build/Makefile.ko
 #
 # 示例：
 #   KO_NAME := ems_driver
 #   SRCS := ems_main.c ems_device.c
-#   include $(srctree)/scripts/Makefile.ko
+#   include $(srctree)/scripts/build/Makefile.ko
 # ============================================================================
 
 ifndef KO_NAME
@@ -23,7 +23,7 @@ $(error KO_NAME is not defined. Please define it before including Makefile.ko)
 endif
 
 # 包含通用规则库
-include $(srctree)/scripts/Makefile.rules
+include $(srctree)/scripts/build/Makefile.rules
 
 # ============================================================================
 # 默认值和路径设置

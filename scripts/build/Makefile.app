@@ -11,13 +11,13 @@
 #    - LDFLAGS: 链接标志
 #    - LDLIBS: 链接库
 #
-# 2. 包含此文件：include $(srctree)/scripts/Makefile.app
+# 2. 包含此文件：include $(srctree)/scripts/build/Makefile.app
 #
 # 示例：
 #   APP_NAME := sample_app
 #   SRCS := main.c app_logic.c
 #   LDLIBS := -L$(objtree)/lib -losal -lhal
-#   include $(srctree)/scripts/Makefile.app
+#   include $(srctree)/scripts/build/Makefile.app
 # ============================================================================
 
 ifndef APP_NAME
@@ -25,7 +25,7 @@ $(error APP_NAME is not defined. Please define it before including Makefile.app)
 endif
 
 # 包含通用规则库
-include $(srctree)/scripts/Makefile.rules
+include $(srctree)/scripts/build/Makefile.rules
 
 # ============================================================================
 # 默认值和路径设置

@@ -12,14 +12,14 @@
 #    - LDLIBS: 链接库
 #    - DEF_FILE: 可选的 .def 文件（导出符号定义）
 #
-# 2. 包含此文件：include $(srctree)/scripts/Makefile.dll
+# 2. 包含此文件：include $(srctree)/scripts/build/Makefile.dll
 #
 # 示例：
 #   DLL_NAME := osal
 #   SRCS := lib/osal_errno.c ipc/osal_mutex.c
 #   EXPORT_HEADERS := osal.h osal_types.h
 #   DEF_FILE := osal.def
-#   include $(srctree)/scripts/Makefile.dll
+#   include $(srctree)/scripts/build/Makefile.dll
 #
 # 注意：
 # - 需要 MinGW-w64 交叉编译工具链
@@ -31,7 +31,7 @@ $(error DLL_NAME is not defined. Please define it before including Makefile.dll)
 endif
 
 # 包含通用规则库
-include $(srctree)/scripts/Makefile.rules
+include $(srctree)/scripts/build/Makefile.rules
 
 # ============================================================================
 # Windows 交叉编译设置

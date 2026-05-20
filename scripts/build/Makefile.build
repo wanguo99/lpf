@@ -11,18 +11,18 @@
 #    - CFLAGS_MODULE: 模块特定的编译标志
 #    - LDLIBS: 链接库
 #
-# 2. 包含此文件：include $(srctree)/scripts/Makefile.build
+# 2. 包含此文件：include $(srctree)/scripts/build/Makefile.build
 #
 # 示例：
 #   MODULE_NAME := osal
 #   MODULE_TYPE := shared_lib
 #   SRCS := lib/osal_errno.c ipc/osal_mutex.c
 #   EXPORT_HEADERS := osal.h osal_types.h
-#   include $(srctree)/scripts/Makefile.build
+#   include $(srctree)/scripts/build/Makefile.build
 # ============================================================================
 
 # 包含通用规则库
-include $(srctree)/scripts/Makefile.lib
+include $(srctree)/scripts/build/Makefile.lib
 
 # ============================================================================
 # 默认值和路径设置

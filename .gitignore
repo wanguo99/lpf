@@ -7,6 +7,9 @@
 *.obj
 *.elf
 
+# 但不忽略构建框架文件
+!scripts/build/*.ko
+
 # Linker output
 *.ilk
 *.map
@@ -22,11 +25,17 @@
 *.la
 *.lo
 
+# 但不忽略构建框架文件
+!scripts/build/*.lib
+
 # Shared objects (inc. Windows DLLs)
 *.dll
 *.so
 *.so.*
 *.dylib
+
+# 但不忽略构建框架文件
+!scripts/build/*.dll
 
 # Executables
 *.exe
@@ -35,6 +44,9 @@
 *.i*86
 *.x86_64
 *.hex
+
+# 但不忽略构建框架文件
+!scripts/build/*.app
 
 # Debug files
 *.dSYM/
@@ -59,10 +71,13 @@ dkms.conf
 
 # 构建输出目录（参考buildroot设计）
 output/
-build/
+/build/
 target/
 /bin/
 /lib/
+
+# 但不忽略构建脚本目录
+!scripts/build/
 
 *.DS_Store
 

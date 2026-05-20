@@ -20,6 +20,7 @@ override OUTPUT_DIR := $(abspath $(OUTPUT_DIR))
 export OUTPUT_DIR
 export srctree := $(CURDIR)
 export objtree := $(OUTPUT_DIR)
+export scriptdir := $(srctree)/scripts
 
 # ============================================================================
 # Kconfig 配置
