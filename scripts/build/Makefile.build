@@ -17,12 +17,12 @@ MODULE_REL_PATH := $(patsubst $(srctree)/%,%,$(CURDIR))
 ifeq ($(srctree),$(objtree))
   # 默认：源码目录
   OBJ_OUTPUT_BASE := $(CURDIR)
-  BIN_OUTPUT_DIR := $(CURDIR)
+  BIN_OUTPUT_DIR := $(objtree)/bin
   LIB_OUTPUT_DIR := $(objtree)/lib
 else
   # O= 参数：objtree 对应子目录
   OBJ_OUTPUT_BASE := $(objtree)/$(MODULE_REL_PATH)
-  BIN_OUTPUT_DIR := $(objtree)/$(MODULE_REL_PATH)
+  BIN_OUTPUT_DIR := $(objtree)/bin
   LIB_OUTPUT_DIR := $(objtree)/lib
 endif
 
