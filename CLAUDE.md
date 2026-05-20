@@ -6,74 +6,95 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **EMS** (Embedded Middleware System) is a general-purpose embedded middleware framework providing hardware abstraction and peripheral management for embedded controllers. It uses a 3-layer call chain (Apps→PDL→HAL) running on OSAL runtime environment, with 2 configuration libraries (ACL/PCL), designed for cross-platform portability (Linux/RTOS).
 
+**Build System**: Linux kernel-style Makefile + Kconfig configuration system for flexible, modular builds.
+
 **Typical Application**:
 ```
 External System <--CAN--> EMS Controller <--Ethernet/UART/CAN--> Device Modules
 ```
 
+**Key Products**:
+- **CCM** (Communication Controller Management) - formerly PMC, manages communication between external systems and device modules
+
 ## Quick Commands
 
 ### Build
 
-**Standard CMake commands**
+**EMS uses Linux kernel-style Kconfig + Makefile build system**
+
 ```bash
-# Native build
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j$(nproc)
+# First-time setup: Configure the build
+make menuconfig                              # Interactive configuration (ncurses)
+# OR use a preset configuration
+make ccm_h200_am625_release_defconfig       # Release preset
+make ccm_h200_am625_debug_defconfig         # Debug preset
 
-cmake -B build -DCMAKE_BUILD_TYPE=Debug
-cmake --build build -j$(nproc)
+# Build everything
+make -j$(nproc)                             # Build all modules
 
-# Cross-compilation
-cmake -B build -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/arm32-linux-gnueabihf.cmake
-cmake --build build -j$(nproc)
+# Build specific targets
+make core -j$(nproc)                        # Build core modules only
+make products -j$(nproc)                    # Build product modules only
 
-cmake -B build -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/aarch64-linux-gnu.cmake
-cmake --build build -j$(nproc)
+# Out-of-tree build (keeps source clean)
+make O=/tmp/build defconfig                 # Configure in separate directory
+make O=/tmp/build -j$(nproc)                # Build in separate directory
 
-cmake -B build -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/riscv64-linux-gnu.cmake
-cmake --build build -j$(nproc)
+# Install
+make install INSTALL_PREFIX=/opt/ems        # Install libs and binaries
+make headers_install INSTALL_PREFIX=/opt/ems # Install headers only
+make install-all INSTALL_PREFIX=/opt/ems    # Install everything
+
+# Clean targets
+make clean                                  # Remove build artifacts
+make distclean                              # Remove build and config
+make mrproper                               # Full clean including tools
 ```
 
-**Alternative: build.sh wrapper**
+**Configuration commands**:
 ```bash
-./build.sh              # Release build
-./build.sh -d           # Debug build
-./build.sh -c           # Clean
-./build.sh -a arm32     # ARM32 cross-compile
-./build.sh -a arm64     # ARM64 cross-compile
-./build.sh -a riscv64   # RISC-V 64 cross-compile
+make menuconfig          # Interactive menu-based configuration
+make defconfig           # Load default configuration
+make savedefconfig       # Save minimal config to defconfig
+make oldconfig           # Update config for new options
+make syncconfig          # Synchronize and generate headers
 ```
+
+**Available presets** (in `configs/`):
+- `ccm_h200_am625_release_defconfig` - CCM H200 AM625 release build
+- `ccm_h200_am625_debug_defconfig` - CCM H200 AM625 debug build
 
 **Output locations**:
-- Binaries: `build/bin/`
-- Libraries: `build/lib/`
+- Binaries: `bin/` (or `$OUTPUT_DIR/bin/` for out-of-tree builds)
+- Libraries: `lib/` (or `$OUTPUT_DIR/lib/` for out-of-tree builds)
+- Configuration: `.config` (Kconfig configuration file)
+- Generated headers: `include/generated/autoconf.h`
+- Exported API headers: `include/{osal,hal,pdl,pcl,acl}/`
 
 ### Test
 
 ```bash
 # Run tests
-./build/bin/ems-test -i    # Interactive menu (recommended)
-./build/bin/ems-test -a    # Run all tests
-./build/bin/ems-test -L OSAL  # Run OSAL layer tests
-./build/bin/ems-test -m test_osal_task  # Run specific module (without .c extension)
+./bin/ems-test -i    # Interactive menu (recommended)
+./bin/ems-test -a    # Run all tests
+./bin/ems-test -L OSAL  # Run OSAL layer tests
+./bin/ems-test -m test_osal_task  # Run specific module (without .c extension)
 
 # Busybox-style shortcuts (via symlinks)
-./build/bin/osal-test -a    # Run only OSAL tests
-./build/bin/hal-test -a     # Run only HAL tests
-
-# Fast iteration: rebuild single test layer
-cd build && make osal_tests -j$(nproc) && cd ..
-cd build && make hal_tests -j$(nproc) && cd ..
+./bin/osal-test -a    # Run only OSAL tests
+./bin/hal-test -a     # Run only HAL tests
 ```
 
 ### Debug
 
 ```bash
-cmake -B build -DCMAKE_BUILD_TYPE=Debug
-cmake --build build -j$(nproc)
-gdb ./build/bin/sample_app
-gdb --args ./build/bin/ems-test -m test_osal_task
+# Build with debug configuration
+make ccm_h200_am625_debug_defconfig
+make -j$(nproc)
+
+# Run with GDB
+gdb ./bin/sample_app
+gdb --args ./bin/ems-test -m test_osal_task
 ```
 
 ## Architecture Design
@@ -304,6 +325,77 @@ static void task_entry(void *arg)
 
 **Critical**: Never use `while(1)` - tasks must check `OSAL_TaskShouldShutdown()` for graceful shutdown.
 
+## Kconfig Configuration System
+
+EMS uses Linux kernel-style Kconfig for build configuration:
+
+**Configuration workflow**:
+1. Run `make menuconfig` to configure build options interactively
+2. Configuration is saved to `.config` file
+3. Build system generates `include/generated/autoconf.h` with C macros
+4. Code uses `#ifdef CONFIG_*` to conditionally compile features
+
+**Module dependencies** (enforced by Kconfig):
+```
+OSAL (foundation)
+  ↓
+HAL (depends on OSAL)
+  ↓
+PCL (depends on OSAL, HAL)
+  ↓
+PDL (depends on OSAL, HAL, PCL)
+  ↓
+ACL (depends on OSAL, PDL)
+```
+
+**Key configuration options**:
+- Core modules: OSAL, HAL, PDL, PCL, ACL (with dependency checking)
+- HAL drivers: CAN, UART, I2C, SPI, GPIO, Watchdog (conditional compilation)
+- PDL services: Satellite, BMC, MCU, Watchdog (conditional compilation)
+- Product selection: CCM (Communication Controller Management), samples
+- Debug options: logging levels, assertions, debug symbols
+
+**Configuration files**:
+- `.config` - Current configuration (generated, do not commit)
+- `defconfig` - Minimal default configuration
+- `configs/*_defconfig` - Preset configurations for specific products
+- `Kconfig` - Configuration menu definitions (hierarchical)
+
+## Header File Structure
+
+EMS uses a three-tier header file structure similar to Linux kernel:
+
+**1. Module internal headers** (`core/*/include/`):
+- Used during module development
+- Contains internal implementation details
+- Not exported to other modules
+
+**2. Top-level exported headers** (`include/*/`):
+- Used for cross-module references
+- Contains only public APIs
+- Organized by module: `include/{osal,hal,pdl,pcl,acl}/`
+- Generated by `make headers_install` in each module
+
+**3. System installed headers** (`/usr/local/include/`):
+- Used by external applications
+- Installed via `make headers_install INSTALL_PREFIX=/usr/local`
+
+**Header inclusion rules**:
+```c
+// Within module (internal headers)
+#include "osal_internal.h"
+
+// Cross-module (use top-level include/)
+#include <osal/osal.h>
+#include <hal/hal_can.h>
+
+// Use generated config
+#include <generated/autoconf.h>
+#ifdef CONFIG_HAL_CAN
+    // CAN-specific code
+#endif
+```
+
 ## Buildroot Integration
 
 EMS supports Buildroot integration for embedded Linux systems:
@@ -324,25 +416,80 @@ Detailed integration guide: [docs/buildroot/README.md](docs/buildroot/README.md)
 
 ## Development Workflows
 
+### First-Time Setup
+1. Configure the build: `make menuconfig` or `make ccm_h200_am625_release_defconfig`
+2. Build: `make -j$(nproc)`
+3. Run tests: `./bin/ems-test -i`
+
+### Daily Development Workflow
+1. Edit source files
+2. Run `make -j$(nproc)` (incremental build, only rebuilds changed files)
+3. Test changes: `./bin/ems-test -m <module_name>`
+4. Commit changes with Chinese commit message format
+
+### Changing Build Configuration
+1. Run `make menuconfig` to change options
+2. Configuration saved to `.config`
+3. Run `make -j$(nproc)` to rebuild with new config
+4. To save as preset: `make savedefconfig` (saves to `defconfig`)
+
 ### Adding New OSAL Interface
 1. Add interface declaration in `core/osal/include/` (e.g., `osal_timer.h`)
 2. Implement POSIX version in `core/osal/src/posix/` (e.g., `osal_timer.c`)
-3. Add unit tests in `tests/unit/osal/` (e.g., `test_osal_timer.c`)
-4. Update `core/osal/CMakeLists.txt` to include new source file
-5. Update `core/osal/README.md` if adding major functionality
+3. Add to `SRCS` in `core/osal/Makefile`
+4. Add to `EXPORT_HEADERS` in `core/osal/Makefile` if it's a public API
+5. Run `make -C core/osal headers_install` to export headers
+6. Add unit tests in `tests/unit/osal/` (e.g., `test_osal_timer.c`)
+7. Update `core/osal/README.md` if adding major functionality
 
 ### Adding New HAL Driver
 1. Add driver interface in `core/hal/include/` (e.g., `hal_gpio.h`)
 2. Add driver config in `core/hal/include/config/` (e.g., `hal_gpio_config.h`)
-3. Implement Linux version in `core/hal/src/linux/` (using OSAL wrappers, e.g., `hal_gpio.c`)
-4. Add unit tests in `tests/unit/hal/` (e.g., `test_hal_gpio.c`)
-5. Update `core/hal/CMakeLists.txt` to include new driver source
+3. Add Kconfig option in `core/hal/Kconfig`:
+   ```kconfig
+   config HAL_GPIO
+       bool "GPIO driver"
+       depends on HAL
+       default y
+   ```
+4. Implement Linux version in `core/hal/src/linux/` (using OSAL wrappers)
+5. Add conditional compilation in `core/hal/Makefile`:
+   ```makefile
+   SRCS-$(CONFIG_HAL_GPIO) += hal_gpio_linux.c
+   ```
+6. Add to `EXPORT_HEADERS` in `core/hal/Makefile`
+7. Add unit tests in `tests/unit/hal/`
 
 ### Adding New PDL Service
 1. Add service interface in `core/pdl/include/` (e.g., `pdl_satellite.h`)
-2. Implement service in `core/pdl/src/` (using HAL and PCL APIs)
-3. Add unit tests in `tests/pdl/`
-4. Update `core/pdl/README.md`
+2. Add Kconfig option in `core/pdl/Kconfig` with proper dependencies
+3. Implement service in `core/pdl/src/` (using HAL and PCL APIs)
+4. Add conditional compilation in `core/pdl/Makefile`
+5. Add to `EXPORT_HEADERS` in `core/pdl/Makefile`
+6. Add unit tests in `tests/pdl/`
+7. Update `core/pdl/README.md`
+
+### Adding New Module
+1. Create module directory: `core/newmodule/{include,src}/`
+2. Create `core/newmodule/Kconfig` with dependencies:
+   ```kconfig
+   config NEWMODULE
+       bool "New Module"
+       depends on OSAL
+       default y
+   ```
+3. Create `core/newmodule/Makefile` using generic framework:
+   ```makefile
+   MODULE_NAME := newmodule
+   MODULE_TYPE := shared_lib
+   SRCS := newmodule.c
+   EXPORT_HEADERS := newmodule.h
+   LDLIBS := -L$(objtree)/lib -losal
+   include $(srctree)/scripts/Makefile.build
+   ```
+4. Add to `core/Makefile`: `MODULES := osal hal pcl pdl acl newmodule`
+5. Add dependency: `newmodule: osal`
+6. Source Kconfig in top-level `Kconfig`: `source "core/newmodule/Kconfig"`
 
 ### Adding New Platform Configuration
 1. Create platform directory: `core/pcl/platform/<vendor>/<chip>/<product>/`
@@ -354,10 +501,9 @@ Detailed integration guide: [docs/buildroot/README.md](docs/buildroot/README.md)
 ### Adding New Test
 1. Create test file in `tests/unit/<layer>/` (e.g., `test_osal_timer.c`)
 2. Use `TEST_MODULE_BEGIN/END` and `TEST_CASE` macros
-3. Add source file to `tests/CMakeLists.txt` in the appropriate section
-4. Build and run: `cmake --build build && ./build/bin/ems-test -m test_osal_timer`
-5. For fast iteration: `cd build && make osal_tests -j$(nproc) && cd ..`
-6. Test module name should match filename without `.c` extension
+3. Add source file to `tests/Makefile` in the appropriate section
+4. Build and run: `make -j$(nproc) && ./bin/ems-test -m test_osal_timer`
+5. Test module name should match filename without `.c` extension
 
 **Test template**:
 ```c
@@ -378,6 +524,27 @@ TEST_MODULE_END()
 ```
 
 ## Key Design Patterns
+
+### Linux Kernel-Style Build System
+- **Kconfig**: Menu-driven configuration with dependency checking (`depends on`)
+- **Silent build**: Clean output with `CC`, `LD`, `AR` prefixes (use `V=1` for verbose)
+- **Dependency tracking**: Automatic header dependency generation (`.d` files)
+- **Out-of-tree builds**: Keep source tree clean with `O=<dir>` option
+- **Incremental builds**: Only rebuild changed files and their dependents
+- **Generic build framework**: `scripts/Makefile.build` - modules only define variables
+
+### Generic Makefile Framework (Buildroot-style)
+- **Unified build rules**: All modules use `scripts/Makefile.build`
+- **Variable-based configuration**: Modules define `MODULE_NAME`, `SRCS`, `EXPORT_HEADERS`
+- **Automatic processing**: Compilation, linking, dependency tracking, header export
+- **Conditional compilation**: `SRCS-$(CONFIG_XXX) += file.c` pattern
+- **Three module types**: `shared_lib`, `static_lib`, `executable`
+
+### Three-Tier Header Structure
+- **Module internal**: `core/*/include/` - development headers
+- **Top-level export**: `include/*/` - cross-module API headers
+- **System install**: `/usr/local/include/` - external application headers
+- **Automatic export**: `make headers_install` copies from module to top-level
 
 ### OSAL User-Space Library Design
 - No explicit initialization required (static initialization)
@@ -413,21 +580,18 @@ TEST_MODULE_END()
 
 ### Cross-Compilation
 ```bash
-# Install toolchains on Ubuntu/Debian:
-sudo apt-get install gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu gcc-riscv64-linux-gnu
+# Cross-compilation support is configured via Kconfig
+# Edit .config or use menuconfig to set target architecture
 
-# Cross-compile using toolchain files
-cmake -B build -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/arm32-linux-gnueabihf.cmake
-cmake --build build -j$(nproc)
+make menuconfig
+# Navigate to: Build Options -> Target Architecture
+# Select: ARM32, ARM64, RISC-V 64, or x86_64
 
-cmake -B build -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/aarch64-linux-gnu.cmake
-cmake --build build -j$(nproc)
-
-cmake -B build -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/riscv64-linux-gnu.cmake
-cmake --build build -j$(nproc)
+# Then build normally
+make -j$(nproc)
 ```
 
-**Architecture-Specific Compiler Flags**:
+**Architecture-Specific Compiler Flags** (configured in Kconfig):
 - ARM32: `-march=armv7-a -mfpu=neon-vfpv4 -mfloat-abi=hard`
 - ARM64: `-march=armv8-a`
 - RISC-V 64: `-march=rv64imafdc -mabi=lp64d`
@@ -470,14 +634,30 @@ sudo ./build/release/bin/ems-test -m test_hal_serial
 ## Build Output Structure
 
 ```
-build/
+# In-tree build (default)
+.
 ├── bin/              # Executables (sample_app, watchdog_app, ems-test, osal-test, hal-test, etc.)
-└── lib/              # Static libraries (libosal.a, libhal.a, libpdl.a, libpcl.a)
+├── lib/              # Static libraries (libosal.a, libhal.a, libpdl.a, libpcl.a, libacl.a)
+├── .config           # Kconfig configuration
+└── include/
+    ├── config/       # Kconfig internal files
+    └── generated/
+        └── autoconf.h  # Generated configuration header
+
+# Out-of-tree build (with O=/path/to/build)
+/path/to/build/
+├── bin/              # Executables
+├── lib/              # Libraries
+├── .config           # Configuration
+├── include/generated/autoconf.h
+└── core/             # Object files
+    └── products/
 ```
 
 ## Documentation
 
 - **Architecture**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- **Build System**: [docs/BUILD_SYSTEM.md](docs/BUILD_SYSTEM.md) - Detailed build system documentation
 - **Coding Standards**: [docs/CODING_STANDARDS.md](docs/CODING_STANDARDS.md)
 - **Quick Build Guide**: [docs/QUICK_BUILD.md](docs/QUICK_BUILD.md)
 - **Module READMEs**: Each layer has `README.md` and `docs/` directory
@@ -487,22 +667,27 @@ build/
 
 ### Common Build Issues
 
-**Missing pthread library**:
+**Kconfig tools not built**:
 ```bash
-# Error: undefined reference to `pthread_create`
-# Solution: pthread is linked automatically via find_package(Threads)
+# Error: scripts/kconfig/conf: No such file or directory
+# Solution: Kconfig tools are built automatically on first make
+make menuconfig  # This will build the tools first
 ```
 
-**Cross-compilation toolchain not found**:
+**Missing configuration**:
 ```bash
-# Install missing toolchain
-sudo apt-get install gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu gcc-riscv64-linux-gnu
+# Error: .config not found
+# Solution: Run configuration first
+make defconfig  # Or use a preset: make ccm_h200_am625_release_defconfig
 ```
 
-**Test failures without hardware**:
-- CAN tests require `can0` or `vcan0` interface
-- Serial tests require `/dev/ttyS0` or `/dev/ttyUSB0`
-- Use `-i` interactive mode to skip hardware-dependent tests
+**Out-of-sync configuration**:
+```bash
+# After pulling new code with new Kconfig options
+make oldconfig  # Update config for new options
+# Or regenerate from preset
+make ccm_h200_am625_release_defconfig
+```
 
 ### Debugging Tips
 
@@ -513,13 +698,15 @@ OSAL_LogSetLevel(LOG_LEVEL_DEBUG);  // In your code
 
 **GDB debugging**:
 ```bash
-cmake --preset debug && cmake --build --preset debug
-gdb --args ./build/debug/bin/ems-test -m test_osal_task
+# Build with debug configuration
+make ccm_h200_am625_debug_defconfig
+make -j$(nproc)
+gdb --args ./bin/ems-test -m test_osal_task
 ```
 
 **Memory leak detection**:
 ```bash
-valgrind --leak-check=full ./build/debug/bin/ems-test -m test_osal_queue
+valgrind --leak-check=full ./bin/ems-test -m test_osal_queue
 ```
 
 **Check task status**:
@@ -539,19 +726,26 @@ ps -eLf | grep ems-test
   - PDL: 95 tests (Satellite, BMC, MCU, Watchdog)
   - ACL: Configuration validation and statistics
 - **Architecture**: 3-layer call chain (Apps→PDL→HAL) + OSAL runtime + 2 config libraries (ACL/PCL)
-- **Platforms**: TI AM6254, vendor_demo (extensible)
-- **Build System**: CMake 3.16+, supports native and cross-compilation
+- **Platforms**: TI AM6254 (CCM H200), vendor_demo (extensible)
+- **Build System**: Linux kernel-style Makefile + Kconfig, supports native and cross-compilation
 
 ## Important Files
 
-- [CMakeLists.txt](CMakeLists.txt) - Main build config
-- [build.sh](build.sh) - Build script wrapper
-- [cmake/toolchains/](cmake/toolchains/) - Cross-compilation toolchain files
+- [Makefile](Makefile) - Top-level build configuration (Linux kernel style)
+- [Kconfig](Kconfig) - Configuration menu definitions
+- [defconfig](defconfig) - Default configuration
+- [configs/](configs/) - Preset configurations for products
+- [scripts/kconfig/](scripts/kconfig/) - Kconfig tools (conf, mconf)
+- [scripts/Makefile.lib](scripts/Makefile.lib) - Build system library (compiler flags, silent build)
+- [scripts/Makefile.build](scripts/Makefile.build) - Generic build framework for modules
+- [scripts/install.mk](scripts/install.mk) - Installation rules
+- [include/](include/) - Top-level exported API headers (organized by module)
 - [core/osal/include/osal.h](core/osal/include/osal.h) - OSAL main header
 - [core/osal/include/osal_types.h](core/osal/include/osal_types.h) - Type definitions
 - [tests/core/main.c](tests/core/main.c) - Test runner entry
-- [apps/sample_app/src/main.c](apps/sample_app/src/main.c) - Sample application
-- [apps/watchdog_app/src/main.c](apps/watchdog_app/src/main.c) - Watchdog application
+- [products/ccm/](products/ccm/) - CCM (Communication Controller Management) product
+- [products/samples/](products/samples/) - Sample applications
+- [docs/BUILD_SYSTEM.md](docs/BUILD_SYSTEM.md) - Build system detailed documentation
 
 ## Performance Considerations
 
