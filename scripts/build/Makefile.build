@@ -99,12 +99,12 @@ $(foreach target,$(obj-m-expanded),\
 # 编译规则生成
 # ============================================================================
 
-# 为每个目标生成构建规则（直接使用 eval，不用 define）
+# 为每个目标生成构建规则
 $(foreach target,$(TARGETS),\
   $(eval $(target)-target-path := $(if $(filter %.a %.so,$(target)),$(LIB_OUTPUT_DIR)/$(target),$(BIN_OUTPUT_DIR)/$(target)))\
   $(eval all: $($(target)-target-path)))
 
-# 静态库规则
+# 静态库规则（简化：去掉 ifneq 检查和 strip 调用）
 define STATIC_LIB_template
 $(1): $(2)
 	@mkdir -p $$(dir $$@)
@@ -112,12 +112,10 @@ $(1): $(2)
 	@$$(AR) rcs $$@ $$^
 endef
 
-ifneq ($(strip $(obj-s-expanded)),)
 $(foreach target,$(obj-s-expanded),\
-  $(eval $(call STATIC_LIB_template,$($(target)-target-path),$(strip $(addprefix $(OBJ_OUTPUT_BASE)/,$(if $($(target)-objs),$($(target)-objs),$(obj-y)))))))
-endif
+  $(eval $(call STATIC_LIB_template,$($(target)-target-path),$(addprefix $(OBJ_OUTPUT_BASE)/,$(if $($(target)-objs),$($(target)-objs),$(obj-y))))))
 
-# 动态库规则
+# 动态库规则（简化：去掉 ifneq 检查和 strip 调用）
 define DYNAMIC_LIB_template
 $(1): $(2)
 	@mkdir -p $$(dir $$@)
@@ -125,12 +123,10 @@ $(1): $(2)
 	@$$(CC) -shared $$(CFLAGS) $$(LDFLAGS) -o $$@ $$^ $$(LDLIBS)
 endef
 
-ifneq ($(strip $(obj-d-expanded)),)
 $(foreach target,$(obj-d-expanded),\
-  $(eval $(call DYNAMIC_LIB_template,$($(target)-target-path),$(strip $(addprefix $(OBJ_OUTPUT_BASE)/,$(if $($(target)-objs),$($(target)-objs),$(obj-y)))))))
-endif
+  $(eval $(call DYNAMIC_LIB_template,$($(target)-target-path),$(addprefix $(OBJ_OUTPUT_BASE)/,$(if $($(target)-objs),$($(target)-objs),$(obj-y))))))
 
-# 可执行文件规则
+# 可执行文件规则（简化：去掉 ifneq 检查和 strip 调用）
 define EXECUTABLE_template
 $(1): $(2)
 	@mkdir -p $$(dir $$@)
@@ -138,10 +134,8 @@ $(1): $(2)
 	@$$(CC) $$(CFLAGS) $$(LDFLAGS) -o $$@ $$^ $$(LDLIBS)
 endef
 
-ifneq ($(strip $(obj-e-expanded)),)
 $(foreach target,$(obj-e-expanded),\
-  $(eval $(call EXECUTABLE_template,$($(target)-target-path),$(strip $(addprefix $(OBJ_OUTPUT_BASE)/,$(if $($(target)-objs),$($(target)-objs),$(obj-y)))))))
-endif
+  $(eval $(call EXECUTABLE_template,$($(target)-target-path),$(addprefix $(OBJ_OUTPUT_BASE)/,$(if $($(target)-objs),$($(target)-objs),$(obj-y))))))
 
 # ============================================================================
 # 编译标志
