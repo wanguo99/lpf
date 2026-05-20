@@ -1,94 +1,184 @@
 # ============================================================================
-# 通用编译规则库
+# 通用库构建框架 (Makefile.lib)
+# ============================================================================
+# 用于构建共享库 (.so) 和静态库 (.a)
+#
+# 使用方法：
+# 1. 在模块 Makefile 中定义以下变量：
+#    - LIB_NAME: 库名称（不含 lib 前缀和后缀，如 osal）
+#    - LIB_TYPE: 库类型 (shared/static/both)
+#    - SRCS: 源文件列表（相对于 SRC_DIR）
+#    - EXPORT_HEADERS: 需要导出的头文件列表
+#    - CFLAGS_LIB: 库特定的编译标志
+#    - LDLIBS: 链接库
+#
+# 2. 包含此文件：include $(srctree)/scripts/Makefile.lib
+#
+# 示例：
+#   LIB_NAME := osal
+#   LIB_TYPE := shared
+#   SRCS := lib/osal_errno.c ipc/osal_mutex.c
+#   EXPORT_HEADERS := osal.h osal_types.h
+#   include $(srctree)/scripts/Makefile.lib
 # ============================================================================
 
-# 详细程度控制（V=参数支持）
-ifeq ("$(origin V)", "command line")
-  KBUILD_VERBOSE = $(V)
-endif
-ifndef KBUILD_VERBOSE
-  KBUILD_VERBOSE = 0
+ifndef LIB_NAME
+$(error LIB_NAME is not defined. Please define it before including Makefile.lib)
 endif
 
-ifeq ($(KBUILD_VERBOSE),1)
-  quiet =
-  Q =
+# 包含通用规则库
+include $(srctree)/scripts/Makefile.rules
+
+# ============================================================================
+# 默认值和路径设置
+# ============================================================================
+
+# 库类型默认为共享库
+LIB_TYPE ?= shared
+
+# 源文件目录（默认为当前模块的 src/）
+SRC_DIR ?= $(srctree)/core/$(LIB_NAME)/src
+
+# 头文件目录（默认为当前模块的 include/）
+INC_DIR ?= $(srctree)/core/$(LIB_NAME)/include
+
+# 构建输出目录
+BUILD_DIR ?= $(objtree)/core/$(LIB_NAME)
+
+# 库输出目录
+LIB_DIR := $(objtree)/lib
+
+# 顶层 include 目录（用于导出头文件）
+EXPORT_INC_DIR := $(srctree)/include/$(LIB_NAME)
+
+# ============================================================================
+# 目标文件名生成
+# ============================================================================
+
+ifeq ($(LIB_TYPE),shared)
+  TARGET_SHARED := $(LIB_DIR)/lib$(LIB_NAME).so
+  TARGETS := $(TARGET_SHARED)
+  BUILD_SHARED := y
+else ifeq ($(LIB_TYPE),static)
+  TARGET_STATIC := $(LIB_DIR)/lib$(LIB_NAME).a
+  TARGETS := $(TARGET_STATIC)
+  BUILD_STATIC := y
+else ifeq ($(LIB_TYPE),both)
+  TARGET_SHARED := $(LIB_DIR)/lib$(LIB_NAME).so
+  TARGET_STATIC := $(LIB_DIR)/lib$(LIB_NAME).a
+  TARGETS := $(TARGET_SHARED) $(TARGET_STATIC)
+  BUILD_SHARED := y
+  BUILD_STATIC := y
 else
-  quiet = quiet_
-  Q = @
+  $(error Unknown LIB_TYPE: $(LIB_TYPE). Must be shared, static, or both)
 endif
 
-export quiet Q KBUILD_VERBOSE
+# ============================================================================
+# 源文件和目标文件处理
+# ============================================================================
 
-# 编译器设置
-CC ?= $(CROSS_COMPILE)gcc
-AR ?= $(CROSS_COMPILE)ar
-LD ?= $(CROSS_COMPILE)ld
+# 支持条件编译：SRCS-$(CONFIG_XXX) += file.c
+SRCS_ALL := $(SRCS)
+SRCS_ALL += $(foreach cfg,$(filter CONFIG_%,$(.VARIABLES)),$(SRCS-$(cfg)))
 
-# 通用编译标志
-CFLAGS := -Wall -Wextra -fPIC
-CFLAGS += -I$(srctree)/include
-CFLAGS += -I$(objtree)/include/generated
+# 将源文件转换为目标文件路径
+OBJS := $(patsubst %.c,$(BUILD_DIR)/%.o,$(SRCS_ALL))
 
-# 依赖跟踪：自动生成.d文件跟踪头文件依赖
-CFLAGS += -MMD -MP
-
-# 根据构建类型设置优化级别
-ifeq ($(CONFIG_BUILD_TYPE_DEBUG),y)
-  CFLAGS += -g -O0 -DDEBUG
-else ifeq ($(CONFIG_BUILD_TYPE_RELEASE),y)
-  CFLAGS += -O2 -DNDEBUG
-endif
-
-# 架构相关标志
-ifeq ($(CONFIG_ARCH_ARM32),y)
-  CFLAGS += -march=armv7-a -mfpu=neon -mfloat-abi=hard
-endif
-
-# 读取 Kconfig 配置
-AUTOCONF_H := $(objtree)/include/generated/autoconf.h
-ifneq ($(wildcard $(AUTOCONF_H)),)
-  # 配置文件存在，可以使用
-  KCONFIG_AVAILABLE := y
+# 共享库需要 PIC 编译
+ifeq ($(BUILD_SHARED),y)
+  OBJS_SHARED := $(patsubst %.o,%.shared.o,$(OBJS))
 else
-  KCONFIG_AVAILABLE := n
+  OBJS_SHARED :=
+endif
+
+# 静态库使用普通编译
+ifeq ($(BUILD_STATIC),y)
+  OBJS_STATIC := $(patsubst %.o,%.static.o,$(OBJS))
+else
+  OBJS_STATIC :=
 endif
 
 # ============================================================================
-# 辅助函数
+# 编译标志
 # ============================================================================
 
-# 检查 Kconfig 配置是否启用
-# 用法: $(call kconfig_is_set,CONFIG_XXX)
-define kconfig_is_set
-$(shell grep -q "^\#define $(1) 1" $(AUTOCONF_H) 2>/dev/null && echo y || echo n)
-endef
+# 添加模块头文件路径
+CFLAGS_LIB += -I$(INC_DIR)
 
-# 获取 Kconfig 配置值
-# 用法: $(call kconfig_get_value,CONFIG_XXX)
-define kconfig_get_value
-$(shell grep "^\#define $(1)" $(AUTOCONF_H) 2>/dev/null | awk '{print $$3}' | tr -d '"')
-endef
+# 添加顶层 include 路径（用于跨模块引用）
+CFLAGS_LIB += -I$(srctree)/include
+
+# 共享库需要 -fPIC
+CFLAGS_SHARED := $(CFLAGS_LIB) -fPIC
+
+# 静态库使用普通编译标志
+CFLAGS_STATIC := $(CFLAGS_LIB)
 
 # ============================================================================
-# 编译命令定义（静默输出支持）
+# 构建目标
 # ============================================================================
 
-# 静默编译C文件
-quiet_cmd_cc_o_c = CC      $@
-      cmd_cc_o_c = $(CC) $(CFLAGS) $(CFLAGS_MODULE) -c -o $@ $<
+.PHONY: all clean headers_install
 
-# 静默链接共享库
-quiet_cmd_ld_so = LD      $@
-      cmd_ld_so = $(CC) -shared -o $@ $^ $(LDLIBS)
+all: $(TARGETS)
 
-# 静默创建静态库
-quiet_cmd_ar_a = AR      $@
-      cmd_ar_a = rm -f $@; $(AR) rcs $@ $^
+# 链接共享库
+ifdef TARGET_SHARED
+$(TARGET_SHARED): $(OBJS_SHARED) | $(LIB_DIR)
+	$(call cmd,ld_so)
+endif
 
-# 静默链接可执行文件
-quiet_cmd_ld_exe = LD      $@
-      cmd_ld_exe = $(CC) -o $@ $^ $(LDFLAGS) $(LDLIBS)
+# 创建静态库
+ifdef TARGET_STATIC
+$(TARGET_STATIC): $(OBJS_STATIC) | $(LIB_DIR)
+	$(call cmd,ar_a)
+endif
 
-# 执行命令的宏
-cmd = @$(if $($(quiet)cmd_$(1)),echo '  $($(quiet)cmd_$(1))' &&) $(cmd_$(1))
+# 编译规则 - 共享库（PIC）
+$(BUILD_DIR)/%.shared.o: $(SRC_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(call cmd,cc_o_c_shared)
+
+# 编译规则 - 静态库
+$(BUILD_DIR)/%.static.o: $(SRC_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(call cmd,cc_o_c_static)
+
+# 创建输出目录
+$(LIB_DIR):
+	@mkdir -p $@
+
+# ============================================================================
+# 头文件导出
+# ============================================================================
+
+headers_install:
+ifdef EXPORT_HEADERS
+	@echo "  INSTALL $(LIB_NAME) headers"
+	@mkdir -p $(EXPORT_INC_DIR)
+	@for header in $(EXPORT_HEADERS); do \
+		src="$(INC_DIR)/$$header"; \
+		dst="$(EXPORT_INC_DIR)/$$header"; \
+		mkdir -p $$(dirname $$dst); \
+		cp -f $$src $$dst; \
+	done
+else
+	@echo "  SKIP    $(LIB_NAME) (no headers to export)"
+endif
+
+# ============================================================================
+# 清理
+# ============================================================================
+
+clean:
+	@echo "  CLEAN   $(LIB_NAME)"
+	@rm -rf $(BUILD_DIR)
+	@rm -f $(TARGETS)
+
+# ============================================================================
+# 依赖跟踪
+# ============================================================================
+
+# 包含自动生成的依赖文件（.d 文件）
+-include $(OBJS_SHARED:.o=.d)
+-include $(OBJS_STATIC:.o=.d)
