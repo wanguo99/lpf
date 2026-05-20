@@ -97,34 +97,19 @@ config OSAL_DEBUG_LOGGING
 	help
 	  Enable verbose debug logging in OSAL layer.
 
-choice
-	prompt "OSAL library type"
-	default OSAL_LIB_TYPE_DEFAULT
+config OSAL_BUILD_STATIC
+	bool "Build static library (.a)"
+	default y
 	help
-	  Select the library type for OSAL.
-	  This overrides the global BUILD_SHARED_LIBS setting.
+	  Build OSAL as a static library (libosal.a).
 
-config OSAL_LIB_TYPE_DEFAULT
-	bool "Use global setting"
+config OSAL_BUILD_SHARED
+	bool "Build shared library (.so)"
+	default y
 	help
-	  Use the global BUILD_SHARED_LIBS setting.
+	  Build OSAL as a shared library (libosal.so).
 
-config OSAL_LIB_TYPE_SHARED
-	bool "Shared library (.so)"
-	help
-	  Build OSAL as a shared library.
-
-config OSAL_LIB_TYPE_STATIC
-	bool "Static library (.a)"
-	help
-	  Build OSAL as a static library.
-
-config OSAL_LIB_TYPE_BOTH
-	bool "Both shared and static"
-	help
-	  Build both shared and static versions of OSAL.
-
-endchoice
+comment "Tip: Enable both if different apps need different link types"
 
 endmenu
 

@@ -18,4 +18,16 @@ config ACL_MAX_DEVICES
 	help
 	  Maximum number of devices that can be configured in ACL.
 
+menu "ACL Build Configuration"
+
+config ACL_BUILD_STATIC
+	bool "Build static library (.a)"
+	default y
+
+config ACL_BUILD_SHARED
+	bool "Build shared library (.so)"
+	default y
+
+endmenu
+
 endif # ACL

@@ -67,4 +67,16 @@ menuconfig PDL_WATCHDOG_SUPPORT
 
 	  If unsure, say Y.
 
+menu "PDL Build Configuration"
+
+config PDL_BUILD_STATIC
+	bool "Build static library (.a)"
+	default y
+
+config PDL_BUILD_SHARED
+	bool "Build shared library (.so)"
+	default y
+
+endmenu
+
 endif # PDL

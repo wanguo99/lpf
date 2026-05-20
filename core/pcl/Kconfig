@@ -47,4 +47,16 @@ endchoice
 
 endif
 
+menu "PCL Build Configuration"
+
+config PCL_BUILD_STATIC
+	bool "Build static library (.a)"
+	default y
+
+config PCL_BUILD_SHARED
+	bool "Build shared library (.so)"
+	default y
+
+endmenu
+
 endif # PCL

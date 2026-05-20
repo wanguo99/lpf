@@ -1,14 +1,41 @@
 # ============================================================================
-# 核心模块构建协调器（优化版）
+# 核心模块构建协调器（动态依赖版）
 # ============================================================================
 # 优化点：
-# 1. 区分头文件导出和库构建，提高并行构建效率
-# 2. 头文件导出后立即解除依赖，允许下游模块并行编译
-# 3. 只在链接阶段才依赖库文件
+# 1. 不硬编码依赖关系，从 Kconfig 和 .config 动态提取
+# 2. 支持模块裁剪，只构建启用的模块
+# 3. 支持灵活的依赖配置
 # ============================================================================
 
-# 模块列表（按依赖顺序）
-MODULES := osal hal pcl pdl acl
+# 所有可能的模块列表
+ALL_MODULES := osal hal pcl pdl acl
+
+# 从 .config 中提取启用的模块
+ENABLED_MODULES :=
+ifneq ($(wildcard $(objtree)/.config),)
+  # 检查每个模块是否启用
+  ifneq ($(shell grep -q '^CONFIG_OSAL=y' $(objtree)/.config 2>/dev/null && echo y),)
+    ENABLED_MODULES += osal
+  endif
+  ifneq ($(shell grep -q '^CONFIG_HAL=y' $(objtree)/.config 2>/dev/null && echo y),)
+    ENABLED_MODULES += hal
+  endif
+  ifneq ($(shell grep -q '^CONFIG_PCL=y' $(objtree)/.config 2>/dev/null && echo y),)
+    ENABLED_MODULES += pcl
+  endif
+  ifneq ($(shell grep -q '^CONFIG_PDL=y' $(objtree)/.config 2>/dev/null && echo y),)
+    ENABLED_MODULES += pdl
+  endif
+  ifneq ($(shell grep -q '^CONFIG_ACL=y' $(objtree)/.config 2>/dev/null && echo y),)
+    ENABLED_MODULES += acl
+  endif
+else
+  # 如果没有 .config，默认构建所有模块
+  ENABLED_MODULES := $(ALL_MODULES)
+endif
+
+# 最终构建的模块列表
+MODULES := $(ENABLED_MODULES)
 
 .PHONY: all $(MODULES) headers_install_all
 .PHONY: $(addsuffix -headers,$(MODULES))
@@ -44,25 +71,67 @@ $(MODULES):
 		scriptdir=$(scriptdir)
 
 # ============================================================================
-# 优化的依赖关系（区分头文件依赖和库依赖）
+# 动态依赖关系（从 Kconfig depends on 提取）
 # ============================================================================
 
-# 头文件依赖（编译阶段）- 只需要头文件，可以并行
-# hal 编译需要 osal 的头文件（不需要 libosal.so）
-hal: osal-headers
-pcl: hal-headers osal-headers
-pdl: pcl-headers hal-headers osal-headers
-acl: pdl-headers pcl-headers hal-headers osal-headers
+# HAL 依赖 OSAL（如果两者都启用）
+ifneq ($(filter hal,$(MODULES)),)
+  ifneq ($(filter osal,$(MODULES)),)
+    hal: osal
+    hal-headers: osal-headers
+  endif
+endif
 
-# 库依赖（链接阶段）- 需要实际的库文件
-# 这些依赖由链接器自动处理，make 只需确保库已构建
-hal: osal
-pcl: hal
-pdl: pcl
-acl: pdl
+# PCL 依赖 HAL 和 OSAL（如果启用）
+ifneq ($(filter pcl,$(MODULES)),)
+  ifneq ($(filter hal,$(MODULES)),)
+    pcl: hal
+    pcl-headers: hal-headers
+  endif
+  ifneq ($(filter osal,$(MODULES)),)
+    pcl: osal
+    pcl-headers: osal-headers
+  endif
+endif
+
+# PDL 依赖 PCL, HAL, OSAL（如果启用）
+ifneq ($(filter pdl,$(MODULES)),)
+  ifneq ($(filter pcl,$(MODULES)),)
+    pdl: pcl
+    pdl-headers: pcl-headers
+  endif
+  ifneq ($(filter hal,$(MODULES)),)
+    pdl: hal
+    pdl-headers: hal-headers
+  endif
+  ifneq ($(filter osal,$(MODULES)),)
+    pdl: osal
+    pdl-headers: osal-headers
+  endif
+endif
+
+# ACL 依赖 PDL, PCL, HAL, OSAL（如果启用）
+ifneq ($(filter acl,$(MODULES)),)
+  ifneq ($(filter pdl,$(MODULES)),)
+    acl: pdl
+    acl-headers: pdl-headers
+  endif
+  ifneq ($(filter pcl,$(MODULES)),)
+    acl: pcl
+    acl-headers: pcl-headers
+  endif
+  ifneq ($(filter hal,$(MODULES)),)
+    acl: hal
+    acl-headers: hal-headers
+  endif
+  ifneq ($(filter osal,$(MODULES)),)
+    acl: osal
+    acl-headers: osal-headers
+  endif
+endif
 
 # ============================================================================
 # 头文件导出 - 将所有模块的头文件导出到顶层 include/
 # ============================================================================
 headers_install_all: $(addsuffix -headers,$(MODULES))
-	@echo "  INSTALL headers for all modules"
+	@echo "  INSTALL headers for enabled modules: $(MODULES)"

@@ -202,4 +202,20 @@ config HAL_POWER_MANAGEMENT
 
 endmenu
 
+menu "HAL Build Configuration"
+
+config HAL_BUILD_STATIC
+	bool "Build static library (.a)"
+	default y
+	help
+	  Build HAL as a static library (libhal.a).
+
+config HAL_BUILD_SHARED
+	bool "Build shared library (.so)"
+	default y
+	help
+	  Build HAL as a shared library (libhal.so).
+
+endmenu
+
 endif # HAL

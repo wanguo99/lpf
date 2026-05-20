@@ -2,28 +2,36 @@
 # CCM Supervisor Application - Kbuild 框架
 # ============================================================================
 
+# 包含 Kconfig 配置
+-include $(objtree)/include/config/auto.conf
+
+# 应用名称
+APP_NAME := ccm_supervisor
+
 # 定义可执行文件目标
 obj-e := ccm_supervisor
 
 # 子目录
 subdir-y += src/
 
-# 编译标志
-CFLAGS_APP := -I$(srctree)/products/ccm/apps/ccm_supervisor/include
-CFLAGS_APP += -I$(srctree)/core/osal/include
-CFLAGS_APP += -I$(srctree)/core/hal/include
-CFLAGS_APP += -I$(srctree)/core/pcl/include
-CFLAGS_APP += -I$(srctree)/core/pcl/include/api
-CFLAGS_APP += -I$(srctree)/core/pdl/include
-CFLAGS_APP += -I$(srctree)/core/acl/include
-CFLAGS_APP += -I$(srctree)/products/ccm/libs/libccm/include
-CFLAGS_APP += -I$(srctree)/include
+# 私有编译标志（每个应用独立定义）
+CFLAGS_PRIV := -I$(srctree)/products/ccm/apps/ccm_supervisor/include
+CFLAGS_PRIV += -I$(srctree)/core/osal/include
+CFLAGS_PRIV += -I$(srctree)/core/hal/include
+CFLAGS_PRIV += -I$(srctree)/core/pcl/include
+CFLAGS_PRIV += -I$(srctree)/core/pcl/include/api
+CFLAGS_PRIV += -I$(srctree)/core/pdl/include
+CFLAGS_PRIV += -I$(srctree)/core/acl/include
+CFLAGS_PRIV += -I$(srctree)/products/ccm/libs/libccm/include
+CFLAGS_PRIV += -I$(srctree)/include
 
-# 链接库
-LDLIBS := -L$(objtree)/lib
-LDLIBS += -lh200_am625 -lccm
-LDLIBS += -lacl -lpdl -lpcl -lhal -losal
-LDLIBS += -lpthread -lrt
+# 私有链接标志和库（每个应用独立定义）
+# 链接方式：动态链接
+LDFLAGS_PRIV := -L$(objtree)/lib
+LDFLAGS_PRIV += -Wl,-rpath,$$ORIGIN/../lib
+
+LDLIBS_PRIV := -lh200_am625 -lccm
+LDLIBS_PRIV += -lacl -lpdl -lpcl -lhal -losal
 
 # 包含 Kbuild 构建框架
 include $(scriptdir)/build/Makefile.build

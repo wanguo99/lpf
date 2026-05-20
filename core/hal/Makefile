@@ -2,11 +2,20 @@
 # HAL 模块构建 - Kbuild 风格
 # ============================================================================
 
-# 静态库
-obj-s := libhal.a
+# 包含 Kconfig 配置
+-include $(objtree)/include/config/auto.conf
 
-# 动态库
-obj-d := libhal.so
+# 库名称
+LIB_NAME := hal
+
+# 根据 Kconfig 配置决定构建目标
+ifeq ($(CONFIG_HAL_BUILD_STATIC),y)
+  obj-s := libhal.a
+endif
+
+ifeq ($(CONFIG_HAL_BUILD_SHARED),y)
+  obj-d := libhal.so
+endif
 
 # 子目录递归
 subdir-y += src/
@@ -15,14 +24,15 @@ subdir-y += src/
 libhal.a-objs := $(obj-y)
 libhal.so-objs := $(obj-y)
 
-# 编译标志
-CFLAGS_LIB := -I$(srctree)/core/hal/include
-CFLAGS_LIB += -I$(srctree)/core/hal/include/config
-CFLAGS_LIB += -I$(srctree)/core/osal/include
-CFLAGS_LIB += -I$(srctree)/include
+# 私有编译标志（每个模块独立定义）
+CFLAGS_PRIV := -I$(srctree)/core/hal/include
+CFLAGS_PRIV += -I$(srctree)/core/hal/include/config
+CFLAGS_PRIV += -I$(srctree)/core/osal/include
+CFLAGS_PRIV += -I$(srctree)/include
 
-# 链接库
-LDLIBS := -L$(objtree)/lib -losal
+# 私有链接标志和库（每个模块独立定义）
+LDFLAGS_PRIV :=
+LDLIBS_PRIV := -L$(objtree)/lib -losal
 
 # 导出的头文件
 EXPORT_HEADERS := \
