@@ -4,7 +4,7 @@
 
 # 库配置
 LIB_NAME := hal
-LIB_TYPE := shared
+# LIB_TYPE := static  # 取消注释可覆盖全局配置
 
 # 源文件目录（Linux 实现）
 SRC_DIR := $(srctree)/core/$(LIB_NAME)/src/linux

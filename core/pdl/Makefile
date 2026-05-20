@@ -4,16 +4,7 @@
 
 # 库配置
 LIB_NAME := pdl
-
-# 库类型从 Kconfig 读取
-ifdef CONFIG_PDL_LIB_TYPE_SHARED
-  LIB_TYPE := shared
-else ifdef CONFIG_PDL_LIB_TYPE_STATIC
-  LIB_TYPE := static
-else ifdef CONFIG_PDL_LIB_TYPE_BOTH
-  LIB_TYPE := both
-endif
-# 如果未设置，使用全局默认值（在 Makefile.lib 中处理）
+# LIB_TYPE := static  # 取消注释可覆盖全局配置
 
 # 源文件目录
 SRC_DIR := $(srctree)/core/$(LIB_NAME)/src
