@@ -73,18 +73,25 @@ obj-s-expanded := $(obj-s)
 obj-s-expanded += $(foreach cfg,$(filter CONFIG_%,$(.VARIABLES)),\
   $(if $(filter y,$($(cfg))),$(obj-s-$(cfg))))
 
-$(foreach target,$(obj-s-expanded),\
-  $(eval $(target)-type := static)\
-  $(eval TARGETS += $(target)))
+# 根据 LIBRARY_BUILD_TYPE 配置决定是否构建静态库
+LIBRARY_TYPE := $(subst ",,$(CONFIG_LIBRARY_BUILD_TYPE))
+ifneq ($(filter static both,$(LIBRARY_TYPE)),)
+  $(foreach target,$(obj-s-expanded),\
+    $(eval $(target)-type := static)\
+    $(eval TARGETS += $(target)))
+endif
 
 # 动态库（obj-d）
 obj-d-expanded := $(obj-d)
 obj-d-expanded += $(foreach cfg,$(filter CONFIG_%,$(.VARIABLES)),\
   $(if $(filter y,$($(cfg))),$(obj-d-$(cfg))))
 
-$(foreach target,$(obj-d-expanded),\
-  $(eval $(target)-type := dynamic)\
-  $(eval TARGETS += $(target)))
+# 根据 LIBRARY_BUILD_TYPE 配置决定是否构建动态库
+ifneq ($(filter shared both,$(LIBRARY_TYPE)),)
+  $(foreach target,$(obj-d-expanded),\
+    $(eval $(target)-type := dynamic)\
+    $(eval TARGETS += $(target)))
+endif
 
 # 内核模块（obj-m）
 obj-m-expanded := $(obj-m)
