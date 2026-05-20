@@ -1,6 +1,12 @@
 # ============================================================================
-# Linux 内核风格统一构建框架
+# Linux 内核风格统一构建框架（优化版 v2.0）
 # 支持 obj-y、obj-e/s/d/m、subdir-y 语法
+# ============================================================================
+# 优化点：
+# 1. 统一的 CONFIG 变量展开函数（避免重复代码）
+# 2. 自动化静态库链接转换（用循环替代硬编码）
+# 3. 模块化构建脚本（拆分为 Makefile.lib、Makefile.host、Makefile.clean）
+# 4. 保留 Makefile.subdir 机制（性能已优化）
 # ============================================================================
 
 # 包含通用规则
@@ -27,13 +33,29 @@ else
 endif
 
 # ============================================================================
+# 统一的 CONFIG 变量展开机制（优化：避免重复代码）
+# ============================================================================
+# 注意：obj-y/lib-y/subdir-y 已经在 Makefile.rules 中展开
+# 这里只需要展开 obj-e/s/d/m
+
+# 通用展开函数
+define expand-config-vars
+$(1) := $$($(1))
+$(1) += $$(foreach cfg,$$(filter CONFIG_%,$$(.VARIABLES)),\
+  $$(if $$(filter y,$$($$cfg)),$$($(1)-$$(cfg))))
+endef
+
+# 一次性展开所有构建目标类型
+$(eval $(call expand-config-vars,obj-e))
+$(eval $(call expand-config-vars,obj-s))
+$(eval $(call expand-config-vars,obj-d))
+$(eval $(call expand-config-vars,obj-m))
+
+# ============================================================================
 # 源文件收集（obj-y）
 # ============================================================================
-# 注意：obj-y 已经在 Makefile.rules 中展开了 obj-$(CONFIG_XXX)
-# 这里直接使用展开后的 obj-y，避免重复展开
 
-# 从子目录收集 obj-y（递归）
-# 注意：subdir-y 也已经在 Makefile.rules 中展开了 subdir-$(CONFIG_XXX)
+# 从子目录收集 obj-y（使用 Makefile.subdir）
 ifdef subdir-y
   subdir-objs := $(foreach dir,$(subdir-y),\
     $(addprefix $(dir),\
@@ -44,134 +66,29 @@ ifdef subdir-y
         objtree=$(objtree) \
         scriptdir=$(scriptdir) \
         print-objs 2>/dev/null)))
-  # 过滤掉 make 的诊断消息（Entering/Leaving directory 等）
+  # 过滤掉 make 的诊断消息
   subdir-objs := $(filter %.o %.a %.so,$(subdir-objs))
   obj-y += $(subdir-objs)
 endif
 
 # ============================================================================
-# 构建类型处理（obj-e/s/d/m）
+# 构建目标初始化
 # ============================================================================
-# 注意：obj-e/s/d/m 已经在 Makefile.rules 中展开了对应的 CONFIG_ 变量
-# 但 Makefile.rules 目前只展开了 obj-y/lib-y/subdir-y
-# 这里需要手动展开 obj-e/s/d/m（TODO: 可以移到 Makefile.rules）
 
 TARGETS :=
 
-# 可执行文件（obj-e）
-# 注意：Makefile.rules 没有展开 obj-e-$(CONFIG_XXX)，这里需要手动展开
-obj-e-expanded := $(obj-e)
-obj-e-expanded += $(foreach cfg,$(filter CONFIG_%,$(.VARIABLES)),\
-  $(if $(filter y,$($(cfg))),$(obj-e-$(cfg))))
-
-$(foreach target,$(obj-e-expanded),\
-  $(eval $(target)-type := executable)\
-  $(eval TARGETS += $(target)))
-
-# 静态库（obj-s）
-obj-s-expanded := $(obj-s)
-obj-s-expanded += $(foreach cfg,$(filter CONFIG_%,$(.VARIABLES)),\
-  $(if $(filter y,$($(cfg))),$(obj-s-$(cfg))))
-
-# 根据配置决定是否构建静态库
-ifeq ($(CONFIG_LIBRARY_BUILD_TYPE_STATIC),y)
-  $(foreach target,$(obj-s-expanded),\
-    $(eval $(target)-type := static)\
-    $(eval TARGETS += $(target)))
-endif
-
-# 动态库（obj-d）
-obj-d-expanded := $(obj-d)
-obj-d-expanded += $(foreach cfg,$(filter CONFIG_%,$(.VARIABLES)),\
-  $(if $(filter y,$($(cfg))),$(obj-d-$(cfg))))
-
-# 根据配置决定是否构建动态库
-ifeq ($(CONFIG_LIBRARY_BUILD_TYPE_DYNAMIC),y)
-  $(foreach target,$(obj-d-expanded),\
-    $(eval $(target)-type := dynamic)\
-    $(eval TARGETS += $(target)))
-endif
-
-# 内核模块（obj-m）
-obj-m-expanded := $(obj-m)
-obj-m-expanded += $(foreach cfg,$(filter CONFIG_%,$(.VARIABLES)),\
-  $(if $(filter y,$($(cfg))),$(obj-m-$(cfg))))
-
-$(foreach target,$(obj-m-expanded),\
-  $(eval $(target)-type := module)\
-  $(eval TARGETS += $(target)))
-
 # ============================================================================
-# 编译规则生成
+# 包含模块化构建规则
 # ============================================================================
 
-# 为每个目标生成构建规则
-$(foreach target,$(TARGETS),\
-  $(eval $(target)-target-path := $(if $(filter %.a %.so,$(target)),$(LIB_OUTPUT_DIR)/$(target),$(BIN_OUTPUT_DIR)/$(target)))\
-  $(eval all: $($(target)-target-path)))
+# 包含库构建规则（处理 obj-s 和 obj-d）
+include $(scriptdir)/build/Makefile.lib
 
-# 静态库规则（简化：去掉 ifneq 检查和 strip 调用）
-define STATIC_LIB_template
-$(1): $(2)
-	@mkdir -p $$(dir $$@)
-	@echo "  AR      $$@"
-	@$$(AR) rcs $$@ $$^
-endef
+# 包含可执行文件构建规则（处理 obj-e）
+include $(scriptdir)/build/Makefile.host
 
-$(foreach target,$(obj-s-expanded),\
-  $(eval $(call STATIC_LIB_template,$($(target)-target-path),$(addprefix $(OBJ_OUTPUT_BASE)/,$(if $($(target)-objs),$($(target)-objs),$(obj-y))))))
-
-# 动态库规则（简化：去掉 ifneq 检查和 strip 调用）
-define DYNAMIC_LIB_template
-$(1): $(2)
-	@mkdir -p $$(dir $$@)
-	@echo "  LD      $$@"
-	@$$(CC) -shared $$(CFLAGS) $$(LDFLAGS) -o $$@ $$^ $$(LDLIBS)
-endef
-
-$(foreach target,$(obj-d-expanded),\
-  $(eval $(call DYNAMIC_LIB_template,$($(target)-target-path),$(addprefix $(OBJ_OUTPUT_BASE)/,$(if $($(target)-objs),$($(target)-objs),$(obj-y))))))
-
-# 可执行文件规则
-# 优先级：如果启用动态库则使用动态库链接，否则使用静态库链接
-ifeq ($(CONFIG_LIBRARY_BUILD_TYPE_DYNAMIC),y)
-  # 动态库模式：直接使用 -l 参数
-  define EXECUTABLE_template
-  $(1): $(2)
-	@mkdir -p $$(dir $$@)
-	@echo "  LD      $$@"
-	@$$(CC) $$(CFLAGS) $$(LDFLAGS) -o $$@ $$^ $$(LDLIBS)
-  endef
-else ifeq ($(CONFIG_LIBRARY_BUILD_TYPE_STATIC),y)
-  # 静态库模式：转换项目库为 .a 文件
-  define EXECUTABLE_template
-  # 转换 LDLIBS
-  $(1)-LDLIBS := $$(LDLIBS)
-  $(1)-LDLIBS := $$(patsubst -losal,$$(objtree)/lib/libosal.a,$$($(1)-LDLIBS))
-  $(1)-LDLIBS := $$(patsubst -lhal,$$(objtree)/lib/libhal.a,$$($(1)-LDLIBS))
-  $(1)-LDLIBS := $$(patsubst -lpcl,$$(objtree)/lib/libpcl.a,$$($(1)-LDLIBS))
-  $(1)-LDLIBS := $$(patsubst -lpdl,$$(objtree)/lib/libpdl.a,$$($(1)-LDLIBS))
-  $(1)-LDLIBS := $$(patsubst -lacl,$$(objtree)/lib/libacl.a,$$($(1)-LDLIBS))
-  $(1)-LDLIBS := $$(patsubst -lccm,$$(objtree)/lib/libccm.a,$$($(1)-LDLIBS))
-  $(1)-LDLIBS := $$(patsubst -lh200_am625,$$(objtree)/lib/libh200_am625.a,$$($(1)-LDLIBS))
-
-  $(1): $(2)
-	@mkdir -p $$(dir $$@)
-	@echo "  LD      $$@"
-	@$$(CC) $$(CFLAGS) $$(LDFLAGS) -o $$@ $$^ $$($(1)-LDLIBS)
-  endef
-else
-  # 未配置任何库类型，使用默认动态库链接
-  define EXECUTABLE_template
-  $(1): $(2)
-	@mkdir -p $$(dir $$@)
-	@echo "  LD      $$@"
-	@$$(CC) $$(CFLAGS) $$(LDFLAGS) -o $$@ $$^ $$(LDLIBS)
-  endef
-endif
-
-$(foreach target,$(obj-e-expanded),\
-  $(eval $(call EXECUTABLE_template,$($(target)-target-path),$(addprefix $(OBJ_OUTPUT_BASE)/,$(if $($(target)-objs),$($(target)-objs),$(obj-y))))))
+# 包含内核模块构建规则（处理 obj-m，如果需要）
+# include $(scriptdir)/build/Makefile.modpost
 
 # ============================================================================
 # 编译标志
@@ -202,18 +119,13 @@ $(OBJ_OUTPUT_BASE)/%.o: $(CURDIR)/src/%.c
 -include $(OBJ_OUTPUT_BASE)/*.d
 -include $(OBJ_OUTPUT_BASE)/*/*.d
 -include $(OBJ_OUTPUT_BASE)/*/*/*.d
+-include $(OBJ_OUTPUT_BASE)/*/*/*/*.d
 
 # ============================================================================
-# 清理规则
+# 包含清理规则
 # ============================================================================
 
-.PHONY: clean
-clean:
-	@echo "  CLEAN   $(MODULE_REL_PATH)"
-	@find $(OBJ_OUTPUT_BASE) -name "*.o" -delete 2>/dev/null || true
-	@find $(OBJ_OUTPUT_BASE) -name "*.d" -delete 2>/dev/null || true
-	@find $(OBJ_OUTPUT_BASE) -name ".*.cmd" -delete 2>/dev/null || true
-	@rm -f $(foreach target,$(TARGETS),$(BIN_OUTPUT_DIR)/$(target))
+include $(scriptdir)/build/Makefile.clean
 
 # ============================================================================
 # 默认目标

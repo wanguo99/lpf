@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+# ============================================================================
+# fixdep - 修复依赖文件，添加 CONFIG_ 依赖跟踪
+# ============================================================================
+# 功能：
+# 1. 解析 .d 依赖文件
+# 2. 扫描源文件和头文件中的 CONFIG_ 引用
+# 3. 生成包含 CONFIG 依赖的 .cmd 文件
+# 4. 当 CONFIG 变化时，自动触发重新编译
+# ============================================================================
+
+import sys
+import re
+import os
+
+def parse_depfile(depfile):
+    """解析 .d 依赖文件，返回目标和依赖列表"""
+    with open(depfile, 'r') as f:
+        content = f.read()
+
+    # 移除续行符
+    content = content.replace('\\\n', ' ')
+
+    # 解析格式: target: dep1 dep2 dep3
+    match = re.match(r'([^:]+):\s*(.*)', content)
+    if not match:
+        return None, []
+
+    target = match.group(1).strip()
+    deps = match.group(2).strip().split()
+
+    return target, deps
+
+def extract_config_deps(files, autoconf_h):
+    """从文件中提取 CONFIG_ 依赖"""
+    config_deps = set()
+    config_pattern = re.compile(r'\bCONFIG_[A-Z0-9_]+\b')
+
+    for filepath in files:
+        if not os.path.exists(filepath):
+            continue
+
+        try:
+            with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+                content = f.read()
+                # 查找所有 CONFIG_ 引用
+                matches = config_pattern.findall(content)
+                config_deps.update(matches)
+        except:
+            pass
+
+    # 过滤出实际存在的 CONFIG（在 autoconf.h 中定义的）
+    valid_configs = set()
+    if os.path.exists(autoconf_h):
+        try:
+            with open(autoconf_h, 'r') as f:
+                autoconf_content = f.read()
+                for config in config_deps:
+                    if config in autoconf_content:
+                        valid_configs.add(config)
+        except:
+            pass
+
+    return sorted(valid_configs)
+
+def generate_cmd_file(target, deps, config_deps, cmd, cmdfile, autoconf_h):
+    """生成 .cmd 文件"""
+    with open(cmdfile, 'w') as f:
+        # 写入命令
+        f.write(f'cmd_{target} := {cmd}\n')
+        f.write('\n')
+
+        # 写入依赖文件列表
+        f.write(f'deps_{target} := \\\n')
+        for dep in deps:
+            f.write(f'  {dep} \\\n')
+        f.write('\n')
+
+        # 写入 CONFIG 依赖
+        if config_deps:
+            f.write(f'# CONFIG dependencies\n')
+            f.write(f'{target}: $(wildcard include/config/auto.conf) \\\n')
+            for config in config_deps:
+                # 转换 CONFIG_XXX 为 include/config/xxx.h 格式（Linux 内核风格）
+                config_file = config.lower().replace('config_', '').replace('_', '/')
+                f.write(f'  $(wildcard include/config/{config_file}.h) \\\n')
+            f.write('\n')
+
+            # 添加 autoconf.h 依赖
+            f.write(f'{target}: {autoconf_h}\n')
+
+def main():
+    if len(sys.argv) < 5:
+        print(f"Usage: {sys.argv[0]} <depfile> <target> <cmd> <autoconf.h>", file=sys.stderr)
+        sys.exit(1)
+
+    depfile = sys.argv[1]
+    target = sys.argv[2]
+    cmd = sys.argv[3]
+    autoconf_h = sys.argv[4]
+
+    # 生成 .cmd 文件路径
+    target_dir = os.path.dirname(target)
+    target_name = os.path.basename(target)
+    cmdfile = os.path.join(target_dir, f'.{target_name}.cmd')
+
+    # 解析依赖文件
+    _, deps = parse_depfile(depfile)
+
+    # 提取 CONFIG 依赖
+    files_to_scan = [target.replace('.o', '.c')] + deps
+    config_deps = extract_config_deps(files_to_scan, autoconf_h)
+
+    # 生成 .cmd 文件
+    generate_cmd_file(target, deps, config_deps, cmd, cmdfile, autoconf_h)
+
+if __name__ == '__main__':
+    main()

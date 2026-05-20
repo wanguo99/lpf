@@ -1,0 +1,13 @@
+# ============================================================================
+# 清理规则
+# ============================================================================
+# 本文件被 Makefile.build 包含，提供清理相关的规则
+
+.PHONY: clean
+
+clean:
+	@echo "  CLEAN   $(MODULE_REL_PATH)"
+	@find $(OBJ_OUTPUT_BASE) -type f -name "*.o" -delete 2>/dev/null || true
+	@find $(OBJ_OUTPUT_BASE) -type f -name "*.d" -delete 2>/dev/null || true
+	@find $(OBJ_OUTPUT_BASE) -type f -name ".*.cmd" -delete 2>/dev/null || true
+	@rm -f $(foreach target,$(TARGETS),$(BIN_OUTPUT_DIR)/$(target) $(LIB_OUTPUT_DIR)/$(target))
