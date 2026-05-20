@@ -79,6 +79,12 @@ target/
 # 但不忽略构建脚本目录
 !scripts/build/
 
+# Products 目录中的可执行文件
+products/**/apps/*/ccm_*
+!products/**/apps/*/*.c
+!products/**/apps/*/*.h
+!products/**/apps/*/Makefile
+
 *.DS_Store
 
 # Kconfig generated files
