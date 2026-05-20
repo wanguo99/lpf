@@ -1,29 +1,26 @@
 # ============================================================================
-# CCM 库层构建
+# CCM 库层构建 - Kbuild 框架
 # ============================================================================
 
-# 库列表
-LIBS := libccm
+# 子目录列表
+subdir-y += libccm/
 
 # 默认目标
 .PHONY: all clean
 
 all:
 	@echo "Building CCM libraries"
-	@for lib in $(LIBS); do \
-		echo "Building $$lib..."; \
-		$(MAKE) -C $(srctree)/products/ccm/libs/$$lib \
-			srctree=$(srctree) \
-			objtree=$(objtree) \
-			GENERATED_DIR=$(GENERATED_DIR) || exit 1; \
-	done
+	@$(MAKE) -C libccm \
+		srctree=$(srctree) \
+		objtree=$(objtree) \
+		scriptdir=$(scriptdir) || exit 1
 	@echo "CCM libraries built successfully"
 
 # 清理
 clean:
 	@echo "Cleaning CCM libraries"
-	@for lib in $(LIBS); do \
-		$(MAKE) -C $(srctree)/products/ccm/libs/$$lib clean \
-			srctree=$(srctree) \
-			objtree=$(objtree); \
-	done
+	@$(MAKE) -C libccm clean \
+		srctree=$(srctree) \
+		objtree=$(objtree) \
+		scriptdir=$(scriptdir)
+
