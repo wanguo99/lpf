@@ -9,7 +9,7 @@ PRODUCTS := ccm
 .PHONY: all clean
 
 all:
-	@for product in $(PRODUCTS); do \
+	+@for product in $(PRODUCTS); do \
 		$(MAKE) -C $(srctree)/products/$$product \
 			srctree=$(srctree) \
 			objtree=$(objtree) \
@@ -18,7 +18,7 @@ all:
 
 # 清理
 clean:
-	@for product in $(PRODUCTS); do \
+	+@for product in $(PRODUCTS); do \
 		$(MAKE) -C $(srctree)/products/$$product clean \
 			srctree=$(srctree) \
 			objtree=$(objtree); \

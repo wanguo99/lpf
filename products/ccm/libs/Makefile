@@ -9,14 +9,14 @@ subdir-y += libccm/
 .PHONY: all clean
 
 all:
-	@$(MAKE) -C libccm \
+	+@$(MAKE) -C libccm \
 		srctree=$(srctree) \
 		objtree=$(objtree) \
 		scriptdir=$(scriptdir) || exit 1
 
 # 清理
 clean:
-	@$(MAKE) -C libccm clean \
+	+@$(MAKE) -C libccm clean \
 		srctree=$(srctree) \
 		objtree=$(objtree) \
 		scriptdir=$(scriptdir)

@@ -11,7 +11,7 @@ all: $(MODULES)
 
 # 递归构建每个模块
 $(MODULES):
-	@$(MAKE) -C $(srctree)/core/$@ \
+	+@$(MAKE) -C $(srctree)/core/$@ \
 		BUILD_DIR=$(objtree)/core/$@ \
 		srctree=$(srctree) \
 		objtree=$(objtree) \
@@ -27,7 +27,7 @@ acl: pdl
 # 头文件导出 - 将所有模块的头文件导出到顶层 include/
 # ============================================================================
 headers_install_all:
-	@for module in $(MODULES); do \
+	+@for module in $(MODULES); do \
 		$(MAKE) -C $(srctree)/core/$$module \
 			srctree=$(srctree) \
 			objtree=$(objtree) \
