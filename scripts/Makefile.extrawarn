@@ -1,0 +1,62 @@
+# =============================================================================
+# Extra warning flags
+# =============================================================================
+
+# W=1 - warnings that may be relevant and does not occur too often
+# W=2 - warnings that occur quite often but may still be relevant
+# W=3 - the more obscure warnings, can most likely be ignored
+
+ifeq ("$(origin W)", "command line")
+  KBUILD_ENABLE_EXTRA_GCC_CHECKS := $(W)
+endif
+
+export KBUILD_ENABLE_EXTRA_GCC_CHECKS
+
+#
+# W=1 - warnings that may be relevant and does not occur too often
+#
+ifneq ($(findstring 1, $(KBUILD_ENABLE_EXTRA_GCC_CHECKS)),)
+
+KBUILD_CFLAGS += -Wextra -Wunused -Wno-unused-parameter
+KBUILD_CFLAGS += -Wmissing-declarations
+KBUILD_CFLAGS += -Wmissing-format-attribute
+KBUILD_CFLAGS += $(call cc-option, -Wmissing-prototypes)
+KBUILD_CFLAGS += $(call cc-option, -Wold-style-definition)
+KBUILD_CFLAGS += $(call cc-option, -Wmissing-include-dirs)
+KBUILD_CFLAGS += $(call cc-disable-warning, missing-field-initializers)
+KBUILD_CFLAGS += $(call cc-disable-warning, sign-compare)
+
+endif
+
+#
+# W=2 - warnings that occur quite often but may still be relevant
+#
+ifneq ($(findstring 2, $(KBUILD_ENABLE_EXTRA_GCC_CHECKS)),)
+
+KBUILD_CFLAGS += -Wcast-align
+KBUILD_CFLAGS += -Wdisabled-optimization
+KBUILD_CFLAGS += -Wnested-externs
+KBUILD_CFLAGS += -Wshadow
+KBUILD_CFLAGS += $(call cc-option, -Wlogical-op)
+KBUILD_CFLAGS += $(call cc-option, -Wmissing-field-initializers)
+KBUILD_CFLAGS += $(call cc-option, -Wsign-compare)
+
+endif
+
+#
+# W=3 - more obscure warnings, can most likely be ignored
+#
+ifneq ($(findstring 3, $(KBUILD_ENABLE_EXTRA_GCC_CHECKS)),)
+
+KBUILD_CFLAGS += -Wbad-function-cast
+KBUILD_CFLAGS += -Wcast-qual
+KBUILD_CFLAGS += -Wconversion
+KBUILD_CFLAGS += -Wpacked
+KBUILD_CFLAGS += -Wpadded
+KBUILD_CFLAGS += -Wpointer-arith
+KBUILD_CFLAGS += -Wredundant-decls
+KBUILD_CFLAGS += -Wswitch-default
+KBUILD_CFLAGS += $(call cc-option, -Wpacked-bitfield-compat)
+KBUILD_CFLAGS += $(call cc-option, -Wvla)
+
+endif

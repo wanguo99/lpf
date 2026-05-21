@@ -1,0 +1,287 @@
+####
+# kbuild: 通用定义和辅助函数
+# =============================================================================
+
+# =============================================================================
+# 便捷变量
+# =============================================================================
+comma   := ,
+quote   := "
+squote  := '
+empty   :=
+space   := $(empty) $(empty)
+space_escape := _-_SPACE_-_
+
+# =============================================================================
+# 文件名处理函数
+# =============================================================================
+
+###
+# 目标文件名，前缀加点：foo/bar.o => foo/.bar.o
+dot-target = $(dir $@).$(notdir $@)
+
+###
+# gcc -MD 生成的依赖文件临时文件名（不能包含逗号）
+depfile = $(subst $(comma),_,$(dot-target).d)
+
+###
+# 去掉目录和扩展名的目标文件名
+basetarget = $(basename $(notdir $@))
+
+###
+# 去掉目录和扩展名的第一个依赖文件名
+baseprereq = $(basename $(notdir $<))
+
+###
+# 转义单引号（用于 echo 语句）
+escsq = $(subst $(squote),'\$(squote)',$1)
+
+# =============================================================================
+# 状态消息输出
+# =============================================================================
+       kecho := :
+ quiet_kecho := echo
+silent_kecho := :
+kecho := $($(quiet)kecho)
+
+# =============================================================================
+# filechk: 检查生成文件内容是否更新
+# =============================================================================
+# 用法示例:
+# define filechk_sample
+#	echo $KERNELRELEASE
+# endef
+# version.h : Makefile
+#	$(call filechk,sample)
+#
+# 规则应该将新文件内容写到 stdout
+# - 如果文件不存在，创建它
+# - 如果内容不同，使用新文件
+# - 如果内容相同，不更新（避免时间戳变化）
+define filechk
+	$(Q)set -e;				\
+	$(kecho) '  CHK     $@';		\
+	mkdir -p $(dir $@);			\
+	$(filechk_$(1)) < $< > $@.tmp;		\
+	if [ -r $@ ] && cmp -s $@ $@.tmp; then	\
+		rm -f $@.tmp;			\
+	else					\
+		$(kecho) '  UPD     $@';	\
+		mv -f $@.tmp $@;		\
+	fi
+endef
+
+# =============================================================================
+# GCC 支持函数
+# =============================================================================
+
+# cc-cross-prefix
+# 用法: CROSS_COMPILE := $(call cc-cross-prefix, m68k-linux-gnu- m68k-linux-)
+# 返回 PATH 中第一个找到 prefix$(CC) 的前缀
+cc-cross-prefix =  \
+	$(word 1, $(foreach c,$(1),                                   \
+		$(shell set -e;                                       \
+		if (which $(strip $(c))$(CC)) > /dev/null 2>&1 ; then \
+			echo $(c);                                    \
+		fi)))
+
+# 测试输出目录
+TMPOUT := $(if $(KBUILD_EXTMOD),$(firstword $(KBUILD_EXTMOD))/)
+
+# try-run
+# 用法: option = $(call try-run, $(CC)...-o "$$TMP",option-ok,otherwise)
+# 根据退出码选择选项。"$$TMP" 可用作临时文件，会自动清理
+try-run = $(shell set -e;		\
+	TMP="$(TMPOUT).$$$$.tmp";	\
+	TMPO="$(TMPOUT).$$$$.o";	\
+	if ($(1)) >/dev/null 2>&1;	\
+	then echo "$(2)";		\
+	else echo "$(3)";		\
+	fi;				\
+	rm -f "$$TMP" "$$TMPO")
+
+# as-option
+# 用法: cflags-y += $(call as-option,-Wa$(comma)-isa=foo,)
+as-option = $(call try-run,\
+	$(CC) $(KBUILD_CFLAGS) $(1) -c -x assembler /dev/null -o "$$TMP",$(1),$(2))
+
+# as-instr
+# 用法: cflags-y += $(call as-instr,instr,option1,option2)
+as-instr = $(call try-run,\
+	printf "%b\n" "$(1)" | $(CC) $(KBUILD_AFLAGS) -c -x assembler -o "$$TMP" -,$(2),$(3))
+
+# cc-option
+# 用法: cflags-y += $(call cc-option,-march=winchip-c6,-march=i586)
+cc-option = $(call try-run,\
+	$(CC) $(KBUILD_CPPFLAGS) $(KBUILD_CFLAGS) $(1) -c -x c /dev/null -o "$$TMP",$(1),$(2))
+
+# cc-option-yn
+# 用法: flag := $(call cc-option-yn,-march=winchip-c6)
+cc-option-yn = $(call try-run,\
+	$(CC) $(KBUILD_CPPFLAGS) $(KBUILD_CFLAGS) $(1) -c -x c /dev/null -o "$$TMP",y,n)
+
+# cc-option-align
+# 使用 -falign 或 -malign 前缀对齐选项
+cc-option-align = $(subst -functions=0,,\
+	$(call cc-option,-falign-functions=0,-malign-functions=0))
+
+# cc-disable-warning
+# 用法: cflags-y += $(call cc-disable-warning,unused-but-set-variable)
+cc-disable-warning = $(call try-run,\
+	$(CC) $(KBUILD_CPPFLAGS) $(KBUILD_CFLAGS) -W$(strip $(1)) -c -x c /dev/null -o "$$TMP",-Wno-$(strip $(1)))
+
+# cc-name
+# 展开为 gcc 或 clang
+cc-name = $(shell $(CC) -v 2>&1 | grep -q "clang version" && echo clang || echo gcc)
+
+# cc-version
+cc-version = $(shell $(CONFIG_SHELL) $(srctree)/scripts/gcc-version.sh $(CC))
+
+# cc-fullversion
+cc-fullversion = $(shell $(CONFIG_SHELL) \
+	$(srctree)/scripts/gcc-version.sh -p $(CC))
+
+# cc-ifversion
+# 用法:  EXTRA_CFLAGS += $(call cc-ifversion, -lt, 0402, -O1)
+cc-ifversion = $(shell [ $(cc-version) $(1) $(2) ] && echo $(3) || echo $(4))
+
+# cc-ldoption
+# 用法: ldflags += $(call cc-ldoption, -Wl$(comma)--hash-style=both)
+cc-ldoption = $(call try-run,\
+	$(CC) $(1) -nostdlib -x c /dev/null -o "$$TMP",$(1),$(2))
+
+# ld-option
+# 用法: LDFLAGS += $(call ld-option, -X)
+ld-option = $(call try-run,\
+	$(CC) -x c /dev/null -c -o "$$TMPO" ; $(LD) $(1) "$$TMPO" -o "$$TMP",$(1),$(2))
+
+# ar-option
+# 用法: KBUILD_ARFLAGS := $(call ar-option,D)
+# 重要: 选项周围不能有空格
+ar-option = $(call try-run, $(AR) rc$(1) "$$TMP",$(1),$(2))
+
+# ld-version
+# 注意：主要用于 HJ Lu 的 3 位版本号 binutil
+ld-version = $(shell $(LD) --version | $(srctree)/scripts/ld-version.sh)
+
+# ld-ifversion
+# 用法:  $(call ld-ifversion, -ge, 22252, y)
+ld-ifversion = $(shell [ $(ld-version) $(1) $(2) ] && echo $(3) || echo $(4))
+
+# =============================================================================
+# Makefile 简写
+# =============================================================================
+
+###
+# $(Q)$(MAKE) -f scripts/Makefile.build obj= 的简写
+# 用法:
+# $(Q)$(MAKE) $(build)=dir
+build := -f $(srctree)/scripts/Makefile.build obj
+
+###
+# $(Q)$(MAKE) -f scripts/Makefile.clean obj= 的简写
+# 用法:
+# $(Q)$(MAKE) $(clean)=dir
+clean := -f $(srctree)/scripts/Makefile.clean obj
+
+###
+# $(Q)$(MAKE) -f scripts/Makefile.install obj= 的简写
+# 用法:
+# $(Q)$(MAKE) $(install)=dir
+install := -f $(srctree)/scripts/Makefile.install obj
+
+# =============================================================================
+# 命令执行辅助函数
+# =============================================================================
+
+###
+# echo-cmd: 如果 $(quiet) 为 quiet_，打印简短命令
+# 用法: $(call echo-cmd,tag)
+echo-cmd = $(if $($(quiet)cmd_$(1)),\
+	echo '  $(call escsq,$($(quiet)cmd_$(1)))$(echo-why)';)
+
+###
+# cmd: 执行命令
+# 用法: $(call cmd,tag)
+cmd = @$(echo-cmd) $(cmd_$(1))
+
+###
+# if_changed: 如果命令或依赖改变，执行命令
+# 用法: target: source(s) FORCE
+#           $(call if_changed,ld/objcopy/gzip/...)
+#
+# 并将 target 添加到 targets，以便读取保存的命令行
+if_changed = $(if $(strip $(any-prereq) $(arg-check)),                  \
+	@set -e;                                                         \
+	$(echo-cmd) $(cmd_$(1));                                         \
+	printf '%s\n' 'cmd_$@ := $(make-cmd)' > $(dot-target).cmd, @:)
+
+###
+# if_changed_dep: 如果命令或依赖改变，执行命令（带依赖生成）
+if_changed_dep = $(if $(strip $(any-prereq) $(arg-check) ),             \
+	@set -e;                                                         \
+	$(cmd_and_fixdep), @:)
+
+###
+# if_changed_rule: 如果命令或依赖改变，执行规则
+if_changed_rule = $(if $(strip $(any-prereq) $(arg-check) ),            \
+	@set -e;                                                         \
+	$(rule_$(1)), @:)
+
+###
+# cmd_and_fixdep: 执行命令并修复依赖
+cmd_and_fixdep =                                                         \
+	$(echo-cmd) $(cmd_$(1));                                         \
+	scripts/basic/fixdep $(depfile) $@ '$(make-cmd)' > $(dot-target).tmp;\
+	rm -f $(depfile);                                                \
+	mv -f $(dot-target).tmp $(dot-target).cmd;
+
+# 为什么重新构建？
+ifeq ($(KBUILD_VERBOSE),2)
+why =                                                                    \
+    $(if $(filter $@, $(PHONY)),- due to target is .PHONY,              \
+    $(if $(wildcard $@),                                                 \
+        $(if $(strip $(any-prereq)),- due to: $(any-prereq),            \
+        $(if $(arg-check),                                               \
+            $(if $(cmd_$@),- due to command line change,                \
+            $(if $(filter $@, $(targets)),                               \
+                - due to missing .cmd file,                             \
+                - due to $(notdir $@) not in $$(targets)                \
+             )                                                           \
+             )                                                           \
+         )                                                               \
+         ),                                                              \
+         - due to target missing                                        \
+     )                                                                   \
+     )
+
+echo-why = $(call escsq, $(strip $(why)))
+endif
+
+# 检查命令行是否改变
+arg-check = $(filter-out $(subst $(space),$(space_escape),$(strip $(cmd_$@))), \
+                         $(subst $(space),$(space_escape),$(strip $(cmd_$1))))
+
+# 检查是否有新的依赖
+any-prereq = $(filter-out $(PHONY),$?) $(filter-out $(PHONY) $(wildcard $^),$^)
+
+# 保存命令用于下次比较
+make-cmd = $(call escsq,$(subst \#,\\\#,$(subst $$,$$$$,$(cmd_$(1)))))
+
+# =============================================================================
+# 目录创建
+# =============================================================================
+
+# 创建目录（如果不存在）
+# 用法: $(call cmd,mkdir)
+quiet_cmd_mkdir = MKDIR   $(patsubst $(objtree)/%,%,$@)
+      cmd_mkdir = mkdir -p $@
+
+# =============================================================================
+# 符号链接
+# =============================================================================
+
+# 创建符号链接
+# 用法: $(call cmd,symlink)
+quiet_cmd_symlink = SYMLINK $(patsubst $(objtree)/%,%,$@)
+      cmd_symlink = ln -fsn $(srctree)/$* $@

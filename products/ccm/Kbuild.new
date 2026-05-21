@@ -1,0 +1,86 @@
+# =============================================================================
+# CCM (Communication Controller Management) 产品构建配置
+# =============================================================================
+# 此文件展示如何构建可执行程序、动态库和静态库
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. 可执行程序构建示例
+# -----------------------------------------------------------------------------
+# 构建 ccm 可执行程序
+app-$(CONFIG_CCM) += ccm
+
+# ccm 程序的源文件
+ccm-objs := main.o
+ccm-objs += ccm_init.o
+ccm-objs += ccm_can.o
+ccm-objs += ccm_eth.o
+ccm-objs += ccm_uart.o
+ccm-objs += ccm_config.o
+
+# ccm 程序的链接标志
+ccm-ldflags := -L$(objtree)/lib
+ccm-ldflags += -losal
+ccm-ldflags += -lhal
+ccm-ldflags += -lpdl
+ccm-ldflags += -lacl
+ccm-ldflags += -lpthread
+ccm-ldflags += -lm
+
+# -----------------------------------------------------------------------------
+# 2. CCM 专有库构建示例（可选）
+# -----------------------------------------------------------------------------
+# 如果 CCM 有自己的库模块，可以这样定义：
+
+# 动态库示例
+so-$(CONFIG_CCM_LIB) += ccm_lib
+
+ccm_lib-objs := ccm_protocol.o
+ccm_lib-objs += ccm_parser.o
+ccm_lib-objs += ccm_handler.o
+
+ccm_lib-cflags-y := -fPIC
+ccm_lib-ldflags := -shared -Wl,-soname,libccm.so.1
+ccm_lib-ldflags += -L$(objtree)/lib -losal -lhal
+
+# 静态库示例
+lib-$(CONFIG_CCM_STATIC_LIB) += ccm_static
+
+ccm_static-objs := ccm_utils.o
+ccm_static-objs += ccm_log.o
+
+# -----------------------------------------------------------------------------
+# 3. 编译标志配置
+# -----------------------------------------------------------------------------
+# 所有源文件的通用编译标志
+ccflags-y += -I$(src)/include
+ccflags-y += -I$(srctree)/core/osal/include
+ccflags-y += -I$(srctree)/core/hal/include
+ccflags-y += -I$(srctree)/core/pdl/include
+ccflags-y += -I$(srctree)/core/acl/include
+
+# 根据配置添加宏定义
+ccflags-$(CONFIG_CCM_DEBUG) += -DCCM_DEBUG
+ccflags-$(CONFIG_CCM_H200_AM625) += -DCCM_PLATFORM_H200_AM625
+
+# 特定文件的编译标志
+CFLAGS_main.o := -DCCM_VERSION=\"$(VERSION).$(PATCHLEVEL).$(SUBLEVEL)\"
+
+# -----------------------------------------------------------------------------
+# 4. 子目录构建（如果有）
+# -----------------------------------------------------------------------------
+# 如果 CCM 有子模块，可以这样定义：
+# subdir-$(CONFIG_CCM_PROTOCOL) += protocol/
+# subdir-$(CONFIG_CCM_DRIVERS)  += drivers/
+
+# -----------------------------------------------------------------------------
+# 5. 头文件导出
+# -----------------------------------------------------------------------------
+header-y := ccm.h
+header-y += ccm_api.h
+header-y += ccm_types.h
+
+# -----------------------------------------------------------------------------
+# 6. 清理规则
+# -----------------------------------------------------------------------------
+clean-files := ccm *.so *.so.* *.a

@@ -1,0 +1,38 @@
+# =============================================================================
+# Host programs support
+# =============================================================================
+
+__hostprogs := $(sort $(hostprogs-y))
+
+# C programs
+host-csingle	:= $(foreach m,$(__hostprogs),$(if $($(m)-objs),,$(m)))
+host-cmulti	:= $(foreach m,$(__hostprogs),$(if $($(m)-objs),$(m)))
+
+# Object files
+host-cobjs	:= $(sort $(foreach m,$(__hostprogs),$($(m)-objs)))
+
+# Executables
+host-csingle	:= $(addprefix $(obj)/,$(host-csingle))
+host-cmulti	:= $(addprefix $(obj)/,$(host-cmulti))
+host-cobjs	:= $(addprefix $(obj)/,$(host-cobjs))
+
+# Compile host programs
+quiet_cmd_host-csingle = HOSTCC  $@
+      cmd_host-csingle = $(HOSTCC) $(HOSTCFLAGS) -o $@ $<
+
+$(host-csingle): $(obj)/%: $(src)/%.c FORCE
+	$(call if_changed,host-csingle)
+
+quiet_cmd_host-cobjs = HOSTCC  $@
+      cmd_host-cobjs = $(HOSTCC) $(HOSTCFLAGS) -c -o $@ $<
+
+$(host-cobjs): $(obj)/%.o: $(src)/%.c FORCE
+	$(call if_changed,host-cobjs)
+
+quiet_cmd_host-cmulti = HOSTLD  $@
+      cmd_host-cmulti = $(HOSTCC) $(HOSTCFLAGS) -o $@ $(addprefix $(obj)/,$($(notdir $@)-objs))
+
+$(host-cmulti): $(obj)/%: $(host-cobjs) FORCE
+	$(call if_changed,host-cmulti)
+
+targets += $(host-csingle) $(host-cmulti) $(host-cobjs)
