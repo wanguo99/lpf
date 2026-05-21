@@ -474,8 +474,8 @@ export	INSTALL_PATH ?= ./install
 # =============================================================================
 
 # 核心模块和产品模块
-core-y		:= core/
-products-y	:= products/
+core-y		:= core
+products-y	:= products
 
 # 所有需要构建的目录
 ems-dirs	:= $(core-y) $(products-y)
@@ -627,14 +627,6 @@ help:
 	@echo  '  make PRODUCT=<name> [targets] Build specific product (e.g., PRODUCT=ccm)'
 	@echo  ''
 	@echo  'Execute "make" or "make all" to build all targets marked with [*] '
-
-# 单独构建 core 或 products
-PHONY += core products
-core: prepare scripts
-	+$(Q)$(MAKE) $(build)=core
-
-products: prepare scripts
-	+$(Q)$(MAKE) $(build)=products
 
 endif #ifeq ($(config-targets),1)
 endif #ifeq ($(mixed-targets),1)
