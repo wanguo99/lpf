@@ -115,7 +115,8 @@ int32_t ACL_GetInvalidationMap(uint32_t source_tm_id,
     }
 
     /* 查找源遥测ID */
-    for (uint32_t i = 0; i < g_acl_table->inv_count; i++) {
+    uint32_t i;
+    for (i = 0; i < g_acl_table->inv_count; i++) {
         const acl_invalidation_map_t *map = &g_acl_table->inv_map[i];
         if (map->source_tm_id == source_tm_id) {
             /* 复制受影响的ID */
@@ -147,7 +148,9 @@ int32_t ACL_GetStatistics(acl_statistics_t *stats)
 
     /* 统计遥控配置 */
     if (NULL != g_acl_table->tc_table) {
-        for (uint32_t i = 0; i < g_acl_table->tc_count; i++) {
+        uint32_t i;
+
+        for (i = 0; i < g_acl_table->tc_count; i++) {
             if (g_acl_table->tc_table[i].enabled) {
                 stats->tc_enabled_count++;
             } else {
@@ -158,7 +161,9 @@ int32_t ACL_GetStatistics(acl_statistics_t *stats)
 
     /* 统计遥测配置 */
     if (NULL != g_acl_table->tm_table) {
-        for (uint32_t i = 0; i < g_acl_table->tm_count; i++) {
+        uint32_t i;
+
+        for (i = 0; i < g_acl_table->tm_count; i++) {
             if (g_acl_table->tm_table[i].enabled) {
                 stats->tm_enabled_count++;
             } else {
@@ -186,8 +191,7 @@ void ACL_PrintConfig(void)
     LOG_INFO("ACL", "  TC entries: %u", g_acl_table->tc_count);
     LOG_INFO("ACL", "  TM entries: %u", g_acl_table->tm_count);
     LOG_INFO("ACL", "  Invalidation maps: %u", g_acl_table->inv_count);
-
-    acl_statistics_t stats;
+    acl_statistics_t stats = {0};
     if (OSAL_SUCCESS == ACL_GetStatistics(&stats)) {
         LOG_INFO("ACL", "  TC enabled: %u, disabled: %u",
                    stats.tc_enabled_count, stats.tc_disabled_count);

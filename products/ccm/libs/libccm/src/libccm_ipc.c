@@ -25,7 +25,8 @@ int32_t PMC_TM_Cache_Init(pmc_tm_cache_t **cache)
 
     /* 初始化缓存条目 */
     (*cache)->entry_count = PMC_TM_MAX_COUNT;
-    for (uint32_t i = 0; i < PMC_TM_MAX_COUNT; i++) {
+    uint32_t i;
+    for (i = 0; i < PMC_TM_MAX_COUNT; i++) {
         pmc_tm_cache_entry_t *entry = &(*cache)->entries[i];
         entry->tm_id = i;
         entry->data_size = 0;
@@ -258,7 +259,8 @@ int32_t PMC_Heartbeat_Init(pmc_process_heartbeat_t **heartbeat)
     }
 
     /* 初始化心跳 */
-    for (uint32_t i = 0; i < PMC_PROCESS_MAX; i++) {
+    uint32_t i;
+    for (i = 0; i < PMC_PROCESS_MAX; i++) {
         (*heartbeat)->heartbeat_us[i] = 0;
     }
 

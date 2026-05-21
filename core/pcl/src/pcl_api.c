@@ -83,7 +83,8 @@ int32_t PCL_Register(const pcl_platform_config_t *config)
     }
 
     /* 检查重复 */
-    for (uint32_t i = 0; i < g_registry.count; i++) {
+    uint32_t i;
+    for (i = 0; i < g_registry.count; i++) {
         const pcl_platform_config_t *existing = g_registry.configs[i];
         if (0 == OSAL_Strcmp(existing->platform_name, config->platform_name) &&
             0 == OSAL_Strcmp(existing->product_name, config->product_name)) {
@@ -118,7 +119,8 @@ const pcl_platform_config_t* PCL_Find(const char *platform,
         return NULL;
     }
 
-    for (uint32_t i = 0; i < g_registry.count; i++) {
+    uint32_t i;
+    for (i = 0; i < g_registry.count; i++) {
         const pcl_platform_config_t *config = g_registry.configs[i];
 
         if (0 != OSAL_Strcmp(config->platform_name, platform)) {
@@ -144,7 +146,8 @@ int32_t PCL_List(const pcl_platform_config_t **configs, uint32_t *count)
     uint32_t max_count = *count;
     uint32_t actual_count = (g_registry.count < max_count) ? g_registry.count : max_count;
 
-    for (uint32_t i = 0; i < actual_count; i++) {
+    uint32_t i;
+    for (i = 0; i < actual_count; i++) {
         configs[i] = g_registry.configs[i];
     }
 
@@ -163,7 +166,8 @@ const pcl_mcu_cfg_t* PCL_HW_FindMCU(const pcl_platform_config_t *platform,
         return NULL;
     }
 
-    for (uint32_t i = 0; platform->mcu_arr[i] != NULL; i++) {
+    uint32_t i;
+    for (i = 0; platform->mcu_arr[i] != NULL; i++) {
         if (OSAL_Strcmp(platform->mcu_arr[i]->name, name) == 0) {
             return platform->mcu_arr[i];
         }
@@ -179,7 +183,8 @@ const pcl_mcu_cfg_t* PCL_HW_GetMCU(const pcl_platform_config_t *platform,
         return NULL;
     }
 
-    for (uint32_t i = 0; platform->mcu_arr[i] != NULL; i++) {
+    uint32_t i;
+    for (i = 0; platform->mcu_arr[i] != NULL; i++) {
         if (i == id) {
             return platform->mcu_arr[i];
         }
@@ -195,7 +200,8 @@ const pcl_bmc_cfg_t* PCL_HW_FindBMC(const pcl_platform_config_t *platform,
         return NULL;
     }
 
-    for (uint32_t i = 0; platform->bmc_arr[i] != NULL; i++) {
+    uint32_t i;
+    for (i = 0; platform->bmc_arr[i] != NULL; i++) {
         if (OSAL_Strcmp(platform->bmc_arr[i]->name, name) == 0) {
             return platform->bmc_arr[i];
         }
@@ -211,7 +217,8 @@ const pcl_bmc_cfg_t* PCL_HW_GetBMC(const pcl_platform_config_t *platform,
         return NULL;
     }
 
-    for (uint32_t i = 0; platform->bmc_arr[i] != NULL; i++) {
+    uint32_t i;
+    for (i = 0; platform->bmc_arr[i] != NULL; i++) {
         if (i == id) {
             return platform->bmc_arr[i];
         }
@@ -227,7 +234,8 @@ const pcl_fpga_cfg_t* PCL_HW_FindFPGA(const pcl_platform_config_t *platform,
         return NULL;
     }
 
-    for (uint32_t i = 0; platform->fpga_arr[i] != NULL; i++) {
+    uint32_t i;
+    for (i = 0; platform->fpga_arr[i] != NULL; i++) {
         if (OSAL_Strcmp(platform->fpga_arr[i]->name, name) == 0) {
             return platform->fpga_arr[i];
         }
@@ -243,7 +251,8 @@ const pcl_fpga_cfg_t* PCL_HW_GetFPGA(const pcl_platform_config_t *platform,
         return NULL;
     }
 
-    for (uint32_t i = 0; platform->fpga_arr[i] != NULL; i++) {
+    uint32_t i;
+    for (i = 0; platform->fpga_arr[i] != NULL; i++) {
         if (i == id) {
             return platform->fpga_arr[i];
         }
@@ -259,7 +268,8 @@ const pcl_switch_cfg_t* PCL_HW_FindSwitch(const pcl_platform_config_t *platform,
         return NULL;
     }
 
-    for (uint32_t i = 0; platform->switch_arr[i] != NULL; i++) {
+    uint32_t i;
+    for (i = 0; platform->switch_arr[i] != NULL; i++) {
         if (OSAL_Strcmp(platform->switch_arr[i]->name, name) == 0) {
             return platform->switch_arr[i];
         }
@@ -275,7 +285,8 @@ const pcl_switch_cfg_t* PCL_HW_GetSwitch(const pcl_platform_config_t *platform,
         return NULL;
     }
 
-    for (uint32_t i = 0; platform->switch_arr[i] != NULL; i++) {
+    uint32_t i;
+    for (i = 0; platform->switch_arr[i] != NULL; i++) {
         if (i == id) {
             return platform->switch_arr[i];
         }
@@ -313,14 +324,16 @@ void PCL_Print(const pcl_platform_config_t *config)
     
     /* 打印MCU配置 */
     if (config->mcu_arr) {
-        for (uint32_t i = 0; config->mcu_arr[i] != NULL; i++) {
+        uint32_t i;
+        for (i = 0; config->mcu_arr[i] != NULL; i++) {
             LOG_INFO("PCL", "  MCU[%u]: %s", i, config->mcu_arr[i]->name);
         }
     }
     
     /* 打印BMC配置 */
     if (config->bmc_arr) {
-        for (uint32_t i = 0; config->bmc_arr[i] != NULL; i++) {
+        uint32_t i;
+        for (i = 0; config->bmc_arr[i] != NULL; i++) {
             LOG_INFO("PCL", "  BMC[%u]: %s", i, config->bmc_arr[i]->name);
         }
     }

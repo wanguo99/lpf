@@ -117,7 +117,9 @@ mod-target := $(addprefix $(obj)/,$(obj-m))
 endif
 
 # built-in.o 目标（用于递归构建）
-ifneq ($(strip $(obj-y)),)
+# 只有当 obj-y 中有实际的 .o 文件（不是 built-in.o）时才生成
+real-obj-y := $(filter-out %/built-in.o, $(obj-y))
+ifneq ($(strip $(real-obj-y)),)
 builtin-target := $(obj)/built-in.o
 endif
 
@@ -146,6 +148,11 @@ endif
 
 modkern_cflags = $(KBUILD_CFLAGS_KERNEL) $(CFLAGS_KERNEL)
 quiet_modtag := $(empty)   $(empty)
+
+# 编译标志
+c_flags = -Wp,-MD,$(depfile) $(NOSTDINC_FLAGS) $(KBUILD_CPPFLAGS) \
+          $(KBUILD_CFLAGS) $(ccflags-y) \
+          $(CFLAGS_$(basetarget).o)
 
 # 默认模块名
 modname = $(basetarget)
@@ -431,7 +438,7 @@ targets += $(multi-used-y)
 
 PHONY += $(subdir-ym)
 $(subdir-ym):
-	$(Q)$(MAKE) $(build)=$@
+	$(Q)$(MAKE) $(build)=$(obj)/$@
 
 # =============================================================================
 # FORCE 目标

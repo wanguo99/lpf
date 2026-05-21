@@ -338,8 +338,10 @@ typedef int64_t osal_nsec_t;
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
     #define OSAL_STATIC_ASSERT(cond, msg) _Static_assert(cond, msg)
 #else
+    #define OSAL_STATIC_ASSERT_CONCAT_(a, b) a##b
+    #define OSAL_STATIC_ASSERT_CONCAT(a, b) OSAL_STATIC_ASSERT_CONCAT_(a, b)
     #define OSAL_STATIC_ASSERT(cond, msg) \
-        typedef char osal_static_assert_##msg[(cond) ? 1 : -1]
+        typedef char OSAL_STATIC_ASSERT_CONCAT(osal_static_assert_, __LINE__)[(cond) ? 1 : -1]
 #endif
 
 /*

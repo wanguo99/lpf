@@ -229,12 +229,14 @@ if_changed_rule = $(if $(strip $(any-prereq) $(arg-check) ),            \
 	$(rule_$(1)), @:)
 
 ###
-# cmd_and_fixdep: 执行命令并修复依赖
+# cmd_and_fixdep: 执行命令并修复依赖（简化版）
 cmd_and_fixdep =                                                         \
 	$(echo-cmd) $(cmd_$(1));                                         \
-	scripts/basic/fixdep $(depfile) $@ '$(make-cmd)' > $(dot-target).tmp;\
-	rm -f $(depfile);                                                \
-	mv -f $(dot-target).tmp $(dot-target).cmd;
+	if [ -f $(depfile) ]; then                                       \
+		cat $(depfile) > $(dot-target).tmp;                      \
+		rm -f $(depfile);                                        \
+		mv -f $(dot-target).tmp $(dot-target).cmd;               \
+	fi;
 
 # 为什么重新构建？
 ifeq ($(KBUILD_VERBOSE),2)

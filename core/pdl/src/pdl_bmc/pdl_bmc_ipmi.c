@@ -70,7 +70,8 @@ typedef struct
 static uint8_t ipmi_checksum(const uint8_t *data, uint32_t len)
 {
     uint8_t sum = 0;
-    for (uint32_t i = 0; i < len; i++)
+    uint32_t i;
+    for (i = 0; i < len; i++)
     {
         sum += data[i];
     }

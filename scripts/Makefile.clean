@@ -1,0 +1,36 @@
+# =============================================================================
+# Makefile.clean - 清理规则
+# =============================================================================
+
+src := $(obj)
+
+PHONY := __clean
+__clean:
+
+include scripts/Kbuild.include
+
+kbuild-dir := $(if $(filter /%,$(src)),$(src),$(srctree)/$(src))
+kbuild-file := $(if $(wildcard $(kbuild-dir)/Kbuild),$(kbuild-dir)/Kbuild,$(kbuild-dir)/Makefile)
+include $(kbuild-file)
+
+# 子目录
+subdir-y := $(patsubst %/,%,$(filter %/, $(obj-y)))
+subdir-m := $(patsubst %/,%,$(filter %/, $(obj-m)))
+subdir-ym := $(sort $(subdir-y) $(subdir-m))
+
+# 清理文件
+__clean-files := $(clean-files) *.o *.a *.so *.so.* *.d .*.cmd
+
+quiet_cmd_clean = CLEAN   $(obj)
+      cmd_clean = rm -f $(__clean-files)
+
+__clean: $(subdir-ym)
+	$(call cmd,clean)
+
+PHONY += $(subdir-ym)
+$(subdir-ym):
+	$(Q)$(MAKE) $(clean)=$@
+
+clean := -f $(srctree)/scripts/Makefile.clean obj
+
+.PHONY: $(PHONY)

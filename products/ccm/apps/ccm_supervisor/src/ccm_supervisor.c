@@ -63,7 +63,8 @@ static int32_t stop_process(process_info_t *proc)
     OSAL_ProcessKill(proc->pid, SIGTERM);
 
     /* 等待进程退出（最多5秒） */
-    for (int32_t i = 0; i < 50; i++) {
+    int32_t i;
+    for (i = 0; i < 50; i++) {
         int32_t status;
         int32_t ret = OSAL_ProcessWait(proc->pid, &status, 0);
         if (ret == OSAL_SUCCESS) {
@@ -106,7 +107,8 @@ static int32_t restart_process(process_info_t *proc)
 /* 检查进程心跳 */
 static void check_process_heartbeat(void)
 {
-    for (uint32_t i = 0; i < PROCESS_COUNT; i++) {
+    uint32_t i;
+    for (i = 0; i < PROCESS_COUNT; i++) {
         process_info_t *proc = &g_processes[i];
 
         if (proc->pid <= 0) {
@@ -151,7 +153,8 @@ int32_t PMC_Supervisor_Run(void)
     LOG_INFO("SUPERVISOR", "Supervisor进程开始运行");
 
     /* 启动所有子进程 */
-    for (uint32_t i = 0; i < PROCESS_COUNT; i++) {
+    uint32_t i;
+    for (i = 0; i < PROCESS_COUNT; i++) {
         start_process(&g_processes[i]);
         OSAL_msleep(500);  /* 间隔500ms启动 */
     }
@@ -170,7 +173,8 @@ int32_t PMC_Supervisor_Run(void)
 
     /* 停止所有子进程 */
     LOG_INFO("SUPERVISOR", "停止所有子进程...");
-    for (uint32_t i = 0; i < PROCESS_COUNT; i++) {
+    uint32_t i;
+    for (i = 0; i < PROCESS_COUNT; i++) {
         stop_process(&g_processes[i]);
     }
 

@@ -176,7 +176,8 @@ static void rotate_log_file(void)
     }
 
     /* 重命名日志文件 */
-    for (uint32_t i = g_max_log_files - 1; i > 0; i--)
+    uint32_t i;
+    for (i = g_max_log_files - 1; i > 0; i--)
     {
         char from[OSAL_LOG_FILENAME_SIZE], to[OSAL_LOG_FILENAME_SIZE];
         snprintf(from, sizeof(from), "%s.%u", g_log_file_path, i - 1);

@@ -31,9 +31,13 @@ static uint64_t get_monotonic_us(void)
 static uint32_t calculate_crc32(const uint8_t *data, uint32_t len)
 {
     uint32_t crc = 0xFFFFFFFF;
-    for (uint32_t i = 0; i < len; i++) {
+    uint32_t i;
+
+    for (i = 0; i < len; i++) {
         crc ^= data[i];
-        for (int32_t j = 0; j < 8; j++) {
+        int32_t j;
+
+        for (j = 0; j < 8; j++) {
             crc = (crc >> 1) ^ (0xEDB88320 & -(crc & 1));
         }
     }
@@ -58,7 +62,10 @@ int32_t ACL_TelemetryCache_Init(void)
     /* 初始化缓存表 */
     OSAL_Memset(g_tm_cache, 0, sizeof(g_tm_cache));
 
-    for (uint32_t i = 0; i < TM_FUNC_MAX; i++) {
+    uint32_t i;
+
+
+    for (i = 0; i < TM_FUNC_MAX; i++) {
         g_tm_cache[i].tm_id = i;
         g_tm_cache[i].freshness = ACL_TM_STATUS_INVALID;
         g_tm_cache[i].valid = false;
@@ -194,7 +201,10 @@ int32_t ACL_TelemetryCache_InvalidateBatch(const uint32_t *tm_ids, uint32_t coun
         return OSAL_ERR_INVALID_SIZE;
     }
 
-    for (uint32_t i = 0; i < count; i++) {
+    uint32_t i;
+
+
+    for (i = 0; i < count; i++) {
         ACL_TelemetryCache_Invalidate(tm_ids[i]);
     }
 
@@ -220,7 +230,10 @@ int32_t ACL_TelemetryCache_GetStats(uint32_t *total_count, uint32_t *valid_count
 
     uint64_t now = get_monotonic_us();
 
-    for (uint32_t i = 0; i < TM_FUNC_MAX; i++) {
+    uint32_t i;
+
+
+    for (i = 0; i < TM_FUNC_MAX; i++) {
         telemetry_cache_entry_t *entry = &g_tm_cache[i];
 
         if (!entry->valid) {
