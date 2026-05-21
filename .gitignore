@@ -93,6 +93,7 @@ products/**/apps/*/ccm_*
 .config.old
 include/config/
 include/generated/
+scripts/kconfig/include/
 
 # Kconfig tools (built binaries)
 scripts/kconfig/conf
