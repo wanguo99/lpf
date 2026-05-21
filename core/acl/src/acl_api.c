@@ -110,12 +110,13 @@ int32_t ACL_GetInvalidationMap(uint32_t source_tm_id,
 
     *actual_count = 0;
 
+    uint32_t i;
+
     if (NULL == g_acl_table || NULL == g_acl_table->inv_map) {
         return OSAL_SUCCESS;
     }
 
     /* 查找源遥测ID */
-    uint32_t i;
     for (i = 0; i < g_acl_table->inv_count; i++) {
         const acl_invalidation_map_t *map = &g_acl_table->inv_map[i];
         if (map->source_tm_id == source_tm_id) {
@@ -182,6 +183,8 @@ int32_t ACL_GetStatistics(acl_statistics_t *stats)
  */
 void ACL_PrintConfig(void)
 {
+    acl_statistics_t stats = {0};
+
     if (NULL == g_acl_table) {
         LOG_INFO("ACL", "No table registered");
         return;
@@ -191,7 +194,6 @@ void ACL_PrintConfig(void)
     LOG_INFO("ACL", "  TC entries: %u", g_acl_table->tc_count);
     LOG_INFO("ACL", "  TM entries: %u", g_acl_table->tm_count);
     LOG_INFO("ACL", "  Invalidation maps: %u", g_acl_table->inv_count);
-    acl_statistics_t stats = {0};
     if (OSAL_SUCCESS == ACL_GetStatistics(&stats)) {
         LOG_INFO("ACL", "  TC enabled: %u, disabled: %u",
                    stats.tc_enabled_count, stats.tc_disabled_count);

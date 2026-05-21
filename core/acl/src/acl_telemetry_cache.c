@@ -32,10 +32,10 @@ static uint32_t calculate_crc32(const uint8_t *data, uint32_t len)
 {
     uint32_t crc = 0xFFFFFFFF;
     uint32_t i;
+    int32_t j;
 
     for (i = 0; i < len; i++) {
         crc ^= data[i];
-        int32_t j;
 
         for (j = 0; j < 8; j++) {
             crc = (crc >> 1) ^ (0xEDB88320 & -(crc & 1));
@@ -49,21 +49,21 @@ static uint32_t calculate_crc32(const uint8_t *data, uint32_t len)
  */
 int32_t ACL_TelemetryCache_Init(void)
 {
+    int32_t ret;
+    uint32_t i;
+
     if (g_cache_initialized) {
         return OSAL_SUCCESS;
     }
 
     /* 创建互斥锁 */
-    int32_t ret = OSAL_MutexCreate(&g_cache_mutex);
+    ret = OSAL_MutexCreate(&g_cache_mutex);
     if (ret != OSAL_SUCCESS) {
         return ret;
     }
 
     /* 初始化缓存表 */
     OSAL_Memset(g_tm_cache, 0, sizeof(g_tm_cache));
-
-    uint32_t i;
-
 
     for (i = 0; i < TM_FUNC_MAX; i++) {
         g_tm_cache[i].tm_id = i;
@@ -94,13 +94,15 @@ void ACL_TelemetryCache_Deinit(void)
  */
 int32_t ACL_TelemetryCache_Write(uint32_t tm_id, const uint8_t *data, uint32_t data_len)
 {
+    telemetry_cache_entry_t *entry;
+
     if (!g_cache_initialized || tm_id >= TM_FUNC_MAX || !data || data_len == 0 || data_len > 256) {
         return OSAL_ERR_INVALID_SIZE;
     }
 
     OSAL_MutexLock(g_cache_mutex);
 
-    telemetry_cache_entry_t *entry = &g_tm_cache[tm_id];
+    entry = &g_tm_cache[tm_id];
 
     /* 复制数据 */
     OSAL_Memcpy(entry->data, data, data_len);
@@ -125,13 +127,18 @@ int32_t ACL_TelemetryCache_Write(uint32_t tm_id, const uint8_t *data, uint32_t d
  */
 int32_t ACL_TelemetryCache_Read(uint32_t tm_id, telemetry_response_t *response)
 {
+    telemetry_cache_entry_t *entry;
+    uint64_t now;
+    uint32_t age_ms;
+    acl_tm_status_t freshness;
+
     if (!g_cache_initialized || tm_id >= TM_FUNC_MAX || !response) {
         return OSAL_ERR_INVALID_SIZE;
     }
 
     OSAL_MutexLock(g_cache_mutex);
 
-    telemetry_cache_entry_t *entry = &g_tm_cache[tm_id];
+    entry = &g_tm_cache[tm_id];
 
     /* 检查是否有效 */
     if (!entry->valid) {
@@ -140,11 +147,10 @@ int32_t ACL_TelemetryCache_Read(uint32_t tm_id, telemetry_response_t *response)
     }
 
     /* 计算数据年龄 */
-    uint64_t now = get_monotonic_us();
-    uint32_t age_ms = (uint32_t)((now - entry->timestamp_us) / 1000);
+    now = get_monotonic_us();
+    age_ms = (uint32_t)((now - entry->timestamp_us) / 1000);
 
     /* 判断新鲜度 */
-    acl_tm_status_t freshness;
     if (entry->freshness == ACL_TM_STATUS_INVALID) {
         freshness = ACL_TM_STATUS_INVALID;
     } else if (age_ms < entry->validity_ms) {
@@ -175,13 +181,15 @@ int32_t ACL_TelemetryCache_Read(uint32_t tm_id, telemetry_response_t *response)
  */
 int32_t ACL_TelemetryCache_Invalidate(uint32_t tm_id)
 {
+    telemetry_cache_entry_t *entry;
+
     if (!g_cache_initialized || tm_id >= TM_FUNC_MAX) {
         return OSAL_ERR_INVALID_SIZE;
     }
 
     OSAL_MutexLock(g_cache_mutex);
 
-    telemetry_cache_entry_t *entry = &g_tm_cache[tm_id];
+    entry = &g_tm_cache[tm_id];
 
     if (entry->valid) {
         entry->freshness = ACL_TM_STATUS_STALE;
@@ -197,11 +205,11 @@ int32_t ACL_TelemetryCache_Invalidate(uint32_t tm_id)
  */
 int32_t ACL_TelemetryCache_InvalidateBatch(const uint32_t *tm_ids, uint32_t count)
 {
+    uint32_t i;
+
     if (!g_cache_initialized || !tm_ids || count == 0) {
         return OSAL_ERR_INVALID_SIZE;
     }
-
-    uint32_t i;
 
 
     for (i = 0; i < count; i++) {
@@ -217,6 +225,9 @@ int32_t ACL_TelemetryCache_InvalidateBatch(const uint32_t *tm_ids, uint32_t coun
 int32_t ACL_TelemetryCache_GetStats(uint32_t *total_count, uint32_t *valid_count,
                                      uint32_t *fresh_count, uint32_t *stale_count)
 {
+    uint64_t now;
+    uint32_t i;
+
     if (!g_cache_initialized) {
         return OSAL_ERR_GENERIC;
     }
@@ -228,13 +239,11 @@ int32_t ACL_TelemetryCache_GetStats(uint32_t *total_count, uint32_t *valid_count
     *fresh_count = 0;
     *stale_count = 0;
 
-    uint64_t now = get_monotonic_us();
-
-    uint32_t i;
-
+    now = get_monotonic_us();
 
     for (i = 0; i < TM_FUNC_MAX; i++) {
         telemetry_cache_entry_t *entry = &g_tm_cache[i];
+        uint32_t age_ms;
 
         if (!entry->valid) {
             continue;
@@ -243,7 +252,7 @@ int32_t ACL_TelemetryCache_GetStats(uint32_t *total_count, uint32_t *valid_count
         (*valid_count)++;
 
         /* 计算当前新鲜度 */
-        uint32_t age_ms = (uint32_t)((now - entry->timestamp_us) / 1000);
+        age_ms = (uint32_t)((now - entry->timestamp_us) / 1000);
 
         if (entry->freshness == ACL_TM_STATUS_INVALID) {
             /* 已标记为无效 */

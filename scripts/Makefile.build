@@ -438,7 +438,7 @@ targets += $(multi-used-y)
 
 PHONY += $(subdir-ym)
 $(subdir-ym):
-	$(Q)$(MAKE) $(build)=$(obj)/$@
+	$(Q)$(MAKE) $(build)=$(patsubst %/,%,$(obj))/$@
 
 # =============================================================================
 # FORCE 目标

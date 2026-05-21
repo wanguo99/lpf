@@ -32,29 +32,32 @@ Kconfig ?= Kconfig
 srctree ?= .
 objtree ?= .
 
+# Get the absolute path of this Makefile's directory
+KCONFIG_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
 defconfig: conf
-	$(Q)./conf --defconfig=$(srctree)/configs/defconfig $(srctree)/$(Kconfig)
+	$(Q)cd $(objtree) && $(KCONFIG_DIR)conf --defconfig=$(srctree)/configs/defconfig $(srctree)/$(Kconfig)
 
 %_defconfig: conf
-	$(Q)./conf --defconfig=$(srctree)/configs/$@ $(srctree)/$(Kconfig)
+	$(Q)cd $(objtree) && $(KCONFIG_DIR)conf --defconfig=$(srctree)/configs/$@ $(srctree)/$(Kconfig)
 
 menuconfig: mconf
-	$(Q)./mconf $(srctree)/$(Kconfig)
+	$(Q)cd $(objtree) && $(KCONFIG_DIR)mconf $(srctree)/$(Kconfig)
 
 config: conf
-	$(Q)./conf --oldaskconfig $(srctree)/$(Kconfig)
+	$(Q)cd $(objtree) && $(KCONFIG_DIR)conf --oldaskconfig $(srctree)/$(Kconfig)
 
 oldconfig: conf
-	$(Q)./conf --oldconfig $(srctree)/$(Kconfig)
+	$(Q)cd $(objtree) && $(KCONFIG_DIR)conf --oldconfig $(srctree)/$(Kconfig)
 
 syncconfig: conf
-	$(Q)./conf --syncconfig $(srctree)/$(Kconfig)
+	$(Q)cd $(objtree) && $(KCONFIG_DIR)conf --syncconfig $(srctree)/$(Kconfig)
 
 olddefconfig: conf
-	$(Q)./conf --olddefconfig $(srctree)/$(Kconfig)
+	$(Q)cd $(objtree) && $(KCONFIG_DIR)conf --olddefconfig $(srctree)/$(Kconfig)
 
 savedefconfig: conf
-	$(Q)./conf --savedefconfig=$(srctree)/defconfig $(srctree)/$(Kconfig)
+	$(Q)cd $(objtree) && $(KCONFIG_DIR)conf --savedefconfig=$(srctree)/defconfig $(srctree)/$(Kconfig)
 
 # conf - command-line configuration tool
 conf-objs := conf.o confdata.o expr.o lexer.lex.o menu.o parser.tab.o \

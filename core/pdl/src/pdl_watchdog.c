@@ -59,6 +59,10 @@ static void *watchdog_kick_thread(void *arg)
  */
 int32_t PDL_WATCHDOG_Init(const watchdog_config_t *config, watchdog_handle_t *handle)
 {
+    watchdog_context_t *ctx;
+    hal_watchdog_config_t hal_config;
+    int32_t ret;
+
     if (config == NULL || handle == NULL)
     {
         LOG_ERROR("PDL_WDT", "Invalid parameters");
@@ -66,7 +70,7 @@ int32_t PDL_WATCHDOG_Init(const watchdog_config_t *config, watchdog_handle_t *ha
     }
 
     /* 分配上下文 */
-    watchdog_context_t *ctx = (watchdog_context_t *)OSAL_Malloc(sizeof(watchdog_context_t));
+    ctx = (watchdog_context_t *)OSAL_Malloc(sizeof(watchdog_context_t));
     if (ctx == NULL)
     {
         LOG_ERROR("PDL_WDT", "Failed to allocate context");
@@ -83,13 +87,11 @@ int32_t PDL_WATCHDOG_Init(const watchdog_config_t *config, watchdog_handle_t *ha
     OSAL_AtomicInit64(&ctx->last_kick_time, 0);
 
     /* 初始化HAL层 */
-    hal_watchdog_config_t hal_config = {
-        .device = config->device,
-        .timeout_sec = config->timeout_sec,
-        .enable_on_init = config->enable_on_init
-    };
+    hal_config.device = config->device;
+    hal_config.timeout_sec = config->timeout_sec;
+    hal_config.enable_on_init = config->enable_on_init;
 
-    int32_t ret = HAL_WATCHDOG_Init(&hal_config, &ctx->hal_handle);
+    ret = HAL_WATCHDOG_Init(&hal_config, &ctx->hal_handle);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("PDL_WDT", "HAL_WATCHDOG_Init failed: %d", ret);
@@ -113,13 +115,15 @@ int32_t PDL_WATCHDOG_Init(const watchdog_config_t *config, watchdog_handle_t *ha
  */
 int32_t PDL_WATCHDOG_Deinit(watchdog_handle_t handle)
 {
+    watchdog_context_t *ctx;
+
     if (handle == NULL)
     {
         LOG_ERROR("PDL_WDT", "Invalid handle");
         return OSAL_ERR_INVALID_POINTER;
     }
 
-    watchdog_context_t *ctx = (watchdog_context_t *)handle;
+    ctx = (watchdog_context_t *)handle;
 
     /* 停止自动喂狗线程 */
     if (ctx->running)
@@ -142,13 +146,15 @@ int32_t PDL_WATCHDOG_Deinit(watchdog_handle_t handle)
  */
 int32_t PDL_WATCHDOG_Start(watchdog_handle_t handle)
 {
+    watchdog_context_t *ctx;
+
     if (handle == NULL)
     {
         LOG_ERROR("PDL_WDT", "Invalid handle");
         return OSAL_ERR_INVALID_POINTER;
     }
 
-    watchdog_context_t *ctx = (watchdog_context_t *)handle;
+    ctx = (watchdog_context_t *)handle;
 
     if (ctx->mode != WATCHDOG_MODE_AUTO)
     {
@@ -181,13 +187,15 @@ int32_t PDL_WATCHDOG_Start(watchdog_handle_t handle)
  */
 int32_t PDL_WATCHDOG_Stop(watchdog_handle_t handle)
 {
+    watchdog_context_t *ctx;
+
     if (handle == NULL)
     {
         LOG_ERROR("PDL_WDT", "Invalid handle");
         return OSAL_ERR_INVALID_POINTER;
     }
 
-    watchdog_context_t *ctx = (watchdog_context_t *)handle;
+    ctx = (watchdog_context_t *)handle;
 
     if (!ctx->running)
     {

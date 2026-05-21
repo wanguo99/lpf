@@ -324,11 +324,11 @@ export KBUILD_DEFCONFIG KBUILD_KCONFIG
 # Configuration targets - directly invoke scripts/kconfig/Makefile
 config: scripts_basic outputmakefile FORCE
 	$(Q)$(MAKE) -C $(srctree)/scripts/kconfig $@ \
-		srctree=$(CURDIR) objtree=$(objtree)
+		srctree=$(CURDIR) objtree=$(CURDIR)
 
 %config: scripts_basic outputmakefile FORCE
 	$(Q)$(MAKE) -C $(srctree)/scripts/kconfig $@ \
-		srctree=$(CURDIR) objtree=$(objtree)
+		srctree=$(CURDIR) objtree=$(CURDIR)
 
 else
 # =============================================================================
