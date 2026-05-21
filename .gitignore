@@ -27,6 +27,7 @@
 
 # 但不忽略构建框架文件
 !scripts/build/*.lib
+!scripts/Makefile.lib
 
 # Shared objects (inc. Windows DLLs)
 *.dll

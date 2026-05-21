@@ -1,0 +1,194 @@
+####
+# Makefile.lib - 构建变量处理和对象文件列表生成
+# =============================================================================
+# 此文件被 scripts/Makefile.build 包含，用于处理 Kbuild 文件中定义的变量
+# 主要功能：
+#   1. 展开 obj-$(CONFIG_XXX) 等条件编译变量
+#   2. 处理复合对象（composite objects）
+#   3. 生成最终的对象文件列表
+#   4. 处理子目录递归
+#   5. 处理库、动态库、应用程序的对象文件列表
+# =============================================================================
+
+# =============================================================================
+# 展开条件编译变量
+# =============================================================================
+# obj-y、lib-y、so-y、app-y 等变量可能包含 $(CONFIG_XXX) 引用
+# 需要展开这些变量以获得实际的文件列表
+
+# 展开所有 obj-y 变量（包括 obj-$(CONFIG_XXX)）
+obj-y		:= $(obj-y)
+obj-m		:= $(obj-m)
+lib-y		:= $(lib-y)
+so-y		:= $(so-y)
+app-y		:= $(app-y)
+extra-y		:= $(extra-y)
+always		:= $(always)
+
+# 子目录列表
+subdir-y	:= $(subdir-y)
+subdir-m	:= $(subdir-m)
+
+# =============================================================================
+# 处理子目录
+# =============================================================================
+# 子目录可以在 obj-y 中指定（以 / 结尾），也可以在 subdir-y 中指定
+
+# 从 obj-y 中提取子目录（以 / 结尾的项）
+__subdir-y	:= $(patsubst %/,%,$(filter %/, $(obj-y)))
+subdir-y	+= $(__subdir-y)
+
+# 从 obj-m 中提取子目录
+__subdir-m	:= $(patsubst %/,%,$(filter %/, $(obj-m)))
+subdir-m	+= $(__subdir-m)
+
+# 从 obj-y 和 obj-m 中移除子目录项
+obj-y		:= $(patsubst %/, %/built-in.o, $(obj-y))
+obj-m		:= $(filter-out %/, $(obj-m))
+
+# 合并子目录列表
+subdir-ym	:= $(sort $(subdir-y) $(subdir-m))
+
+# 为子目录生成 built-in.o 路径
+subdir-obj-y := $(foreach o,$(subdir-y),$(o)/built-in.o)
+
+# =============================================================================
+# 处理复合对象（Composite objects）
+# =============================================================================
+# 复合对象是由多个 .o 文件链接而成的单个 .o 文件
+# 语法：
+#   obj-y += composite.o
+#   composite-objs := part1.o part2.o part3.o
+# 或：
+#   composite-y := part1.o part2.o part3.o
+
+# 提取所有可能的复合对象名称（去掉 .o 后缀）
+multi-used-y := $(sort $(foreach m,$(obj-y), $(if $(strip $($(m:.o=-objs)) $($(m:.o=-y))),$(m))))
+multi-used-m := $(sort $(foreach m,$(obj-m), $(if $(strip $($(m:.o=-objs)) $($(m:.o=-y))),$(m))))
+multi-used   := $(multi-used-y) $(multi-used-m)
+
+# 为复合对象生成子对象列表
+multi-objs-y := $(foreach m, $(multi-used-y), $($(m:.o=-objs)) $($(m:.o=-y)))
+multi-objs-m := $(foreach m, $(multi-used-m), $($(m:.o=-objs)) $($(m:.o=-y)))
+multi-objs   := $(multi-objs-y) $(multi-objs-m)
+
+# 为复合对象设置模块名（用于编译时的 -DKBUILD_MODNAME）
+$(foreach m, $(multi-used-y), \
+	$(eval $(obj)/$(m): modname-multi = $(subst $(obj)/,,$(m:.o=))))
+
+# =============================================================================
+# 生成实际的对象文件列表
+# =============================================================================
+
+# 从 obj-y 中移除复合对象，只保留单个 .o 文件和子目录的 built-in.o
+real-objs-y := $(foreach m, $(filter-out $(multi-used-y), $(obj-y)), $(if $($(m:.o=-objs))$($(m:.o=-y)),,$(m)))
+
+# 添加复合对象的子对象
+real-objs-y += $(multi-objs-y)
+
+# 为所有对象文件添加 $(obj)/ 前缀（转换为完整路径）
+__real-objs-y := $(addprefix $(obj)/,$(real-objs-y))
+
+# 同样处理 obj-m（内核模块）
+real-objs-m := $(foreach m, $(filter-out $(multi-used-m), $(obj-m)), $(if $($(m:.o=-objs))$($(m:.o=-y)),,$(m)))
+real-objs-m += $(multi-objs-m)
+__real-objs-m := $(addprefix $(obj)/,$(real-objs-m))
+
+# =============================================================================
+# 处理库、动态库、应用程序的对象文件
+# =============================================================================
+
+# 为库添加 .a 后缀（如果没有）
+lib-y := $(patsubst %,%.a,$(filter-out %.a,$(lib-y))) $(filter %.a,$(lib-y))
+
+# 为动态库添加 .so 后缀（如果没有）
+so-y := $(patsubst %,%.so,$(filter-out %.so,$(so-y))) $(filter %.so,$(so-y))
+
+# 应用程序不需要后缀
+
+# =============================================================================
+# 处理额外的编译标志
+# =============================================================================
+
+# 合并额外的编译标志
+asflags-y  += $(EXTRA_AFLAGS)
+ccflags-y  += $(EXTRA_CFLAGS)
+cppflags-y += $(EXTRA_CPPFLAGS)
+ldflags-y  += $(EXTRA_LDFLAGS)
+
+# 子目录标志（传递给子目录）
+subdir-asflags-y += $(asflags-y)
+subdir-ccflags-y += $(ccflags-y)
+
+# 汇编标志
+a_flags = -Wp,-MD,$(depfile) $(NOSTDINC_FLAGS) $(KBUILD_CPPFLAGS) \
+          $(KBUILD_AFLAGS) $(asflags-y) \
+          $(AFLAGS_$(basetarget).o)
+
+# =============================================================================
+# 依赖文件处理
+# =============================================================================
+
+# 为每个目标生成依赖文件列表
+# 依赖文件用于跟踪头文件变化，实现增量编译
+
+# 从源文件生成依赖文件名
+# 例如：foo.o -> .foo.o.d
+dep-files := $(foreach f,$(real-objs-y) $(real-objs-m) $(lib-y) $(so-y) $(app-y), \
+               $(dir $(f)).$(notdir $(f)).d)
+
+# =============================================================================
+# 辅助函数：multi_depend
+# =============================================================================
+# 用于为复合对象生成依赖规则
+# 用法：$(call multi_depend, target, suffix, dep-suffixes)
+# 例如：$(call multi_depend, foo.o, .o, -objs -y)
+#       生成：foo.o: foo-objs foo-y
+
+define multi_depend
+$(foreach m, $(notdir $1), \
+	$(eval $(obj)/$m: \
+	$(addprefix $(obj)/, $(foreach s, $3, $($(m:%$(strip $2)=%$(s)))))))
+endef
+
+# =============================================================================
+# 目录创建
+# =============================================================================
+
+# 提取所有需要创建的目录
+obj-dirs := $(sort $(dir $(real-objs-y) $(real-objs-m) $(lib-y) $(so-y) $(app-y)))
+
+# =============================================================================
+# 特殊目标处理
+# =============================================================================
+
+# 始终构建的目标
+targets += $(always)
+
+# =============================================================================
+# 导出变量供 Makefile.build 使用
+# =============================================================================
+
+# 导出处理后的对象文件列表
+obj-y := $(__real-objs-y)
+obj-m := $(__real-objs-m)
+
+# 导出子目录列表
+export subdir-y subdir-m subdir-ym subdir-obj-y
+
+# 导出编译标志
+export a_flags asflags-y ccflags-y cppflags-y ldflags-y
+export subdir-asflags-y subdir-ccflags-y
+
+# =============================================================================
+# 调试输出（当 V=2 时显示）
+# =============================================================================
+ifeq ($(KBUILD_VERBOSE),2)
+$(info Makefile.lib: obj=$(obj))
+$(info Makefile.lib: obj-y=$(obj-y))
+$(info Makefile.lib: lib-y=$(lib-y))
+$(info Makefile.lib: so-y=$(so-y))
+$(info Makefile.lib: app-y=$(app-y))
+$(info Makefile.lib: subdir-ym=$(subdir-ym))
+$(info Makefile.lib: multi-used-y=$(multi-used-y))
+endif
