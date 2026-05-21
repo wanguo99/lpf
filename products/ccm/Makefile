@@ -10,3 +10,7 @@
 obj-y += libs/
 obj-y += h200_am625/
 obj-y += apps/
+
+# 定义子目录之间的依赖关系
+# apps 依赖 libs 和 h200_am625 的库
+apps/: libs/ h200_am625/

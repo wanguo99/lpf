@@ -635,6 +635,10 @@ kernelversion:
 build-dir  = $(patsubst %/,%,$(dir $@))
 target-dir = $(dir $@)
 
+# 支持构建任意子目录（例如 make products/ccm）
+%/: prepare scripts FORCE
+	$(Q)$(MAKE) $(build)=$(patsubst %/,%,$@)
+
 %.s: %.c prepare scripts FORCE
 	$(Q)$(MAKE) $(build)=$(build-dir) $(target-dir)$(notdir $@)
 %.i: %.c prepare scripts FORCE

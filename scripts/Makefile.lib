@@ -46,8 +46,8 @@ subdir-m	+= $(__subdir-m)
 obj-y		:= $(patsubst %/, %/built-in.o, $(obj-y))
 obj-m		:= $(filter-out %/, $(obj-m))
 
-# 合并子目录列表
-subdir-ym	:= $(sort $(subdir-y) $(subdir-m))
+# 合并子目录列表（保持原始顺序，不排序）
+subdir-ym	:= $(subdir-y) $(subdir-m)
 
 # 为子目录生成 built-in.o 路径
 subdir-obj-y := $(foreach o,$(subdir-y),$(o)/built-in.o)
@@ -87,6 +87,7 @@ real-objs-y := $(foreach m, $(filter-out $(multi-used-y), $(obj-y)), $(if $($(m:
 real-objs-y += $(multi-objs-y)
 
 # 为所有对象文件添加 $(obj)/ 前缀（转换为完整路径）
+# 注意：这里只处理实际的 .o 文件，不包括 built-in.o（它们已经在 obj-y 中）
 __real-objs-y := $(addprefix $(obj)/,$(real-objs-y))
 
 # 同样处理 obj-m（内核模块）
@@ -169,9 +170,12 @@ targets += $(always)
 # 导出变量供 Makefile.build 使用
 # =============================================================================
 
-# 导出处理后的对象文件列表
-obj-y := $(__real-objs-y)
-obj-m := $(__real-objs-m)
+# 注意：不要重新赋值 obj-y！
+# obj-y 已经在前面被处理为包含 built-in.o 的形式，用于子目录递归
+# 例如：obj-y = libs/built-in.o h200_am625/built-in.o apps/built-in.o
+#
+# __real-objs-y 包含实际需要编译的 .o 文件（不包括 built-in.o）
+# 它会被 Makefile.build 用于生成 built-in.o 或链接库/应用
 
 # 导出子目录列表
 export subdir-y subdir-m subdir-ym subdir-obj-y

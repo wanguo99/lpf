@@ -442,6 +442,7 @@ PHONY += $(subdir-ym)
 # 例如 core/Makefile 中的 hal/: osal/ 会作为 hal 目标的依赖
 define subdir-rule
 $(1):
+	@echo "  DESCEND $(obj)/$(1)"
 	$(Q)$(MAKE) $(build)=$(patsubst %/,%,$(obj))/$(1)
 endef
 
