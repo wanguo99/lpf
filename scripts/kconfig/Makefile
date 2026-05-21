@@ -100,6 +100,8 @@ clean:
 	$(Q)rm -f conf mconf nconf gconf qconf *.o lxdialog/*.o
 	$(Q)rm -f parser.tab.c parser.tab.h lexer.lex.c
 	$(Q)rm -f .*.cmd *.cmd
+	$(Q)rm -f .config .config.old
+	$(Q)rm -rf include/
 
 .PHONY: help
 help:

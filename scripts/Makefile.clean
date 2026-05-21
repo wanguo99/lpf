@@ -19,7 +19,7 @@ subdir-m := $(patsubst %/,%,$(filter %/, $(obj-m)))
 subdir-ym := $(sort $(subdir-y) $(subdir-m))
 
 # 清理文件
-__clean-files := $(clean-files) *.o *.a *.so *.so.* *.d .*.cmd
+__clean-files := $(clean-files) $(lib-y) $(so-y) $(app-y) *.o *.a *.so *.so.* *.d .*.cmd
 
 quiet_cmd_clean = CLEAN   $(obj)
       cmd_clean = rm -f $(__clean-files)
