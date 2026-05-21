@@ -16,3 +16,9 @@ obj-$(CONFIG_HAL)  += hal/
 obj-$(CONFIG_PCL)  += pcl/
 obj-$(CONFIG_PDL)  += pdl/
 obj-$(CONFIG_ACL)  += acl/
+
+# 模块依赖关系（确保正确的构建顺序）
+hal/: osal/
+pcl/: hal/ osal/
+pdl/: pcl/ hal/ osal/
+acl/: pdl/ pcl/ hal/ osal/
