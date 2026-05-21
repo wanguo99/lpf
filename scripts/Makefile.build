@@ -275,8 +275,8 @@ define build-lib-rule
 $(1): $$(call get-lib-objs,$(notdir $(1))) FORCE
 	$$(call if_changed,link_l_target)
 	@mkdir -p $(LIB_DIR)
-	@cp -f $(1) $(LIB_DIR)/
-	@echo "  INSTALL $(LIB_DIR)/$(notdir $(1))"
+	@cp -f $(1) $(LIB_DIR)/lib$(notdir $(1))
+	@echo "  INSTALL $(LIB_DIR)/lib$(notdir $(1))"
 
 targets += $(1)
 endef
@@ -323,15 +323,15 @@ $(call get-so-objs,$(notdir $(1))): ccflags-y += -fPIC
 $(1): $$(call get-so-objs,$(notdir $(1))) FORCE
 	$$(call if_changed,link_so_target,$(notdir $(1)))
 	@mkdir -p $(LIB_DIR)
-	@cp -f $(1) $(LIB_DIR)/
-	@echo "  INSTALL $(LIB_DIR)/$(notdir $(1))"
+	@cp -f $(1) $(LIB_DIR)/lib$(notdir $(1))
+	@echo "  INSTALL $(LIB_DIR)/lib$(notdir $(1))"
 
 targets += $(1)
 endef
 
 quiet_cmd_link_so_target = LD      $@
 cmd_link_so_target = $(CC) -shared -o $@ $(filter %.o,$^) \
-                     $(call get-so-ldflags,$(1)) $(ldflags-y) $(LDFLAGS)
+                     $(call get-so-ldflags,$(notdir $@)) $(ldflags-y) $(LDFLAGS)
 
 $(foreach so,$(so-target),$(eval $(call build-so-rule,$(so))))
 
@@ -372,7 +372,7 @@ endef
 
 quiet_cmd_link_app_target = LD      $@
 cmd_link_app_target = $(CC) -o $@ $(filter %.o,$^) \
-                      $(call get-app-ldflags,$(1)) $(ldflags-y) $(LDFLAGS)
+                      $(call get-app-ldflags,$(notdir $@)) $(ldflags-y) $(LDFLAGS)
 
 $(foreach app,$(app-target),$(eval $(call build-app-rule,$(app))))
 

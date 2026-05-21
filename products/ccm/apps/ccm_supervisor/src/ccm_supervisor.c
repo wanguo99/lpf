@@ -150,10 +150,11 @@ int32_t PMC_Supervisor_Init(void)
 /* 主循环 */
 int32_t PMC_Supervisor_Run(void)
 {
+    uint32_t i;
+
     LOG_INFO("SUPERVISOR", "Supervisor进程开始运行");
 
     /* 启动所有子进程 */
-    uint32_t i;
     for (i = 0; i < PROCESS_COUNT; i++) {
         start_process(&g_processes[i]);
         OSAL_msleep(500);  /* 间隔500ms启动 */
@@ -173,7 +174,6 @@ int32_t PMC_Supervisor_Run(void)
 
     /* 停止所有子进程 */
     LOG_INFO("SUPERVISOR", "停止所有子进程...");
-    uint32_t i;
     for (i = 0; i < PROCESS_COUNT; i++) {
         stop_process(&g_processes[i]);
     }

@@ -3,8 +3,8 @@
 # =============================================================================
 
 # 所有应用子目录
-subdir-y += ccm_supervisor/
-subdir-y += ccm_logger/
-subdir-y += ccm_comm/
-subdir-y += ccm_collector/
-subdir-y += ccm_health/
+obj-y += ccm_supervisor/
+obj-y += ccm_logger/
+obj-y += ccm_comm/
+obj-y += ccm_collector/
+obj-y += ccm_health/

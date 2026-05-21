@@ -5,5 +5,5 @@
 # =============================================================================
 
 # 产品模块（按字母顺序或依赖关系排列）
-obj-$(CONFIG_CCM)     += ccm/
-obj-$(CONFIG_SAMPLES) += samples/
+obj-$(CONFIG_PRODUCT_CCM) += ccm/
+obj-$(CONFIG_SAMPLES)     += samples/
