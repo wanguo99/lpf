@@ -104,13 +104,13 @@ int32_t ACL_GetInvalidationMap(uint32_t source_tm_id,
                                 uint32_t max_count,
                                 uint32_t *actual_count)
 {
+    uint32_t i;
+
     if (NULL == affected_ids || NULL == actual_count) {
         return OSAL_ERR_INVALID_POINTER;
     }
 
     *actual_count = 0;
-
-    uint32_t i;
 
     if (NULL == g_acl_table || NULL == g_acl_table->inv_map) {
         return OSAL_SUCCESS;

@@ -38,12 +38,15 @@ void OS_HeapInit(void)
 
 static uint32_t read_memory_from_proc(const char *field)
 {
-    FILE *fp = fopen("/proc/self/status", "r");
+    FILE *fp;
+    char line[OSAL_HEAP_LINE_BUFFER_SIZE];
+    uint32_t value;
+
+    fp = fopen("/proc/self/status", "r");
     if (NULL == fp)
         return 0;
 
-    char line[OSAL_HEAP_LINE_BUFFER_SIZE];
-    uint32_t value = 0;
+    value = 0;
     while (NULL != fgets(line, sizeof(line), fp)) {
         if (0 == strncmp(line, field, strlen(field))) {
             sscanf(line, "%*s %u", &value);
@@ -56,11 +59,14 @@ static uint32_t read_memory_from_proc(const char *field)
 
 int32_t OSAL_HeapGetInfo(uint32_t *free_bytes, uint32_t *total_bytes)
 {
+    uint32_t vm_rss;
+    uint32_t vm_peak;
+
     if (NULL == free_bytes || NULL == total_bytes)
         return OSAL_ERR_INVALID_POINTER;
 
-    uint32_t vm_rss = read_memory_from_proc("VmRSS:");
-    uint32_t vm_peak = read_memory_from_proc("VmPeak:");
+    vm_rss = read_memory_from_proc("VmRSS:");
+    vm_peak = read_memory_from_proc("VmPeak:");
 
     pthread_mutex_lock(&g_heap_monitor.lock);
 
@@ -96,10 +102,12 @@ int32_t OSAL_HeapSetThreshold(uint32_t percent)
 
 int32_t OSAL_HeapCheckThreshold(bool *exceeded)
 {
+    uint32_t free_bytes, total_bytes;
+    uint32_t usage_percent;
+
     if (NULL == exceeded)
         return OSAL_ERR_INVALID_POINTER;
 
-    uint32_t free_bytes, total_bytes;
     OSAL_HeapGetInfo(&free_bytes, &total_bytes);
 
     if (0 == total_bytes) {
@@ -107,7 +115,7 @@ int32_t OSAL_HeapCheckThreshold(bool *exceeded)
         return OSAL_SUCCESS;
     }
 
-    uint32_t usage_percent = ((total_bytes - free_bytes) * OSAL_HEAP_PERCENT_MULTIPLIER) / total_bytes;
+    usage_percent = ((total_bytes - free_bytes) * OSAL_HEAP_PERCENT_MULTIPLIER) / total_bytes;
 
     pthread_mutex_lock(&g_heap_monitor.lock);
     *exceeded = (usage_percent >= g_heap_monitor.threshold_percent);
@@ -138,6 +146,14 @@ int32_t OSAL_HeapGetStats(uint32_t *current, uint32_t *peak)
 
 void *OSAL_Malloc(uint32_t size)
 {
+    size_t total_size;
+    void *raw_ptr;
+    union {
+        void *raw;
+        mem_block_header_t *header;
+        uint8_t *bytes;
+    } ptr_union;
+
     /* 检查是否会导致整数溢出（uint32_t 最大值是 4GB） */
     if (size > UINT32_MAX - sizeof(mem_block_header_t)) {
         LOG_ERROR("OSAL_Heap", "Allocation size too large: %u", size);
@@ -145,20 +161,14 @@ void *OSAL_Malloc(uint32_t size)
     }
 
     /* 分配额外空间存储块头 */
-    size_t total_size = (size_t)size + sizeof(mem_block_header_t);
-    void *raw_ptr = malloc(total_size);
+    total_size = (size_t)size + sizeof(mem_block_header_t);
+    raw_ptr = malloc(total_size);
 
     if (NULL == raw_ptr) {
         return NULL;
     }
 
     /* 使用联合体避免强制转换 */
-    union {
-        void *raw;
-        mem_block_header_t *header;
-        uint8_t *bytes;
-    } ptr_union;
-
     ptr_union.raw = raw_ptr;
 
     /* 填充块头信息 */
@@ -179,20 +189,21 @@ void *OSAL_Malloc(uint32_t size)
 
 void OSAL_Free(void *ptr)
 {
-    if (NULL == ptr) {
-        return;
-    }
-
-    /* 使用联合体避免强制转换 */
     union {
         void *user_ptr;
         mem_block_header_t *header;
         uint8_t *bytes;
     } ptr_union;
+    mem_block_header_t *header;
 
+    if (NULL == ptr) {
+        return;
+    }
+
+    /* 使用联合体避免强制转换 */
     ptr_union.user_ptr = ptr;
     /* 获取块头指针 */
-    mem_block_header_t *header = ptr_union.header - 1;
+    header = ptr_union.header - 1;
 
     /* 验证魔数，检测内存损坏 */
     if (MEM_BLOCK_MAGIC != header->magic) {

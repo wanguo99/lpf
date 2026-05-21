@@ -31,16 +31,21 @@ int32_t OSAL_SetLocalTime(const OS_time_t *time_struct __attribute__((unused)))
 uint32_t OSAL_GetTickCount(void)
 {
     struct timespec ts;
+    uint64_t sec_ms;
+    uint64_t nsec_ms;
+    uint64_t total_ms;
+    uint32_t result;
+
     clock_gettime(CLOCK_MONOTONIC, &ts);
 
     /* 防止溢出：使用64位计算 */
-    uint64_t sec_ms = ts.tv_sec;
+    sec_ms = ts.tv_sec;
     sec_ms *= OSAL_MS_PER_SEC;
-    uint64_t nsec_ms = ts.tv_nsec / OSAL_NS_PER_MS;
-    uint64_t total_ms = sec_ms + nsec_ms;
+    nsec_ms = ts.tv_nsec / OSAL_NS_PER_MS;
+    total_ms = sec_ms + nsec_ms;
 
     /* 返回低32位（约49.7天后会回绕） */
-    uint32_t result = total_ms;
+    result = total_ms;
     return result;
 }
 

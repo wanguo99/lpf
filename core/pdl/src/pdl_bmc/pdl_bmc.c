@@ -48,13 +48,18 @@ typedef struct
 int32_t PDL_BMC_Init(const bmc_config_t *config,
                         bmc_handle_t *handle)
 {
+    bmc_context_t *ctx;
+    int32_t ret;
+    void *transport_handle;
+    int32_t (*send_recv)(void*, const uint8_t*, uint32_t, uint8_t*, uint32_t, uint32_t*);
+
     if (NULL == config || NULL == handle)
     {
         return OSAL_ERR_GENERIC;
     }
 
     /* 分配上下文 */
-    bmc_context_t *ctx = (bmc_context_t *)OSAL_Malloc(sizeof(bmc_context_t));
+    ctx = (bmc_context_t *)OSAL_Malloc(sizeof(bmc_context_t));
     if (NULL == ctx)
     {
         LOG_ERROR("BMC", "Failed to allocate context");
@@ -77,10 +82,10 @@ int32_t PDL_BMC_Init(const bmc_config_t *config,
     /* 初始化网络传输层 */
     if (config->network.enabled)
     {
-        int32_t ret = bmc_transport_net_init(config->network.ip_addr,
-                                             config->network.port,
-                                             config->network.timeout_ms,
-                                             &ctx->net_transport_handle);
+        ret = bmc_transport_net_init(config->network.ip_addr,
+                                     config->network.port,
+                                     config->network.timeout_ms,
+                                     &ctx->net_transport_handle);
         if (OSAL_SUCCESS != ret)
         {
             LOG_WARN("BMC", "Failed to open network transport");
@@ -95,10 +100,10 @@ int32_t PDL_BMC_Init(const bmc_config_t *config,
     /* 初始化串口传输层 */
     if (config->serial.enabled)
     {
-        int32_t ret = bmc_transport_serial_init(config->serial.device,
-                                                config->serial.baudrate,
-                                                config->serial.timeout_ms,
-                                                &ctx->serial_transport_handle);
+        ret = bmc_transport_serial_init(config->serial.device,
+                                        config->serial.baudrate,
+                                        config->serial.timeout_ms,
+                                        &ctx->serial_transport_handle);
         if (OSAL_SUCCESS != ret)
         {
             LOG_WARN("BMC", "Failed to open serial transport");
@@ -110,20 +115,19 @@ int32_t PDL_BMC_Init(const bmc_config_t *config,
     }
 
     /* 初始化协议层（优先Redfish，失败则使用IPMI） */
-    void *transport_handle = (ctx->current_channel == BMC_CHANNEL_NETWORK) ?
-                             ctx->net_transport_handle : ctx->serial_transport_handle;
+    transport_handle = (ctx->current_channel == BMC_CHANNEL_NETWORK) ?
+                       ctx->net_transport_handle : ctx->serial_transport_handle;
 
     if (NULL != transport_handle)
     {
-        int32_t (*send_recv)(void*, const uint8_t*, uint32_t, uint8_t*, uint32_t, uint32_t*);
         send_recv = (ctx->current_channel == BMC_CHANNEL_NETWORK) ?
                     bmc_transport_net_send_recv : bmc_transport_serial_send_recv;
 
         /* 优先尝试初始化Redfish */
-        int32_t ret = bmc_redfish_init(transport_handle, send_recv,
-                                      config->network.username,
-                                      config->network.password,
-                                      &ctx->redfish_handle);
+        ret = bmc_redfish_init(transport_handle, send_recv,
+                              config->network.username,
+                              config->network.password,
+                              &ctx->redfish_handle);
         if (OSAL_SUCCESS == ret)
         {
             LOG_INFO("BMC", "Redfish protocol initialized");
@@ -164,12 +168,14 @@ int32_t PDL_BMC_Init(const bmc_config_t *config,
  */
 int32_t PDL_BMC_Deinit(bmc_handle_t handle)
 {
+    bmc_context_t *ctx;
+
     if (NULL == handle)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    bmc_context_t *ctx = (bmc_context_t *)handle;
+    ctx = (bmc_context_t *)handle;
 
     /* 关闭协议层 */
     if (NULL != ctx->redfish_handle)
@@ -208,18 +214,21 @@ int32_t PDL_BMC_Deinit(bmc_handle_t handle)
  */
 int32_t PDL_BMC_PowerOn(bmc_handle_t handle)
 {
+    bmc_context_t *ctx;
+    int32_t ret;
+
     if (NULL == handle)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    bmc_context_t *ctx = (bmc_context_t *)handle;
+    ctx = (bmc_context_t *)handle;
 
     OSAL_MutexLock(ctx->mutex);
 
     ctx->cmd_count++;
 
-    int32_t ret = OSAL_ERR_GENERIC;
+    ret = OSAL_ERR_GENERIC;
 
     /* 优先使用Redfish */
     if (BMC_PROTOCOL_REDFISH == ctx->current_protocol && NULL != ctx->redfish_handle)
@@ -261,18 +270,21 @@ int32_t PDL_BMC_PowerOn(bmc_handle_t handle)
  */
 int32_t PDL_BMC_PowerOff(bmc_handle_t handle)
 {
+    bmc_context_t *ctx;
+    int32_t ret;
+
     if (NULL == handle)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    bmc_context_t *ctx = (bmc_context_t *)handle;
+    ctx = (bmc_context_t *)handle;
 
     OSAL_MutexLock(ctx->mutex);
 
     ctx->cmd_count++;
 
-    int32_t ret = OSAL_ERR_GENERIC;
+    ret = OSAL_ERR_GENERIC;
 
     /* 优先使用Redfish */
     if (BMC_PROTOCOL_REDFISH == ctx->current_protocol && NULL != ctx->redfish_handle)
@@ -314,18 +326,21 @@ int32_t PDL_BMC_PowerOff(bmc_handle_t handle)
  */
 int32_t PDL_BMC_PowerReset(bmc_handle_t handle)
 {
+    bmc_context_t *ctx;
+    int32_t ret;
+
     if (NULL == handle)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    bmc_context_t *ctx = (bmc_context_t *)handle;
+    ctx = (bmc_context_t *)handle;
 
     OSAL_MutexLock(ctx->mutex);
 
     ctx->cmd_count++;
 
-    int32_t ret = OSAL_ERR_GENERIC;
+    ret = OSAL_ERR_GENERIC;
 
     /* 优先使用Redfish */
     if (BMC_PROTOCOL_REDFISH == ctx->current_protocol && NULL != ctx->redfish_handle)
@@ -368,18 +383,21 @@ int32_t PDL_BMC_PowerReset(bmc_handle_t handle)
 int32_t PDL_BMC_GetPowerState(bmc_handle_t handle,
                                  bmc_power_state_t *state)
 {
+    bmc_context_t *ctx;
+    int32_t ret;
+
     if (NULL == handle || NULL == state)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    bmc_context_t *ctx = (bmc_context_t *)handle;
+    ctx = (bmc_context_t *)handle;
 
     OSAL_MutexLock(ctx->mutex);
 
     ctx->cmd_count++;
 
-    int32_t ret = OSAL_ERR_GENERIC;
+    ret = OSAL_ERR_GENERIC;
 
     /* 优先使用Redfish */
     if (BMC_PROTOCOL_REDFISH == ctx->current_protocol && NULL != ctx->redfish_handle)
@@ -422,18 +440,21 @@ int32_t PDL_BMC_ReadSensors(bmc_handle_t handle,
                                uint32_t max_count,
                                uint32_t *actual_count)
 {
+    bmc_context_t *ctx;
+    int32_t ret;
+
     if (NULL == handle)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    bmc_context_t *ctx = (bmc_context_t *)handle;
+    ctx = (bmc_context_t *)handle;
 
     OSAL_MutexLock(ctx->mutex);
 
     ctx->cmd_count++;
 
-    int32_t ret = OSAL_ERR_GENERIC;
+    ret = OSAL_ERR_GENERIC;
 
     /* 优先使用Redfish */
     if (BMC_PROTOCOL_REDFISH == ctx->current_protocol && NULL != ctx->redfish_handle)
@@ -491,12 +512,14 @@ int32_t PDL_BMC_ExecuteCommand(bmc_handle_t handle,
 int32_t PDL_BMC_SwitchChannel(bmc_handle_t handle,
                                  bmc_channel_t channel)
 {
+    bmc_context_t *ctx;
+
     if (NULL == handle)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    bmc_context_t *ctx = (bmc_context_t *)handle;
+    ctx = (bmc_context_t *)handle;
 
     OSAL_MutexLock(ctx->mutex);
 
@@ -533,15 +556,18 @@ int32_t PDL_BMC_SwitchChannel(bmc_handle_t handle,
  */
 bmc_channel_t PDL_BMC_GetChannel(bmc_handle_t handle)
 {
+    bmc_context_t *ctx;
+    bmc_channel_t channel;
+
     if (NULL == handle)
     {
         return BMC_CHANNEL_NETWORK;
     }
 
-    bmc_context_t *ctx = (bmc_context_t *)handle;
+    ctx = (bmc_context_t *)handle;
 
     OSAL_MutexLock(ctx->mutex);
-    bmc_channel_t channel = ctx->current_channel;
+    channel = ctx->current_channel;
     OSAL_MutexUnlock(ctx->mutex);
 
     return channel;
@@ -552,15 +578,18 @@ bmc_channel_t PDL_BMC_GetChannel(bmc_handle_t handle)
  */
 bool PDL_BMC_IsConnected(bmc_handle_t handle)
 {
+    bmc_context_t *ctx;
+    bool connected;
+
     if (NULL == handle)
     {
         return false;
     }
 
-    bmc_context_t *ctx = (bmc_context_t *)handle;
+    ctx = (bmc_context_t *)handle;
 
     OSAL_MutexLock(ctx->mutex);
-    bool connected = ctx->connected;
+    connected = ctx->connected;
     OSAL_MutexUnlock(ctx->mutex);
 
     return connected;
@@ -575,6 +604,8 @@ int32_t PDL_BMC_GetStats(bmc_handle_t handle,
                             uint32_t *fail_count,
                             uint32_t *switch_count)
 {
+    bmc_context_t *ctx;
+
     if (NULL == handle)
     {
         return OSAL_ERR_GENERIC;
@@ -586,7 +617,7 @@ int32_t PDL_BMC_GetStats(bmc_handle_t handle,
         return OSAL_ERR_INVALID_POINTER;
     }
 
-    bmc_context_t *ctx = (bmc_context_t *)handle;
+    ctx = (bmc_context_t *)handle;
 
     OSAL_MutexLock(ctx->mutex);
 

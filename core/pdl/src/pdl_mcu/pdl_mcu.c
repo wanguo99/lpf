@@ -30,12 +30,15 @@ typedef struct
  */
 int32_t PDL_MCU_Init(const mcu_config_t *config, mcu_handle_t *handle)
 {
+    mcu_context_t *ctx;
+    int32_t ret;
+
     if (NULL == config || NULL == handle)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    mcu_context_t *ctx = (mcu_context_t *)OSAL_Malloc(sizeof(mcu_context_t));
+    ctx = (mcu_context_t *)OSAL_Malloc(sizeof(mcu_context_t));
     if (NULL == ctx)
     {
         return OSAL_ERR_GENERIC;
@@ -53,7 +56,7 @@ int32_t PDL_MCU_Init(const mcu_config_t *config, mcu_handle_t *handle)
     }
 
     /* 初始化通信接口 */
-    int32_t ret = OSAL_ERR_GENERIC;
+    ret = OSAL_ERR_GENERIC;
     switch (config->interface)
     {
         case MCU_INTERFACE_CAN:
@@ -90,12 +93,14 @@ int32_t PDL_MCU_Init(const mcu_config_t *config, mcu_handle_t *handle)
  */
 int32_t PDL_MCU_Deinit(mcu_handle_t handle)
 {
+    mcu_context_t *ctx;
+
     if (NULL == handle)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    mcu_context_t *ctx = (mcu_context_t *)handle;
+    ctx = (mcu_context_t *)handle;
 
     /* 关闭通信接口 */
     switch (ctx->interface)
@@ -158,16 +163,19 @@ static int32_t mcu_send_command_internal(mcu_context_t *ctx,
  */
 int32_t PDL_MCU_GetVersion(mcu_handle_t handle, mcu_version_t *version)
 {
+    mcu_context_t *ctx;
+    uint8_t resp[4];
+    uint32_t actual_size;
+    int32_t ret;
+
     if (NULL == handle || NULL == version)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    mcu_context_t *ctx = (mcu_context_t *)handle;
-    uint8_t resp[4];
-    uint32_t actual_size;
+    ctx = (mcu_context_t *)handle;
 
-    int32_t ret = mcu_send_command_internal(ctx, MCU_CMD_GET_VERSION,
+    ret = mcu_send_command_internal(ctx, MCU_CMD_GET_VERSION,
                                          NULL, 0, resp, sizeof(resp), &actual_size);
 
     if (OSAL_SUCCESS == ret && actual_size >= 4)
@@ -189,16 +197,19 @@ int32_t PDL_MCU_GetVersion(mcu_handle_t handle, mcu_version_t *version)
  */
 int32_t PDL_MCU_GetStatus(mcu_handle_t handle, mcu_status_t *status)
 {
+    mcu_context_t *ctx;
+    uint8_t resp[16];
+    uint32_t actual_size;
+    int32_t ret;
+
     if (NULL == handle || NULL == status)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    mcu_context_t *ctx = (mcu_context_t *)handle;
-    uint8_t resp[16];
-    uint32_t actual_size;
+    ctx = (mcu_context_t *)handle;
 
-    int32_t ret = mcu_send_command_internal(ctx, MCU_CMD_GET_STATUS,
+    ret = mcu_send_command_internal(ctx, MCU_CMD_GET_STATUS,
                                          NULL, 0, resp, sizeof(resp), &actual_size);
 
     if (OSAL_SUCCESS == ret && actual_size >= 8)
@@ -223,14 +234,16 @@ int32_t PDL_MCU_GetStatus(mcu_handle_t handle, mcu_status_t *status)
  */
 int32_t PDL_MCU_Reset(mcu_handle_t handle)
 {
+    mcu_context_t *ctx;
+    uint8_t resp[4];
+    uint32_t actual_size;
+
     if (NULL == handle)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    mcu_context_t *ctx = (mcu_context_t *)handle;
-    uint8_t resp[4];
-    uint32_t actual_size;
+    ctx = (mcu_context_t *)handle;
 
     return mcu_send_command_internal(ctx, MCU_CMD_RESET,
                                     NULL, 0, resp, sizeof(resp), &actual_size);
@@ -241,16 +254,19 @@ int32_t PDL_MCU_Reset(mcu_handle_t handle)
  */
 int32_t PDL_MCU_ReadRegister(mcu_handle_t handle, uint8_t reg_addr, uint8_t *value)
 {
+    mcu_context_t *ctx;
+    uint8_t resp[4];
+    uint32_t actual_size;
+    int32_t ret;
+
     if (NULL == handle || NULL == value)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    mcu_context_t *ctx = (mcu_context_t *)handle;
-    uint8_t resp[4];
-    uint32_t actual_size;
+    ctx = (mcu_context_t *)handle;
 
-    int32_t ret = mcu_send_command_internal(ctx, MCU_CMD_READ_REG,
+    ret = mcu_send_command_internal(ctx, MCU_CMD_READ_REG,
                                          &reg_addr, 1, resp, sizeof(resp), &actual_size);
 
     if (OSAL_SUCCESS == ret && actual_size >= 1)
@@ -266,15 +282,19 @@ int32_t PDL_MCU_ReadRegister(mcu_handle_t handle, uint8_t reg_addr, uint8_t *val
  */
 int32_t PDL_MCU_WriteRegister(mcu_handle_t handle, uint8_t reg_addr, uint8_t value)
 {
+    mcu_context_t *ctx;
+    uint8_t data[2];
+    uint8_t resp[4];
+    uint32_t actual_size;
+
     if (NULL == handle)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    mcu_context_t *ctx = (mcu_context_t *)handle;
-    uint8_t data[2] = {reg_addr, value};
-    uint8_t resp[4];
-    uint32_t actual_size;
+    ctx = (mcu_context_t *)handle;
+    data[0] = reg_addr;
+    data[1] = value;
 
     return mcu_send_command_internal(ctx, MCU_CMD_WRITE_REG,
                                     data, 2, resp, sizeof(resp), &actual_size);
@@ -291,12 +311,14 @@ int32_t PDL_MCU_SendCommand(mcu_handle_t handle,
                           uint32_t resp_size,
                           uint32_t *actual_size)
 {
+    mcu_context_t *ctx;
+
     if (NULL == handle)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    mcu_context_t *ctx = (mcu_context_t *)handle;
+    ctx = (mcu_context_t *)handle;
 
     return mcu_send_command_internal(ctx, cmd_code, data, data_len,
                                     response, resp_size, actual_size);

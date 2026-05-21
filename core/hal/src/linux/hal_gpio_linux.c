@@ -43,15 +43,19 @@ static pthread_mutex_t gpio_isr_mutex = PTHREAD_MUTEX_INITIALIZER;
  */
 static int32_t gpio_write_file(const char *path, const char *value)
 {
-    int fd = open(path, O_WRONLY);
+    int fd;
+    ssize_t len;
+    ssize_t written;
+
+    fd = open(path, O_WRONLY);
     if (fd < 0) {
         if (errno == EACCES) return OSAL_ERR_PERMISSION;
         if (errno == ENOENT) return OSAL_ENOENT;
         return OSAL_EIO;
     }
 
-    ssize_t len = strlen(value);
-    ssize_t written = write(fd, value, len);
+    len = strlen(value);
+    written = write(fd, value, len);
     close(fd);
 
     if (written != len) {
@@ -66,14 +70,17 @@ static int32_t gpio_write_file(const char *path, const char *value)
  */
 static int32_t gpio_read_file(const char *path, char *buffer, size_t size)
 {
-    int fd = open(path, O_RDONLY);
+    int fd;
+    ssize_t len;
+
+    fd = open(path, O_RDONLY);
     if (fd < 0) {
         if (errno == EACCES) return OSAL_ERR_PERMISSION;
         if (errno == ENOENT) return OSAL_ENOENT;
         return OSAL_EIO;
     }
 
-    ssize_t len = read(fd, buffer, size - 1);
+    len = read(fd, buffer, size - 1);
     close(fd);
 
     if (len < 0) {
@@ -122,17 +129,20 @@ static void* gpio_isr_thread(void *arg)
     struct pollfd pfd;
     char value_str[4];
     hal_gpio_level_t level;
+    ssize_t bytes_read;
+    int ret;
+    ssize_t len;
 
     pfd.fd = ctx->value_fd;
     pfd.events = POLLPRI | POLLERR;
 
     /* 清除初始中断 */
     lseek(ctx->value_fd, 0, SEEK_SET);
-    ssize_t bytes_read = read(ctx->value_fd, value_str, sizeof(value_str));
+    bytes_read = read(ctx->value_fd, value_str, sizeof(value_str));
     (void)bytes_read;  /* Suppress unused result warning */
 
     while (ctx->running) {
-        int ret = poll(&pfd, 1, 1000);  /* 1秒超时 */
+        ret = poll(&pfd, 1, 1000);  /* 1秒超时 */
 
         if (ret > 0 && (pfd.revents & POLLPRI)) {
             if (!ctx->enabled) {
@@ -145,7 +155,7 @@ static void* gpio_isr_thread(void *arg)
 
             /* 读取当前电平 */
             lseek(ctx->value_fd, 0, SEEK_SET);
-            ssize_t len = read(ctx->value_fd, value_str, sizeof(value_str));
+            len = read(ctx->value_fd, value_str, sizeof(value_str));
             if (len > 0) {
                 value_str[len] = '\0';
                 level = (value_str[0] == '1') ? HAL_GPIO_LEVEL_HIGH : HAL_GPIO_LEVEL_LOW;
@@ -313,6 +323,7 @@ int32_t HAL_GPIO_SetInterrupt(uint32_t gpio_num, hal_gpio_edge_t edge,
     char path[256];
     const char *edge_str;
     int32_t ret;
+    int fd;
 
     if (gpio_num >= MAX_GPIO_PINS || !callback) {
         return OSAL_EINVAL;
@@ -339,7 +350,7 @@ int32_t HAL_GPIO_SetInterrupt(uint32_t gpio_num, hal_gpio_edge_t edge,
 
     /* 打开value文件用于poll */
     snprintf(path, sizeof(path), "/sys/class/gpio/gpio%u/value", gpio_num);
-    int fd = open(path, O_RDONLY);
+    fd = open(path, O_RDONLY);
     if (fd < 0) {
         return OSAL_EIO;
     }

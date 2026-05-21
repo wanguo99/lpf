@@ -93,9 +93,12 @@ static void *can_rx_task(void *arg)
             /* 处理命令请求 */
             if (msg.msg_type == CAN_MSG_TYPE_CMD_REQ)
             {
+                satellite_cmd_callback_t callback;
+                void *user_data;
+
                 OSAL_MutexLock(ctx->mutex);
-                satellite_cmd_callback_t callback = ctx->callback;
-                void *user_data = ctx->user_data;
+                callback = ctx->callback;
+                user_data = ctx->user_data;
                 OSAL_MutexUnlock(ctx->mutex);
 
                 if (NULL != callback)
@@ -123,13 +126,16 @@ static void *can_rx_task(void *arg)
 int32_t PDL_Satellite_Init(const satellite_service_config_t *config,
                         satellite_service_handle_t *handle)
 {
+    satellite_service_context_t *ctx;
+    int32_t ret;
+
     if (NULL == config || NULL == handle)
     {
         return OSAL_ERR_GENERIC;
     }
 
     /* 分配上下文 */
-    satellite_service_context_t *ctx = (satellite_service_context_t *)OSAL_Malloc(sizeof(satellite_service_context_t));
+    ctx = (satellite_service_context_t *)OSAL_Malloc(sizeof(satellite_service_context_t));
     if (NULL == ctx)
     {
         LOG_ERROR("SAT", "Failed to allocate context");
@@ -149,7 +155,7 @@ int32_t PDL_Satellite_Init(const satellite_service_config_t *config,
     }
 
     /* 初始化CAN通信 */
-    int32_t ret = satellite_can_init(config->can_device, config->can_bitrate, &ctx->can_handle);
+    ret = satellite_can_init(config->can_device, config->can_bitrate, &ctx->can_handle);
     if (OSAL_SUCCESS != ret)
     {
         LOG_ERROR("SAT", "Failed to initialize CAN");
@@ -196,12 +202,14 @@ int32_t PDL_Satellite_Init(const satellite_service_config_t *config,
  */
 int32_t PDL_Satellite_Deinit(satellite_service_handle_t handle)
 {
+    satellite_service_context_t *ctx;
+
     if (NULL == handle)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    satellite_service_context_t *ctx = (satellite_service_context_t *)handle;
+    ctx = (satellite_service_context_t *)handle;
 
     /* 停止线程 */
     ctx->running = false;
@@ -227,12 +235,14 @@ int32_t PDL_Satellite_RegisterCallback(satellite_service_handle_t handle,
                                     satellite_cmd_callback_t callback,
                                     void *user_data)
 {
+    satellite_service_context_t *ctx;
+
     if (NULL == handle)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    satellite_service_context_t *ctx = (satellite_service_context_t *)handle;
+    ctx = (satellite_service_context_t *)handle;
 
     OSAL_MutexLock(ctx->mutex);
     ctx->callback = callback;
@@ -250,14 +260,17 @@ int32_t PDL_Satellite_SendResponse(satellite_service_handle_t handle,
                                 can_status_t status,
                                 uint32_t result)
 {
+    satellite_service_context_t *ctx;
+    int32_t ret;
+
     if (NULL == handle)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    satellite_service_context_t *ctx = (satellite_service_context_t *)handle;
+    ctx = (satellite_service_context_t *)handle;
 
-    int32_t ret = satellite_can_send_response(ctx->can_handle, seq_num, status, result);
+    ret = satellite_can_send_response(ctx->can_handle, seq_num, status, result);
     if (OSAL_SUCCESS == ret)
     {
         OSAL_MutexLock(ctx->mutex);
@@ -281,14 +294,17 @@ int32_t PDL_Satellite_SendResponse(satellite_service_handle_t handle,
 int32_t PDL_Satellite_SendHeartbeat(satellite_service_handle_t handle,
                                  can_status_t status)
 {
+    satellite_service_context_t *ctx;
+    int32_t ret;
+
     if (NULL == handle)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    satellite_service_context_t *ctx = (satellite_service_context_t *)handle;
+    ctx = (satellite_service_context_t *)handle;
 
-    int32_t ret = satellite_can_send_heartbeat(ctx->can_handle, status);
+    ret = satellite_can_send_heartbeat(ctx->can_handle, status);
 
     /* 加锁保护统计计数器，与其他函数保持一致 */
     if (OSAL_SUCCESS == ret)
@@ -315,12 +331,14 @@ int32_t PDL_Satellite_GetStats(satellite_service_handle_t handle,
                             uint32_t *tx_count,
                             uint32_t *error_count)
 {
+    satellite_service_context_t *ctx;
+
     if (NULL == handle)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    satellite_service_context_t *ctx = (satellite_service_context_t *)handle;
+    ctx = (satellite_service_context_t *)handle;
 
     /* 加锁保护统计计数器读取，与写入操作保持一致 */
     OSAL_MutexLock(ctx->mutex);

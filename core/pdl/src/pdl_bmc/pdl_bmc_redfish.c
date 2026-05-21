@@ -37,22 +37,28 @@ typedef struct
  */
 static int32_t json_get_string(const char *json, const char *key, char *value, uint32_t value_size)
 {
+    char search_key[128];
+    const char *key_pos;
+    const char *colon;
+    const char *value_start;
+    const char *value_end;
+    uint32_t len;
+
     if (NULL == json || NULL == key || NULL == value)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    char search_key[128];
     OSAL_Snprintf(search_key, sizeof(search_key), "\"%s\"", key);
 
-    const char *key_pos = OSAL_Strstr(json, search_key);
+    key_pos = OSAL_Strstr(json, search_key);
     if (NULL == key_pos)
     {
         return OSAL_ERR_GENERIC;
     }
 
     /* 查找冒号 */
-    const char *colon = key_pos;
+    colon = key_pos;
     while (*colon != '\0' && *colon != ':')
     {
         colon++;
@@ -62,7 +68,7 @@ static int32_t json_get_string(const char *json, const char *key, char *value, u
         return OSAL_ERR_GENERIC;
     }
 
-    const char *value_start = colon + 1;
+    value_start = colon + 1;
     while (*value_start == ' ' || *value_start == '\t' || *value_start == '\n')
     {
         value_start++;
@@ -72,7 +78,7 @@ static int32_t json_get_string(const char *json, const char *key, char *value, u
     {
         value_start++;
         /* 查找结束引号 */
-        const char *value_end = value_start;
+        value_end = value_start;
         while (*value_end != '\0' && *value_end != '"')
         {
             value_end++;
@@ -82,7 +88,7 @@ static int32_t json_get_string(const char *json, const char *key, char *value, u
             return OSAL_ERR_GENERIC;
         }
 
-        uint32_t len = value_end - value_start;
+        len = value_end - value_start;
         if (len >= value_size)
         {
             len = value_size - 1;
@@ -107,12 +113,17 @@ static int32_t build_http_request(bmc_redfish_context_t *ctx,
                                   uint32_t request_size,
                                   uint32_t *actual_size)
 {
+    const char *method_str;
+    uint32_t body_len;
+    int32_t len;
+    char auth_str[256];
+
     if (NULL == ctx || NULL == uri || NULL == request || NULL == actual_size)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    const char *method_str = "GET";
+    method_str = "GET";
     switch (method)
     {
         case REDFISH_METHOD_GET:    method_str = "GET"; break;
@@ -122,9 +133,9 @@ static int32_t build_http_request(bmc_redfish_context_t *ctx,
         default: return OSAL_ERR_GENERIC;
     }
 
-    uint32_t body_len = (NULL != json_body) ? OSAL_Strlen(json_body) : 0;
+    body_len = (NULL != json_body) ? OSAL_Strlen(json_body) : 0;
 
-    int32_t len = OSAL_Snprintf(request, request_size,
+    len = OSAL_Snprintf(request, request_size,
         "%s %s HTTP/1.1\r\n"
         "Host: %s\r\n"
         "Content-Type: application/json\r\n"
@@ -138,7 +149,6 @@ static int32_t build_http_request(bmc_redfish_context_t *ctx,
     }
     else if (ctx->auth.username != NULL && ctx->auth.password != NULL)
     {
-        char auth_str[256];
         OSAL_Snprintf(auth_str, sizeof(auth_str), "%s:%s", ctx->auth.username, ctx->auth.password);
         len += OSAL_Snprintf(request + len, request_size - len,
             "Authorization: Basic %s\r\n", auth_str);
@@ -168,6 +178,9 @@ static int32_t parse_http_response(const char *response,
                                    uint32_t body_size,
                                    uint32_t *body_len)
 {
+    const char *body_start;
+    uint32_t len;
+
     if (NULL == response || response_len < 12)
     {
         return OSAL_ERR_GENERIC;
@@ -183,11 +196,11 @@ static int32_t parse_http_response(const char *response,
         *status_code = OSAL_Atoi(response + 9);
     }
 
-    const char *body_start = OSAL_Strstr(response, "\r\n\r\n");
+    body_start = OSAL_Strstr(response, "\r\n\r\n");
     if (NULL != body_start)
     {
         body_start += 4;
-        uint32_t len = response_len - (body_start - response);
+        len = response_len - (body_start - response);
 
         if (NULL != body && body_size > 0)
         {
@@ -217,12 +230,14 @@ int32_t bmc_redfish_init(void *transport_handle,
                          const char *password,
                          void **protocol_handle)
 {
+    bmc_redfish_context_t *ctx;
+
     if (NULL == transport_handle || NULL == send_recv || NULL == protocol_handle)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    bmc_redfish_context_t *ctx = (bmc_redfish_context_t *)OSAL_Malloc(sizeof(bmc_redfish_context_t));
+    ctx = (bmc_redfish_context_t *)OSAL_Malloc(sizeof(bmc_redfish_context_t));
     if (NULL == ctx)
     {
         return OSAL_ERR_GENERIC;
@@ -251,12 +266,14 @@ int32_t bmc_redfish_init(void *transport_handle,
  */
 int32_t bmc_redfish_deinit(void *protocol_handle)
 {
+    bmc_redfish_context_t *ctx;
+
     if (NULL == protocol_handle)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    bmc_redfish_context_t *ctx = (bmc_redfish_context_t *)protocol_handle;
+    ctx = (bmc_redfish_context_t *)protocol_handle;
 
     OSAL_MutexDelete(ctx->mutex);
     OSAL_Free(ctx);
@@ -275,28 +292,30 @@ int32_t bmc_redfish_request(void *protocol_handle,
                             uint32_t resp_size,
                             uint32_t *actual_size)
 {
+    bmc_redfish_context_t *ctx;
+    char request[2048];
+    uint32_t request_len;
+    int32_t ret;
+    uint8_t http_response[4096];
+    uint32_t http_response_len;
+    int32_t status_code;
+
     if (NULL == protocol_handle || NULL == uri)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    bmc_redfish_context_t *ctx = (bmc_redfish_context_t *)protocol_handle;
+    ctx = (bmc_redfish_context_t *)protocol_handle;
 
     OSAL_MutexLock(ctx->mutex);
 
-    char request[2048];
-    uint32_t request_len;
-
-    int32_t ret = build_http_request(ctx, method, uri, json_body,
+    ret = build_http_request(ctx, method, uri, json_body,
                                      request, sizeof(request), &request_len);
     if (OSAL_SUCCESS != ret)
     {
         OSAL_MutexUnlock(ctx->mutex);
         return ret;
     }
-
-    uint8_t http_response[4096];
-    uint32_t http_response_len;
 
     ret = ctx->send_recv(ctx->transport_handle,
                         (const uint8_t *)request, request_len,
@@ -307,7 +326,6 @@ int32_t bmc_redfish_request(void *protocol_handle,
         return ret;
     }
 
-    int32_t status_code;
     ret = parse_http_response((const char *)http_response, http_response_len,
                              &status_code, response, resp_size, actual_size);
 
@@ -327,14 +345,16 @@ int32_t bmc_redfish_request(void *protocol_handle,
  */
 int32_t bmc_redfish_power_on(void *protocol_handle)
 {
+    const char *json_body;
+    char response[1024];
+    uint32_t response_len;
+
     if (NULL == protocol_handle)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    const char *json_body = "{\"ResetType\":\"On\"}";
-    char response[1024];
-    uint32_t response_len;
+    json_body = "{\"ResetType\":\"On\"}";
 
     return bmc_redfish_request(protocol_handle, REDFISH_METHOD_POST,
                               "/redfish/v1/Systems/1/Actions/ComputerSystem.Reset",
@@ -346,14 +366,16 @@ int32_t bmc_redfish_power_on(void *protocol_handle)
  */
 int32_t bmc_redfish_power_off(void *protocol_handle)
 {
+    const char *json_body;
+    char response[1024];
+    uint32_t response_len;
+
     if (NULL == protocol_handle)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    const char *json_body = "{\"ResetType\":\"ForceOff\"}";
-    char response[1024];
-    uint32_t response_len;
+    json_body = "{\"ResetType\":\"ForceOff\"}";
 
     return bmc_redfish_request(protocol_handle, REDFISH_METHOD_POST,
                               "/redfish/v1/Systems/1/Actions/ComputerSystem.Reset",
@@ -365,14 +387,16 @@ int32_t bmc_redfish_power_off(void *protocol_handle)
  */
 int32_t bmc_redfish_power_reset(void *protocol_handle)
 {
+    const char *json_body;
+    char response[1024];
+    uint32_t response_len;
+
     if (NULL == protocol_handle)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    const char *json_body = "{\"ResetType\":\"ForceRestart\"}";
-    char response[1024];
-    uint32_t response_len;
+    json_body = "{\"ResetType\":\"ForceRestart\"}";
 
     return bmc_redfish_request(protocol_handle, REDFISH_METHOD_POST,
                               "/redfish/v1/Systems/1/Actions/ComputerSystem.Reset",
@@ -384,15 +408,17 @@ int32_t bmc_redfish_power_reset(void *protocol_handle)
  */
 int32_t bmc_redfish_get_power_state(void *protocol_handle, bmc_power_state_t *state)
 {
+    char response[2048];
+    uint32_t response_len;
+    int32_t ret;
+    char power_state[32];
+
     if (NULL == protocol_handle || NULL == state)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    char response[2048];
-    uint32_t response_len;
-
-    int32_t ret = bmc_redfish_request(protocol_handle, REDFISH_METHOD_GET,
+    ret = bmc_redfish_request(protocol_handle, REDFISH_METHOD_GET,
                                      "/redfish/v1/Systems/1",
                                      NULL, response, sizeof(response), &response_len);
     if (OSAL_SUCCESS != ret)
@@ -401,7 +427,6 @@ int32_t bmc_redfish_get_power_state(void *protocol_handle, bmc_power_state_t *st
         return ret;
     }
 
-    char power_state[32];
     if (OSAL_SUCCESS == json_get_string(response, "PowerState", power_state, sizeof(power_state)))
     {
         if (OSAL_Strcmp(power_state, "On") == 0)

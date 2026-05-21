@@ -15,10 +15,12 @@ struct osal_mutex_s
 
 int32_t OSAL_MutexCreate(osal_mutex_t **mutex)
 {
+    osal_mutex_t *new_mutex;
+
     if (NULL == mutex)
         return OSAL_ERR_INVALID_POINTER;
 
-    osal_mutex_t *new_mutex = (osal_mutex_t *)malloc(sizeof(osal_mutex_t));
+    new_mutex = (osal_mutex_t *)malloc(sizeof(osal_mutex_t));
     if (NULL == new_mutex)
         return OSAL_ERR_NO_MEMORY;
 
@@ -34,14 +36,17 @@ int32_t OSAL_MutexCreate(osal_mutex_t **mutex)
 
 int32_t OSAL_MutexCreateEx(osal_mutex_t **mutex, const osal_mutex_attr_t *attr)
 {
+    osal_mutex_t *new_mutex;
+    pthread_mutexattr_t pthread_attr;
+    int ret;
+
     if (NULL == mutex)
         return OSAL_ERR_INVALID_POINTER;
 
-    osal_mutex_t *new_mutex = (osal_mutex_t *)malloc(sizeof(osal_mutex_t));
+    new_mutex = (osal_mutex_t *)malloc(sizeof(osal_mutex_t));
     if (NULL == new_mutex)
         return OSAL_ERR_NO_MEMORY;
 
-    pthread_mutexattr_t pthread_attr;
     pthread_mutexattr_init(&pthread_attr);
 
     if (attr != NULL && attr->type == OSAL_MUTEX_RECURSIVE)
@@ -49,7 +54,7 @@ int32_t OSAL_MutexCreateEx(osal_mutex_t **mutex, const osal_mutex_attr_t *attr)
         pthread_mutexattr_settype(&pthread_attr, PTHREAD_MUTEX_RECURSIVE);
     }
 
-    int ret = pthread_mutex_init(&new_mutex->mutex, &pthread_attr);
+    ret = pthread_mutex_init(&new_mutex->mutex, &pthread_attr);
     pthread_mutexattr_destroy(&pthread_attr);
 
     if (0 != ret)
@@ -96,10 +101,12 @@ int32_t OSAL_MutexUnlock(osal_mutex_t *mutex)
 
 int32_t OSAL_MutexTryLock(osal_mutex_t *mutex)
 {
+    int ret;
+
     if (NULL == mutex)
         return OSAL_ERR_INVALID_POINTER;
 
-    int ret = pthread_mutex_trylock(&mutex->mutex);
+    ret = pthread_mutex_trylock(&mutex->mutex);
     if (0 == ret)
         return OSAL_SUCCESS;
 
@@ -111,10 +118,12 @@ int32_t OSAL_MutexTryLock(osal_mutex_t *mutex)
 
 int32_t OSAL_MutexTimedLock(osal_mutex_t *mutex, uint32_t timeout_ms)
 {
+    struct timespec ts;
+    int ret;
+
     if (NULL == mutex)
         return OSAL_ERR_INVALID_POINTER;
 
-    struct timespec ts;
     if (0 != clock_gettime(CLOCK_REALTIME, &ts))
         return OSAL_ERR_GENERIC;
 
@@ -126,7 +135,7 @@ int32_t OSAL_MutexTimedLock(osal_mutex_t *mutex, uint32_t timeout_ms)
         ts.tv_nsec -= 1000000000;
     }
 
-    int ret = pthread_mutex_timedlock(&mutex->mutex, &ts);
+    ret = pthread_mutex_timedlock(&mutex->mutex, &ts);
     if (0 == ret)
         return OSAL_SUCCESS;
     if (ETIMEDOUT == ret)

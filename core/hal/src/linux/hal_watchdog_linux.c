@@ -27,6 +27,9 @@ typedef struct
  */
 int32_t HAL_WATCHDOG_Init(const hal_watchdog_config_t *config, hal_watchdog_handle_t *handle)
 {
+    hal_watchdog_context_t *ctx;
+    int32_t timeout;
+
     if (config == NULL || handle == NULL)
     {
         LOG_ERROR("HAL_WDT", "Invalid parameters");
@@ -40,7 +43,7 @@ int32_t HAL_WATCHDOG_Init(const hal_watchdog_config_t *config, hal_watchdog_hand
     }
 
     /* 分配上下文 */
-    hal_watchdog_context_t *ctx = (hal_watchdog_context_t *)OSAL_Malloc(sizeof(hal_watchdog_context_t));
+    ctx = (hal_watchdog_context_t *)OSAL_Malloc(sizeof(hal_watchdog_context_t));
     if (ctx == NULL)
     {
         LOG_ERROR("HAL_WDT", "Failed to allocate context");
@@ -66,7 +69,7 @@ int32_t HAL_WATCHDOG_Init(const hal_watchdog_config_t *config, hal_watchdog_hand
     /* 设置超时时间 */
     if (config->timeout_sec > 0)
     {
-        int32_t timeout = (int32_t)config->timeout_sec;
+        timeout = (int32_t)config->timeout_sec;
         if (OSAL_ioctl(ctx->fd, WDIOC_SETTIMEOUT, &timeout) < 0)
         {
             LOG_ERROR("HAL_WDT", "Failed to set timeout: %s", OSAL_StrError(OSAL_GetErrno()));
@@ -80,7 +83,7 @@ int32_t HAL_WATCHDOG_Init(const hal_watchdog_config_t *config, hal_watchdog_hand
     else
     {
         /* 获取默认超时时间 */
-        int32_t timeout = 0;
+        timeout = 0;
         if (OSAL_ioctl(ctx->fd, WDIOC_GETTIMEOUT, &timeout) == 0)
         {
             ctx->timeout_sec = (uint32_t)timeout;
@@ -101,19 +104,22 @@ int32_t HAL_WATCHDOG_Init(const hal_watchdog_config_t *config, hal_watchdog_hand
  */
 int32_t HAL_WATCHDOG_Deinit(hal_watchdog_handle_t handle)
 {
+    hal_watchdog_context_t *ctx;
+    const char magic = 'V';
+    osal_ssize_t ret;
+
     if (handle == NULL)
     {
         LOG_ERROR("HAL_WDT", "Invalid handle");
         return OSAL_EINVAL;
     }
 
-    hal_watchdog_context_t *ctx = (hal_watchdog_context_t *)handle;
+    ctx = (hal_watchdog_context_t *)handle;
 
     if (ctx->fd >= 0)
     {
         /* 写入魔术字符'V'来禁用看门狗（如果硬件支持） */
-        const char magic = 'V';
-        osal_ssize_t ret = OSAL_write(ctx->fd, &magic, 1);
+        ret = OSAL_write(ctx->fd, &magic, 1);
         if (ret < 0)
         {
             LOG_WARN("HAL_WDT", "Failed to disable watchdog (may not be supported)");
@@ -137,13 +143,15 @@ int32_t HAL_WATCHDOG_Deinit(hal_watchdog_handle_t handle)
  */
 int32_t HAL_WATCHDOG_Kick(hal_watchdog_handle_t handle)
 {
+    hal_watchdog_context_t *ctx;
+
     if (handle == NULL)
     {
         LOG_ERROR("HAL_WDT", "Invalid handle");
         return OSAL_EINVAL;
     }
 
-    hal_watchdog_context_t *ctx = (hal_watchdog_context_t *)handle;
+    ctx = (hal_watchdog_context_t *)handle;
 
     if (ctx->fd < 0)
     {
@@ -167,13 +175,16 @@ int32_t HAL_WATCHDOG_Kick(hal_watchdog_handle_t handle)
  */
 int32_t HAL_WATCHDOG_Enable(hal_watchdog_handle_t handle)
 {
+    hal_watchdog_context_t *ctx;
+    int32_t options;
+
     if (handle == NULL)
     {
         LOG_ERROR("HAL_WDT", "Invalid handle");
         return OSAL_EINVAL;
     }
 
-    hal_watchdog_context_t *ctx = (hal_watchdog_context_t *)handle;
+    ctx = (hal_watchdog_context_t *)handle;
 
     if (ctx->fd < 0)
     {
@@ -181,7 +192,7 @@ int32_t HAL_WATCHDOG_Enable(hal_watchdog_handle_t handle)
         return OSAL_ERR_GENERIC;
     }
 
-    int32_t options = WDIOS_ENABLECARD;
+    options = WDIOS_ENABLECARD;
     if (OSAL_ioctl(ctx->fd, WDIOC_SETOPTIONS, &options) < 0)
     {
         LOG_ERROR("HAL_WDT", "Failed to enable watchdog: %s", OSAL_StrError(OSAL_GetErrno()));
@@ -198,13 +209,16 @@ int32_t HAL_WATCHDOG_Enable(hal_watchdog_handle_t handle)
  */
 int32_t HAL_WATCHDOG_Disable(hal_watchdog_handle_t handle)
 {
+    hal_watchdog_context_t *ctx;
+    int32_t options;
+
     if (handle == NULL)
     {
         LOG_ERROR("HAL_WDT", "Invalid handle");
         return OSAL_EINVAL;
     }
 
-    hal_watchdog_context_t *ctx = (hal_watchdog_context_t *)handle;
+    ctx = (hal_watchdog_context_t *)handle;
 
     if (ctx->fd < 0)
     {
@@ -212,7 +226,7 @@ int32_t HAL_WATCHDOG_Disable(hal_watchdog_handle_t handle)
         return OSAL_ERR_GENERIC;
     }
 
-    int32_t options = WDIOS_DISABLECARD;
+    options = WDIOS_DISABLECARD;
     if (OSAL_ioctl(ctx->fd, WDIOC_SETOPTIONS, &options) < 0)
     {
         LOG_WARN("HAL_WDT", "Failed to disable watchdog (may not be supported): %s",
@@ -230,13 +244,16 @@ int32_t HAL_WATCHDOG_Disable(hal_watchdog_handle_t handle)
  */
 int32_t HAL_WATCHDOG_SetTimeout(hal_watchdog_handle_t handle, uint32_t timeout_sec)
 {
+    hal_watchdog_context_t *ctx;
+    int32_t timeout;
+
     if (handle == NULL)
     {
         LOG_ERROR("HAL_WDT", "Invalid handle");
         return OSAL_EINVAL;
     }
 
-    hal_watchdog_context_t *ctx = (hal_watchdog_context_t *)handle;
+    ctx = (hal_watchdog_context_t *)handle;
 
     if (ctx->fd < 0)
     {
@@ -244,7 +261,7 @@ int32_t HAL_WATCHDOG_SetTimeout(hal_watchdog_handle_t handle, uint32_t timeout_s
         return OSAL_ERR_GENERIC;
     }
 
-    int32_t timeout = (int32_t)timeout_sec;
+    timeout = (int32_t)timeout_sec;
     if (OSAL_ioctl(ctx->fd, WDIOC_SETTIMEOUT, &timeout) < 0)
     {
         LOG_ERROR("HAL_WDT", "Failed to set timeout: %s", OSAL_StrError(OSAL_GetErrno()));
@@ -261,13 +278,16 @@ int32_t HAL_WATCHDOG_SetTimeout(hal_watchdog_handle_t handle, uint32_t timeout_s
  */
 int32_t HAL_WATCHDOG_GetTimeout(hal_watchdog_handle_t handle, uint32_t *timeout_sec)
 {
+    hal_watchdog_context_t *ctx;
+    int32_t timeout;
+
     if (handle == NULL || timeout_sec == NULL)
     {
         LOG_ERROR("HAL_WDT", "Invalid parameters");
         return OSAL_EINVAL;
     }
 
-    hal_watchdog_context_t *ctx = (hal_watchdog_context_t *)handle;
+    ctx = (hal_watchdog_context_t *)handle;
 
     if (ctx->fd < 0)
     {
@@ -275,7 +295,7 @@ int32_t HAL_WATCHDOG_GetTimeout(hal_watchdog_handle_t handle, uint32_t *timeout_
         return OSAL_ERR_GENERIC;
     }
 
-    int32_t timeout = 0;
+    timeout = 0;
     if (OSAL_ioctl(ctx->fd, WDIOC_GETTIMEOUT, &timeout) < 0)
     {
         LOG_ERROR("HAL_WDT", "Failed to get timeout: %s", OSAL_StrError(OSAL_GetErrno()));
@@ -291,13 +311,16 @@ int32_t HAL_WATCHDOG_GetTimeout(hal_watchdog_handle_t handle, uint32_t *timeout_
  */
 int32_t HAL_WATCHDOG_GetTimeleft(hal_watchdog_handle_t handle, uint32_t *timeleft_sec)
 {
+    hal_watchdog_context_t *ctx;
+    int32_t timeleft;
+
     if (handle == NULL || timeleft_sec == NULL)
     {
         LOG_ERROR("HAL_WDT", "Invalid parameters");
         return OSAL_EINVAL;
     }
 
-    hal_watchdog_context_t *ctx = (hal_watchdog_context_t *)handle;
+    ctx = (hal_watchdog_context_t *)handle;
 
     if (ctx->fd < 0)
     {
@@ -305,7 +328,7 @@ int32_t HAL_WATCHDOG_GetTimeleft(hal_watchdog_handle_t handle, uint32_t *timelef
         return OSAL_ERR_GENERIC;
     }
 
-    int32_t timeleft = 0;
+    timeleft = 0;
     if (OSAL_ioctl(ctx->fd, WDIOC_GETTIMELEFT, &timeleft) < 0)
     {
         LOG_WARN("HAL_WDT", "Failed to get timeleft (may not be supported): %s",
@@ -322,13 +345,15 @@ int32_t HAL_WATCHDOG_GetTimeleft(hal_watchdog_handle_t handle, uint32_t *timelef
  */
 int32_t HAL_WATCHDOG_GetStats(hal_watchdog_handle_t handle, uint32_t *kick_count)
 {
+    hal_watchdog_context_t *ctx;
+
     if (handle == NULL || kick_count == NULL)
     {
         LOG_ERROR("HAL_WDT", "Invalid parameters");
         return OSAL_EINVAL;
     }
 
-    hal_watchdog_context_t *ctx = (hal_watchdog_context_t *)handle;
+    ctx = (hal_watchdog_context_t *)handle;
     *kick_count = atomic_load(&ctx->kick_count);
     return OSAL_SUCCESS;
 }

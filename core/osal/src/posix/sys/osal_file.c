@@ -104,7 +104,10 @@ int32_t OSAL_close(int32_t fd)
 
 int32_t OSAL_read(int32_t fd, void *buf, uint32_t count)
 {
-    ssize_t result = read(fd, buf, (size_t)count);
+    ssize_t result;
+    int32_t safe_result;
+
+    result = read(fd, buf, (size_t)count);
 
     /* 错误情况直接返回 */
     if (result < 0) {
@@ -118,13 +121,16 @@ int32_t OSAL_read(int32_t fd, void *buf, uint32_t count)
     }
 
     /* 安全转换：已验证 result 在 [0, INT32_MAX] 范围内 */
-    int32_t safe_result = (int32_t)result;
+    safe_result = (int32_t)result;
     return safe_result;
 }
 
 int32_t OSAL_write(int32_t fd, const void *buf, uint32_t count)
 {
-    ssize_t result = write(fd, buf, (size_t)count);
+    ssize_t result;
+    int32_t safe_result;
+
+    result = write(fd, buf, (size_t)count);
 
     /* 错误情况直接返回 */
     if (result < 0) {
@@ -138,7 +144,7 @@ int32_t OSAL_write(int32_t fd, const void *buf, uint32_t count)
     }
 
     /* 安全转换：已验证 result 在 [0, INT32_MAX] 范围内 */
-    int32_t safe_result = (int32_t)result;
+    safe_result = (int32_t)result;
     return safe_result;
 }
 

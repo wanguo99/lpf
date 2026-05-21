@@ -31,13 +31,15 @@ struct osal_semaphore_s
 
 int32_t OSAL_SemaphoreCreate(osal_semaphore_t **sem, uint32_t initial_value)
 {
+    osal_semaphore_t *new_sem;
+
     if (NULL == sem)
         return OSAL_ERR_INVALID_POINTER;
 
     if (initial_value > (uint32_t)INT32_MAX)
         return OSAL_ERR_INVALID_SEM_VALUE;
 
-    osal_semaphore_t *new_sem = (osal_semaphore_t *)malloc(sizeof(osal_semaphore_t));
+    new_sem = (osal_semaphore_t *)malloc(sizeof(osal_semaphore_t));
     if (NULL == new_sem)
         return OSAL_ERR_GENERIC;
 
@@ -101,6 +103,13 @@ int32_t OSAL_SemaphoreWait(osal_semaphore_t *sem)
 
 int32_t OSAL_SemaphoreTimedWait(osal_semaphore_t *sem, uint32_t timeout_ms)
 {
+#ifdef __APPLE__
+    struct timeval start, now;
+    uint32_t elapsed_ms;
+#else
+    struct timespec ts;
+#endif
+
     if (NULL == sem)
         return OSAL_ERR_INVALID_POINTER;
 
@@ -122,7 +131,6 @@ int32_t OSAL_SemaphoreTimedWait(osal_semaphore_t *sem, uint32_t timeout_ms)
 
 #ifdef __APPLE__
     /* macOS不支持sem_timedwait，使用轮询方式 */
-    struct timeval start, now;
     gettimeofday(&start, NULL);
 
     while (1)
@@ -134,8 +142,8 @@ int32_t OSAL_SemaphoreTimedWait(osal_semaphore_t *sem, uint32_t timeout_ms)
             return OSAL_ERR_GENERIC;
 
         gettimeofday(&now, NULL);
-        uint32_t elapsed_ms = (now.tv_sec - start.tv_sec) * 1000 +
-                              (now.tv_usec - start.tv_usec) / 1000;
+        elapsed_ms = (now.tv_sec - start.tv_sec) * 1000 +
+                     (now.tv_usec - start.tv_usec) / 1000;
 
         if (elapsed_ms >= timeout_ms)
             return OSAL_ERR_TIMEOUT;
@@ -146,7 +154,6 @@ int32_t OSAL_SemaphoreTimedWait(osal_semaphore_t *sem, uint32_t timeout_ms)
 #else
     /* Linux使用sem_timedwait */
     /* 计算超时时间点 */
-    struct timespec ts;
     if (0 != clock_gettime(CLOCK_REALTIME, &ts))
         return OSAL_ERR_GENERIC;
 

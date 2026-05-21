@@ -42,11 +42,13 @@ void OSAL_Abort(void)
 int32_t OSAL_ProcessCreate(osal_id_t *proc_id, const char *path,
                          char *const argv[], char *const envp[])
 {
+    pid_t pid;
+
     if (proc_id == NULL || path == NULL || argv == NULL) {
         return OSAL_ERR_INVALID_POINTER;
     }
 
-    pid_t pid = fork();
+    pid = fork();
 
     if (pid < 0) {
         /* fork失败 */
@@ -72,15 +74,19 @@ int32_t OSAL_ProcessCreate(osal_id_t *proc_id, const char *path,
 
 int32_t OSAL_ProcessWait(osal_id_t proc_id, int32_t *status, int32_t timeout_ms)
 {
+    pid_t pid;
+    int wait_status;
+    int options;
+    pid_t result;
+
     if (proc_id == 0) {
         return OSAL_ERR_INVALID_ID;
     }
 
-    pid_t pid = (pid_t)proc_id;
-    int wait_status;
-    int options = (timeout_ms == 0) ? WNOHANG : 0;
+    pid = (pid_t)proc_id;
+    options = (timeout_ms == 0) ? WNOHANG : 0;
 
-    pid_t result = waitpid(pid, &wait_status, options);
+    result = waitpid(pid, &wait_status, options);
 
     if (result > 0) {
         if (status != NULL) {
@@ -102,11 +108,13 @@ int32_t OSAL_ProcessWait(osal_id_t proc_id, int32_t *status, int32_t timeout_ms)
 
 int32_t OSAL_ProcessKill(osal_id_t proc_id, int32_t signal)
 {
+    pid_t pid;
+
     if (proc_id == 0) {
         return OSAL_ERR_INVALID_ID;
     }
 
-    pid_t pid = (pid_t)proc_id;
+    pid = (pid_t)proc_id;
 
     if (kill(pid, signal) == 0) {
         return OSAL_SUCCESS;
@@ -122,11 +130,13 @@ int32_t OSAL_ProcessKill(osal_id_t proc_id, int32_t signal)
 
 bool OSAL_ProcessExists(osal_id_t proc_id)
 {
+    pid_t pid;
+
     if (proc_id == 0) {
         return false;
     }
 
-    pid_t pid = (pid_t)proc_id;
+    pid = (pid_t)proc_id;
 
     /* 发送信号0检查进程是否存在 */
     if (kill(pid, 0) == 0) {
@@ -148,11 +158,13 @@ osal_id_t OSAL_ProcessGetParentId(void)
 
 int32_t OSAL_Fork(osal_id_t *child_pid)
 {
+    pid_t pid;
+
     if (child_pid == NULL) {
         return OSAL_ERR_INVALID_POINTER;
     }
 
-    pid_t pid = fork();
+    pid = fork();
 
     if (pid < 0) {
         /* fork失败 */
@@ -167,14 +179,17 @@ int32_t OSAL_Fork(osal_id_t *child_pid)
 int32_t OSAL_Waitpid(osal_id_t pid, int32_t *status, int32_t options)
 {
     int wait_status;
-    int posix_options = 0;
+    int posix_options;
+    pid_t result;
+
+    posix_options = 0;
 
     /* 转换选项 */
     if (options & OSAL_WNOHANG) {
         posix_options |= WNOHANG;
     }
 
-    pid_t result = waitpid((pid_t)pid, &wait_status, posix_options);
+    result = waitpid((pid_t)pid, &wait_status, posix_options);
 
     if (result > 0) {
         /* 子进程退出 */

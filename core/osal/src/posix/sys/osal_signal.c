@@ -10,16 +10,15 @@
 int32_t OSAL_SignalRegister(int32_t signum, os_signal_handler_t handler)
 {
     struct sigaction sa;
+    union {
+        os_signal_handler_t osal_handler;
+        void (*posix_handler)(int);
+    } handler_union;
 
     if (NULL == handler)
         return OSAL_ERR_INVALID_POINTER;
 
     memset(&sa, 0, sizeof(sa));
-
-    union {
-        os_signal_handler_t osal_handler;
-        void (*posix_handler)(int);
-    } handler_union;
 
     handler_union.osal_handler = handler;
     sa.sa_handler = handler_union.posix_handler;

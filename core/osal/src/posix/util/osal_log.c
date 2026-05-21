@@ -156,6 +156,11 @@ static void get_timestamp(char *buffer, osal_size_t size)
  */
 static void rotate_log_file(void)
 {
+    char old_file[OSAL_LOG_FILENAME_SIZE];
+    char from[OSAL_LOG_FILENAME_SIZE], to[OSAL_LOG_FILENAME_SIZE];
+    char current_backup[OSAL_LOG_FILENAME_SIZE];
+    uint32_t i;
+
     if (g_log_file_path[0] == '\0')
         return;
 
@@ -167,7 +172,6 @@ static void rotate_log_file(void)
     }
 
     /* 删除最旧的日志文件 */
-    char old_file[OSAL_LOG_FILENAME_SIZE];
     snprintf(old_file, sizeof(old_file), "%s.%u", g_log_file_path, g_max_log_files);
     if (remove(old_file) != 0 && errno != ENOENT)
     {
@@ -176,10 +180,8 @@ static void rotate_log_file(void)
     }
 
     /* 重命名日志文件 */
-    uint32_t i;
     for (i = g_max_log_files - 1; i > 0; i--)
     {
-        char from[OSAL_LOG_FILENAME_SIZE], to[OSAL_LOG_FILENAME_SIZE];
         snprintf(from, sizeof(from), "%s.%u", g_log_file_path, i - 1);
         snprintf(to, sizeof(to), "%s.%u", g_log_file_path, i);
         if (rename(from, to) != 0 && errno != ENOENT)
@@ -190,7 +192,6 @@ static void rotate_log_file(void)
     }
 
     /* 重命名当前日志文件 */
-    char current_backup[OSAL_LOG_FILENAME_SIZE];
     snprintf(current_backup, sizeof(current_backup), "%s.1", g_log_file_path);
     if (rename(g_log_file_path, current_backup) != 0)
     {
@@ -217,12 +218,14 @@ static void rotate_log_file(void)
  */
 static void check_and_rotate_log(void)
 {
+    int64_t file_size;
+
     if (NULL == g_log_file || g_log_file_path[0] == '\0')
         return;
 
     /* 获取文件大小 */
     fseek(g_log_file, 0, SEEK_END);
-    int64_t file_size = (int64_t)ftell(g_log_file);
+    file_size = (int64_t)ftell(g_log_file);
 
     if (file_size > (int64_t)g_max_log_size)
     {
