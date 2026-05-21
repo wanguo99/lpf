@@ -541,6 +541,10 @@ $(version_h): $(srctree)/Makefile FORCE
 CLEAN_DIRS  += $(BIN_DIR) $(LIB_DIR) $(KO_DIR)
 CLEAN_FILES +=
 
+# 清理 staging 头文件（保留源码中的 ems_config.h）
+# 注意：include/ 目录本身不删除，只删除安装的头文件和子目录
+CLEAN_DIRS  += include/ipc include/lib include/net include/sys include/util include/config
+
 MRPROPER_DIRS  += include/config include/generated .tmp_objdiff
 MRPROPER_FILES += .config .config.old .version .old_version \
 		  cscope* GPATH GSYMS GTAGS TAGS
@@ -564,6 +568,7 @@ clean: $(clean-dirs)
 		-o -name '*.so' -o -name '*.so.*' \
 		-o -name '*.a' \
 		-o -name '*.gcno' \) -type f -print | xargs rm -f
+	@find include -maxdepth 1 -type f ! -name 'ems_config.h' -exec rm -f {} \;
 
 # mrproper - 删除所有生成文件，包括 .config
 mrproper: rm-dirs  := $(wildcard $(MRPROPER_DIRS))
