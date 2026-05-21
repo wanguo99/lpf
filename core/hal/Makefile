@@ -17,12 +17,24 @@ ifeq ($(CONFIG_HAL_BUILD_SHARED),y)
   obj-d := libhal.so
 endif
 
-# 子目录递归
-subdir-y += src/
+# 对象文件列表（Linux 内核风格）
+# Linux 平台驱动
+libhal.a-objs-y :=
+libhal.a-objs-$(CONFIG_HAL_CAN) += src/linux/hal_can_linux.o
+libhal.a-objs-$(CONFIG_HAL_UART) += src/linux/hal_serial_linux.o
+libhal.a-objs-$(CONFIG_HAL_I2C) += src/linux/hal_i2c_linux.o
+libhal.a-objs-$(CONFIG_HAL_SPI) += src/linux/hal_spi_linux.o
+libhal.a-objs-$(CONFIG_HAL_GPIO) += src/linux/hal_gpio_linux.o
+libhal.a-objs-$(CONFIG_HAL_WATCHDOG) += src/linux/hal_watchdog_linux.o
 
-# 从子目录收集对象文件
-libhal.a-objs := $(obj-y)
-libhal.so-objs := $(obj-y)
+# 动态库使用相同的对象文件
+libhal.so-objs-y := $(libhal.a-objs-y)
+libhal.so-objs-$(CONFIG_HAL_CAN) := $(libhal.a-objs-y)
+libhal.so-objs-$(CONFIG_HAL_UART) := $(libhal.a-objs-y)
+libhal.so-objs-$(CONFIG_HAL_I2C) := $(libhal.a-objs-y)
+libhal.so-objs-$(CONFIG_HAL_SPI) := $(libhal.a-objs-y)
+libhal.so-objs-$(CONFIG_HAL_GPIO) := $(libhal.a-objs-y)
+libhal.so-objs-$(CONFIG_HAL_WATCHDOG) := $(libhal.a-objs-y)
 
 # 私有编译标志（每个模块独立定义）
 CFLAGS_PRIV := -I$(srctree)/core/hal/include

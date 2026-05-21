@@ -17,12 +17,13 @@ ifeq ($(CONFIG_PCL_BUILD_SHARED),y)
   obj-d := libpcl.so
 endif
 
-# 子目录递归
-subdir-y += src/
+# 对象文件列表（Linux 内核风格）
+libpcl.a-objs := \
+	src/pcl_api.o \
+	src/pcl_register.o
 
-# 从子目录收集对象文件
-libpcl.a-objs := $(obj-y)
-libpcl.so-objs := $(obj-y)
+# 动态库使用相同的对象文件
+libpcl.so-objs := $(libpcl.a-objs)
 
 # 私有编译标志（每个模块独立定义）
 CFLAGS_PRIV := -I$(srctree)/core/pcl/include

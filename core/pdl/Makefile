@@ -17,12 +17,33 @@ ifeq ($(CONFIG_PDL_BUILD_SHARED),y)
   obj-d := libpdl.so
 endif
 
-# 子目录递归
-subdir-y += src/
+# 对象文件列表（Linux 内核风格）
+libpdl.a-objs-y := src/pdl_watchdog.o
 
-# 从子目录收集对象文件
-libpdl.a-objs := $(obj-y)
-libpdl.so-objs := $(obj-y)
+# Satellite 支持（条件编译）
+libpdl.a-objs-$(CONFIG_PDL_SATELLITE_SUPPORT) += \
+	src/pdl_satellite/pdl_satellite.o \
+	src/pdl_satellite/pdl_satellite_can.o
+
+# BMC 支持（条件编译）
+libpdl.a-objs-$(CONFIG_PDL_BMC_SUPPORT) += \
+	src/pdl_bmc/pdl_bmc.o \
+	src/pdl_bmc/pdl_bmc_ipmi.o \
+	src/pdl_bmc/pdl_bmc_redfish.o \
+	src/pdl_bmc/pdl_bmc_transport.o
+
+# MCU 支持（条件编译）
+libpdl.a-objs-$(CONFIG_PDL_MCU_SUPPORT) += \
+	src/pdl_mcu/pdl_mcu.o \
+	src/pdl_mcu/pdl_mcu_can.o \
+	src/pdl_mcu/pdl_mcu_protocol.o \
+	src/pdl_mcu/pdl_mcu_serial.o
+
+# 动态库使用相同的对象文件
+libpdl.so-objs-y := $(libpdl.a-objs-y)
+libpdl.so-objs-$(CONFIG_PDL_SATELLITE_SUPPORT) := $(libpdl.a-objs-y)
+libpdl.so-objs-$(CONFIG_PDL_BMC_SUPPORT) := $(libpdl.a-objs-y)
+libpdl.so-objs-$(CONFIG_PDL_MCU_SUPPORT) := $(libpdl.a-objs-y)
 
 # 私有编译标志（每个模块独立定义）
 CFLAGS_PRIV := -I$(srctree)/core/pdl/include

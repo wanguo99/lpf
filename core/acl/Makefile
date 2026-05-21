@@ -17,12 +17,13 @@ ifeq ($(CONFIG_ACL_BUILD_SHARED),y)
   obj-d := libacl.so
 endif
 
-# 子目录递归
-subdir-y += src/
+# 对象文件列表（Linux 内核风格）
+libacl.a-objs := \
+	src/acl_api.o \
+	src/acl_telemetry_cache.o
 
-# 从子目录收集对象文件
-libacl.a-objs := $(obj-y)
-libacl.so-objs := $(obj-y)
+# 动态库使用相同的对象文件
+libacl.so-objs := $(libacl.a-objs)
 
 # 私有编译标志（每个模块独立定义）
 CFLAGS_PRIV := -I$(srctree)/core/acl/include

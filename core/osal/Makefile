@@ -17,16 +17,45 @@ ifeq ($(CONFIG_OSAL_BUILD_SHARED),y)
   obj-d := libosal.so
 endif
 
-# 子目录递归（从 src/posix/ 下的子目录收集源文件）
-subdir-y += src/posix/lib/
-subdir-$(CONFIG_OSAL_IPC) += src/posix/ipc/
-subdir-$(CONFIG_OSAL_FILE) += src/posix/sys/
-subdir-$(CONFIG_OSAL_NETWORK) += src/posix/net/
-subdir-y += src/posix/util/
+# 对象文件列表（Linux 内核风格）
+libosal.a-objs := \
+	src/posix/lib/osal_errno.o \
+	src/posix/lib/osal_heap.o \
+	src/posix/lib/osal_stdio.o \
+	src/posix/lib/osal_string.o \
+	src/posix/util/osal_log.o \
+	src/posix/util/osal_version.o
 
-# 从子目录收集对象文件
-libosal.a-objs := $(obj-y)
-libosal.so-objs := $(obj-y)
+# IPC 支持（条件编译）
+libosal.a-objs-$(CONFIG_OSAL_IPC) += \
+	src/posix/ipc/osal_atomic.o \
+	src/posix/ipc/osal_cond.o \
+	src/posix/ipc/osal_mutex.o \
+	src/posix/ipc/osal_semaphore.o \
+	src/posix/ipc/osal_shm.o
+
+# 文件和系统支持（条件编译）
+libosal.a-objs-$(CONFIG_OSAL_FILE) += \
+	src/posix/sys/osal_clock.o \
+	src/posix/sys/osal_env.o \
+	src/posix/sys/osal_file.o \
+	src/posix/sys/osal_process.o \
+	src/posix/sys/osal_sched.o \
+	src/posix/sys/osal_select.o \
+	src/posix/sys/osal_signal.o \
+	src/posix/sys/osal_thread.o \
+	src/posix/sys/osal_time.o
+
+# 网络支持（条件编译）
+libosal.a-objs-$(CONFIG_OSAL_NETWORK) += \
+	src/posix/net/osal_socket.o \
+	src/posix/net/osal_termios.o
+
+# 动态库使用相同的对象文件
+libosal.so-objs := $(libosal.a-objs)
+libosal.so-objs-$(CONFIG_OSAL_IPC) := $(libosal.a-objs-y)
+libosal.so-objs-$(CONFIG_OSAL_FILE) := $(libosal.a-objs-y)
+libosal.so-objs-$(CONFIG_OSAL_NETWORK) := $(libosal.a-objs-y)
 
 # 私有编译标志（每个模块独立定义）
 CFLAGS_PRIV := -I$(srctree)/core/$(LIB_NAME)/include

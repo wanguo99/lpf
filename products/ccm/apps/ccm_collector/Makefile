@@ -11,8 +11,10 @@ APP_NAME := ccm_collector
 # 定义可执行文件目标
 obj-e := ccm_collector
 
-# 子目录
-subdir-y += src/
+# 对象文件列表（Linux 内核风格）
+ccm_collector-objs := \
+	src/main.o \
+	src/ccm_collector.o
 
 # 私有编译标志（每个应用独立定义）
 CFLAGS_PRIV := -I$(srctree)/products/ccm/apps/ccm_collector/include

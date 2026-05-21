@@ -11,8 +11,10 @@ APP_NAME := ccm_supervisor
 # 定义可执行文件目标
 obj-e := ccm_supervisor
 
-# 子目录
-subdir-y += src/
+# 对象文件列表（Linux 内核风格）
+ccm_supervisor-objs := \
+	src/main.o \
+	src/ccm_supervisor.o
 
 # 私有编译标志（每个应用独立定义）
 CFLAGS_PRIV := -I$(srctree)/products/ccm/apps/ccm_supervisor/include
