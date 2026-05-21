@@ -1,6 +1,16 @@
 # Standalone Kconfig Tools Makefile
 # Simplified version for building conf and mconf outside kernel tree
 
+# 清理时跳过所有构建规则
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(obj),)
+# 当通过 Makefile.clean 调用时，obj 变量会被设置，此时也跳过构建规则
+# 但是定义空的配置目标以避免错误
+.PHONY: olddefconfig syncconfig defconfig menuconfig oldconfig savedefconfig
+olddefconfig syncconfig defconfig menuconfig oldconfig savedefconfig:
+	@:
+else
+
 HOSTCC := gcc
 HOSTCXX := g++
 
@@ -20,7 +30,7 @@ else
 endif
 
 # Targets
-.PHONY: all conf mconf clean defconfig menuconfig oldconfig syncconfig savedefconfig olddefconfig
+.PHONY: all conf mconf defconfig menuconfig oldconfig syncconfig savedefconfig olddefconfig
 
 all: conf mconf
 
@@ -102,6 +112,9 @@ clean:
 	$(Q)rm -f .*.cmd *.cmd
 	$(Q)rm -f .config .config.old
 	$(Q)rm -rf include/
+
+endif # obj 检查
+endif # MAKECMDGOALS 检查
 
 .PHONY: help
 help:

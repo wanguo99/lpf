@@ -182,7 +182,7 @@ build := -f $(srctree)/scripts/Makefile.build obj
 # $(Q)$(MAKE) -f scripts/Makefile.clean obj= 的简写
 # 用法:
 # $(Q)$(MAKE) $(clean)=dir
-clean := -f $(srctree)/scripts/Makefile.clean obj
+clean := -f $(srctree)/scripts/Makefile.clean obj KBUILD_CLEANING=1
 
 ###
 # $(Q)$(MAKE) -f scripts/Makefile.install obj= 的简写

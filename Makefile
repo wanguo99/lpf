@@ -337,9 +337,11 @@ else
 
 # 构建脚本
 PHONY += scripts
-scripts: scripts_basic include/config/auto.conf
+scripts: scripts_basic
 	$(Q)$(MAKE) $(build)=$(@)
 
+# 配置相关逻辑（清理时跳过）
+ifeq ($(filter clean mrproper distclean,$(MAKECMDGOALS)),)
 ifeq ($(dot-config),1)
 # 读取配置
 -include include/config/auto.conf
@@ -361,6 +363,7 @@ else
 # 虚拟目标
 include/config/auto.conf: ;
 endif # $(dot-config)
+endif # 非清理目标
 
 # =============================================================================
 # 默认目标：all
