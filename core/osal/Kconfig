@@ -1,5 +1,16 @@
 # OSAL (Operating System Abstraction Layer) Configuration
 
+menuconfig OSAL
+	bool "OSAL (Operating System Abstraction Layer)"
+	default y
+	help
+	  Operating System Abstraction Layer provides unified OS interfaces.
+	  OSAL is the foundation layer required by all other modules.
+
+	  If unsure, say Y.
+
+if OSAL
+
 choice
 	prompt "Target operating system"
 	default OS_LINUX
@@ -80,17 +91,6 @@ config ARCH
 	help
 	  Architecture name used by the build system.
 	  This value can be overridden by the ARCH environment variable.
-
-menuconfig OSAL
-	bool "OSAL (Operating System Abstraction Layer)"
-	default y
-	help
-	  Operating System Abstraction Layer provides unified OS interfaces.
-	  OSAL is the foundation layer required by all other modules.
-
-	  If unsure, say Y.
-
-if OSAL
 
 menu "OSAL Platform Configuration"
 

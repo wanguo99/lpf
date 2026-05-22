@@ -1,5 +1,16 @@
 # HAL (Hardware Abstraction Layer) Configuration
 
+menuconfig HAL
+	bool "HAL (Hardware Abstraction Layer)"
+	default y
+	help
+	  Hardware Abstraction Layer provides unified hardware driver interfaces.
+	  HAL depends on OSAL for system calls and platform abstraction.
+
+	  If unsure, say Y.
+
+if HAL
+
 choice
 	prompt "Hardware platform"
 	default PLATFORM_GENERIC_LINUX
@@ -52,17 +63,6 @@ config PLATFORM_NAME
 	default "custom" if PLATFORM_CUSTOM
 	help
 	  Hardware platform name used by HAL.
-
-menuconfig HAL
-	bool "HAL (Hardware Abstraction Layer)"
-	default y
-	help
-	  Hardware Abstraction Layer provides unified hardware driver interfaces.
-	  HAL depends on OSAL for system calls and platform abstraction.
-
-	  If unsure, say Y.
-
-if HAL
 
 config HAL_PLATFORM_NAME
 	string
