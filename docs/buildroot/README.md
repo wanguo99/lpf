@@ -39,15 +39,37 @@ Buildroot package makefile，定义了如何下载、配置、编译和安装 EM
 - `EMS_SITE`: 源码仓库地址
 - `EMS_SITE_METHOD`: 下载方式（git/wget/local）
 - `EMS_DEPENDENCIES`: 依赖的其他 Buildroot packages
-- `EMS_CONF_OPTS`: CMake 配置选项
+- `EMS_MAKE_ENV`: 构建环境变量（包括 STAGING_DIR）
+- `EMS_MAKE_OPTS`: Make 构建选项
 
-**Buildroot 自动传递的 CMake 参数：**
-- `CMAKE_INSTALL_PREFIX`: 安装前缀（通常为 /usr）
-- `CMAKE_TOOLCHAIN_FILE`: 交叉编译工具链文件
-- `CMAKE_BUILD_TYPE`: 构建类型（Release/Debug）
-- `CMAKE_INSTALL_LIBDIR`: 库目录（lib 或 lib64）
-- `CMAKE_INSTALL_BINDIR`: 可执行文件目录（bin）
-- `CMAKE_INSTALL_INCLUDEDIR`: 头文件目录（include）
+**EMS 构建系统集成：**
+
+EMS 使用 Kbuild 构建系统（类似 Linux 内核），支持灵活的 staging 目录配置：
+
+```makefile
+# 在 ems.mk 中配置
+EMS_MAKE_ENV = \
+    STAGING_DIR=$(STAGING_DIR) \
+    ARCH=$(KERNEL_ARCH) \
+    CROSS_COMPILE=$(TARGET_CROSS)
+
+define EMS_BUILD_CMDS
+    $(TARGET_MAKE_ENV) $(EMS_MAKE_ENV) $(MAKE) -C $(@D) \
+        O=$(BUILD_DIR)/ems-$(EMS_VERSION)/build
+endef
+```
+
+**Staging 目录说明：**
+- EMS 默认使用 `.staging` 作为构建产物目录
+- 通过 `STAGING_DIR` 环境变量可以指向 Buildroot 的 staging 目录
+- 这样可以避免重复安装，直接将 EMS 产物放入 Buildroot staging
+- 详见：`../STAGING.md`
+
+**Buildroot 自动传递的变量：**
+- `STAGING_DIR`: Buildroot 的 staging 目录（$(HOST_DIR)/$(GNU_TARGET_NAME)/sysroot）
+- `TARGET_DIR`: 目标根文件系统目录
+- `BUILD_DIR`: 构建目录
+- `HOST_DIR`: 主机工具目录
 
 #### Config.in
 Buildroot menuconfig 配置文件，定义了 EMS 在配置菜单中的选项。
@@ -218,6 +240,82 @@ PMC 系统的控制脚本，将被安装到 `/usr/local/bin/pmc_control.sh`。
    echo 'EMS_OVERRIDE_SRCDIR = /path/to/ems' >> local.mk
    ```
 
+3. **配置 staging 目录（推荐）：**
+   ```makefile
+   # 在 ems.mk 中
+   EMS_MAKE_ENV = STAGING_DIR=$(STAGING_DIR)
+   
+   define EMS_BUILD_CMDS
+       $(TARGET_MAKE_ENV) $(EMS_MAKE_ENV) $(MAKE) -C $(@D) \
+           ARCH=$(KERNEL_ARCH) \
+           CROSS_COMPILE=$(TARGET_CROSS)
+   endef
+   
+   define EMS_INSTALL_STAGING_CMDS
+       $(TARGET_MAKE_ENV) $(EMS_MAKE_ENV) $(MAKE) -C $(@D) \
+           INSTALL_HDR_PATH=$(STAGING_DIR)/usr \
+           headers_install
+   endef
+   
+   define EMS_INSTALL_TARGET_CMDS
+       $(TARGET_MAKE_ENV) $(EMS_MAKE_ENV) $(MAKE) -C $(@D) \
+           INSTALL_MOD_PATH=$(TARGET_DIR) \
+           INSTALL_BIN_PATH=$(TARGET_DIR)/usr/bin \
+           install
+   endef
+   ```
+
+## Staging 目录集成
+
+EMS 构建系统支持灵活的 staging 目录配置，可以无缝集成到 Buildroot：
+
+### 默认行为
+
+- **独立构建**：EMS 使用 `.staging` 作为默认 staging 目录
+- **Buildroot 集成**：通过 `STAGING_DIR` 环境变量指向 Buildroot 的 staging
+
+### 配置示例
+
+```makefile
+# ems.mk 中的完整配置
+EMS_MAKE_ENV = \
+    STAGING_DIR=$(STAGING_DIR) \
+    ARCH=$(KERNEL_ARCH) \
+    CROSS_COMPILE=$(TARGET_CROSS)
+
+# 构建阶段
+define EMS_BUILD_CMDS
+    $(TARGET_MAKE_ENV) $(EMS_MAKE_ENV) $(MAKE) -C $(@D) \
+        O=$(BUILD_DIR)/ems-$(EMS_VERSION)/build \
+        $(EMS_DEFCONFIG)
+    $(TARGET_MAKE_ENV) $(EMS_MAKE_ENV) $(MAKE) -C $(@D) \
+        O=$(BUILD_DIR)/ems-$(EMS_VERSION)/build
+endef
+
+# 安装到 staging（头文件和库）
+define EMS_INSTALL_STAGING_CMDS
+    $(TARGET_MAKE_ENV) $(EMS_MAKE_ENV) $(MAKE) -C $(@D) \
+        O=$(BUILD_DIR)/ems-$(EMS_VERSION)/build \
+        INSTALL_HDR_PATH=$(STAGING_DIR)/usr \
+        headers_install
+    $(INSTALL) -D -m 0755 $(@D)/build/.staging/lib/*.so* $(STAGING_DIR)/usr/lib/
+    $(INSTALL) -D -m 0644 $(@D)/build/.staging/lib/*.a $(STAGING_DIR)/usr/lib/
+endef
+
+# 安装到 target（可执行文件和配置）
+define EMS_INSTALL_TARGET_CMDS
+    $(INSTALL) -D -m 0755 $(@D)/build/.staging/bin/* $(TARGET_DIR)/usr/bin/
+    $(INSTALL) -D -m 0644 $(EMS_PKGDIR)/ems.conf $(TARGET_DIR)/etc/ems.conf
+endef
+```
+
+### 优势
+
+1. **避免重复安装**：直接使用 Buildroot 的 staging，无需二次拷贝
+2. **依赖管理**：其他 package 可以直接找到 EMS 的头文件和库
+3. **一致性**：与 Buildroot 的构建流程保持一致
+4. **灵活性**：支持独立构建和集成构建两种模式
+
 ## 目标系统文件布局
 
 编译完成后，EMS 和 PMC 将在目标系统中安装以下文件：
@@ -228,36 +326,71 @@ PMC 系统的控制脚本，将被安装到 `/usr/local/bin/pmc_control.sh`。
 ├── libhal.so           # HAL 库
 ├── libpcl.so           # PCL 库
 ├── libpdl.so           # PDL 库
-└── libpmc.a            # PMC 公共库（静态）
+├── libacl.so           # ACL 库
+└── libccm.a            # CCM 公共库（静态）
 
-/usr/include/ems/       # 头文件（如果启用开发文件）
-├── osal/
-├── hal/
-├── pcl/
-└── pdl/
+/usr/include/           # 头文件（安装到 staging，如果启用开发文件）
+├── osal.h
+├── osal_types.h
+├── osal_platform.h
+├── hal_*.h
+├── pcl_*.h
+├── pdl_*.h
+├── acl_*.h
+└── config/             # 配置头文件
 
 /usr/bin/
-├── sample_app          # EMS 示例应用（可选）
-├── pmc_comm            # PMC 通信进程
-├── pmc_collector       # PMC 数据采集进程
-├── pmc_health          # PMC 健康监测进程
-├── pmc_supervisor      # PMC 监督进程
-└── pmc_logger          # PMC 日志进程
+├── ccm_comm            # CCM 通信进程
+├── ccm_collector       # CCM 数据采集进程
+├── ccm_health          # CCM 健康监测进程
+├── ccm_supervisor      # CCM 监督进程
+└── ccm_logger          # CCM 日志进程
 
 /usr/local/bin/
-└── pmc_control.sh      # PMC 控制脚本
+└── ccm_control.sh      # CCM 控制脚本
 
 /etc/
 ├── ems.conf            # EMS 配置文件
 └── init.d/
     ├── S90ems          # EMS 启动脚本
-    └── S95pmc          # PMC 启动脚本
+    └── S95ccm          # CCM 启动脚本
 
 /usr/lib/systemd/system/
-└── pmc.service         # PMC systemd 服务
+└── ccm.service         # CCM systemd 服务
 
-/var/log/pmc/           # PMC 日志目录
-/var/run/pmc/           # PMC PID 目录
+/var/log/ccm/           # CCM 日志目录
+/var/run/ccm/           # CCM PID 目录
+```
+
+**Buildroot Staging 目录布局：**
+
+```
+$(STAGING_DIR)/usr/
+├── include/            # EMS 公共头文件
+│   ├── osal.h
+│   ├── osal_types.h
+│   ├── osal_platform.h
+│   ├── hal_*.h
+│   ├── pcl_*.h
+│   ├── pdl_*.h
+│   ├── acl_*.h
+│   ├── config/
+│   ├── lib/
+│   ├── sys/
+│   ├── util/
+│   ├── ipc/
+│   └── net/
+└── lib/                # EMS 库文件
+    ├── libosal.so
+    ├── libosal.a
+    ├── libhal.so
+    ├── libhal.a
+    ├── libpcl.so
+    ├── libpcl.a
+    ├── libpdl.so
+    ├── libpdl.a
+    ├── libacl.so
+    └── libacl.a
 ```
 
 ## 运行时管理
@@ -367,17 +500,39 @@ CMake 会自动检测目标架构并应用相应的编译优化选项。
 
 ## 自定义配置
 
-### 修改 CMake 配置选项
+### 修改构建选项
 
-编辑 `ems.mk` 中的 `CONF_OPTS`：
+编辑 `ems.mk` 中的构建选项：
 
 ```makefile
-EMS_CONF_OPTS = \
-	-DCMAKE_BUILD_TYPE=Release \
-	-DBUILD_SHARED_LIBS=ON \
-	-DBUILD_TESTING=OFF \
-	-DBUILD_PMC_APP=ON \
-	-DCUSTOM_OPTION=value
+# 使用 defconfig
+EMS_DEFCONFIG = x86_64_full_defconfig
+
+# 或者使用自定义配置
+define EMS_CONFIGURE_CMDS
+    $(TARGET_MAKE_ENV) $(EMS_MAKE_ENV) $(MAKE) -C $(@D) \
+        O=$(BUILD_DIR)/ems-$(EMS_VERSION)/build \
+        menuconfig
+endef
+
+# 构建选项
+EMS_MAKE_OPTS = \
+    ARCH=$(KERNEL_ARCH) \
+    CROSS_COMPILE=$(TARGET_CROSS) \
+    V=1
+```
+
+### 配置 Staging 目录
+
+```makefile
+# 方式 1：使用 Buildroot 的 staging（推荐）
+EMS_MAKE_ENV = STAGING_DIR=$(STAGING_DIR)
+
+# 方式 2：使用自定义 staging
+EMS_MAKE_ENV = STAGING_DIR=/custom/staging/path
+
+# 方式 3：使用默认 .staging（不推荐用于 Buildroot）
+# 不设置 STAGING_DIR，EMS 将使用默认的 .staging
 ```
 
 ### 添加额外的安装文件

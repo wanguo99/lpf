@@ -150,17 +150,17 @@ ccflags-y += -I$(src)/include
 app-y := ccm_collector
 ccm_collector-objs := main.o collector.o
 
-# 只需包含 staging 目录
-ccflags-y += -I$(objtree)/include
-ccflags-y += -I$(src)/include
+# 头文件路径自动包含（通过 EMSINCLUDE）
+# 无需手动添加 -I$(INCLUDE_DIR)
 ```
 
 ### 优势
 
 - **封装性好**：应用程序不需要知道库的源码路径
-- **简化 Makefile**：减少硬编码的 `-I` 路径（实测减少 35 行）
+- **简化 Makefile**：无需手动添加 `-I` 路径，自动包含 staging 头文件
 - **支持外部构建**：`O=dir` 时头文件自动安装到正确位置
-- **便于集成**：Buildroot/Yocto 可以直接使用 staging 目录
+- **便于集成**：Buildroot/Yocto 可以通过 `STAGING_DIR` 环境变量直接指定路径
+- **灵活配置**：支持三级优先级（命令行 > 环境变量 > 默认值）
 
 ### 头文件目录结构
 
@@ -178,14 +178,51 @@ core/osal/
 └── Makefile
 
 构建后：
-$(objtree)/include/       # Staging 目录
+$(STAGING_DIR)/include/   # Staging 目录（默认 .staging/include）
 ├── osal.h
 ├── osal_types.h
 ├── ipc/
 │   ├── osal_mutex.h
 │   └── osal_semaphore.h
-└── sys/
-    └── osal_thread.h
+├── sys/
+│   └── osal_thread.h
+└── config/               # Kconfig 生成的配置头文件
+    └── ems_config.h
+```
+
+### Staging 目录配置
+
+**默认配置**：
+```makefile
+# Makefile
+STAGING_DIR ?= $(objtree)/.staging
+INCLUDE_DIR := $(STAGING_DIR)/include
+EMSINCLUDE  := -I$(INCLUDE_DIR)
+```
+
+**环境变量配置**：
+```bash
+# 使用自定义路径
+export STAGING_DIR=/tmp/ems-staging
+make
+
+# 或一次性指定
+STAGING_DIR=/tmp/ems-staging make
+```
+
+**Buildroot 集成**：
+```makefile
+# ems.mk
+EMS_MAKE_ENV = STAGING_DIR=$(STAGING_DIR)
+
+define EMS_BUILD_CMDS
+    $(TARGET_MAKE_ENV) $(EMS_MAKE_ENV) $(MAKE) -C $(@D)
+endef
+```
+
+**配置优先级**：
+```
+命令行参数 > 环境变量 > 默认值 (.staging)
 ```
 
 ### 实现位置
@@ -807,18 +844,25 @@ endif
 
 ### 3. 使用 Staging 头文件
 
-应用程序只使用 staging 目录，不要硬编码库路径：
+应用程序自动包含 staging 头文件，无需手动配置：
 
 ```makefile
-# ✅ 推荐
-ccflags-y += -I$(objtree)/include
-ccflags-y += -I$(src)/include
+# ✅ 推荐：无需手动添加头文件路径
+app-y := myapp
+myapp-objs := main.o utils.o
+# EMSINCLUDE 已自动添加到编译命令
 
-# ❌ 不推荐
+# ❌ 不推荐：硬编码库源码路径
 ccflags-y += -I$(srctree)/core/osal/include
 ccflags-y += -I$(srctree)/core/hal/include
 ccflags-y += -I$(srctree)/core/acl/include
 ```
+
+**说明**：
+- `EMSINCLUDE` 变量在 `Makefile` 中定义为 `-I$(INCLUDE_DIR)`
+- `scripts/Makefile.build` 自动将 `$(EMSINCLUDE)` 添加到 `c_flags`
+- 所有模块编译时自动包含 staging 头文件路径
+- 只有 OSAL 模块需要额外包含 `-I$(src)/include` 用于自举编译
 
 ### 4. 保持 Makefile 简洁
 

@@ -385,6 +385,8 @@ EMS 完全兼容 Buildroot 构建系统：
 
 ### 创建 Buildroot Package
 
+**推荐方式：使用 STAGING_DIR 环境变量**
+
 ```makefile
 # package/ems/ems.mk
 EMS_VERSION = 1.0.0
@@ -392,12 +394,39 @@ EMS_SITE = $(TOPDIR)/../EMS
 EMS_SITE_METHOD = local
 EMS_INSTALL_STAGING = YES
 
+# 传递 STAGING_DIR 环境变量
+EMS_MAKE_ENV = \
+    STAGING_DIR=$(STAGING_DIR) \
+    ARCH=$(KERNEL_ARCH) \
+    CROSS_COMPILE=$(TARGET_CROSS)
+
 define EMS_CONFIGURE_CMDS
-    $(MAKE) -C $(@D) O=$(@D) $(TARGET_CONFIGURE_OPTS) \
-        CROSS_COMPILE=$(TARGET_CROSS) \
+    $(TARGET_MAKE_ENV) $(EMS_MAKE_ENV) $(MAKE) -C $(@D) \
         ccm_h200_am625_release_defconfig
 endef
 
+define EMS_BUILD_CMDS
+    $(TARGET_MAKE_ENV) $(EMS_MAKE_ENV) $(MAKE) -C $(@D) \
+        -j$(PARALLEL_JOBS)
+endef
+
+# 头文件和库已在 $(STAGING_DIR) 中，无需额外安装
+define EMS_INSTALL_STAGING_CMDS
+    # 可选：如果需要额外处理
+endef
+
+define EMS_INSTALL_TARGET_CMDS
+    $(INSTALL) -D -m 0755 $(STAGING_DIR)/bin/ccm_* $(TARGET_DIR)/usr/bin/
+    $(INSTALL) -D -m 0755 $(STAGING_DIR)/lib/*.so $(TARGET_DIR)/usr/lib/
+endef
+
+$(eval $(generic-package))
+```
+
+**传统方式（不推荐）：**
+
+```makefile
+# 如果不使用 STAGING_DIR 环境变量
 define EMS_BUILD_CMDS
     $(MAKE) -C $(@D) O=$(@D) $(TARGET_CONFIGURE_OPTS) \
         CROSS_COMPILE=$(TARGET_CROSS) \
@@ -405,13 +434,14 @@ define EMS_BUILD_CMDS
 endef
 
 define EMS_INSTALL_STAGING_CMDS
-    $(INSTALL) -D -m 0644 $(@D)/lib/*.a $(STAGING_DIR)/usr/lib/
-    $(INSTALL) -D -m 0755 $(@D)/lib/*.so $(STAGING_DIR)/usr/lib/
-    cp -r $(@D)/include/* $(STAGING_DIR)/usr/include/
+    # 需要手动拷贝
+    $(INSTALL) -D -m 0644 $(@D)/.staging/lib/*.a $(STAGING_DIR)/usr/lib/
+    $(INSTALL) -D -m 0755 $(@D)/.staging/lib/*.so $(STAGING_DIR)/usr/lib/
+    cp -r $(@D)/.staging/include/* $(STAGING_DIR)/usr/include/
 endef
 
 define EMS_INSTALL_TARGET_CMDS
-    $(INSTALL) -D -m 0755 $(@D)/bin/* $(TARGET_DIR)/usr/bin/
+    $(INSTALL) -D -m 0755 $(@D)/.staging/bin/* $(TARGET_DIR)/usr/bin/
     $(INSTALL) -D -m 0755 $(@D)/lib/*.so $(TARGET_DIR)/usr/lib/
 endef
 
