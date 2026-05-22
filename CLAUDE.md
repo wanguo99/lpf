@@ -60,6 +60,138 @@ products/ccm/apps/*  →  products/ccm/libs/libccm  →  core/osal
 
 ## 构建系统详解
 
+### 平台配置
+
+EMS 支持多架构和多操作系统配置，类似 Linux 内核的配置方式。
+
+#### 架构配置 (ARCH)
+
+支持的架构：
+- `x86_64`: 64位 Intel/AMD 处理器
+- `arm`: ARM32 (ARMv7-A)
+- `arm64`: ARM64 (ARMv8-A / AArch64)
+- `riscv`: RISC-V 64位
+
+配置方式：
+```bash
+# 方法 1: Kconfig 配置（推荐）
+make menuconfig
+# 进入 "Target Platform" -> "Target architecture"
+
+# 方法 2: 环境变量（临时覆盖）
+make ARCH=arm64
+export ARCH=arm64
+```
+
+#### 操作系统配置 (OS)
+
+支持的操作系统：
+- `linux`: Linux 操作系统（POSIX API）
+- `windows`: Windows 操作系统（Win32 API）
+- `rtos`: 实时操作系统（FreeRTOS、RT-Thread 等）
+- `macos`: macOS 操作系统（POSIX + macOS 扩展）
+- `bare`: 裸机环境（无操作系统）
+
+配置方式：
+```bash
+# 方法 1: Kconfig 配置（推荐）
+make menuconfig
+# 进入 "Target Platform" -> "Target operating system"
+
+# 方法 2: 环境变量（临时覆盖）
+make OS=rtos
+export OS=rtos
+```
+
+#### 交叉编译配置 (CROSS_COMPILE)
+
+配置方式：
+```bash
+# 方法 1: Kconfig 配置（推荐）
+make menuconfig
+# 进入 "Target Platform" -> "Cross-compiler prefix"
+
+# 方法 2: 环境变量（临时覆盖）
+make CROSS_COMPILE=aarch64-linux-gnu-
+export CROSS_COMPILE=aarch64-linux-gnu-
+```
+
+默认工具链前缀：
+- x86_64: (空，本地编译)
+- arm: `arm-linux-gnueabihf-`
+- arm64: `aarch64-linux-gnu-`
+- riscv: `riscv64-linux-gnu-`
+
+#### 常见配置场景
+
+```bash
+# 本地 x86_64 Linux 开发
+make ARCH=x86_64 OS=linux
+
+# ARM64 Linux 交叉编译
+make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- OS=linux
+
+# ARM32 RTOS 开发
+make ARCH=arm CROSS_COMPILE=arm-none-eabi- OS=rtos
+
+# RISC-V 裸机开发
+make ARCH=riscv CROSS_COMPILE=riscv64-unknown-elf- OS=bare
+```
+
+详细说明请参考 [docs/PLATFORM.md](docs/PLATFORM.md)。
+
+### OSAL 平台适配
+
+OSAL (Operating System Abstraction Layer) 根据 OS 和 ARCH 配置自动选择对应的源码实现。
+
+#### 支持的平台
+
+| OS 类型 | 源码目录 | 说明 |
+|---------|----------|------|
+| Linux/macOS | `src/posix/` | POSIX 兼容系统 |
+| Windows | `src/win32/` | Win32 API |
+| RTOS | `src/rtos/` | 实时操作系统 |
+| Bare Metal | `src/bare/` | 裸机环境 |
+
+| 架构 | 位宽 | 说明 |
+|------|------|------|
+| x86_64 | 64-bit | Intel/AMD 64位 |
+| ARM32 | 32-bit | ARM 32位 |
+| ARM64 | 64-bit | ARM 64位 (AArch64) |
+| RISC-V 64 | 64-bit | RISC-V 64位 |
+
+#### 配置示例
+
+```bash
+# ARM64 + RTOS
+make menuconfig
+# 选择: Target Platform -> Target operating system -> RTOS
+# 选择: Target Platform -> Target architecture -> ARM64 (AArch64)
+make core/osal/
+
+# 验证源码目录选择
+make core/osal/ V=1 | grep "src/.*/lib/osal_errno.o"
+# 应该显示: src/rtos/lib/osal_errno.o
+```
+
+#### 自动配置
+
+根据 OS 和 ARCH 配置，OSAL 会自动设置：
+
+```kconfig
+# OS 相关
+CONFIG_OSAL_OS_POSIX=y      # Linux/macOS 自动启用
+CONFIG_OSAL_OS_WIN32=y      # Windows 自动启用
+CONFIG_OSAL_OS_RTOS=y       # RTOS 自动启用
+CONFIG_OSAL_OS_BARE=y       # Bare Metal 自动启用
+
+# 架构相关
+CONFIG_OSAL_ARCH_32BIT=y    # ARM32 自动启用
+CONFIG_OSAL_ARCH_64BIT=y    # x86_64/ARM64/RISC-V64 自动启用
+```
+
+详细说明请参考 [docs/OSAL_PLATFORM.md](docs/OSAL_PLATFORM.md)。
+
 ### Kbuild 框架核心概念
 
 #### 1. 声明式 Makefile
@@ -267,6 +399,14 @@ make -j$(nproc)                       # 并行编译
 make V=1                              # 详细输出
 make core                             # 只编译 core
 make products                         # 只编译 products
+
+# 安装
+make install                          # 安装所有文件到 /usr/local
+make install prefix=/usr              # 安装到 /usr
+make install DESTDIR=/tmp/install     # 安装到临时目录（用于打包）
+make install_bin                      # 只安装可执行文件
+make install_lib                      # 只安装库文件
+make install_headers                  # 只安装头文件
 
 # 清理
 make clean                            # 清理编译产物

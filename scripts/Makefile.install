@@ -1,144 +1,188 @@
 # =============================================================================
-# EMS 构建框架 - 安装规则
+# EMS 安装规则 - 参考 Linux 内核安装机制
 # =============================================================================
-# 此文件处理安装目标到指定目录
-# =============================================================================
-
-src := $(obj)
-
-PHONY := __install
-__install:
-
-include scripts/Kbuild.include
-
-# Kbuild 文件优先于 Makefile
-kbuild-dir := $(if $(filter /%,$(src)),$(src),$(srctree)/$(src))
-kbuild-file := $(if $(wildcard $(kbuild-dir)/Kbuild),$(kbuild-dir)/Kbuild,$(kbuild-dir)/Makefile)
-include $(kbuild-file)
-
-# =============================================================================
-# 安装配置
-# =============================================================================
-
-# 默认安装前缀
-INSTALL_PREFIX ?= /usr/local
-
-# 安装目录
-INSTALL_BIN_DIR  := $(INSTALL_PREFIX)/bin
-INSTALL_LIB_DIR  := $(INSTALL_PREFIX)/lib
-INSTALL_INC_DIR  := $(INSTALL_PREFIX)/include
-INSTALL_KO_DIR   := $(INSTALL_PREFIX)/lib/modules/$(shell uname -r)/extra
-
-export INSTALL_PREFIX INSTALL_BIN_DIR INSTALL_LIB_DIR INSTALL_INC_DIR INSTALL_KO_DIR
-
-# =============================================================================
-# 安装命令
+# 此文件实现从 staging 目录安装到目标系统
+#
+# 支持的安装目标:
+#   make install              - 安装所有文件到 DESTDIR + prefix
+#   make install_bin          - 只安装可执行文件
+#   make install_lib          - 只安装库文件
+#   make install_headers      - 只安装头文件
+#   make install_modules      - 只安装内核模块
+#
+# 变量:
+#   DESTDIR                   - 安装根目录（默认为空，用于打包）
+#   prefix                    - 安装前缀（默认 /usr/local）
+#   bindir                    - 可执行文件目录（默认 $(prefix)/bin）
+#   libdir                    - 库文件目录（默认 $(prefix)/lib）
+#   includedir                - 头文件目录（默认 $(prefix)/include）
+#   modulesdir                - 内核模块目录（默认 $(prefix)/lib/modules）
+#
+# 示例:
+#   make install                                    # 安装到 /usr/local
+#   make install prefix=/usr                        # 安装到 /usr
+#   make install DESTDIR=/tmp/ems-install           # 安装到临时目录
+#   make install DESTDIR=/tmp/ems prefix=/opt/ems   # 安装到 /tmp/ems/opt/ems
 # =============================================================================
 
-quiet_cmd_install_bin = INSTALL $(INSTALL_BIN_DIR)/$(notdir $<)
-      cmd_install_bin = install -D -m 755 $< $(INSTALL_BIN_DIR)/$(notdir $<)
+# 安装路径配置（参考 GNU Coding Standards）
+prefix      ?= /usr/local
+exec_prefix ?= $(prefix)
+bindir      ?= $(exec_prefix)/bin
+libdir      ?= $(exec_prefix)/lib
+includedir  ?= $(prefix)/include
+modulesdir  ?= $(libdir)/modules
 
-quiet_cmd_install_lib = INSTALL $(INSTALL_LIB_DIR)/$(notdir $<)
-      cmd_install_lib = install -D -m 644 $< $(INSTALL_LIB_DIR)/$(notdir $<)
+# DESTDIR 支持（用于打包，参考 Linux 内核）
+DESTDIR     ?=
 
-quiet_cmd_install_so = INSTALL $(INSTALL_LIB_DIR)/$(notdir $<)
-      cmd_install_so = install -D -m 755 $< $(INSTALL_LIB_DIR)/$(notdir $<)
+# 安装目标目录（带 DESTDIR 前缀）
+INSTALL_BIN_PATH     := $(DESTDIR)$(bindir)
+INSTALL_LIB_PATH     := $(DESTDIR)$(libdir)
+INSTALL_HDR_PATH     := $(DESTDIR)$(includedir)
+INSTALL_MOD_PATH     := $(DESTDIR)$(modulesdir)
 
-quiet_cmd_install_hdr = INSTALL $(INSTALL_INC_DIR)/$*
-      cmd_install_hdr = install -D -m 644 $< $(INSTALL_INC_DIR)/$*
+# 安装工具（参考 Linux 内核）
+INSTALL         := install
+INSTALL_PROGRAM := $(INSTALL) -m 0755
+INSTALL_DATA    := $(INSTALL) -m 0644
+INSTALL_DIR     := $(INSTALL) -d
 
-quiet_cmd_install_ko = INSTALL $(INSTALL_KO_DIR)/$(notdir $<)
-      cmd_install_ko = install -D -m 644 $< $(INSTALL_KO_DIR)/$(notdir $<)
+# 源文件路径（staging 目录）
+STAGING_BIN     := $(STAGING_DIR)/bin
+STAGING_LIB     := $(STAGING_DIR)/lib
+STAGING_HDR     := $(STAGING_DIR)/include
+STAGING_MOD     := $(STAGING_DIR)/lib/modules
+
+export DESTDIR prefix bindir libdir includedir modulesdir
+export INSTALL_BIN_PATH INSTALL_LIB_PATH INSTALL_HDR_PATH INSTALL_MOD_PATH
 
 # =============================================================================
 # 安装目标
 # =============================================================================
 
-# 安装可执行程序
-ifneq ($(strip $(app-y)),)
-__install: $(addprefix __install_app_, $(app-y))
+PHONY += install
+install: install_bin install_lib install_headers install_modules
+	@echo "  INSTALL complete"
+	@echo "  Installed to: $(if $(DESTDIR),$(DESTDIR))$(prefix)"
 
-define install-app-rule
-__install_app_$(1):
-	@mkdir -p $(INSTALL_BIN_DIR)
-	$$(call cmd,install_bin,$(BIN_DIR)/$(1))
-endef
+# -----------------------------------------------------------------------------
+# 安装可执行文件
+# -----------------------------------------------------------------------------
+PHONY += install_bin
+install_bin:
+	@echo "  INSTALL binaries to $(INSTALL_BIN_PATH)"
+	$(Q)$(INSTALL_DIR) $(INSTALL_BIN_PATH)
+	$(Q)if [ -d $(STAGING_BIN) ] && [ -n "$$(ls -A $(STAGING_BIN) 2>/dev/null)" ]; then \
+		for file in $(STAGING_BIN)/*; do \
+			if [ -f "$$file" ] && [ -x "$$file" ]; then \
+				$(INSTALL_PROGRAM) $$file $(INSTALL_BIN_PATH)/; \
+				echo "  INSTALL $$(basename $$file)"; \
+			fi; \
+		done; \
+	else \
+		echo "  SKIP    no binaries found"; \
+	fi
 
-$(foreach app,$(app-y),$(eval $(call install-app-rule,$(app))))
-endif
+# -----------------------------------------------------------------------------
+# 安装库文件
+# -----------------------------------------------------------------------------
+PHONY += install_lib
+install_lib:
+	@echo "  INSTALL libraries to $(INSTALL_LIB_PATH)"
+	$(Q)$(INSTALL_DIR) $(INSTALL_LIB_PATH)
+	$(Q)if [ -d $(STAGING_LIB) ]; then \
+		if [ -n "$$(find $(STAGING_LIB) -maxdepth 1 \( -name '*.a' -o -name '*.so' -o -name '*.so.*' \) 2>/dev/null)" ]; then \
+			for file in $(STAGING_LIB)/*.a $(STAGING_LIB)/*.so $(STAGING_LIB)/*.so.*; do \
+				if [ -f "$$file" ]; then \
+					if echo "$$file" | grep -q '\.so'; then \
+						$(INSTALL_PROGRAM) $$file $(INSTALL_LIB_PATH)/; \
+					else \
+						$(INSTALL_DATA) $$file $(INSTALL_LIB_PATH)/; \
+					fi; \
+					echo "  INSTALL $$(basename $$file)"; \
+				fi; \
+			done 2>/dev/null || true; \
+		else \
+			echo "  SKIP    no libraries found"; \
+		fi; \
+	else \
+		echo "  SKIP    no libraries found"; \
+	fi
 
-# 安装静态库
-ifneq ($(strip $(lib-y)),)
-__install: $(addprefix __install_lib_, $(lib-y))
+# -----------------------------------------------------------------------------
+# 安装头文件（参考 Linux 内核 headers_install）
+# -----------------------------------------------------------------------------
+PHONY += install_headers
+install_headers:
+	@echo "  INSTALL headers to $(INSTALL_HDR_PATH)"
+	$(Q)$(INSTALL_DIR) $(INSTALL_HDR_PATH)
+	$(Q)if [ -d $(STAGING_HDR) ] && [ -n "$$(ls -A $(STAGING_HDR) 2>/dev/null)" ]; then \
+		cd $(STAGING_HDR) && \
+		find . -type f -name '*.h' | while read file; do \
+			dir=$$(dirname $$file); \
+			$(INSTALL_DIR) $(INSTALL_HDR_PATH)/$$dir; \
+			$(INSTALL_DATA) $$file $(INSTALL_HDR_PATH)/$$file; \
+			echo "  INSTALL $$file"; \
+		done; \
+	else \
+		echo "  SKIP    no headers found"; \
+	fi
 
-define install-lib-rule
-__install_lib_$(1):
-	@mkdir -p $(INSTALL_LIB_DIR)
-	$$(call cmd,install_lib,$(LIB_DIR)/$(if $(filter %.a,$(1)),$(1),$(1).a))
-endef
+# -----------------------------------------------------------------------------
+# 安装内核模块（参考 Linux 内核 modules_install）
+# -----------------------------------------------------------------------------
+PHONY += install_modules
+install_modules:
+	@echo "  INSTALL modules to $(INSTALL_MOD_PATH)"
+	$(Q)if [ -d $(STAGING_MOD) ] && [ -n "$$(find $(STAGING_MOD) -name '*.ko' 2>/dev/null)" ]; then \
+		$(INSTALL_DIR) $(INSTALL_MOD_PATH); \
+		cd $(STAGING_MOD) && \
+		find . -type f -name '*.ko' | while read file; do \
+			dir=$$(dirname $$file); \
+			$(INSTALL_DIR) $(INSTALL_MOD_PATH)/$$dir; \
+			$(INSTALL_DATA) $$file $(INSTALL_MOD_PATH)/$$file; \
+			echo "  INSTALL $$file"; \
+		done; \
+	else \
+		echo "  SKIP    no modules found"; \
+	fi
 
-$(foreach lib,$(lib-y),$(eval $(call install-lib-rule,$(lib))))
-endif
-
-# 安装动态库
-ifneq ($(strip $(so-y)),)
-__install: $(addprefix __install_so_, $(so-y))
-
-define install-so-rule
-__install_so_$(1):
-	@mkdir -p $(INSTALL_LIB_DIR)
-	$$(call cmd,install_so,$(LIB_DIR)/$(if $(filter %.so,$(1)),$(1),$(1).so))
-endef
-
-$(foreach so,$(so-y),$(eval $(call install-so-rule,$(so))))
-endif
-
-# 安装内核模块
-ifneq ($(strip $(obj-m)),)
-__install: $(addprefix __install_ko_, $(obj-m))
-
-define install-ko-rule
-__install_ko_$(1):
-	@mkdir -p $(INSTALL_KO_DIR)
-	$$(call cmd,install_ko,$(KO_DIR)/$(1))
-endef
-
-$(foreach ko,$(obj-m),$(eval $(call install-ko-rule,$(ko))))
-endif
-
-# 安装头文件
-ifneq ($(strip $(header-y)),)
-__install: $(addprefix __install_hdr_, $(header-y))
-
-define install-hdr-rule
-__install_hdr_$(1):
-	@mkdir -p $(dir $(INSTALL_INC_DIR)/$(1))
-	$$(call cmd,install_hdr,$(src)/$(1))
-endef
-
-$(foreach hdr,$(header-y),$(eval $(call install-hdr-rule,$(hdr))))
-endif
+# -----------------------------------------------------------------------------
+# 安装后处理（更新动态链接器缓存）
+# -----------------------------------------------------------------------------
+PHONY += install_post
+install_post:
+	@if [ -z "$(DESTDIR)" ] && [ -w "$(INSTALL_LIB_PATH)" ]; then \
+		echo "  LDCONFIG $(INSTALL_LIB_PATH)"; \
+		ldconfig $(INSTALL_LIB_PATH) 2>/dev/null || true; \
+	fi
 
 # =============================================================================
-# 下降到子目录
+# 帮助信息
 # =============================================================================
+PHONY += install_help
+install_help:
+	@echo 'Installation targets:'
+	@echo '  install              - Install all files (binaries, libraries, headers, modules)'
+	@echo '  install_bin          - Install binaries only'
+	@echo '  install_lib          - Install libraries only'
+	@echo '  install_headers      - Install headers only'
+	@echo '  install_modules      - Install kernel modules only'
+	@echo ''
+	@echo 'Installation variables:'
+	@echo '  DESTDIR=<path>       - Install root directory (default: empty)'
+	@echo '  prefix=<path>        - Install prefix (default: /usr/local)'
+	@echo '  bindir=<path>        - Binary directory (default: $$(prefix)/bin)'
+	@echo '  libdir=<path>        - Library directory (default: $$(prefix)/lib)'
+	@echo '  includedir=<path>    - Header directory (default: $$(prefix)/include)'
+	@echo '  modulesdir=<path>    - Module directory (default: $$(prefix)/lib/modules)'
+	@echo ''
+	@echo 'Examples:'
+	@echo '  make install                                    # Install to /usr/local'
+	@echo '  make install prefix=/usr                        # Install to /usr'
+	@echo '  make install DESTDIR=/tmp/ems-install           # Install to staging area'
+	@echo '  make install DESTDIR=/tmp/ems prefix=/opt/ems   # Install to /tmp/ems/opt/ems'
+	@echo '  make install_bin bindir=/usr/bin                # Install binaries to /usr/bin'
 
-ifneq ($(strip $(subdir-y)),)
-__install: $(addprefix __install_subdir_, $(subdir-y))
-
-define install-subdir-rule
-__install_subdir_$(1):
-	$$(Q)$$(MAKE) $$(install)=$(1)
-endef
-
-$(foreach dir,$(subdir-y),$(eval $(call install-subdir-rule,$(dir))))
-endif
-
-# =============================================================================
-# 默认目标
-# =============================================================================
-
-__install:
-	@:
-
-.PHONY: $(PHONY) __install
+.PHONY: $(PHONY)
