@@ -127,6 +127,9 @@ endif
 # 包含库构建规则（必须在 lib-target 等变量设置之后）
 include scripts/Makefile.lib.build
 
+# 包含应用程序构建规则（必须在 app-target 变量设置之后）
+include scripts/Makefile.app.build
+
 # 主构建目标
 __build: $(if $(KBUILD_BUILTIN),$(builtin-target)) \
          $(lib-target) $(so-target) $(app-target) $(mod-target) \
@@ -284,43 +287,13 @@ endif # builtin-target
 # =============================================================================
 # 构建可执行程序
 # =============================================================================
+# 注意: 应用程序构建规则已移至 scripts/Makefile.app.build
+# 此处保留注释以便参考
+#
 # 语法:
 #   app-y += myapp
 #   myapp-objs := main.o utils.o
 #   myapp-ldflags := -lm -lpthread
-#
-# 注意: 可执行程序会自动安装到 $(BIN_DIR)
-
-ifdef app-target
-
-# 为每个应用提取对象文件列表
-define get-app-objs
-$(addprefix $(obj)/,$($(1)-objs))
-endef
-
-# 为每个应用提取链接标志
-define get-app-ldflags
-$($(1)-ldflags)
-endef
-
-# 为每个应用定义规则
-define build-app-rule
-$(1): $$(call get-app-objs,$(notdir $(1))) FORCE
-	$$(call if_changed,link_app_target,$(notdir $(1)))
-	@mkdir -p $(BIN_DIR)
-	@cp -f $(1) $(BIN_DIR)/
-	@echo "  INSTALL $(BIN_DIR)/$(notdir $(1))"
-
-targets += $(1)
-endef
-
-quiet_cmd_link_app_target = LD      $@
-cmd_link_app_target = $(CC) -o $@ $(filter %.o,$^) \
-                      $(call get-app-ldflags,$(notdir $@)) $(ldflags-y) $(LDFLAGS)
-
-$(foreach app,$(app-target),$(eval $(call build-app-rule,$(app))))
-
-endif # app-target
 
 # =============================================================================
 # 构建内核模块 (.ko) - 预留
