@@ -1,36 +1,175 @@
 # Test Configuration
 
-config TEST_OSAL
-	bool "Build OSAL tests"
+config TEST_UNIT
+	bool "Build unit tests"
 	depends on BUILD_TESTING
+	default y
+	help
+	  Build unit tests for all modules.
+	  Unit tests verify individual functions and components in isolation.
+
+if TEST_UNIT
+
+config TEST_OSAL
+	bool "Build OSAL unit tests"
 	default y
 	help
 	  Build OSAL layer unit tests.
 
 config TEST_HAL
-	bool "Build HAL tests"
-	depends on BUILD_TESTING
+	bool "Build HAL unit tests"
 	default y
 	help
 	  Build HAL layer unit tests.
 
 config TEST_PCL
-	bool "Build PCL tests"
-	depends on BUILD_TESTING
+	bool "Build PCL unit tests"
 	default y
 	help
 	  Build PCL layer unit tests.
 
 config TEST_PDL
-	bool "Build PDL tests"
-	depends on BUILD_TESTING
+	bool "Build PDL unit tests"
 	default y
 	help
 	  Build PDL layer unit tests.
 
 config TEST_ACL
-	bool "Build ACL tests"
-	depends on BUILD_TESTING
+	bool "Build ACL unit tests"
 	default y
 	help
 	  Build ACL layer unit tests.
+
+endif # TEST_UNIT
+
+config TEST_PERFORMANCE
+	bool "Build performance tests"
+	depends on BUILD_TESTING
+	default n
+	help
+	  Build performance tests for all modules.
+	  Performance tests measure throughput, latency, and resource usage.
+
+if TEST_PERFORMANCE
+
+config TEST_PERFORMANCE_OSAL
+	bool "Build OSAL performance tests"
+	default y
+	help
+	  Build OSAL layer performance tests.
+
+config TEST_PERFORMANCE_HAL
+	bool "Build HAL performance tests"
+	default y
+	help
+	  Build HAL layer performance tests.
+
+config TEST_PERFORMANCE_PCL
+	bool "Build PCL performance tests"
+	default y
+	help
+	  Build PCL layer performance tests.
+
+config TEST_PERFORMANCE_PDL
+	bool "Build PDL performance tests"
+	default y
+	help
+	  Build PDL layer performance tests.
+
+config TEST_PERFORMANCE_ACL
+	bool "Build ACL performance tests"
+	default y
+	help
+	  Build ACL layer performance tests.
+
+endif # TEST_PERFORMANCE
+
+config TEST_STRESS
+	bool "Build stress tests"
+	depends on BUILD_TESTING
+	default n
+	help
+	  Build stress tests for all modules.
+	  Stress tests verify system behavior under heavy load and extreme conditions.
+
+if TEST_STRESS
+
+config TEST_STRESS_OSAL
+	bool "Build OSAL stress tests"
+	default y
+	help
+	  Build OSAL layer stress tests.
+
+config TEST_STRESS_HAL
+	bool "Build HAL stress tests"
+	default y
+	help
+	  Build HAL layer stress tests.
+
+config TEST_STRESS_PCL
+	bool "Build PCL stress tests"
+	default y
+	help
+	  Build PCL layer stress tests.
+
+config TEST_STRESS_PDL
+	bool "Build PDL stress tests"
+	default y
+	help
+	  Build PDL layer stress tests.
+
+config TEST_STRESS_ACL
+	bool "Build ACL stress tests"
+	default y
+	help
+	  Build ACL layer stress tests.
+
+endif # TEST_STRESS
+
+config TEST_SYSTEM
+	bool "Build system tests"
+	depends on BUILD_TESTING
+	default n
+	help
+	  Build system tests for all modules.
+	  System tests verify end-to-end functionality and module interactions.
+
+if TEST_SYSTEM
+
+config TEST_SYSTEM_OSAL
+	bool "Build OSAL system tests"
+	default y
+	help
+	  Build OSAL layer system tests.
+
+config TEST_SYSTEM_HAL
+	bool "Build HAL system tests"
+	default y
+	help
+	  Build HAL layer system tests.
+
+config TEST_SYSTEM_PCL
+	bool "Build PCL system tests"
+	default y
+	help
+	  Build PCL layer system tests.
+
+config TEST_SYSTEM_PDL
+	bool "Build PDL system tests"
+	default y
+	help
+	  Build PDL layer system tests.
+
+config TEST_SYSTEM_ACL
+	bool "Build ACL system tests"
+	default y
+	help
+	  Build ACL layer system tests.
+
+config TEST_INTEGRATION
+	bool "Build integration tests"
+	default y
+	help
+	  Build integration tests that verify interactions between multiple modules.
+
+endif # TEST_SYSTEM
