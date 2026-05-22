@@ -16,6 +16,7 @@
 #ifndef OSAL_SCHED_H
 #define OSAL_SCHED_H
 
+#include "osal_platform.h"
 #include "osal_types.h"
 #include "osal_thread.h"
 

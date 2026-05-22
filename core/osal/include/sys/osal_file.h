@@ -15,6 +15,7 @@
 #ifndef OSAL_FILE_H
 #define OSAL_FILE_H
 
+#include "osal_platform.h"
 #include "osal_types.h"
 
 /*===========================================================================

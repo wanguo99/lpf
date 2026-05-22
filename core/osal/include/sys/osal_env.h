@@ -14,6 +14,7 @@
 #ifndef OSAL_ENV_H
 #define OSAL_ENV_H
 
+#include "osal_platform.h"
 #include "osal_types.h"
 
 /*===========================================================================

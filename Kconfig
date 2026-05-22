@@ -5,6 +5,106 @@ config EMS_VERSION
 	default "1.0.0"
 
 # ============================================================================
+# Architecture and Platform Configuration
+# ============================================================================
+
+menu "Target Platform"
+
+choice
+	prompt "Target operating system"
+	default OS_LINUX
+	help
+	  Select the target operating system type.
+	  This affects OSAL (OS Abstraction Layer) implementation.
+
+config OS_LINUX
+	bool "Linux"
+	help
+	  Target Linux operating system.
+	  Supports POSIX APIs, threads, sockets, etc.
+
+config OS_WINDOWS
+	bool "Windows"
+	help
+	  Target Windows operating system.
+	  Uses Win32 APIs for threading, synchronization, etc.
+
+config OS_RTOS
+	bool "RTOS (Real-Time OS)"
+	help
+	  Target real-time operating system (FreeRTOS, RT-Thread, etc.).
+	  Provides deterministic scheduling and minimal footprint.
+
+config OS_MACOS
+	bool "macOS"
+	help
+	  Target macOS operating system.
+	  Supports POSIX APIs with macOS-specific extensions.
+
+config OS_BARE
+	bool "Bare Metal"
+	help
+	  No operating system (bare metal).
+	  Direct hardware access without OS abstraction.
+	  Requires custom startup code and hardware drivers.
+
+endchoice
+
+config OS
+	string
+	default "linux" if OS_LINUX
+	default "windows" if OS_WINDOWS
+	default "rtos" if OS_RTOS
+	default "macos" if OS_MACOS
+	default "bare" if OS_BARE
+	help
+	  Operating system name used by the build system.
+	  This value can be overridden by the OS environment variable.
+
+choice
+	prompt "Target architecture"
+	default ARCH_X86_64
+	help
+	  Select the target CPU architecture.
+
+config ARCH_X86_64
+	bool "x86_64 (64-bit Intel/AMD)"
+
+config ARCH_ARM32
+	bool "ARM32 (ARMv7-A)"
+
+config ARCH_ARM64
+	bool "ARM64 (ARMv8-A / AArch64)"
+
+config ARCH_RISCV64
+	bool "RISC-V 64-bit"
+
+endchoice
+
+config ARCH
+	string
+	default "x86_64" if ARCH_X86_64
+	default "arm" if ARCH_ARM32
+	default "arm64" if ARCH_ARM64
+	default "riscv" if ARCH_RISCV64
+	help
+	  Architecture name used by the build system.
+	  This value can be overridden by the ARCH environment variable.
+
+config CROSS_COMPILE
+	string "Cross-compiler prefix"
+	default "" if ARCH_X86_64
+	default "arm-linux-gnueabihf-" if ARCH_ARM32
+	default "aarch64-linux-gnu-" if ARCH_ARM64
+	default "riscv64-linux-gnu-" if ARCH_RISCV64
+	help
+	  Prefix for cross-compilation toolchain (e.g., "arm-linux-gnueabihf-").
+	  Leave empty for native compilation.
+	  This value can be overridden by the CROSS_COMPILE environment variable.
+
+endmenu
+
+# ============================================================================
 # Build Configuration
 # ============================================================================
 
@@ -76,40 +176,6 @@ config INSTALL_HEADERS
 	  Install public header files for library development.
 
 endmenu
-
-# ============================================================================
-# Architecture Selection
-# ============================================================================
-
-choice
-	prompt "Target architecture"
-	default ARCH_X86_64
-	help
-	  Select the target CPU architecture.
-
-config ARCH_X86_64
-	bool "x86_64 (64-bit Intel/AMD)"
-
-config ARCH_ARM32
-	bool "ARM32 (ARMv7-A)"
-
-config ARCH_ARM64
-	bool "ARM64 (ARMv8-A / AArch64)"
-
-config ARCH_RISCV64
-	bool "RISC-V 64-bit"
-
-endchoice
-
-config CROSS_COMPILE
-	string "Cross-compiler prefix"
-	default "" if ARCH_X86_64
-	default "arm-linux-gnueabihf-" if ARCH_ARM32
-	default "aarch64-linux-gnu-" if ARCH_ARM64
-	default "riscv64-linux-gnu-" if ARCH_RISCV64
-	help
-	  Prefix for cross-compilation toolchain (e.g., "arm-linux-gnueabihf-").
-	  Leave empty for native compilation.
 
 # ============================================================================
 # Core Modules Configuration

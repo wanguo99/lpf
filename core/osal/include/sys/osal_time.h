@@ -15,6 +15,7 @@
 #ifndef OSAL_TIME_H
 #define OSAL_TIME_H
 
+#include "osal_platform.h"
 #include "osal_types.h"
 
 /*===========================================================================

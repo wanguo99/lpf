@@ -15,6 +15,7 @@
 #ifndef OSAL_PROCESS_H
 #define OSAL_PROCESS_H
 
+#include "osal_platform.h"
 #include "osal_types.h"
 #include <stdbool.h>
 

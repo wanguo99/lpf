@@ -15,6 +15,7 @@
 #ifndef OSAL_SOCKET_H
 #define OSAL_SOCKET_H
 
+#include "osal_platform.h"
 #include "osal_types.h"
 
 /*===========================================================================

@@ -15,6 +15,7 @@
 #ifndef OSAL_SELECT_H
 #define OSAL_SELECT_H
 
+#include "osal_platform.h"
 #include "osal_types.h"
 
 /*===========================================================================

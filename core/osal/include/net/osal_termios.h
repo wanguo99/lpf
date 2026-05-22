@@ -15,6 +15,7 @@
 #ifndef OSAL_TERMIOS_H
 #define OSAL_TERMIOS_H
 
+#include "osal_platform.h"
 #include "osal_types.h"
 
 /*===========================================================================

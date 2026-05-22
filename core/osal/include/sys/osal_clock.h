@@ -5,6 +5,7 @@
 #ifndef OSAPI_CLOCK_H
 #define OSAPI_CLOCK_H
 
+#include "osal_platform.h"
 #include "osal_types.h"
 
 /* 时间转换常量 */

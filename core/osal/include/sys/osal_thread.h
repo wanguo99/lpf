@@ -15,6 +15,7 @@
 #ifndef OSAL_THREAD_H
 #define OSAL_THREAD_H
 
+#include "osal_platform.h"
 #include "osal_types.h"
 
 /*

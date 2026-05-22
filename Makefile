@@ -143,9 +143,12 @@ VPATH		:= $(srctree)
 
 export srctree objtree VPATH
 
-# 架构和交叉编译
-ARCH		?= $(SUBARCH)
+# 架构和交叉编译：优先使用环境变量，否则使用 Kconfig 配置
+ARCH		?= $(CONFIG_ARCH:"%"=%)
 CROSS_COMPILE	?= $(CONFIG_CROSS_COMPILE:"%"=%)
+OS		?= $(CONFIG_OS:"%"=%)
+
+export ARCH CROSS_COMPILE OS
 
 # Kconfig 配置文件
 KCONFIG_CONFIG	?= .config
@@ -287,7 +290,8 @@ version_h := include/generated/version.h
 no-dot-config-targets := clean mrproper distclean \
 			 cscope help% %docs check% coccicheck \
 			 $(version_h) headers_% archheaders archscripts \
-			 kernelversion %src-pkg
+			 kernelversion %src-pkg \
+			 install install_bin install_lib install_headers install_modules
 
 config-targets := 0
 mixed-targets  := 0
@@ -304,11 +308,6 @@ ifneq ($(filter config %config,$(MAKECMDGOALS)),)
         ifneq ($(words $(MAKECMDGOALS)),1)
                 mixed-targets := 1
         endif
-endif
-
-# install 也需要单独处理
-ifneq ($(filter install,$(MAKECMDGOALS)),)
-    mixed-targets := 1
 endif
 
 # 混合目标处理（逐个执行）
@@ -604,6 +603,13 @@ distclean: mrproper
 clean := -f $(if $(KBUILD_SRC),$(srctree)/)scripts/Makefile.clean obj
 
 # =============================================================================
+# 安装目标
+# =============================================================================
+
+# 包含安装规则
+include scripts/Makefile.install
+
+# =============================================================================
 # 帮助信息
 # =============================================================================
 PHONY += help
@@ -621,6 +627,17 @@ help:
 	@echo  '* ems		  - Build the EMS framework'
 	@echo  '  core		  - Build core modules only'
 	@echo  '  products	  - Build product modules only'
+	@echo  ''
+	@echo  'Installation targets:'
+	@echo  '  install	  - Install all files (binaries, libraries, headers, modules)'
+	@echo  '  install_bin	  - Install binaries only'
+	@echo  '  install_lib	  - Install libraries only'
+	@echo  '  install_headers - Install headers only'
+	@echo  '  install_modules - Install kernel modules only'
+	@echo  ''
+	@echo  'Installation variables:'
+	@echo  '  DESTDIR=<path>  - Install root directory (default: empty)'
+	@echo  '  prefix=<path>   - Install prefix (default: /usr/local)'
 	@echo  ''
 	@echo  'Other generic targets:'
 	@echo  '  dir/            - Build all files in dir and below'

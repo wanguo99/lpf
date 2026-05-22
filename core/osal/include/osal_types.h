@@ -210,17 +210,8 @@ typedef int64_t osal_nsec_t;
  * 对齐宏
  * - 用于确保数据结构按特定边界对齐
  * - 对于DMA、硬件寄存器访问等场景至关重要
+ * - 这些宏已在 osal_platform.h 中定义
  */
-#if defined(__GNUC__) || defined(__clang__)
-    #define OSAL_ALIGNED(n)  __attribute__((aligned(n)))
-    #define OSAL_PACKED      __attribute__((packed))
-#elif defined(_MSC_VER)
-    #define OSAL_ALIGNED(n)  __declspec(align(n))
-    #define OSAL_PACKED      /* MSVC使用 #pragma pack */
-#else
-    #define OSAL_ALIGNED(n)  /* 不支持对齐 */
-    #define OSAL_PACKED      /* 不支持紧凑 */
-#endif
 
 /*
  * 缓存行大小（用于避免伪共享）
@@ -244,26 +235,9 @@ typedef int64_t osal_nsec_t;
 
 /*
  * 字节序检测
- * - __BYTE_ORDER__ 是 GCC/Clang 内置宏
+ * - 已在 osal_platform.h 中定义 OSAL_LITTLE_ENDIAN 和 OSAL_BIG_ENDIAN
  * - 支持 x86_64(小端), ARM32/ARM64(小端), RISC-V(小端/大端可配置)
  */
-#if defined(__BYTE_ORDER__)
-    #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-        #define OSAL_LITTLE_ENDIAN 1
-        #define OSAL_BIG_ENDIAN    0
-    #elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-        #define OSAL_LITTLE_ENDIAN 0
-        #define OSAL_BIG_ENDIAN    1
-    #else
-        #error "Unknown byte order"
-    #endif
-#else
-    /* 如果编译器不提供字节序宏，假设小端（x86/ARM/RISC-V 默认） */
-    #warning "Byte order not detected, assuming little-endian"
-    #define OSAL_LITTLE_ENDIAN 1
-    #define OSAL_BIG_ENDIAN    0
-#endif
-
 /*
  * 字节序转换宏
  * - OSAL_HTONS/HTONL: 主机序 -> 网络序（大端）

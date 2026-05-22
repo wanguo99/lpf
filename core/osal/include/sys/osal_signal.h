@@ -5,6 +5,7 @@
 #ifndef OSAPI_SIGNAL_H
 #define OSAPI_SIGNAL_H
 
+#include "osal_platform.h"
 #include "osal_types.h"
 
 /*

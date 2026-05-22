@@ -13,22 +13,82 @@ config OSAL
 
 if OSAL
 
+menu "Platform Configuration"
+
+config OSAL_OS_POSIX
+	bool
+	default y if OS_LINUX || OS_MACOS
+	help
+	  Use POSIX implementation for OSAL.
+	  Automatically selected for Linux and macOS.
+
+config OSAL_OS_WIN32
+	bool
+	default y if OS_WINDOWS
+	help
+	  Use Win32 implementation for OSAL.
+	  Automatically selected for Windows.
+
+config OSAL_OS_RTOS
+	bool
+	default y if OS_RTOS
+	help
+	  Use RTOS implementation for OSAL.
+	  Automatically selected for RTOS.
+
+config OSAL_OS_BARE
+	bool
+	default y if OS_BARE
+	help
+	  Use bare metal implementation for OSAL.
+	  Automatically selected for bare metal.
+
+config OSAL_ARCH_32BIT
+	bool
+	default y if ARCH_ARM32
+	help
+	  32-bit architecture support.
+
+config OSAL_ARCH_64BIT
+	bool
+	default y if ARCH_X86_64 || ARCH_ARM64 || ARCH_RISCV64
+	help
+	  64-bit architecture support.
+
+config OSAL_ARCH_NAME
+	string
+	default ARCH
+	help
+	  Architecture name from platform configuration.
+
+config OSAL_OS_NAME
+	string
+	default OS
+	help
+	  Operating system name from platform configuration.
+
+endmenu
+
 menu "OSAL Features"
 
 config OSAL_FILE
 	bool "File I/O support"
 	default y
+	depends on !OSAL_OS_BARE
 	help
 	  Enable file I/O operations (open, read, write, close, etc.).
+	  Not available in bare metal mode.
 
 	  If unsure, say Y.
 
 config OSAL_NETWORK
 	bool "Network support"
 	default y
+	depends on OSAL_OS_POSIX || OSAL_OS_WIN32
 	help
 	  Enable network socket operations (socket, bind, connect, etc.).
 	  Required for network communication.
+	  Only available on POSIX and Windows platforms.
 
 	  If unsure, say Y.
 
@@ -61,8 +121,10 @@ config OSAL_TIME
 config OSAL_SIGNAL
 	bool "Signal handling"
 	default y
+	depends on OSAL_OS_POSIX
 	help
 	  Enable signal handling operations.
+	  Only available on POSIX platforms.
 
 	  If unsure, say Y.
 
@@ -106,8 +168,10 @@ config OSAL_BUILD_STATIC
 config OSAL_BUILD_SHARED
 	bool "Build shared library (.so)"
 	default y
+	depends on !OSAL_OS_BARE
 	help
 	  Build OSAL as a shared library (libosal.so).
+	  Not available in bare metal mode.
 
 comment "Tip: Enable both if different apps need different link types"
 
