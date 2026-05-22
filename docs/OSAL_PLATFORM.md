@@ -1,5 +1,8 @@
 # OSAL 平台适配指南
 
+**最后更新**: 2026-05-22  
+**维护者**: wanguo
+
 ## 概述
 
 OSAL (Operating System Abstraction Layer) 支持多平台、多架构的适配，通过 Kconfig 配置系统自动选择对应的源码实现。
@@ -146,19 +149,91 @@ OSAL Makefile 会根据配置自动添加以下编译标志：
 
 ## 源码目录结构
 
+### 当前实现
+
 ```
 core/osal/src/
-├── posix/          # POSIX 实现 (Linux/macOS)
-│   ├── ipc/        # 进程间通信
-│   ├── lib/        # 基础库
-│   ├── net/        # 网络
-│   ├── sys/        # 系统调用
-│   └── util/       # 工具函数
-├── win32/          # Windows 实现
-├── rtos/           # RTOS 实现
-├── bare/           # 裸机实现
-└── common/         # 通用代码（所有平台共享）
+└── posix/          # POSIX 实现 (Linux/macOS) - 已实现
+    ├── ipc/        # 进程间通信（5个文件）
+    │   ├── osal_atomic.c
+    │   ├── osal_cond.c
+    │   ├── osal_mutex.c
+    │   ├── osal_semaphore.c
+    │   └── osal_shm.c
+    ├── sys/        # 系统调用（9个文件）
+    │   ├── osal_clock.c
+    │   ├── osal_env.c
+    │   ├── osal_file.c
+    │   ├── osal_process.c
+    │   ├── osal_sched.c
+    │   ├── osal_select.c
+    │   ├── osal_signal.c
+    │   ├── osal_thread.c
+    │   └── osal_time.c
+    ├── net/        # 网络（2个文件）
+    │   ├── osal_socket.c
+    │   └── osal_termios.c
+    ├── lib/        # 基础库（4个文件）
+    │   ├── osal_errno.c
+    │   ├── osal_heap.c
+    │   ├── osal_stdio.c
+    │   └── osal_string.c
+    └── util/       # 工具函数（2个文件）
+        ├── osal_log.c
+        └── osal_version.c
 ```
+
+**注意**：当前只有 POSIX 平台实现（22个源文件），其他平台目录为预留，需要移植。
+
+### 预留目录（未实现）
+
+```
+core/osal/src/
+├── win32/          # Windows 实现 - 预留
+├── rtos/           # RTOS 实现 - 预留
+└── bare/           # 裸机实现 - 预留
+```
+
+## 导出的头文件列表
+
+OSAL 通过 `header-y` 机制导出以下头文件到 staging 目录：
+
+### 核心头文件
+- `osal.h` - 主头文件，包含所有子模块
+- `osal_types.h` - 类型定义
+- `osal_platform.h` - 平台检测宏
+
+### IPC 模块（5个）
+- `ipc/osal_atomic.h` - 原子操作
+- `ipc/osal_cond.h` - 条件变量
+- `ipc/osal_mutex.h` - 互斥锁
+- `ipc/osal_semaphore.h` - 信号量
+- `ipc/osal_shm.h` - 共享内存
+
+### 系统调用模块（9个）
+- `sys/osal_clock.h` - 时钟操作
+- `sys/osal_env.h` - 环境变量
+- `sys/osal_file.h` - 文件I/O
+- `sys/osal_process.h` - 进程管理
+- `sys/osal_sched.h` - 调度
+- `sys/osal_select.h` - I/O多路复用
+- `sys/osal_signal.h` - 信号处理
+- `sys/osal_thread.h` - 线程管理
+- `sys/osal_time.h` - 时间操作
+
+### 网络模块（2个）
+- `net/osal_socket.h` - Socket网络
+- `net/osal_termios.h` - 串口控制
+
+### 基础库模块（4个）
+- `lib/osal_errno.h` - 错误码
+- `lib/osal_heap.h` - 内存管理
+- `lib/osal_stdio.h` - 标准I/O
+- `lib/osal_string.h` - 字符串操作
+
+### 工具模块（2个）
+- `util/osal_log.h` - 日志系统
+- `util/osal_version.h` - 版本信息
 
 ## 移植新平台
 
@@ -298,5 +373,5 @@ endif
 ## 参考
 
 - [PLATFORM.md](PLATFORM.md) - 平台配置总体说明
-- [KCONFIG.md](KCONFIG.md) - Kconfig 配置系统
-- [BUILD.md](BUILD.md) - 构建系统详解
+- [BUILD_SYSTEM.md](BUILD_SYSTEM.md) - 构建系统详解
+- [BUILD_GUIDE.md](BUILD_GUIDE.md) - 构建指南

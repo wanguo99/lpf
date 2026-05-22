@@ -608,15 +608,18 @@ cat .config | grep CONFIG_OSAL
    - 修复双斜杠问题（`core//acl` → `core/acl`）
    - 消除重复目标定义警告
 
-详见 `IMPROVEMENTS.md`。
-
 ## 参考文档
 
 - [构建系统详解](docs/BUILD_SYSTEM.md)
 - [构建指南](docs/BUILD_GUIDE.md)
 - [架构设计](docs/ARCHITECTURE.md)
-- [Kconfig 集成](docs/KCONFIG_INTEGRATION_SUMMARY.md)
+- [平台配置指南](docs/PLATFORM.md)
+- [OSAL 平台适配](docs/OSAL_PLATFORM.md)
+- [Staging 目录说明](docs/STAGING_DIRECTORY.md)
 - [Makefile 框架](docs/MAKEFILE_FRAMEWORK.md)
+- [配置文件指南](docs/DEFCONFIG_GUIDE.md)
+- [安装指南](docs/INSTALL.md)
+- [编码规范](docs/CODING_STANDARDS.md)
 
 ## 故障排除快速参考
 
@@ -631,6 +634,6 @@ cat .config | grep CONFIG_OSAL
 
 ---
 
-**最后更新**: 2026-05-21
+**最后更新**: 2026-05-22
 **维护者**: wanguo
-**分支**: feature/kconfig-integration
+**分支**: master

@@ -190,8 +190,29 @@ $(objtree)/include/       # Staging 目录
 
 ### 实现位置
 
-- **核心逻辑**：`scripts/Makefile.build:471-503`
-- **清理规则**：`Makefile:CLEAN_DIRS` 包含 `include/` 子目录
+**核心逻辑**：`scripts/Makefile.build:480-505`
+
+**关键代码**：
+- 第 486-493 行：头文件安装规则
+  ```makefile
+  define install-header-rule
+  __install_hdr_$(subst /,_,$(1)): FORCE
+      @mkdir -p $$(dir $(INCLUDE_DIR)/$(1))
+      @if [ -f $(src)/include/$(1) ]; then \
+          cp -f $(src)/include/$(1) $(INCLUDE_DIR)/$(1); \
+          echo "  INSTALL include/$(1)"; \
+      fi
+  endef
+  ```
+
+- 第 501-503 行：依赖关系（库构建后自动安装头文件）
+  ```makefile
+  ifneq ($(lib-target)$(so-target),)
+  $(lib-target) $(so-target): __install_headers
+  endif
+  ```
+
+**清理规则**：`Makefile:CLEAN_DIRS` 包含 `include/` 子目录
 
 ## 智能库名处理
 
@@ -214,8 +235,20 @@ so-y += libccm.so    # → libccm.so
 
 ### 实现位置
 
-- **静态库**：`scripts/Makefile.build:276-278`（`get-lib-install-name` 函数）
-- **动态库**：`scripts/Makefile.build:329-331`（`get-so-install-name` 函数）
+**静态库**：`scripts/Makefile.build:276-279`
+
+**实现逻辑**：
+```makefile
+define get-lib-install-name
+$(if $(filter lib%,$(notdir $(1))),$(notdir $(1)),lib$(notdir $(1)))
+endef
+```
+
+检测库名是否已有 `lib` 前缀：
+- 如果库名以 `lib` 开头，直接使用原名
+- 如果库名不以 `lib` 开头，自动添加 `lib` 前缀
+
+**动态库**：`scripts/Makefile.build:329-331`（类似的 `get-so-install-name` 函数）
 
 ## Makefile 编写规范
 
@@ -456,7 +489,12 @@ make -p | grep "^app-y"
 
 ## 依赖跟踪
 
-构建系统自动跟踪头文件依赖和命令行变化：
+构建系统自动跟踪头文件依赖和命令行变化。
+
+**实现位置**：
+- 依赖生成：`scripts/Kbuild.include:217` (`cmd_and_fixdep` 函数)
+- 依赖读取：`Makefile:699-704`
+- 命令比较：`scripts/Kbuild.include:209-239` (`if_changed` 系列函数)
 
 ### .d 依赖文件
 
@@ -1001,8 +1039,6 @@ git clean -fdx
    - 消除重复目标定义警告
    - 实现位置：`Makefile:core-y, products-y`
 
-详见 `IMPROVEMENTS.md`。
-
 ## 参考资料
 
 ### 内部文档
@@ -1011,8 +1047,13 @@ git clean -fdx
 - [CLAUDE.md](../CLAUDE.md) - AI 助手使用指南
 - [BUILD_GUIDE.md](BUILD_GUIDE.md) - 构建指南
 - [ARCHITECTURE.md](ARCHITECTURE.md) - 架构设计
-- [KCONFIG_INTEGRATION_SUMMARY.md](KCONFIG_INTEGRATION_SUMMARY.md) - Kconfig 集成总结
-- [IMPROVEMENTS.md](../IMPROVEMENTS.md) - 改进记录
+- [PLATFORM.md](PLATFORM.md) - 平台配置指南
+- [OSAL_PLATFORM.md](OSAL_PLATFORM.md) - OSAL 平台适配
+- [HAL_PLATFORM.md](HAL_PLATFORM.md) - HAL 平台适配
+- [STAGING_DIRECTORY.md](STAGING_DIRECTORY.md) - Staging 目录说明
+- [DEFCONFIG_GUIDE.md](DEFCONFIG_GUIDE.md) - 配置文件指南
+- [INSTALL.md](INSTALL.md) - 安装指南
+- [CODING_STANDARDS.md](CODING_STANDARDS.md) - 编码规范
 
 ### 外部资料
 

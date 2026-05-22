@@ -1,5 +1,8 @@
 # EMS 平台配置指南
 
+**最后更新**: 2026-05-22  
+**维护者**: wanguo
+
 本文档说明如何配置 EMS 的目标平台（架构和操作系统）。
 
 ## 配置方式
@@ -11,11 +14,35 @@ EMS 支持两种配置方式：
 
 ### 优先级
 
-环境变量 > Kconfig 配置
+当同时使用多种配置方式时，优先级从高到低为：
 
-这意味着：
-- 如果设置了环境变量，将使用环境变量的值
-- 如果没有设置环境变量，将使用 Kconfig 配置的值
+1. **命令行环境变量**（最高优先级）
+   ```bash
+   make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-
+   ```
+
+2. **Shell 环境变量**
+   ```bash
+   export ARCH=arm64
+   export CROSS_COMPILE=aarch64-linux-gnu-
+   make
+   ```
+
+3. **Kconfig 配置**（.config 文件）
+   ```bash
+   make menuconfig
+   # 在菜单中选择架构和工具链
+   ```
+
+4. **默认值**（最低优先级）
+   - 架构：x86_64
+   - 操作系统：Linux
+   - 工具链：本地编译器
+
+**建议**：
+- 开发环境：使用 Kconfig 配置（持久化）
+- CI/CD：使用命令行变量（灵活性）
+- 临时测试：使用环境变量（方便快捷）
 
 ## 架构配置 (ARCH)
 
@@ -248,6 +275,29 @@ CROSS_COMPILE =
 
 ## 配置文件管理
 
+### 可用的预定义配置
+
+项目提供以下预定义配置文件（位于 `configs/` 目录）：
+
+| 配置文件 | 架构 | 平台 | 用途 |
+|---------|------|------|------|
+| `defconfig` | x86_64 | Linux | 默认配置（推荐） |
+| `x86_64_full_defconfig` | x86_64 | Linux | 完整功能配置 |
+| `x86_64_release_defconfig` | x86_64 | Linux | 生产优化配置 |
+| `x86_64_minimal_defconfig` | x86_64 | Linux | 最小化配置 |
+| `ccm_h200_am625_debug_defconfig` | arm64 | Linux | CCM 产品调试配置（遗留） |
+| `ccm_h200_am625_release_defconfig` | arm64 | Linux | CCM 产品发布配置（遗留） |
+
+使用方法：
+
+```bash
+make defconfig                        # 加载默认配置
+make x86_64_full_defconfig           # 加载完整功能配置
+make ccm_h200_am625_debug_defconfig  # 加载 CCM 调试配置
+```
+
+详细说明请参考 [DEFCONFIG_GUIDE.md](DEFCONFIG_GUIDE.md)。
+
 ### 保存配置
 
 ```bash
@@ -280,6 +330,8 @@ make olddefconfig
 
 ## 参考
 
-- [BUILD.md](BUILD.md) - 构建系统说明
-- [KCONFIG.md](KCONFIG.md) - Kconfig 配置系统说明
+- [BUILD_SYSTEM.md](BUILD_SYSTEM.md) - 构建系统详解
+- [BUILD_GUIDE.md](BUILD_GUIDE.md) - 构建指南
+- [OSAL_PLATFORM.md](OSAL_PLATFORM.md) - OSAL 平台适配指南
+- [DEFCONFIG_GUIDE.md](DEFCONFIG_GUIDE.md) - 配置文件指南
 - [INSTALL.md](INSTALL.md) - 安装指南

@@ -217,8 +217,13 @@ ccflags-y += -I$(src)/include
 - [构建系统详解](docs/BUILD_SYSTEM.md) - 构建系统架构和原理
 - [构建指南](docs/BUILD_GUIDE.md) - 详细的构建步骤和选项
 - [架构设计](docs/ARCHITECTURE.md) - 系统架构和模块设计
-- [Kconfig 集成](docs/KCONFIG_INTEGRATION_SUMMARY.md) - Kconfig 配置系统说明
-- [改进记录](IMPROVEMENTS.md) - 最近的改进和优化
+- [平台配置指南](docs/PLATFORM.md) - 平台和架构配置说明
+- [OSAL 平台适配](docs/OSAL_PLATFORM.md) - OSAL 多平台支持
+- [Staging 目录说明](docs/STAGING_DIRECTORY.md) - 构建产物管理
+- [配置文件指南](docs/DEFCONFIG_GUIDE.md) - 预定义配置说明
+- [安装指南](docs/INSTALL.md) - 文件安装和部署
+- [编码规范](docs/CODING_STANDARDS.md) - 代码质量和风格标准
+- [Makefile 框架](docs/MAKEFILE_FRAMEWORK.md) - Makefile 框架使用指南
 
 ## 故障排除
 

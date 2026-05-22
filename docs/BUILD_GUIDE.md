@@ -544,11 +544,16 @@ make CC="ccache gcc" -j$(nproc)
 - [README.md](../README.md) - 项目概述
 - [BUILD_SYSTEM.md](BUILD_SYSTEM.md) - 构建系统详解
 - [ARCHITECTURE.md](ARCHITECTURE.md) - 架构设计
+- [PLATFORM.md](PLATFORM.md) - 平台配置指南
+- [OSAL_PLATFORM.md](OSAL_PLATFORM.md) - OSAL 平台适配
+- [HAL_PLATFORM.md](HAL_PLATFORM.md) - HAL 平台适配
+- [STAGING_DIRECTORY.md](STAGING_DIRECTORY.md) - Staging 目录说明
+- [DEFCONFIG_GUIDE.md](DEFCONFIG_GUIDE.md) - 配置文件指南
+- [INSTALL.md](INSTALL.md) - 安装指南
 - [CLAUDE.md](../CLAUDE.md) - AI 助手指南
-- [IMPROVEMENTS.md](../IMPROVEMENTS.md) - 改进记录
 
 ---
 
-**最后更新**: 2026-05-21  
+**最后更新**: 2026-05-22  
 **维护者**: wanguo  
-**分支**: feature/kconfig-integration
+**分支**: master

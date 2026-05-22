@@ -1470,3 +1470,8 @@ static int32 execute_ipmi_command(uint8_t cmd_type, uint32_t param, uint32_t *re
 - 日志轮转
 - 通信冗余
 - 代码规模：约18,000行（生产代码14,000行，测试代码4,000行）
+
+---
+
+**最后更新**: 2026-05-22  
+**维护者**: wanguo
