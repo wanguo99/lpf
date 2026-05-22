@@ -51,6 +51,36 @@ config OS
 	  Operating system name used by the build system.
 	  This value can be overridden by the OS environment variable.
 
+choice
+	prompt "Target architecture"
+	default ARCH_X86_64
+	help
+	  Select the target CPU architecture.
+
+config ARCH_X86_64
+	bool "x86_64 (64-bit Intel/AMD)"
+
+config ARCH_ARM32
+	bool "ARM32 (ARMv7-A)"
+
+config ARCH_ARM64
+	bool "ARM64 (ARMv8-A / AArch64)"
+
+config ARCH_RISCV64
+	bool "RISC-V 64-bit"
+
+endchoice
+
+config ARCH
+	string
+	default "x86_64" if ARCH_X86_64
+	default "arm" if ARCH_ARM32
+	default "arm64" if ARCH_ARM64
+	default "riscv" if ARCH_RISCV64
+	help
+	  Architecture name used by the build system.
+	  This value can be overridden by the ARCH environment variable.
+
 menuconfig OSAL
 	bool "OSAL (Operating System Abstraction Layer)"
 	default y

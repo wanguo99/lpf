@@ -5,59 +5,23 @@ config EMS_VERSION
 	default "1.0.0"
 
 # ============================================================================
-# Target Configuration
+# Build Configuration
 # ============================================================================
 
-menu "Target"
-
-choice
-	prompt "Target architecture"
-	default ARCH_X86_64
-	help
-	  Select the target CPU architecture.
-
-config ARCH_X86_64
-	bool "x86_64 (64-bit Intel/AMD)"
-
-config ARCH_ARM32
-	bool "ARM32 (ARMv7-A)"
-
-config ARCH_ARM64
-	bool "ARM64 (ARMv8-A / AArch64)"
-
-config ARCH_RISCV64
-	bool "RISC-V 64-bit"
-
-endchoice
-
-config ARCH
-	string
-	default "x86_64" if ARCH_X86_64
-	default "arm" if ARCH_ARM32
-	default "arm64" if ARCH_ARM64
-	default "riscv" if ARCH_RISCV64
-	help
-	  Architecture name used by the build system.
-	  This value can be overridden by the ARCH environment variable.
+menu "Build Options"
 
 config CROSS_COMPILE
 	string "Cross-compiler prefix"
-	default "" if ARCH_X86_64
-	default "arm-linux-gnueabihf-" if ARCH_ARM32
-	default "aarch64-linux-gnu-" if ARCH_ARM64
-	default "riscv64-linux-gnu-" if ARCH_RISCV64
+	default ""
 	help
 	  Prefix for cross-compilation toolchain (e.g., "arm-linux-gnueabihf-").
 	  Leave empty for native compilation.
 	  This value can be overridden by the CROSS_COMPILE environment variable.
 
-endmenu
-
-# ============================================================================
-# Build Configuration
-# ============================================================================
-
-menu "Build Options"
+	  Common values:
+	    - ARM32: arm-linux-gnueabihf-
+	    - ARM64: aarch64-linux-gnu-
+	    - RISC-V64: riscv64-linux-gnu-
 
 config BUILD_TYPE_DEBUG
 	bool "Debug build"
@@ -65,7 +29,7 @@ config BUILD_TYPE_DEBUG
 	help
 	  Enable debug symbols (-g), disable optimizations (-O0), and enable
 	  verbose logging. Equivalent to CMAKE_BUILD_TYPE=Debug.
-	  
+
 	  If unsure, say N for production builds.
 
 choice
