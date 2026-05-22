@@ -210,8 +210,21 @@ NOSTDINC_FLAGS  =
 CFLAGS_KERNEL	=
 AFLAGS_KERNEL	=
 
-# Staging 目录（必须在 EMSINCLUDE 之前定义）
-STAGING_DIR := $(objtree)/staging
+# =============================================================================
+# Staging 目录配置（必须在 EMSINCLUDE 之前定义）
+# =============================================================================
+# Staging 目录用于存放编译产物和公共头文件
+#
+# 配置方式（优先级从高到低）：
+# 1. 命令行参数：make STAGING_DIR=/path/to/staging
+# 2. 环境变量：export STAGING_DIR=/path/to/staging
+# 3. 默认值：$(objtree)/.staging（隐藏目录）
+#
+# Buildroot 集成示例：
+#   export STAGING_DIR=$(O)/staging
+#   make -C /path/to/ems O=/path/to/buildroot/output
+#
+STAGING_DIR ?= $(objtree)/.staging
 INCLUDE_DIR := $(STAGING_DIR)/include
 
 # 头文件包含路径（兼容 O= 选项）
