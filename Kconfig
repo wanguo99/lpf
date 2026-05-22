@@ -109,10 +109,10 @@ source "products/Kconfig"
 menu "Test Configuration"
 
 config BUILD_TESTING
-	bool "Build unit tests"
+	bool "Build tests"
 	default y
 	help
-	  Build the test suite (ems-test, osal-test, hal-test, etc.).
+	  Build the test suite (unit, performance, stress, system tests).
 	  Requires test framework to be available.
 
 source "tests/Kconfig"
