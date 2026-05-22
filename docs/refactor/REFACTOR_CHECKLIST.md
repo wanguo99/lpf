@@ -113,23 +113,27 @@ md5sum .staging/bin/* .staging/lib/*.a > /tmp/ems-before-md5.txt
 
 ---
 
-## Phase 5: 创建 Makefile.mod.build ⏳
+## Phase 5: 创建 Makefile.mod.build ✅
 
 ### 文件创建
-- [ ] `scripts/Makefile.mod.build` (~100 行)
+- [x] `scripts/Makefile.mod.build` (43 行)
 
 ### 功能实现
-- [ ] 内核模块构建规则 (`obj-m`)
-- [ ] 模块链接规则
-- [ ] 模块安装规则
+- [x] 内核模块构建规则 (`obj-m`)
+- [x] 模块链接规则
+- [x] 模块安装规则
 
 ### 集成
-- [ ] 从 `Makefile.build` 移除模块构建代码 (397-427 行)
-- [ ] 在 `Makefile.build` 中包含 `Makefile.mod.build`
+- [x] 从 `Makefile.build` 移除模块构建代码 (299-328 行)
+- [x] 在 `Makefile.build` 中包含 `Makefile.mod.build`
 
 ### 测试
-- [ ] 完整构建: `make clean && make -j$(nproc)`
-- [ ] 验证不影响现有流程
+- [x] 完整构建: `make clean && make -j$(nproc)`
+- [x] 验证不影响现有流程
+
+**完成日期**: 2026-05-23
+**提交**: 待提交
+**行数变化**: Makefile.build 从 399 行减少到 372 行 (-27行)
 
 ---
 
