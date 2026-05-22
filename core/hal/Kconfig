@@ -11,7 +11,86 @@ menuconfig HAL
 
 if HAL
 
-menu "HAL Driver Selection"
+choice
+	prompt "Hardware platform"
+	default HAL_PLATFORM_GENERIC_LINUX
+	help
+	  Select the target hardware platform for HAL drivers.
+	  Different platforms may have different driver implementations.
+
+config HAL_PLATFORM_GENERIC_LINUX
+	bool "Generic Linux"
+	help
+	  Generic Linux platform using standard kernel interfaces.
+	  Supports SocketCAN, sysfs GPIO, /dev/ttyS*, /dev/i2c-*, etc.
+
+config HAL_PLATFORM_RASPBERRY_PI
+	bool "Raspberry Pi"
+	help
+	  Raspberry Pi platform with optimized GPIO and peripheral drivers.
+	  Uses BCM2835/BCM2711 hardware interfaces.
+
+config HAL_PLATFORM_BEAGLEBONE
+	bool "BeagleBone"
+	help
+	  BeagleBone platform with TI AM335x processor support.
+	  Optimized for industrial and embedded applications.
+
+config HAL_PLATFORM_CUSTOM
+	bool "Custom platform"
+	help
+	  Custom hardware platform requiring specific driver implementations.
+	  You need to provide your own driver sources.
+
+endchoice
+
+config HAL_PLATFORM_NAME
+	string
+	default "generic-linux" if HAL_PLATFORM_GENERIC_LINUX
+	default "raspberry-pi" if HAL_PLATFORM_RASPBERRY_PI
+	default "beaglebone" if HAL_PLATFORM_BEAGLEBONE
+	default "custom" if HAL_PLATFORM_CUSTOM
+
+menu "HAL Build Configuration"
+
+config HAL_BUILD_STATIC
+	bool "Build static library (.a)"
+	default y
+	help
+	  Build HAL as a static library (libhal.a).
+
+config HAL_BUILD_SHARED
+	bool "Build shared library (.so)"
+	default y
+	help
+	  Build HAL as a shared library (libhal.so).
+
+endmenu
+
+menu "HAL Advanced Features"
+
+config HAL_DEBUG
+	bool "HAL debug logging"
+	default n
+	help
+	  Enable verbose debug logging in HAL layer.
+	  Useful for driver development and troubleshooting.
+
+config HAL_STATISTICS
+	bool "HAL statistics collection"
+	default n
+	help
+	  Enable HAL driver statistics collection.
+	  Tracks transfer counts, errors, and performance metrics.
+
+config HAL_POWER_MANAGEMENT
+	bool "HAL power management"
+	default n
+	help
+	  Enable power management support in HAL drivers.
+	  Allows drivers to enter low-power states.
+
+endmenu
 
 menuconfig HAL_CAN
 	bool "CAN bus driver"
@@ -174,48 +253,5 @@ config HAL_WATCHDOG_PRETIMEOUT
 	  Triggers interrupt before actual timeout.
 
 endif # HAL_WATCHDOG
-
-endmenu
-
-menu "HAL Advanced Features"
-
-config HAL_DEBUG
-	bool "HAL debug logging"
-	default n
-	help
-	  Enable verbose debug logging in HAL layer.
-	  Useful for driver development and troubleshooting.
-
-config HAL_STATISTICS
-	bool "HAL statistics collection"
-	default n
-	help
-	  Enable HAL driver statistics collection.
-	  Tracks transfer counts, errors, and performance metrics.
-
-config HAL_POWER_MANAGEMENT
-	bool "HAL power management"
-	default n
-	help
-	  Enable power management support in HAL drivers.
-	  Allows drivers to enter low-power states.
-
-endmenu
-
-menu "HAL Build Configuration"
-
-config HAL_BUILD_STATIC
-	bool "Build static library (.a)"
-	default y
-	help
-	  Build HAL as a static library (libhal.a).
-
-config HAL_BUILD_SHARED
-	bool "Build shared library (.so)"
-	default y
-	help
-	  Build HAL as a shared library (libhal.so).
-
-endmenu
 
 endif # HAL
