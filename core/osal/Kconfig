@@ -1,19 +1,17 @@
 # OSAL (Operating System Abstraction Layer) Configuration
 
-menu "OSAL (Operating System Abstraction Layer)"
-
-config OSAL
-	bool
+menuconfig OSAL
+	bool "OSAL (Operating System Abstraction Layer)"
 	default y
 	help
 	  Operating System Abstraction Layer provides unified OS interfaces.
 	  OSAL is the foundation layer required by all other modules.
 
-	  This option is always enabled.
+	  If unsure, say Y.
 
 if OSAL
 
-menu "Platform Configuration"
+menu "OSAL Platform Configuration"
 
 config OSAL_OS_POSIX
 	bool
@@ -69,64 +67,23 @@ config OSAL_OS_NAME
 
 endmenu
 
-menu "OSAL Features"
+menu "OSAL Build Configuration"
 
-config OSAL_FILE
-	bool "File I/O support"
+config OSAL_BUILD_STATIC
+	bool "Build static library (.a)"
+	default y
+	help
+	  Build OSAL as a static library (libosal.a).
+
+config OSAL_BUILD_SHARED
+	bool "Build shared library (.so)"
 	default y
 	depends on !OSAL_OS_BARE
 	help
-	  Enable file I/O operations (open, read, write, close, etc.).
+	  Build OSAL as a shared library (libosal.so).
 	  Not available in bare metal mode.
 
-	  If unsure, say Y.
-
-config OSAL_NETWORK
-	bool "Network support"
-	default y
-	depends on OSAL_OS_POSIX || OSAL_OS_WIN32
-	help
-	  Enable network socket operations (socket, bind, connect, etc.).
-	  Required for network communication.
-	  Only available on POSIX and Windows platforms.
-
-	  If unsure, say Y.
-
-config OSAL_IPC
-	bool "Inter-Process Communication"
-	default y
-	help
-	  Enable IPC mechanisms (mutex, semaphore, shared memory, etc.).
-	  Required for multi-threaded applications.
-
-	  If unsure, say Y.
-
-config OSAL_THREAD
-	bool "Thread support"
-	default y
-	help
-	  Enable thread management (create, join, detach, etc.).
-	  Required for multi-threaded applications.
-
-	  If unsure, say Y.
-
-config OSAL_TIME
-	bool "Time and clock support"
-	default y
-	help
-	  Enable time operations (sleep, clock, timer, etc.).
-
-	  If unsure, say Y.
-
-config OSAL_SIGNAL
-	bool "Signal handling"
-	default y
-	depends on OSAL_OS_POSIX
-	help
-	  Enable signal handling operations.
-	  Only available on POSIX platforms.
-
-	  If unsure, say Y.
+comment "Tip: Enable both if different apps need different link types"
 
 endmenu
 
@@ -159,24 +116,63 @@ config OSAL_DEBUG_LOGGING
 	help
 	  Enable verbose debug logging in OSAL layer.
 
-config OSAL_BUILD_STATIC
-	bool "Build static library (.a)"
-	default y
-	help
-	  Build OSAL as a static library (libosal.a).
+endmenu
 
-config OSAL_BUILD_SHARED
-	bool "Build shared library (.so)"
+menuconfig OSAL_FILE
+	bool "File I/O support"
 	default y
 	depends on !OSAL_OS_BARE
 	help
-	  Build OSAL as a shared library (libosal.so).
+	  Enable file I/O operations (open, read, write, close, etc.).
 	  Not available in bare metal mode.
 
-comment "Tip: Enable both if different apps need different link types"
+	  If unsure, say Y.
 
-endmenu
+menuconfig OSAL_NETWORK
+	bool "Network support"
+	default y
+	depends on OSAL_OS_POSIX || OSAL_OS_WIN32
+	help
+	  Enable network socket operations (socket, bind, connect, etc.).
+	  Required for network communication.
+	  Only available on POSIX and Windows platforms.
+
+	  If unsure, say Y.
+
+menuconfig OSAL_IPC
+	bool "Inter-Process Communication"
+	default y
+	help
+	  Enable IPC mechanisms (mutex, semaphore, shared memory, etc.).
+	  Required for multi-threaded applications.
+
+	  If unsure, say Y.
+
+menuconfig OSAL_THREAD
+	bool "Thread support"
+	default y
+	help
+	  Enable thread management (create, join, detach, etc.).
+	  Required for multi-threaded applications.
+
+	  If unsure, say Y.
+
+menuconfig OSAL_TIME
+	bool "Time and clock support"
+	default y
+	help
+	  Enable time operations (sleep, clock, timer, etc.).
+
+	  If unsure, say Y.
+
+menuconfig OSAL_SIGNAL
+	bool "Signal handling"
+	default y
+	depends on OSAL_OS_POSIX
+	help
+	  Enable signal handling operations.
+	  Only available on POSIX platforms.
+
+	  If unsure, say Y.
 
 endif # OSAL
-
-endmenu

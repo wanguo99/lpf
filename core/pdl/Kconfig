@@ -11,6 +11,22 @@ menuconfig PDL
 
 if PDL
 
+menu "PDL Build Configuration"
+
+config PDL_BUILD_STATIC
+	bool "Build static library (.a)"
+	default y
+	help
+	  Build PDL as a static library (libpdl.a).
+
+config PDL_BUILD_SHARED
+	bool "Build shared library (.so)"
+	default y
+	help
+	  Build PDL as a shared library (libpdl.so).
+
+endmenu
+
 menuconfig PDL_SATELLITE_SUPPORT
 	bool "Satellite peripheral support"
 	depends on HAL_CAN && OSAL_NETWORK
@@ -66,17 +82,5 @@ menuconfig PDL_WATCHDOG_SUPPORT
 	  Requires: HAL_WATCHDOG, OSAL_TIME
 
 	  If unsure, say Y.
-
-menu "PDL Build Configuration"
-
-config PDL_BUILD_STATIC
-	bool "Build static library (.a)"
-	default y
-
-config PDL_BUILD_SHARED
-	bool "Build shared library (.so)"
-	default y
-
-endmenu
 
 endif # PDL

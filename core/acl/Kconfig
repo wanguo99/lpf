@@ -11,22 +11,30 @@ menuconfig ACL
 
 if ACL
 
+menu "ACL Build Configuration"
+
+config ACL_BUILD_STATIC
+	bool "Build static library (.a)"
+	default y
+	help
+	  Build ACL as a static library (libacl.a).
+
+config ACL_BUILD_SHARED
+	bool "Build shared library (.so)"
+	default y
+	help
+	  Build ACL as a shared library (libacl.so).
+
+endmenu
+
+menu "ACL Configuration"
+
 config ACL_MAX_DEVICES
 	int "Maximum number of devices"
 	default 64
 	range 1 256
 	help
 	  Maximum number of devices that can be configured in ACL.
-
-menu "ACL Build Configuration"
-
-config ACL_BUILD_STATIC
-	bool "Build static library (.a)"
-	default y
-
-config ACL_BUILD_SHARED
-	bool "Build shared library (.so)"
-	default y
 
 endmenu
 
