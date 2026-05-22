@@ -60,26 +60,30 @@ md5sum .staging/bin/* .staging/lib/*.a > /tmp/ems-before-md5.txt
 
 ---
 
-## Phase 3: 创建 Makefile.lib.build ⏳
+## Phase 3: 创建 Makefile.lib.build ✅
 
 ### 文件创建
-- [ ] `scripts/Makefile.lib.build` (~150 行)
+- [x] `scripts/Makefile.lib.build` (143 行)
 
 ### 功能实现
-- [ ] 静态库构建规则 (`lib-y`)
-- [ ] 动态库构建规则 (`so-y`)
-- [ ] 头文件安装规则 (`header-y`)
-- [ ] 库名智能处理
+- [x] 静态库构建规则 (`lib-y`)
+- [x] 动态库构建规则 (`so-y`)
+- [x] 头文件安装规则 (`header-y`)
+- [x] 库名智能处理
 
 ### 集成
-- [ ] 从 `Makefile.build` 移除库构建代码 (255-297, 299-354, 471-505 行)
-- [ ] 在 `Makefile.build` 中包含 `Makefile.lib.build`
+- [x] 从 `Makefile.build` 移除库构建代码 (255-297, 299-354, 471-505 行)
+- [x] 在 `Makefile.build` 中包含 `Makefile.lib.build`
 
 ### 测试
-- [ ] 静态库构建: `make core/osal/ && ls .staging/lib/libosal.a`
-- [ ] 动态库构建: 启用 `CONFIG_OSAL_BUILD_SHARED` 后测试
-- [ ] 头文件安装: `find .staging/include -name "osal*.h"`
-- [ ] 库名处理: 验证 `lib-y += osal` → `libosal.a`
+- [x] 静态库构建: `make core/osal/ && ls .staging/lib/libosal.a`
+- [x] 动态库构建: 启用 `CONFIG_OSAL_BUILD_SHARED` 后测试
+- [x] 头文件安装: `find .staging/include -name "osal*.h"`
+- [x] 库名处理: 验证 `lib-y += osal` → `libosal.a`
+
+**完成日期**: 2026-05-23
+**提交**: 已提交
+**行数变化**: Makefile.build 从 524 行减少到 390 行 (-134行)
 
 ---
 
