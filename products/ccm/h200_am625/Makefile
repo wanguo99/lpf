@@ -18,9 +18,14 @@ h200_am625-objs := \
 # 编译标志
 ccflags-y := -I$(srctree)/products/ccm/h200_am625
 ccflags-y += -I$(srctree)/products/ccm/h200_am625/acl
-# 注意：Core 模块头文件通过 staging 目录引用（顶层 Makefile 已全局导出）
-# 注意：Kconfig 生成的配置文件在 $(srctree)/include
-ccflags-y += -I$(srctree)/include
+# 引用统一的 include 目录
+ccflags-y += -I$(srctree)/include/acl
+ccflags-y += -I$(srctree)/include/pdl
+ccflags-y += -I$(srctree)/include/pcl
+ccflags-y += -I$(srctree)/include/pcl/api
+ccflags-y += -I$(srctree)/include/hal
+ccflags-y += -I$(srctree)/include/hal/config
+ccflags-y += -I$(srctree)/include/osal
 
 # 链接库
 LDLIBS := -L$(LIB_DIR) -lacl -lpdl -lpcl -lhal -losal

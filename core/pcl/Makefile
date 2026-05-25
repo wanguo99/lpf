@@ -23,12 +23,11 @@ pcl-objs := \
 # -----------------------------------------------------------------------------
 # 3. 编译标志
 # -----------------------------------------------------------------------------
-# 通用编译标志
-ccflags-y += -I$(src)/include
-ccflags-y += -I$(src)/include/api
-# 注意：HAL/OSAL 头文件通过 staging 目录引用（顶层 Makefile 已全局导出）
-# 注意：Kconfig 生成的配置文件在 $(srctree)/include
-ccflags-y += -I$(srctree)/include
+# 通用编译标志（引用统一的 include 目录）
+ccflags-y += -I$(srctree)/include/pcl
+ccflags-y += -I$(srctree)/include/pcl/api
+ccflags-y += -I$(srctree)/include/hal
+ccflags-y += -I$(srctree)/include/osal
 
 # 动态库需要 -fPIC
 pcl-cflags-y := $(if $(CONFIG_PCL_BUILD_SHARED),-fPIC)
@@ -44,21 +43,6 @@ pcl-ldflags := $(if $(CONFIG_PCL_BUILD_SHARED),-shared -Wl$(comma)-soname$(comma
 pcl-ldflags += -L$(LIB_DIR) -lhal -losal
 
 # -----------------------------------------------------------------------------
-# 5. 头文件导出
-# -----------------------------------------------------------------------------
-header-y := \
-	pcl.h \
-	pcl_api.h \
-	pcl_config.h \
-	pcl_common.h \
-	pcl_bmc.h \
-	pcl_board.h \
-	pcl_fpga.h \
-	pcl_hardware_interface.h \
-	pcl_mcu.h \
-	pcl_switch.h
-
-# -----------------------------------------------------------------------------
-# 6. 清理规则
+# 4. 清理规则
 # -----------------------------------------------------------------------------
 clean-files := *.so *.so.* *.a

@@ -110,63 +110,30 @@ as-option = $(call try-run,\
 as-instr = $(call try-run,\
 	printf "%b\n" "$(1)" | $(CC) $(KBUILD_AFLAGS) -c -x assembler -o "$$TMP" -,$(2),$(3))
 
-# cc-option
-# 用法: cflags-y += $(call cc-option,-march=winchip-c6,-march=i586)
-cc-option = $(call try-run,\
-	$(CC) $(KBUILD_CPPFLAGS) $(KBUILD_CFLAGS) $(1) -c -x c /dev/null -o "$$TMP",$(1),$(2))
-
-# cc-option-yn
-# 用法: flag := $(call cc-option-yn,-march=winchip-c6)
-cc-option-yn = $(call try-run,\
-	$(CC) $(KBUILD_CPPFLAGS) $(KBUILD_CFLAGS) $(1) -c -x c /dev/null -o "$$TMP",y,n)
-
-# cc-option-align
-# 使用 -falign 或 -malign 前缀对齐选项
-cc-option-align = $(subst -functions=0,,\
-	$(call cc-option,-falign-functions=0,-malign-functions=0))
-
-# cc-disable-warning
-# 用法: cflags-y += $(call cc-disable-warning,unused-but-set-variable)
-cc-disable-warning = $(call try-run,\
-	$(CC) $(KBUILD_CPPFLAGS) $(KBUILD_CFLAGS) -W$(strip $(1)) -c -x c /dev/null -o "$$TMP",-Wno-$(strip $(1)))
-
-# cc-name
-# 展开为 gcc 或 clang
-cc-name = $(shell $(CC) -v 2>&1 | grep -q "clang version" && echo clang || echo gcc)
-
-# cc-version
-cc-version = $(shell $(CONFIG_SHELL) $(srctree)/scripts/gcc-version.sh $(CC))
-
-# cc-fullversion
-cc-fullversion = $(shell $(CONFIG_SHELL) \
-	$(srctree)/scripts/gcc-version.sh -p $(CC))
-
-# cc-ifversion
-# 用法:  EXTRA_CFLAGS += $(call cc-ifversion, -lt, 0402, -O1)
-cc-ifversion = $(shell [ $(cc-version) $(1) $(2) ] && echo $(3) || echo $(4))
-
-# cc-ldoption
-# 用法: ldflags += $(call cc-ldoption, -Wl$(comma)--hash-style=both)
-cc-ldoption = $(call try-run,\
-	$(CC) $(1) -nostdlib -x c /dev/null -o "$$TMP",$(1),$(2))
-
-# ld-option
-# 用法: LDFLAGS += $(call ld-option, -X)
-ld-option = $(call try-run,\
-	$(CC) -x c /dev/null -c -o "$$TMPO" ; $(LD) $(1) "$$TMPO" -o "$$TMP",$(1),$(2))
-
-# ar-option
-# 用法: KBUILD_ARFLAGS := $(call ar-option,D)
-# 重要: 选项周围不能有空格
-ar-option = $(call try-run, $(AR) rc$(1) "$$TMP",$(1),$(2))
-
-# ld-version
-# 注意：主要用于 HJ Lu 的 3 位版本号 binutil
-ld-version = $(shell $(LD) --version | $(srctree)/scripts/ld-version.sh)
-
-# ld-ifversion
-# 用法:  $(call ld-ifversion, -ge, 22252, y)
-ld-ifversion = $(shell [ $(ld-version) $(1) $(2) ] && echo $(3) || echo $(4))
+# =============================================================================
+# 编译器检测函数
+# =============================================================================
+# 注意: 编译器检测函数已移至 scripts/Makefile.compiler
+# 此处保留注释以便参考
+#
+# 可用函数:
+#   cc-name           - 检测编译器类型 (gcc/clang)
+#   cc-version        - 编译器版本号 (数字格式)
+#   cc-fullversion    - 编译器版本号 (字符串格式)
+#   cc-ifversion      - 根据版本条件选择选项
+#   cc-option         - 测试编译器选项
+#   cc-option-yn      - 测试编译器选项 (返回 y/n)
+#   cc-option-align   - 测试对齐选项前缀
+#   cc-disable-warning- 禁用编译器警告
+#   ld-version        - 链接器版本号
+#   ld-ifversion      - 根据链接器版本条件选择选项
+#   ld-option         - 测试链接器选项
+#   cc-ldoption       - 测试编译器驱动的链接器选项
+#   ar-option         - 测试 ar 选项
+#   as-option         - 测试汇编器选项
+#   as-instr          - 测试汇编器指令
+#
+# 用法: 在 Makefile.build 中包含 Makefile.compiler
 
 # =============================================================================
 # Makefile 简写

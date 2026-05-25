@@ -72,8 +72,13 @@ osal-objs += $(if $(CONFIG_OSAL_NETWORK),src/$(OSAL_OS_DIR)/net/osal_termios.o)
 # -----------------------------------------------------------------------------
 # 5. 编译标志
 # -----------------------------------------------------------------------------
-# 通用编译标志（OSAL 使用自己的头文件目录）
-ccflags-y += -I$(src)/include
+# 通用编译标志（引用统一的 include 目录）
+ccflags-y += -I$(srctree)/include/osal
+ccflags-y += -I$(srctree)/include/osal/ipc
+ccflags-y += -I$(srctree)/include/osal/lib
+ccflags-y += -I$(srctree)/include/osal/net
+ccflags-y += -I$(srctree)/include/osal/sys
+ccflags-y += -I$(srctree)/include/osal/util
 
 # 平台相关宏定义
 ifeq ($(CONFIG_OSAL_OS_POSIX),y)
@@ -127,36 +132,6 @@ ifeq ($(CONFIG_OSAL_OS_WIN32),y)
 endif
 
 # -----------------------------------------------------------------------------
-# 7. 头文件导出
-# -----------------------------------------------------------------------------
-header-y := \
-	osal.h \
-	osal_types.h \
-	osal_platform.h \
-	ipc/osal_atomic.h \
-	ipc/osal_cond.h \
-	ipc/osal_mutex.h \
-	ipc/osal_semaphore.h \
-	ipc/osal_shm.h \
-	lib/osal_errno.h \
-	lib/osal_heap.h \
-	lib/osal_stdio.h \
-	lib/osal_string.h \
-	net/osal_socket.h \
-	net/osal_termios.h \
-	sys/osal_clock.h \
-	sys/osal_env.h \
-	sys/osal_file.h \
-	sys/osal_process.h \
-	sys/osal_sched.h \
-	sys/osal_select.h \
-	sys/osal_signal.h \
-	sys/osal_thread.h \
-	sys/osal_time.h \
-	util/osal_log.h \
-	util/osal_version.h
-
-# -----------------------------------------------------------------------------
-# 8. 清理规则
+# 7. 清理规则
 # -----------------------------------------------------------------------------
 clean-files := *.so *.so.* *.a

@@ -1,23 +1,14 @@
+# SPDX-License-Identifier: GPL-2.0
 # =============================================================================
-# EMS 统一构建框架 - 核心构建文件
+# EMS 构建系统 - 核心构建规则
 # =============================================================================
-# 支持四种目标类型:
-#   app-y    - 可执行程序
-#   so-y     - 动态库 (.so)
-#   lib-y    - 静态库 (.a)
-#   obj-m    - 内核模块 (.ko) [预留]
+# 此文件处理核心编译规则（.c → .o, .S → .o）和递归构建
 #
-# 用法示例:
-#   app-y += myapp
-#   myapp-objs := main.o utils.o
-#   myapp-ldflags := -lm
-#
-#   so-y += libhal
-#   libhal-objs := hal.o device.o
-#   libhal-cflags-y := -fPIC
-#
-#   lib-y += libosal
-#   libosal-objs := osal.o timer.o
+# 专用构建模块（自动包含）:
+#   - scripts/Makefile.compiler  - 编译器检测
+#   - scripts/Makefile.lib.build - 静态库/动态库构建
+#   - scripts/Makefile.app.build - 应用程序构建
+#   - scripts/Makefile.mod.build - 内核模块构建
 # =============================================================================
 
 src := $(obj)
@@ -52,6 +43,7 @@ subdir-ccflags-y :=
 -include include/config/auto.conf
 
 include scripts/Kbuild.include
+include scripts/Makefile.compiler
 
 # 保存 CFLAGS 用于检查是否被修改
 save-cflags := $(CFLAGS)
@@ -93,7 +85,7 @@ $(warning kbuild: Makefile.build is included improperly)
 endif
 
 # =============================================================================
-# 处理目标类型
+# 处理目标类型和变量设置
 # =============================================================================
 
 # 静态库目标
@@ -117,21 +109,32 @@ mod-target := $(addprefix $(obj)/,$(obj-m))
 endif
 
 # built-in.o 目标（用于递归构建）
-# 只有当 obj-y 中有实际的 .o 文件（不是 built-in.o）时才生成
 real-obj-y := $(filter-out %/built-in.o, $(obj-y))
 ifneq ($(strip $(real-obj-y)),)
 builtin-target := $(obj)/built-in.o
 endif
 
+# =============================================================================
+# 包含专用构建模块（必须在目标变量设置之后）
+# =============================================================================
+
+include scripts/Makefile.lib.build
+include scripts/Makefile.app.build
+include scripts/Makefile.mod.build
+
+# =============================================================================
 # 主构建目标
+# =============================================================================
+
 __build: $(if $(KBUILD_BUILTIN),$(builtin-target)) \
          $(lib-target) $(so-target) $(app-target) $(mod-target) \
          $(subdir-ym) $(always)
 	@:
 
 # =============================================================================
-# 稀疏检查支持
+# 稀疏检查支持（可选）
 # =============================================================================
+
 ifneq ($(KBUILD_CHECKSRC),0)
   ifeq ($(KBUILD_CHECKSRC),2)
     quiet_cmd_force_checksrc = CHECK   $<
@@ -253,178 +256,14 @@ targets += $(builtin-target)
 endif # builtin-target
 
 # =============================================================================
-# 构建静态库 (.a)
+# 库、应用、模块构建规则
 # =============================================================================
-# 语法:
-#   lib-y += libosal.a
-#   libosal.a-objs := osal.o timer.o task.o
+# 注意: 以下构建规则已拆分到专用模块:
+#   - 静态库/动态库: scripts/Makefile.lib.build
+#   - 应用程序: scripts/Makefile.app.build
+#   - 内核模块: scripts/Makefile.mod.build
 #
-# 或者简写（自动添加 .a 后缀）:
-#   lib-y += osal
-#   osal-objs := osal.o timer.o task.o
-#
-# 头文件导出:
-#   header-y := osal.h osal_types.h
-
-ifdef lib-target
-
-# 为每个静态库提取对象文件列表
-define get-lib-objs
-$(addprefix $(obj)/,$($(1:.a=)-objs) $($(1)-objs))
-endef
-
-# 获取库的最终安装名称（避免重复添加 lib 前缀）
-define get-lib-install-name
-$(if $(filter lib%,$(notdir $(1))),$(notdir $(1)),lib$(notdir $(1)))
-endef
-
-# 为每个静态库定义规则
-define build-lib-rule
-$(1): $$(call get-lib-objs,$(notdir $(1))) FORCE
-	$$(call if_changed,link_l_target)
-	@mkdir -p $(LIB_DIR)
-	@cp -f $(1) $(LIB_DIR)/$$(call get-lib-install-name,$(1))
-	@echo "  INSTALL $(LIB_DIR)/$$(call get-lib-install-name,$(1))"
-
-targets += $(1)
-endef
-
-quiet_cmd_link_l_target = AR      $@
-cmd_link_l_target = rm -f $@; $(AR) rcs$(KBUILD_ARFLAGS) $@ $(filter %.o,$^)
-
-$(foreach lib,$(lib-target),$(eval $(call build-lib-rule,$(lib))))
-
-endif # lib-target
-
-# =============================================================================
-# 构建动态库 (.so)
-# =============================================================================
-# 语法:
-#   so-y += libhal.so
-#   libhal.so-objs := hal.o device.o
-#   libhal.so-cflags-y := -fPIC
-#   libhal.so-ldflags := -shared -Wl,-soname,libhal.so.1
-#
-# 或者简写（自动添加 .so 后缀）:
-#   so-y += hal
-#   hal-objs := hal.o device.o
-#   hal-cflags-y := -fPIC
-#   hal-ldflags := -shared
-#
-# 头文件导出:
-#   header-y := hal.h hal_types.h
-
-ifdef so-target
-
-# 为每个动态库提取对象文件列表
-define get-so-objs
-$(addprefix $(obj)/,$($(1:.so=)-objs) $($(1)-objs))
-endef
-
-# 为每个动态库提取链接标志
-define get-so-ldflags
-$($(1:.so=)-ldflags) $($(1)-ldflags)
-endef
-
-# 获取动态库的最终安装名称（避免重复添加 lib 前缀）
-define get-so-install-name
-$(if $(filter lib%,$(notdir $(1))),$(notdir $(1)),lib$(notdir $(1)))
-endef
-
-# 为每个动态库定义规则
-define build-so-rule
-# 动态库的对象文件需要 -fPIC
-$(call get-so-objs,$(notdir $(1))): ccflags-y += -fPIC
-
-$(1): $$(call get-so-objs,$(notdir $(1))) FORCE
-	$$(call if_changed,link_so_target,$(notdir $(1)))
-	@mkdir -p $(LIB_DIR)
-	@cp -f $(1) $(LIB_DIR)/$$(call get-so-install-name,$(1))
-	@echo "  INSTALL $(LIB_DIR)/$$(call get-so-install-name,$(1))"
-
-targets += $(1)
-endef
-
-quiet_cmd_link_so_target = LD      $@
-cmd_link_so_target = $(CC) -shared -o $@ $(filter %.o,$^) \
-                     $(call get-so-ldflags,$(notdir $@)) $(ldflags-y) $(LDFLAGS)
-
-$(foreach so,$(so-target),$(eval $(call build-so-rule,$(so))))
-
-endif # so-target
-
-# =============================================================================
-# 构建可执行程序
-# =============================================================================
-# 语法:
-#   app-y += myapp
-#   myapp-objs := main.o utils.o
-#   myapp-ldflags := -lm -lpthread
-#
-# 注意: 可执行程序会自动安装到 $(BIN_DIR)
-
-ifdef app-target
-
-# 为每个应用提取对象文件列表
-define get-app-objs
-$(addprefix $(obj)/,$($(1)-objs))
-endef
-
-# 为每个应用提取链接标志
-define get-app-ldflags
-$($(1)-ldflags)
-endef
-
-# 为每个应用定义规则
-define build-app-rule
-$(1): $$(call get-app-objs,$(notdir $(1))) FORCE
-	$$(call if_changed,link_app_target,$(notdir $(1)))
-	@mkdir -p $(BIN_DIR)
-	@cp -f $(1) $(BIN_DIR)/
-	@echo "  INSTALL $(BIN_DIR)/$(notdir $(1))"
-
-targets += $(1)
-endef
-
-quiet_cmd_link_app_target = LD      $@
-cmd_link_app_target = $(CC) -o $@ $(filter %.o,$^) \
-                      $(call get-app-ldflags,$(notdir $@)) $(ldflags-y) $(LDFLAGS)
-
-$(foreach app,$(app-target),$(eval $(call build-app-rule,$(app))))
-
-endif # app-target
-
-# =============================================================================
-# 构建内核模块 (.ko) - 预留
-# =============================================================================
-# 语法:
-#   obj-m += mydrv.o
-#   mydrv-objs := mydrv_main.o mydrv_ops.o
-
-ifdef mod-target
-
-# 为每个模块提取对象文件列表
-define get-mod-objs
-$(addprefix $(obj)/,$($(1:.ko=.o)-objs) $($(1:.o=)-objs))
-endef
-
-# 为每个模块定义规则
-define build-mod-rule
-$(1): $$(call get-mod-objs,$(notdir $(1))) FORCE
-	$$(call if_changed,link_mod_target)
-	@mkdir -p $(KO_DIR)
-	@cp -f $(1) $(KO_DIR)/
-	@echo "  INSTALL $(KO_DIR)/$(notdir $(1))"
-
-targets += $(1)
-endef
-
-quiet_cmd_link_mod_target = LD [M]  $@
-cmd_link_mod_target = $(LD) $(ld_flags) -r -o $@ $(filter %.o,$^)
-
-$(foreach mod,$(mod-target),$(eval $(call build-mod-rule,$(mod))))
-
-endif # mod-target
+# 这些模块在变量设置后自动包含（见第 130-136 行）
 
 # =============================================================================
 # 链接复合对象
@@ -471,38 +310,12 @@ $(foreach dir,$(subdir-ym),$(eval $(call subdir-rule,$(dir))))
 # =============================================================================
 # 头文件安装到 Staging 目录
 # =============================================================================
+# 注意: 头文件安装规则已移至 scripts/Makefile.lib.build
+# 此处保留注释以便参考
+#
 # 语法:
 #   header-y := osal.h osal_types.h
 #   header-y += ipc/osal_mutex.h
-#
-# 头文件会从 $(src)/include/ 复制到 $(INCLUDE_DIR)/
-
-ifneq ($(strip $(header-y)),)
-
-# 头文件安装目标
-PHONY += __install_headers
-
-# 为每个头文件定义安装规则
-define install-header-rule
-__install_hdr_$(subst /,_,$(1)): FORCE
-	@mkdir -p $$(dir $(INCLUDE_DIR)/$(1))
-	@if [ -f $(src)/include/$(1) ]; then \
-		cp -f $(src)/include/$(1) $(INCLUDE_DIR)/$(1); \
-		echo "  INSTALL include/$(1)"; \
-	fi
-endef
-
-$(foreach hdr,$(header-y),$(eval $(call install-header-rule,$(hdr))))
-
-# 主安装目标依赖所有头文件安装
-__install_headers: $(addprefix __install_hdr_,$(subst /,_,$(header-y)))
-
-# 在构建库或动态库后自动安装头文件
-ifneq ($(lib-target)$(so-target),)
-$(lib-target) $(so-target): __install_headers
-endif
-
-endif # header-y
 
 # =============================================================================
 # FORCE 目标

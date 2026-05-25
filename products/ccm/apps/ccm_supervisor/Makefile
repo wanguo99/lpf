@@ -18,8 +18,13 @@ ccm_supervisor-objs := \
 # 3. 编译标志
 # -----------------------------------------------------------------------------
 ccflags-y += -I$(src)/include
-ccflags-y += -I$(INCLUDE_DIR)
-ccflags-y += -I$(srctree)/products/ccm/libs/libccm/include
+# 引用统一的 include 目录
+ccflags-y += -I$(srctree)/include/libccm
+ccflags-y += -I$(srctree)/include/acl
+ccflags-y += -I$(srctree)/include/pdl
+ccflags-y += -I$(srctree)/include/pcl
+ccflags-y += -I$(srctree)/include/hal
+ccflags-y += -I$(srctree)/include/osal
 
 # -----------------------------------------------------------------------------
 # 4. 链接标志

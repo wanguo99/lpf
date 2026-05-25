@@ -132,3 +132,4 @@ GTAGS
 .idea/
 *.code-workspace
 staging/
+.staging/

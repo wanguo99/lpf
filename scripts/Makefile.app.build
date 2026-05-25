@@ -1,0 +1,55 @@
+# SPDX-License-Identifier: GPL-2.0
+# =============================================================================
+# 应用程序构建规则
+# =============================================================================
+# 此文件被 Makefile.build 包含，处理 app-y 目标
+# =============================================================================
+
+# =============================================================================
+# 可执行程序构建
+# =============================================================================
+# 语法:
+#   app-y += myapp
+#   myapp-objs := main.o utils.o
+#   myapp-ldflags := -lm -lpthread
+#
+# 或者单文件应用（自动推导）:
+#   app-y += simple
+#   # 自动使用 simple.o
+#
+# 链接库:
+#   myapp-ldflags := -lacl -lpdl -lpcl -lhal -losal
+#
+# 注意: 可执行程序会自动安装到 $(BIN_DIR)
+
+ifdef app-target
+
+# 为每个应用提取对象文件列表
+# 如果没有显式指定 xxx-objs，则使用 xxx.o
+define get-app-objs
+$(if $($(1)-objs),$(addprefix $(obj)/,$($(1)-objs)),$(obj)/$(1).o)
+endef
+
+# 为每个应用提取链接标志
+define get-app-ldflags
+$($(1)-ldflags)
+endef
+
+# 为每个应用定义规则
+define build-app-rule
+$(1): $$(call get-app-objs,$(notdir $(1))) FORCE
+	$$(call if_changed,link_app_target,$(notdir $(1)))
+	@mkdir -p $(BIN_DIR)
+	@cp -f $(1) $(BIN_DIR)/
+	@echo "  INSTALL $(BIN_DIR)/$(notdir $(1))"
+
+targets += $(1)
+endef
+
+quiet_cmd_link_app_target = LD      $@
+cmd_link_app_target = $(CC) -o $@ $(filter %.o,$^) \
+                      $(call get-app-ldflags,$(notdir $@)) $(ldflags-y) $(LDFLAGS)
+
+$(foreach app,$(app-target),$(eval $(call build-app-rule,$(app))))
+
+endif # app-target

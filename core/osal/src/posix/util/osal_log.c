@@ -249,7 +249,7 @@ int32_t OSAL_LogSetRemote(const char *host, uint16_t port)
 {
     if (NULL == host || port == 0)
     {
-        return OSAL_ERR_INVALID_PARAM;
+        return OSAL_ERR_INVALID_SIZE;
     }
 
     /* 创建UDP socket */

@@ -23,11 +23,12 @@ acl-objs := \
 # -----------------------------------------------------------------------------
 # 3. 编译标志
 # -----------------------------------------------------------------------------
-# 通用编译标志
-ccflags-y += -I$(src)/include
-# 注意：PDL/PCL/HAL/OSAL 头文件通过 staging 目录引用（顶层 Makefile 已全局导出）
-# 注意：Kconfig 生成的配置文件在 $(srctree)/include
-ccflags-y += -I$(srctree)/include
+# 通用编译标志（引用统一的 include 目录）
+ccflags-y += -I$(srctree)/include/acl
+ccflags-y += -I$(srctree)/include/pdl
+ccflags-y += -I$(srctree)/include/pcl
+ccflags-y += -I$(srctree)/include/hal
+ccflags-y += -I$(srctree)/include/osal
 
 # 动态库需要 -fPIC
 acl-cflags-y := $(if $(CONFIG_ACL_BUILD_SHARED),-fPIC)
@@ -43,18 +44,6 @@ acl-ldflags := $(if $(CONFIG_ACL_BUILD_SHARED),-shared -Wl$(comma)-soname$(comma
 acl-ldflags += -L$(LIB_DIR) -lpdl -lpcl -lhal -losal
 
 # -----------------------------------------------------------------------------
-# 5. 头文件导出
-# -----------------------------------------------------------------------------
-header-y := \
-	acl.h \
-	acl_api.h \
-	acl_types.h \
-	acl_config.h \
-	acl_tc.h \
-	acl_telemetry_cache.h \
-	acl_tm.h
-
-# -----------------------------------------------------------------------------
-# 6. 清理规则
+# 5. 清理规则
 # -----------------------------------------------------------------------------
 clean-files := *.so *.so.* *.a

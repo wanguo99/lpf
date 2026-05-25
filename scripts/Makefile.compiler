@@ -1,0 +1,193 @@
+# SPDX-License-Identifier: GPL-2.0
+# =============================================================================
+# 编译器检测和特性探测
+# =============================================================================
+# 此文件提供编译器相关的检测函数和工具链支持
+# 被 Makefile.build 包含
+# =============================================================================
+
+# =============================================================================
+# 编译器类型检测
+# =============================================================================
+
+# cc-name
+# 检测编译器类型（gcc 或 clang）
+# 用法: ifeq ($(cc-name),clang)
+cc-name = $(shell $(CC) -v 2>&1 | grep -q "clang version" && echo clang || echo gcc)
+
+# =============================================================================
+# 编译器版本检测
+# =============================================================================
+
+# cc-version
+# 获取编译器版本号（数字格式：MAJOR*10000 + MINOR*100 + PATCHLEVEL）
+# 用法: ifeq ($(call cc-version),130300)
+cc-version = $(shell $(CONFIG_SHELL) $(srctree)/scripts/gcc-version.sh $(CC))
+
+# cc-fullversion
+# 获取编译器完整版本号（字符串格式：MAJOR.MINOR.PATCHLEVEL）
+# 用法: $(info Compiler version: $(cc-fullversion))
+cc-fullversion = $(shell $(CONFIG_SHELL) $(srctree)/scripts/gcc-version.sh -p $(CC))
+
+# cc-ifversion
+# 根据编译器版本条件选择选项
+# 用法: EXTRA_CFLAGS += $(call cc-ifversion, -lt, 0402, -O1)
+cc-ifversion = $(shell [ $(cc-version) $(1) $(2) ] && echo $(3) || echo $(4))
+
+# =============================================================================
+# 链接器版本检测
+# =============================================================================
+
+# ld-version
+# 获取链接器版本号（数字格式：MAJOR*10000 + MINOR*100 + PATCHLEVEL）
+# 用法: ifeq ($(call ld-version),23500)
+ld-version = $(shell $(CONFIG_SHELL) $(srctree)/scripts/ld-version.sh $(LD))
+
+# ld-ifversion
+# 根据链接器版本条件选择选项
+# 用法: LDFLAGS += $(call ld-ifversion, -ge, 22252, -X)
+ld-ifversion = $(shell [ $(ld-version) $(1) $(2) ] && echo $(3) || echo $(4))
+
+# =============================================================================
+# 编译器选项测试
+# =============================================================================
+
+# cc-option
+# 测试编译器是否支持某个选项
+# 用法: cflags-y += $(call cc-option,-march=winchip-c6,-march=i586)
+# 返回: 如果支持第一个选项则返回它，否则返回第二个选项
+cc-option = $(call try-run,\
+	$(CC) $(KBUILD_CPPFLAGS) $(KBUILD_CFLAGS) $(1) -c -x c /dev/null -o "$$TMP",$(1),$(2))
+
+# cc-option-yn
+# 测试编译器是否支持某个选项（返回 y 或 n）
+# 用法: flag := $(call cc-option-yn,-march=winchip-c6)
+cc-option-yn = $(call try-run,\
+	$(CC) $(KBUILD_CPPFLAGS) $(KBUILD_CFLAGS) $(1) -c -x c /dev/null -o "$$TMP",y,n)
+
+# cc-option-align
+# 测试编译器使用 -falign 还是 -malign 前缀
+# 用法: KBUILD_CFLAGS += $(call cc-option-align)
+cc-option-align = $(subst -functions=0,,\
+	$(call cc-option,-falign-functions=0,-malign-functions=0))
+
+# cc-disable-warning
+# 禁用特定的编译器警告
+# 用法: cflags-y += $(call cc-disable-warning,unused-but-set-variable)
+cc-disable-warning = $(call try-run,\
+	$(CC) $(KBUILD_CPPFLAGS) $(KBUILD_CFLAGS) -W$(strip $(1)) -c -x c /dev/null -o "$$TMP",-Wno-$(strip $(1)))
+
+# =============================================================================
+# 链接器选项测试
+# =============================================================================
+
+# ld-option
+# 测试链接器是否支持某个选项
+# 用法: LDFLAGS += $(call ld-option, -X)
+ld-option = $(call try-run,\
+	$(CC) -x c /dev/null -c -o "$$TMPO" ; $(LD) $(1) "$$TMPO" -o "$$TMP",$(1),$(2))
+
+# cc-ldoption
+# 测试编译器驱动的链接器选项
+# 用法: ldflags += $(call cc-ldoption, -Wl$(comma)--hash-style=both)
+cc-ldoption = $(call try-run,\
+	$(CC) $(1) -nostdlib -x c /dev/null -o "$$TMP",$(1),$(2))
+
+# =============================================================================
+# AR 选项测试
+# =============================================================================
+
+# ar-option
+# 测试 ar 是否支持某个选项
+# 用法: KBUILD_ARFLAGS := $(call ar-option,D)
+# 注意: 选项周围不能有空格
+ar-option = $(call try-run, $(AR) rc$(1) "$$TMP",$(1),$(2))
+
+# =============================================================================
+# 汇编器选项测试
+# =============================================================================
+
+# as-option
+# 测试汇编器是否支持某个选项
+# 用法: aflags-y += $(call as-option,-Wa$(comma)-isa=foo,)
+as-option = $(call try-run,\
+	$(CC) $(KBUILD_CFLAGS) $(1) -c -x assembler /dev/null -o "$$TMP",$(1),$(2))
+
+# as-instr
+# 测试汇编器是否支持某条指令
+# 用法: aflags-y += $(call as-instr,instr,option1,option2)
+as-instr = $(call try-run,\
+	printf "%b\n" "$(1)" | $(CC) $(KBUILD_AFLAGS) -c -x assembler -o "$$TMP" -,$(2),$(3))
+
+# =============================================================================
+# LLVM 工具链支持
+# =============================================================================
+
+# 如果设置了 LLVM 变量，使用 LLVM 工具链
+# 用法: make LLVM=1
+#       make LLVM=/path/to/llvm/
+#       make LLVM=-12
+
+ifdef LLVM
+    # 检测 LLVM 前缀或后缀
+    ifneq ($(filter %/,$(LLVM)),)
+        # LLVM=/path/to/llvm/ 格式
+        LLVM_PREFIX := $(LLVM)
+    else ifneq ($(filter -%,$(LLVM)),)
+        # LLVM=-12 格式
+        LLVM_SUFFIX := $(LLVM)
+    endif
+
+    # 设置 LLVM 工具链
+    CC      := $(LLVM_PREFIX)clang$(LLVM_SUFFIX)
+    LD      := $(LLVM_PREFIX)ld.lld$(LLVM_SUFFIX)
+    AR      := $(LLVM_PREFIX)llvm-ar$(LLVM_SUFFIX)
+    NM      := $(LLVM_PREFIX)llvm-nm$(LLVM_SUFFIX)
+    OBJCOPY := $(LLVM_PREFIX)llvm-objcopy$(LLVM_SUFFIX)
+    OBJDUMP := $(LLVM_PREFIX)llvm-objdump$(LLVM_SUFFIX)
+    STRIP   := $(LLVM_PREFIX)llvm-strip$(LLVM_SUFFIX)
+
+    # Clang 特定标志
+    CLANG_FLAGS := --target=$(notdir $(CROSS_COMPILE:%-=%))
+
+    export CLANG_FLAGS
+endif
+
+# =============================================================================
+# 编译器特性检测
+# =============================================================================
+
+# cc-cross-prefix
+# 在 PATH 中查找交叉编译器前缀
+# 用法: CROSS_COMPILE := $(call cc-cross-prefix, m68k-linux-gnu- m68k-linux-)
+# 返回: 第一个找到的前缀
+cc-cross-prefix = $(word 1, $(foreach c,$(1), \
+	$(shell set -e; \
+	if (which $(strip $(c))$(CC)) > /dev/null 2>&1 ; then \
+		echo $(c); \
+	fi)))
+
+# =============================================================================
+# 导出变量
+# =============================================================================
+
+export cc-name cc-version cc-fullversion ld-version
+export LLVM_PREFIX LLVM_SUFFIX
+
+# =============================================================================
+# 调试信息（V=2 时显示）
+# =============================================================================
+
+ifeq ($(KBUILD_VERBOSE),2)
+$(info Makefile.compiler: CC=$(CC))
+$(info Makefile.compiler: cc-name=$(cc-name))
+$(info Makefile.compiler: cc-version=$(cc-version))
+$(info Makefile.compiler: cc-fullversion=$(cc-fullversion))
+$(info Makefile.compiler: LD=$(LD))
+$(info Makefile.compiler: ld-version=$(ld-version))
+ifdef LLVM
+$(info Makefile.compiler: LLVM toolchain enabled)
+$(info Makefile.compiler: LLVM_PREFIX=$(LLVM_PREFIX))
+$(info Makefile.compiler: LLVM_SUFFIX=$(LLVM_SUFFIX))
+endif
+endif

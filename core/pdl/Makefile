@@ -38,11 +38,11 @@ pdl-objs += $(if $(CONFIG_PDL_MCU_SUPPORT),src/pdl_mcu/pdl_mcu_serial.o)
 # -----------------------------------------------------------------------------
 # 3. 编译标志
 # -----------------------------------------------------------------------------
-# 通用编译标志
-ccflags-y += -I$(src)/include
-# 注意：PCL/HAL/OSAL 头文件通过 staging 目录引用（顶层 Makefile 已全局导出）
-# 注意：Kconfig 生成的配置文件在 $(srctree)/include
-ccflags-y += -I$(srctree)/include
+# 通用编译标志（引用统一的 include 目录）
+ccflags-y += -I$(srctree)/include/pdl
+ccflags-y += -I$(srctree)/include/pcl
+ccflags-y += -I$(srctree)/include/hal
+ccflags-y += -I$(srctree)/include/osal
 
 # 动态库需要 -fPIC
 pdl-cflags-y := $(if $(CONFIG_PDL_BUILD_SHARED),-fPIC)
@@ -63,11 +63,6 @@ pdl-ldflags := $(if $(CONFIG_PDL_BUILD_SHARED),-shared -Wl$(comma)-soname$(comma
 pdl-ldflags += -L$(LIB_DIR) -lpcl -lhal -losal
 
 # -----------------------------------------------------------------------------
-# 5. 头文件导出
-# -----------------------------------------------------------------------------
-header-y := pdl.h pdl_satellite.h pdl_bmc.h pdl_mcu.h pdl_watchdog.h
-
-# -----------------------------------------------------------------------------
-# 6. 清理规则
+# 5. 清理规则
 # -----------------------------------------------------------------------------
 clean-files := *.so *.so.* *.a

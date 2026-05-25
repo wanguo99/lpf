@@ -18,8 +18,13 @@ ccm_collector-objs := \
 # 3. 编译标志
 # -----------------------------------------------------------------------------
 ccflags-y += -I$(src)/include
-# 注意：所有库头文件通过 staging 目录引用（顶层 Makefile 已全局导出 INCLUDE_DIR）
-ccflags-y += -I$(INCLUDE_DIR)
+# 引用统一的 include 目录
+ccflags-y += -I$(srctree)/include/libccm
+ccflags-y += -I$(srctree)/include/acl
+ccflags-y += -I$(srctree)/include/pdl
+ccflags-y += -I$(srctree)/include/pcl
+ccflags-y += -I$(srctree)/include/hal
+ccflags-y += -I$(srctree)/include/osal
 
 # -----------------------------------------------------------------------------
 # 4. 链接标志
