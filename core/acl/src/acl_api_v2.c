@@ -1,12 +1,15 @@
 /**
  * @file acl_api_v2.c
- * @brief ACL层实现（纯配置层）
+ * @brief ACL层实现（纯配置层，V2版本）
  *
  * 重构说明：
  * - ACL层只包含静态配置数据和查询接口
  * - 移除了遥测缓存管理（已移至OSAL层的osal_shm_cache）
  * - 移除了共享内存、互斥锁等运行时资源管理
  * - 保持配置数据的只读特性
+ *
+ * 注意：此文件提供 V2 版本的 API（函数名带 _V2 后缀），
+ * 可以与 acl_api.c 共存，用于测试或对比不同实现。
  */
 
 #include "acl_api_v2.h"
@@ -20,29 +23,33 @@ static bool g_acl_initialized = false;
 static const acl_tc_config_t g_tc_configs[] = {
     /* 电源控制 */
     {
-        .tc_id = TC_FUNC_POWER_ON,
+        .function_id = TC_POWER_ON,
         .device_type = ACL_DEVICE_BMC,
-        .device_index = 0,
-        .enabled = true
+        .logic_index = 0,
+        .enabled = true,
+        .extra_data = NULL
     },
     {
-        .tc_id = TC_FUNC_POWER_OFF,
+        .function_id = TC_POWER_OFF,
         .device_type = ACL_DEVICE_BMC,
-        .device_index = 0,
-        .enabled = true
+        .logic_index = 0,
+        .enabled = true,
+        .extra_data = NULL
     },
     {
-        .tc_id = TC_FUNC_POWER_RESET,
+        .function_id = TC_POWER_RESET,
         .device_type = ACL_DEVICE_BMC,
-        .device_index = 0,
-        .enabled = true
+        .logic_index = 0,
+        .enabled = true,
+        .extra_data = NULL
     },
     /* MCU控制 */
     {
-        .tc_id = TC_FUNC_MCU_RESET,
+        .function_id = TC_MCU_RESET,
         .device_type = ACL_DEVICE_MCU,
-        .device_index = 0,
-        .enabled = true
+        .logic_index = 0,
+        .enabled = true,
+        .extra_data = NULL
     }
 };
 
@@ -50,29 +57,32 @@ static const acl_tc_config_t g_tc_configs[] = {
 static const acl_tm_config_t g_tm_configs[] = {
     /* 服务器遥测 */
     {
-        .tm_id = TM_FUNC_SERVER_CPU_TEMP,
+        .function_id = TM_CPU_TEMP,
         .device_type = ACL_DEVICE_BMC,
-        .device_index = 0,
+        .logic_index = 0,
         .validity_ms = 2000,      /* 2秒有效期 */
         .update_period_ms = 1000, /* 1秒更新周期 */
-        .enabled = true
+        .enabled = true,
+        .extra_data = NULL
     },
     {
-        .tm_id = TM_FUNC_SERVER_POWER_STATE,
+        .function_id = TM_POWER_STATUS,
         .device_type = ACL_DEVICE_BMC,
-        .device_index = 0,
+        .logic_index = 0,
         .validity_ms = 500,       /* 500ms有效期 */
         .update_period_ms = 100,  /* 100ms更新周期（快遥） */
-        .enabled = true
+        .enabled = true,
+        .extra_data = NULL
     },
     /* MCU遥测 */
     {
-        .tm_id = TM_FUNC_MCU_STATUS,
+        .function_id = TM_MCU_STATUS,
         .device_type = ACL_DEVICE_MCU,
-        .device_index = 0,
+        .logic_index = 0,
         .validity_ms = 4000,      /* 4秒有效期 */
         .update_period_ms = 2000, /* 2秒更新周期（慢遥） */
-        .enabled = true
+        .enabled = true,
+        .extra_data = NULL
     }
 };
 
@@ -86,32 +96,32 @@ typedef struct {
 static const tc_invalidation_map_t g_invalidation_map[] = {
     /* 电源控制会失效电源状态遥测 */
     {
-        .tc_id = TC_FUNC_POWER_ON,
-        .tm_ids = { TM_FUNC_SERVER_POWER_STATE },
+        .tc_id = TC_POWER_ON,
+        .tm_ids = { TM_POWER_STATUS },
         .tm_count = 1
     },
     {
-        .tc_id = TC_FUNC_POWER_OFF,
-        .tm_ids = { TM_FUNC_SERVER_POWER_STATE },
+        .tc_id = TC_POWER_OFF,
+        .tm_ids = { TM_POWER_STATUS },
         .tm_count = 1
     },
     {
-        .tc_id = TC_FUNC_POWER_RESET,
-        .tm_ids = { TM_FUNC_SERVER_POWER_STATE, TM_FUNC_SERVER_CPU_TEMP },
+        .tc_id = TC_POWER_RESET,
+        .tm_ids = { TM_POWER_STATUS, TM_CPU_TEMP },
         .tm_count = 2
     },
     /* MCU复位会失效MCU状态遥测 */
     {
-        .tc_id = TC_FUNC_MCU_RESET,
-        .tm_ids = { TM_FUNC_MCU_STATUS },
+        .tc_id = TC_MCU_RESET,
+        .tm_ids = { TM_MCU_STATUS },
         .tm_count = 1
     }
 };
 
 /**
- * @brief 初始化ACL配置系统
+ * @brief 初始化ACL配置系统（V2版本）
  */
-int32_t ACL_Init(void)
+int32_t ACL_Init_V2(void)
 {
     if (g_acl_initialized) {
         return OSAL_SUCCESS;
@@ -130,9 +140,9 @@ int32_t ACL_Init(void)
 }
 
 /**
- * @brief 清理ACL配置系统
+ * @brief 清理ACL配置系统（V2版本）
  */
-void ACL_Deinit(void)
+void ACL_Deinit_V2(void)
 {
     if (!g_acl_initialized) {
         return;
@@ -145,9 +155,9 @@ void ACL_Deinit(void)
 }
 
 /**
- * @brief 获取遥控命令配置
+ * @brief 获取遥控命令配置（V2版本）
  */
-const acl_tc_config_t* ACL_GetTcConfig(acl_tc_function_t tc_id)
+const acl_tc_config_t* ACL_GetTcConfig_V2(acl_tc_function_t tc_id)
 {
     uint32_t i;
     uint32_t count = sizeof(g_tc_configs) / sizeof(g_tc_configs[0]);
@@ -158,7 +168,7 @@ const acl_tc_config_t* ACL_GetTcConfig(acl_tc_function_t tc_id)
 
     /* O(n)查找，可优化为O(1)哈希表 */
     for (i = 0; i < count; i++) {
-        if (g_tc_configs[i].tc_id == tc_id) {
+        if (g_tc_configs[i].function_id == tc_id) {
             return &g_tc_configs[i];
         }
     }
@@ -167,9 +177,9 @@ const acl_tc_config_t* ACL_GetTcConfig(acl_tc_function_t tc_id)
 }
 
 /**
- * @brief 获取遥测配置
+ * @brief 获取遥测配置（V2版本）
  */
-const acl_tm_config_t* ACL_GetTmConfig(acl_tm_function_t tm_id)
+const acl_tm_config_t* ACL_GetTmConfig_V2(acl_tm_function_t tm_id)
 {
     uint32_t i;
     uint32_t count = sizeof(g_tm_configs) / sizeof(g_tm_configs[0]);
@@ -180,7 +190,7 @@ const acl_tm_config_t* ACL_GetTmConfig(acl_tm_function_t tm_id)
 
     /* O(n)查找，可优化为O(1)哈希表 */
     for (i = 0; i < count; i++) {
-        if (g_tm_configs[i].tm_id == tm_id) {
+        if (g_tm_configs[i].function_id == tm_id) {
             return &g_tm_configs[i];
         }
     }
@@ -189,9 +199,9 @@ const acl_tm_config_t* ACL_GetTmConfig(acl_tm_function_t tm_id)
 }
 
 /**
- * @brief 获取遥控命令失效的遥测列表
+ * @brief 获取遥控命令失效的遥测列表（V2版本）
  */
-int32_t ACL_GetInvalidatedTelemetry(acl_tc_function_t tc_id,
+int32_t ACL_GetInvalidatedTelemetry_V2(acl_tc_function_t tc_id,
                                      const acl_tm_function_t **tm_ids,
                                      uint32_t *count)
 {
@@ -218,9 +228,9 @@ int32_t ACL_GetInvalidatedTelemetry(acl_tc_function_t tc_id,
 }
 
 /**
- * @brief 获取配置统计信息
+ * @brief 获取配置统计信息（V2版本）
  */
-int32_t ACL_GetConfigStats(uint32_t *tc_count, uint32_t *tm_count)
+int32_t ACL_GetConfigStats_V2(uint32_t *tc_count, uint32_t *tm_count)
 {
     if (!g_acl_initialized) {
         return OSAL_ERR_GENERIC;

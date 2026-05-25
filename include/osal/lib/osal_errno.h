@@ -185,6 +185,7 @@ typedef int32_t osal_status_t;
 #define OSAL_ERR_NO_MEMORY              OSAL_ENOMEM         /* 12: 内存不足 */
 #define OSAL_ERR_INVALID_SIZE           OSAL_EINVAL         /* 22: 无效参数/大小 */
 #define OSAL_ERR_INVALID_ID             OSAL_EINVAL         /* 22: 无效ID */
+#define OSAL_ERR_INVALID_PARAM          OSAL_EINVAL         /* 22: 无效参数 */
 #define OSAL_ERR_NAME_TOO_LONG          OSAL_ENAMETOOLONG   /* 36: 名称过长 */
 #define OSAL_ERR_NAME_TAKEN             OSAL_EEXIST         /* 17: 名称已存在 */
 #define OSAL_ERR_NAME_NOT_FOUND         OSAL_ENOENT         /* 2: 名称未找到 */

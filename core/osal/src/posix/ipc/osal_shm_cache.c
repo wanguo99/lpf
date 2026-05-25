@@ -6,12 +6,14 @@
  */
 
 #include "osal.h"
+#include <pthread.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <time.h>
 
 /* 缓存表最大数量 */
 #define MAX_CACHES  16

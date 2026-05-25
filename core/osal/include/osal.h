@@ -21,6 +21,7 @@
 #include "ipc/osal_semaphore.h"
 #include "ipc/osal_cond.h"
 #include "ipc/osal_atomic.h"
+#include "ipc/osal_shm_cache.h"
 
 /* SYS - 系统调用封装 */
 #include "sys/osal_clock.h"
