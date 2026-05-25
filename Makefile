@@ -95,11 +95,31 @@ all: include/config/auto.conf $(ALL_TARGETS)
 menuconfig: scripts/kconfig/mconf
 	@$< Kconfig
 
+defconfig: scripts/kconfig/conf
+	@$< --defconfig=configs/defconfig Kconfig
+
 %_defconfig: configs/%_defconfig scripts/kconfig/conf
 	@scripts/kconfig/conf --defconfig=$< Kconfig
 
 olddefconfig: scripts/kconfig/conf
 	@$< --olddefconfig Kconfig
+
+# 当 .config 不存在时，给出友好提示
+.config:
+	@echo >&2 '***'
+	@echo >&2 '*** Configuration file "$@" not found!'
+	@echo >&2 '***'
+	@echo >&2 '*** Please run a configuration command first:'
+	@echo >&2 '***   make defconfig           - Load default configuration'
+	@echo >&2 '***   make menuconfig          - Interactive configuration'
+	@echo >&2 '***   make <board>_defconfig   - Load board-specific configuration'
+	@echo >&2 '***'
+	@echo >&2 '*** Available defconfig files:'
+	@echo >&2 '***   make ccm_h200_am625_debug_defconfig'
+	@echo >&2 '***   make x86_64_full_defconfig'
+	@echo >&2 '***   make x86_64_minimal_defconfig'
+	@echo >&2 '***'
+	@false
 
 scripts/kconfig/conf scripts/kconfig/mconf:
 	@$(MAKE) -C scripts/kconfig
