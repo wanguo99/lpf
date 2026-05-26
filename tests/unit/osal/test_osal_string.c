@@ -14,7 +14,6 @@
 TEST_CASE(test_osal_memset_success)
 {
     uint32_t i;
-    int32_t j;
     uint8_t buffer[64];
     void *ret;
 
@@ -42,7 +41,6 @@ TEST_CASE(test_osal_memset_success)
 TEST_CASE(test_osal_memcpy_success)
 {
     uint32_t i;
-    int32_t j;
     uint8_t src[32] = {1, 2, 3, 4, 5, 6, 7, 8};
     uint8_t dest[32];
     void *ret;
@@ -62,8 +60,6 @@ TEST_CASE(test_osal_memcpy_success)
 /* 测试用例: Memmove - 重叠区域 */
 TEST_CASE(test_osal_memmove_overlap)
 {
-    uint32_t i;
-    int32_t j;
     uint8_t buffer[16] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
     void *ret;
 
@@ -81,8 +77,6 @@ TEST_CASE(test_osal_memmove_overlap)
 /* 测试用例: Memcmp - 相等 */
 TEST_CASE(test_osal_memcmp_equal)
 {
-    uint32_t i;
-    int32_t j;
     uint8_t buf1[8] = {1, 2, 3, 4, 5, 6, 7, 8};
     uint8_t buf2[8] = {1, 2, 3, 4, 5, 6, 7, 8};
 
@@ -93,8 +87,6 @@ TEST_CASE(test_osal_memcmp_equal)
 /* 测试用例: Memcmp - 不相等 */
 TEST_CASE(test_osal_memcmp_not_equal)
 {
-    uint32_t i;
-    int32_t j;
     uint8_t buf1[8] = {1, 2, 3, 4, 5, 6, 7, 8};
     uint8_t buf2[8] = {1, 2, 3, 5, 5, 6, 7, 8};  /* 第4个字节不同 */
 
@@ -110,8 +102,6 @@ TEST_CASE(test_osal_memcmp_not_equal)
 /* 测试用例: Strlen - 成功 */
 TEST_CASE(test_osal_strlen_success)
 {
-    uint32_t i;
-    int32_t j;
     const char *str1 = "Hello";
     const char *str2 = "";
     const char *str3 = "Hello, World!";
@@ -124,8 +114,6 @@ TEST_CASE(test_osal_strlen_success)
 /* 测试用例: Strcmp - 相等 */
 TEST_CASE(test_osal_strcmp_equal)
 {
-    uint32_t i;
-    int32_t j;
     const char *str1 = "Hello";
     const char *str2 = "Hello";
 
@@ -136,8 +124,6 @@ TEST_CASE(test_osal_strcmp_equal)
 /* 测试用例: Strcmp - 不相等 */
 TEST_CASE(test_osal_strcmp_not_equal)
 {
-    uint32_t i;
-    int32_t j;
     const char *str1 = "Hello";
     const char *str2 = "World";
 
@@ -152,8 +138,6 @@ TEST_CASE(test_osal_strcmp_not_equal)
 /* 测试用例: Strncmp - 成功 */
 TEST_CASE(test_osal_strncmp_success)
 {
-    uint32_t i;
-    int32_t j;
     const char *str1 = "Hello World";
     const char *str2 = "Hello Earth";
 
@@ -169,8 +153,6 @@ TEST_CASE(test_osal_strncmp_success)
 /* 测试用例: Strcasecmp - 忽略大小写 */
 TEST_CASE(test_osal_strcasecmp_success)
 {
-    uint32_t i;
-    int32_t j;
     const char *str1 = "Hello";
     const char *str2 = "HELLO";
     const char *str3 = "hello";
@@ -188,8 +170,6 @@ TEST_CASE(test_osal_strcasecmp_success)
 /* 测试用例: Strcpy - 成功 */
 TEST_CASE(test_osal_strcpy_success)
 {
-    uint32_t i;
-    int32_t j;
     const char *src = "Hello";
     char dest[32];
     char *ret;
@@ -205,8 +185,6 @@ TEST_CASE(test_osal_strcpy_success)
 /* 测试用例: Strncpy - 成功 */
 TEST_CASE(test_osal_strncpy_success)
 {
-    uint32_t i;
-    int32_t j;
     const char *src = "Hello World";
     char dest[32];
     char *ret;
@@ -223,8 +201,6 @@ TEST_CASE(test_osal_strncpy_success)
 /* 测试用例: Strcat - 成功 */
 TEST_CASE(test_osal_strcat_success)
 {
-    uint32_t i;
-    int32_t j;
     char dest[32] = "Hello";
     const char *src = " World";
     char *ret;
@@ -238,8 +214,6 @@ TEST_CASE(test_osal_strcat_success)
 /* 测试用例: Strncat - 成功 */
 TEST_CASE(test_osal_strncat_success)
 {
-    uint32_t i;
-    int32_t j;
     char dest[32] = "Hello";
     const char *src = " World";
     char *ret;
@@ -254,8 +228,6 @@ TEST_CASE(test_osal_strncat_success)
 /* 测试用例: Strstr - 找到子串 */
 TEST_CASE(test_osal_strstr_found)
 {
-    uint32_t i;
-    int32_t j;
     const char *haystack = "Hello World";
     const char *needle = "World";
 
@@ -267,8 +239,6 @@ TEST_CASE(test_osal_strstr_found)
 /* 测试用例: Strstr - 未找到子串 */
 TEST_CASE(test_osal_strstr_not_found)
 {
-    uint32_t i;
-    int32_t j;
     const char *haystack = "Hello World";
     const char *needle = "Earth";
 
@@ -283,8 +253,6 @@ TEST_CASE(test_osal_strstr_not_found)
 /* 测试用例: Sprintf - 成功 */
 TEST_CASE(test_osal_sprintf_success)
 {
-    uint32_t i;
-    int32_t j;
     char buffer[64];
     int32_t ret;
 
@@ -296,8 +264,6 @@ TEST_CASE(test_osal_sprintf_success)
 /* 测试用例: Snprintf - 成功 */
 TEST_CASE(test_osal_snprintf_success)
 {
-    uint32_t i;
-    int32_t j;
     char buffer[16];
     int32_t ret;
 
@@ -315,8 +281,6 @@ TEST_CASE(test_osal_snprintf_success)
 /* 测试用例: Sscanf - 成功 */
 TEST_CASE(test_osal_sscanf_success)
 {
-    uint32_t i;
-    int32_t j;
     const char *str = "Hello 42 3.14";
     char word[32];
     int32_t num;
@@ -334,8 +298,6 @@ TEST_CASE(test_osal_sscanf_success)
 /* 测试用例: Atoi - 成功 */
 TEST_CASE(test_osal_atoi_success)
 {
-    uint32_t i;
-    int32_t j;
     TEST_ASSERT_EQUAL(0, OSAL_Atoi("0"));
     TEST_ASSERT_EQUAL(42, OSAL_Atoi("42"));
     TEST_ASSERT_EQUAL(-42, OSAL_Atoi("-42"));
@@ -346,8 +308,6 @@ TEST_CASE(test_osal_atoi_success)
 /* 测试用例: Atoi - 无效输入 */
 TEST_CASE(test_osal_atoi_invalid)
 {
-    uint32_t i;
-    int32_t j;
     TEST_ASSERT_EQUAL(0, OSAL_Atoi("abc"));
     TEST_ASSERT_EQUAL(0, OSAL_Atoi(""));
     TEST_ASSERT_EQUAL(123, OSAL_Atoi("123abc"));  /* 部分解析 */
@@ -356,8 +316,6 @@ TEST_CASE(test_osal_atoi_invalid)
 /* 测试用例: Atol - 成功 */
 TEST_CASE(test_osal_atol_success)
 {
-    uint32_t i;
-    int32_t j;
     TEST_ASSERT_EQUAL(0, OSAL_Atol("0"));
     TEST_ASSERT_EQUAL(123456789, OSAL_Atol("123456789"));
     TEST_ASSERT_EQUAL(-123456789, OSAL_Atol("-123456789"));
@@ -366,8 +324,6 @@ TEST_CASE(test_osal_atol_success)
 /* 测试用例: Strtol - 不同进制 */
 TEST_CASE(test_osal_strtol_base)
 {
-    uint32_t i;
-    int32_t j;
     char *endptr;
     int64_t ret;
 
