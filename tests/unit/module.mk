@@ -114,7 +114,25 @@ $(unit_test_OBJS): CFLAGS += $(unit_test_CFLAGS)
 # 7. 定义构建规则
 # -----------------------------------------------------------------------------
 ifeq ($(CONFIG_TEST_UNIT),y)
+# 声明依赖关系：测试程序依赖 testcore 和被测试的库
 $(unit_test_TARGET): $(unit_test_OBJS) $(testcore_TARGET)
+$(unit_test_TARGET): $(osal_TARGET)
+ifeq ($(CONFIG_TEST_HAL),y)
+$(unit_test_TARGET): $(hal_TARGET)
+endif
+ifeq ($(CONFIG_TEST_PCL),y)
+$(unit_test_TARGET): $(pcl_TARGET)
+endif
+ifeq ($(CONFIG_TEST_PDL),y)
+$(unit_test_TARGET): $(pdl_TARGET)
+endif
+ifneq ($(CONFIG_ACL),)
+ifeq ($(CONFIG_TEST_ACL),y)
+$(unit_test_TARGET): $(acl_TARGET)
+endif
+endif
+
+$(unit_test_TARGET):
 	@echo "  LD      $@"
 	@mkdir -p $(dir $@)
 	@$(CC) -o $@ $(unit_test_OBJS) $(unit_test_LDFLAGS)
