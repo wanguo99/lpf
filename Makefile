@@ -192,7 +192,8 @@ mrproper: clean
 	@rm -f .config .config.old
 	@echo "  CLEAN   include/config include/generated"
 	@rm -rf include/config/ include/generated/
-	@$(MAKE) -C scripts/kconfig clean
+	@echo "  CLEAN   kconfig tools"
+	@$(MAKE) -C scripts/kconfig clean --no-print-directory
 
 .PHONY: distclean
 distclean: mrproper

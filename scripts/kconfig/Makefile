@@ -125,11 +125,11 @@ clean-dirs := include
 # Clean - 用于直接调用 make -C scripts/kconfig clean
 .PHONY: clean
 clean:
-	$(Q)rm -f conf mconf nconf gconf qconf *.o lxdialog/*.o
-	$(Q)rm -f parser.tab.c parser.tab.h lexer.lex.c
-	$(Q)rm -f .*.cmd *.cmd
-	$(Q)rm -f .config .config.old
-	$(Q)rm -rf include/
+	@rm -f conf mconf nconf gconf qconf *.o lxdialog/*.o
+	@rm -f parser.tab.c parser.tab.h lexer.lex.c
+	@rm -f .*.cmd *.cmd
+	@rm -f .config .config.old
+	@rm -rf include/
 
 .PHONY: help
 help:
