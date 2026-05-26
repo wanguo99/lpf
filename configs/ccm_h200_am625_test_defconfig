@@ -1,15 +1,16 @@
 #
-# EMS x86_64 Release Configuration
-# Target: x86_64 Linux
-# Purpose: Production deployment with maximum optimization
-# Optimization: -O3 for maximum performance
-# Libraries: Both static and shared for deployment flexibility
+# CCM H200 AM625 Test Configuration
+# Target: TI AM625 SoC (ARM Cortex-A53 + Cortex-R5F)
+# Purpose: Automated testing with all features and test frameworks
+# Optimization: -O0 for accurate test coverage and debugging
+# Libraries: Both static and shared for comprehensive testing
 #
 
 # ============================================================================
 # Build Options
 # ============================================================================
-CONFIG_OPT_O3=y
+CONFIG_BUILD_TYPE_DEBUG=y
+CONFIG_OPT_O0=y
 CONFIG_LIBRARY_BUILD_TYPE_STATIC=y
 CONFIG_LIBRARY_BUILD_TYPE_DYNAMIC=y
 CONFIG_INSTALL_HEADERS=y
@@ -17,9 +18,9 @@ CONFIG_INSTALL_HEADERS=y
 # ============================================================================
 # Target Platform
 # ============================================================================
-CONFIG_ARCH_X86_64=y
+CONFIG_ARCH_ARM64=y
 CONFIG_OS_LINUX=y
-CONFIG_CROSS_COMPILE=""
+CONFIG_CROSS_COMPILE="aarch64-linux-gnu-"
 
 # ============================================================================
 # OSAL (Operating System Abstraction Layer)
@@ -28,7 +29,7 @@ CONFIG_OSAL=y
 CONFIG_OSAL_BUILD_STATIC=y
 CONFIG_OSAL_BUILD_SHARED=y
 
-# OSAL Features
+# OSAL Features (All enabled for testing)
 CONFIG_OSAL_FILE=y
 CONFIG_OSAL_NETWORK=y
 CONFIG_OSAL_IPC=y
@@ -36,10 +37,13 @@ CONFIG_OSAL_THREAD=y
 CONFIG_OSAL_TIME=y
 CONFIG_OSAL_SIGNAL=y
 
-# OSAL Resource Limits (Production)
-CONFIG_OSAL_MAX_TASKS=128
-CONFIG_OSAL_MAX_QUEUES=64
-CONFIG_OSAL_MAX_MUTEXES=64
+# OSAL Resource Limits (Maximum for stress testing)
+CONFIG_OSAL_MAX_TASKS=256
+CONFIG_OSAL_MAX_QUEUES=128
+CONFIG_OSAL_MAX_MUTEXES=128
+
+# OSAL Debug
+CONFIG_OSAL_DEBUG_LOGGING=y
 
 # ============================================================================
 # HAL (Hardware Abstraction Layer)
@@ -47,26 +51,34 @@ CONFIG_OSAL_MAX_MUTEXES=64
 CONFIG_HAL=y
 CONFIG_HAL_BUILD_STATIC=y
 CONFIG_HAL_BUILD_SHARED=y
-CONFIG_PLATFORM_GENERIC_LINUX=y
+CONFIG_PLATFORM_TI_AM625=y
 
-# HAL Advanced Features (Power management only)
+# HAL Advanced Features (All enabled for testing)
+CONFIG_HAL_DEBUG=y
+CONFIG_HAL_STATISTICS=y
 CONFIG_HAL_POWER_MANAGEMENT=y
 
-# HAL Drivers (Production required)
+# HAL Drivers (All enabled with all features for comprehensive testing)
 CONFIG_HAL_CAN=y
 CONFIG_HAL_CAN_FILTER=y
 CONFIG_HAL_CAN_ERROR_HANDLING=y
+CONFIG_HAL_CAN_LOOPBACK=y
 
 CONFIG_HAL_UART=y
 CONFIG_HAL_UART_FLOW_CONTROL=y
+CONFIG_HAL_UART_RS485=y
 
 CONFIG_HAL_I2C=y
+CONFIG_HAL_I2C_SLAVE=y
+CONFIG_HAL_I2C_10BIT_ADDR=y
 
 CONFIG_HAL_SPI=y
 CONFIG_HAL_SPI_DMA=y
+CONFIG_HAL_SPI_SLAVE=y
 
 CONFIG_HAL_GPIO=y
 CONFIG_HAL_GPIO_INTERRUPT=y
+CONFIG_HAL_GPIO_DEBOUNCE=y
 
 CONFIG_HAL_WATCHDOG=y
 CONFIG_HAL_WATCHDOG_PRETIMEOUT=y
@@ -98,9 +110,14 @@ CONFIG_ACL_BUILD_SHARED=y
 CONFIG_PRODUCT_CCM=y
 CONFIG_PROJECT_H200_AM625=y
 
-# CCM Applications (All production apps)
+# CCM Applications (All enabled for integration testing)
 CONFIG_BUILD_CCM_SUPERVISOR=y
 CONFIG_BUILD_CCM_COLLECTOR=y
 CONFIG_BUILD_CCM_COMM=y
 CONFIG_BUILD_CCM_HEALTH=y
 CONFIG_BUILD_CCM_LOGGER=y
+
+# ============================================================================
+# Test Configuration
+# ============================================================================
+CONFIG_BUILD_TESTING=y

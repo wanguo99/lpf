@@ -1,6 +1,9 @@
 #
 # EMS Default Configuration
-# Optimized for x86_64 platform with all features enabled
+# Target: x86_64 Linux
+# Purpose: Balanced default configuration for general use
+# Optimization: -O2 for balanced performance and size
+# Libraries: Both static and shared
 #
 
 # ============================================================================
@@ -12,9 +15,10 @@ CONFIG_LIBRARY_BUILD_TYPE_DYNAMIC=y
 CONFIG_INSTALL_HEADERS=y
 
 # ============================================================================
-# Architecture
+# Target Platform
 # ============================================================================
 CONFIG_ARCH_X86_64=y
+CONFIG_OS_LINUX=y
 CONFIG_CROSS_COMPILE=""
 
 # ============================================================================
@@ -24,18 +28,18 @@ CONFIG_OSAL=y
 CONFIG_OSAL_BUILD_STATIC=y
 CONFIG_OSAL_BUILD_SHARED=y
 
-# OSAL Features (All enabled)
+# OSAL Features
 CONFIG_OSAL_FILE=y
 CONFIG_OSAL_NETWORK=y
 CONFIG_OSAL_IPC=y
 CONFIG_OSAL_THREAD=y
+CONFIG_OSAL_TIME=y
+CONFIG_OSAL_SIGNAL=y
 
-# OSAL Resource Limits
+# OSAL Resource Limits (Balanced)
 CONFIG_OSAL_MAX_TASKS=128
 CONFIG_OSAL_MAX_QUEUES=64
 CONFIG_OSAL_MAX_MUTEXES=64
-CONFIG_OSAL_MAX_SEMAPHORES=64
-CONFIG_OSAL_MAX_TIMERS=32
 
 # ============================================================================
 # HAL (Hardware Abstraction Layer)
@@ -43,28 +47,23 @@ CONFIG_OSAL_MAX_TIMERS=32
 CONFIG_HAL=y
 CONFIG_HAL_BUILD_STATIC=y
 CONFIG_HAL_BUILD_SHARED=y
+CONFIG_PLATFORM_GENERIC_LINUX=y
 
-# HAL Drivers (All enabled)
+# HAL Drivers (Common drivers)
 CONFIG_HAL_CAN=y
-CONFIG_HAL_CAN_DEVICE="can0"
-CONFIG_HAL_CAN_BITRATE=500000
+CONFIG_HAL_CAN_FILTER=y
+CONFIG_HAL_CAN_ERROR_HANDLING=y
 
 CONFIG_HAL_UART=y
-CONFIG_HAL_UART_DEVICE="/dev/ttyS0"
-CONFIG_HAL_UART_BAUDRATE=115200
 
 CONFIG_HAL_I2C=y
-CONFIG_HAL_I2C_DEVICE="/dev/i2c-0"
 
 CONFIG_HAL_SPI=y
-CONFIG_HAL_SPI_DEVICE="/dev/spidev0.0"
 
 CONFIG_HAL_GPIO=y
-CONFIG_HAL_GPIO_BASE=0
+CONFIG_HAL_GPIO_INTERRUPT=y
 
 CONFIG_HAL_WATCHDOG=y
-CONFIG_HAL_WATCHDOG_DEVICE="/dev/watchdog"
-CONFIG_HAL_WATCHDOG_TIMEOUT=30
 
 # ============================================================================
 # PCL (Protocol Control Layer)
@@ -80,21 +79,6 @@ CONFIG_PDL=y
 CONFIG_PDL_BUILD_STATIC=y
 CONFIG_PDL_BUILD_SHARED=y
 
-# PDL Modules (All enabled)
-CONFIG_PDL_MCU_ENABLE=y
-CONFIG_PDL_MCU_PROTOCOL_VERSION=2
-CONFIG_PDL_MCU_MAX_DEVICES=16
-
-CONFIG_PDL_SATELLITE_ENABLE=y
-CONFIG_PDL_SATELLITE_MAX_DEVICES=32
-
-CONFIG_PDL_BMC_ENABLE=y
-CONFIG_PDL_BMC_REDFISH_SUPPORT=y
-CONFIG_PDL_BMC_IPMI_SUPPORT=y
-CONFIG_PDL_BMC_MAX_SESSIONS=8
-
-CONFIG_PDL_WATCHDOG_SUPPORT=y
-
 # ============================================================================
 # ACL (Application Control Layer)
 # ============================================================================
@@ -102,44 +86,15 @@ CONFIG_ACL=y
 CONFIG_ACL_BUILD_STATIC=y
 CONFIG_ACL_BUILD_SHARED=y
 
-# ACL Features
-CONFIG_ACL_TELEMETRY_CACHE=y
-CONFIG_ACL_CACHE_SIZE=512
-CONFIG_ACL_CACHE_TIMEOUT=60
-
 # ============================================================================
-# Products
+# Products - CCM
 # ============================================================================
 CONFIG_PRODUCT_CCM=y
 CONFIG_PROJECT_H200_AM625=y
 
-# CCM Libraries
-CONFIG_BUILD_LIBCCM=y
-CONFIG_LIBCCM_BUILD_STATIC=y
-CONFIG_LIBCCM_BUILD_SHARED=y
-
 # CCM Applications (All enabled)
 CONFIG_BUILD_CCM_SUPERVISOR=y
-CONFIG_CCM_SUPERVISOR_PORT=8001
-CONFIG_CCM_SUPERVISOR_LOG_LEVEL=2
-
 CONFIG_BUILD_CCM_COLLECTOR=y
-CONFIG_CCM_COLLECTOR_INTERVAL=1000
-CONFIG_CCM_COLLECTOR_BUFFER_SIZE=4096
-
 CONFIG_BUILD_CCM_COMM=y
-CONFIG_CCM_COMM_PORT=8002
-CONFIG_CCM_COMM_MAX_CLIENTS=32
-
 CONFIG_BUILD_CCM_HEALTH=y
-CONFIG_CCM_HEALTH_CHECK_INTERVAL=5000
-CONFIG_CCM_HEALTH_THRESHOLD=80
-
 CONFIG_BUILD_CCM_LOGGER=y
-CONFIG_CCM_LOGGER_MAX_SIZE=10485760
-CONFIG_CCM_LOGGER_ROTATE_COUNT=5
-
-# ============================================================================
-# Debugging Options
-# ============================================================================
-CONFIG_LOG_LEVEL=2

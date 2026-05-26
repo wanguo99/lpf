@@ -1,45 +1,117 @@
 #
 # CCM H200 AM625 Debug Configuration
+# Target: TI AM625 SoC (ARM Cortex-A53 + Cortex-R5F)
+# Purpose: Development and debugging with full features enabled
+# Optimization: -O0 for best debugging experience
+# Libraries: Shared libraries for faster iteration
 #
 
+# ============================================================================
 # Build Options
+# ============================================================================
 CONFIG_BUILD_TYPE_DEBUG=y
 CONFIG_OPT_O0=y
-CONFIG_BUILD_TESTING=y
+CONFIG_LIBRARY_BUILD_TYPE_DYNAMIC=y
 CONFIG_INSTALL_HEADERS=y
 
-# Architecture
-CONFIG_ARCH_X86_64=y
-CONFIG_CROSS_COMPILE=""
+# ============================================================================
+# Target Platform
+# ============================================================================
+CONFIG_ARCH_ARM64=y
+CONFIG_OS_LINUX=y
+CONFIG_CROSS_COMPILE="aarch64-linux-gnu-"
 
-# OSAL (increased limits for debugging)
+# ============================================================================
+# OSAL (Operating System Abstraction Layer)
+# ============================================================================
+CONFIG_OSAL=y
+CONFIG_OSAL_BUILD_SHARED=y
+
+# OSAL Features (All enabled for debugging)
+CONFIG_OSAL_FILE=y
+CONFIG_OSAL_NETWORK=y
+CONFIG_OSAL_IPC=y
+CONFIG_OSAL_THREAD=y
+CONFIG_OSAL_TIME=y
+CONFIG_OSAL_SIGNAL=y
+
+# OSAL Resource Limits (Increased for debugging)
 CONFIG_OSAL_MAX_TASKS=128
 CONFIG_OSAL_MAX_QUEUES=64
 CONFIG_OSAL_MAX_MUTEXES=64
+
+# OSAL Debug
 CONFIG_OSAL_DEBUG_LOGGING=y
 
-# HAL (all drivers enabled for testing)
+# ============================================================================
+# HAL (Hardware Abstraction Layer)
+# ============================================================================
+CONFIG_HAL=y
+CONFIG_HAL_BUILD_SHARED=y
+CONFIG_PLATFORM_TI_AM625=y
+
+# HAL Advanced Features
+CONFIG_HAL_DEBUG=y
+CONFIG_HAL_STATISTICS=y
+CONFIG_HAL_POWER_MANAGEMENT=y
+
+# HAL Drivers (All enabled for testing)
 CONFIG_HAL_CAN=y
-CONFIG_HAL_CAN_DEVICE="can0"
+CONFIG_HAL_CAN_FILTER=y
+CONFIG_HAL_CAN_ERROR_HANDLING=y
+CONFIG_HAL_CAN_LOOPBACK=y
+
 CONFIG_HAL_UART=y
-CONFIG_HAL_UART_DEVICE="/dev/ttyS0"
-CONFIG_HAL_UART_BAUDRATE=115200
+CONFIG_HAL_UART_FLOW_CONTROL=y
+CONFIG_HAL_UART_RS485=y
+
 CONFIG_HAL_I2C=y
+CONFIG_HAL_I2C_SLAVE=y
+CONFIG_HAL_I2C_10BIT_ADDR=y
+
 CONFIG_HAL_SPI=y
+CONFIG_HAL_SPI_DMA=y
+CONFIG_HAL_SPI_SLAVE=y
+
 CONFIG_HAL_GPIO=y
+CONFIG_HAL_GPIO_INTERRUPT=y
+CONFIG_HAL_GPIO_DEBOUNCE=y
+
 CONFIG_HAL_WATCHDOG=y
+CONFIG_HAL_WATCHDOG_PRETIMEOUT=y
 
-# PDL Modules
-CONFIG_PDL_MCU_ENABLE=y
-CONFIG_PDL_SATELLITE_ENABLE=y
-CONFIG_PDL_BMC_ENABLE=y
-CONFIG_PDL_WATCHDOG_SUPPORT=y
+# ============================================================================
+# PCL (Protocol Control Layer)
+# ============================================================================
+CONFIG_PCL=y
+CONFIG_PCL_BUILD_SHARED=y
 
-# Product
+# ============================================================================
+# PDL (Protocol Data Layer)
+# ============================================================================
+CONFIG_PDL=y
+CONFIG_PDL_BUILD_SHARED=y
+
+# ============================================================================
+# ACL (Application Control Layer)
+# ============================================================================
+CONFIG_ACL=y
+CONFIG_ACL_BUILD_SHARED=y
+
+# ============================================================================
+# Products - CCM
+# ============================================================================
 CONFIG_PRODUCT_CCM=y
 CONFIG_PROJECT_H200_AM625=y
+
+# CCM Applications (All enabled for debugging)
 CONFIG_BUILD_CCM_SUPERVISOR=y
 CONFIG_BUILD_CCM_COLLECTOR=y
 CONFIG_BUILD_CCM_COMM=y
 CONFIG_BUILD_CCM_HEALTH=y
 CONFIG_BUILD_CCM_LOGGER=y
+
+# ============================================================================
+# Test Configuration
+# ============================================================================
+CONFIG_BUILD_TESTING=y

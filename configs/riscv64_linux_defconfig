@@ -1,31 +1,29 @@
 #
-# EMS x86_64 Release Configuration
-# Target: x86_64 Linux
-# Purpose: Production deployment with maximum optimization
-# Optimization: -O3 for maximum performance
-# Libraries: Both static and shared for deployment flexibility
+# RISC-V 64 Linux Configuration
+# Target: RISC-V 64-bit with Linux
+# Purpose: RISC-V platform support for emerging architectures
+# Optimization: -O2 for balanced performance
+# Libraries: Shared libraries for standard Linux deployment
 #
 
 # ============================================================================
 # Build Options
 # ============================================================================
-CONFIG_OPT_O3=y
-CONFIG_LIBRARY_BUILD_TYPE_STATIC=y
+CONFIG_OPT_O2=y
 CONFIG_LIBRARY_BUILD_TYPE_DYNAMIC=y
 CONFIG_INSTALL_HEADERS=y
 
 # ============================================================================
 # Target Platform
 # ============================================================================
-CONFIG_ARCH_X86_64=y
+CONFIG_ARCH_RISCV64=y
 CONFIG_OS_LINUX=y
-CONFIG_CROSS_COMPILE=""
+CONFIG_CROSS_COMPILE="riscv64-linux-gnu-"
 
 # ============================================================================
 # OSAL (Operating System Abstraction Layer)
 # ============================================================================
 CONFIG_OSAL=y
-CONFIG_OSAL_BUILD_STATIC=y
 CONFIG_OSAL_BUILD_SHARED=y
 
 # OSAL Features
@@ -36,60 +34,50 @@ CONFIG_OSAL_THREAD=y
 CONFIG_OSAL_TIME=y
 CONFIG_OSAL_SIGNAL=y
 
-# OSAL Resource Limits (Production)
-CONFIG_OSAL_MAX_TASKS=128
-CONFIG_OSAL_MAX_QUEUES=64
-CONFIG_OSAL_MAX_MUTEXES=64
+# OSAL Resource Limits (Standard)
+CONFIG_OSAL_MAX_TASKS=64
+CONFIG_OSAL_MAX_QUEUES=32
+CONFIG_OSAL_MAX_MUTEXES=32
 
 # ============================================================================
 # HAL (Hardware Abstraction Layer)
 # ============================================================================
 CONFIG_HAL=y
-CONFIG_HAL_BUILD_STATIC=y
 CONFIG_HAL_BUILD_SHARED=y
 CONFIG_PLATFORM_GENERIC_LINUX=y
 
-# HAL Advanced Features (Power management only)
-CONFIG_HAL_POWER_MANAGEMENT=y
-
-# HAL Drivers (Production required)
+# HAL Drivers (Standard Linux drivers)
 CONFIG_HAL_CAN=y
 CONFIG_HAL_CAN_FILTER=y
 CONFIG_HAL_CAN_ERROR_HANDLING=y
 
 CONFIG_HAL_UART=y
-CONFIG_HAL_UART_FLOW_CONTROL=y
 
 CONFIG_HAL_I2C=y
 
 CONFIG_HAL_SPI=y
-CONFIG_HAL_SPI_DMA=y
 
 CONFIG_HAL_GPIO=y
 CONFIG_HAL_GPIO_INTERRUPT=y
 
 CONFIG_HAL_WATCHDOG=y
-CONFIG_HAL_WATCHDOG_PRETIMEOUT=y
 
 # ============================================================================
 # PCL (Protocol Control Layer)
 # ============================================================================
 CONFIG_PCL=y
-CONFIG_PCL_BUILD_STATIC=y
 CONFIG_PCL_BUILD_SHARED=y
 
 # ============================================================================
 # PDL (Protocol Data Layer)
 # ============================================================================
 CONFIG_PDL=y
-CONFIG_PDL_BUILD_STATIC=y
 CONFIG_PDL_BUILD_SHARED=y
 
 # ============================================================================
 # ACL (Application Control Layer)
 # ============================================================================
 CONFIG_ACL=y
-CONFIG_ACL_BUILD_STATIC=y
 CONFIG_ACL_BUILD_SHARED=y
 
 # ============================================================================
@@ -98,7 +86,7 @@ CONFIG_ACL_BUILD_SHARED=y
 CONFIG_PRODUCT_CCM=y
 CONFIG_PROJECT_H200_AM625=y
 
-# CCM Applications (All production apps)
+# CCM Applications (All enabled)
 CONFIG_BUILD_CCM_SUPERVISOR=y
 CONFIG_BUILD_CCM_COLLECTOR=y
 CONFIG_BUILD_CCM_COMM=y

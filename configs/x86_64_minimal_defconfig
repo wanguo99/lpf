@@ -1,6 +1,9 @@
 #
 # EMS x86_64 Minimal Configuration
-# Minimal footprint for embedded x86_64 systems
+# Target: x86_64 Linux
+# Purpose: Minimal footprint for resource-constrained systems
+# Optimization: -Os for smallest binary size
+# Libraries: Static libraries only
 #
 
 # ============================================================================
@@ -10,9 +13,10 @@ CONFIG_OPT_OS=y
 CONFIG_LIBRARY_BUILD_TYPE_STATIC=y
 
 # ============================================================================
-# Architecture
+# Target Platform
 # ============================================================================
 CONFIG_ARCH_X86_64=y
+CONFIG_OS_LINUX=y
 CONFIG_CROSS_COMPILE=""
 
 # ============================================================================
@@ -21,32 +25,28 @@ CONFIG_CROSS_COMPILE=""
 CONFIG_OSAL=y
 CONFIG_OSAL_BUILD_STATIC=y
 
-# OSAL Features (Minimal)
+# OSAL Features (Minimal - only essential)
 CONFIG_OSAL_FILE=y
 CONFIG_OSAL_IPC=y
 CONFIG_OSAL_THREAD=y
+CONFIG_OSAL_TIME=y
 
 # OSAL Resource Limits (Minimal)
 CONFIG_OSAL_MAX_TASKS=32
 CONFIG_OSAL_MAX_QUEUES=16
 CONFIG_OSAL_MAX_MUTEXES=16
-CONFIG_OSAL_MAX_SEMAPHORES=16
-CONFIG_OSAL_MAX_TIMERS=8
 
 # ============================================================================
 # HAL (Hardware Abstraction Layer)
 # ============================================================================
 CONFIG_HAL=y
 CONFIG_HAL_BUILD_STATIC=y
+CONFIG_PLATFORM_GENERIC_LINUX=y
 
 # HAL Drivers (Essential only)
 CONFIG_HAL_UART=y
-CONFIG_HAL_UART_DEVICE="/dev/ttyS0"
-CONFIG_HAL_UART_BAUDRATE=115200
 
 CONFIG_HAL_WATCHDOG=y
-CONFIG_HAL_WATCHDOG_DEVICE="/dev/watchdog"
-CONFIG_HAL_WATCHDOG_TIMEOUT=30
 
 # ============================================================================
 # PCL (Protocol Control Layer)
@@ -60,9 +60,6 @@ CONFIG_PCL_BUILD_STATIC=y
 CONFIG_PDL=y
 CONFIG_PDL_BUILD_STATIC=y
 
-# PDL Modules (Essential only)
-CONFIG_PDL_WATCHDOG_SUPPORT=y
-
 # ============================================================================
 # ACL (Application Control Layer)
 # ============================================================================
@@ -70,25 +67,11 @@ CONFIG_ACL=y
 CONFIG_ACL_BUILD_STATIC=y
 
 # ============================================================================
-# Products
+# Products - CCM
 # ============================================================================
 CONFIG_PRODUCT_CCM=y
 CONFIG_PROJECT_H200_AM625=y
 
-# CCM Libraries
-CONFIG_BUILD_LIBCCM=y
-CONFIG_LIBCCM_BUILD_STATIC=y
-
 # CCM Applications (Essential only)
 CONFIG_BUILD_CCM_SUPERVISOR=y
-CONFIG_CCM_SUPERVISOR_PORT=8001
-CONFIG_CCM_SUPERVISOR_LOG_LEVEL=1
-
 CONFIG_BUILD_CCM_LOGGER=y
-CONFIG_CCM_LOGGER_MAX_SIZE=1048576
-CONFIG_CCM_LOGGER_ROTATE_COUNT=3
-
-# ============================================================================
-# Debugging Options (Disabled for minimal build)
-# ============================================================================
-CONFIG_LOG_LEVEL=1
