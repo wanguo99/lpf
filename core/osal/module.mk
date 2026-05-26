@@ -18,59 +18,14 @@ else
 endif
 
 # -----------------------------------------------------------------------------
-# 2. 源文件列表
+# 2. 包含平台相关的源文件配置
 # -----------------------------------------------------------------------------
-osal_SRCS := \
-	core/osal/src/$(OSAL_OS_DIR)/lib/osal_errno.c \
-	core/osal/src/$(OSAL_OS_DIR)/lib/osal_heap.c \
-	core/osal/src/$(OSAL_OS_DIR)/lib/osal_stdio.c \
-	core/osal/src/$(OSAL_OS_DIR)/lib/osal_string.c \
-	core/osal/src/$(OSAL_OS_DIR)/util/osal_log.c \
-	core/osal/src/$(OSAL_OS_DIR)/util/osal_version.c
-
-# IPC 支持
-ifeq ($(CONFIG_OSAL_IPC),y)
-osal_SRCS += \
-	core/osal/src/$(OSAL_OS_DIR)/ipc/osal_atomic.c \
-	core/osal/src/$(OSAL_OS_DIR)/ipc/osal_cond.c \
-	core/osal/src/$(OSAL_OS_DIR)/ipc/osal_mutex.c \
-	core/osal/src/$(OSAL_OS_DIR)/ipc/osal_semaphore.c \
-	core/osal/src/$(OSAL_OS_DIR)/ipc/osal_shm.c \
-	core/osal/src/$(OSAL_OS_DIR)/ipc/osal_shm_cache.c
-endif
-
-# 文件和系统支持
-ifeq ($(CONFIG_OSAL_FILE),y)
-osal_SRCS += \
-	core/osal/src/$(OSAL_OS_DIR)/sys/osal_clock.c \
-	core/osal/src/$(OSAL_OS_DIR)/sys/osal_env.c \
-	core/osal/src/$(OSAL_OS_DIR)/sys/osal_file.c \
-	core/osal/src/$(OSAL_OS_DIR)/sys/osal_process.c \
-	core/osal/src/$(OSAL_OS_DIR)/sys/osal_sched.c \
-	core/osal/src/$(OSAL_OS_DIR)/sys/osal_select.c \
-	core/osal/src/$(OSAL_OS_DIR)/sys/osal_thread.c \
-	core/osal/src/$(OSAL_OS_DIR)/sys/osal_time.c
-endif
-
-# 信号支持
-ifeq ($(CONFIG_OSAL_SIGNAL),y)
-osal_SRCS += core/osal/src/$(OSAL_OS_DIR)/sys/osal_signal.c
-endif
-
-# 网络支持
-ifeq ($(CONFIG_OSAL_NETWORK),y)
-osal_SRCS += \
-	core/osal/src/$(OSAL_OS_DIR)/net/osal_socket.c \
-	core/osal/src/$(OSAL_OS_DIR)/net/osal_termios.c
-endif
+# 每个平台维护自己的 module.mk，只需关注本平台的源文件
+osal_SRCS :=
+include core/osal/src/$(OSAL_OS_DIR)/module.mk
 
 # -----------------------------------------------------------------------------
-# 3. 目标文件列表
-# -----------------------------------------------------------------------------
-osal_OBJS := $(call srcs_to_objs,$(osal_SRCS))
-
-# -----------------------------------------------------------------------------
-# 4. 编译标志
+# 3. 编译标志
 # -----------------------------------------------------------------------------
 osal_CFLAGS := \
 	-Icore/osal/include \
@@ -103,35 +58,119 @@ ifeq ($(CONFIG_OSAL_ARCH_64BIT),y)
   osal_CFLAGS += -DOSAL_ARCH_64BIT
 endif
 
-# 配置参数
-osal_CFLAGS += -DOSAL_MAX_TASKS=$(CONFIG_OSAL_MAX_TASKS)
-osal_CFLAGS += -DOSAL_MAX_QUEUES=$(CONFIG_OSAL_MAX_QUEUES)
-osal_CFLAGS += -DOSAL_MAX_MUTEXES=$(CONFIG_OSAL_MAX_MUTEXES)
-
-# 调试日志
-ifeq ($(CONFIG_OSAL_DEBUG_LOGGING),y)
-  osal_CFLAGS += -DOSAL_DEBUG_LOGGING
-endif
-
 # -----------------------------------------------------------------------------
-# 5. 链接标志
+# 4. 链接标志
 # -----------------------------------------------------------------------------
 osal_LDFLAGS := -Wl,-soname,libosal.so.1
 
-# -----------------------------------------------------------------------------
-# 6. 目标库
-# -----------------------------------------------------------------------------
-osal_TARGET := $(STAGING_DIR)/lib/libosal.so
-osal_STATIC := $(STAGING_DIR)/lib/libosal.a
+# POSIX 平台需要链接 pthread 和 rt
+ifeq ($(CONFIG_OSAL_OS_POSIX),y)
+  osal_LDFLAGS += -lpthread -lrt
+endif
 
-# 添加到全局目标列表
-ALL_TARGETS += $(osal_TARGET)
+# Win32 平台需要链接 ws2_32
+ifeq ($(CONFIG_OSAL_OS_WIN32),y)
+  osal_LDFLAGS += -lws2_32
+endif
 
 # -----------------------------------------------------------------------------
-# 7. 构建规则
+# 5. 导出头文件
 # -----------------------------------------------------------------------------
-$(eval $(call build_shared_lib,$(osal_TARGET),$(osal_OBJS),$(osal_LDFLAGS)))
-$(eval $(call build_static_lib,$(osal_STATIC),$(osal_OBJS)))
+osal_HEADERS := \
+	osal.h \
+	osal_types.h \
+	ipc/osal_atomic.h \
+	ipc/osal_cond.h \
+	ipc/osal_mutex.h \
+	ipc/osal_semaphore.h \
+	ipc/osal_shm.h \
+	lib/osal_errno.h \
+	lib/osal_heap.h \
+	lib/osal_stdio.h \
+	lib/osal_string.h \
+	net/osal_socket.h \
+	net/osal_termios.h \
+	sys/osal_clock.h \
+	sys/osal_env.h \
+	sys/osal_file.h \
+	sys/osal_process.h \
+	sys/osal_sched.h \
+	sys/osal_select.h \
+	sys/osal_signal.h \
+	sys/osal_thread.h \
+	sys/osal_time.h \
+	util/osal_log.h \
+	util/osal_version.h
 
-# 为此模块的目标文件添加编译标志
+# -----------------------------------------------------------------------------
+# 以下为标准构建流程（无需修改）
+# -----------------------------------------------------------------------------
+
+# 生成目标文件列表
+osal_OBJS := $(call srcs_to_objs,$(osal_SRCS))
+
+# 定义库文件路径
+ifeq ($(CONFIG_OSAL),y)
+  ifeq ($(CONFIG_OSAL_BUILD_SHARED),y)
+    osal_SO_TARGET := $(STAGING_DIR)/lib/libosal.so
+    ALL_TARGETS += $(osal_SO_TARGET)
+  endif
+
+  ifeq ($(CONFIG_OSAL_BUILD_STATIC),y)
+    osal_A_TARGET := $(STAGING_DIR)/lib/libosal.a
+    ALL_TARGETS += $(osal_A_TARGET)
+  endif
+endif
+
+# 添加编译标志
 $(osal_OBJS): CFLAGS += $(osal_CFLAGS)
+
+# 定义构建规则
+ifeq ($(CONFIG_OSAL),y)
+
+# 动态库构建
+ifeq ($(CONFIG_OSAL_BUILD_SHARED),y)
+$(osal_SO_TARGET): $(osal_OBJS)
+
+$(osal_SO_TARGET):
+	@echo "  LD      $@"
+	@mkdir -p $(dir $@)
+	@$(CC) -shared -o $@ $(osal_OBJS) $(osal_LDFLAGS)
+	@if [ -n "$(osal_LDFLAGS)" ] && echo "$(osal_LDFLAGS)" | grep -q "soname,"; then \
+		soname=$$(echo "$(osal_LDFLAGS)" | sed -n 's/.*-soname,\([^ ]*\).*/\1/p'); \
+		if [ -n "$$soname" ] && [ "$$soname" != "$$(basename $@)" ]; then \
+			ln -sf $$(basename $@) $$(dirname $@)/$$soname; \
+		fi; \
+	fi
+endif
+
+# 静态库构建
+ifeq ($(CONFIG_OSAL_BUILD_STATIC),y)
+$(osal_A_TARGET): $(osal_OBJS)
+
+$(osal_A_TARGET):
+	@echo "  AR      $@"
+	@mkdir -p $(dir $@)
+	@rm -f $@
+	@ar rcs $@ $(osal_OBJS)
+endif
+
+# 安装头文件到 staging 目录
+ifneq ($(osal_HEADERS),)
+$(osal_SO_TARGET) $(osal_A_TARGET): | install_osal_headers
+
+.PHONY: install_osal_headers
+install_osal_headers:
+	@mkdir -p $(STAGING_DIR)/include/osal
+	@for header in $(osal_HEADERS); do \
+		src="core/osal/include/$$header"; \
+		dst="$(STAGING_DIR)/include/osal/$$header"; \
+		mkdir -p $$(dirname $$dst); \
+		cp -f $$src $$dst; \
+	done
+endif
+
+endif
+
+# 清理规则
+CLEAN_TARGETS += $(osal_OBJS) $(osal_SO_TARGET) $(osal_A_TARGET)

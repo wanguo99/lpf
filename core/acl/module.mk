@@ -1,17 +1,12 @@
 # =============================================================================
-# ACL 模块非递归 Make 配置
+# ACL 模块构建配置（非递归 Make）
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# 1. 基础源文件
+# 1. 包含源文件配置
 # -----------------------------------------------------------------------------
-acl_SRCS := \
-	core/acl/src/acl_api.c \
-	core/acl/src/acl_api_v2.c \
-	core/acl/src/acl_telemetry_cache.c
-
-# 注意：acl_api_v2.c 提供 V2 版本的 API（函数名带 _V2 后缀）
-# 可以与 acl_api.c 共存，用于测试或对比不同实现
+acl_SRCS :=
+include core/acl/src/module.mk
 
 # -----------------------------------------------------------------------------
 # 2. 编译标志
@@ -30,56 +25,85 @@ acl_CFLAGS := \
 # -----------------------------------------------------------------------------
 acl_LDFLAGS := \
 	-L$(STAGING_DIR)/lib \
+	-Wl,-soname,libacl.so.1 \
 	-Wl,--no-as-needed \
 	-lpdl \
 	-lpcl \
 	-lhal \
 	-losal \
-	-Wl,--as-needed \
-	-lpthread
+	-Wl,--as-needed
 
 # -----------------------------------------------------------------------------
-# 4. 生成目标文件列表
+# 4. 导出头文件
 # -----------------------------------------------------------------------------
+acl_HEADERS := \
+	acl.h \
+	acl_types.h \
+	acl_api.h \
+	acl_telemetry_cache.h
+
+# -----------------------------------------------------------------------------
+# 以下为标准构建流程
+# -----------------------------------------------------------------------------
+
 acl_OBJS := $(call srcs_to_objs,$(acl_SRCS))
 
-# -----------------------------------------------------------------------------
-# 5. 定义目标
-# -----------------------------------------------------------------------------
-ifeq ($(CONFIG_ACL_BUILD_SHARED),y)
-acl_TARGET := $(STAGING_DIR)/lib/libacl.so
-ALL_TARGETS += $(acl_TARGET)
+ifeq ($(CONFIG_ACL),y)
+  ifeq ($(CONFIG_ACL_BUILD_SHARED),y)
+    acl_SO_TARGET := $(STAGING_DIR)/lib/libacl.so
+    ALL_TARGETS += $(acl_SO_TARGET)
+  endif
+
+  ifeq ($(CONFIG_ACL_BUILD_STATIC),y)
+    acl_A_TARGET := $(STAGING_DIR)/lib/libacl.a
+    ALL_TARGETS += $(acl_A_TARGET)
+  endif
 endif
 
-ifeq ($(CONFIG_ACL_BUILD_STATIC),y)
-acl_STATIC_TARGET := $(STAGING_DIR)/lib/libacl.a
-ALL_TARGETS += $(acl_STATIC_TARGET)
-endif
-
-# -----------------------------------------------------------------------------
-# 6. 添加编译标志到全局
-# -----------------------------------------------------------------------------
 $(acl_OBJS): CFLAGS += $(acl_CFLAGS)
 
-# -----------------------------------------------------------------------------
-# 7. 定义构建规则
-# -----------------------------------------------------------------------------
+ifeq ($(CONFIG_ACL),y)
+
 ifeq ($(CONFIG_ACL_BUILD_SHARED),y)
-$(eval $(call build_shared_lib,$(acl_TARGET),$(acl_OBJS),$(acl_LDFLAGS)))
+$(acl_SO_TARGET): $(acl_OBJS)
+$(acl_SO_TARGET): $(STAGING_DIR)/lib/libpdl.so $(STAGING_DIR)/lib/libpcl.so $(STAGING_DIR)/lib/libhal.so $(STAGING_DIR)/lib/libosal.so
+
+$(acl_SO_TARGET):
+	@echo "  LD      $@"
+	@mkdir -p $(dir $@)
+	@$(CC) -shared -o $@ $(acl_OBJS) $(acl_LDFLAGS)
+	@if [ -n "$(acl_LDFLAGS)" ] && echo "$(acl_LDFLAGS)" | grep -q "soname,"; then \
+		soname=$$(echo "$(acl_LDFLAGS)" | sed -n 's/.*-soname,\([^ ]*\).*/\1/p'); \
+		if [ -n "$$soname" ] && [ "$$soname" != "$$(basename $@)" ]; then \
+			ln -sf $$(basename $@) $$(dirname $@)/$$soname; \
+		fi; \
+	fi
 endif
 
 ifeq ($(CONFIG_ACL_BUILD_STATIC),y)
-$(eval $(call build_static_lib,$(acl_STATIC_TARGET),$(acl_OBJS)))
+$(acl_A_TARGET): $(acl_OBJS)
+
+$(acl_A_TARGET):
+	@echo "  AR      $@"
+	@mkdir -p $(dir $@)
+	@rm -f $@
+	@ar rcs $@ $(acl_OBJS)
 endif
 
-# -----------------------------------------------------------------------------
-# 8. 依赖关系
-# -----------------------------------------------------------------------------
-# acl 依赖 pdl, pcl, hal, osal
-$(acl_TARGET): $(STAGING_DIR)/lib/libpdl.so $(STAGING_DIR)/lib/libpcl.so $(STAGING_DIR)/lib/libhal.so $(STAGING_DIR)/lib/libosal.so
-$(acl_STATIC_TARGET): $(STAGING_DIR)/lib/libpdl.so $(STAGING_DIR)/lib/libpcl.so $(STAGING_DIR)/lib/libhal.so $(STAGING_DIR)/lib/libosal.so
+ifneq ($(acl_HEADERS),)
+$(acl_SO_TARGET) $(acl_A_TARGET): | install_acl_headers
 
-# -----------------------------------------------------------------------------
-# 9. 清理规则
-# -----------------------------------------------------------------------------
-CLEAN_TARGETS += $(acl_OBJS) $(acl_TARGET) $(acl_STATIC_TARGET)
+.PHONY: install_acl_headers
+install_acl_headers:
+	@mkdir -p $(STAGING_DIR)/include/acl
+	@for header in $(acl_HEADERS); do \
+		src="core/acl/include/$$header"; \
+		dst="$(STAGING_DIR)/include/acl/$$header"; \
+		mkdir -p $$(dirname $$dst); \
+		cp -f $$src $$dst; \
+	done
+endif
+
+endif
+
+CLEAN_TARGETS += $(acl_OBJS) $(acl_SO_TARGET) $(acl_A_TARGET)

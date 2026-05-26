@@ -1,111 +1,124 @@
 # =============================================================================
-# HAL 模块非递归 Make 配置
+# HAL 模块构建配置（非递归 Make）
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# 1. 确定平台目录
+# 1. 确定平台实现目录
 # -----------------------------------------------------------------------------
-HAL_PLATFORM_DIR := $(CONFIG_HAL_PLATFORM_NAME)
+ifeq ($(CONFIG_PLATFORM_GENERIC_LINUX),y)
+  HAL_PLATFORM_DIR := generic-linux
+else ifeq ($(CONFIG_PLATFORM_TI_AM62X),y)
+  HAL_PLATFORM_DIR := ti-am62x
+else ifeq ($(CONFIG_PLATFORM_XILINX_ZYNQ),y)
+  HAL_PLATFORM_DIR := xilinx-zynq
+else
+  HAL_PLATFORM_DIR := generic-linux
+endif
 
 # -----------------------------------------------------------------------------
-# 2. 基础源文件（所有平台都需要）
+# 2. 包含平台相关的源文件配置
 # -----------------------------------------------------------------------------
 hal_SRCS :=
+include core/hal/src/$(HAL_PLATFORM_DIR)/module.mk
 
 # -----------------------------------------------------------------------------
-# 3. 条件编译（根据 Kconfig 配置）
-# -----------------------------------------------------------------------------
-
-# CAN 支持
-ifeq ($(CONFIG_HAL_CAN),y)
-hal_SRCS += core/hal/src/$(HAL_PLATFORM_DIR)/hal_can_linux.c
-endif
-
-# UART 支持
-ifeq ($(CONFIG_HAL_UART),y)
-hal_SRCS += core/hal/src/$(HAL_PLATFORM_DIR)/hal_serial_linux.c
-endif
-
-# I2C 支持
-ifeq ($(CONFIG_HAL_I2C),y)
-hal_SRCS += core/hal/src/$(HAL_PLATFORM_DIR)/hal_i2c_linux.c
-endif
-
-# SPI 支持
-ifeq ($(CONFIG_HAL_SPI),y)
-hal_SRCS += core/hal/src/$(HAL_PLATFORM_DIR)/hal_spi_linux.c
-endif
-
-# GPIO 支持
-ifeq ($(CONFIG_HAL_GPIO),y)
-hal_SRCS += core/hal/src/$(HAL_PLATFORM_DIR)/hal_gpio_linux.c
-endif
-
-# Watchdog 支持
-ifeq ($(CONFIG_HAL_WATCHDOG),y)
-hal_SRCS += core/hal/src/$(HAL_PLATFORM_DIR)/hal_watchdog_linux.c
-endif
-
-# -----------------------------------------------------------------------------
-# 4. 编译标志
+# 3. 编译标志
 # -----------------------------------------------------------------------------
 hal_CFLAGS := \
+	-Icore/hal/include \
 	-Iinclude/hal \
-	-Iinclude/hal/config \
 	-Iinclude/osal
 
+# 平台相关宏定义
+ifeq ($(CONFIG_PLATFORM_GENERIC_LINUX),y)
+  hal_CFLAGS += -DHAL_PLATFORM_GENERIC_LINUX
+endif
+
 # -----------------------------------------------------------------------------
-# 5. 链接标志
+# 4. 链接标志
 # -----------------------------------------------------------------------------
 hal_LDFLAGS := \
 	-L$(STAGING_DIR)/lib \
+	-Wl,-soname,libhal.so.1 \
 	-Wl,--no-as-needed \
 	-losal \
-	-Wl,--as-needed \
-	-lpthread
+	-Wl,--as-needed
 
 # -----------------------------------------------------------------------------
-# 6. 生成目标文件列表
+# 5. 导出头文件
 # -----------------------------------------------------------------------------
+hal_HEADERS := \
+	hal.h \
+	hal_types.h \
+	hal_can.h \
+	hal_uart.h \
+	hal_i2c.h \
+	hal_spi.h \
+	hal_gpio.h \
+	hal_watchdog.h
+
+# -----------------------------------------------------------------------------
+# 以下为标准构建流程
+# -----------------------------------------------------------------------------
+
 hal_OBJS := $(call srcs_to_objs,$(hal_SRCS))
 
-# -----------------------------------------------------------------------------
-# 7. 定义目标
-# -----------------------------------------------------------------------------
-ifeq ($(CONFIG_HAL_BUILD_SHARED),y)
-hal_TARGET := $(STAGING_DIR)/lib/libhal.so
-ALL_TARGETS += $(hal_TARGET)
+ifeq ($(CONFIG_HAL),y)
+  ifeq ($(CONFIG_HAL_BUILD_SHARED),y)
+    hal_SO_TARGET := $(STAGING_DIR)/lib/libhal.so
+    ALL_TARGETS += $(hal_SO_TARGET)
+  endif
+
+  ifeq ($(CONFIG_HAL_BUILD_STATIC),y)
+    hal_A_TARGET := $(STAGING_DIR)/lib/libhal.a
+    ALL_TARGETS += $(hal_A_TARGET)
+  endif
 endif
 
-ifeq ($(CONFIG_HAL_BUILD_STATIC),y)
-hal_STATIC_TARGET := $(STAGING_DIR)/lib/libhal.a
-ALL_TARGETS += $(hal_STATIC_TARGET)
-endif
-
-# -----------------------------------------------------------------------------
-# 8. 添加编译标志到全局
-# -----------------------------------------------------------------------------
 $(hal_OBJS): CFLAGS += $(hal_CFLAGS)
 
-# -----------------------------------------------------------------------------
-# 9. 定义构建规则
-# -----------------------------------------------------------------------------
+ifeq ($(CONFIG_HAL),y)
+
 ifeq ($(CONFIG_HAL_BUILD_SHARED),y)
-$(eval $(call build_shared_lib,$(hal_TARGET),$(hal_OBJS),$(hal_LDFLAGS)))
+$(hal_SO_TARGET): $(hal_OBJS)
+$(hal_SO_TARGET): $(STAGING_DIR)/lib/libosal.so
+
+$(hal_SO_TARGET):
+	@echo "  LD      $@"
+	@mkdir -p $(dir $@)
+	@$(CC) -shared -o $@ $(hal_OBJS) $(hal_LDFLAGS)
+	@if [ -n "$(hal_LDFLAGS)" ] && echo "$(hal_LDFLAGS)" | grep -q "soname,"; then \
+		soname=$$(echo "$(hal_LDFLAGS)" | sed -n 's/.*-soname,\([^ ]*\).*/\1/p'); \
+		if [ -n "$$soname" ] && [ "$$soname" != "$$(basename $@)" ]; then \
+			ln -sf $$(basename $@) $$(dirname $@)/$$soname; \
+		fi; \
+	fi
 endif
 
 ifeq ($(CONFIG_HAL_BUILD_STATIC),y)
-$(eval $(call build_static_lib,$(hal_STATIC_TARGET),$(hal_OBJS)))
+$(hal_A_TARGET): $(hal_OBJS)
+
+$(hal_A_TARGET):
+	@echo "  AR      $@"
+	@mkdir -p $(dir $@)
+	@rm -f $@
+	@ar rcs $@ $(hal_OBJS)
 endif
 
-# -----------------------------------------------------------------------------
-# 10. 依赖关系
-# -----------------------------------------------------------------------------
-# hal 依赖 osal
-$(hal_TARGET): $(STAGING_DIR)/lib/libosal.so
-$(hal_STATIC_TARGET): $(STAGING_DIR)/lib/libosal.so
+ifneq ($(hal_HEADERS),)
+$(hal_SO_TARGET) $(hal_A_TARGET): | install_hal_headers
 
-# -----------------------------------------------------------------------------
-# 11. 清理规则
-# -----------------------------------------------------------------------------
-CLEAN_TARGETS += $(hal_OBJS) $(hal_TARGET) $(hal_STATIC_TARGET)
+.PHONY: install_hal_headers
+install_hal_headers:
+	@mkdir -p $(STAGING_DIR)/include/hal
+	@for header in $(hal_HEADERS); do \
+		src="core/hal/include/$$header"; \
+		dst="$(STAGING_DIR)/include/hal/$$header"; \
+		mkdir -p $$(dirname $$dst); \
+		cp -f $$src $$dst; \
+	done
+endif
+
+endif
+
+CLEAN_TARGETS += $(hal_OBJS) $(hal_SO_TARGET) $(hal_A_TARGET)

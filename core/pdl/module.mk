@@ -1,46 +1,18 @@
 # =============================================================================
-# PDL 模块非递归 Make 配置
+# PDL 模块构建配置（非递归 Make）
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# 1. 基础源文件
+# 1. 包含源文件配置
 # -----------------------------------------------------------------------------
 pdl_SRCS :=
-
-# Watchdog 支持
-ifeq ($(CONFIG_PDL_WATCHDOG_SUPPORT),y)
-pdl_SRCS += core/pdl/src/pdl_watchdog.c
-endif
-
-# Satellite 支持
-ifeq ($(CONFIG_PDL_SATELLITE_SUPPORT),y)
-pdl_SRCS += \
-	core/pdl/src/pdl_satellite/pdl_satellite.c \
-	core/pdl/src/pdl_satellite/pdl_satellite_can.c
-endif
-
-# BMC 支持
-ifeq ($(CONFIG_PDL_BMC_SUPPORT),y)
-pdl_SRCS += \
-	core/pdl/src/pdl_bmc/pdl_bmc.c \
-	core/pdl/src/pdl_bmc/pdl_bmc_ipmi.c \
-	core/pdl/src/pdl_bmc/pdl_bmc_redfish.c \
-	core/pdl/src/pdl_bmc/pdl_bmc_transport.c
-endif
-
-# MCU 支持
-ifeq ($(CONFIG_PDL_MCU_SUPPORT),y)
-pdl_SRCS += \
-	core/pdl/src/pdl_mcu/pdl_mcu.c \
-	core/pdl/src/pdl_mcu/pdl_mcu_can.c \
-	core/pdl/src/pdl_mcu/pdl_mcu_protocol.c \
-	core/pdl/src/pdl_mcu/pdl_mcu_serial.c
-endif
+include core/pdl/src/module.mk
 
 # -----------------------------------------------------------------------------
 # 2. 编译标志
 # -----------------------------------------------------------------------------
 pdl_CFLAGS := \
+	-Icore/pdl/include \
 	-Iinclude/pdl \
 	-Iinclude/pcl \
 	-Iinclude/pcl/api \
@@ -52,55 +24,86 @@ pdl_CFLAGS := \
 # -----------------------------------------------------------------------------
 pdl_LDFLAGS := \
 	-L$(STAGING_DIR)/lib \
+	-Wl,-soname,libpdl.so.1 \
 	-Wl,--no-as-needed \
 	-lpcl \
 	-lhal \
 	-losal \
-	-Wl,--as-needed \
-	-lpthread
+	-Wl,--as-needed
 
 # -----------------------------------------------------------------------------
-# 4. 生成目标文件列表
+# 4. 导出头文件
 # -----------------------------------------------------------------------------
+pdl_HEADERS := \
+	pdl.h \
+	pdl_types.h \
+	pdl_watchdog.h \
+	pdl_satellite.h \
+	pdl_bmc.h \
+	pdl_mcu.h
+
+# -----------------------------------------------------------------------------
+# 以下为标准构建流程
+# -----------------------------------------------------------------------------
+
 pdl_OBJS := $(call srcs_to_objs,$(pdl_SRCS))
 
-# -----------------------------------------------------------------------------
-# 5. 定义目标
-# -----------------------------------------------------------------------------
-ifeq ($(CONFIG_PDL_BUILD_SHARED),y)
-pdl_TARGET := $(STAGING_DIR)/lib/libpdl.so
-ALL_TARGETS += $(pdl_TARGET)
+ifeq ($(CONFIG_PDL),y)
+  ifeq ($(CONFIG_PDL_BUILD_SHARED),y)
+    pdl_SO_TARGET := $(STAGING_DIR)/lib/libpdl.so
+    ALL_TARGETS += $(pdl_SO_TARGET)
+  endif
+
+  ifeq ($(CONFIG_PDL_BUILD_STATIC),y)
+    pdl_A_TARGET := $(STAGING_DIR)/lib/libpdl.a
+    ALL_TARGETS += $(pdl_A_TARGET)
+  endif
 endif
 
-ifeq ($(CONFIG_PDL_BUILD_STATIC),y)
-pdl_STATIC_TARGET := $(STAGING_DIR)/lib/libpdl.a
-ALL_TARGETS += $(pdl_STATIC_TARGET)
-endif
-
-# -----------------------------------------------------------------------------
-# 6. 添加编译标志到全局
-# -----------------------------------------------------------------------------
 $(pdl_OBJS): CFLAGS += $(pdl_CFLAGS)
 
-# -----------------------------------------------------------------------------
-# 7. 定义构建规则
-# -----------------------------------------------------------------------------
+ifeq ($(CONFIG_PDL),y)
+
 ifeq ($(CONFIG_PDL_BUILD_SHARED),y)
-$(eval $(call build_shared_lib,$(pdl_TARGET),$(pdl_OBJS),$(pdl_LDFLAGS)))
+$(pdl_SO_TARGET): $(pdl_OBJS)
+$(pdl_SO_TARGET): $(STAGING_DIR)/lib/libpcl.so $(STAGING_DIR)/lib/libhal.so $(STAGING_DIR)/lib/libosal.so
+
+$(pdl_SO_TARGET):
+	@echo "  LD      $@"
+	@mkdir -p $(dir $@)
+	@$(CC) -shared -o $@ $(pdl_OBJS) $(pdl_LDFLAGS)
+	@if [ -n "$(pdl_LDFLAGS)" ] && echo "$(pdl_LDFLAGS)" | grep -q "soname,"; then \
+		soname=$$(echo "$(pdl_LDFLAGS)" | sed -n 's/.*-soname,\([^ ]*\).*/\1/p'); \
+		if [ -n "$$soname" ] && [ "$$soname" != "$$(basename $@)" ]; then \
+			ln -sf $$(basename $@) $$(dirname $@)/$$soname; \
+		fi; \
+	fi
 endif
 
 ifeq ($(CONFIG_PDL_BUILD_STATIC),y)
-$(eval $(call build_static_lib,$(pdl_STATIC_TARGET),$(pdl_OBJS)))
+$(pdl_A_TARGET): $(pdl_OBJS)
+
+$(pdl_A_TARGET):
+	@echo "  AR      $@"
+	@mkdir -p $(dir $@)
+	@rm -f $@
+	@ar rcs $@ $(pdl_OBJS)
 endif
 
-# -----------------------------------------------------------------------------
-# 8. 依赖关系
-# -----------------------------------------------------------------------------
-# pdl 依赖 pcl, hal, osal
-$(pdl_TARGET): $(STAGING_DIR)/lib/libpcl.so $(STAGING_DIR)/lib/libhal.so $(STAGING_DIR)/lib/libosal.so
-$(pdl_STATIC_TARGET): $(STAGING_DIR)/lib/libpcl.so $(STAGING_DIR)/lib/libhal.so $(STAGING_DIR)/lib/libosal.so
+ifneq ($(pdl_HEADERS),)
+$(pdl_SO_TARGET) $(pdl_A_TARGET): | install_pdl_headers
 
-# -----------------------------------------------------------------------------
-# 9. 清理规则
-# -----------------------------------------------------------------------------
-CLEAN_TARGETS += $(pdl_OBJS) $(pdl_TARGET) $(pdl_STATIC_TARGET)
+.PHONY: install_pdl_headers
+install_pdl_headers:
+	@mkdir -p $(STAGING_DIR)/include/pdl
+	@for header in $(pdl_HEADERS); do \
+		src="core/pdl/include/$$header"; \
+		dst="$(STAGING_DIR)/include/pdl/$$header"; \
+		mkdir -p $$(dirname $$dst); \
+		cp -f $$src $$dst; \
+	done
+endif
+
+endif
+
+CLEAN_TARGETS += $(pdl_OBJS) $(pdl_SO_TARGET) $(pdl_A_TARGET)

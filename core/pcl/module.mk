@@ -1,18 +1,18 @@
 # =============================================================================
-# PCL 模块非递归 Make 配置
+# PCL 模块构建配置（非递归 Make）
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# 1. 基础源文件
+# 1. 包含源文件配置
 # -----------------------------------------------------------------------------
-pcl_SRCS := \
-	core/pcl/src/pcl_api.c \
-	core/pcl/src/pcl_register.c
+pcl_SRCS :=
+include core/pcl/src/module.mk
 
 # -----------------------------------------------------------------------------
 # 2. 编译标志
 # -----------------------------------------------------------------------------
 pcl_CFLAGS := \
+	-Icore/pcl/include \
 	-Iinclude/pcl \
 	-Iinclude/pcl/api \
 	-Iinclude/hal \
@@ -23,54 +23,83 @@ pcl_CFLAGS := \
 # -----------------------------------------------------------------------------
 pcl_LDFLAGS := \
 	-L$(STAGING_DIR)/lib \
+	-Wl,-soname,libpcl.so.1 \
 	-Wl,--no-as-needed \
 	-lhal \
 	-losal \
-	-Wl,--as-needed \
-	-lpthread
+	-Wl,--as-needed
 
 # -----------------------------------------------------------------------------
-# 4. 生成目标文件列表
+# 4. 导出头文件
 # -----------------------------------------------------------------------------
+pcl_HEADERS :=
+	pcl.h \
+	pcl_types.h \
+	api/pcl_api.h \
+	api/pcl_register.h
+
+# -----------------------------------------------------------------------------
+# 以下为标准构建流程
+# -----------------------------------------------------------------------------
+
 pcl_OBJS := $(call srcs_to_objs,$(pcl_SRCS))
 
-# -----------------------------------------------------------------------------
-# 5. 定义目标
-# -----------------------------------------------------------------------------
-ifeq ($(CONFIG_PCL_BUILD_SHARED),y)
-pcl_TARGET := $(STAGING_DIR)/lib/libpcl.so
-ALL_TARGETS += $(pcl_TARGET)
+ifeq ($(CONFIG_PCL),y)
+  ifeq ($(CONFIG_PCL_BUILD_SHARED),y)
+    pcl_SO_TARGET := $(STAGING_DIR)/lib/libpcl.so
+    ALL_TARGETS += $(pcl_SO_TARGET)
+  endif
+
+  ifeq ($(CONFIG_PCL_BUILD_STATIC),y)
+    pcl_A_TARGET := $(STAGING_DIR)/lib/libpcl.a
+    ALL_TARGETS += $(pcl_A_TARGET)
+  endif
 endif
 
-ifeq ($(CONFIG_PCL_BUILD_STATIC),y)
-pcl_STATIC_TARGET := $(STAGING_DIR)/lib/libpcl.a
-ALL_TARGETS += $(pcl_STATIC_TARGET)
-endif
-
-# -----------------------------------------------------------------------------
-# 6. 添加编译标志到全局
-# -----------------------------------------------------------------------------
 $(pcl_OBJS): CFLAGS += $(pcl_CFLAGS)
 
-# -----------------------------------------------------------------------------
-# 7. 定义构建规则
-# -----------------------------------------------------------------------------
+ifeq ($(CONFIG_PCL),y)
+
 ifeq ($(CONFIG_PCL_BUILD_SHARED),y)
-$(eval $(call build_shared_lib,$(pcl_TARGET),$(pcl_OBJS),$(pcl_LDFLAGS)))
+$(pcl_SO_TARGET): $(pcl_OBJS)
+$(pcl_SO_TARGET): $(STAGING_DIR)/lib/libhal.so $(STAGING_DIR)/lib/libosal.so
+
+$(pcl_SO_TARGET):
+	@echo "  LD      $@"
+	@mkdir -p $(dir $@)
+	@$(CC) -shared -o $@ $(pcl_OBJS) $(pcl_LDFLAGS)
+	@if [ -n "$(pcl_LDFLAGS)" ] && echo "$(pcl_LDFLAGS)" | grep -q "soname,"; then \
+		soname=$$(echo "$(pcl_LDFLAGS)" | sed -n 's/.*-soname,\([^ ]*\).*/\1/p'); \
+		if [ -n "$$soname" ] && [ "$$soname" != "$$(basename $@)" ]; then \
+			ln -sf $$(basename $@) $$(dirname $@)/$$soname; \
+		fi; \
+	fi
 endif
 
 ifeq ($(CONFIG_PCL_BUILD_STATIC),y)
-$(eval $(call build_static_lib,$(pcl_STATIC_TARGET),$(pcl_OBJS)))
+$(pcl_A_TARGET): $(pcl_OBJS)
+
+$(pcl_A_TARGET):
+	@echo "  AR      $@"
+	@mkdir -p $(dir $@)
+	@rm -f $@
+	@ar rcs $@ $(pcl_OBJS)
 endif
 
-# -----------------------------------------------------------------------------
-# 8. 依赖关系
-# -----------------------------------------------------------------------------
-# pcl 依赖 hal 和 osal
-$(pcl_TARGET): $(STAGING_DIR)/lib/libhal.so $(STAGING_DIR)/lib/libosal.so
-$(pcl_STATIC_TARGET): $(STAGING_DIR)/lib/libhal.so $(STAGING_DIR)/lib/libosal.so
+ifneq ($(pcl_HEADERS),)
+$(pcl_SO_TARGET) $(pcl_A_TARGET): | install_pcl_headers
 
-# -----------------------------------------------------------------------------
-# 9. 清理规则
-# -----------------------------------------------------------------------------
-CLEAN_TARGETS += $(pcl_OBJS) $(pcl_TARGET) $(pcl_STATIC_TARGET)
+.PHONY: install_pcl_headers
+install_pcl_headers:
+	@mkdir -p $(STAGING_DIR)/include/pcl
+	@for header in $(pcl_HEADERS); do \
+		src="core/pcl/include/$$header"; \
+		dst="$(STAGING_DIR)/include/pcl/$$header"; \
+		mkdir -p $$(dirname $$dst); \
+		cp -f $$src $$dst; \
+	done
+endif
+
+endif
+
+CLEAN_TARGETS += $(pcl_OBJS) $(pcl_SO_TARGET) $(pcl_A_TARGET)
