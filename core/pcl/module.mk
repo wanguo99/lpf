@@ -30,15 +30,6 @@ pcl_LDFLAGS := \
 	-Wl,--as-needed
 
 # -----------------------------------------------------------------------------
-# 4. 导出头文件
-# -----------------------------------------------------------------------------
-pcl_HEADERS :=
-	pcl.h \
-	pcl_types.h \
-	api/pcl_api.h \
-	api/pcl_register.h
-
-# -----------------------------------------------------------------------------
 # 以下为标准构建流程
 # -----------------------------------------------------------------------------
 
@@ -84,20 +75,6 @@ $(pcl_A_TARGET):
 	@mkdir -p $(dir $@)
 	@rm -f $@
 	@ar rcs $@ $(pcl_OBJS)
-endif
-
-ifneq ($(pcl_HEADERS),)
-$(pcl_SO_TARGET) $(pcl_A_TARGET): | install_pcl_headers
-
-.PHONY: install_pcl_headers
-install_pcl_headers:
-	@mkdir -p $(STAGING_DIR)/include/pcl
-	@for header in $(pcl_HEADERS); do \
-		src="core/pcl/include/$$header"; \
-		dst="$(STAGING_DIR)/include/pcl/$$header"; \
-		mkdir -p $$(dirname $$dst); \
-		cp -f $$src $$dst; \
-	done
 endif
 
 endif
