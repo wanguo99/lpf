@@ -97,6 +97,12 @@ CONFIG_PDL=y
 CONFIG_PDL_BUILD_STATIC=y
 CONFIG_PDL_BUILD_SHARED=y
 
+# PDL Features (All enabled for testing)
+CONFIG_PDL_WATCHDOG_SUPPORT=y
+CONFIG_PDL_SATELLITE_SUPPORT=y
+CONFIG_PDL_BMC_SUPPORT=y
+CONFIG_PDL_MCU_SUPPORT=y
+
 # ============================================================================
 # ACL (Application Control Layer)
 # ============================================================================
