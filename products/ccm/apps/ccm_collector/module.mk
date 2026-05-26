@@ -25,14 +25,30 @@ ccm_collector_LDFLAGS := \
 	-L$(STAGING_DIR)/lib \
 	-Wl,--no-as-needed \
 	-lh200_am625 \
-	-lccm \
-	-lacl \
-	-lpdl \
-	-lpcl \
-	-lhal \
-	-losal \
-	-Wl,--as-needed \
-	-lpthread
+	-lccm
+
+# 根据启用的核心模块链接对应的库
+ifeq ($(CONFIG_ACL),y)
+ccm_collector_LDFLAGS += -lacl
+endif
+
+ifeq ($(CONFIG_PDL),y)
+ccm_collector_LDFLAGS += -lpdl
+endif
+
+ifeq ($(CONFIG_PCL),y)
+ccm_collector_LDFLAGS += -lpcl
+endif
+
+ifeq ($(CONFIG_HAL),y)
+ccm_collector_LDFLAGS += -lhal
+endif
+
+ifeq ($(CONFIG_OSAL),y)
+ccm_collector_LDFLAGS += -losal
+endif
+
+ccm_collector_LDFLAGS += -Wl,--as-needed -lpthread
 
 # -----------------------------------------------------------------------------
 # 4. 生成目标文件列表
@@ -56,7 +72,30 @@ $(ccm_collector_OBJS): CFLAGS += $(ccm_collector_CFLAGS)
 # 7. 定义构建规则
 # -----------------------------------------------------------------------------
 ifeq ($(CONFIG_BUILD_CCM_COLLECTOR),y)
+# 声明依赖关系
 $(ccm_collector_TARGET): $(ccm_collector_OBJS) $(STAGING_DIR)/lib/libh200_am625.so $(STAGING_DIR)/lib/libccm.so
+
+ifeq ($(CONFIG_ACL),y)
+$(ccm_collector_TARGET): $(STAGING_DIR)/lib/libacl.so
+endif
+
+ifeq ($(CONFIG_PDL),y)
+$(ccm_collector_TARGET): $(STAGING_DIR)/lib/libpdl.so
+endif
+
+ifeq ($(CONFIG_PCL),y)
+$(ccm_collector_TARGET): $(STAGING_DIR)/lib/libpcl.so
+endif
+
+ifeq ($(CONFIG_HAL),y)
+$(ccm_collector_TARGET): $(STAGING_DIR)/lib/libhal.so
+endif
+
+ifeq ($(CONFIG_OSAL),y)
+$(ccm_collector_TARGET): $(STAGING_DIR)/lib/libosal.so
+endif
+
+$(ccm_collector_TARGET):
 	@echo "  LD      $@"
 	@mkdir -p $(dir $@)
 	@$(CC) -o $@ $(ccm_collector_OBJS) $(ccm_collector_LDFLAGS)

@@ -23,11 +23,18 @@ choice
 
 config PROJECT_H200_AM625
 	bool "H200 AM625"
+	select OSAL
+	select HAL
+	select PCL
+	select PDL
+	select ACL
 	help
 	  H200 project based on TI AM625 SoC.
 
 	  Platform: TI AM625 (Cortex-A53 + Cortex-R5F)
 	  Product: H200-100P / H200-200P
+
+	  This will automatically enable OSAL, HAL, PCL, PDL, and ACL modules.
 
 endchoice
 
@@ -35,6 +42,10 @@ menu "CCM Applications"
 
 config BUILD_CCM_SUPERVISOR
 	bool "CCM Supervisor"
+	select OSAL
+	select OSAL_THREAD
+	select OSAL_IPC
+	select OSAL_SIGNAL
 	default y
 	help
 	  Build the CCM supervisor application.
@@ -42,8 +53,15 @@ config BUILD_CCM_SUPERVISOR
 	  The supervisor manages lifecycle of all CCM applications,
 	  handles process monitoring and automatic restart.
 
+	  This will automatically enable the OSAL module.
+
 config BUILD_CCM_COLLECTOR
 	bool "CCM Collector"
+	select OSAL
+	select HAL
+	select PCL
+	select PDL
+	select ACL
 	default y
 	help
 	  Build the CCM data collector application.
@@ -51,8 +69,15 @@ config BUILD_CCM_COLLECTOR
 	  The collector gathers data from peripheral devices
 	  (satellites, BMC, MCU) and forwards to external systems.
 
+	  This will automatically enable OSAL, HAL, PCL, PDL, and ACL modules.
+
 config BUILD_CCM_COMM
 	bool "CCM Communication"
+	select OSAL
+	select HAL
+	select PCL
+	select PDL
+	select ACL
 	default y
 	help
 	  Build the CCM communication application.
@@ -60,8 +85,15 @@ config BUILD_CCM_COMM
 	  The communication module handles CAN/Ethernet/UART
 	  protocol processing and message routing.
 
+	  This will automatically enable OSAL, HAL, PCL, PDL, and ACL modules.
+
 config BUILD_CCM_HEALTH
 	bool "CCM Health Monitor"
+	select OSAL
+	select HAL
+	select PCL
+	select PDL
+	select ACL
 	default y
 	help
 	  Build the CCM health monitoring application.
@@ -69,14 +101,20 @@ config BUILD_CCM_HEALTH
 	  The health monitor tracks system status, peripheral
 	  health, and generates alerts for failures.
 
+	  This will automatically enable OSAL, HAL, PCL, PDL, and ACL modules.
+
 config BUILD_CCM_LOGGER
 	bool "CCM Logger"
+	select OSAL
+	select OSAL_FILE
 	default y
 	help
 	  Build the CCM logging application.
 
 	  The logger provides centralized logging service
 	  for all CCM applications with log rotation.
+
+	  This will automatically enable the OSAL module.
 
 endmenu
 

@@ -15,8 +15,14 @@ ccm_supervisor_CFLAGS := \
 ccm_supervisor_LDFLAGS := \
 	-L$(STAGING_DIR)/lib \
 	-Wl,--no-as-needed \
-	-lh200_am625 -lccm -lacl -lpdl -lpcl -lhal -losal \
-	-Wl,--as-needed -lpthread
+	-lccm
+
+# 根据启用的核心模块链接对应的库
+ifeq ($(CONFIG_OSAL),y)
+ccm_supervisor_LDFLAGS += -losal
+endif
+
+ccm_supervisor_LDFLAGS += -Wl,--as-needed -lpthread
 
 ccm_supervisor_OBJS := $(call srcs_to_objs,$(ccm_supervisor_SRCS))
 
@@ -28,7 +34,14 @@ endif
 $(ccm_supervisor_OBJS): CFLAGS += $(ccm_supervisor_CFLAGS)
 
 ifeq ($(CONFIG_BUILD_CCM_SUPERVISOR),y)
-$(ccm_supervisor_TARGET): $(ccm_supervisor_OBJS) $(STAGING_DIR)/lib/libh200_am625.so $(STAGING_DIR)/lib/libccm.so
+# 声明依赖关系
+$(ccm_supervisor_TARGET): $(ccm_supervisor_OBJS) $(STAGING_DIR)/lib/libccm.so
+
+ifeq ($(CONFIG_OSAL),y)
+$(ccm_supervisor_TARGET): $(STAGING_DIR)/lib/libosal.so
+endif
+
+$(ccm_supervisor_TARGET):
 	@echo "  LD      $@"
 	@mkdir -p $(dir $@)
 	@$(CC) -o $@ $(ccm_supervisor_OBJS) $(ccm_supervisor_LDFLAGS)

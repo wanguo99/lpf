@@ -21,10 +21,14 @@ libccm_CFLAGS := \
 # -----------------------------------------------------------------------------
 libccm_LDFLAGS := \
 	-L$(STAGING_DIR)/lib \
-	-Wl,--no-as-needed \
-	-losal \
-	-Wl,--as-needed \
-	-lpthread
+	-Wl,--no-as-needed
+
+# 根据启用的核心模块链接对应的库
+ifeq ($(CONFIG_OSAL),y)
+libccm_LDFLAGS += -losal
+endif
+
+libccm_LDFLAGS += -Wl,--as-needed -lpthread
 
 # -----------------------------------------------------------------------------
 # 4. 生成目标文件列表
@@ -51,7 +55,9 @@ $(eval $(call build_shared_lib,$(libccm_TARGET),$(libccm_OBJS),$(libccm_LDFLAGS)
 # 8. 依赖关系
 # -----------------------------------------------------------------------------
 # libccm 依赖 osal
+ifeq ($(CONFIG_OSAL),y)
 $(libccm_TARGET): $(STAGING_DIR)/lib/libosal.so
+endif
 
 # -----------------------------------------------------------------------------
 # 9. 清理规则

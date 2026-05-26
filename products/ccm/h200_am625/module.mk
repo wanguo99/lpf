@@ -32,14 +32,30 @@ libh200_am625_CFLAGS := \
 # -----------------------------------------------------------------------------
 libh200_am625_LDFLAGS := \
 	-L$(STAGING_DIR)/lib \
-	-Wl,--no-as-needed \
-	-lacl \
-	-lpdl \
-	-lpcl \
-	-lhal \
-	-losal \
-	-Wl,--as-needed \
-	-lpthread
+	-Wl,--no-as-needed
+
+# 根据启用的核心模块链接对应的库
+ifeq ($(CONFIG_ACL),y)
+libh200_am625_LDFLAGS += -lacl
+endif
+
+ifeq ($(CONFIG_PDL),y)
+libh200_am625_LDFLAGS += -lpdl
+endif
+
+ifeq ($(CONFIG_PCL),y)
+libh200_am625_LDFLAGS += -lpcl
+endif
+
+ifeq ($(CONFIG_HAL),y)
+libh200_am625_LDFLAGS += -lhal
+endif
+
+ifeq ($(CONFIG_OSAL),y)
+libh200_am625_LDFLAGS += -losal
+endif
+
+libh200_am625_LDFLAGS += -Wl,--as-needed -lpthread
 
 # -----------------------------------------------------------------------------
 # 4. 生成目标文件列表
@@ -65,8 +81,26 @@ $(eval $(call build_shared_lib,$(libh200_am625_TARGET),$(libh200_am625_OBJS),$(l
 # -----------------------------------------------------------------------------
 # 8. 依赖关系
 # -----------------------------------------------------------------------------
-# libh200_am625 依赖所有 Core 库
-$(libh200_am625_TARGET): $(STAGING_DIR)/lib/libacl.so $(STAGING_DIR)/lib/libpdl.so $(STAGING_DIR)/lib/libpcl.so $(STAGING_DIR)/lib/libhal.so $(STAGING_DIR)/lib/libosal.so
+# libh200_am625 依赖所有启用的 Core 库
+ifeq ($(CONFIG_ACL),y)
+$(libh200_am625_TARGET): $(STAGING_DIR)/lib/libacl.so
+endif
+
+ifeq ($(CONFIG_PDL),y)
+$(libh200_am625_TARGET): $(STAGING_DIR)/lib/libpdl.so
+endif
+
+ifeq ($(CONFIG_PCL),y)
+$(libh200_am625_TARGET): $(STAGING_DIR)/lib/libpcl.so
+endif
+
+ifeq ($(CONFIG_HAL),y)
+$(libh200_am625_TARGET): $(STAGING_DIR)/lib/libhal.so
+endif
+
+ifeq ($(CONFIG_OSAL),y)
+$(libh200_am625_TARGET): $(STAGING_DIR)/lib/libosal.so
+endif
 
 # -----------------------------------------------------------------------------
 # 9. 清理规则

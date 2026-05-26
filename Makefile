@@ -57,7 +57,9 @@ endif
 include products/ccm/libs/libccm/module.mk
 
 # libh200_am625
-include products/ccm/h200_am625/module.mk
+ifeq ($(CONFIG_PROJECT_H200_AM625),y)
+    include products/ccm/h200_am625/module.mk
+endif
 
 # Applications
 ifeq ($(CONFIG_BUILD_CCM_COLLECTOR),y)
