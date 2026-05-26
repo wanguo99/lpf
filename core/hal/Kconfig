@@ -66,9 +66,13 @@ config PLATFORM_NAME
 
 config HAL_PLATFORM_NAME
 	string
-	default PLATFORM_NAME
+	default generic-linux if PLATFORM_GENERIC_LINUX
+	default ti-am625 if PLATFORM_TI_AM625
+	default raspberry-pi if PLATFORM_RASPBERRY_PI
+	default beaglebone if PLATFORM_BEAGLEBONE
+	default custom if PLATFORM_CUSTOM
 	help
-	  Hardware platform name from platform configuration.
+	  Hardware platform name from platform configuration (without quotes).
 
 menu "HAL Build Configuration"
 
