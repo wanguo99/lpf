@@ -191,7 +191,6 @@ SYSTEM_TEST_CASE(concurrent_scenario) {
     SYSTEM_CHECKPOINT(NULL, "All threads created", all_created);
 
     /* 检查点3：等待所有线程完成 */
-    uint32_t i;
 
     for (i = 0; i < num_threads; i++) {
         OSAL_ThreadJoin(threads[i]);

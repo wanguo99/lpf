@@ -7,7 +7,12 @@
 # -----------------------------------------------------------------------------
 # 1. 源文件列表
 # -----------------------------------------------------------------------------
-system_test_SRCS := tests/system/test_system_core.c
+system_test_SRCS :=
+
+# 核心系统测试
+ifeq ($(CONFIG_TEST_SYSTEM),y)
+system_test_SRCS += tests/system/test_system_core.c
+endif
 
 # OSAL 系统测试
 ifeq ($(CONFIG_TEST_SYSTEM_OSAL),y)
@@ -61,10 +66,30 @@ system_test_CFLAGS := \
 system_test_LDFLAGS := \
 	-L$(STAGING_DIR)/lib \
 	-Wl,--no-as-needed \
-	-ltestcore \
-	-losal \
-	-Wl,--as-needed \
-	-lpthread -lrt
+	-ltestcore
+
+# 根据启用的核心模块链接对应的库
+ifeq ($(CONFIG_OSAL),y)
+system_test_LDFLAGS += -losal
+endif
+
+ifeq ($(CONFIG_HAL),y)
+system_test_LDFLAGS += -lhal
+endif
+
+ifeq ($(CONFIG_PCL),y)
+system_test_LDFLAGS += -lpcl
+endif
+
+ifeq ($(CONFIG_PDL),y)
+system_test_LDFLAGS += -lpdl
+endif
+
+ifeq ($(CONFIG_ACL),y)
+system_test_LDFLAGS += -lacl
+endif
+
+system_test_LDFLAGS += -Wl,--as-needed -lpthread -lrt
 
 # -----------------------------------------------------------------------------
 # 5. 定义目标
@@ -83,7 +108,25 @@ $(system_test_OBJS): CFLAGS += $(system_test_CFLAGS)
 # 7. 定义构建规则
 # -----------------------------------------------------------------------------
 ifeq ($(CONFIG_TEST_SYSTEM),y)
+# 声明依赖关系：测试程序依赖 testcore 和启用的核心模块库
 $(system_test_TARGET): $(system_test_OBJS) $(testcore_TARGET)
+ifeq ($(CONFIG_OSAL),y)
+$(system_test_TARGET): $(osal_TARGET)
+endif
+ifeq ($(CONFIG_HAL),y)
+$(system_test_TARGET): $(hal_TARGET)
+endif
+ifeq ($(CONFIG_PCL),y)
+$(system_test_TARGET): $(pcl_TARGET)
+endif
+ifeq ($(CONFIG_PDL),y)
+$(system_test_TARGET): $(pdl_TARGET)
+endif
+ifeq ($(CONFIG_ACL),y)
+$(system_test_TARGET): $(acl_TARGET)
+endif
+
+$(system_test_TARGET):
 	@echo "  LD      $@"
 	@mkdir -p $(dir $@)
 	@$(CC) -o $@ $(system_test_OBJS) $(system_test_LDFLAGS)

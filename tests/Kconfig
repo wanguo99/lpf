@@ -12,33 +12,43 @@ if TEST_UNIT
 
 config TEST_OSAL
 	bool "Build OSAL unit tests"
+	select OSAL
 	default y
 	help
 	  Build OSAL layer unit tests.
+	  This will automatically enable the OSAL module.
 
 config TEST_HAL
 	bool "Build HAL unit tests"
+	select HAL
 	default y
 	help
 	  Build HAL layer unit tests.
+	  This will automatically enable the HAL module.
 
 config TEST_PCL
 	bool "Build PCL unit tests"
+	select PCL
 	default y
 	help
 	  Build PCL layer unit tests.
+	  This will automatically enable the PCL module.
 
 config TEST_PDL
 	bool "Build PDL unit tests"
+	select PDL
 	default y
 	help
 	  Build PDL layer unit tests.
+	  This will automatically enable the PDL module.
 
 config TEST_ACL
 	bool "Build ACL unit tests"
+	select ACL
 	default y
 	help
 	  Build ACL layer unit tests.
+	  This will automatically enable the ACL module.
 
 endif # TEST_UNIT
 
@@ -54,30 +64,35 @@ if TEST_PERFORMANCE
 
 config TEST_PERFORMANCE_OSAL
 	bool "Build OSAL performance tests"
+	select OSAL
 	default y
 	help
 	  Build OSAL layer performance tests.
 
 config TEST_PERFORMANCE_HAL
 	bool "Build HAL performance tests"
+	select HAL
 	default y
 	help
 	  Build HAL layer performance tests.
 
 config TEST_PERFORMANCE_PCL
 	bool "Build PCL performance tests"
+	select PCL
 	default y
 	help
 	  Build PCL layer performance tests.
 
 config TEST_PERFORMANCE_PDL
 	bool "Build PDL performance tests"
+	select PDL
 	default y
 	help
 	  Build PDL layer performance tests.
 
 config TEST_PERFORMANCE_ACL
 	bool "Build ACL performance tests"
+	select ACL
 	default y
 	help
 	  Build ACL layer performance tests.
@@ -96,30 +111,35 @@ if TEST_STRESS
 
 config TEST_STRESS_OSAL
 	bool "Build OSAL stress tests"
+	select OSAL
 	default y
 	help
 	  Build OSAL layer stress tests.
 
 config TEST_STRESS_HAL
 	bool "Build HAL stress tests"
+	select HAL
 	default y
 	help
 	  Build HAL layer stress tests.
 
 config TEST_STRESS_PCL
 	bool "Build PCL stress tests"
+	select PCL
 	default y
 	help
 	  Build PCL layer stress tests.
 
 config TEST_STRESS_PDL
 	bool "Build PDL stress tests"
+	select PDL
 	default y
 	help
 	  Build PDL layer stress tests.
 
 config TEST_STRESS_ACL
 	bool "Build ACL stress tests"
+	select ACL
 	default y
 	help
 	  Build ACL layer stress tests.
@@ -138,30 +158,35 @@ if TEST_SYSTEM
 
 config TEST_SYSTEM_OSAL
 	bool "Build OSAL system tests"
+	select OSAL
 	default y
 	help
 	  Build OSAL layer system tests.
 
 config TEST_SYSTEM_HAL
 	bool "Build HAL system tests"
+	select HAL
 	default y
 	help
 	  Build HAL layer system tests.
 
 config TEST_SYSTEM_PCL
 	bool "Build PCL system tests"
+	select PCL
 	default y
 	help
 	  Build PCL layer system tests.
 
 config TEST_SYSTEM_PDL
 	bool "Build PDL system tests"
+	select PDL
 	default y
 	help
 	  Build PDL layer system tests.
 
 config TEST_SYSTEM_ACL
 	bool "Build ACL system tests"
+	select ACL
 	default y
 	help
 	  Build ACL layer system tests.

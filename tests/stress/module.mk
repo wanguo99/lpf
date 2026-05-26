@@ -7,7 +7,12 @@
 # -----------------------------------------------------------------------------
 # 1. 源文件列表
 # -----------------------------------------------------------------------------
-stress_test_SRCS := tests/stress/test_stress_core.c
+stress_test_SRCS :=
+
+# 核心压力测试
+ifeq ($(CONFIG_TEST_STRESS),y)
+stress_test_SRCS += tests/stress/test_stress_core.c
+endif
 
 # OSAL 压力测试
 ifeq ($(CONFIG_TEST_STRESS_OSAL),y)
@@ -16,22 +21,22 @@ endif
 
 # HAL 压力测试
 ifeq ($(CONFIG_TEST_STRESS_HAL),y)
-stress_test_SRCS += $(wildcard tests/stress/hal/*.c)
+stress_test_SRCS += tests/stress/hal/test_stress_hal.c
 endif
 
 # PCL 压力测试
 ifeq ($(CONFIG_TEST_STRESS_PCL),y)
-stress_test_SRCS += $(wildcard tests/stress/pcl/*.c)
+stress_test_SRCS += tests/stress/pcl/test_stress_pcl.c
 endif
 
 # PDL 压力测试
 ifeq ($(CONFIG_TEST_STRESS_PDL),y)
-stress_test_SRCS += $(wildcard tests/stress/pdl/*.c)
+stress_test_SRCS += tests/stress/pdl/test_stress_pdl.c
 endif
 
 # ACL 压力测试
 ifeq ($(CONFIG_TEST_STRESS_ACL),y)
-stress_test_SRCS += $(wildcard tests/stress/acl/*.c)
+stress_test_SRCS += tests/stress/acl/test_stress_acl.c
 endif
 
 # -----------------------------------------------------------------------------
@@ -56,10 +61,30 @@ stress_test_CFLAGS := \
 stress_test_LDFLAGS := \
 	-L$(STAGING_DIR)/lib \
 	-Wl,--no-as-needed \
-	-ltestcore \
-	-losal \
-	-Wl,--as-needed \
-	-lpthread -lrt
+	-ltestcore
+
+# 根据启用的核心模块链接对应的库
+ifeq ($(CONFIG_OSAL),y)
+stress_test_LDFLAGS += -losal
+endif
+
+ifeq ($(CONFIG_HAL),y)
+stress_test_LDFLAGS += -lhal
+endif
+
+ifeq ($(CONFIG_PCL),y)
+stress_test_LDFLAGS += -lpcl
+endif
+
+ifeq ($(CONFIG_PDL),y)
+stress_test_LDFLAGS += -lpdl
+endif
+
+ifeq ($(CONFIG_ACL),y)
+stress_test_LDFLAGS += -lacl
+endif
+
+stress_test_LDFLAGS += -Wl,--as-needed -lpthread -lrt
 
 # -----------------------------------------------------------------------------
 # 5. 定义目标
@@ -78,7 +103,25 @@ $(stress_test_OBJS): CFLAGS += $(stress_test_CFLAGS)
 # 7. 定义构建规则
 # -----------------------------------------------------------------------------
 ifeq ($(CONFIG_TEST_STRESS),y)
+# 声明依赖关系：测试程序依赖 testcore 和启用的核心模块库
 $(stress_test_TARGET): $(stress_test_OBJS) $(testcore_TARGET)
+ifeq ($(CONFIG_OSAL),y)
+$(stress_test_TARGET): $(osal_TARGET)
+endif
+ifeq ($(CONFIG_HAL),y)
+$(stress_test_TARGET): $(hal_TARGET)
+endif
+ifeq ($(CONFIG_PCL),y)
+$(stress_test_TARGET): $(pcl_TARGET)
+endif
+ifeq ($(CONFIG_PDL),y)
+$(stress_test_TARGET): $(pdl_TARGET)
+endif
+ifeq ($(CONFIG_ACL),y)
+$(stress_test_TARGET): $(acl_TARGET)
+endif
+
+$(stress_test_TARGET):
 	@echo "  LD      $@"
 	@mkdir -p $(dir $@)
 	@$(CC) -o $@ $(stress_test_OBJS) $(stress_test_LDFLAGS)

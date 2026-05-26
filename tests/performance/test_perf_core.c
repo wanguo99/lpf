@@ -169,7 +169,6 @@ int32_t perf_calculate_stats(perf_context_t *ctx, perf_stats_t *stats) {
 
     /* 计算方差和标准差 */
     double variance_sum = 0.0;
-    uint32_t i;
 
     for (i = 0; i < ctx->sample_count; i++) {
         double diff = ctx->samples[i] - stats->mean;

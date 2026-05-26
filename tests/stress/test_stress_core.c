@@ -211,7 +211,6 @@ int32_t stress_run(stress_context_t *ctx,
     }
 
     /* 等待所有线程结束 */
-    uint32_t i;
 
     for (i = 0; i < ctx->config.thread_count; i++) {
         OSAL_ThreadJoin(threads[i]);

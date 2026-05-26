@@ -71,28 +71,25 @@ unit_test_LDFLAGS := \
 	-Wl,--no-as-needed \
 	-ltestcore
 
-# 根据配置链接对应的库
-ifeq ($(CONFIG_TEST_OSAL),y)
+# 根据启用的核心模块链接对应的库
+ifeq ($(CONFIG_OSAL),y)
 unit_test_LDFLAGS += -losal
 endif
 
-ifeq ($(CONFIG_TEST_HAL),y)
-unit_test_LDFLAGS += -lhal -losal
+ifeq ($(CONFIG_HAL),y)
+unit_test_LDFLAGS += -lhal
 endif
 
-ifeq ($(CONFIG_TEST_PCL),y)
-unit_test_LDFLAGS += -lpcl -lhal -losal
+ifeq ($(CONFIG_PCL),y)
+unit_test_LDFLAGS += -lpcl
 endif
 
-ifeq ($(CONFIG_TEST_PDL),y)
-unit_test_LDFLAGS += -lpdl -lpcl -lhal -losal
+ifeq ($(CONFIG_PDL),y)
+unit_test_LDFLAGS += -lpdl
 endif
 
-# ACL 测试需要 ACL 模块已启用
-ifneq ($(CONFIG_ACL),)
-ifeq ($(CONFIG_TEST_ACL),y)
-unit_test_LDFLAGS += -lacl -lpdl -lpcl -lhal -losal
-endif
+ifeq ($(CONFIG_ACL),y)
+unit_test_LDFLAGS += -lacl
 endif
 
 unit_test_LDFLAGS += -Wl,--as-needed -lpthread -lrt
@@ -114,22 +111,22 @@ $(unit_test_OBJS): CFLAGS += $(unit_test_CFLAGS)
 # 7. 定义构建规则
 # -----------------------------------------------------------------------------
 ifeq ($(CONFIG_TEST_UNIT),y)
-# 声明依赖关系：测试程序依赖 testcore 和被测试的库
+# 声明依赖关系：测试程序依赖 testcore 和启用的核心模块库
 $(unit_test_TARGET): $(unit_test_OBJS) $(testcore_TARGET)
+ifeq ($(CONFIG_OSAL),y)
 $(unit_test_TARGET): $(osal_TARGET)
-ifeq ($(CONFIG_TEST_HAL),y)
+endif
+ifeq ($(CONFIG_HAL),y)
 $(unit_test_TARGET): $(hal_TARGET)
 endif
-ifeq ($(CONFIG_TEST_PCL),y)
+ifeq ($(CONFIG_PCL),y)
 $(unit_test_TARGET): $(pcl_TARGET)
 endif
-ifeq ($(CONFIG_TEST_PDL),y)
+ifeq ($(CONFIG_PDL),y)
 $(unit_test_TARGET): $(pdl_TARGET)
 endif
-ifneq ($(CONFIG_ACL),)
-ifeq ($(CONFIG_TEST_ACL),y)
+ifeq ($(CONFIG_ACL),y)
 $(unit_test_TARGET): $(acl_TARGET)
-endif
 endif
 
 $(unit_test_TARGET):
