@@ -68,12 +68,14 @@ unit_test_CFLAGS := \
 # -----------------------------------------------------------------------------
 unit_test_LDFLAGS := \
 	-L$(STAGING_DIR)/lib \
-	-Wl,--no-as-needed \
 	-ltestcore
 
 # 根据启用的核心模块链接对应的库
 # 注意：链接顺序很重要，依赖库要放在被依赖库之后
 # 依赖关系：ACL -> PDL -> PCL -> HAL -> OSAL
+# 使用 --no-as-needed 确保所有库都被链接
+
+unit_test_LDFLAGS += -Wl,--no-as-needed
 
 ifeq ($(CONFIG_ACL),y)
 unit_test_LDFLAGS += -lacl
@@ -95,7 +97,7 @@ ifeq ($(CONFIG_OSAL),y)
 unit_test_LDFLAGS += -losal
 endif
 
-unit_test_LDFLAGS += -lpthread -lrt
+unit_test_LDFLAGS += -Wl,--as-needed -lpthread -lrt
 
 # -----------------------------------------------------------------------------
 # 5. 定义目标
