@@ -2,7 +2,7 @@
 
 menuconfig HAL
 	bool "HAL (Hardware Abstraction Layer)"
-	default y
+	default n
 	help
 	  Hardware Abstraction Layer provides unified hardware driver interfaces.
 	  HAL depends on OSAL for system calls and platform abstraction.
@@ -74,13 +74,13 @@ menu "HAL Build Configuration"
 
 config HAL_BUILD_STATIC
 	bool "Build static library (.a)"
-	default y
+	default n
 	help
 	  Build HAL as a static library (libhal.a).
 
 config HAL_BUILD_SHARED
 	bool "Build shared library (.so)"
-	default y
+	default n
 	help
 	  Build HAL as a shared library (libhal.so).
 
@@ -113,7 +113,7 @@ endmenu
 
 menuconfig HAL_CAN
 	bool "CAN bus driver"
-	default y
+	default n
 	help
 	  Enable Controller Area Network (CAN) bus driver.
 	  Supports SocketCAN interface on Linux.
@@ -124,14 +124,14 @@ if HAL_CAN
 
 config HAL_CAN_FILTER
 	bool "CAN filter support"
-	default y
+	default n
 	help
 	  Enable CAN message filtering capability.
 	  Allows filtering CAN frames by ID.
 
 config HAL_CAN_ERROR_HANDLING
 	bool "CAN error handling"
-	default y
+	default n
 	help
 	  Enable CAN bus error detection and handling.
 	  Reports bus-off, error-warning, and error-passive states.
@@ -147,7 +147,7 @@ endif # HAL_CAN
 
 menuconfig HAL_UART
 	bool "UART driver"
-	default y
+	default n
 	help
 	  Enable Universal Asynchronous Receiver-Transmitter (UART) driver.
 	  Provides serial communication interface.
@@ -228,7 +228,7 @@ endif # HAL_SPI
 
 menuconfig HAL_GPIO
 	bool "GPIO driver"
-	default y
+	default n
 	help
 	  Enable General Purpose Input/Output (GPIO) driver.
 	  Uses sysfs interface on Linux.
@@ -239,7 +239,7 @@ if HAL_GPIO
 
 config HAL_GPIO_INTERRUPT
 	bool "GPIO interrupt support"
-	default y
+	default n
 	help
 	  Enable GPIO interrupt/edge detection.
 	  Supports rising, falling, and both edges.
@@ -255,7 +255,7 @@ endif # HAL_GPIO
 
 menuconfig HAL_WATCHDOG
 	bool "Watchdog driver"
-	default y
+	default n
 	help
 	  Enable hardware watchdog timer driver.
 	  Provides system reset on software hang.

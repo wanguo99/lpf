@@ -72,7 +72,7 @@ config LIBRARY_BUILD_TYPE_STATIC
 
 config LIBRARY_BUILD_TYPE_DYNAMIC
 	bool "Build dynamic libraries (.so)"
-	default y
+	default n
 	help
 	  Build dynamic/shared libraries.
 	  Shared libraries are loaded at runtime, reducing executable size
@@ -84,7 +84,7 @@ comment "Note: You can enable both to build both static and dynamic libraries"
 
 config INSTALL_HEADERS
 	bool "Install development headers"
-	default y
+	default n
 	help
 	  Install public header files for library development.
 
@@ -110,7 +110,7 @@ menu "Test Configuration"
 
 config BUILD_TESTING
 	bool "Build tests"
-	default y
+	default n
 	help
 	  Build the test suite (unit, performance, stress, system tests).
 	  Requires test framework to be available.

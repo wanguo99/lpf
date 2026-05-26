@@ -2,7 +2,7 @@
 
 menuconfig PCL
 	bool "PCL (Peripheral Configuration Library)"
-	default y
+	default n
 	help
 	  Peripheral Configuration Library provides device-tree-like hardware
 	  configuration. PCL depends on OSAL and HAL.
@@ -57,13 +57,13 @@ menu "PCL Build Configuration"
 
 config PCL_BUILD_STATIC
 	bool "Build static library (.a)"
-	default y
+	default n
 	help
 	  Build PCL as a static library (libpcl.a).
 
 config PCL_BUILD_SHARED
 	bool "Build shared library (.so)"
-	default y
+	default n
 	help
 	  Build PCL as a shared library (libpcl.so).
 

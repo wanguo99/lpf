@@ -2,7 +2,7 @@
 
 menuconfig ACL
 	bool "ACL (Application Configuration Layer)"
-	default y
+	default n
 	help
 	  Application Configuration Layer provides business function to device mapping.
 	  ACL depends on OSAL and PDL.
@@ -15,13 +15,13 @@ menu "ACL Build Configuration"
 
 config ACL_BUILD_STATIC
 	bool "Build static library (.a)"
-	default y
+	default n
 	help
 	  Build ACL as a static library (libacl.a).
 
 config ACL_BUILD_SHARED
 	bool "Build shared library (.so)"
-	default y
+	default n
 	help
 	  Build ACL as a shared library (libacl.so).
 

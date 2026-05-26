@@ -4,7 +4,7 @@
 
 menuconfig PRODUCT_CCM
 	bool "CCM (Communication Controller Management)"
-	default y
+	default n
 	help
 	  Communication Controller Management product line.
 
@@ -15,11 +15,7 @@ menuconfig PRODUCT_CCM
 
 if PRODUCT_CCM
 
-choice
-	prompt "CCM Project"
-	default PROJECT_H200_AM625
-	help
-	  Select the CCM project variant (hardware platform).
+menu "CCM Hardware Platform"
 
 config PROJECT_H200_AM625
 	bool "H200 AM625"
@@ -36,7 +32,7 @@ config PROJECT_H200_AM625
 
 	  This will automatically enable OSAL, HAL, PCL, PDL, and ACL modules.
 
-endchoice
+endmenu
 
 menu "CCM Applications"
 
@@ -46,7 +42,7 @@ config BUILD_CCM_SUPERVISOR
 	select OSAL_THREAD
 	select OSAL_IPC
 	select OSAL_SIGNAL
-	default y
+	default n
 	help
 	  Build the CCM supervisor application.
 
@@ -62,7 +58,7 @@ config BUILD_CCM_COLLECTOR
 	select PCL
 	select PDL
 	select ACL
-	default y
+	default n
 	help
 	  Build the CCM data collector application.
 
@@ -78,7 +74,7 @@ config BUILD_CCM_COMM
 	select PCL
 	select PDL
 	select ACL
-	default y
+	default n
 	help
 	  Build the CCM communication application.
 
@@ -94,7 +90,7 @@ config BUILD_CCM_HEALTH
 	select PCL
 	select PDL
 	select ACL
-	default y
+	default n
 	help
 	  Build the CCM health monitoring application.
 
@@ -107,7 +103,9 @@ config BUILD_CCM_LOGGER
 	bool "CCM Logger"
 	select OSAL
 	select OSAL_FILE
-	default y
+	select OSAL_IPC
+	select OSAL_SIGNAL
+	default n
 	help
 	  Build the CCM logging application.
 

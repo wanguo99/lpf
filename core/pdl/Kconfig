@@ -2,7 +2,7 @@
 
 menuconfig PDL
 	bool "PDL (Peripheral Driver Layer)"
-	default y
+	default n
 	help
 	  Peripheral Driver Layer provides unified peripheral management.
 	  PDL depends on OSAL, HAL, and PCL.
@@ -15,13 +15,13 @@ menu "PDL Build Configuration"
 
 config PDL_BUILD_STATIC
 	bool "Build static library (.a)"
-	default y
+	default n
 	help
 	  Build PDL as a static library (libpdl.a).
 
 config PDL_BUILD_SHARED
 	bool "Build shared library (.so)"
-	default y
+	default n
 	help
 	  Build PDL as a shared library (libpdl.so).
 
@@ -30,7 +30,7 @@ endmenu
 menuconfig PDL_SATELLITE_SUPPORT
 	bool "Satellite peripheral support"
 	depends on HAL_CAN && OSAL_NETWORK
-	default y
+	default n
 	help
 	  Enable satellite peripheral management via CAN bus.
 
@@ -44,7 +44,7 @@ menuconfig PDL_SATELLITE_SUPPORT
 menuconfig PDL_BMC_SUPPORT
 	bool "BMC peripheral support"
 	depends on HAL_UART && OSAL_NETWORK
-	default y
+	default n
 	help
 	  Enable BMC (Baseboard Management Controller) peripheral support via UART/Ethernet.
 
@@ -58,7 +58,7 @@ menuconfig PDL_BMC_SUPPORT
 menuconfig PDL_MCU_SUPPORT
 	bool "MCU peripheral support"
 	depends on (HAL_CAN || HAL_UART) && OSAL_NETWORK
-	default y
+	default n
 	help
 	  Enable MCU peripheral support via CAN or UART.
 
@@ -71,7 +71,7 @@ menuconfig PDL_MCU_SUPPORT
 
 menuconfig PDL_WATCHDOG_SUPPORT
 	bool "Watchdog peripheral support"
-	default y
+	default n
 	depends on HAL_WATCHDOG && OSAL_TIME
 	help
 	  Enable watchdog peripheral support.

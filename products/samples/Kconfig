@@ -17,7 +17,7 @@ if PRODUCT_SAMPLES
 
 config BUILD_SAMPLE_APP
 	bool "Basic Sample Application"
-	default y
+	default n
 	help
 	  Build the basic sample application demonstrating EMS usage.
 
@@ -29,7 +29,7 @@ config BUILD_SAMPLE_APP
 
 config BUILD_WATCHDOG_APP
 	bool "Watchdog Application"
-	default y
+	default n
 	help
 	  Build the watchdog demonstration application.
 
