@@ -1,0 +1,12 @@
+# PDL Watchdog 驱动配置
+
+if PDL_WATCHDOG_SUPPORT
+
+config PDL_WATCHDOG
+	bool "Watchdog driver"
+	default y
+	help
+	  Enable watchdog peripheral driver.
+	  Source: src/pdl_watchdog.c
+
+endif # PDL_WATCHDOG_SUPPORT

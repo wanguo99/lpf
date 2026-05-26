@@ -1,0 +1,23 @@
+# PCL API 配置
+
+if PCL
+
+menu "API Configuration"
+
+config PCL_API
+	bool "PCL API"
+	default y
+	help
+	  Enable PCL core API functions.
+	  Source: src/pcl_api.c
+
+config PCL_REGISTER
+	bool "PCL Register"
+	default y
+	help
+	  Enable PCL device registration functions.
+	  Source: src/pcl_register.c
+
+endmenu
+
+endif # PCL

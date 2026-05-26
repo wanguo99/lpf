@@ -1,0 +1,37 @@
+# PDL BMC 驱动配置
+
+if PDL_BMC_SUPPORT
+
+menu "BMC Driver Configuration"
+
+config PDL_BMC
+	bool "BMC core driver"
+	default y
+	help
+	  Enable BMC core driver functions.
+	  Source: src/pdl_bmc/pdl_bmc.c
+
+config PDL_BMC_IPMI
+	bool "BMC IPMI protocol"
+	default y
+	help
+	  Enable BMC IPMI protocol support.
+	  Source: src/pdl_bmc/pdl_bmc_ipmi.c
+
+config PDL_BMC_REDFISH
+	bool "BMC Redfish protocol"
+	default y
+	help
+	  Enable BMC Redfish protocol support.
+	  Source: src/pdl_bmc/pdl_bmc_redfish.c
+
+config PDL_BMC_TRANSPORT
+	bool "BMC transport layer"
+	default y
+	help
+	  Enable BMC transport layer (UART/Ethernet).
+	  Source: src/pdl_bmc/pdl_bmc_transport.c
+
+endmenu
+
+endif # PDL_BMC_SUPPORT

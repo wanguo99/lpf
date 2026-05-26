@@ -1,0 +1,25 @@
+# HAL GPIO 驱动配置
+
+if HAL_GPIO
+
+config HAL_GPIO_LINUX
+	bool "GPIO Linux driver"
+	default y
+	depends on PLATFORM_GENERIC_LINUX
+	help
+	  Enable GPIO driver for Linux (sysfs/gpiod).
+	  Source: src/generic-linux/hal_gpio_linux.c
+
+config HAL_GPIO_INTERRUPT
+	bool "GPIO interrupt support"
+	default y
+	help
+	  Enable GPIO interrupt/edge detection.
+
+config HAL_GPIO_DEBOUNCE
+	bool "GPIO debounce"
+	default y
+	help
+	  Enable GPIO input debouncing.
+
+endif # HAL_GPIO

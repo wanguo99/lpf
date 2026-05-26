@@ -1,0 +1,24 @@
+# PDL Satellite 驱动配置
+
+if PDL_SATELLITE_SUPPORT
+
+menu "Satellite Driver Configuration"
+
+config PDL_SATELLITE
+	bool "Satellite core driver"
+	default y
+	help
+	  Enable satellite core driver functions.
+	  Source: src/pdl_satellite/pdl_satellite.c
+
+config PDL_SATELLITE_CAN
+	bool "Satellite CAN transport"
+	default y
+	depends on HAL_CAN
+	help
+	  Enable satellite CAN bus transport.
+	  Source: src/pdl_satellite/pdl_satellite_can.c
+
+endmenu
+
+endif # PDL_SATELLITE_SUPPORT

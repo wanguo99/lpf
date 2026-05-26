@@ -1,0 +1,30 @@
+# ACL API 配置
+
+if ACL
+
+menu "API Configuration"
+
+config ACL_API
+	bool "ACL API"
+	default y
+	help
+	  Enable ACL core API functions.
+	  Source: src/acl_api.c
+
+config ACL_API_V2
+	bool "ACL API v2"
+	default y
+	help
+	  Enable ACL API version 2 functions.
+	  Source: src/acl_api_v2.c
+
+config ACL_TELEMETRY_CACHE
+	bool "Telemetry cache"
+	default y
+	help
+	  Enable telemetry data caching.
+	  Source: src/acl_telemetry_cache.c
+
+endmenu
+
+endif # ACL

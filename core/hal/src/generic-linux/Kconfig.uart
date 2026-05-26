@@ -1,0 +1,25 @@
+# HAL UART 驱动配置
+
+if HAL_UART
+
+config HAL_UART_LINUX
+	bool "UART Linux driver"
+	default y
+	depends on PLATFORM_GENERIC_LINUX
+	help
+	  Enable UART driver for Linux.
+	  Source: src/generic-linux/hal_serial_linux.c
+
+config HAL_UART_FLOW_CONTROL
+	bool "UART flow control"
+	default y
+	help
+	  Enable hardware flow control (RTS/CTS).
+
+config HAL_UART_RS485
+	bool "RS485 support"
+	default y
+	help
+	  Enable RS485 mode support.
+
+endif # HAL_UART

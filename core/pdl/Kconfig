@@ -41,6 +41,8 @@ menuconfig PDL_SATELLITE_SUPPORT
 
 	  If unsure, say Y.
 
+source "core/pdl/src/pdl_satellite/Kconfig"
+
 menuconfig PDL_BMC_SUPPORT
 	bool "BMC peripheral support"
 	depends on HAL_UART && OSAL_NETWORK
@@ -54,6 +56,8 @@ menuconfig PDL_BMC_SUPPORT
 	  Requires: HAL_UART, OSAL_NETWORK
 
 	  If unsure, say Y.
+
+source "core/pdl/src/pdl_bmc/Kconfig"
 
 menuconfig PDL_MCU_SUPPORT
 	bool "MCU peripheral support"
@@ -69,18 +73,22 @@ menuconfig PDL_MCU_SUPPORT
 
 	  If unsure, say Y.
 
+source "core/pdl/src/pdl_mcu/Kconfig"
+
 menuconfig PDL_WATCHDOG_SUPPORT
 	bool "Watchdog peripheral support"
 	default n
-	depends on HAL_WATCHDOG && OSAL_TIME
+	depends on HAL_WATCHDOG && OSAL_THREAD
 	help
 	  Enable watchdog peripheral support.
 
 	  Provides hardware watchdog management for system reliability,
 	  including automatic reset on software hang.
 
-	  Requires: HAL_WATCHDOG, OSAL_TIME
+	  Requires: HAL_WATCHDOG, OSAL_THREAD
 
 	  If unsure, say Y.
+
+source "core/pdl/src/Kconfig.watchdog"
 
 endif # PDL

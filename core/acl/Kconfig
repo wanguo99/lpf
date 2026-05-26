@@ -38,4 +38,6 @@ config ACL_MAX_DEVICES
 
 endmenu
 
+source "core/acl/src/Kconfig.api"
+
 endif # ACL

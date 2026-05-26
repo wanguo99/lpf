@@ -20,7 +20,7 @@ NCURSES_LIBS := $(shell pkg-config --libs ncurses 2>/dev/null || echo -lncurses)
 
 # Common flags
 HOSTCFLAGS := -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer
-HOSTCFLAGS += -I. -I../include -DCURSES_LOC="<ncurses.h>"
+HOSTCFLAGS += -I. -Iscripts -I../include -DCURSES_LOC="<ncurses.h>"
 
 # Quiet mode (like Linux kernel)
 ifeq ($(V),1)

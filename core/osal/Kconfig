@@ -143,7 +143,7 @@ menuconfig OSAL_IPC
 	help
 	  Enable IPC support (mutex, semaphore, shared memory, etc).
 
-source "core/osal/Kconfig.ipc"
+source "core/osal/src/posix/Kconfig.ipc"
 
 menuconfig OSAL_FILE
 	bool "File and System Operations"
@@ -151,7 +151,7 @@ menuconfig OSAL_FILE
 	help
 	  Enable file I/O and system operations.
 
-source "core/osal/Kconfig.file"
+source "core/osal/src/posix/Kconfig.file"
 
 menuconfig OSAL_THREAD
 	bool "Thread Support"
@@ -159,7 +159,7 @@ menuconfig OSAL_THREAD
 	help
 	  Enable thread operations.
 
-source "core/osal/Kconfig.thread"
+source "core/osal/src/posix/Kconfig.thread"
 
 menuconfig OSAL_NETWORK
 	bool "Network Support"
@@ -167,7 +167,7 @@ menuconfig OSAL_NETWORK
 	help
 	  Enable network operations (socket, termios).
 
-source "core/osal/Kconfig.network"
+source "core/osal/src/posix/Kconfig.network"
 
 menuconfig OSAL_SIGNAL
 	bool "Signal Support"
@@ -175,7 +175,7 @@ menuconfig OSAL_SIGNAL
 	help
 	  Enable signal handling.
 
-source "core/osal/Kconfig.signal"
+source "core/osal/src/posix/Kconfig.signal"
 
 endmenu
 

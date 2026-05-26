@@ -1,0 +1,31 @@
+# HAL CAN 驱动配置
+
+if HAL_CAN
+
+config HAL_CAN_LINUX
+	bool "CAN Linux driver"
+	default y
+	depends on PLATFORM_GENERIC_LINUX
+	help
+	  Enable CAN driver for Linux (SocketCAN).
+	  Source: src/generic-linux/hal_can_linux.c
+
+config HAL_CAN_FILTER
+	bool "CAN filter support"
+	default y
+	help
+	  Enable CAN message filtering.
+
+config HAL_CAN_ERROR_HANDLING
+	bool "CAN error handling"
+	default y
+	help
+	  Enable CAN error frame handling.
+
+config HAL_CAN_LOOPBACK
+	bool "CAN loopback mode"
+	default y
+	help
+	  Enable CAN loopback mode for testing.
+
+endif # HAL_CAN
