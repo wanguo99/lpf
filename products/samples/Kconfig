@@ -1,41 +1,31 @@
-# ============================================================================
-# Sample Applications Configuration
-# ============================================================================
+# 示例模块配置
 
-menuconfig PRODUCT_SAMPLES
-	bool "Sample Applications"
+config MYLIB
+	bool "Enable mylib (sample library)"
 	default n
 	help
-	  Build sample/demo applications for learning and testing.
+	  This is a sample library template.
+	  Copy and modify it to create your own library.
 
-	  These applications demonstrate how to use EMS framework
-	  APIs (OSAL, HAL, PDL, PCL, ACL) in real applications.
+if MYLIB
 
-	  If unsure, say N for production builds.
+config MYLIB_BUILD_STATIC
+	bool "Build static library"
+	default y
+	help
+	  Build libmylib.a static library.
 
-if PRODUCT_SAMPLES
+config MYLIB_BUILD_SHARED
+	bool "Build shared library"
+	default y
+	help
+	  Build libmylib.so shared library.
 
-config BUILD_SAMPLE_APP
-	bool "Basic Sample Application"
+endif # MYLIB
+
+config BUILD_MYAPP
+	bool "Build myapp (sample application)"
 	default n
 	help
-	  Build the basic sample application demonstrating EMS usage.
-
-	  This application shows:
-	  - OSAL task creation and IPC
-	  - HAL driver usage (CAN, UART, GPIO)
-	  - PDL peripheral management
-	  - ACL configuration lookup
-
-config BUILD_WATCHDOG_APP
-	bool "Watchdog Application"
-	default n
-	help
-	  Build the watchdog demonstration application.
-
-	  This application demonstrates:
-	  - Hardware watchdog usage
-	  - Watchdog feeding strategies
-	  - Timeout handling
-
-endif # PRODUCT_SAMPLES
+	  This is a sample application template.
+	  Copy and modify it to create your own application.
