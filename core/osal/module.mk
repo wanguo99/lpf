@@ -154,7 +154,6 @@ endif
 
 # 安装头文件到 staging 目录
 ifneq ($(osal_HEADERS),)
-$(osal_SO_TARGET) $(osal_A_TARGET): | install_osal_headers
 
 .PHONY: install_osal_headers
 install_osal_headers:

@@ -90,7 +90,6 @@ $(acl_A_TARGET):
 endif
 
 ifneq ($(acl_HEADERS),)
-$(acl_SO_TARGET) $(acl_A_TARGET): | install_acl_headers
 
 .PHONY: install_acl_headers
 install_acl_headers:

@@ -90,7 +90,6 @@ $(pdl_A_TARGET):
 endif
 
 ifneq ($(pdl_HEADERS),)
-$(pdl_SO_TARGET) $(pdl_A_TARGET): | install_pdl_headers
 
 .PHONY: install_pdl_headers
 install_pdl_headers:

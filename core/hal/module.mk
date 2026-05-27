@@ -109,7 +109,6 @@ $(hal_A_TARGET):
 endif
 
 ifneq ($(hal_HEADERS),)
-$(hal_SO_TARGET) $(hal_A_TARGET): | install_hal_headers
 
 .PHONY: install_hal_headers
 install_hal_headers:
