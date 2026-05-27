@@ -45,12 +45,7 @@ endif
 
 $(pcl_OBJS): CFLAGS += $(pcl_CFLAGS)
 
-# 确保在 OSAL/HAL 头文件安装后才编译 PCL 文件
-ifeq ($(CONFIG_OSAL),y)
-$(pcl_OBJS): | $(STAGING_DIR)/lib/libosal.so
-endif
 ifeq ($(CONFIG_HAL),y)
-$(pcl_OBJS): | $(STAGING_DIR)/lib/libhal.so
 endif
 
 ifeq ($(CONFIG_PCL),y)

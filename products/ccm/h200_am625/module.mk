@@ -68,21 +68,13 @@ ALL_TARGETS += $(libh200_am625_TARGET)
 # -----------------------------------------------------------------------------
 $(libh200_am625_OBJS): CFLAGS += $(libh200_am625_CFLAGS)
 
-# 确保在 Core 模块头文件安装后才编译
-ifeq ($(CONFIG_OSAL),y)
-$(libh200_am625_OBJS): | $(STAGING_DIR)/lib/libosal.so
-endif
 ifeq ($(CONFIG_HAL),y)
-$(libh200_am625_OBJS): | $(STAGING_DIR)/lib/libhal.so
 endif
 ifeq ($(CONFIG_PCL),y)
-$(libh200_am625_OBJS): | $(STAGING_DIR)/lib/libpcl.so
 endif
 ifeq ($(CONFIG_PDL),y)
-$(libh200_am625_OBJS): | $(STAGING_DIR)/lib/libpdl.so
 endif
 ifeq ($(CONFIG_ACL),y)
-$(libh200_am625_OBJS): | $(STAGING_DIR)/lib/libacl.so
 endif
 
 # -----------------------------------------------------------------------------

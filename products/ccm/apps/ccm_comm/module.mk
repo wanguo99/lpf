@@ -50,22 +50,13 @@ endif
 
 $(ccm_comm_OBJS): CFLAGS += $(ccm_comm_CFLAGS)
 
-# 确保在所有依赖库的头文件安装后才编译
-$(ccm_comm_OBJS): | $(STAGING_DIR)/lib/libccm.so $(STAGING_DIR)/lib/libh200_am625.so
-ifeq ($(CONFIG_OSAL),y)
-$(ccm_comm_OBJS): | $(STAGING_DIR)/lib/libosal.so
-endif
 ifeq ($(CONFIG_HAL),y)
-$(ccm_comm_OBJS): | $(STAGING_DIR)/lib/libhal.so
 endif
 ifeq ($(CONFIG_PCL),y)
-$(ccm_comm_OBJS): | $(STAGING_DIR)/lib/libpcl.so
 endif
 ifeq ($(CONFIG_PDL),y)
-$(ccm_comm_OBJS): | $(STAGING_DIR)/lib/libpdl.so
 endif
 ifeq ($(CONFIG_ACL),y)
-$(ccm_comm_OBJS): | $(STAGING_DIR)/lib/libacl.so
 endif
 
 ifeq ($(CONFIG_BUILD_CCM_COMM),y)

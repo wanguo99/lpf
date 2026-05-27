@@ -74,25 +74,15 @@ system_test_LDFLAGS := \
 
 system_test_LDFLAGS += -Wl,--no-as-needed
 
-ifeq ($(CONFIG_ACL),y)
 system_test_LDFLAGS += -lacl
-endif
 
-ifeq ($(CONFIG_PDL),y)
 system_test_LDFLAGS += -lpdl
-endif
 
-ifeq ($(CONFIG_PCL),y)
 system_test_LDFLAGS += -lpcl
-endif
 
-ifeq ($(CONFIG_HAL),y)
 system_test_LDFLAGS += -lhal
-endif
 
-ifeq ($(CONFIG_OSAL),y)
 system_test_LDFLAGS += -losal
-endif
 
 system_test_LDFLAGS += -Wl,--as-needed -lpthread -lrt
 
@@ -109,23 +99,6 @@ endif
 # -----------------------------------------------------------------------------
 $(system_test_OBJS): CFLAGS += $(system_test_CFLAGS)
 
-# 确保在所有依赖库的头文件安装后才编译
-$(system_test_OBJS): | $(STAGING_DIR)/lib/libtestcore.so
-ifeq ($(CONFIG_OSAL),y)
-$(system_test_OBJS): | $(STAGING_DIR)/lib/libosal.so
-endif
-ifeq ($(CONFIG_HAL),y)
-$(system_test_OBJS): | $(STAGING_DIR)/lib/libhal.so
-endif
-ifeq ($(CONFIG_PCL),y)
-$(system_test_OBJS): | $(STAGING_DIR)/lib/libpcl.so
-endif
-ifeq ($(CONFIG_PDL),y)
-$(system_test_OBJS): | $(STAGING_DIR)/lib/libpdl.so
-endif
-ifeq ($(CONFIG_ACL),y)
-$(system_test_OBJS): | $(STAGING_DIR)/lib/libacl.so
-endif
 
 # -----------------------------------------------------------------------------
 # 7. 定义构建规则
@@ -134,21 +107,11 @@ ifeq ($(CONFIG_TEST_SYSTEM),y)
 # 声明依赖关系：测试程序依赖 testcore 和启用的核心模块共享库
 # 注意：必须依赖 .so 文件而不是变量，确保共享库完全构建完成后才链接
 $(system_test_TARGET): $(system_test_OBJS) $(STAGING_DIR)/lib/libtestcore.so
-ifeq ($(CONFIG_ACL),y)
 $(system_test_TARGET): $(STAGING_DIR)/lib/libacl.so
-endif
-ifeq ($(CONFIG_PDL),y)
 $(system_test_TARGET): $(STAGING_DIR)/lib/libpdl.so
-endif
-ifeq ($(CONFIG_PCL),y)
 $(system_test_TARGET): $(STAGING_DIR)/lib/libpcl.so
-endif
-ifeq ($(CONFIG_HAL),y)
 $(system_test_TARGET): $(STAGING_DIR)/lib/libhal.so
-endif
-ifeq ($(CONFIG_OSAL),y)
 $(system_test_TARGET): $(STAGING_DIR)/lib/libosal.so
-endif
 
 $(system_test_TARGET):
 	@echo "  LD      $@"

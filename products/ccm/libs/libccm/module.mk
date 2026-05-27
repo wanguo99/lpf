@@ -46,10 +46,6 @@ ALL_TARGETS += $(libccm_TARGET)
 # -----------------------------------------------------------------------------
 $(libccm_OBJS): CFLAGS += $(libccm_CFLAGS)
 
-# 确保在 OSAL 头文件安装后才编译
-ifeq ($(CONFIG_OSAL),y)
-$(libccm_OBJS): | $(STAGING_DIR)/lib/libosal.so
-endif
 
 # -----------------------------------------------------------------------------
 # 7. 定义构建规则

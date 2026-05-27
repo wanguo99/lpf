@@ -45,6 +45,9 @@ include/config/auto.conf: .config scripts/kconfig/conf
 # 全局目标列表
 ALL_TARGETS :=
 
+# 全局头文件安装目标列表（模块自注册）
+HEADER_TARGETS :=
+
 # =============================================================================
 # Core 模块（根据 Kconfig 配置包含）
 # =============================================================================
@@ -135,8 +138,12 @@ endif
 # 主目标
 # =============================================================================
 
+# 统一的头文件安装目标（由模块自注册）
+.PHONY: install_all_headers
+install_all_headers: $(HEADER_TARGETS)
+
 .PHONY: all
-all: include/config/auto.conf $(ALL_TARGETS)
+all: include/config/auto.conf install_all_headers $(ALL_TARGETS)
 	@echo "  BUILD   EMS $(VERSION)"
 
 # =============================================================================

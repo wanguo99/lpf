@@ -78,15 +78,7 @@ endif
 
 $(hal_OBJS): CFLAGS += $(hal_CFLAGS)
 
-# 确保 HAL 目标文件在自己的头文件安装后编译
-ifneq ($(hal_HEADERS),)
-$(hal_OBJS): | install_hal_headers
-endif
 
-# 确保在 OSAL 头文件安装后才编译 HAL 文件
-ifeq ($(CONFIG_OSAL),y)
-$(hal_OBJS): | $(STAGING_DIR)/lib/libosal.so
-endif
 
 ifeq ($(CONFIG_HAL),y)
 
@@ -128,6 +120,9 @@ install_hal_headers:
 		mkdir -p $$(dirname $$dst); \
 		cp -f $$src $$dst; \
 	done
+
+# 注册到全局头文件安装目标列表
+HEADER_TARGETS += install_hal_headers
 endif
 
 endif

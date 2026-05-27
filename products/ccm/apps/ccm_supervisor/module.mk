@@ -33,11 +33,6 @@ endif
 
 $(ccm_supervisor_OBJS): CFLAGS += $(ccm_supervisor_CFLAGS)
 
-# 确保在所有依赖库的头文件安装后才编译
-$(ccm_supervisor_OBJS): | $(STAGING_DIR)/lib/libccm.so
-ifeq ($(CONFIG_OSAL),y)
-$(ccm_supervisor_OBJS): | $(STAGING_DIR)/lib/libosal.so
-endif
 
 ifeq ($(CONFIG_BUILD_CCM_SUPERVISOR),y)
 # 声明依赖关系
