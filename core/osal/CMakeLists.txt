@@ -20,13 +20,9 @@ endif()
 message(STATUS "  OSAL OS implementation: ${OSAL_OS_DIR}")
 
 # -----------------------------------------------------------------------------
-# 2. 收集源文件
+# 2. 收集源文件（根据 Kconfig 条件编译）
 # -----------------------------------------------------------------------------
-file(GLOB_RECURSE OSAL_SRCS
-    "src/${OSAL_OS_DIR}/**/*.c"
-)
-
-message(STATUS "  OSAL source files: ${OSAL_SRCS}")
+include(config.cmake)
 
 # -----------------------------------------------------------------------------
 # 3. 创建共享库

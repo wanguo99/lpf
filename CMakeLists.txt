@@ -42,6 +42,9 @@ include(cmake/Kconfig.cmake)
 # 加载 Kconfig 配置
 load_kconfig("${CMAKE_SOURCE_DIR}/.config")
 
+# 配置工具链（必须在 Kconfig 加载后）
+include(cmake/Toolchain.cmake)
+
 # 生成 autoconf.h（兼容现有代码）
 set(AUTOCONF_H "${CMAKE_BINARY_DIR}/include/generated/autoconf.h")
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/include/generated")
@@ -51,31 +54,10 @@ export_kconfig_to_c("${AUTOCONF_H}")
 include_directories("${CMAKE_BINARY_DIR}/include")
 
 # =============================================================================
-# 全局编译选项
+# 全局编译选项（根据 Kconfig 配置）
 # =============================================================================
 
-# 编译标志
-add_compile_options(
-    -Wall
-    -Wundef
-    -Wstrict-prototypes
-    -Wno-trigraphs
-    -fno-strict-aliasing
-    -fno-common
-    -Werror-implicit-function-declaration
-    -Wno-format-security
-    -fomit-frame-pointer
-    -fPIC
-)
-
-# 优化选项
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_compile_options(-O0 -g3)
-    add_compile_definitions(DEBUG)
-elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
-    add_compile_options(-O2)
-    add_compile_definitions(NDEBUG)
-endif()
+include(cmake/CompilerOptions.cmake)
 
 # 全局宏定义
 add_compile_definitions(__EMS__)
