@@ -104,6 +104,24 @@ endif
 # -----------------------------------------------------------------------------
 $(perf_test_OBJS): CFLAGS += $(perf_test_CFLAGS)
 
+# 确保在所有依赖库的头文件安装后才编译
+$(perf_test_OBJS): | $(STAGING_DIR)/lib/libtestcore.so
+ifeq ($(CONFIG_OSAL),y)
+$(perf_test_OBJS): | $(STAGING_DIR)/lib/libosal.so
+endif
+ifeq ($(CONFIG_HAL),y)
+$(perf_test_OBJS): | $(STAGING_DIR)/lib/libhal.so
+endif
+ifeq ($(CONFIG_PCL),y)
+$(perf_test_OBJS): | $(STAGING_DIR)/lib/libpcl.so
+endif
+ifeq ($(CONFIG_PDL),y)
+$(perf_test_OBJS): | $(STAGING_DIR)/lib/libpdl.so
+endif
+ifeq ($(CONFIG_ACL),y)
+$(perf_test_OBJS): | $(STAGING_DIR)/lib/libacl.so
+endif
+
 # -----------------------------------------------------------------------------
 # 7. 定义构建规则
 # -----------------------------------------------------------------------------

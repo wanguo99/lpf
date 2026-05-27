@@ -104,6 +104,24 @@ endif
 # -----------------------------------------------------------------------------
 $(stress_test_OBJS): CFLAGS += $(stress_test_CFLAGS)
 
+# 确保在所有依赖库的头文件安装后才编译
+$(stress_test_OBJS): | $(STAGING_DIR)/lib/libtestcore.so
+ifeq ($(CONFIG_OSAL),y)
+$(stress_test_OBJS): | $(STAGING_DIR)/lib/libosal.so
+endif
+ifeq ($(CONFIG_HAL),y)
+$(stress_test_OBJS): | $(STAGING_DIR)/lib/libhal.so
+endif
+ifeq ($(CONFIG_PCL),y)
+$(stress_test_OBJS): | $(STAGING_DIR)/lib/libpcl.so
+endif
+ifeq ($(CONFIG_PDL),y)
+$(stress_test_OBJS): | $(STAGING_DIR)/lib/libpdl.so
+endif
+ifeq ($(CONFIG_ACL),y)
+$(stress_test_OBJS): | $(STAGING_DIR)/lib/libacl.so
+endif
+
 # -----------------------------------------------------------------------------
 # 7. 定义构建规则
 # -----------------------------------------------------------------------------
