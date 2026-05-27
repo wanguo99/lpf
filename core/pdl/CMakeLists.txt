@@ -3,72 +3,84 @@
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# 1. 收集源文件
+# 1. 收集源文件（根据 Kconfig 条件编译）
 # -----------------------------------------------------------------------------
-file(GLOB PDL_SRCS
-    "src/*.c"
-)
+include(config.cmake)
 
 # -----------------------------------------------------------------------------
 # 2. 创建共享库
 # -----------------------------------------------------------------------------
-add_library(pdl SHARED ${PDL_SRCS})
+if(PDL_SRCS)
+    add_library(pdl SHARED ${PDL_SRCS})
 
-# 设置库版本
-set_target_properties(pdl PROPERTIES
-    VERSION 1.0.0
-    SOVERSION 1
-    OUTPUT_NAME pdl
-)
+    # 设置库版本
+    set_target_properties(pdl PROPERTIES
+        VERSION 1.0.0
+        SOVERSION 1
+        OUTPUT_NAME pdl
+    )
+else()
+    message(STATUS "  [PDL] Skipping shared library (no sources)")
+endif()
 
 # -----------------------------------------------------------------------------
 # 3. 头文件路径
 # -----------------------------------------------------------------------------
-target_include_directories(pdl
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
-)
+if(TARGET pdl)
+    target_include_directories(pdl
+        PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+            $<INSTALL_INTERFACE:include>
+    )
+endif()
 
 # -----------------------------------------------------------------------------
 # 4. 链接依赖
 # -----------------------------------------------------------------------------
-target_link_libraries(pdl
-    PUBLIC
-        pcl
-        hal
-        osal
-)
+if(TARGET pdl)
+    target_link_libraries(pdl
+        PUBLIC
+            pcl
+            hal
+            osal
+    )
+endif()
 
 # -----------------------------------------------------------------------------
 # 5. 创建静态库
 # -----------------------------------------------------------------------------
-add_library(pdl_static STATIC ${PDL_SRCS})
+if(PDL_SRCS)
+    add_library(pdl_static STATIC ${PDL_SRCS})
 
-set_target_properties(pdl_static PROPERTIES
-    OUTPUT_NAME pdl
-)
+    set_target_properties(pdl_static PROPERTIES
+        OUTPUT_NAME pdl
+    )
 
-target_include_directories(pdl_static
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
-)
+    target_include_directories(pdl_static
+        PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+            $<INSTALL_INTERFACE:include>
+    )
 
-target_link_libraries(pdl_static
-    PUBLIC
-        pcl_static
-        hal_static
-        osal_static
-)
+    target_link_libraries(pdl_static
+        PUBLIC
+            pcl_static
+            hal_static
+            osal_static
+    )
+else()
+    message(STATUS "  [PDL] Skipping static library (no sources)")
+endif()
 
 # -----------------------------------------------------------------------------
 # 6. 安装
 # -----------------------------------------------------------------------------
-install(TARGETS pdl pdl_static
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-)
+if(TARGET pdl)
+    install(TARGETS pdl pdl_static
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+    )
+endif()
 
 install(DIRECTORY include/
     DESTINATION include

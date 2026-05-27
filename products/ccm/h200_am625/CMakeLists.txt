@@ -40,11 +40,15 @@ target_include_directories(h200_am625
 target_link_libraries(h200_am625
     PUBLIC
         acl
-        pdl
         pcl
         hal
         osal
 )
+
+# 如果 PDL 存在，则链接
+if(TARGET pdl)
+    target_link_libraries(h200_am625 PUBLIC pdl)
+endif()
 
 # -----------------------------------------------------------------------------
 # 5. 安装

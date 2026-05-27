@@ -3,11 +3,9 @@
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# 1. 收集源文件
+# 1. 收集源文件（根据 Kconfig 条件编译）
 # -----------------------------------------------------------------------------
-file(GLOB ACL_SRCS
-    "src/*.c"
-)
+include(config.cmake)
 
 # -----------------------------------------------------------------------------
 # 2. 创建共享库
@@ -35,11 +33,15 @@ target_include_directories(acl
 # -----------------------------------------------------------------------------
 target_link_libraries(acl
     PUBLIC
-        pdl
         pcl
         hal
         osal
 )
+
+# 如果 PDL 存在，则链接
+if(TARGET pdl)
+    target_link_libraries(acl PUBLIC pdl)
+endif()
 
 # -----------------------------------------------------------------------------
 # 5. 创建静态库
@@ -58,11 +60,15 @@ target_include_directories(acl_static
 
 target_link_libraries(acl_static
     PUBLIC
-        pdl_static
         pcl_static
         hal_static
         osal_static
 )
+
+# 如果 PDL 存在，则链接
+if(TARGET pdl_static)
+    target_link_libraries(acl_static PUBLIC pdl_static)
+endif()
 
 # -----------------------------------------------------------------------------
 # 6. 安装
