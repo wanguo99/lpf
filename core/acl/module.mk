@@ -59,6 +59,11 @@ endif
 
 $(acl_OBJS): CFLAGS += $(acl_CFLAGS)
 
+# 确保 ACL 目标文件在自己的头文件安装后编译
+ifneq ($(acl_HEADERS),)
+$(acl_OBJS): | install_acl_headers
+endif
+
 # 确保在 OSAL 头文件安装后才编译 ACL 文件
 ifeq ($(CONFIG_OSAL),y)
 $(acl_OBJS): | $(STAGING_DIR)/lib/libosal.so

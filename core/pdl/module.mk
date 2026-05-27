@@ -55,6 +55,11 @@ endif
 
 $(pdl_OBJS): CFLAGS += $(pdl_CFLAGS)
 
+# 确保 PDL 目标文件在自己的头文件安装后编译
+ifneq ($(pdl_HEADERS),)
+$(pdl_OBJS): | install_pdl_headers
+endif
+
 # 确保在 OSAL/HAL/PCL 头文件安装后才编译 PDL 文件
 ifeq ($(CONFIG_OSAL),y)
 $(pdl_OBJS): | $(STAGING_DIR)/lib/libosal.so
