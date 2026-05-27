@@ -1,10 +1,41 @@
 # =============================================================================
-# Kconfig 集成模块
+# Kconfig 集成模块（增强版）
 # =============================================================================
-# 功能：读取 Kconfig 生成的 .config 文件，设置 CMake 变量
-# 用法：include(cmake/Kconfig.cmake)
-#       load_kconfig("${CMAKE_SOURCE_DIR}/.config")
+# 功能：
+# 1. 支持通过 -DDEFCONFIG=xxx 指定配置
+# 2. 自动从 defconfig 生成 .config
+# 3. 解析 .config 并设置 CMake 变量
 # =============================================================================
+
+# 函数：从 defconfig 生成 .config
+function(apply_defconfig DEFCONFIG_NAME)
+    set(DEFCONFIG_FILE "${CMAKE_SOURCE_DIR}/configs/${DEFCONFIG_NAME}_defconfig")
+    set(CONFIG_FILE "${CMAKE_SOURCE_DIR}/.config")
+
+    if(NOT EXISTS "${DEFCONFIG_FILE}")
+        message(FATAL_ERROR
+            "Defconfig not found: ${DEFCONFIG_FILE}\n"
+            "\n"
+            "Available defconfig files:\n"
+            "  - x86_64_full\n"
+            "  - x86_64_minimal\n"
+            "  - x86_64_test\n"
+            "  - arm64_full\n"
+            "  - arm64_minimal\n"
+            "  - arm64_test\n"
+            "\n"
+            "Usage: cmake -B build -DDEFCONFIG=x86_64_full\n"
+        )
+    endif()
+
+    message(STATUS "Applying defconfig: ${DEFCONFIG_NAME}")
+
+    # 复制 defconfig 到 .config
+    file(COPY "${DEFCONFIG_FILE}" DESTINATION "${CMAKE_SOURCE_DIR}")
+    file(RENAME "${CMAKE_SOURCE_DIR}/${DEFCONFIG_NAME}_defconfig" "${CONFIG_FILE}")
+
+    message(STATUS "Generated .config from ${DEFCONFIG_NAME}_defconfig")
+endfunction()
 
 # 函数：读取并解析 .config 文件
 function(load_kconfig CONFIG_FILE)
@@ -12,12 +43,12 @@ function(load_kconfig CONFIG_FILE)
         message(FATAL_ERROR
             "Configuration file not found: ${CONFIG_FILE}\n"
             "\n"
-            "Please run one of the following commands first:\n"
-            "  make menuconfig           - Interactive configuration\n"
-            "  make defconfig            - Load default configuration\n"
-            "  make <board>_defconfig    - Load board-specific configuration\n"
+            "Please specify a configuration:\n"
+            "  cmake -B build -DDEFCONFIG=x86_64_full\n"
             "\n"
-            "Available defconfig files:\n"
+            "Or run menuconfig first:\n"
+            "  make menuconfig\n"
+            "  cmake -B build\n"
         )
     endif()
 
@@ -96,3 +127,48 @@ function(export_kconfig_to_c OUTPUT_FILE)
         "#endif /* __KCONFIG_H__ */\n"
     )
 endfunction()
+
+# =============================================================================
+# 主流程：处理配置
+# =============================================================================
+
+# 检查是否通过 -DDEFCONFIG=xxx 指定了配置
+if(DEFINED DEFCONFIG)
+    message(STATUS "")
+    message(STATUS "=== Configuration Mode: ${DEFCONFIG} ===")
+    apply_defconfig("${DEFCONFIG}")
+    message(STATUS "")
+endif()
+
+# 如果 .config 不存在，提示用户
+if(NOT EXISTS "${CMAKE_SOURCE_DIR}/.config")
+    message(FATAL_ERROR
+        "\n"
+        "=================================================================\n"
+        "  No configuration found!\n"
+        "=================================================================\n"
+        "\n"
+        "Please choose one of the following methods:\n"
+        "\n"
+        "Method 1: Use CMake to specify configuration (Recommended)\n"
+        "  cmake -B build-cmake -DDEFCONFIG=x86_64_full\n"
+        "\n"
+        "Method 2: Use make menuconfig\n"
+        "  make menuconfig\n"
+        "  cmake -B build-cmake\n"
+        "\n"
+        "Method 3: Use make defconfig\n"
+        "  make x86_64_full_defconfig\n"
+        "  cmake -B build-cmake\n"
+        "\n"
+        "Available configurations:\n"
+        "  - x86_64_full      (Development, -O2, static+shared)\n"
+        "  - x86_64_minimal   (Production, -Os, static only)\n"
+        "  - x86_64_test      (Testing, -O2, all features)\n"
+        "  - arm64_full       (Development, -O0, shared)\n"
+        "  - arm64_minimal    (Production, -Os, static only)\n"
+        "  - arm64_test       (Testing, -O0, all features)\n"
+        "\n"
+        "=================================================================\n"
+    )
+endif()
