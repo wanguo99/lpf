@@ -12,7 +12,6 @@ include core/pdl/src/module.mk
 # 2. 编译标志
 # -----------------------------------------------------------------------------
 pdl_CFLAGS := \
-	-Icore/pdl/include \
 	-Iinclude/pdl \
 	-Iinclude/pcl \
 	-Iinclude/pcl/api \
@@ -35,8 +34,6 @@ pdl_LDFLAGS := \
 # 4. 导出头文件
 # -----------------------------------------------------------------------------
 pdl_HEADERS := \
-	pdl.h \
-	pdl_types.h \
 	pdl_watchdog.h \
 	pdl_satellite.h \
 	pdl_bmc.h \
@@ -97,7 +94,7 @@ $(pdl_SO_TARGET) $(pdl_A_TARGET): | install_pdl_headers
 install_pdl_headers:
 	@mkdir -p $(STAGING_DIR)/include/pdl
 	@for header in $(pdl_HEADERS); do \
-		src="core/pdl/include/$$header"; \
+		src="include/pdl/$$header"; \
 		dst="$(STAGING_DIR)/include/pdl/$$header"; \
 		mkdir -p $$(dirname $$dst); \
 		cp -f $$src $$dst; \

@@ -12,7 +12,6 @@ include core/pcl/src/module.mk
 # 2. 编译标志
 # -----------------------------------------------------------------------------
 pcl_CFLAGS := \
-	-Icore/pcl/include \
 	-Iinclude/pcl \
 	-Iinclude/pcl/api \
 	-Iinclude/hal \

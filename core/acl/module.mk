@@ -12,7 +12,6 @@ include core/acl/src/module.mk
 # 2. 编译标志
 # -----------------------------------------------------------------------------
 acl_CFLAGS := \
-	-Icore/acl/include \
 	-Iinclude/acl \
 	-Iinclude/pdl \
 	-Iinclude/pcl \
@@ -97,7 +96,7 @@ $(acl_SO_TARGET) $(acl_A_TARGET): | install_acl_headers
 install_acl_headers:
 	@mkdir -p $(STAGING_DIR)/include/acl
 	@for header in $(acl_HEADERS); do \
-		src="core/acl/include/$$header"; \
+		src="include/acl/$$header"; \
 		dst="$(STAGING_DIR)/include/acl/$$header"; \
 		mkdir -p $$(dirname $$dst); \
 		cp -f $$src $$dst; \

@@ -20,6 +20,8 @@
 #include "ipc/osal_mutex.h"
 #include "ipc/osal_semaphore.h"
 #include "ipc/osal_cond.h"
+#include "ipc/osal_shm.h"
+#include "ipc/osal_shm_cache.h"
 #include "ipc/osal_atomic.h"
 
 /* SYS - 系统调用封装 */

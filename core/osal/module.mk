@@ -28,7 +28,6 @@ include core/osal/src/$(OSAL_OS_DIR)/module.mk
 # 3. 编译标志
 # -----------------------------------------------------------------------------
 osal_CFLAGS := \
-	-Icore/osal/include \
 	-Iinclude/osal \
 	-Iinclude/osal/ipc \
 	-Iinclude/osal/lib \
@@ -163,7 +162,7 @@ $(osal_SO_TARGET) $(osal_A_TARGET): | install_osal_headers
 install_osal_headers:
 	@mkdir -p $(STAGING_DIR)/include/osal
 	@for header in $(osal_HEADERS); do \
-		src="core/osal/include/$$header"; \
+		src="include/osal/$$header"; \
 		dst="$(STAGING_DIR)/include/osal/$$header"; \
 		mkdir -p $$(dirname $$dst); \
 		cp -f $$src $$dst; \

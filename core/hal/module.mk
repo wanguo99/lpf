@@ -25,7 +25,6 @@ include core/hal/src/$(HAL_PLATFORM_DIR)/module.mk
 # 3. 编译标志
 # -----------------------------------------------------------------------------
 hal_CFLAGS := \
-	-Icore/hal/include \
 	-Iinclude/hal \
 	-Iinclude/osal
 
@@ -48,14 +47,17 @@ hal_LDFLAGS := \
 # 5. 导出头文件
 # -----------------------------------------------------------------------------
 hal_HEADERS := \
-	hal.h \
-	hal_types.h \
 	hal_can.h \
-	hal_uart.h \
 	hal_i2c.h \
 	hal_spi.h \
 	hal_gpio.h \
-	hal_watchdog.h
+	hal_watchdog.h \
+	hal_serial.h \
+	config/can_config.h \
+	config/can_types.h \
+	config/i2c_types.h \
+	config/spi_types.h \
+	config/uart_config.h
 
 # -----------------------------------------------------------------------------
 # 以下为标准构建流程
@@ -112,7 +114,7 @@ $(hal_SO_TARGET) $(hal_A_TARGET): | install_hal_headers
 install_hal_headers:
 	@mkdir -p $(STAGING_DIR)/include/hal
 	@for header in $(hal_HEADERS); do \
-		src="core/hal/include/$$header"; \
+		src="include/hal/$$header"; \
 		dst="$(STAGING_DIR)/include/hal/$$header"; \
 		mkdir -p $$(dirname $$dst); \
 		cp -f $$src $$dst; \
