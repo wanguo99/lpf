@@ -12,13 +12,6 @@ include(config.cmake)
 # -----------------------------------------------------------------------------
 if(PDL_SRCS)
     add_library(pdl SHARED ${PDL_SRCS})
-
-    # 设置库版本
-    set_target_properties(pdl PROPERTIES
-        VERSION 1.0.0
-        SOVERSION 1
-        OUTPUT_NAME pdl
-    )
 else()
     message(STATUS "  [PDL] Skipping shared library (no sources)")
 endif()
