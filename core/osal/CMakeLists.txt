@@ -45,7 +45,7 @@ set_target_properties(osal PROPERTIES
 # -----------------------------------------------------------------------------
 target_include_directories(osal
     PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src/${OSAL_OS_DIR}
@@ -107,7 +107,7 @@ set_target_properties(osal_static PROPERTIES
 
 target_include_directories(osal_static
     PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src/${OSAL_OS_DIR}

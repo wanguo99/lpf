@@ -18,8 +18,8 @@ project(EMS
 # 构建选项
 # =============================================================================
 
-# 设置 C 标准
-set(CMAKE_C_STANDARD 90)
+# 设置 C 标准（使用 C99，支持 // 注释和更多特性）
+set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
@@ -79,6 +79,13 @@ endif()
 
 # 全局宏定义
 add_compile_definitions(__EMS__)
+
+# POSIX 特性测试宏（启用 POSIX 扩展）
+add_compile_definitions(
+    _POSIX_C_SOURCE=200809L
+    _XOPEN_SOURCE=700
+    _GNU_SOURCE
+)
 
 # =============================================================================
 # 输出目录设置

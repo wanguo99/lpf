@@ -39,7 +39,7 @@ set_target_properties(hal PROPERTIES
 # -----------------------------------------------------------------------------
 target_include_directories(hal
     PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 
@@ -62,7 +62,7 @@ set_target_properties(hal_static PROPERTIES
 
 target_include_directories(hal_static
     PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 

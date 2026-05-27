@@ -26,7 +26,7 @@ set_target_properties(pcl PROPERTIES
 # -----------------------------------------------------------------------------
 target_include_directories(pcl
     PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 
@@ -50,7 +50,7 @@ set_target_properties(pcl_static PROPERTIES
 
 target_include_directories(pcl_static
     PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 

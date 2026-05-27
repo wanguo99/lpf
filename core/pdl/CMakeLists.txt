@@ -26,7 +26,7 @@ set_target_properties(pdl PROPERTIES
 # -----------------------------------------------------------------------------
 target_include_directories(pdl
     PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 
@@ -51,7 +51,7 @@ set_target_properties(pdl_static PROPERTIES
 
 target_include_directories(pdl_static
     PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 
