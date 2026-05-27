@@ -1,216 +1,80 @@
 # =============================================================================
-# EMS 非递归 Make 构建系统
-# =============================================================================
-# 版本: 2.0
-# 创建日期: 2026-05-25
-
-# 默认目标
-.DEFAULT_GOAL := all
-
-# 清理目标不需要加载配置
-no-dot-config-targets := clean mrproper distclean help
-config-targets := menuconfig defconfig olddefconfig syncconfig savedefconfig
-config-targets += $(patsubst %,%_defconfig,$(notdir $(basename $(wildcard configs/*_defconfig))))
-
-# 检查是否需要加载配置
-ifneq ($(filter $(no-dot-config-targets),$(MAKECMDGOALS)),)
-    dot-config := 0
-else ifneq ($(filter $(config-targets),$(MAKECMDGOALS)),)
-    ifneq ($(filter-out $(config-targets),$(MAKECMDGOALS)),)
-        mixed-targets := 1
-    else
-        dot-config := 0
-    endif
-else
-    dot-config := 1
-endif
-
-# 包含 Kconfig 生成的配置
-ifeq ($(dot-config),1)
--include .config
--include include/config/auto.conf
-endif
-
-# 包含辅助函数和规则
-include scripts/functions.mk
-include scripts/rules.mk
-
-# =============================================================================
-# 配置依赖（自动生成 autoconf.h）
+# EMS Makefile - Kconfig 配置 + CMake 构建
 # =============================================================================
 
-include/config/auto.conf: .config scripts/kconfig/conf
-	@$(MAKE) -C scripts/kconfig syncconfig srctree=$(CURDIR)
+.PHONY: all menuconfig defconfig savedefconfig clean help
 
-# 全局目标列表
-ALL_TARGETS :=
+# 默认目标：提示使用 CMake
+all:
+	@echo "EMS 项目使用 CMake 构建系统"
+	@echo ""
+	@echo "配置步骤："
+	@echo "  1. 配置功能模块: make menuconfig"
+	@echo "  2. 生成构建文件: cmake -B build-cmake"
+	@echo "  3. 编译项目:     cmake --build build-cmake -j\$$(nproc)"
+	@echo ""
+	@echo "快速开始："
+	@echo "  make menuconfig && cmake -B build-cmake && cmake --build build-cmake"
 
-# 全局头文件安装目标列表（模块自注册）
-HEADER_TARGETS :=
+# Kconfig 配置工具
+KCONFIG_DIR := scripts/kconfig
+CONF := $(KCONFIG_DIR)/conf
+MCONF := $(KCONFIG_DIR)/mconf
 
-# =============================================================================
-# Core 模块（根据 Kconfig 配置包含）
-# =============================================================================
+# 构建 Kconfig 工具
+$(CONF):
+	@$(MAKE) -C $(KCONFIG_DIR) conf
 
-ifeq ($(CONFIG_OSAL),y)
-    include core/osal/module.mk
-endif
+$(MCONF):
+	@$(MAKE) -C $(KCONFIG_DIR) mconf
 
-ifeq ($(CONFIG_HAL),y)
-    include core/hal/module.mk
-endif
+# menuconfig - 图形化配置界面
+menuconfig: $(MCONF)
+	@$(MCONF) Kconfig
 
-ifeq ($(CONFIG_PCL),y)
-    include core/pcl/module.mk
-endif
+# defconfig - 加载默认配置
+defconfig: $(CONF)
+	@if [ -f configs/defconfig ]; then \
+		$(CONF) --defconfig=configs/defconfig Kconfig; \
+	else \
+		echo "错误: configs/defconfig 不存在"; \
+		exit 1; \
+	fi
 
-ifeq ($(CONFIG_PDL),y)
-    include core/pdl/module.mk
-endif
+# 加载指定的 defconfig
+%_defconfig: $(CONF)
+	@if [ -f configs/$@ ]; then \
+		$(CONF) --defconfig=configs/$@ Kconfig; \
+	else \
+		echo "错误: configs/$@ 不存在"; \
+		exit 1; \
+	fi
 
-ifeq ($(CONFIG_ACL),y)
-    include core/acl/module.mk
-endif
+# savedefconfig - 保存最小化配置
+savedefconfig: $(CONF)
+	@$(CONF) --savedefconfig=defconfig Kconfig
+	@echo "配置已保存到 defconfig"
 
-# =============================================================================
-# Products 模块
-# =============================================================================
-
-# libccm
-include products/ccm/libs/libccm/module.mk
-
-# libh200_am625
-ifeq ($(CONFIG_PROJECT_H200_AM625),y)
-    include products/ccm/h200_am625/module.mk
-endif
-
-# Applications
-ifeq ($(CONFIG_BUILD_CCM_COLLECTOR),y)
-    include products/ccm/apps/ccm_collector/module.mk
-endif
-
-ifeq ($(CONFIG_BUILD_CCM_HEALTH),y)
-    include products/ccm/apps/ccm_health/module.mk
-endif
-
-ifeq ($(CONFIG_BUILD_CCM_LOGGER),y)
-    include products/ccm/apps/ccm_logger/module.mk
-endif
-
-ifeq ($(CONFIG_BUILD_CCM_SUPERVISOR),y)
-    include products/ccm/apps/ccm_supervisor/module.mk
-endif
-
-ifeq ($(CONFIG_BUILD_CCM_COMM),y)
-    include products/ccm/apps/ccm_comm/module.mk
-endif
-
-# =============================================================================
-# Tests 模块
-# =============================================================================
-
-# 测试框架核心库（必须最先构建）
-ifeq ($(CONFIG_BUILD_TESTING),y)
-    include tests/core/module.mk
-endif
-
-# 单元测试
-ifeq ($(CONFIG_TEST_UNIT),y)
-    include tests/unit/module.mk
-endif
-
-# 性能测试
-ifeq ($(CONFIG_TEST_PERFORMANCE),y)
-    include tests/performance/module.mk
-endif
-
-# 压力测试
-ifeq ($(CONFIG_TEST_STRESS),y)
-    include tests/stress/module.mk
-endif
-
-# 系统测试
-ifeq ($(CONFIG_TEST_SYSTEM),y)
-    include tests/system/module.mk
-endif
-
-# =============================================================================
-# 主目标
-# =============================================================================
-
-# 统一的头文件安装目标（由模块自注册）
-.PHONY: install_all_headers
-install_all_headers: $(HEADER_TARGETS)
-
-# 让所有目标文件依赖头文件安装（确保并行编译时头文件先安装）
-# 收集所有 .o 文件
-ALL_OBJS := $(filter %.o,$(foreach v,$(.VARIABLES),$(if $(filter %_OBJS,$v),$($v))))
-$(ALL_OBJS): | install_all_headers
-
-.PHONY: all
-all: include/config/auto.conf $(ALL_TARGETS)
-	@echo "  BUILD   EMS $(VERSION)"
-
-# =============================================================================
-# Kconfig 目标（保持和递归 Make 相同）
-# =============================================================================
-
-menuconfig: scripts/kconfig/mconf
-	@$< Kconfig
-
-defconfig: scripts/kconfig/conf
-	@$< --defconfig=configs/defconfig Kconfig
-
-%_defconfig: configs/%_defconfig scripts/kconfig/conf
-	@scripts/kconfig/conf --defconfig=$< Kconfig
-
-olddefconfig: scripts/kconfig/conf
-	@$< --olddefconfig Kconfig
-
-# 当 .config 不存在时，给出友好提示
-.config:
-	@echo >&2 '***'
-	@echo >&2 '*** Configuration file "$@" not found!'
-	@echo >&2 '***'
-	@echo >&2 '*** Please run a configuration command first:'
-	@echo >&2 '***   make defconfig           - Load default configuration'
-	@echo >&2 '***   make menuconfig          - Interactive configuration'
-	@echo >&2 '***   make <board>_defconfig   - Load board-specific configuration'
-	@echo >&2 '***'
-	@echo >&2 '*** Available defconfig files:'
-	@for f in configs/*_defconfig; do \
-		echo >&2 "***   make $$(basename $$f)"; \
-	done
-	@echo >&2 '***'
-	@false
-
-scripts/kconfig/conf scripts/kconfig/mconf:
-	@$(MAKE) -C scripts/kconfig $(if $(filter-out 0,$(MAKELEVEL)),-j1,-j$(shell nproc))
-
-# =============================================================================
-# 版本信息
-# =============================================================================
-
-VERSION := 1.0.0
-export VERSION
-
-# =============================================================================
-# 清理目标（扩展 scripts/rules.mk 中的基础清理）
-# =============================================================================
-
-.PHONY: mrproper
-mrproper: clean
-	@echo "  CLEAN   configuration"
+# 清理 Kconfig 工具
+clean:
+	@$(MAKE) -C $(KCONFIG_DIR) clean
 	@rm -f .config .config.old
-	@echo "  CLEAN   include/config include/generated"
-	@rm -rf include/config/ include/generated/
-	@echo "  CLEAN   kconfig tools"
-	@$(MAKE) -C scripts/kconfig clean --no-print-directory
+	@rm -rf include/config include/generated
 
-.PHONY: distclean
-distclean: mrproper
-	@echo "  CLEAN   editor backup and patch files"
-	@find . \( -name '*.orig' -o -name '*.rej' -o -name '*~' \
-		-o -name '*.bak' -o -name '#*#' -o -name '.*.orig' \
-		-o -name '.*.rej' -o -name '*.swp' -o -name '*.swo' \
-		-o -name '*%' -o -name 'core' \) -type f -print | xargs rm -f 2>/dev/null || true
+# 帮助信息
+help:
+	@echo "EMS 项目 Makefile"
+	@echo ""
+	@echo "配置目标："
+	@echo "  menuconfig          - 图形化配置界面"
+	@echo "  defconfig           - 加载默认配置"
+	@echo "  xxx_defconfig       - 加载指定配置（如 x86_64_full_defconfig）"
+	@echo "  savedefconfig       - 保存最小化配置"
+	@echo ""
+	@echo "清理目标："
+	@echo "  clean               - 清理 Kconfig 工具和配置文件"
+	@echo ""
+	@echo "构建项目："
+	@echo "  cmake -B build-cmake              - 生成构建文件"
+	@echo "  cmake --build build-cmake         - 编译项目"
+	@echo "  cmake --install build-cmake       - 安装项目"

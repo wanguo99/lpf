@@ -20,15 +20,28 @@
 
 ## 项目概述
 
-EMS (Embedded Management System) 是一个采用 Linux Kbuild 构建框架的嵌入式软件项目。
+EMS (Embedded Management System) 是一个采用 **Kconfig + CMake** 混合构建系统的嵌入式软件项目。
 
 ### 核心特点
 
-- **构建系统**: Linux 内核风格的 Kbuild 框架
-- **配置管理**: Kconfig 配置系统（menuconfig）
+- **配置系统**: Kconfig（menuconfig 图形化配置）
+- **构建系统**: CMake 3.16+
 - **架构模式**: Core/Products 分层架构
-- **编程语言**: C 语言（ISO C90 标准）
+- **编程语言**: C 语言（C99 标准）
 - **目标平台**: Linux 嵌入式系统（主要是 TI AM62x）
+
+### 构建流程
+
+```bash
+# 1. 配置功能模块（Kconfig）
+make menuconfig
+
+# 2. 生成构建文件（CMake）
+cmake -B build-cmake
+
+# 3. 编译项目
+cmake --build build-cmake -j$(nproc)
+```
 
 ## 项目架构
 
@@ -45,595 +58,401 @@ EMS/
 ├── products/              # 产品应用（特定产品的实现）
 │   └── ccm/              # CCM 产品
 │       ├── apps/         # 应用程序（collector、logger、health、supervisor、comm）
-│       └── libs/         # 产品库（libccm）
+│       ├── libs/         # 产品库（libccm）
+│       └── h200_am625/   # 平台特定库
+├── tests/                 # 测试代码
+│   └── core/             # 核心模块测试
 ├── configs/               # Kconfig 配置文件（defconfig）
 ├── scripts/               # 构建脚本
-│   ├── Makefile.build    # 核心构建规则（应用、库、模块）
-│   ├── Makefile.clean    # 清理规则
-│   ├── Makefile.lib      # 库函数
 │   └── kconfig/          # Kconfig 配置工具
-├── include/               # Staging 头文件目录（构建时自动生成）
-├── bin/                   # 可执行文件输出目录
-├── lib/                   # 库文件输出目录
-│   └── modules/          # 内核模块输出目录
+├── cmake/                 # CMake 模块
+│   └── Kconfig.cmake     # Kconfig 集成模块
+├── include/               # 公共头文件目录
+├── build-cmake/           # CMake 构建输出目录（不提交到 git）
+│   ├── bin/              # 可执行文件
+│   └── lib/              # 库文件
 └── docs/                  # 项目文档
 ```
 
 ### 模块依赖关系
 
 ```
-products/ccm/apps/*  →  products/ccm/libs/libccm  →  core/osal
-                                                   →  core/hal
-                                                   →  core/acl
-                                                   →  core/pcl
-                                                   →  core/pdl
+products/ccm/apps/*  →  h200_am625  →  core/acl  →  core/pdl  →  core/pcl  →  core/hal  →  core/osal
+                     →  libccm      →  core/osal
 ```
 
 **重要规则**:
 - Products 依赖 Core，但 Core 不能依赖 Products
-- 应用程序必须在库构建完成后才能构建
-- 在顶层 Makefile 中通过 `products/: core/` 声明依赖
+- 依赖关系通过 CMake 的 `target_link_libraries` 自动管理
+- CMake 会自动处理传递依赖（transitive dependencies）
 
-## 构建系统详解
+## 配置系统（Kconfig）
 
-### 平台配置
+### Kconfig 配置流程
 
-EMS 支持多架构和多操作系统配置，类似 Linux 内核的配置方式。
-
-#### 架构配置 (ARCH)
-
-支持的架构：
-- `x86_64`: 64位 Intel/AMD 处理器
-- `arm`: ARM32 (ARMv7-A)
-- `arm64`: ARM64 (ARMv8-A / AArch64)
-- `riscv`: RISC-V 64位
-
-配置方式：
 ```bash
-# 方法 1: Kconfig 配置（推荐）
+# 图形化配置界面
 make menuconfig
-# 进入 "Target Platform" -> "Target architecture"
 
-# 方法 2: 环境变量（临时覆盖）
-make ARCH=arm64
-export ARCH=arm64
+# 加载预定义配置
+make x86_64_full_defconfig
+make arm64_full_defconfig
+
+# 保存最小化配置
+make savedefconfig
 ```
 
-#### 操作系统配置 (OS)
+### 配置文件
 
-支持的操作系统：
-- `linux`: Linux 操作系统（POSIX API）
-- `windows`: Windows 操作系统（Win32 API）
-- `rtos`: 实时操作系统（FreeRTOS、RT-Thread 等）
-- `macos`: macOS 操作系统（POSIX + macOS 扩展）
-- `bare`: 裸机环境（无操作系统）
+- **`.config`**: 当前配置文件（由 menuconfig 生成）
+- **`configs/*.defconfig`**: 预定义配置模板
+- **`Kconfig`**: 配置选项定义文件
 
-配置方式：
-```bash
-# 方法 1: Kconfig 配置（推荐）
-make menuconfig
-# 进入 "Target Platform" -> "Target operating system"
-
-# 方法 2: 环境变量（临时覆盖）
-make OS=rtos
-export OS=rtos
-```
-
-#### 交叉编译配置 (CROSS_COMPILE)
-
-配置方式：
-```bash
-# 方法 1: Kconfig 配置（推荐）
-make menuconfig
-# 进入 "Target Platform" -> "Cross-compiler prefix"
-
-# 方法 2: 环境变量（临时覆盖）
-make CROSS_COMPILE=aarch64-linux-gnu-
-export CROSS_COMPILE=aarch64-linux-gnu-
-```
-
-默认工具链前缀：
-- x86_64: (空，本地编译)
-- arm: `arm-linux-gnueabihf-`
-- arm64: `aarch64-linux-gnu-`
-- riscv: `riscv64-linux-gnu-`
-
-#### 常见配置场景
-
-```bash
-# 本地 x86_64 Linux 开发
-make ARCH=x86_64 OS=linux
-
-# ARM64 Linux 交叉编译
-make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- OS=linux
-
-# ARM32 RTOS 开发
-make ARCH=arm CROSS_COMPILE=arm-none-eabi- OS=rtos
-
-# RISC-V 裸机开发
-make ARCH=riscv CROSS_COMPILE=riscv64-unknown-elf- OS=bare
-```
-
-详细说明请参考 [docs/PLATFORM.md](docs/PLATFORM.md)。
-
-### OSAL 平台适配
-
-OSAL (Operating System Abstraction Layer) 根据 OS 和 ARCH 配置自动选择对应的源码实现。
-
-#### 支持的平台
-
-| OS 类型 | 源码目录 | 说明 |
-|---------|----------|------|
-| Linux/macOS | `src/posix/` | POSIX 兼容系统 |
-| Windows | `src/win32/` | Win32 API |
-| RTOS | `src/rtos/` | 实时操作系统 |
-| Bare Metal | `src/bare/` | 裸机环境 |
-
-| 架构 | 位宽 | 说明 |
-|------|------|------|
-| x86_64 | 64-bit | Intel/AMD 64位 |
-| ARM32 | 32-bit | ARM 32位 |
-| ARM64 | 64-bit | ARM 64位 (AArch64) |
-| RISC-V 64 | 64-bit | RISC-V 64位 |
-
-#### 配置示例
-
-```bash
-# ARM64 + RTOS
-make menuconfig
-# 选择: Target Platform -> Target operating system -> RTOS
-# 选择: Target Platform -> Target architecture -> ARM64 (AArch64)
-make core/osal/
-
-# 验证源码目录选择
-make core/osal/ V=1 | grep "src/.*/lib/osal_errno.o"
-# 应该显示: src/rtos/lib/osal_errno.o
-```
-
-#### 自动配置
-
-根据 OS 和 ARCH 配置，OSAL 会自动设置：
+### 常用配置选项
 
 ```kconfig
-# OS 相关
-CONFIG_OSAL_OS_POSIX=y      # Linux/macOS 自动启用
-CONFIG_OSAL_OS_WIN32=y      # Windows 自动启用
-CONFIG_OSAL_OS_RTOS=y       # RTOS 自动启用
-CONFIG_OSAL_OS_BARE=y       # Bare Metal 自动启用
+# 核心模块开关
+CONFIG_OSAL=y              # 操作系统抽象层
+CONFIG_HAL=y               # 硬件抽象层
+CONFIG_PCL=y               # 协议控制层
+CONFIG_PDL=y               # 协议数据层
+CONFIG_ACL=y               # 访问控制层
 
-# 架构相关
-CONFIG_OSAL_ARCH_32BIT=y    # ARM32 自动启用
-CONFIG_OSAL_ARCH_64BIT=y    # x86_64/ARM64/RISC-V64 自动启用
+# 平台配置
+CONFIG_ARCH_X86_64=y       # x86_64 架构
+CONFIG_ARCH_ARM64=y        # ARM64 架构
+CONFIG_OS_LINUX=y          # Linux 操作系统
+
+# 功能裁剪
+CONFIG_BUILD_TESTING=y     # 构建测试程序
+CONFIG_BUILD_SHARED=y      # 构建共享库
 ```
 
-详细说明请参考 [docs/OSAL_PLATFORM.md](docs/OSAL_PLATFORM.md)。
+### 添加新的配置选项
 
-### Kbuild 框架核心概念
+在相应模块的 `Kconfig` 文件中添加：
 
-#### 1. 声明式 Makefile
-
-使用声明式变量而非命令式规则：
-
-```makefile
-# ✅ 正确：声明式
-app-y := ccm_collector
-lib-y := osal
-so-y := libccm
-obj-m := driver
-
-# ❌ 错误：不要写命令式规则
-ccm_collector: main.o
-	$(CC) -o $@ $^
+```kconfig
+config MY_NEW_FEATURE
+    bool "Enable my new feature"
+    default y
+    help
+      This enables my new feature.
 ```
 
-#### 2. 复合对象
+在 `CMakeLists.txt` 中使用：
 
-使用 `xxx-objs` 定义多文件目标：
-
-```makefile
-app-y := myapp
-myapp-objs := main.o config.o logger.o utils.o
-
-lib-y := mylib
-mylib-objs := api.o internal.o platform.o
+```cmake
+if(CONFIG_MY_NEW_FEATURE)
+    add_subdirectory(my_feature)
+endif()
 ```
 
-#### 3. 条件编译
+## 构建系统（CMake）
 
-使用 Kconfig 变量控制编译：
-
-```makefile
-# 条件编译源文件
-obj-$(CONFIG_OSAL_NETWORK) += osal_socket.o
-obj-$(CONFIG_HAL_CAN) += hal_can_linux.o
-
-# 条件编译子目录
-subdir-$(CONFIG_CCM_APPS) += apps/
-
-# 条件编译库
-lib-$(CONFIG_BUILD_SHARED) := mylib
-```
-
-#### 4. Staging 头文件机制
-
-**核心特性**: 库的头文件自动安装到 `$(objtree)/include/`，应用程序无需知道库的源码路径。
-
-**库 Makefile**:
-```makefile
-lib-y := osal
-osal-objs := osal_thread.o osal_mutex.o
-
-# 声明需要导出的头文件（相对于 $(src)/include/）
-header-y := osal.h osal_types.h
-header-y += ipc/osal_mutex.h ipc/osal_semaphore.h
-header-y += sys/osal_thread.h
-
-ccflags-y += -I$(src)/include
-```
-
-**头文件目录结构**:
-```
-core/osal/
-├── include/           # 头文件源码目录
-│   ├── osal.h
-│   ├── osal_types.h
-│   ├── ipc/
-│   │   ├── osal_mutex.h
-│   │   └── osal_semaphore.h
-│   └── sys/
-│       └── osal_thread.h
-├── src/
-└── Makefile
-```
-
-**应用程序 Makefile**:
-```makefile
-app-y := myapp
-myapp-objs := main.o
-
-# 只需包含 staging 目录，自动获得所有库头文件
-ccflags-y += -I$(objtree)/include
-ccflags-y += -I$(src)/include
-```
-
-**实现位置**: `scripts/Makefile.build:471-503`
-
-#### 5. 智能库名处理
-
-自动检测库名前缀，避免重复：
-
-```makefile
-lib-y += osal        # → libosal.a
-lib-y += libosal.a   # → libosal.a（不会变成 liblibosal.a）
-
-so-y += ccm          # → libccm.so
-so-y += libccm.so    # → libccm.so
-```
-
-**实现位置**: `scripts/Makefile.build:276-278, 329-331`
-
-### 构建流程
-
-```
-1. 配置阶段
-   make menuconfig / make xxx_defconfig
-   ↓
-   生成 .config 和 include/config/auto.conf
-
-2. 准备阶段
-   创建输出目录（bin/、lib/、lib/modules/）
-   ↓
-   构建 kconfig 工具
-
-3. 构建阶段
-   递归进入子目录（core/、products/）
-   ↓
-   编译源文件 (.c → .o)
-   ↓
-   链接库文件 (.o → .a / .so)
-   ↓
-   安装头文件到 staging 目录
-   ↓
-   链接应用程序 (.o → bin/)
-
-4. 安装阶段
-   复制文件到 bin/、lib/、lib/modules/
-```
-
-### 关键文件说明
-
-#### Makefile (顶层)
-
-- 定义全局变量（CC、CFLAGS、输出目录等）
-- 实现配置目标（menuconfig、defconfig 等）
-- 定义清理目标（clean、mrproper、distclean）
-- 控制递归构建流程
-
-**重要变量**:
-```makefile
-srctree := .                    # 源码根目录
-objtree := .                    # 输出根目录（支持 O=dir）
-BIN_DIR := $(objtree)/bin       # 可执行文件目录
-LIB_DIR := $(objtree)/lib       # 库文件目录
-MODULES_DIR := $(objtree)/lib/modules  # 内核模块目录
-
-core-y := core                  # 核心模块目录
-products-y := products          # 产品模块目录
-```
-
-#### scripts/Makefile.build
-
-核心构建规则文件，处理：
-- 应用程序构建（app-y）
-- 静态库构建（lib-y）
-- 动态库构建（so-y）
-- 内核模块构建（obj-m）
-- 头文件安装（header-y）
-- 依赖跟踪（.cmd 文件）
-
-**关键规则**:
-- 第 276-278 行：静态库安装（智能前缀处理）
-- 第 329-331 行：动态库安装（智能前缀处理）
-- 第 471-503 行：Staging 头文件自动安装
-
-#### scripts/Makefile.clean
-
-清理规则文件，支持：
-- 递归清理子目录
-- 清理编译产物（.o、.a、.so、.cmd）
-- 清理 kconfig 工具（hostprogs、targets）
-- 清理 staging 头文件
-
-**清理变量**:
-```makefile
-clean-files := file1 file2      # 需要清理的文件
-clean-dirs := dir1 dir2         # 需要清理的目录
-hostprogs := conf mconf         # 主机程序（自动清理）
-targets := parser.tab.c         # 生成的目标文件（自动清理）
-subdir- := kconfig              # 需要递归清理的子目录
-```
-
-#### scripts/kconfig/Makefile
-
-Kconfig 工具构建规则：
-- 构建 conf（命令行配置工具）
-- 构建 mconf（menuconfig 图形界面）
-- 生成词法/语法分析器（lexer.lex.c、parser.tab.c）
-
-### 常用构建命令
+### CMake 构建流程
 
 ```bash
-# 配置
-make menuconfig                        # 图形化配置
-make ccm_h200_am625_debug_defconfig   # 加载预定义配置
-make savedefconfig                     # 保存最小化配置
-make PRODUCT=ccm_h200_am625_debug     # 使用 PRODUCT 变量
+# 1. 配置阶段（生成构建文件）
+cmake -B build-cmake -S .
 
-# 编译
-make                                   # 编译所有目标
-make -j$(nproc)                       # 并行编译
-make V=1                              # 详细输出
-make core                             # 只编译 core
-make products                         # 只编译 products
+# 2. 编译阶段
+cmake --build build-cmake -j$(nproc)
 
-# 安装
-make install                          # 安装所有文件到 /usr/local
-make install prefix=/usr              # 安装到 /usr
-make install DESTDIR=/tmp/install     # 安装到临时目录（用于打包）
-make install_bin                      # 只安装可执行文件
-make install_lib                      # 只安装库文件
-make install_headers                  # 只安装头文件
-
-# 清理
-make clean                            # 清理编译产物
-make mrproper                         # 深度清理（包括配置）
-make distclean                        # 完全清理
-
-# 调试
-make -n                               # 显示命令但不执行
-make --debug=v                        # 调试 Makefile
+# 3. 安装阶段（可选）
+cmake --install build-cmake --prefix /usr/local
 ```
+
+### 构建选项
+
+```bash
+# 构建类型
+cmake -B build-cmake -DCMAKE_BUILD_TYPE=Debug      # 调试版本（-O0 -g3）
+cmake -B build-cmake -DCMAKE_BUILD_TYPE=Release    # 发布版本（-O2）
+
+# 交叉编译
+cmake -B build-cmake -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc
+
+# 自定义安装路径
+cmake -B build-cmake -DCMAKE_INSTALL_PREFIX=/opt/ems
+```
+
+### Kconfig 与 CMake 集成
+
+CMake 通过 `cmake/Kconfig.cmake` 模块自动读取 `.config` 文件：
+
+1. **加载配置**: `load_kconfig("${CMAKE_SOURCE_DIR}/.config")`
+2. **设置变量**: 将 `CONFIG_XXX=y` 转换为 CMake 变量
+3. **生成头文件**: 导出到 `autoconf.h` 供 C 代码使用
+
+示例：
+```cmake
+# CMakeLists.txt
+if(CONFIG_OSAL)
+    add_subdirectory(core/osal)
+endif()
+```
+
+### 库构建规范
+
+每个库模块的 CMakeLists.txt 遵循统一模式：
+
+```cmake
+# 1. 收集源文件
+file(GLOB LIB_SRCS "src/*.c")
+
+# 2. 创建共享库
+add_library(mylib SHARED ${LIB_SRCS})
+
+# 3. 设置库版本（SONAME）
+set_target_properties(mylib PROPERTIES
+    VERSION 1.0.0
+    SOVERSION 1
+)
+
+# 4. 设置头文件路径
+target_include_directories(mylib
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
+
+# 5. 链接依赖
+target_link_libraries(mylib
+    PUBLIC
+        dependency1
+        dependency2
+)
+
+# 6. 创建静态库（可选）
+add_library(mylib_static STATIC ${LIB_SRCS})
+set_target_properties(mylib_static PROPERTIES OUTPUT_NAME mylib)
+```
+
+### 应用程序构建规范
+
+```cmake
+# 1. 收集源文件
+file(GLOB APP_SRCS "src/*.c")
+
+# 2. 创建可执行文件
+add_executable(myapp ${APP_SRCS})
+
+# 3. 链接库（只需声明直接依赖）
+target_link_libraries(myapp
+    PRIVATE
+        h200_am625
+        ccm
+)
+```
+
+**注意**: CMake 会自动处理传递依赖，应用程序只需链接直接使用的库。
 
 ## 编码规范
 
 ### C 语言规范
 
-- **标准**: ISO C90（不使用 C99/C11 特性）
+- **标准**: C99（支持 `//` 注释和现代 C 特性）
 - **风格**: Linux 内核编码风格
 - **缩进**: Tab（8 空格宽度）
 - **命名**: 小写加下划线（snake_case）
 
-### 常见问题
+### POSIX 特性宏
 
-#### ❌ 混合声明和代码
-
-```c
-// 错误：C90 不允许
-void func(void) {
-    int a = 1;
-    printf("%d\n", a);
-    int b = 2;  // ❌ 声明必须在代码块开头
-}
-
-// 正确
-void func(void) {
-    int a = 1;
-    int b = 2;
-    printf("%d\n", a);
-}
-```
-
-#### ❌ 使用 C99 特性
+项目自动定义以下宏以启用 POSIX 扩展：
 
 ```c
-// 错误：for 循环中声明变量
-for (int i = 0; i < 10; i++) { }  // ❌
-
-// 正确
-int i;
-for (i = 0; i < 10; i++) { }
+#define _POSIX_C_SOURCE 200809L
+#define _XOPEN_SOURCE 700
+#define _GNU_SOURCE
 ```
 
-### Makefile 规范
+这些宏确保可以使用 `clock_gettime`、`pthread_*` 等 POSIX 函数。
 
-```makefile
-# 1. 使用 Tab 缩进（不是空格）
-# 2. 变量赋值使用 := 或 +=
-# 3. 条件编译使用 obj-$(CONFIG_XXX)
-# 4. 头文件路径使用 ccflags-y
-# 5. 链接选项使用 ldflags-y
+### CMakeLists.txt 规范
 
-# 示例
-app-y := myapp
-myapp-objs := main.o utils.o
+```cmake
+# 1. 使用 file(GLOB) 收集源文件
+file(GLOB SRCS "src/*.c")
 
-ccflags-y += -I$(objtree)/include
-ccflags-y += -I$(src)/include
-ccflags-$(CONFIG_DEBUG) += -DDEBUG
+# 2. 使用 target_* 命令而非全局命令
+target_include_directories()  # ✅ 推荐
+target_link_libraries()       # ✅ 推荐
+include_directories()         # ❌ 避免使用
 
-ldflags-y += -lpthread
+# 3. 使用生成器表达式处理不同场景
+$<BUILD_INTERFACE:...>        # 构建时使用
+$<INSTALL_INTERFACE:...>      # 安装后使用
+
+# 4. 明确指定依赖的可见性
+PUBLIC    # 依赖会传递给使用者
+PRIVATE   # 依赖不会传递
+INTERFACE # 仅传递，自己不使用
 ```
 
 ## 常见开发任务
 
-### 添加新的应用程序
-
-1. 创建目录：`products/ccm/apps/myapp/`
-2. 创建 Makefile：
-```makefile
-app-y := myapp
-myapp-objs := main.o module1.o module2.o
-
-ccflags-y += -I$(objtree)/include
-ccflags-y += -I$(src)/include
-```
-3. 在父目录 Makefile 添加：`subdir-y += myapp`
-4. 编译测试：`make products`
-
 ### 添加新的库
 
-1. 创建目录：`core/mylib/`
-2. 创建头文件目录：`core/mylib/include/`
-3. 创建 Makefile：
-```makefile
-lib-y := mylib
-mylib-objs := api.o internal.o
-
-# 导出头文件
-header-y := mylib.h mylib_types.h
-header-y += subdir/mylib_api.h
-
-ccflags-y += -I$(src)/include
-```
-4. 在父目录 Makefile 添加：`subdir-y += mylib`
-5. 编译测试：`make core`
-
-### 添加 Kconfig 选项
-
-1. 编辑相应的 Kconfig 文件（如 `core/osal/Kconfig`）
-2. 添加配置项：
+1. 在 `core/mylib/Kconfig` 中添加配置选项：
 ```kconfig
-config OSAL_NEW_FEATURE
-    bool "Enable new OSAL feature"
+config MYLIB
+    bool "Enable MyLib"
     default y
     help
-      This enables the new OSAL feature.
+      My new library.
 ```
-3. 在 Makefile 中使用：
-```makefile
-obj-$(CONFIG_OSAL_NEW_FEATURE) += new_feature.o
+
+2. 在 `core/Kconfig` 中引用：
+```kconfig
+source "core/mylib/Kconfig"
 ```
-4. 运行 `make menuconfig` 验证
+
+3. 创建 `core/mylib/CMakeLists.txt`：
+```cmake
+file(GLOB MYLIB_SRCS "src/*.c")
+
+add_library(mylib SHARED ${MYLIB_SRCS})
+
+set_target_properties(mylib PROPERTIES
+    VERSION 1.0.0
+    SOVERSION 1
+)
+
+target_include_directories(mylib
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
+
+target_link_libraries(mylib
+    PUBLIC
+        osal
+)
+```
+
+4. 在 `core/CMakeLists.txt` 中添加：
+```cmake
+if(CONFIG_MYLIB)
+    add_subdirectory(mylib)
+endif()
+```
+
+5. 配置并编译：
+```bash
+make menuconfig  # 启用 MYLIB
+cmake -B build-cmake
+cmake --build build-cmake
+```
+
+### 添加新的应用程序
+
+1. 创建 `products/ccm/apps/myapp/CMakeLists.txt`：
+```cmake
+file(GLOB MYAPP_SRCS "src/*.c")
+
+add_executable(myapp ${MYAPP_SRCS})
+
+target_link_libraries(myapp
+    PRIVATE
+        h200_am625
+        ccm
+)
+```
+
+2. 在父目录 `CMakeLists.txt` 中添加：
+```cmake
+add_subdirectory(apps/myapp)
+```
+
+3. 编译：
+```bash
+cmake --build build-cmake
+```
+
+### 功能裁剪
+
+通过 Kconfig 配置实现功能裁剪：
+
+```bash
+# 1. 进入配置界面
+make menuconfig
+
+# 2. 关闭不需要的模块
+#    [ ] HAL (Hardware Abstraction Layer)
+#    [ ] PCL (Protocol Control Layer)
+
+# 3. 重新生成构建文件
+cmake -B build-cmake
+
+# 4. 编译（只编译启用的模块）
+cmake --build build-cmake
+```
 
 ### 调试构建问题
 
 ```bash
 # 1. 查看详细构建过程
-make V=1
+cmake --build build-cmake --verbose
 
-# 2. 查看 Make 变量
-make -p | grep "^app-y"
+# 2. 清理并重新构建
+rm -rf build-cmake
+make menuconfig
+cmake -B build-cmake
+cmake --build build-cmake
 
-# 3. 检查依赖文件
-cat core/osal/.osal_thread.o.cmd
+# 3. 查看 CMake 变量
+cmake -B build-cmake -LAH
 
-# 4. 清理后重新构建
-make mrproper
-make ccm_h200_am625_debug_defconfig
-make -j$(nproc)
-
-# 5. 检查配置
-cat .config | grep CONFIG_OSAL
+# 4. 查看 Kconfig 配置
+cat .config | grep CONFIG_
 ```
 
 ## 重要注意事项
 
+### 配置系统
+
+1. **先配置后构建**: 必须先运行 `make menuconfig` 生成 `.config`
+2. **配置文件**: `.config` 不提交到 git，使用 `configs/*.defconfig` 管理
+3. **配置变更**: 修改 `.config` 后需要重新运行 `cmake -B build-cmake`
+
 ### 构建系统
 
-1. **不要修改 scripts/ 下的核心文件**，除非你完全理解 Kbuild 机制
-2. **始终使用声明式语法**，不要在子目录 Makefile 中写命令式规则
-3. **头文件必须放在 include/ 子目录**，并通过 header-y 声明
-4. **应用程序只能使用 staging 头文件**，不要硬编码源码路径
-5. **库名可以带或不带 lib 前缀**，构建系统会自动处理
+1. **不要手动修改 build-cmake/ 目录**，这是自动生成的
+2. **使用 target_* 命令**，避免全局命令（如 `include_directories`）
+3. **头文件统一放在 include/ 目录**，通过 `${CMAKE_SOURCE_DIR}/include` 引用
+4. **库名自动添加 lib 前缀**，不需要手动指定
 
 ### 依赖关系
 
-1. **Products 必须依赖 Core**，在顶层 Makefile 中声明 `products/: core/`
-2. **应用程序必须在库之后构建**，通过目录顺序控制
+1. **只声明直接依赖**，CMake 会自动处理传递依赖
+2. **使用 PUBLIC/PRIVATE/INTERFACE** 明确依赖的可见性
 3. **不要创建循环依赖**，Core 模块之间也要注意依赖顺序
 
 ### 清理机制
 
-1. **make clean**: 清理编译产物，保留配置
-2. **make mrproper**: 深度清理，删除配置和 kconfig 工具
-3. **make distclean**: 完全清理，包括编辑器备份文件
+```bash
+# 清理构建产物
+rm -rf build-cmake
+
+# 清理配置文件
+make clean
+
+# 完全清理
+rm -rf build-cmake .config include/config include/generated
+```
 
 ### Git 工作流
 
-1. **当前分支**: `feature/kconfig-integration`
+1. **当前分支**: `feature/cmake-build-system`
 2. **主分支**: `master`
-3. **提交前检查**: 确保 `make mrproper && make ccm_h200_am625_debug_defconfig && make -j$(nproc)` 成功
-
-## 最近的改进
-
-### 2026-05-21 改进记录
-
-1. **Staging 头文件机制** (High Priority)
-   - 自动安装库头文件到 `$(objtree)/include/`
-   - 简化应用程序 Makefile（减少 35 行硬编码路径）
-   - 支持外部构建和 Buildroot/Yocto 集成
-
-2. **库名前缀智能处理** (Medium Priority)
-   - 避免 `lib-y += libosal.a` 变成 `liblibosal.a`
-   - 自动检测并保持正确的库名
-
-3. **PRODUCT 变量支持** (Low Priority)
-   - `make PRODUCT=ccm` 自动加载配置
-   - 简化 CI/CD 流程
-
-4. **Kconfig 清理机制优化**
-   - 参考 Linux 内核实现
-   - 支持 hostprogs、targets、subdir- 变量
-   - 正确清理 kconfig 工具和生成文件
-
-5. **目录结构标准化**
-   - 内核模块从 `ko/` 移到 `lib/modules/`
-   - 符合 Linux 标准目录布局
-
-6. **清理输出格式修复**
-   - 修复双斜杠问题（`core//acl` → `core/acl`）
-   - 消除重复目标定义警告
+3. **提交前检查**: 确保 `make menuconfig && cmake -B build-cmake && cmake --build build-cmake` 成功
 
 ## 参考文档
 
-- [构建系统详解](docs/BUILD_SYSTEM.md)
-- [构建指南](docs/BUILD_GUIDE.md)
+- [CMake 构建指南](docs/CMAKE_BUILD_GUIDE.md)
+- [CMake Kconfig 集成](docs/CMAKE_KCONFIG_INTEGRATION.md)
 - [架构设计](docs/ARCHITECTURE.md)
-- [平台配置指南](docs/PLATFORM.md)
-- [OSAL 平台适配](docs/OSAL_PLATFORM.md)
-- [Staging 目录说明](docs/STAGING_DIRECTORY.md)
-- [Makefile 框架](docs/MAKEFILE_FRAMEWORK.md)
-- [配置文件指南](docs/DEFCONFIG_GUIDE.md)
 - [安装指南](docs/INSTALL.md)
 - [编码规范](docs/CODING_STANDARDS.md)
 
@@ -641,15 +460,14 @@ cat .config | grep CONFIG_OSAL
 
 | 问题 | 解决方案 |
 |------|---------|
-| 找不到头文件 | 检查 header-y 声明和 ccflags-y 设置 |
-| 库名重复前缀 | 已修复，可以使用任意格式 |
-| 清理不完全 | 使用 `make mrproper` |
-| 配置不生效 | 重新运行 `make menuconfig` 并保存 |
-| 并行构建失败 | 检查依赖关系声明 |
-| 双斜杠路径 | 已修复，确保使用最新代码 |
+| 找不到 CONFIG_XXX 变量 | 运行 `make menuconfig` 生成 `.config` |
+| 找不到头文件 | 检查 `target_include_directories` 设置 |
+| 链接错误 | 检查 `target_link_libraries` 依赖声明 |
+| 配置不生效 | 删除 `build-cmake/` 重新配置 |
+| menuconfig 无法运行 | 安装依赖：`sudo apt install libncurses-dev flex bison` |
 
 ---
 
-**最后更新**: 2026-05-22
+**最后更新**: 2026-05-27
 **维护者**: wanguo
-**分支**: master
+**分支**: feature/cmake-build-system
