@@ -16,16 +16,16 @@
 ### 场景 1：x86_64 本地开发
 
 ```bash
-# 1. 加载配置
-make x86_64_full_defconfig
+# 方法 1：一键配置+编译（推荐）
+cmake -B build-cmake -DDEFCONFIG=x86_64_full && cmake --build build-cmake -j$(nproc)
 
-# 2. 生成构建文件
-cmake -B build-cmake
-
-# 3. 编译
+# 方法 2：分步操作
+# 1. 配置
+cmake -B build-cmake -DDEFCONFIG=x86_64_full
+# 2. 编译
 cmake --build build-cmake -j$(nproc)
 
-# 4. 运行
+# 运行
 ./build-cmake/bin/ccm_collector
 ```
 
@@ -35,11 +35,8 @@ cmake --build build-cmake -j$(nproc)
 # 1. 安装交叉编译工具链
 sudo apt-get install gcc-aarch64-linux-gnu
 
-# 2. 加载最小化配置
-make arm64_minimal_defconfig
-
-# 3. 生成构建文件
-cmake -B build-cmake
+# 2. 配置+编译
+cmake -B build-cmake -DDEFCONFIG=arm64_minimal
 
 # 4. 编译
 cmake --build build-cmake -j$(nproc)
@@ -63,8 +60,8 @@ make menuconfig
 make savedefconfig
 cp defconfig configs/my_custom_defconfig
 
-# 4. 构建
-cmake -B build-cmake
+# 4. 使用自定义配置构建
+cmake -B build-cmake -DDEFCONFIG=my_custom
 cmake --build build-cmake -j$(nproc)
 ```
 
@@ -76,11 +73,16 @@ cmake --build build-cmake -j$(nproc)
 # 查看可用配置
 ls configs/*_defconfig
 
-# 加载指定配置
-make <config_name>_defconfig
+# 使用 CMake 加载配置（推荐）
+cmake -B build-cmake -DDEFCONFIG=x86_64_full
+
+# 或使用 make 加载配置
+make x86_64_full_defconfig
+cmake -B build-cmake
 
 # 交互式配置（menuconfig）
 make menuconfig
+cmake -B build-cmake
 
 # 保存当前配置
 make savedefconfig
@@ -187,8 +189,10 @@ diff configs/x86_64_full_defconfig configs/x86_64_minimal_defconfig
 ### 3. 验证配置
 
 ```bash
-# 加载配置后验证
-make x86_64_full_defconfig
+# 使用 CMake 加载配置
+cmake -B build-cmake -DDEFCONFIG=x86_64_full
+
+# 验证配置项
 grep "CONFIG_OSAL=y" .config && echo "✅ OSAL enabled" || echo "❌ OSAL disabled"
 grep "CONFIG_HAL=y" .config && echo "✅ HAL enabled" || echo "❌ HAL disabled"
 ```
@@ -198,11 +202,11 @@ grep "CONFIG_HAL=y" .config && echo "✅ HAL enabled" || echo "❌ HAL disabled"
 ```bash
 # 测试所有配置是否能编译
 for config in configs/*_defconfig; do
-    echo "Testing $(basename $config)..."
-    make clean
-    make $(basename $config)
-    cmake -B build-cmake
-    cmake --build build-cmake -j$(nproc) || echo "❌ Failed: $config"
+    name=$(basename $config _defconfig)
+    echo "Testing $name..."
+    rm -rf build-cmake .config
+    cmake -B build-cmake -DDEFCONFIG=$name && \
+    cmake --build build-cmake -j$(nproc) || echo "❌ Failed: $name"
 done
 ```
 
@@ -212,10 +216,8 @@ done
 
 ```bash
 # 解决方案：清理并重新配置
-make clean
 rm -rf build-cmake .config
-make x86_64_full_defconfig
-cmake -B build-cmake
+cmake -B build-cmake -DDEFCONFIG=x86_64_full
 ```
 
 ### 问题：找不到交叉编译工具链
@@ -235,9 +237,9 @@ aarch64-linux-gnu-gcc --version
 cat .config | grep CONFIG_HAL
 cat .config | grep CONFIG_OSAL
 
-# 重新加载配置
-make x86_64_full_defconfig
-cmake -B build-cmake
+# 重新配置
+cmake -B build-cmake -DDEFCONFIG=x86_64_full
+cmake --build build-cmake
 ```
 
 ## 📚 相关文档

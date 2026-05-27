@@ -11,6 +11,8 @@
 function(apply_defconfig DEFCONFIG_NAME)
     set(DEFCONFIG_FILE "${CMAKE_SOURCE_DIR}/configs/${DEFCONFIG_NAME}_defconfig")
     set(CONFIG_FILE "${CMAKE_SOURCE_DIR}/.config")
+    set(KCONFIG_FILE "${CMAKE_SOURCE_DIR}/Kconfig")
+    set(CONF_TOOL "${CMAKE_SOURCE_DIR}/scripts/kconfig/conf")
 
     if(NOT EXISTS "${DEFCONFIG_FILE}")
         message(FATAL_ERROR
@@ -30,11 +32,35 @@ function(apply_defconfig DEFCONFIG_NAME)
 
     message(STATUS "Applying defconfig: ${DEFCONFIG_NAME}")
 
-    # 复制 defconfig 到 .config
-    file(COPY "${DEFCONFIG_FILE}" DESTINATION "${CMAKE_SOURCE_DIR}")
-    file(RENAME "${CMAKE_SOURCE_DIR}/${DEFCONFIG_NAME}_defconfig" "${CONFIG_FILE}")
+    # 构建 conf 工具（如果不存在）
+    if(NOT EXISTS "${CONF_TOOL}")
+        message(STATUS "Building Kconfig conf tool...")
+        execute_process(
+            COMMAND make -C "${CMAKE_SOURCE_DIR}/scripts/kconfig" conf
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+            RESULT_VARIABLE CONF_BUILD_RESULT
+            OUTPUT_QUIET
+            ERROR_QUIET
+        )
+        if(NOT CONF_BUILD_RESULT EQUAL 0)
+            message(FATAL_ERROR "Failed to build Kconfig conf tool")
+        endif()
+    endif()
 
-    message(STATUS "Generated .config from ${DEFCONFIG_NAME}_defconfig")
+    # 使用 conf 工具处理 defconfig，生成完整的 .config
+    execute_process(
+        COMMAND "${CONF_TOOL}" --defconfig ${DEFCONFIG_FILE} "${KCONFIG_FILE}"
+        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+        RESULT_VARIABLE CONF_RESULT
+        OUTPUT_VARIABLE CONF_OUTPUT
+        ERROR_VARIABLE CONF_ERROR
+    )
+
+    if(NOT CONF_RESULT EQUAL 0)
+        message(FATAL_ERROR "Failed to apply defconfig: ${DEFCONFIG_NAME}\nOutput: ${CONF_OUTPUT}\nError: ${CONF_ERROR}")
+    endif()
+
+    message(STATUS "Generated .config from ${DEFCONFIG_NAME}_defconfig (with all defaults)")
 endfunction()
 
 # 函数：读取并解析 .config 文件
