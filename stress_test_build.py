@@ -24,15 +24,17 @@ def get_products_and_configs():
 def distclean_product(product):
     """清理产品构建目录"""
     root_dir = Path(__file__).parent
-    product_dir = root_dir / "products" / product
-    project_script = product_dir / "project.py"
 
-    if not project_script.exists():
-        return False
+    # 使用 build.py --clean
+    clean_cmd = [
+        "python3", "build.py",
+        "--product", product,
+        "--clean"
+    ]
 
     result = subprocess.run(
-        ["python3", str(project_script), "distclean"],
-        cwd=product_dir,
+        clean_cmd,
+        cwd=root_dir,
         capture_output=True,
         text=True
     )
@@ -45,8 +47,7 @@ def build_product(product, config):
     build_cmd = [
         "python3", "build.py",
         "--product", product,
-        "--config", config,
-        "--clean"
+        "--config", config
     ]
 
     result = subprocess.run(

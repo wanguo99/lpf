@@ -73,6 +73,18 @@ def build(product, config=None, build_dir="build", clean=False, jobs=None):
     root_dir = Path(__file__).parent
     product_dir = root_dir / "products" / product
 
+    # 如果只是清理，执行清理后返回
+    if clean:
+        product_build = product_dir / "build"
+        if product_build.exists():
+            print(f"Cleaning build directory: {product_build}")
+            import shutil
+            shutil.rmtree(product_build)
+            print("Clean complete.")
+        else:
+            print(f"Build directory does not exist: {product_build}")
+        return True
+
     # 如果指定了配置，复制配置文件
     if config:
         config_file = product_dir / "configs" / f"{config}_defconfig"
@@ -84,14 +96,6 @@ def build(product, config=None, build_dir="build", clean=False, jobs=None):
         print(f"Loading config: {config}")
         import shutil
         shutil.copy(config_file, target_config)
-
-    # 清理
-    if clean:
-        product_build = product_dir / "build"
-        if product_build.exists():
-            print(f"Cleaning build directory: {product_build}")
-            import shutil
-            shutil.rmtree(product_build)
 
     # 调用产品的 project.py
     project_script = product_dir / "project.py"
@@ -150,14 +154,14 @@ Examples:
   # Open menuconfig for a product
   python3 build.py --product ccm --menuconfig
 
-  # Build with default config
-  python3 build.py --product ccm
-
   # Build with specific config
   python3 build.py --product ccm --config h200_100p_v1
 
-  # Clean build
-  python3 build.py --product ccm --config h200_200p --clean
+  # Clean build directory (without building)
+  python3 build.py --product ccm --clean
+
+  # Build with default config (uses existing .config.mk)
+  python3 build.py --product ccm
         """
     )
 
@@ -172,7 +176,7 @@ Examples:
     parser.add_argument("--build-dir", "-b", type=str, default="build",
                         help="Build directory (default: build)")
     parser.add_argument("--clean", action="store_true",
-                        help="Clean before build")
+                        help="Clean build directory only (do not build)")
     parser.add_argument("--jobs", "-j", type=int,
                         help="Number of parallel jobs")
 
