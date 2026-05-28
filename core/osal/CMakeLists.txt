@@ -8,8 +8,7 @@
 # ============================================================================
 # Common source files (always included)
 # ============================================================================
-file(GLOB COMMON_SRCS "src/common/*.c")
-list(APPEND ADD_SRCS ${COMMON_SRCS})
+list(APPEND ADD_SRCS "src/common/osal_version.c")
 
 # ============================================================================
 # Platform-specific source files
