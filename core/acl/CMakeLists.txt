@@ -10,7 +10,6 @@ endif()
 # ACL 源文件
 list(APPEND ADD_SRCS
     "src/acl_api.c"
-    "src/acl_api_v2.c"
     "src/acl_telemetry_cache.c"
 )
 
