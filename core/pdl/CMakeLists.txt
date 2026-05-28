@@ -3,9 +3,6 @@
 ###############################################
 
 ############## Add source files ###############
-# PDL 核心源文件
-list(APPEND ADD_SRCS "src/pdl_watchdog.c")
-
 # 根据配置添加子模块源文件
 if(CONFIG_PDL_SATELLITE_SUPPORT)
     file(GLOB PDL_SATELLITE_SRCS "src/pdl_satellite/*.c")
@@ -20,6 +17,11 @@ endif()
 if(CONFIG_PDL_MCU_SUPPORT)
     file(GLOB PDL_MCU_SRCS "src/pdl_mcu/*.c")
     list(APPEND ADD_SRCS ${PDL_MCU_SRCS})
+endif()
+
+if(CONFIG_PDL_WATCHDOG_SUPPORT)
+    file(GLOB PDL_WATCHDOG_SRCS "src/pdl_watchdog/*.c")
+    list(APPEND ADD_SRCS ${PDL_WATCHDOG_SRCS})
 endif()
 ###############################################
 
