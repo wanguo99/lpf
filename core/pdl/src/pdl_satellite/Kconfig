@@ -6,14 +6,14 @@ menu "Satellite Driver Configuration"
 
 config PDL_SATELLITE
 	bool "Satellite core driver"
-	default y
+	default n
 	help
 	  Enable satellite core driver functions.
 	  Source: src/pdl_satellite/pdl_satellite.c
 
 config PDL_SATELLITE_CAN
 	bool "Satellite CAN transport"
-	default y
+	default n
 	depends on HAL_CAN
 	help
 	  Enable satellite CAN bus transport.

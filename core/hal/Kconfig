@@ -18,7 +18,7 @@ menu "Platform Configuration"
 
 config PLATFORM_GENERIC_LINUX
 	bool "Generic Linux platform"
-	default y
+	default n
 	depends on OS_LINUX
 	help
 	  Enable generic Linux platform support.
@@ -34,7 +34,7 @@ menu "Build Configuration"
 
 config HAL_BUILD_STATIC
 	bool "Build static library"
-	default y
+	default n
 	help
 	  Build libhal.a static library.
 
@@ -54,37 +54,37 @@ menu "Driver Configuration"
 
 menuconfig HAL_CAN
 	bool "CAN bus support"
-	default y
+	default n
 	help
 	  Enable CAN bus driver.
 
 menuconfig HAL_UART
 	bool "UART support"
-	default y
+	default n
 	help
 	  Enable UART/serial driver.
 
 menuconfig HAL_I2C
 	bool "I2C support"
-	default y
+	default n
 	help
 	  Enable I2C bus driver.
 
 menuconfig HAL_SPI
 	bool "SPI support"
-	default y
+	default n
 	help
 	  Enable SPI bus driver.
 
 menuconfig HAL_GPIO
 	bool "GPIO support"
-	default y
+	default n
 	help
 	  Enable GPIO driver.
 
 menuconfig HAL_WATCHDOG
 	bool "Watchdog support"
-	default y
+	default n
 	help
 	  Enable watchdog timer driver.
 

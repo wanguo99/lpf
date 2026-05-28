@@ -14,28 +14,28 @@ if OSAL_IPC
 
 config OSAL_IPC_ATOMIC
 	bool "Atomic operations"
-	default y
+	default n
 	help
 	  Enable atomic operations support.
 	  Source: src/posix/ipc/osal_atomic.c
 
 config OSAL_IPC_MUTEX
 	bool "Mutex support"
-	default y
+	default n
 	help
 	  Enable mutex (mutual exclusion) support.
 	  Source: src/posix/ipc/osal_mutex.c
 
 config OSAL_IPC_SEMAPHORE
 	bool "Semaphore support"
-	default y
+	default n
 	help
 	  Enable semaphore support.
 	  Source: src/posix/ipc/osal_semaphore.c
 
 config OSAL_IPC_COND
 	bool "Condition variable support"
-	default y
+	default n
 	depends on OSAL_IPC_MUTEX
 	help
 	  Enable condition variable support.
@@ -44,14 +44,14 @@ config OSAL_IPC_COND
 
 config OSAL_IPC_SHM
 	bool "Shared memory support"
-	default y
+	default n
 	help
 	  Enable shared memory support.
 	  Source: src/posix/ipc/osal_shm.c
 
 config OSAL_IPC_SHM_CACHE
 	bool "Shared memory cache"
-	default y
+	default n
 	depends on OSAL_IPC_SHM
 	help
 	  Enable shared memory cache optimization.
@@ -68,28 +68,28 @@ menu "Library Functions"
 
 config OSAL_LIB_ERRNO
 	bool "Error number handling"
-	default y
+	default n
 	help
 	  Enable errno operations.
 	  Source: src/posix/lib/osal_errno.c
 
 config OSAL_LIB_HEAP
 	bool "Heap memory management"
-	default y
+	default n
 	help
 	  Enable heap memory operations (malloc/free wrappers).
 	  Source: src/posix/lib/osal_heap.c
 
 config OSAL_LIB_STDIO
 	bool "Standard I/O"
-	default y
+	default n
 	help
 	  Enable standard I/O operations (printf wrappers).
 	  Source: src/posix/lib/osal_stdio.c
 
 config OSAL_LIB_STRING
 	bool "String operations"
-	default y
+	default n
 	help
 	  Enable string operations (safe string functions).
 	  Source: src/posix/lib/osal_string.c
@@ -104,42 +104,42 @@ if OSAL_FILE
 
 config OSAL_SYS_CLOCK
 	bool "Clock operations"
-	default y
+	default n
 	help
 	  Enable clock operations (clock_gettime, etc).
 	  Source: src/posix/sys/osal_clock.c
 
 config OSAL_SYS_ENV
 	bool "Environment variables"
-	default y
+	default n
 	help
 	  Enable environment variable operations.
 	  Source: src/posix/sys/osal_env.c
 
 config OSAL_SYS_FILE
 	bool "File operations"
-	default y
+	default n
 	help
 	  Enable file I/O operations.
 	  Source: src/posix/sys/osal_file.c
 
 config OSAL_SYS_PROCESS
 	bool "Process management"
-	default y
+	default n
 	help
 	  Enable process management (fork, exec, etc).
 	  Source: src/posix/sys/osal_process.c
 
 config OSAL_SYS_SCHED
 	bool "Scheduler operations"
-	default y
+	default n
 	help
 	  Enable scheduler operations (priority, affinity).
 	  Source: src/posix/sys/osal_sched.c
 
 config OSAL_SYS_SELECT
 	bool "Select/poll operations"
-	default y
+	default n
 	help
 	  Enable select/poll I/O multiplexing.
 	  Source: src/posix/sys/osal_select.c
@@ -154,14 +154,14 @@ if OSAL_THREAD
 
 config OSAL_SYS_THREAD
 	bool "Thread operations"
-	default y
+	default n
 	help
 	  Enable thread creation and management.
 	  Source: src/posix/sys/osal_thread.c
 
 config OSAL_SYS_TIME
 	bool "Time operations"
-	default y
+	default n
 	help
 	  Enable time operations (sleep, delay, etc).
 	  Source: src/posix/sys/osal_time.c
@@ -176,7 +176,7 @@ if OSAL_SIGNAL
 
 config OSAL_SYS_SIGNAL
 	bool "Signal handling"
-	default y
+	default n
 	help
 	  Enable signal handling operations.
 	  Source: src/posix/sys/osal_signal.c
@@ -191,14 +191,14 @@ if OSAL_NETWORK
 
 config OSAL_NET_SOCKET
 	bool "Socket operations"
-	default y
+	default n
 	help
 	  Enable socket operations (TCP/UDP).
 	  Source: src/posix/net/osal_socket.c
 
 config OSAL_NET_TERMIOS
 	bool "Terminal I/O (termios)"
-	default y
+	default n
 	help
 	  Enable terminal I/O control.
 	  Source: src/posix/net/osal_termios.c
@@ -213,14 +213,14 @@ menu "Utility Functions"
 
 config OSAL_UTIL_LOG
 	bool "Logging support"
-	default y
+	default n
 	help
 	  Enable logging utilities.
 	  Source: src/posix/util/osal_log.c
 
 config OSAL_UTIL_VERSION
 	bool "Version information"
-	default y
+	default n
 	help
 	  Enable version information.
 	  Source: src/posix/util/osal_version.c

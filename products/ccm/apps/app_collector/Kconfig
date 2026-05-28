@@ -1,6 +1,6 @@
 config APP_COLLECTOR
     bool "Enable CCM Collector Application"
-    default y
+    default n
     select OSAL
     select HAL
     select PCL

@@ -1,6 +1,6 @@
 config APP_LOGGER
     bool "Enable CCM Logger Application"
-    default y
+    default n
     select OSAL
     select HAL
     select PCL

@@ -17,7 +17,7 @@ menu "PCL Build Configuration"
 
 config PCL_BUILD_STATIC
 	bool "Build static library (.a)"
-	default y
+	default n
 	help
 	  Build PCL as a static library (libpcl.a).
 

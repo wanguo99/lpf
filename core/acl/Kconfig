@@ -17,7 +17,7 @@ menu "ACL Build Configuration"
 
 config ACL_BUILD_STATIC
 	bool "Build static library (.a)"
-	default y
+	default n
 	help
 	  Build ACL as a static library (libacl.a).
 

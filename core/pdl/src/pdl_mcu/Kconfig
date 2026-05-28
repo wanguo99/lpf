@@ -6,14 +6,14 @@ menu "MCU Driver Configuration"
 
 config PDL_MCU
 	bool "MCU core driver"
-	default y
+	default n
 	help
 	  Enable MCU core driver functions.
 	  Source: src/pdl_mcu/pdl_mcu.c
 
 config PDL_MCU_CAN
 	bool "MCU CAN transport"
-	default y
+	default n
 	depends on HAL_CAN
 	help
 	  Enable MCU CAN bus transport.
@@ -21,7 +21,7 @@ config PDL_MCU_CAN
 
 config PDL_MCU_SERIAL
 	bool "MCU serial transport"
-	default y
+	default n
 	depends on HAL_UART
 	help
 	  Enable MCU serial (UART) transport.
@@ -29,7 +29,7 @@ config PDL_MCU_SERIAL
 
 config PDL_MCU_PROTOCOL
 	bool "MCU protocol handler"
-	default y
+	default n
 	help
 	  Enable MCU communication protocol handler.
 	  Source: src/pdl_mcu/pdl_mcu_protocol.c

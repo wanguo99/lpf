@@ -1,6 +1,6 @@
 config APP_COMM
     bool "Enable CCM Communication Application"
-    default y
+    default n
     select OSAL
     select HAL
     select PCL

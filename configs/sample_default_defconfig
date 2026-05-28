@@ -1,7 +1,6 @@
 # Sample Product Default Configuration
 
 # 产品选择
-CONFIG_PRODUCT_CCM=n
 CONFIG_PRODUCT_SAMPLE=y
 
 # 启用的应用
@@ -10,9 +9,6 @@ CONFIG_APP_DEMO=y
 # SDK 组件
 CONFIG_OSAL=y
 CONFIG_HAL=y
-CONFIG_PCL=n
-CONFIG_PDL=n
-CONFIG_ACL=n
 
 # 平台配置
 CONFIG_OS_LINUX=y

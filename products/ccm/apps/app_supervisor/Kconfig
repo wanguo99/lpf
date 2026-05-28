@@ -1,6 +1,6 @@
 config APP_SUPERVISOR
     bool "Enable CCM Supervisor Application"
-    default y
+    default n
     select OSAL
     select HAL
     select PCL
