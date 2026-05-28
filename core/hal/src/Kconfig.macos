@@ -1,0 +1,99 @@
+# ============================================================================
+# HAL macOS Platform Configuration
+# ============================================================================
+# Fine-grained per-driver configuration for macOS platform
+# ============================================================================
+
+if OS_MACOS
+
+# ============================================================================
+# CAN Bus Driver
+# ============================================================================
+
+if HAL_CAN
+
+config HAL_CAN_MACOS
+	bool "macOS CAN driver (stub)"
+	default y
+	help
+	  Enable macOS CAN driver stub.
+	  Source: src/macos/hal_can_macos.c
+
+endif # HAL_CAN
+
+# ============================================================================
+# GPIO Driver
+# ============================================================================
+
+if HAL_GPIO
+
+config HAL_GPIO_MACOS
+	bool "macOS GPIO driver (stub)"
+	default y
+	help
+	  Enable macOS GPIO driver stub.
+	  Source: src/macos/hal_gpio_macos.c
+
+endif # HAL_GPIO
+
+# ============================================================================
+# I2C Driver
+# ============================================================================
+
+if HAL_I2C
+
+config HAL_I2C_MACOS
+	bool "macOS I2C driver (stub)"
+	default y
+	help
+	  Enable macOS I2C driver stub.
+	  Source: src/macos/hal_i2c_macos.c
+
+endif # HAL_I2C
+
+# ============================================================================
+# SPI Driver
+# ============================================================================
+
+if HAL_SPI
+
+config HAL_SPI_MACOS
+	bool "macOS SPI driver (stub)"
+	default y
+	help
+	  Enable macOS SPI driver stub.
+	  Source: src/macos/hal_spi_macos.c
+
+endif # HAL_SPI
+
+# ============================================================================
+# UART Driver
+# ============================================================================
+
+if HAL_UART
+
+config HAL_UART_MACOS
+	bool "macOS serial driver"
+	default y
+	help
+	  Enable macOS serial driver.
+	  Source: src/macos/hal_serial_macos.c
+
+endif # HAL_UART
+
+# ============================================================================
+# Watchdog Driver
+# ============================================================================
+
+if HAL_WATCHDOG
+
+config HAL_WATCHDOG_MACOS
+	bool "macOS watchdog driver (stub)"
+	default y
+	help
+	  Enable macOS watchdog driver stub.
+	  Source: src/macos/hal_watchdog_macos.c
+
+endif # HAL_WATCHDOG
+
+endif # OS_MACOS

@@ -1,40 +1,153 @@
 ################# Add include #################
-list(APPEND ADD_INCLUDE "include"
-    )
-# 为了兼容旧的 #include "osal/xxx.h" 路径
+list(APPEND ADD_INCLUDE "include")
+# 兼容 #include "osal/xxx.h" 路径
 get_filename_component(PARENT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" DIRECTORY)
 list(APPEND ADD_INCLUDE "${PARENT_DIR}")
 ###############################################
 
 ############## Add source files ###############
-# 根据 Kconfig 配置选择不同平台的源文件
-if(CONFIG_OS_LINUX OR CONFIG_OS_MACOS)
-    # POSIX 平台源文件
-    file(GLOB_RECURSE POSIX_SRCS "src/posix/*.c")
-    list(APPEND ADD_SRCS ${POSIX_SRCS})
-elseif(CONFIG_OS_WINDOWS)
-    # Windows 平台源文件
-    file(GLOB_RECURSE WIN32_SRCS "src/win32/*.c")
-    list(APPEND ADD_SRCS ${WIN32_SRCS})
-elseif(CONFIG_OS_RTOS)
-    # RTOS 平台源文件
-    file(GLOB_RECURSE RTOS_SRCS "src/rtos/*.c")
-    list(APPEND ADD_SRCS ${RTOS_SRCS})
-elseif(CONFIG_OS_BARE)
-    # Bare metal 平台源文件
-    file(GLOB_RECURSE BARE_SRCS "src/bare/*.c")
-    list(APPEND ADD_SRCS ${BARE_SRCS})
-endif()
+# 根据 Kconfig 配置精确添加源文件
 
-# 通用源文件
+# ============================================================================
+# Common source files (always included)
+# ============================================================================
 file(GLOB COMMON_SRCS "src/common/*.c")
 list(APPEND ADD_SRCS ${COMMON_SRCS})
+
+# ============================================================================
+# Platform-specific source files
+# ============================================================================
+
+if(CONFIG_OSAL_OS_POSIX)
+    # POSIX platform (Linux/macOS)
+
+    # IPC module
+    if(CONFIG_OSAL_IPC_ATOMIC)
+        list(APPEND ADD_SRCS "src/posix/ipc/osal_atomic.c")
+    endif()
+
+    if(CONFIG_OSAL_IPC_MUTEX)
+        list(APPEND ADD_SRCS "src/posix/ipc/osal_mutex.c")
+    endif()
+
+    if(CONFIG_OSAL_IPC_SEMAPHORE)
+        list(APPEND ADD_SRCS "src/posix/ipc/osal_semaphore.c")
+    endif()
+
+    if(CONFIG_OSAL_IPC_COND)
+        list(APPEND ADD_SRCS "src/posix/ipc/osal_cond.c")
+    endif()
+
+    if(CONFIG_OSAL_IPC_SHM)
+        list(APPEND ADD_SRCS "src/posix/ipc/osal_shm.c")
+    endif()
+
+    if(CONFIG_OSAL_IPC_SHM_CACHE)
+        list(APPEND ADD_SRCS "src/posix/ipc/osal_shm_cache.c")
+    endif()
+
+    # Library functions
+    if(CONFIG_OSAL_LIB_ERRNO)
+        list(APPEND ADD_SRCS "src/posix/lib/osal_errno.c")
+    endif()
+
+    if(CONFIG_OSAL_LIB_HEAP)
+        list(APPEND ADD_SRCS "src/posix/lib/osal_heap.c")
+    endif()
+
+    if(CONFIG_OSAL_LIB_STDIO)
+        list(APPEND ADD_SRCS "src/posix/lib/osal_stdio.c")
+    endif()
+
+    if(CONFIG_OSAL_LIB_STRING)
+        list(APPEND ADD_SRCS "src/posix/lib/osal_string.c")
+    endif()
+
+    # System operations
+    if(CONFIG_OSAL_SYS_CLOCK)
+        list(APPEND ADD_SRCS "src/posix/sys/osal_clock.c")
+    endif()
+
+    if(CONFIG_OSAL_SYS_ENV)
+        list(APPEND ADD_SRCS "src/posix/sys/osal_env.c")
+    endif()
+
+    if(CONFIG_OSAL_SYS_FILE)
+        list(APPEND ADD_SRCS "src/posix/sys/osal_file.c")
+    endif()
+
+    if(CONFIG_OSAL_SYS_PROCESS)
+        list(APPEND ADD_SRCS "src/posix/sys/osal_process.c")
+    endif()
+
+    if(CONFIG_OSAL_SYS_SCHED)
+        list(APPEND ADD_SRCS "src/posix/sys/osal_sched.c")
+    endif()
+
+    if(CONFIG_OSAL_SYS_SELECT)
+        list(APPEND ADD_SRCS "src/posix/sys/osal_select.c")
+    endif()
+
+    if(CONFIG_OSAL_SYS_SIGNAL)
+        list(APPEND ADD_SRCS "src/posix/sys/osal_signal.c")
+    endif()
+
+    if(CONFIG_OSAL_SYS_THREAD)
+        list(APPEND ADD_SRCS "src/posix/sys/osal_thread.c")
+    endif()
+
+    if(CONFIG_OSAL_SYS_TIME)
+        list(APPEND ADD_SRCS "src/posix/sys/osal_time.c")
+    endif()
+
+    # Network operations
+    if(CONFIG_OSAL_NET_SOCKET)
+        list(APPEND ADD_SRCS "src/posix/net/osal_socket.c")
+    endif()
+
+    if(CONFIG_OSAL_NET_TERMIOS)
+        list(APPEND ADD_SRCS "src/posix/net/osal_termios.c")
+    endif()
+
+    # Utility functions
+    if(CONFIG_OSAL_UTIL_LOG)
+        list(APPEND ADD_SRCS "src/posix/util/osal_log.c")
+    endif()
+
+    if(CONFIG_OSAL_UTIL_VERSION)
+        list(APPEND ADD_SRCS "src/posix/util/osal_version.c")
+    endif()
+
+elseif(CONFIG_OSAL_OS_WIN32)
+    # Windows platform
+    # TODO: Add Windows-specific source files when implemented
+    message(WARNING "Windows platform not yet implemented")
+
+elseif(CONFIG_OSAL_OS_RTOS)
+    # RTOS platform
+    # TODO: Add RTOS-specific source files when implemented
+    message(WARNING "RTOS platform not yet implemented")
+
+elseif(CONFIG_OSAL_OS_BARE)
+    # Bare metal platform
+    # TODO: Add bare metal source files when implemented
+    message(WARNING "Bare metal platform not yet implemented")
+
+endif()
+
+# Check if any source files were added
+list(LENGTH ADD_SRCS SRCS_COUNT)
+if(SRCS_COUNT EQUAL 0)
+    message(FATAL_ERROR "No OSAL source files selected. Please check your Kconfig configuration.")
+endif()
+
+message(STATUS "OSAL: Selected ${SRCS_COUNT} source files for compilation")
 ###############################################
 
 ###### Add required/dependent components ######
 # OSAL 是基础层，不依赖其他组件
 # 但需要系统库
-if(CONFIG_OS_LINUX OR CONFIG_OS_MACOS)
+if(CONFIG_OSAL_OS_POSIX)
     list(APPEND ADD_REQUIREMENTS pthread rt m)
 endif()
 ###############################################
@@ -46,7 +159,7 @@ if(CONFIG_OSAL_DEBUG_LOGGING)
 endif()
 
 # 添加 POSIX 特性宏
-if(CONFIG_OS_LINUX OR CONFIG_OS_MACOS)
+if(CONFIG_OSAL_OS_POSIX)
     list(APPEND ADD_DEFINITIONS
         -D_POSIX_C_SOURCE=200809L
         -D_XOPEN_SOURCE=700

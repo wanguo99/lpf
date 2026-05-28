@@ -1,20 +1,82 @@
 ################# Add include #################
-list(APPEND ADD_INCLUDE "include"
-    )
+list(APPEND ADD_INCLUDE "include")
 # 兼容 #include "hal/xxx.h" 路径
 get_filename_component(PARENT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" DIRECTORY)
 list(APPEND ADD_INCLUDE "${PARENT_DIR}")
 ###############################################
 
 ############## Add source files ###############
-# 根据平台配置选择源文件
+# 根据 Kconfig 配置精确添加源文件
+
+# ============================================================================
+# Platform-specific driver source files
+# ============================================================================
+
 if(CONFIG_PLATFORM_GENERIC_LINUX)
-    file(GLOB HAL_SRCS "src/generic-linux/*.c")
-    list(APPEND ADD_SRCS ${HAL_SRCS})
+    # Generic Linux platform drivers
+
+    if(CONFIG_HAL_CAN_LINUX)
+        list(APPEND ADD_SRCS "src/generic-linux/hal_can_linux.c")
+    endif()
+
+    if(CONFIG_HAL_GPIO_LINUX)
+        list(APPEND ADD_SRCS "src/generic-linux/hal_gpio_linux.c")
+    endif()
+
+    if(CONFIG_HAL_I2C_LINUX)
+        list(APPEND ADD_SRCS "src/generic-linux/hal_i2c_linux.c")
+    endif()
+
+    if(CONFIG_HAL_SPI_LINUX)
+        list(APPEND ADD_SRCS "src/generic-linux/hal_spi_linux.c")
+    endif()
+
+    if(CONFIG_HAL_UART_LINUX)
+        list(APPEND ADD_SRCS "src/generic-linux/hal_serial_linux.c")
+    endif()
+
+    if(CONFIG_HAL_WATCHDOG_LINUX)
+        list(APPEND ADD_SRCS "src/generic-linux/hal_watchdog_linux.c")
+    endif()
+
 elseif(CONFIG_OS_MACOS)
-    file(GLOB HAL_SRCS "src/macos/*.c")
-    list(APPEND ADD_SRCS ${HAL_SRCS})
+    # macOS platform drivers
+
+    if(CONFIG_HAL_CAN_MACOS)
+        list(APPEND ADD_SRCS "src/macos/hal_can_macos.c")
+    endif()
+
+    if(CONFIG_HAL_GPIO_MACOS)
+        list(APPEND ADD_SRCS "src/macos/hal_gpio_macos.c")
+    endif()
+
+    if(CONFIG_HAL_I2C_MACOS)
+        list(APPEND ADD_SRCS "src/macos/hal_i2c_macos.c")
+    endif()
+
+    if(CONFIG_HAL_SPI_MACOS)
+        list(APPEND ADD_SRCS "src/macos/hal_spi_macos.c")
+    endif()
+
+    if(CONFIG_HAL_UART_MACOS)
+        list(APPEND ADD_SRCS "src/macos/hal_serial_macos.c")
+    endif()
+
+    if(CONFIG_HAL_WATCHDOG_MACOS)
+        list(APPEND ADD_SRCS "src/macos/hal_watchdog_macos.c")
+    endif()
+
+else()
+    message(WARNING "No HAL platform selected or platform not supported")
 endif()
+
+# Check if any source files were added
+list(LENGTH ADD_SRCS SRCS_COUNT)
+if(SRCS_COUNT EQUAL 0)
+    message(FATAL_ERROR "No HAL driver source files selected. Please check your Kconfig configuration.")
+endif()
+
+message(STATUS "HAL: Selected ${SRCS_COUNT} driver source files for compilation")
 ###############################################
 
 ###### Add required/dependent components ######

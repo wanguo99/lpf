@@ -57,15 +57,11 @@ menuconfig HAL_CAN
 	help
 	  Enable CAN bus driver.
 
-#source "src/generic-linux/Kconfig.can"
-
 menuconfig HAL_UART
 	bool "UART support"
 	default y
 	help
 	  Enable UART/serial driver.
-
-#source "src/generic-linux/Kconfig.uart"
 
 menuconfig HAL_I2C
 	bool "I2C support"
@@ -73,15 +69,11 @@ menuconfig HAL_I2C
 	help
 	  Enable I2C bus driver.
 
-#source "src/generic-linux/Kconfig.i2c"
-
 menuconfig HAL_SPI
 	bool "SPI support"
 	default y
 	help
 	  Enable SPI bus driver.
-
-#source "src/generic-linux/Kconfig.spi"
 
 menuconfig HAL_GPIO
 	bool "GPIO support"
@@ -89,17 +81,17 @@ menuconfig HAL_GPIO
 	help
 	  Enable GPIO driver.
 
-#source "src/generic-linux/Kconfig.gpio"
-
 menuconfig HAL_WATCHDOG
 	bool "Watchdog support"
 	default y
 	help
 	  Enable watchdog timer driver.
 
-#source "src/generic-linux/Kconfig.watchdog"
-
 endmenu
+
+# Platform-specific fine-grained configuration
+source "core/hal/src/Kconfig.linux"
+source "core/hal/src/Kconfig.macos"
 
 # =============================================================================
 # Advanced Features

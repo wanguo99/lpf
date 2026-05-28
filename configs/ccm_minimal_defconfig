@@ -1,0 +1,74 @@
+# ============================================================================
+# Minimal OSAL Configuration - Only Basic Features
+# ============================================================================
+# This configuration demonstrates fine-grained file-level trimming.
+# Only essential OSAL features are enabled, all other modules are disabled.
+# ============================================================================
+
+# Product Selection
+CONFIG_PRODUCT_CCM=y
+CONFIG_PRODUCT_SAMPLE=n
+
+# Core Components - Only OSAL
+CONFIG_OSAL=y
+CONFIG_HAL=n
+CONFIG_PCL=n
+CONFIG_PDL=n
+CONFIG_ACL=n
+
+# OSAL Platform
+CONFIG_OS_LINUX=y
+CONFIG_ARCH_X86_64=y
+
+# OSAL Build
+CONFIG_OSAL_BUILD_STATIC=y
+CONFIG_OSAL_BUILD_SHARED=n
+
+# OSAL Features - Minimal set
+CONFIG_OSAL_IPC=y
+CONFIG_OSAL_FILE=y
+CONFIG_OSAL_THREAD=y
+CONFIG_OSAL_NETWORK=n
+CONFIG_OSAL_SIGNAL=n
+
+# OSAL IPC - Only mutex and semaphore
+CONFIG_OSAL_IPC_ATOMIC=n
+CONFIG_OSAL_IPC_MUTEX=y
+CONFIG_OSAL_IPC_SEMAPHORE=y
+CONFIG_OSAL_IPC_COND=n
+CONFIG_OSAL_IPC_SHM=n
+CONFIG_OSAL_IPC_SHM_CACHE=n
+
+# OSAL Library - Only basic functions
+CONFIG_OSAL_LIB_ERRNO=y
+CONFIG_OSAL_LIB_HEAP=y
+CONFIG_OSAL_LIB_STDIO=y
+CONFIG_OSAL_LIB_STRING=y
+
+# OSAL System - Only essential operations
+CONFIG_OSAL_SYS_CLOCK=y
+CONFIG_OSAL_SYS_ENV=n
+CONFIG_OSAL_SYS_FILE=y
+CONFIG_OSAL_SYS_PROCESS=n
+CONFIG_OSAL_SYS_SCHED=n
+CONFIG_OSAL_SYS_SELECT=n
+CONFIG_OSAL_SYS_SIGNAL=n
+CONFIG_OSAL_SYS_THREAD=y
+CONFIG_OSAL_SYS_TIME=y
+
+# OSAL Utility
+CONFIG_OSAL_UTIL_LOG=y
+CONFIG_OSAL_UTIL_VERSION=y
+
+# CCM Platform
+CONFIG_PROJECT_H200_AM625=y
+
+# CCM Libraries
+CONFIG_LIBCCM=y
+
+# CCM Applications - Only one app for testing
+CONFIG_APP_COLLECTOR=y
+CONFIG_APP_COMM=n
+CONFIG_APP_HEALTH=n
+CONFIG_APP_LOGGER=n
+CONFIG_APP_SUPERVISOR=n

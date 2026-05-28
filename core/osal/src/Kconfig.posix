@@ -1,0 +1,230 @@
+# ============================================================================
+# OSAL POSIX Implementation Configuration
+# ============================================================================
+# Fine-grained per-file configuration for POSIX platform (Linux/macOS)
+# ============================================================================
+
+if OSAL_OS_POSIX
+
+# ============================================================================
+# IPC (Inter-Process Communication)
+# ============================================================================
+
+if OSAL_IPC
+
+config OSAL_IPC_ATOMIC
+	bool "Atomic operations"
+	default y
+	help
+	  Enable atomic operations support.
+	  Source: src/posix/ipc/osal_atomic.c
+
+config OSAL_IPC_MUTEX
+	bool "Mutex support"
+	default y
+	help
+	  Enable mutex (mutual exclusion) support.
+	  Source: src/posix/ipc/osal_mutex.c
+
+config OSAL_IPC_SEMAPHORE
+	bool "Semaphore support"
+	default y
+	help
+	  Enable semaphore support.
+	  Source: src/posix/ipc/osal_semaphore.c
+
+config OSAL_IPC_COND
+	bool "Condition variable support"
+	default y
+	depends on OSAL_IPC_MUTEX
+	help
+	  Enable condition variable support.
+	  Requires mutex support.
+	  Source: src/posix/ipc/osal_cond.c
+
+config OSAL_IPC_SHM
+	bool "Shared memory support"
+	default y
+	help
+	  Enable shared memory support.
+	  Source: src/posix/ipc/osal_shm.c
+
+config OSAL_IPC_SHM_CACHE
+	bool "Shared memory cache"
+	default y
+	depends on OSAL_IPC_SHM
+	help
+	  Enable shared memory cache optimization.
+	  Requires shared memory support.
+	  Source: src/posix/ipc/osal_shm_cache.c
+
+endif # OSAL_IPC
+
+# ============================================================================
+# Library Functions
+# ============================================================================
+
+menu "Library Functions"
+
+config OSAL_LIB_ERRNO
+	bool "Error number handling"
+	default y
+	help
+	  Enable errno operations.
+	  Source: src/posix/lib/osal_errno.c
+
+config OSAL_LIB_HEAP
+	bool "Heap memory management"
+	default y
+	help
+	  Enable heap memory operations (malloc/free wrappers).
+	  Source: src/posix/lib/osal_heap.c
+
+config OSAL_LIB_STDIO
+	bool "Standard I/O"
+	default y
+	help
+	  Enable standard I/O operations (printf wrappers).
+	  Source: src/posix/lib/osal_stdio.c
+
+config OSAL_LIB_STRING
+	bool "String operations"
+	default y
+	help
+	  Enable string operations (safe string functions).
+	  Source: src/posix/lib/osal_string.c
+
+endmenu
+
+# ============================================================================
+# System Operations
+# ============================================================================
+
+if OSAL_FILE
+
+config OSAL_SYS_CLOCK
+	bool "Clock operations"
+	default y
+	help
+	  Enable clock operations (clock_gettime, etc).
+	  Source: src/posix/sys/osal_clock.c
+
+config OSAL_SYS_ENV
+	bool "Environment variables"
+	default y
+	help
+	  Enable environment variable operations.
+	  Source: src/posix/sys/osal_env.c
+
+config OSAL_SYS_FILE
+	bool "File operations"
+	default y
+	help
+	  Enable file I/O operations.
+	  Source: src/posix/sys/osal_file.c
+
+config OSAL_SYS_PROCESS
+	bool "Process management"
+	default y
+	help
+	  Enable process management (fork, exec, etc).
+	  Source: src/posix/sys/osal_process.c
+
+config OSAL_SYS_SCHED
+	bool "Scheduler operations"
+	default y
+	help
+	  Enable scheduler operations (priority, affinity).
+	  Source: src/posix/sys/osal_sched.c
+
+config OSAL_SYS_SELECT
+	bool "Select/poll operations"
+	default y
+	help
+	  Enable select/poll I/O multiplexing.
+	  Source: src/posix/sys/osal_select.c
+
+endif # OSAL_FILE
+
+# ============================================================================
+# Thread Support
+# ============================================================================
+
+if OSAL_THREAD
+
+config OSAL_SYS_THREAD
+	bool "Thread operations"
+	default y
+	help
+	  Enable thread creation and management.
+	  Source: src/posix/sys/osal_thread.c
+
+config OSAL_SYS_TIME
+	bool "Time operations"
+	default y
+	help
+	  Enable time operations (sleep, delay, etc).
+	  Source: src/posix/sys/osal_time.c
+
+endif # OSAL_THREAD
+
+# ============================================================================
+# Signal Support
+# ============================================================================
+
+if OSAL_SIGNAL
+
+config OSAL_SYS_SIGNAL
+	bool "Signal handling"
+	default y
+	help
+	  Enable signal handling operations.
+	  Source: src/posix/sys/osal_signal.c
+
+endif # OSAL_SIGNAL
+
+# ============================================================================
+# Network Support
+# ============================================================================
+
+if OSAL_NETWORK
+
+config OSAL_NET_SOCKET
+	bool "Socket operations"
+	default y
+	help
+	  Enable socket operations (TCP/UDP).
+	  Source: src/posix/net/osal_socket.c
+
+config OSAL_NET_TERMIOS
+	bool "Terminal I/O (termios)"
+	default y
+	help
+	  Enable terminal I/O control.
+	  Source: src/posix/net/osal_termios.c
+
+endif # OSAL_NETWORK
+
+# ============================================================================
+# Utility Functions
+# ============================================================================
+
+menu "Utility Functions"
+
+config OSAL_UTIL_LOG
+	bool "Logging support"
+	default y
+	help
+	  Enable logging utilities.
+	  Source: src/posix/util/osal_log.c
+
+config OSAL_UTIL_VERSION
+	bool "Version information"
+	default y
+	help
+	  Enable version information.
+	  Source: src/posix/util/osal_version.c
+
+endmenu
+
+endif # OSAL_OS_POSIX
