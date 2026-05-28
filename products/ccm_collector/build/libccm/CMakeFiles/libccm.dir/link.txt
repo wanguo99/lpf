@@ -1,0 +1,2 @@
+/usr/bin/ar qc liblibccm.a CMakeFiles/libccm.dir/src/libccm_ipc.c.o CMakeFiles/libccm.dir/src/libccm_protocol.c.o
+/usr/bin/ranlib liblibccm.a

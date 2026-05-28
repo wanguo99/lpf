@@ -1,6 +1,11 @@
 ################# Add include #################
 list(APPEND ADD_INCLUDE "include"
     )
+# 为了兼容旧的 #include "osal/xxx.h" 路径
+get_filename_component(PARENT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" DIRECTORY)
+list(APPEND ADD_INCLUDE "${PARENT_DIR}")
+# 添加根目录 include（用于 version.h）
+list(APPEND ADD_INCLUDE "${SDK_PATH}/include")
 ###############################################
 
 ############## Add source files ###############

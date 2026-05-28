@@ -1,6 +1,9 @@
 ################# Add include #################
 list(APPEND ADD_INCLUDE "include"
     )
+# 兼容 #include "pdl/xxx.h" 路径
+get_filename_component(PARENT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" DIRECTORY)
+list(APPEND ADD_INCLUDE "${PARENT_DIR}")
 ###############################################
 
 ############## Add source files ###############

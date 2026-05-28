@@ -1,0 +1,2 @@
+/usr/bin/ar qc libmain.a CMakeFiles/main.dir/src/ccm_collector.c.o CMakeFiles/main.dir/src/main.c.o
+/usr/bin/ranlib libmain.a
