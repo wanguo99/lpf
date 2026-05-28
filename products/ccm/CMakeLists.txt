@@ -7,11 +7,11 @@
 
 # Register SDK core components
 if(CONFIG_OSAL)
-    add_subdirectory(${SDK_PATH}/components/osal ${CMAKE_CURRENT_BINARY_DIR}/osal)
+    add_subdirectory(${SDK_PATH}/core/osal ${CMAKE_CURRENT_BINARY_DIR}/osal)
 endif()
 
 if(CONFIG_HAL)
-    add_subdirectory(${SDK_PATH}/components/hal ${CMAKE_CURRENT_BINARY_DIR}/hal)
+    add_subdirectory(${SDK_PATH}/core/hal ${CMAKE_CURRENT_BINARY_DIR}/hal)
 endif()
 
 # Automatically load platform config based on CONFIG_PROJECT_NAME
@@ -40,11 +40,11 @@ if(CONFIG_PCL)
         set(PCL_EXTRA_SRCS ${PLATFORM_PCL_SRCS})
         set(PCL_EXTRA_INCLUDE ${PLATFORM_CONFIG_INCLUDE})
     endif()
-    add_subdirectory(${SDK_PATH}/components/pcl ${CMAKE_CURRENT_BINARY_DIR}/pcl)
+    add_subdirectory(${SDK_PATH}/core/pcl ${CMAKE_CURRENT_BINARY_DIR}/pcl)
 endif()
 
 if(CONFIG_PDL)
-    add_subdirectory(${SDK_PATH}/components/pdl ${CMAKE_CURRENT_BINARY_DIR}/pdl)
+    add_subdirectory(${SDK_PATH}/core/pdl ${CMAKE_CURRENT_BINARY_DIR}/pdl)
 endif()
 
 # Register ACL with platform config
@@ -54,12 +54,12 @@ if(CONFIG_ACL)
         set(ACL_EXTRA_SRCS ${PLATFORM_ACL_SRCS})
         set(ACL_EXTRA_INCLUDE ${PLATFORM_CONFIG_INCLUDE})
     endif()
-    add_subdirectory(${SDK_PATH}/components/acl ${CMAKE_CURRENT_BINARY_DIR}/acl)
+    add_subdirectory(${SDK_PATH}/core/acl ${CMAKE_CURRENT_BINARY_DIR}/acl)
 endif()
 
-# Register product-specific components
+# Register product-specific libraries
 if(CONFIG_LIBCCM)
-    add_subdirectory(components/libccm)
+    add_subdirectory(libs/libccm)
 endif()
 
 # Register applications

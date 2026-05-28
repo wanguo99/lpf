@@ -74,11 +74,11 @@ endmenu
 
 menu "Core Components"
 
-osource "$SDK_PATH/components/osal/Kconfig"
-osource "$SDK_PATH/components/hal/Kconfig"
-osource "$SDK_PATH/components/pcl/Kconfig"
-osource "$SDK_PATH/components/pdl/Kconfig"
-osource "$SDK_PATH/components/acl/Kconfig"
+osource "$SDK_PATH/core/osal/Kconfig"
+osource "$SDK_PATH/core/hal/Kconfig"
+osource "$SDK_PATH/core/pcl/Kconfig"
+osource "$SDK_PATH/core/pdl/Kconfig"
+osource "$SDK_PATH/core/acl/Kconfig"
 
 endmenu
 

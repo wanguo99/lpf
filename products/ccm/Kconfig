@@ -46,9 +46,9 @@ endmenu
 # Product Components
 # ============================================================================
 
-menu "Product Components"
+menu "Product Libraries"
 
-osource "$SDK_PATH/products/ccm/components/libccm/Kconfig"
+osource "$SDK_PATH/products/ccm/libs/libccm/Kconfig"
 
 endmenu
 

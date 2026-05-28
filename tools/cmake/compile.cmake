@@ -283,7 +283,7 @@ macro(project name)
     set(PROJECT_BINARY_DIR "${current_dir}/build")
 
     # Find components in SDK's components folder, register components
-    find_components(components_dirs components_kconfig_files kconfig_defaults_files_args found_main found_apps ${SDK_PATH}/components/*)
+    find_components(components_dirs components_kconfig_files kconfig_defaults_files_args found_main found_apps ${SDK_PATH}/core/*)
     # Find components in custom components folder, register components
     if(CUSTOM_COMPONENTS_PATH)
         find_components(components_dirs components_kconfig_files kconfig_defaults_files_args found_main found_apps ${CUSTOM_COMPONENTS_PATH}/*)
