@@ -13,27 +13,27 @@ if(CONFIG_PLATFORM_GENERIC_LINUX)
     # Generic Linux platform drivers
 
     if(CONFIG_HAL_CAN_LINUX)
-        list(APPEND ADD_SRCS "src/generic-linux/hal_can_linux.c")
+        list(APPEND ADD_SRCS "src/linux/hal_can_linux.c")
     endif()
 
     if(CONFIG_HAL_GPIO_LINUX)
-        list(APPEND ADD_SRCS "src/generic-linux/hal_gpio_linux.c")
+        list(APPEND ADD_SRCS "src/linux/hal_gpio_linux.c")
     endif()
 
     if(CONFIG_HAL_I2C_LINUX)
-        list(APPEND ADD_SRCS "src/generic-linux/hal_i2c_linux.c")
+        list(APPEND ADD_SRCS "src/linux/hal_i2c_linux.c")
     endif()
 
     if(CONFIG_HAL_SPI_LINUX)
-        list(APPEND ADD_SRCS "src/generic-linux/hal_spi_linux.c")
+        list(APPEND ADD_SRCS "src/linux/hal_spi_linux.c")
     endif()
 
     if(CONFIG_HAL_UART_LINUX)
-        list(APPEND ADD_SRCS "src/generic-linux/hal_serial_linux.c")
+        list(APPEND ADD_SRCS "src/linux/hal_serial_linux.c")
     endif()
 
     if(CONFIG_HAL_WATCHDOG_LINUX)
-        list(APPEND ADD_SRCS "src/generic-linux/hal_watchdog_linux.c")
+        list(APPEND ADD_SRCS "src/linux/hal_watchdog_linux.c")
     endif()
 
 elseif(CONFIG_OS_MACOS)

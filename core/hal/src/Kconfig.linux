@@ -17,7 +17,7 @@ config HAL_CAN_LINUX
 	default y
 	help
 	  Enable Linux SocketCAN driver.
-	  Source: src/generic-linux/hal_can_linux.c
+	  Source: src/linux/hal_can_linux.c
 
 endif # HAL_CAN
 
@@ -32,7 +32,7 @@ config HAL_GPIO_LINUX
 	default y
 	help
 	  Enable Linux sysfs GPIO driver.
-	  Source: src/generic-linux/hal_gpio_linux.c
+	  Source: src/linux/hal_gpio_linux.c
 
 endif # HAL_GPIO
 
@@ -47,7 +47,7 @@ config HAL_I2C_LINUX
 	default y
 	help
 	  Enable Linux I2C driver (/dev/i2c-*).
-	  Source: src/generic-linux/hal_i2c_linux.c
+	  Source: src/linux/hal_i2c_linux.c
 
 endif # HAL_I2C
 
@@ -62,7 +62,7 @@ config HAL_SPI_LINUX
 	default y
 	help
 	  Enable Linux SPI driver (/dev/spidev*).
-	  Source: src/generic-linux/hal_spi_linux.c
+	  Source: src/linux/hal_spi_linux.c
 
 endif # HAL_SPI
 
@@ -77,7 +77,7 @@ config HAL_UART_LINUX
 	default y
 	help
 	  Enable Linux serial driver (/dev/tty*).
-	  Source: src/generic-linux/hal_serial_linux.c
+	  Source: src/linux/hal_serial_linux.c
 
 endif # HAL_UART
 
@@ -92,7 +92,7 @@ config HAL_WATCHDOG_LINUX
 	default y
 	help
 	  Enable Linux watchdog driver (/dev/watchdog).
-	  Source: src/generic-linux/hal_watchdog_linux.c
+	  Source: src/linux/hal_watchdog_linux.c
 
 endif # HAL_WATCHDOG
 
