@@ -1,0 +1,7 @@
+config APP_DEMO
+    bool "Enable Sample Demo Application"
+    default y
+    select OSAL
+    help
+      Sample demo application for demonstration purposes.
+      This is a minimal example showing how to create a new application.

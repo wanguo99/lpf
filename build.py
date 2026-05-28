@@ -37,6 +37,37 @@ def get_configs(product):
             configs.append(config_name)
     return sorted(configs)
 
+def menuconfig(product):
+    """打开产品的 menuconfig 配置界面"""
+    root_dir = Path(__file__).parent
+    product_dir = root_dir / "products" / product
+
+    # 检查产品目录
+    if not product_dir.exists():
+        print(f"Error: Product directory not found: {product_dir}")
+        return False
+
+    # 调用产品的 project.py menuconfig
+    project_script = product_dir / "project.py"
+    if not project_script.exists():
+        print(f"Error: project.py not found: {project_script}")
+        return False
+
+    print(f"Opening menuconfig for product: {product}")
+    print(f"Product directory: {product_dir}")
+    print()
+
+    # 执行 menuconfig
+    menuconfig_cmd = ["python3", str(project_script), "menuconfig"]
+    result = subprocess.run(menuconfig_cmd, cwd=product_dir)
+
+    if result.returncode != 0:
+        print("\nMenuconfig exited with error!")
+        return False
+
+    print("\nConfiguration saved.")
+    return True
+
 def build(product, config=None, build_dir="build", clean=False, jobs=None):
     """构建产品"""
     root_dir = Path(__file__).parent
@@ -116,21 +147,26 @@ Examples:
   # List all products
   python3 build.py --list
 
+  # Open menuconfig for a product
+  python3 build.py --product ccm --menuconfig
+
   # Build with default config
-  python3 build.py --product ccm_product
+  python3 build.py --product ccm
 
   # Build with specific config
-  python3 build.py --product ccm_product --config h200_100p_v1
+  python3 build.py --product ccm --config h200_100p_v1
 
   # Clean build
-  python3 build.py --product ccm_product --config h200_200p --clean
+  python3 build.py --product ccm --config h200_200p --clean
         """
     )
 
     parser.add_argument("--list", action="store_true",
                         help="List all available products and configs")
+    parser.add_argument("--menuconfig", action="store_true",
+                        help="Open menuconfig for the specified product")
     parser.add_argument("--product", "-p", type=str,
-                        help="Product to build")
+                        help="Product to build or configure")
     parser.add_argument("--config", "-c", type=str,
                         help="Product configuration (defconfig name without _defconfig suffix)")
     parser.add_argument("--build-dir", "-b", type=str, default="build",
@@ -160,6 +196,11 @@ Examples:
         print(f"Error: Product '{args.product}' not found")
         print(f"Available products: {', '.join(products)}")
         return 1
+
+    # 打开 menuconfig
+    if args.menuconfig:
+        success = menuconfig(product=args.product)
+        return 0 if success else 1
 
     # 检查配置是否存在
     if args.config:

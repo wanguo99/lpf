@@ -1,0 +1,19 @@
+# Sample Product Default Configuration
+
+# Core Components
+CONFIG_OSAL=y
+CONFIG_HAL=n
+CONFIG_PCL=n
+CONFIG_PDL=n
+CONFIG_ACL=n
+
+# Applications
+CONFIG_APP_DEMO=y
+
+# Build Options
+CONFIG_BUILD_SHARED=y
+CONFIG_BUILD_TESTING=n
+
+# Platform
+CONFIG_ARCH_X86_64=y
+CONFIG_OS_LINUX=y
