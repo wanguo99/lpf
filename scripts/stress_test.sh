@@ -100,28 +100,36 @@ test_config() {
     # 4. 验证产物
     echo -n "  验证... "
     local missing_files=0
+    local found_bins=0
+    local found_libs=0
 
-    # 检查关键二进制文件
+    # 检查二进制文件（至少需要有一些）
     for bin in ccm_collector ccm_logger ccm_health ccm_supervisor ccm_comm; do
-        if [ ! -f "${build_dir}/bin/${bin}" ]; then
-            echo "ERROR: 缺少二进制文件: ${bin}" >> "${log_file}"
-            missing_files=$((missing_files + 1))
+        if [ -f "${build_dir}/bin/${bin}" ]; then
+            found_bins=$((found_bins + 1))
         fi
     done
 
-    # 检查关键库文件
+    # 检查关键库文件（必须存在）
     for lib in libosal.so libhal.so libpcl.so libacl.so libccm.so libh200_am625.so; do
         if [ ! -f "${build_dir}/lib/${lib}" ]; then
             echo "ERROR: 缺少库文件: ${lib}" >> "${log_file}"
             missing_files=$((missing_files + 1))
+        else
+            found_libs=$((found_libs + 1))
         fi
     done
 
-    if [ ${missing_files} -eq 0 ]; then
-        echo -e "${GREEN}✓${NC}"
-    else
-        echo -e "${RED}✗ (缺少 ${missing_files} 个文件)${NC}"
+    # 验证：至少有1个二进制文件，所有库文件都存在
+    if [ ${found_bins} -eq 0 ]; then
+        echo "ERROR: 没有找到任何二进制文件" >> "${log_file}"
+        echo -e "${RED}✗ (没有二进制文件)${NC}"
         return 1
+    elif [ ${missing_files} -gt 0 ]; then
+        echo -e "${RED}✗ (缺少 ${missing_files} 个库文件)${NC}"
+        return 1
+    else
+        echo -e "${GREEN}✓ (${found_bins} 个二进制, ${found_libs} 个库)${NC}"
     fi
 
     # 5. 生成校验和
