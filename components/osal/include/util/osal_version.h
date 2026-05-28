@@ -16,6 +16,12 @@ extern "C" {
  */
 const char *OSAL_GetVersionString(void);
 
+/**
+ * @brief 打印版本信息
+ * 打印EMS SDK的版本、编译时间等信息
+ */
+void print_version_info(void);
+
 #ifdef __cplusplus
 }
 #endif

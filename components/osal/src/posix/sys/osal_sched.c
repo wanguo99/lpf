@@ -2,7 +2,9 @@
  * OSAL - 实时调度封装（POSIX实现）
  ************************************************************************/
 
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE  /* 需要CPU_SET等宏 */
+#endif
 
 #include <pthread.h>
 #include <sched.h>
