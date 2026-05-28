@@ -1,0 +1,14 @@
+config LIBCCM
+    bool "Enable libccm (CCM Product Library)"
+    default y
+    select OSAL
+    help
+      CCM product library providing IPC and protocol support.
+      This is a product-specific component for CCM applications.
+
+config LIBCCM_BUILD_SHARED
+    bool "Build libccm as shared library"
+    depends on LIBCCM
+    default n
+    help
+      Build libccm as a shared library (.so) instead of static library (.a).

@@ -1,0 +1,18 @@
+config H200_AM625
+    bool "Enable H200 AM625 Platform Support"
+    default y
+    select OSAL
+    select HAL
+    select PCL
+    select PDL
+    select ACL
+    help
+      Platform-specific support for H200 AM625 carrier board.
+      Provides ACL and PCL configurations for TI AM625 SoC.
+
+config H200_AM625_BUILD_SHARED
+    bool "Build h200_am625 as shared library"
+    depends on H200_AM625
+    default n
+    help
+      Build h200_am625 as a shared library (.so) instead of static library (.a).

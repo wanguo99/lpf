@@ -1,5 +1,0 @@
-# Hashes of file build rules.
-b8de272766e06d1d5bd6bbd4aa7f0adf CMakeFiles/gen_exe_src
-8169bec68479ab342094793dbc79242f CMakeFiles/menuconfig
-ec39d3a3c65f89bf8b7755b4b911dc88 CMakeFiles/update_build_info
-7adda7603b6080bedcc9a995f8dac97f exe_src.c
