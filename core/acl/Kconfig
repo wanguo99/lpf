@@ -6,8 +6,36 @@ menuconfig ACL
 	select OSAL
 	select PDL
 	help
-	  Application Configuration Layer provides business function to device mapping.
-	  ACL depends on OSAL and PDL.
+	  Application Configuration Layer provides business logic to hardware
+	  device mapping and high-level application APIs.
+
+	  ACL is the top layer of the EMS SDK stack, providing:
+	  - Business function abstraction (telemetry, commands, data storage)
+	  - Device-to-function mapping (which sensor provides which telemetry)
+	  - Application-level APIs (hide hardware complexity)
+	  - Configuration management (device tables, parameter sets)
+
+	  Architecture:
+	  Applications use ACL APIs to access business functions without
+	  knowing the underlying hardware details. ACL translates business
+	  requests into PDL peripheral operations.
+
+	  Example:
+	  - Application: "Get temperature from thermal sensor #3"
+	  - ACL: Maps sensor #3 to satellite module 0x05, channel 2
+	  - PDL: Reads data from satellite via CAN bus
+	  - HAL: Performs low-level CAN communication
+
+	  Memory footprint: ~20KB code + configuration tables
+
+	  Use cases:
+	  - Complex systems with many devices
+	  - Applications that need hardware abstraction
+	  - Systems with configurable device mappings
+
+	  Dependencies: OSAL, PDL (which includes HAL and PCL)
+
+	  Recommended: Enable for application-level development
 
 	  If unsure, say Y.
 
@@ -21,11 +49,29 @@ config ACL_BUILD_STATIC
 	help
 	  Build ACL as a static library (libacl.a).
 
+	  Static linking advantages:
+	  - No runtime dependencies
+	  - Configuration tables embedded in executable
+	  - Slightly faster
+
+	  Recommended: Enable for embedded systems with fixed configurations
+
 config ACL_BUILD_SHARED
 	bool "Build shared library (.so)"
 	default n
 	help
 	  Build ACL as a shared library (libacl.so).
+
+	  Shared library advantages:
+	  - Can update device mappings without recompiling apps
+	  - Smaller executable size
+	  - Code sharing between processes
+
+	  Use cases:
+	  - Systems with multiple applications using ACL
+	  - Field-updatable device configurations
+
+	  Recommended: Enable for multi-application systems
 
 endmenu
 
@@ -37,6 +83,27 @@ config ACL_MAX_DEVICES
 	range 1 256
 	help
 	  Maximum number of devices that can be configured in ACL.
+
+	  This limits the size of the device configuration table.
+	  Each device entry contains mapping information (device ID,
+	  peripheral type, channel, parameters, etc.).
+
+	  Memory impact: ~64 bytes per device slot
+	  Total memory: ACL_MAX_DEVICES × 64 bytes
+
+	  Recommended values:
+	  - RTOS Minimal: 8-16 devices (~1KB)
+	  - Linux Minimal: 32 devices (~2KB)
+	  - Linux Standard: 64 devices (~4KB)
+	  - Linux Full: 128-256 devices (~8-16KB)
+
+	  Examples:
+	  - Simple sensor node: 8-16 devices
+	  - Satellite payload: 32-64 devices
+	  - Complex industrial system: 128-256 devices
+
+	  Note: Set this to the maximum number of physical devices
+	  (sensors, actuators, etc.) your system will manage.
 
 endmenu
 

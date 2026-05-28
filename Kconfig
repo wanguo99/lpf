@@ -11,6 +11,129 @@
 mainmenu "EMS SDK Configuration"
 
 # ============================================================================
+# Configuration Templates (Quick Start)
+# ============================================================================
+# Load a predefined configuration template to quickly get started.
+# You can further customize the configuration after loading a template.
+# ============================================================================
+
+menu "Configuration Templates"
+
+choice
+	prompt "Load configuration template"
+	default TEMPLATE_NONE
+	help
+	  Quick start with a predefined configuration template.
+
+	  Templates provide optimized configurations for different scenarios:
+	  - RTOS Minimal: Ultra-compact for resource-constrained RTOS (<50KB RAM)
+	  - Linux Minimal: Essential features for storage-limited Linux systems
+	  - Linux Standard: Balanced configuration for typical Linux products
+	  - Linux Full: All features enabled for development and testing
+
+	  After loading a template, you can further customize individual options.
+
+	  If you prefer manual configuration, select "None".
+
+config TEMPLATE_NONE
+	bool "None - Manual configuration"
+	help
+	  Configure all options manually.
+
+	  Choose this if you want full control over every configuration option,
+	  or if you're loading an existing defconfig file.
+
+config TEMPLATE_RTOS_MINIMAL
+	bool "RTOS Minimal - Ultra-compact (<50KB)"
+	help
+	  Optimized for RTOS with severe memory constraints.
+
+	  Target: <50KB total footprint
+	  Suitable for: Cortex-M MCUs with 32-64KB RAM
+
+	  Features:
+	  - OSAL: Basic IPC (mutex + semaphore), minimal file ops, threads
+	  - HAL: Only essential drivers
+	  - No network support
+	  - No advanced features
+
+	  Use case: Simple sensor nodes, actuator controllers
+
+config TEMPLATE_LINUX_MINIMAL
+	bool "Linux Minimal - Essential features (~100KB)"
+	help
+	  Minimal Linux configuration for storage-constrained systems.
+
+	  Target: ~100KB total footprint
+	  Suitable for: Embedded Linux with limited flash/RAM
+
+	  Features:
+	  - OSAL: Standard IPC, basic file ops, threads, limited network
+	  - HAL: Common drivers (CAN, UART, GPIO)
+	  - Basic PDL support
+	  - 1-2 applications
+
+	  Use case: Simple data collectors, edge gateways
+
+config TEMPLATE_LINUX_STANDARD
+	bool "Linux Standard - Balanced configuration (~200KB) [Recommended]"
+	help
+	  Recommended configuration for typical Linux-based products.
+
+	  Target: ~200KB total footprint
+	  Suitable for: AM625, i.MX6/8, Zynq and similar SoCs
+
+	  Features:
+	  - OSAL: Full IPC, complete file ops, threads, full network
+	  - HAL: All drivers (CAN, UART, I2C, SPI, GPIO, Watchdog)
+	  - PCL: Full peripheral configuration
+	  - PDL: All peripheral drivers
+	  - ACL: Application configuration layer
+	  - Multiple applications
+
+	  Use case: Satellite payloads, industrial controllers, IoT gateways
+
+	  This is the recommended starting point for most projects.
+
+config TEMPLATE_LINUX_FULL
+	bool "Linux Full - All features (~300KB)"
+	help
+	  All features enabled for development and testing.
+
+	  Target: ~300KB total footprint
+	  Suitable for: Development, testing, feature-rich products
+
+	  Features:
+	  - All OSAL features including debug and statistics
+	  - All HAL drivers and advanced features
+	  - All PCL/PDL/ACL features
+	  - All applications
+	  - Debug logging and diagnostics
+
+	  Use case: Development, testing, debugging, feature exploration
+
+endchoice
+
+config EXPERT
+	bool "Expert mode - Show advanced options"
+	default n
+	help
+	  Enable expert mode to access advanced configuration options.
+
+	  When enabled, you can:
+	  - Fine-tune individual file-level compilation
+	  - Access debug and diagnostic options
+	  - Configure resource limits precisely
+	  - Override automatic dependency resolution
+
+	  Warning: Incorrect advanced settings may result in build failures
+	  or runtime errors. Only enable if you know what you're doing.
+
+	  If unsure, say N.
+
+endmenu
+
+# ============================================================================
 # Product Selection
 # ============================================================================
 # Select which products to build. Multiple products can be enabled

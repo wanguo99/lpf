@@ -7,9 +7,101 @@ menuconfig OSAL
 	  Operating System Abstraction Layer provides unified OS interfaces.
 	  OSAL is the foundation layer required by all other modules.
 
+	  Memory footprint: 30KB (minimal) ~ 200KB (full)
+
 	  If unsure, say Y.
 
 if OSAL
+
+# =============================================================================
+# Configuration Profile (Quick Setup)
+# =============================================================================
+
+menu "Configuration Profile"
+
+choice
+	prompt "OSAL Configuration Profile"
+	default OSAL_PROFILE_STANDARD if TEMPLATE_LINUX_STANDARD
+	default OSAL_PROFILE_MINIMAL if TEMPLATE_LINUX_MINIMAL || TEMPLATE_RTOS_MINIMAL
+	default OSAL_PROFILE_FULL if TEMPLATE_LINUX_FULL
+	default OSAL_PROFILE_STANDARD
+	help
+	  Select a predefined OSAL configuration profile.
+
+	  Profiles automatically configure all OSAL features based on
+	  typical usage scenarios. You can override individual settings
+	  in the sections below.
+
+config OSAL_PROFILE_MINIMAL
+	bool "Minimal - RTOS/Embedded (~30KB)"
+	help
+	  Minimal OSAL for resource-constrained environments.
+
+	  Includes:
+	  - Basic IPC (mutex + semaphore)
+	  - Essential file operations
+	  - Thread support
+	  - Basic library functions
+
+	  Excludes:
+	  - Network support
+	  - Signal handling
+	  - Advanced IPC (condition variables, shared memory)
+	  - Process management
+
+	  Memory: ~30KB
+	  Suitable for: RTOS, Cortex-M MCUs
+
+config OSAL_PROFILE_STANDARD
+	bool "Standard - Linux Balanced (~80KB) [Recommended]"
+	help
+	  Balanced OSAL configuration for typical Linux systems.
+
+	  Includes:
+	  - Standard IPC (mutex, semaphore, condition, shared memory)
+	  - Complete file operations
+	  - Thread support
+	  - Network support (socket, termios)
+	  - Signal handling
+	  - All library functions
+
+	  Excludes:
+	  - Debug features
+	  - Statistics collection
+	  - Some advanced system calls
+
+	  Memory: ~80KB
+	  Suitable for: Embedded Linux, AM625, i.MX6/8
+
+	  This is the recommended profile for most projects.
+
+config OSAL_PROFILE_FULL
+	bool "Full - All Features (~200KB)"
+	help
+	  All OSAL features enabled.
+
+	  Includes:
+	  - All IPC features
+	  - All file and system operations
+	  - All network features
+	  - Debug logging
+	  - Statistics collection
+	  - All utility functions
+
+	  Memory: ~200KB
+	  Suitable for: Development, testing, feature-rich products
+
+config OSAL_PROFILE_CUSTOM
+	bool "Custom - Manual Configuration"
+	help
+	  Configure OSAL features manually.
+
+	  Choose this if you need precise control over which features
+	  to include, or if the predefined profiles don't match your needs.
+
+endchoice
+
+endmenu
 
 # =============================================================================
 # Platform Configuration (OS and Architecture)
@@ -23,30 +115,82 @@ choice
 	help
 	  Select the target operating system type.
 
+	  This determines which OS abstraction layer implementation to use.
+	  The choice affects available features and memory footprint.
+
 config OS_LINUX
 	bool "Linux"
 	help
-	  Target Linux operating system (POSIX).
+	  Target Linux operating system (POSIX-compliant).
+
+	  Provides:
+	  - Full POSIX API support
+	  - Complete IPC, threading, networking
+	  - Virtual memory management
+	  - Rich filesystem support
+
+	  Suitable for: Embedded Linux (AM625, i.MX6/8, Zynq), Desktop Linux
+	  Memory: Requires MMU, typically 32MB+ RAM
 
 config OS_WINDOWS
 	bool "Windows"
 	help
-	  Target Windows operating system (Win32).
+	  Target Windows operating system (Win32 API).
+
+	  Provides:
+	  - Win32 threading and synchronization
+	  - Windows file I/O
+	  - Winsock networking
+	  - Limited POSIX compatibility
+
+	  Suitable for: Windows desktop, Windows IoT
+	  Memory: Requires 64MB+ RAM
 
 config OS_RTOS
 	bool "RTOS (Real-Time OS)"
 	help
-	  Target real-time operating system.
+	  Target real-time operating system (FreeRTOS, Zephyr, etc).
+
+	  Provides:
+	  - Deterministic scheduling
+	  - Low memory footprint
+	  - Fast interrupt response
+	  - Limited POSIX subset
+
+	  Suitable for: Cortex-M MCUs, resource-constrained systems
+	  Memory: Can run in 30KB+ RAM
+
+	  Note: Feature availability depends on RTOS capabilities.
+	  Some OSAL features may be unavailable or limited.
 
 config OS_MACOS
 	bool "macOS"
 	help
-	  Target macOS operating system (POSIX).
+	  Target macOS operating system (POSIX-compliant).
+
+	  Provides:
+	  - Full POSIX API support
+	  - BSD-style networking
+	  - Mach kernel primitives
+
+	  Suitable for: macOS desktop, development/testing
+	  Memory: Requires 128MB+ RAM
 
 config OS_BARE
 	bool "Bare Metal"
 	help
-	  No operating system (bare metal).
+	  No operating system (bare metal execution).
+
+	  Provides:
+	  - Direct hardware access
+	  - Minimal runtime overhead
+	  - Custom scheduling (if any)
+
+	  Suitable for: Simple MCU applications, bootloaders
+	  Memory: Can run in <10KB RAM
+
+	  Note: Most OSAL features unavailable. Only basic library
+	  functions (heap, string) are provided.
 
 endchoice
 
@@ -61,18 +205,70 @@ config OS
 choice
 	prompt "Target architecture"
 	default ARCH_X86_64
+	help
+	  Select the target CPU architecture.
+
+	  This affects:
+	  - Pointer size (32-bit vs 64-bit)
+	  - Atomic operations
+	  - Memory alignment requirements
+	  - Endianness (architecture-dependent)
 
 config ARCH_X86_64
 	bool "x86_64 (64-bit Intel/AMD)"
+	help
+	  64-bit x86 architecture (Intel/AMD processors).
+
+	  Features:
+	  - 64-bit pointers (8 bytes)
+	  - Little-endian byte order
+	  - Hardware atomic operations
+	  - Virtual memory support
+
+	  Suitable for: Desktop Linux, embedded x86 systems
+	  Memory: Typically 512MB+ RAM
 
 config ARCH_ARM32
 	bool "ARM32 (ARMv7-A)"
+	help
+	  32-bit ARM architecture (ARMv7-A, Cortex-A series).
+
+	  Features:
+	  - 32-bit pointers (4 bytes)
+	  - Little-endian (typically)
+	  - Hardware atomic operations (LDREX/STREX)
+	  - Optional MMU
+
+	  Suitable for: i.MX6, AM335x, Raspberry Pi 2/3 (32-bit mode)
+	  Memory: 128MB+ RAM typical
 
 config ARCH_ARM64
 	bool "ARM64 (ARMv8-A / AArch64)"
+	help
+	  64-bit ARM architecture (ARMv8-A, Cortex-A53/A72 series).
+
+	  Features:
+	  - 64-bit pointers (8 bytes)
+	  - Little-endian
+	  - Advanced atomic operations
+	  - MMU with 48-bit address space
+
+	  Suitable for: AM625, i.MX8, Zynq UltraScale+, Raspberry Pi 3/4
+	  Memory: 256MB+ RAM typical
 
 config ARCH_RISCV64
 	bool "RISC-V 64-bit"
+	help
+	  64-bit RISC-V architecture.
+
+	  Features:
+	  - 64-bit pointers (8 bytes)
+	  - Little-endian (typically)
+	  - Atomic extension (A)
+	  - Open ISA
+
+	  Suitable for: SiFive boards, emerging RISC-V SoCs
+	  Memory: 128MB+ RAM typical
 
 endchoice
 
@@ -123,11 +319,42 @@ config OSAL_BUILD_STATIC
 	help
 	  Build libosal.a static library.
 
+	  Static libraries are linked directly into the executable at compile time.
+
+	  Advantages:
+	  - No runtime dependencies
+	  - Slightly faster (no dynamic linking overhead)
+	  - Easier deployment (single binary)
+
+	  Disadvantages:
+	  - Larger executable size
+	  - Cannot share code between processes
+	  - Must recompile to update library
+
+	  Recommended: Enable for embedded systems and single-application deployments
+
 config OSAL_BUILD_SHARED
 	bool "Build shared library"
 	default n
 	help
-	  Build libosal.so shared library.
+	  Build libosal.so shared library (Linux) or libosal.dll (Windows).
+
+	  Shared libraries are loaded at runtime and can be shared between processes.
+
+	  Advantages:
+	  - Smaller executable size
+	  - Code sharing between processes
+	  - Can update library without recompiling applications
+
+	  Disadvantages:
+	  - Runtime dependency (library must be present)
+	  - Slightly slower (dynamic linking overhead)
+	  - More complex deployment
+
+	  Recommended: Enable for multi-application systems or when library updates
+	  are needed without recompiling applications
+
+	  Note: Not available for bare-metal or some RTOS targets
 
 endmenu
 
@@ -139,33 +366,113 @@ menu "Feature Configuration"
 
 menuconfig OSAL_IPC
 	bool "IPC (Inter-Process Communication)"
-	default y
+	default n
 	help
-	  Enable IPC support (mutex, semaphore, shared memory, etc).
+	  Enable inter-process communication primitives.
+
+	  Provides:
+	  - Mutex (mutual exclusion locks)
+	  - Semaphore (counting and binary)
+	  - Condition variables (thread synchronization)
+	  - Shared memory (inter-process data sharing)
+	  - Message queues (async communication)
+
+	  Memory footprint: ~15KB (minimal: mutex+semaphore only ~5KB)
+
+	  Required by: Multi-threaded applications, process synchronization
+	  Disable if: Single-threaded, no concurrency control needed
+
+	  Recommended: Enable for Standard/Full profiles
 
 menuconfig OSAL_FILE
 	bool "File and System Operations"
-	default y
+	default n
 	help
-	  Enable file I/O and system operations.
+	  Enable file I/O and system-level operations.
+
+	  Provides:
+	  - File open/close/read/write
+	  - Directory operations (mkdir, rmdir, readdir)
+	  - File status and attributes
+	  - Path manipulation
+	  - System information queries
+
+	  Memory footprint: ~20KB (minimal: basic file ops only ~8KB)
+
+	  Required by: Applications that access filesystem, configuration files
+	  Disable if: No filesystem access needed (e.g., bare-metal sensors)
+
+	  Recommended: Enable for all Linux profiles, optional for RTOS
 
 menuconfig OSAL_THREAD
 	bool "Thread Support"
-	default y
+	default n
 	help
-	  Enable thread operations.
+	  Enable thread creation and management.
+
+	  Provides:
+	  - Thread creation and termination
+	  - Thread attributes (priority, stack size, affinity)
+	  - Thread-local storage
+	  - Scheduler control (yield, sleep)
+
+	  Memory footprint: ~10KB + per-thread stack (typically 8KB-1MB each)
+
+	  Required by: Multi-threaded applications
+	  Depends on: OSAL_IPC (for thread synchronization)
+
+	  Recommended: Enable for Standard/Full profiles
+
+	  Note: Each thread consumes additional memory for its stack.
+	  For 30KB RTOS targets, consider single-threaded design.
 
 menuconfig OSAL_NETWORK
 	bool "Network Support"
-	default y
+	default n
 	help
-	  Enable network operations (socket, termios).
+	  Enable network and serial communication.
+
+	  Provides:
+	  - Socket operations (TCP/UDP)
+	  - Network interface queries
+	  - Serial port control (termios)
+	  - Address resolution
+
+	  Memory footprint: ~12KB
+
+	  Required by: Network applications, serial communication
+	  Disable if: No network or serial I/O needed
+
+	  Platform notes:
+	  - Linux: Full socket API support
+	  - RTOS: Limited socket support (depends on TCP/IP stack)
+	  - Bare-metal: Not available
+
+	  Recommended: Enable for Standard/Full profiles, optional for Minimal
 
 menuconfig OSAL_SIGNAL
 	bool "Signal Support"
-	default y
+	default n
 	help
-	  Enable signal handling.
+	  Enable POSIX signal handling.
+
+	  Provides:
+	  - Signal registration and handling
+	  - Signal masking and blocking
+	  - Signal sending (kill, raise)
+	  - Timer signals (SIGALRM)
+
+	  Memory footprint: ~3KB
+
+	  Required by: Applications using signals for IPC or async events
+	  Disable if: No signal handling needed
+
+	  Platform notes:
+	  - Linux/POSIX: Full signal support
+	  - RTOS: Limited or no signal support
+	  - Windows: Not available (use events instead)
+
+	  Recommended: Enable for Standard/Full profiles, optional for Minimal
 
 # Platform-specific fine-grained configuration
 source "core/osal/src/Kconfig.posix"
@@ -183,21 +490,56 @@ config OSAL_MAX_TASKS
 	default 256
 	range 1 1024
 	help
-	  Maximum number of concurrent tasks/threads.
+	  Maximum number of concurrent tasks/threads that can be created.
+
+	  Memory impact: ~32 bytes per task slot (for task table)
+	  Runtime impact: Linear search overhead for task lookup
+
+	  Recommended values:
+	  - RTOS Minimal: 8-16 (saves ~7KB)
+	  - Linux Minimal: 32-64
+	  - Linux Standard: 128-256
+	  - Linux Full: 256-512
+
+	  Note: Each task also requires stack memory (typically 8KB-1MB).
+	  For 30KB RTOS targets, use 4-8 tasks with small stacks (1-2KB).
 
 config OSAL_MAX_QUEUES
 	int "Maximum number of queues"
 	default 128
 	range 1 512
 	help
-	  Maximum number of message queues.
+	  Maximum number of message queues that can be created.
+
+	  Memory impact: ~48 bytes per queue slot
+	  Runtime impact: Linear search overhead for queue lookup
+
+	  Recommended values:
+	  - RTOS Minimal: 4-8 (saves ~5KB)
+	  - Linux Minimal: 16-32
+	  - Linux Standard: 64-128
+	  - Linux Full: 128-256
+
+	  Note: Each queue also requires buffer memory for messages.
 
 config OSAL_MAX_MUTEXES
 	int "Maximum number of mutexes"
 	default 128
 	range 1 512
 	help
-	  Maximum number of mutexes.
+	  Maximum number of mutexes that can be created.
+
+	  Memory impact: ~40 bytes per mutex slot
+	  Runtime impact: Linear search overhead for mutex lookup
+
+	  Recommended values:
+	  - RTOS Minimal: 8-16 (saves ~4KB)
+	  - Linux Minimal: 32-64
+	  - Linux Standard: 64-128
+	  - Linux Full: 128-256
+
+	  Note: Mutexes are lightweight. Prefer mutexes over semaphores
+	  for mutual exclusion when possible.
 
 endmenu
 
@@ -212,6 +554,22 @@ config OSAL_DEBUG_LOGGING
 	default n
 	help
 	  Enable verbose debug logging in OSAL.
+
+	  When enabled, OSAL will output detailed debug messages including:
+	  - Function entry/exit traces
+	  - Parameter validation failures
+	  - Resource allocation/deallocation
+	  - Error conditions and warnings
+
+	  Memory impact: ~5KB code + runtime log buffer
+	  Performance impact: 5-10% overhead due to logging calls
+
+	  Recommended:
+	  - Enable for: Development, debugging, troubleshooting
+	  - Disable for: Production, performance-critical, memory-constrained
+
+	  Note: Debug logging significantly increases code size and reduces
+	  performance. Always disable for production builds.
 
 endmenu
 
