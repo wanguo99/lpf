@@ -1,0 +1,225 @@
+# OSAL (Operating System Abstraction Layer) Configuration
+
+menuconfig OSAL
+	bool "OSAL (Operating System Abstraction Layer)"
+	default n
+	help
+	  Operating System Abstraction Layer provides unified OS interfaces.
+	  OSAL is the foundation layer required by all other modules.
+
+	  If unsure, say Y.
+
+if OSAL
+
+# =============================================================================
+# Platform Configuration (OS and Architecture)
+# =============================================================================
+
+menu "Platform Configuration"
+
+choice
+	prompt "Target operating system"
+	default OS_LINUX
+	help
+	  Select the target operating system type.
+
+config OS_LINUX
+	bool "Linux"
+	help
+	  Target Linux operating system (POSIX).
+
+config OS_WINDOWS
+	bool "Windows"
+	help
+	  Target Windows operating system (Win32).
+
+config OS_RTOS
+	bool "RTOS (Real-Time OS)"
+	help
+	  Target real-time operating system.
+
+config OS_MACOS
+	bool "macOS"
+	help
+	  Target macOS operating system (POSIX).
+
+config OS_BARE
+	bool "Bare Metal"
+	help
+	  No operating system (bare metal).
+
+endchoice
+
+config OS
+	string
+	default "linux" if OS_LINUX
+	default "windows" if OS_WINDOWS
+	default "rtos" if OS_RTOS
+	default "macos" if OS_MACOS
+	default "bare" if OS_BARE
+
+choice
+	prompt "Target architecture"
+	default ARCH_X86_64
+
+config ARCH_X86_64
+	bool "x86_64 (64-bit Intel/AMD)"
+
+config ARCH_ARM32
+	bool "ARM32 (ARMv7-A)"
+
+config ARCH_ARM64
+	bool "ARM64 (ARMv8-A / AArch64)"
+
+config ARCH_RISCV64
+	bool "RISC-V 64-bit"
+
+endchoice
+
+config ARCH
+	string
+	default "x86_64" if ARCH_X86_64
+	default "arm" if ARCH_ARM32
+	default "arm64" if ARCH_ARM64
+	default "riscv" if ARCH_RISCV64
+
+# Auto-detect OS implementation
+config OSAL_OS_POSIX
+	bool
+	default y if OS_LINUX || OS_MACOS
+
+config OSAL_OS_WIN32
+	bool
+	default y if OS_WINDOWS
+
+config OSAL_OS_RTOS
+	bool
+	default y if OS_RTOS
+
+config OSAL_OS_BARE
+	bool
+	default y if OS_BARE
+
+# Auto-detect architecture
+config OSAL_ARCH_32BIT
+	bool
+	default y if ARCH_ARM32
+
+config OSAL_ARCH_64BIT
+	bool
+	default y if ARCH_X86_64 || ARCH_ARM64 || ARCH_RISCV64
+
+endmenu
+
+# =============================================================================
+# Build Configuration
+# =============================================================================
+
+menu "Build Configuration"
+
+config OSAL_BUILD_STATIC
+	bool "Build static library"
+	default y
+	help
+	  Build libosal.a static library.
+
+config OSAL_BUILD_SHARED
+	bool "Build shared library"
+	default y
+	help
+	  Build libosal.so shared library.
+
+endmenu
+
+# =============================================================================
+# Feature Configuration (Fine-grained per-file control)
+# =============================================================================
+
+menu "Feature Configuration"
+
+menuconfig OSAL_IPC
+	bool "IPC (Inter-Process Communication)"
+	default y
+	help
+	  Enable IPC support (mutex, semaphore, shared memory, etc).
+
+#source "src/posix/Kconfig.ipc"
+
+menuconfig OSAL_FILE
+	bool "File and System Operations"
+	default y
+	help
+	  Enable file I/O and system operations.
+
+#source "src/posix/Kconfig.file"
+
+menuconfig OSAL_THREAD
+	bool "Thread Support"
+	default y
+	help
+	  Enable thread operations.
+
+#source "src/posix/Kconfig.thread"
+
+menuconfig OSAL_NETWORK
+	bool "Network Support"
+	default y
+	help
+	  Enable network operations (socket, termios).
+
+#source "src/posix/Kconfig.network"
+
+menuconfig OSAL_SIGNAL
+	bool "Signal Support"
+	default y
+	help
+	  Enable signal handling.
+
+#source "src/posix/Kconfig.signal"
+
+endmenu
+
+# =============================================================================
+# Resource Limits
+# =============================================================================
+
+menu "Resource Limits"
+
+config OSAL_MAX_TASKS
+	int "Maximum number of tasks"
+	default 256
+	range 1 1024
+	help
+	  Maximum number of concurrent tasks/threads.
+
+config OSAL_MAX_QUEUES
+	int "Maximum number of queues"
+	default 128
+	range 1 512
+	help
+	  Maximum number of message queues.
+
+config OSAL_MAX_MUTEXES
+	int "Maximum number of mutexes"
+	default 128
+	range 1 512
+	help
+	  Maximum number of mutexes.
+
+endmenu
+
+# =============================================================================
+# Debug Options
+# =============================================================================
+
+menu "Debug Options"
+
+config OSAL_DEBUG_LOGGING
+	bool "Enable debug logging"
+	default n
+	help
+	  Enable verbose debug logging in OSAL.
+
+endmenu
+
+endif # OSAL

@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: GPL-2.0
+# ============================================================================
+# Core Modules Configuration
+# ============================================================================
+
+menu "Core Modules"
+
+source "Kconfig"
+source "Kconfig"
+source "Kconfig"
+source "Kconfig"
+source "Kconfig"
+
+endmenu

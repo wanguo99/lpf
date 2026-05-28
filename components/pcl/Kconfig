@@ -1,0 +1,74 @@
+# PCL (Peripheral Configuration Library) Configuration
+
+menuconfig PCL
+	bool "PCL (Peripheral Configuration Library)"
+	default n
+	help
+	  Peripheral Configuration Library provides device-tree-like hardware
+	  configuration. PCL depends on OSAL and HAL.
+
+	  If unsure, say Y.
+
+if PCL
+
+choice
+	prompt "Hardware platform"
+	default PCL_PLATFORM_TI_AM625
+	help
+	  Select the target hardware platform for PCL configuration.
+
+config PCL_PLATFORM_TI_AM625
+	bool "TI AM625 (Sitara ARM Cortex-A53)"
+	help
+	  Texas Instruments AM625 SoC platform.
+	  Provides configuration for AM625-based hardware.
+
+config PCL_PLATFORM_VENDOR_DEMO
+	bool "Vendor Demo Platform"
+	help
+	  Generic vendor demo platform for testing.
+	  Provides basic configuration templates.
+
+endchoice
+
+if PCL_PLATFORM_TI_AM625
+
+choice
+	prompt "Product variant"
+	default PCL_PRODUCT_H200_100P
+	help
+	  Select the product variant for TI AM625 platform.
+
+config PCL_PRODUCT_H200_100P
+	bool "H200-100P (100W Power Module)"
+	help
+	  H200 series 100W power module variant.
+
+config PCL_PRODUCT_H200_200P
+	bool "H200-200P (200W Power Module)"
+	help
+	  H200 series 200W power module variant.
+
+endchoice
+
+endif # PCL_PLATFORM_TI_AM625
+
+menu "PCL Build Configuration"
+
+config PCL_BUILD_STATIC
+	bool "Build static library (.a)"
+	default n
+	help
+	  Build PCL as a static library (libpcl.a).
+
+config PCL_BUILD_SHARED
+	bool "Build shared library (.so)"
+	default n
+	help
+	  Build PCL as a shared library (libpcl.so).
+
+endmenu
+
+#source "src/Kconfig.api"
+
+endif # PCL

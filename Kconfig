@@ -1,120 +1,22 @@
-mainmenu "EMS (Embedded Middleware System) Configuration"
+mainmenu "EMS SDK Configuration"
 
-config EMS_VERSION
-	string
-	default "1.0.0"
+menu "Toolchain configuration"
+	config TOOLCHAIN_PATH
+		string "toolchain path"
+		default ""
 
-# ============================================================================
-# Build Configuration
-# ============================================================================
-
-menu "Build Options"
-
-config CROSS_COMPILE
-	string "Cross-compiler prefix"
-	default ""
-	help
-	  Prefix for cross-compilation toolchain (e.g., "arm-linux-gnueabihf-").
-	  Leave empty for native compilation.
-	  This value can be overridden by the CROSS_COMPILE environment variable.
-
-	  Common values:
-	    - ARM32: arm-linux-gnueabihf-
-	    - ARM64: aarch64-linux-gnu-
-	    - RISC-V64: riscv64-linux-gnu-
-
-config BUILD_TYPE_DEBUG
-	bool "Debug build"
-	default n
-	help
-	  Enable debug symbols (-g), disable optimizations (-O0), and enable
-	  verbose logging. Equivalent to CMAKE_BUILD_TYPE=Debug.
-
-	  If unsure, say N for production builds.
-
-choice
-	prompt "Optimization level"
-	default OPT_O2 if !BUILD_TYPE_DEBUG
-	default OPT_O0 if BUILD_TYPE_DEBUG
-	help
-	  Select compiler optimization level.
-
-config OPT_O0
-	bool "No optimization (-O0)"
-	help
-	  Disable all optimizations. Best for debugging with GDB.
-
-config OPT_O2
-	bool "Optimize for speed (-O2)"
-	help
-	  Standard optimization level. Good balance of speed and size.
-
-config OPT_O3
-	bool "Aggressive optimization (-O3)"
-	help
-	  Maximum speed optimization. May increase binary size.
-
-config OPT_OS
-	bool "Optimize for size (-Os)"
-	help
-	  Optimize for minimal binary size. Good for embedded systems.
-
-endchoice
-
-config LIBRARY_BUILD_TYPE_STATIC
-	bool "Build static libraries (.a)"
-	default n
-	help
-	  Build static libraries.
-	  Static libraries are linked into executables at compile time.
-
-	  Best for embedded systems with limited resources.
-
-config LIBRARY_BUILD_TYPE_DYNAMIC
-	bool "Build dynamic libraries (.so)"
-	default n
-	help
-	  Build dynamic/shared libraries.
-	  Shared libraries are loaded at runtime, reducing executable size
-	  and allowing library updates without recompiling applications.
-
-	  Best for systems with multiple applications sharing libraries.
-
-comment "Note: You can enable both to build both static and dynamic libraries"
-
-config INSTALL_HEADERS
-	bool "Install development headers"
-	default n
-	help
-	  Install public header files for library development.
-
+	config TOOLCHAIN_PREFIX
+		string "toolchain prefix"
+		default ""
 endmenu
 
-# ============================================================================
-# Core Modules Configuration
-# ============================================================================
+menu "SDK Components Configuration"
+	osource "${SDK_PATH}/components/*/Kconfig"
+	osource "${CUSTOM_COMPONENTS_PATH}/*/Kconfig"
+endmenu
 
-source "core/Kconfig"
-
-# ============================================================================
-# Products Configuration
-# ============================================================================
-
-source "products/Kconfig"
-
-# ============================================================================
-# Test Configuration
-# ============================================================================
-
-menu "Test Configuration"
-
-config BUILD_TESTING
-	bool "Build tests"
-	default n
-	help
-	  Build the test suite (unit, performance, stress, system tests).
-	  Requires test framework to be available.
-
-source "tests/Kconfig"
-
+menu "Project Components Configuration"
+	osource "${PROJECT_PATH}/../components/*/Kconfig"
+	osource "${PROJECT_PATH}/*/Kconfig"
+	osource "${PROJECT_PATH}/components/*/Kconfig"
 endmenu

@@ -1,0 +1,1 @@
+/usr/bin/gcc -Wall -g CMakeFiles/hello_ems.dir/exe_src.c.o -o hello_ems  main/libmain.a 
