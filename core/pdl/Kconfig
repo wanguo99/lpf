@@ -67,17 +67,37 @@ source "core/pdl/src/pdl_bmc/Kconfig"
 menuconfig PDL_MCU_SUPPORT
 	bool "MCU peripheral support"
 	default n
-	select OSAL_NETWORK
 	help
 	  Enable MCU peripheral support via CAN or UART.
 
 	  MCU peripherals are microcontroller-based modules providing
 	  specialized control and monitoring functions.
 
-	  Requires: HAL_CAN or HAL_UART, OSAL_NETWORK
-	  Note: You must manually enable HAL_CAN or HAL_UART.
+	  You can enable CAN-based or UART-based MCU support below.
 
 	  If unsure, say Y.
+
+if PDL_MCU_SUPPORT
+
+config PDL_MCU_CAN_SUPPORT
+	bool "MCU peripheral via CAN"
+	default y
+	select HAL_CAN
+	select OSAL_NETWORK
+	help
+	  Enable MCU peripheral support via CAN bus.
+	  Automatically enables HAL_CAN and OSAL_NETWORK.
+
+config PDL_MCU_UART_SUPPORT
+	bool "MCU peripheral via UART"
+	default n
+	select HAL_UART
+	select OSAL_NETWORK
+	help
+	  Enable MCU peripheral support via UART.
+	  Automatically enables HAL_UART and OSAL_NETWORK.
+
+endif # PDL_MCU_SUPPORT
 
 source "core/pdl/src/pdl_mcu/Kconfig"
 

@@ -44,27 +44,38 @@ endfunction()
 # Usage: load_platform_config(CONFIG_VAR_NAME BASE_DIR)
 # Example: load_platform_config(CONFIG_PROJECT_NAME ${CMAKE_CURRENT_SOURCE_DIR}/configs/platforms)
 function(load_platform_config config_var base_dir)
-    if(${config_var})
+    # Check if platform is configured
+    if(NOT ${config_var})
+        message(FATAL_ERROR "Platform not configured: ${config_var} is empty. Please select a platform in Kconfig.")
+    endif()
+
+    # Support external platform config path
+    if(PLATFORM_CONFIG_BASE_DIR)
+        set(PLATFORM_CONFIG_DIR ${PLATFORM_CONFIG_BASE_DIR}/${${config_var}})
+    else()
         set(PLATFORM_CONFIG_DIR ${base_dir}/${${config_var}})
+    endif()
 
-        if(EXISTS ${PLATFORM_CONFIG_DIR})
-            message("-- Loading platform config: ${${config_var}}")
+    # Check if platform config directory exists
+    if(NOT EXISTS ${PLATFORM_CONFIG_DIR})
+        message(FATAL_ERROR "Platform config directory not found: ${PLATFORM_CONFIG_DIR}\n"
+                            "Expected platform: ${${config_var}}\n"
+                            "Please check your Kconfig configuration or create the platform config directory.")
+    endif()
 
-            # Collect ACL config files
-            file(GLOB _acl_srcs "${PLATFORM_CONFIG_DIR}/acl/*.c" "${PLATFORM_CONFIG_DIR}/acl/*/*.c")
-            if(_acl_srcs)
-                set(PLATFORM_ACL_SRCS ${_acl_srcs} PARENT_SCOPE)
-                set(PLATFORM_CONFIG_INCLUDE ${PLATFORM_CONFIG_DIR}/acl PARENT_SCOPE)
-            endif()
+    message("-- Loading platform config: ${${config_var}}")
 
-            # Collect PCL config files
-            file(GLOB _pcl_srcs "${PLATFORM_CONFIG_DIR}/pcl/*.c")
-            if(_pcl_srcs)
-                set(PLATFORM_PCL_SRCS ${_pcl_srcs} PARENT_SCOPE)
-            endif()
-        else()
-            message(WARNING "Platform config directory not found: ${PLATFORM_CONFIG_DIR}")
-        endif()
+    # Collect ACL config files
+    file(GLOB _acl_srcs "${PLATFORM_CONFIG_DIR}/acl/*.c" "${PLATFORM_CONFIG_DIR}/acl/*/*.c")
+    if(_acl_srcs)
+        set(PLATFORM_ACL_SRCS ${_acl_srcs} PARENT_SCOPE)
+        set(PLATFORM_CONFIG_INCLUDE ${PLATFORM_CONFIG_DIR}/acl PARENT_SCOPE)
+    endif()
+
+    # Collect PCL config files
+    file(GLOB _pcl_srcs "${PLATFORM_CONFIG_DIR}/pcl/*.c")
+    if(_pcl_srcs)
+        set(PLATFORM_PCL_SRCS ${_pcl_srcs} PARENT_SCOPE)
     endif()
 endfunction()
 

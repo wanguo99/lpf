@@ -125,7 +125,7 @@ config OSAL_BUILD_STATIC
 
 config OSAL_BUILD_SHARED
 	bool "Build shared library"
-	default y
+	default n
 	help
 	  Build libosal.so shared library.
 

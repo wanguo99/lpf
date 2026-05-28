@@ -4,17 +4,20 @@
 # This configuration demonstrates fine-grained file-level trimming.
 # Only essential OSAL features are enabled, all other modules are disabled.
 # ============================================================================
+#
+# NOTE: Due to Kconfig 'select' mechanism, some modules will be automatically
+#       enabled even if not explicitly configured here:
+#       - HAL, PCL, PDL, ACL will be auto-enabled by application dependencies
+#       - This is intentional to ensure all required dependencies are present
+# ============================================================================
 
 # Product Selection
 CONFIG_PRODUCT_CCM=y
 CONFIG_PRODUCT_SAMPLE=n
 
-# Core Components - Only OSAL
+# Core Components - Only OSAL explicitly enabled
+# (HAL/PCL/PDL/ACL will be auto-enabled by 'select' dependencies)
 CONFIG_OSAL=y
-CONFIG_HAL=n
-CONFIG_PCL=n
-CONFIG_PDL=n
-CONFIG_ACL=n
 
 # OSAL Platform
 CONFIG_OS_LINUX=y
@@ -29,14 +32,14 @@ CONFIG_OSAL_IPC=y
 CONFIG_OSAL_FILE=y
 CONFIG_OSAL_THREAD=y
 CONFIG_OSAL_NETWORK=n
-CONFIG_OSAL_SIGNAL=n
+CONFIG_OSAL_SIGNAL=y
 
 # OSAL IPC - Only mutex and semaphore
 CONFIG_OSAL_IPC_ATOMIC=n
 CONFIG_OSAL_IPC_MUTEX=y
 CONFIG_OSAL_IPC_SEMAPHORE=y
 CONFIG_OSAL_IPC_COND=n
-CONFIG_OSAL_IPC_SHM=n
+CONFIG_OSAL_IPC_SHM=y
 CONFIG_OSAL_IPC_SHM_CACHE=n
 
 # OSAL Library - Only basic functions
@@ -50,9 +53,9 @@ CONFIG_OSAL_SYS_CLOCK=y
 CONFIG_OSAL_SYS_ENV=n
 CONFIG_OSAL_SYS_FILE=y
 CONFIG_OSAL_SYS_PROCESS=n
-CONFIG_OSAL_SYS_SCHED=n
+CONFIG_OSAL_SYS_SCHED=y
 CONFIG_OSAL_SYS_SELECT=n
-CONFIG_OSAL_SYS_SIGNAL=n
+CONFIG_OSAL_SYS_SIGNAL=y
 CONFIG_OSAL_SYS_THREAD=y
 CONFIG_OSAL_SYS_TIME=y
 

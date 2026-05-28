@@ -66,3 +66,50 @@ endif()
 if(CONFIG_APP_SUPERVISOR)
     add_subdirectory(apps/app_supervisor)
 endif()
+
+# ============================================================================
+# Generate Executables from Application Components
+# ============================================================================
+# Application components are built as static libraries (libapp_*.a)
+# Here we create executables that link against these libraries
+# ============================================================================
+
+if(CONFIG_APP_COLLECTOR)
+    add_executable(collector ${CMAKE_CURRENT_BINARY_DIR}/collector_main.c)
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/collector_main.c
+                       COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_CURRENT_BINARY_DIR}/collector_main.c
+                       VERBATIM)
+    target_link_libraries(collector PRIVATE app_collector)
+endif()
+
+if(CONFIG_APP_COMM)
+    add_executable(comm ${CMAKE_CURRENT_BINARY_DIR}/comm_main.c)
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/comm_main.c
+                       COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_CURRENT_BINARY_DIR}/comm_main.c
+                       VERBATIM)
+    target_link_libraries(comm PRIVATE app_comm)
+endif()
+
+if(CONFIG_APP_HEALTH)
+    add_executable(health ${CMAKE_CURRENT_BINARY_DIR}/health_main.c)
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/health_main.c
+                       COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_CURRENT_BINARY_DIR}/health_main.c
+                       VERBATIM)
+    target_link_libraries(health PRIVATE app_health)
+endif()
+
+if(CONFIG_APP_LOGGER)
+    add_executable(logger ${CMAKE_CURRENT_BINARY_DIR}/logger_main.c)
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/logger_main.c
+                       COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_CURRENT_BINARY_DIR}/logger_main.c
+                       VERBATIM)
+    target_link_libraries(logger PRIVATE app_logger)
+endif()
+
+if(CONFIG_APP_SUPERVISOR)
+    add_executable(supervisor ${CMAKE_CURRENT_BINARY_DIR}/supervisor_main.c)
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/supervisor_main.c
+                       COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_CURRENT_BINARY_DIR}/supervisor_main.c
+                       VERBATIM)
+    target_link_libraries(supervisor PRIVATE app_supervisor)
+endif()
