@@ -89,7 +89,7 @@ def menuconfig():
     print("\nConfiguration saved.")
     return True
 
-def load_config(config_name, build_dir="build"):
+def load_config(config_name, build_dir="_build"):
     """加载配置文件（不编译）"""
     root_dir = Path(__file__).parent
     build_path = root_dir / build_dir
@@ -132,7 +132,7 @@ def load_config(config_name, build_dir="build"):
     print("Run 'python3 build.py build' to compile")
     return True
 
-def build(config=None, build_dir="build", clean=False, jobs=None, verbose=False):
+def build(config=None, build_dir="_build", clean=False, jobs=None, verbose=False):
     """构建项目"""
     root_dir = Path(__file__).parent
     build_path = root_dir / build_dir
@@ -284,8 +284,8 @@ Examples:
                         help="List all available products and configs")
     parser.add_argument("--config", "-c", type=str,
                         help="Configuration to load (defconfig name without _defconfig suffix)")
-    parser.add_argument("--build-dir", "-b", type=str, default="build",
-                        help="Build directory (default: build)")
+    parser.add_argument("--build-dir", "-b", type=str, default="_build",
+                        help="Build directory (default: _build)")
     parser.add_argument("--jobs", "-j", type=int,
                         help="Number of parallel jobs")
     parser.add_argument("--verbose", "-v", action="store_true",
