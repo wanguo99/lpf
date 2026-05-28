@@ -8,13 +8,27 @@
 menu "CCM Product"
 
 # ============================================================================
+# Platform Configuration
+# ============================================================================
+
+menu "Platform Configuration"
+
+config H200_AM625
+    bool "H200 AM625 Platform"
+    default y
+    help
+      Enable H200 AM625 platform configuration.
+      This provides ACL and PCL configuration data for TI AM625 SoC.
+
+endmenu
+
+# ============================================================================
 # Product Components
 # ============================================================================
 
 menu "Product Components"
 
 osource "$SDK_PATH/products/ccm/components/libccm/Kconfig"
-osource "$SDK_PATH/products/ccm/components/h200_am625/Kconfig"
 
 endmenu
 

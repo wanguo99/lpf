@@ -26,13 +26,22 @@ if(CONFIG_ACL)
     add_subdirectory(${SDK_PATH}/components/acl ${CMAKE_CURRENT_BINARY_DIR}/acl)
 endif()
 
+# Set platform config directory based on Kconfig
+if(CONFIG_H200_AM625)
+    set(PLATFORM_CONFIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/configs/platforms/h200_am625)
+
+    # Collect platform config source files
+    file(GLOB PLATFORM_ACL_SRCS "${PLATFORM_CONFIG_DIR}/acl/*.c" "${PLATFORM_CONFIG_DIR}/acl/*/*.c")
+    file(GLOB PLATFORM_PCL_SRCS "${PLATFORM_CONFIG_DIR}/pcl/*.c")
+    set(PLATFORM_CONFIG_SRCS ${PLATFORM_ACL_SRCS} ${PLATFORM_PCL_SRCS})
+
+    # Add platform config include directories (both root and acl subdirectory)
+    set(PLATFORM_CONFIG_INCLUDE ${PLATFORM_CONFIG_DIR} ${PLATFORM_CONFIG_DIR}/acl)
+endif()
+
 # Register product-specific components
 if(CONFIG_LIBCCM)
     add_subdirectory(components/libccm)
-endif()
-
-if(CONFIG_H200_AM625)
-    add_subdirectory(components/h200_am625)
 endif()
 
 # Register applications
