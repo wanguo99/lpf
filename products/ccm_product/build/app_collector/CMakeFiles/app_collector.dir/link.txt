@@ -1,2 +1,0 @@
-/usr/bin/ar qc libapp_collector.a CMakeFiles/app_collector.dir/src/ccm_collector.c.o CMakeFiles/app_collector.dir/src/main.c.o
-/usr/bin/ranlib libapp_collector.a

@@ -1,2 +1,0 @@
-/usr/bin/ar qc libacl.a CMakeFiles/acl.dir/src/acl_api.c.o CMakeFiles/acl.dir/src/acl_api_v2.c.o CMakeFiles/acl.dir/src/acl_telemetry_cache.c.o
-/usr/bin/ranlib libacl.a

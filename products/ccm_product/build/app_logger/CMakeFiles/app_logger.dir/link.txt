@@ -1,2 +1,0 @@
-/usr/bin/ar qc libapp_logger.a CMakeFiles/app_logger.dir/src/ccm_logger.c.o CMakeFiles/app_logger.dir/src/main.c.o
-/usr/bin/ranlib libapp_logger.a

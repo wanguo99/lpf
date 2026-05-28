@@ -500,17 +500,23 @@ macro(project name)
             # 从 app_xxx 提取 xxx 作为可执行文件名
             string(REGEX REPLACE "^app_" "" exe_name ${app_name})
 
-            message(STATUS "Creating executable: ${exe_name} from ${app_name}")
+            # 检查 Kconfig 配置是否启用此应用
+            string(TOUPPER ${app_name} app_name_upper)
+            if(CONFIG_${app_name_upper})
+                message(STATUS "Creating executable: ${exe_name} from ${app_name}")
 
-            # 为每个应用创建 dummy source
-            set(app_exe_src ${CMAKE_BINARY_DIR}/${app_name}_exe_src.c)
-            add_executable(${exe_name} "${app_exe_src}")
-            add_custom_command(OUTPUT ${app_exe_src} COMMAND ${CMAKE_COMMAND} -E touch ${app_exe_src} VERBATIM)
-            add_custom_target(gen_${app_name}_exe_src DEPENDS "${app_exe_src}")
-            add_dependencies(${exe_name} gen_${app_name}_exe_src)
+                # 为每个应用创建 dummy source
+                set(app_exe_src ${CMAKE_BINARY_DIR}/${app_name}_exe_src.c)
+                add_executable(${exe_name} "${app_exe_src}")
+                add_custom_command(OUTPUT ${app_exe_src} COMMAND ${CMAKE_COMMAND} -E touch ${app_exe_src} VERBATIM)
+                add_custom_target(gen_${app_name}_exe_src DEPENDS "${app_exe_src}")
+                add_dependencies(${exe_name} gen_${app_name}_exe_src)
 
-            # 链接应用组件
-            target_link_libraries(${exe_name} ${app_name})
+                # 链接应用组件
+                target_link_libraries(${exe_name} ${app_name})
+            else()
+                message(STATUS "Skipping executable: ${exe_name} (CONFIG_${app_name_upper} not enabled)")
+            endif()
         endforeach()
     endif()
 

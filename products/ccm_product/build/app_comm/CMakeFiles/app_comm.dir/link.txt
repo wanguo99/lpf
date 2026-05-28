@@ -1,2 +1,0 @@
-/usr/bin/ar qc libapp_comm.a CMakeFiles/app_comm.dir/src/ccm_comm.c.o CMakeFiles/app_comm.dir/src/main.c.o
-/usr/bin/ranlib libapp_comm.a

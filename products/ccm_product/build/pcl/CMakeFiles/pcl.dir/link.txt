@@ -1,2 +1,0 @@
-/usr/bin/ar qc libpcl.a CMakeFiles/pcl.dir/src/pcl_api.c.o CMakeFiles/pcl.dir/src/pcl_register.c.o
-/usr/bin/ranlib libpcl.a

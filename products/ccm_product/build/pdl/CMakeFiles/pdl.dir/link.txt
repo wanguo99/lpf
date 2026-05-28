@@ -1,2 +1,0 @@
-/usr/bin/ar qc libpdl.a CMakeFiles/pdl.dir/src/pdl_watchdog.c.o
-/usr/bin/ranlib libpdl.a
