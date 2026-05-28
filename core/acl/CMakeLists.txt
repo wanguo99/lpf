@@ -1,10 +1,5 @@
 ################# Add include #################
-list(APPEND ADD_INCLUDE "include"
-    )
-# 兼容 #include "acl/xxx.h" 路径
-get_filename_component(PARENT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" DIRECTORY)
-list(APPEND ADD_INCLUDE "${PARENT_DIR}")
-
+# 使用标准的 core 组件 include 路径
 # 添加平台配置头文件路径（如果有）
 if(ACL_EXTRA_INCLUDE)
     list(APPEND ADD_INCLUDE ${ACL_EXTRA_INCLUDE})
@@ -36,7 +31,11 @@ if(CONFIG_ACL_MAX_DEVICES)
 endif()
 ###############################################
 
-# 注册组件
+# 注册组件（使用公共函数）
+list(APPEND ADD_INCLUDE "include")
+get_filename_component(PARENT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" DIRECTORY)
+list(APPEND ADD_INCLUDE "${PARENT_DIR}")
+
 if(CONFIG_ACL_BUILD_SHARED)
     register_component(SHARED)
 else()

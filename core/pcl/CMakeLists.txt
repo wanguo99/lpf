@@ -1,10 +1,5 @@
 ################# Add include #################
-list(APPEND ADD_INCLUDE "include"
-    )
-# 兼容 #include "pcl/xxx.h" 路径
-get_filename_component(PARENT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" DIRECTORY)
-list(APPEND ADD_INCLUDE "${PARENT_DIR}")
-
+# 使用标准的 core 组件 include 路径
 # 添加平台配置头文件路径（如果有）
 if(PCL_EXTRA_INCLUDE)
     list(APPEND ADD_INCLUDE ${PCL_EXTRA_INCLUDE})
@@ -30,21 +25,14 @@ list(APPEND ADD_REQUIREMENTS osal hal)
 ###############################################
 
 #### Add compile option for this component ####
-# 根据平台配置添加宏定义
-if(CONFIG_PCL_PLATFORM_TI_AM625)
-    list(APPEND ADD_DEFINITIONS -DPCL_PLATFORM_TI_AM625=1)
-
-    if(CONFIG_PCL_PRODUCT_H200_100P)
-        list(APPEND ADD_DEFINITIONS -DPCL_PRODUCT_H200_100P=1)
-    elseif(CONFIG_PCL_PRODUCT_H200_200P)
-        list(APPEND ADD_DEFINITIONS -DPCL_PRODUCT_H200_200P=1)
-    endif()
-elseif(CONFIG_PCL_PLATFORM_VENDOR_DEMO)
-    list(APPEND ADD_DEFINITIONS -DPCL_PLATFORM_VENDOR_DEMO=1)
-endif()
+# 平台配置通过 CONFIG_PROJECT_NAME 由产品层提供
 ###############################################
 
-# 注册组件
+# 注册组件（使用公共函数）
+list(APPEND ADD_INCLUDE "include")
+get_filename_component(PARENT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" DIRECTORY)
+list(APPEND ADD_INCLUDE "${PARENT_DIR}")
+
 if(CONFIG_PCL_BUILD_SHARED)
     register_component(SHARED)
 else()

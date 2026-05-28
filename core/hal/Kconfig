@@ -3,9 +3,10 @@
 menuconfig HAL
 	bool "HAL (Hardware Abstraction Layer)"
 	default n
-	depends on OSAL
+	select OSAL
 	help
 	  Hardware Abstraction Layer provides unified hardware interfaces.
+	  HAL depends on OSAL.
 
 if HAL
 
@@ -39,7 +40,7 @@ config HAL_BUILD_STATIC
 
 config HAL_BUILD_SHARED
 	bool "Build shared library"
-	default y
+	default n
 	help
 	  Build libhal.so shared library.
 

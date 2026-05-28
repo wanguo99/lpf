@@ -25,6 +25,7 @@ message(STATUS "SDK_PATH:${SDK_PATH}")
 message(STATUS "PROJECT_PATH:${PROJECT_SOURCE_DIR}")
 
 include(${SDK_PATH}/tools/cmake/tools.cmake)
+include(${SDK_PATH}/tools/cmake/component_utils.cmake)
 
 function(register_component)
     get_filename_component(component_dir ${CMAKE_CURRENT_LIST_FILE} DIRECTORY)

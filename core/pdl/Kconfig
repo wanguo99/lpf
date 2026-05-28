@@ -3,6 +3,9 @@
 menuconfig PDL
 	bool "PDL (Peripheral Driver Layer)"
 	default n
+	select OSAL
+	select HAL
+	select PCL
 	help
 	  Peripheral Driver Layer provides unified peripheral management.
 	  PDL depends on OSAL, HAL, and PCL.
@@ -15,7 +18,7 @@ menu "PDL Build Configuration"
 
 config PDL_BUILD_STATIC
 	bool "Build static library (.a)"
-	default n
+	default y
 	help
 	  Build PDL as a static library (libpdl.a).
 
@@ -29,8 +32,9 @@ endmenu
 
 menuconfig PDL_SATELLITE_SUPPORT
 	bool "Satellite peripheral support"
-	depends on HAL_CAN && OSAL_NETWORK
 	default n
+	select HAL_CAN
+	select OSAL_NETWORK
 	help
 	  Enable satellite peripheral management via CAN bus.
 
@@ -45,8 +49,9 @@ source "core/pdl/src/pdl_satellite/Kconfig"
 
 menuconfig PDL_BMC_SUPPORT
 	bool "BMC peripheral support"
-	depends on HAL_UART && OSAL_NETWORK
 	default n
+	select HAL_UART
+	select OSAL_NETWORK
 	help
 	  Enable BMC (Baseboard Management Controller) peripheral support via UART/Ethernet.
 
@@ -61,8 +66,8 @@ source "core/pdl/src/pdl_bmc/Kconfig"
 
 menuconfig PDL_MCU_SUPPORT
 	bool "MCU peripheral support"
-	depends on (HAL_CAN || HAL_UART) && OSAL_NETWORK
 	default n
+	select OSAL_NETWORK
 	help
 	  Enable MCU peripheral support via CAN or UART.
 
@@ -70,6 +75,7 @@ menuconfig PDL_MCU_SUPPORT
 	  specialized control and monitoring functions.
 
 	  Requires: HAL_CAN or HAL_UART, OSAL_NETWORK
+	  Note: You must manually enable HAL_CAN or HAL_UART.
 
 	  If unsure, say Y.
 
@@ -78,7 +84,8 @@ source "core/pdl/src/pdl_mcu/Kconfig"
 menuconfig PDL_WATCHDOG_SUPPORT
 	bool "Watchdog peripheral support"
 	default n
-	depends on HAL_WATCHDOG && OSAL_THREAD
+	select HAL_WATCHDOG
+	select OSAL_THREAD
 	help
 	  Enable watchdog peripheral support.
 
@@ -88,7 +95,5 @@ menuconfig PDL_WATCHDOG_SUPPORT
 	  Requires: HAL_WATCHDOG, OSAL_THREAD
 
 	  If unsure, say Y.
-
-source "core/pdl/src/Kconfig.watchdog"
 
 endif # PDL
