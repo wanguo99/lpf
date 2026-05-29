@@ -23,11 +23,21 @@ if(CONFIG_PDL_WATCHDOG_SUPPORT)
     file(GLOB PDL_WATCHDOG_SRCS "src/pdl_watchdog/*.c")
     list(APPEND ADD_SRCS ${PDL_WATCHDOG_SRCS})
 endif()
+
+if(CONFIG_PDL_CCM_SUPPORT)
+    file(GLOB PDL_CCM_SRCS "src/pdl_ccm/*.c")
+    list(APPEND ADD_SRCS ${PDL_CCM_SRCS})
+endif()
 ###############################################
 
 ###### Add required/dependent components ######
 # PDL 依赖 OSAL, HAL, PCL
+# PDL_CCM 需要 PRL 协议层支持
 list(APPEND ADD_REQUIREMENTS osal hal pcl)
+
+if(CONFIG_PDL_CCM_SUPPORT)
+    list(APPEND ADD_REQUIREMENTS prl)
+endif()
 ###############################################
 
 #### Add compile option for this component ####
@@ -53,6 +63,10 @@ endif()
 
 if(CONFIG_PDL_WATCHDOG_SUPPORT)
     list(APPEND ADD_DEFINITIONS -DPDL_WATCHDOG_SUPPORT=1)
+endif()
+
+if(CONFIG_PDL_CCM_SUPPORT)
+    list(APPEND ADD_DEFINITIONS -DPDL_CCM_SUPPORT=1)
 endif()
 ###############################################
 

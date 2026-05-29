@@ -212,6 +212,44 @@ endif # PDL_MCU_SUPPORT
 
 source "core/pdl/src/pdl_mcu/Kconfig"
 
+menuconfig PDL_CCM_SUPPORT
+	bool "CCM (Communication Control Module) support"
+	default n
+	select OSAL_NETWORK
+	help
+	  Enable CCM (Communication Control Module) support for PMC communication.
+
+	  CCM provides high-level communication interface with PMC (Power Management
+	  Controller) over Ethernet, handling:
+	  - TCP/IP socket communication
+	  - Message framing and CRC validation
+	  - Connection management and auto-reconnect
+	  - Command/response protocol
+
+	  Features:
+	  - Reliable TCP-based communication
+	  - Automatic message sequencing
+	  - Configurable timeouts
+	  - Thread-safe operation
+
+	  Memory footprint: ~8KB
+
+	  Communication protocol:
+	  - Frame format: [Magic(2B)][Type(1B)][Reserved(1B)][SeqNum(4B)][Length(4B)][CRC32(4B)][Payload(NB)]
+	  - Magic number: 0xAA55
+	  - CRC32 validation for data integrity
+
+	  Use cases:
+	  - PMC power management and monitoring
+	  - Remote system control
+	  - Distributed power systems
+
+	  Dependencies: OSAL_NETWORK (for socket API)
+
+	  If unsure, say N.
+
+source "core/pdl/src/pdl_ccm/Kconfig"
+
 menuconfig PDL_WATCHDOG_SUPPORT
 	bool "Watchdog peripheral support"
 	default n
