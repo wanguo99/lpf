@@ -16,32 +16,39 @@
 /* CAN状态码 */
 typedef enum
 {
-    STATUS_OK = 0x00,
-    STATUS_ERROR = 0x01,
-    STATUS_BUSY = 0x02,
-    STATUS_TIMEOUT = 0x03
-} can_status_t;
+    PDL_SATELLITE_STATUS_OK = 0x00,
+    PDL_SATELLITE_STATUS_ERROR = 0x01,
+    PDL_SATELLITE_STATUS_BUSY = 0x02,
+    PDL_SATELLITE_STATUS_TIMEOUT = 0x03
+} pdl_satellite_status_t;
 
 /*
  * 卫星平台服务句柄
  */
-typedef void* satellite_service_handle_t;
+typedef void* pdl_satellite_handle_t;
 
 /*
  * 卫星平台服务配置
+ *
+ * 说明：直接嵌入 HAL 层配置结构体，避免重复定义
  */
 typedef struct
 {
-    const char *can_device;        /* CAN设备名 */
-    uint32_t can_bitrate;            /* CAN波特率 */
+    /* CAN配置 - 嵌入 HAL 配置 */
+    const char *can_device;        /* CAN设备名（传递给 HAL） */
+    uint32_t can_bitrate;            /* CAN波特率（传递给 HAL） */
+    uint32_t can_rx_timeout;         /* CAN接收超时（传递给 HAL） */
+    uint32_t can_tx_timeout;         /* CAN发送超时（传递给 HAL） */
+
+    /* 业务配置 */
     uint32_t heartbeat_interval_ms;  /* 心跳间隔(ms) */
     uint32_t cmd_timeout_ms;         /* 命令超时(ms) */
-} satellite_service_config_t;
+} pdl_satellite_config_t;
 
 /*
  * 命令回调函数类型
  */
-typedef void (*satellite_cmd_callback_t)(uint8_t cmd_type, uint32_t param, void *user_data);
+typedef void (*pdl_satellite_cmd_callback_t)(uint8_t cmd_type, uint32_t param, void *user_data);
 
 /**
  * @brief 初始化卫星平台服务
@@ -52,8 +59,8 @@ typedef void (*satellite_cmd_callback_t)(uint8_t cmd_type, uint32_t param, void 
  * @return OSAL_SUCCESS 成功
  * @return OSAL_ERR_GENERIC 失败
  */
-int32_t PDL_Satellite_Init(const satellite_service_config_t *config,
-                         satellite_service_handle_t *handle);
+int32_t PDL_Satellite_Init(const pdl_satellite_config_t *config,
+                         pdl_satellite_handle_t *handle);
 
 /**
  * @brief 反初始化卫星平台服务
@@ -62,7 +69,7 @@ int32_t PDL_Satellite_Init(const satellite_service_config_t *config,
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_Satellite_Deinit(satellite_service_handle_t handle);
+int32_t PDL_Satellite_Deinit(pdl_satellite_handle_t handle);
 
 /**
  * @brief 注册命令回调函数
@@ -73,8 +80,8 @@ int32_t PDL_Satellite_Deinit(satellite_service_handle_t handle);
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_Satellite_RegisterCallback(satellite_service_handle_t handle,
-                                     satellite_cmd_callback_t callback,
+int32_t PDL_Satellite_RegisterCallback(pdl_satellite_handle_t handle,
+                                     pdl_satellite_cmd_callback_t callback,
                                      void *user_data);
 
 /**
@@ -87,9 +94,9 @@ int32_t PDL_Satellite_RegisterCallback(satellite_service_handle_t handle,
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_Satellite_SendResponse(satellite_service_handle_t handle,
+int32_t PDL_Satellite_SendResponse(pdl_satellite_handle_t handle,
                                  uint32_t seq_num,
-                                 can_status_t status,
+                                 pdl_satellite_status_t status,
                                  uint32_t result);
 
 /**
@@ -100,8 +107,8 @@ int32_t PDL_Satellite_SendResponse(satellite_service_handle_t handle,
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_Satellite_SendHeartbeat(satellite_service_handle_t handle,
-                                  can_status_t status);
+int32_t PDL_Satellite_SendHeartbeat(pdl_satellite_handle_t handle,
+                                  pdl_satellite_status_t status);
 
 /**
  * @brief 获取服务统计信息
@@ -113,7 +120,7 @@ int32_t PDL_Satellite_SendHeartbeat(satellite_service_handle_t handle,
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_Satellite_GetStats(satellite_service_handle_t handle,
+int32_t PDL_Satellite_GetStats(pdl_satellite_handle_t handle,
                              uint32_t *rx_count,
                              uint32_t *tx_count,
                              uint32_t *error_count);

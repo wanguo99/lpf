@@ -28,7 +28,7 @@ typedef struct
  */
 int32_t mcu_can_init(const void *config, void **handle)
 {
-    const mcu_config_t *mcu_cfg;
+    const pdl_mcu_config_t *mcu_cfg;
     mcu_can_context_t *ctx;
     hal_can_config_t can_config;
 
@@ -37,7 +37,7 @@ int32_t mcu_can_init(const void *config, void **handle)
         return OSAL_ERR_GENERIC;
     }
 
-    mcu_cfg = (const mcu_config_t *)config;
+    mcu_cfg = (const pdl_mcu_config_t *)config;
     ctx = (mcu_can_context_t *)OSAL_Malloc(sizeof(mcu_can_context_t));
     if (NULL == ctx)
     {
@@ -109,8 +109,8 @@ int32_t mcu_can_send_command(void *handle,
     uint8_t tx_frame[8];
     uint32_t tx_len;
     uint32_t copy_len;
-    can_frame_t can_frame;
-    can_frame_t rx_frame;
+    hal_can_frame_t can_frame;
+    hal_can_frame_t rx_frame;
     int32_t ret;
     uint8_t status;
     uint8_t resp_len;

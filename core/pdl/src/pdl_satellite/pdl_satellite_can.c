@@ -61,7 +61,7 @@ int32_t satellite_can_deinit(void *handle)
 int32_t satellite_can_recv(void *handle, satellite_can_msg_t *msg, uint32_t timeout_ms)
 {
     hal_can_handle_t can_handle;
-    can_frame_t frame;
+    hal_can_frame_t frame;
     int32_t ret;
     uint32_t data_be;
 
@@ -105,7 +105,7 @@ int32_t satellite_can_recv(void *handle, satellite_can_msg_t *msg, uint32_t time
 int32_t satellite_can_send(void *handle, const satellite_can_msg_t *msg)
 {
     hal_can_handle_t can_handle;
-    can_frame_t frame;
+    hal_can_frame_t frame;
     uint32_t data_be;
 
     if (NULL == handle || NULL == msg)

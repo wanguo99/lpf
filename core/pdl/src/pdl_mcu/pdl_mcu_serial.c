@@ -37,7 +37,7 @@ typedef struct
  */
 int32_t mcu_serial_init(const void *config, void **handle)
 {
-    const mcu_config_t *mcu_cfg;
+    const pdl_mcu_config_t *mcu_cfg;
     mcu_serial_context_t *ctx;
     hal_serial_config_t serial_config;
 
@@ -46,7 +46,7 @@ int32_t mcu_serial_init(const void *config, void **handle)
         return OSAL_ERR_GENERIC;
     }
 
-    mcu_cfg = (const mcu_config_t *)config;
+    mcu_cfg = (const pdl_mcu_config_t *)config;
     ctx = (mcu_serial_context_t *)OSAL_Malloc(sizeof(mcu_serial_context_t));
     if (NULL == ctx)
     {

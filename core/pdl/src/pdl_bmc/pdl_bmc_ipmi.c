@@ -438,7 +438,7 @@ int32_t bmc_ipmi_power_reset(void *protocol_handle)
 /**
  * @brief 获取电源状态
  */
-int32_t bmc_ipmi_get_power_state(void *protocol_handle, bmc_power_state_t *state)
+int32_t bmc_ipmi_get_power_state(void *protocol_handle, pdl_bmc_power_state_t *state)
 {
     bmc_ipmi_context_t *ctx;
     uint8_t resp_data[16];
@@ -459,11 +459,11 @@ int32_t bmc_ipmi_get_power_state(void *protocol_handle, bmc_power_state_t *state
 
     if (OSAL_SUCCESS == ret && resp_len >= 1)
     {
-        *state = (resp_data[0] & 0x01) ? BMC_POWER_ON : BMC_POWER_OFF;
+        *state = (resp_data[0] & 0x01) ? PDL_BMC_POWER_ON : PDL_BMC_POWER_OFF;
     }
     else
     {
-        *state = BMC_POWER_UNKNOWN;
+        *state = PDL_BMC_POWER_UNKNOWN;
     }
 
     OSAL_MutexUnlock(ctx->mutex);
@@ -475,8 +475,8 @@ int32_t bmc_ipmi_get_power_state(void *protocol_handle, bmc_power_state_t *state
  * @brief 读取传感器
  */
 int32_t bmc_ipmi_read_sensors(void *protocol_handle,
-                              bmc_sensor_type_t type,
-                              bmc_sensor_reading_t *readings,
+                              pdl_bmc_sensor_type_t type,
+                              pdl_bmc_sensor_reading_t *readings,
                               uint32_t max_count,
                               uint32_t *actual_count)
 {

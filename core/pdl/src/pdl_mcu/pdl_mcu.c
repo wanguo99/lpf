@@ -16,19 +16,19 @@
  */
 typedef struct
 {
-    mcu_config_t config;
-    mcu_interface_t interface;
+    pdl_mcu_config_t config;
+    pdl_mcu_interface_t interface;
     void *comm_handle;                /* 通信句柄（CAN/串口） */
     bool initialized;
     osal_mutex_t *mutex;
-    mcu_version_t version;
-    mcu_status_t status;
+    pdl_mcu_version_t version;
+    pdl_mcu_status_t status;
 } mcu_context_t;
 
 /**
  * @brief 初始化MCU驱动
  */
-int32_t PDL_MCU_Init(const mcu_config_t *config, mcu_handle_t *handle)
+int32_t PDL_MCU_Init(const pdl_mcu_config_t *config, pdl_mcu_handle_t *handle)
 {
     mcu_context_t *ctx;
     int32_t ret;
@@ -45,7 +45,7 @@ int32_t PDL_MCU_Init(const mcu_config_t *config, mcu_handle_t *handle)
     }
 
     OSAL_Memset(ctx, 0, sizeof(mcu_context_t));
-    OSAL_Memcpy(&ctx->config, config, sizeof(mcu_config_t));
+    OSAL_Memcpy(&ctx->config, config, sizeof(pdl_mcu_config_t));
     ctx->interface = config->interface;
 
     /* 创建互斥锁 */
@@ -59,14 +59,14 @@ int32_t PDL_MCU_Init(const mcu_config_t *config, mcu_handle_t *handle)
     ret = OSAL_ERR_GENERIC;
     switch (config->interface)
     {
-        case MCU_INTERFACE_CAN:
+        case PDL_MCU_INTERFACE_CAN:
             ret = mcu_can_init(&config->can, &ctx->comm_handle);
             break;
-        case MCU_INTERFACE_SERIAL:
+        case PDL_MCU_INTERFACE_SERIAL:
             ret = mcu_serial_init(&config->serial, &ctx->comm_handle);
             break;
-        case MCU_INTERFACE_I2C:
-        case MCU_INTERFACE_SPI:
+        case PDL_MCU_INTERFACE_I2C:
+        case PDL_MCU_INTERFACE_SPI:
             /* TODO: 实现I2C/SPI接口 */
             ret = OSAL_ERR_GENERIC;
             break;
@@ -83,7 +83,7 @@ int32_t PDL_MCU_Init(const mcu_config_t *config, mcu_handle_t *handle)
     }
 
     ctx->initialized = true;
-    *handle = (mcu_handle_t)ctx;
+    *handle = (pdl_mcu_handle_t)ctx;
 
     return OSAL_SUCCESS;
 }
@@ -91,7 +91,7 @@ int32_t PDL_MCU_Init(const mcu_config_t *config, mcu_handle_t *handle)
 /**
  * @brief 反初始化MCU驱动
  */
-int32_t PDL_MCU_Deinit(mcu_handle_t handle)
+int32_t PDL_MCU_Deinit(pdl_mcu_handle_t handle)
 {
     mcu_context_t *ctx;
 
@@ -105,10 +105,10 @@ int32_t PDL_MCU_Deinit(mcu_handle_t handle)
     /* 关闭通信接口 */
     switch (ctx->interface)
     {
-        case MCU_INTERFACE_CAN:
+        case PDL_MCU_INTERFACE_CAN:
             mcu_can_deinit(ctx->comm_handle);
             break;
-        case MCU_INTERFACE_SERIAL:
+        case PDL_MCU_INTERFACE_SERIAL:
             mcu_serial_deinit(ctx->comm_handle);
             break;
         default:
@@ -138,12 +138,12 @@ static int32_t mcu_send_command_internal(mcu_context_t *ctx,
 
     switch (ctx->interface)
     {
-        case MCU_INTERFACE_CAN:
+        case PDL_MCU_INTERFACE_CAN:
             ret = mcu_can_send_command(ctx->comm_handle, cmd_code, data, data_len,
                                       response, resp_size, actual_size,
                                       ctx->config.cmd_timeout_ms);
             break;
-        case MCU_INTERFACE_SERIAL:
+        case PDL_MCU_INTERFACE_SERIAL:
             ret = mcu_serial_send_command(ctx->comm_handle, cmd_code, data, data_len,
                                          response, resp_size, actual_size,
                                          ctx->config.cmd_timeout_ms);
@@ -161,7 +161,7 @@ static int32_t mcu_send_command_internal(mcu_context_t *ctx,
 /**
  * @brief 获取MCU版本
  */
-int32_t PDL_MCU_GetVersion(mcu_handle_t handle, mcu_version_t *version)
+int32_t PDL_MCU_GetVersion(pdl_mcu_handle_t handle, pdl_mcu_version_t *version)
 {
     mcu_context_t *ctx;
     uint8_t resp[4];
@@ -195,7 +195,7 @@ int32_t PDL_MCU_GetVersion(mcu_handle_t handle, mcu_version_t *version)
 /**
  * @brief 获取MCU状态
  */
-int32_t PDL_MCU_GetStatus(mcu_handle_t handle, mcu_status_t *status)
+int32_t PDL_MCU_GetStatus(pdl_mcu_handle_t handle, pdl_mcu_status_t *status)
 {
     mcu_context_t *ctx;
     uint8_t resp[16];
@@ -232,7 +232,7 @@ int32_t PDL_MCU_GetStatus(mcu_handle_t handle, mcu_status_t *status)
 /**
  * @brief MCU复位
  */
-int32_t PDL_MCU_Reset(mcu_handle_t handle)
+int32_t PDL_MCU_Reset(pdl_mcu_handle_t handle)
 {
     mcu_context_t *ctx;
     uint8_t resp[4];
@@ -252,7 +252,7 @@ int32_t PDL_MCU_Reset(mcu_handle_t handle)
 /**
  * @brief 读取MCU寄存器
  */
-int32_t PDL_MCU_ReadRegister(mcu_handle_t handle, uint8_t reg_addr, uint8_t *value)
+int32_t PDL_MCU_ReadRegister(pdl_mcu_handle_t handle, uint8_t reg_addr, uint8_t *value)
 {
     mcu_context_t *ctx;
     uint8_t resp[4];
@@ -280,7 +280,7 @@ int32_t PDL_MCU_ReadRegister(mcu_handle_t handle, uint8_t reg_addr, uint8_t *val
 /**
  * @brief 写入MCU寄存器
  */
-int32_t PDL_MCU_WriteRegister(mcu_handle_t handle, uint8_t reg_addr, uint8_t value)
+int32_t PDL_MCU_WriteRegister(pdl_mcu_handle_t handle, uint8_t reg_addr, uint8_t value)
 {
     mcu_context_t *ctx;
     uint8_t data[2];
@@ -303,7 +303,7 @@ int32_t PDL_MCU_WriteRegister(mcu_handle_t handle, uint8_t reg_addr, uint8_t val
 /**
  * @brief 发送自定义命令到MCU
  */
-int32_t PDL_MCU_SendCommand(mcu_handle_t handle,
+int32_t PDL_MCU_SendCommand(pdl_mcu_handle_t handle,
                           uint8_t cmd_code,
                           const uint8_t *data,
                           uint32_t data_len,
@@ -327,7 +327,7 @@ int32_t PDL_MCU_SendCommand(mcu_handle_t handle,
 /**
  * @brief MCU固件升级
  */
-int32_t PDL_MCU_FirmwareUpdate(mcu_handle_t handle,
+int32_t PDL_MCU_FirmwareUpdate(pdl_mcu_handle_t handle,
                              const char *firmware_path,
                              void (*progress_callback)(uint32_t percent))
 {

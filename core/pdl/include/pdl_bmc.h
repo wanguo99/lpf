@@ -16,51 +16,53 @@
 /*
  * BMC服务句柄
  */
-typedef void* bmc_handle_t;
+typedef void* pdl_bmc_handle_t;
 
 /*
  * 通信通道类型
  */
 typedef enum
 {
-    BMC_CHANNEL_NETWORK = 0,  /* 网络通道（IPMI over LAN） */
-    BMC_CHANNEL_SERIAL  = 1   /* 串口通道（IPMI over Serial） */
-} bmc_channel_t;
+    PDL_BMC_CHANNEL_NETWORK = 0,  /* 网络通道（IPMI over LAN） */
+    PDL_BMC_CHANNEL_SERIAL  = 1   /* 串口通道（IPMI over Serial） */
+} pdl_bmc_channel_t;
 
 /*
  * BMC协议类型
  */
 typedef enum
 {
-    BMC_PROTOCOL_IPMI = 0,    /* IPMI协议 */
-    BMC_PROTOCOL_REDFISH = 1  /* Redfish协议 */
-} bmc_protocol_t;
+    PDL_BMC_PROTOCOL_IPMI = 0,    /* IPMI协议 */
+    PDL_BMC_PROTOCOL_REDFISH = 1  /* Redfish协议 */
+} pdl_bmc_protocol_t;
 
 /*
  * 电源状态
  */
 typedef enum
 {
-    BMC_POWER_OFF = 0,
-    BMC_POWER_ON  = 1,
-    BMC_POWER_UNKNOWN = 2
-} bmc_power_state_t;
+    PDL_BMC_POWER_OFF = 0,
+    PDL_BMC_POWER_ON  = 1,
+    PDL_BMC_POWER_UNKNOWN = 2
+} pdl_bmc_power_state_t;
 
 /*
  * BMC状态
  */
 typedef struct
 {
-    bmc_power_state_t power_state;
+    pdl_bmc_power_state_t power_state;
     bool bmc_ready;
     uint32_t uptime_sec;
     float cpu_temp;
     float inlet_temp;
     uint64_t timestamp_us;  /* 数据采集时间戳（微秒） */
-} bmc_status_t;
+} pdl_bmc_status_t;
 
 /*
  * BMC配置
+ *
+ * 说明：直接嵌入 HAL 层配置结构体，避免重复定义
  */
 typedef struct
 {
@@ -74,44 +76,47 @@ typedef struct
         uint32_t timeout_ms;        /* 超时时间 */
     } network;
 
-    /* 串口配置 */
+    /* 串口配置 - 嵌入 HAL 配置 */
     struct {
         bool enabled;             /* 是否启用 */
-        const char *device;       /* 串口设备 */
-        uint32_t baudrate;          /* 波特率 */
+        const char *device;       /* 串口设备（传递给 HAL） */
+        uint32_t baudrate;          /* 波特率（传递给 HAL） */
+        uint8_t data_bits;          /* 数据位（传递给 HAL，默认8） */
+        uint8_t stop_bits;          /* 停止位（传递给 HAL，默认1） */
+        uint8_t parity;             /* 校验位（传递给 HAL，默认NONE） */
         uint32_t timeout_ms;        /* 超时时间 */
     } serial;
 
     /* 服务配置 */
-    bmc_channel_t primary_channel;  /* 主通道 */
+    pdl_bmc_channel_t primary_channel;  /* 主通道 */
     bool auto_switch;             /* 自动切换通道 */
     uint32_t retry_count;           /* 重试次数 */
     uint32_t health_check_interval; /* 健康检查间隔(ms) */
-} bmc_config_t;
+} pdl_bmc_config_t;
 
 /*
  * 传感器类型
  */
 typedef enum
 {
-    BMC_SENSOR_TEMP = 0,      /* 温度 */
-    BMC_SENSOR_VOLTAGE = 1,   /* 电压 */
-    BMC_SENSOR_CURRENT = 2,   /* 电流 */
-    BMC_SENSOR_FAN = 3        /* 风扇转速 */
-} bmc_sensor_type_t;
+    PDL_BMC_SENSOR_TEMP = 0,      /* 温度 */
+    PDL_BMC_SENSOR_VOLTAGE = 1,   /* 电压 */
+    PDL_BMC_SENSOR_CURRENT = 2,   /* 电流 */
+    PDL_BMC_SENSOR_FAN = 3        /* 风扇转速 */
+} pdl_bmc_sensor_type_t;
 
 /*
  * 传感器读数
  */
 typedef struct
 {
-    bmc_sensor_type_t type;
+    pdl_bmc_sensor_type_t type;
     char name[64];
     float value;
     char unit[16];
     bool valid;
     uint64_t timestamp_us;  /* 数据采集时间戳（微秒） */
-} bmc_sensor_reading_t;
+} pdl_bmc_sensor_reading_t;
 
 /**
  * @brief 初始化BMC服务
@@ -122,8 +127,8 @@ typedef struct
  * @return OSAL_SUCCESS 成功
  * @return OSAL_ERR_GENERIC 失败
  */
-int32_t PDL_BMC_Init(const bmc_config_t *config,
-                   bmc_handle_t *handle);
+int32_t PDL_BMC_Init(const pdl_bmc_config_t *config,
+                   pdl_bmc_handle_t *handle);
 
 /**
  * @brief 反初始化BMC服务
@@ -132,7 +137,7 @@ int32_t PDL_BMC_Init(const bmc_config_t *config,
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_BMC_Deinit(bmc_handle_t handle);
+int32_t PDL_BMC_Deinit(pdl_bmc_handle_t handle);
 
 /**
  * @brief 电源开机
@@ -143,7 +148,7 @@ int32_t PDL_BMC_Deinit(bmc_handle_t handle);
  * @return OSAL_ERR_TIMEOUT 超时
  * @return OSAL_ERR_GENERIC 失败
  */
-int32_t PDL_BMC_PowerOn(bmc_handle_t handle);
+int32_t PDL_BMC_PowerOn(pdl_bmc_handle_t handle);
 
 /**
  * @brief 电源关机
@@ -152,7 +157,7 @@ int32_t PDL_BMC_PowerOn(bmc_handle_t handle);
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_BMC_PowerOff(bmc_handle_t handle);
+int32_t PDL_BMC_PowerOff(pdl_bmc_handle_t handle);
 
 /**
  * @brief 电源复位
@@ -161,7 +166,7 @@ int32_t PDL_BMC_PowerOff(bmc_handle_t handle);
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_BMC_PowerReset(bmc_handle_t handle);
+int32_t PDL_BMC_PowerReset(pdl_bmc_handle_t handle);
 
 /**
  * @brief 查询电源状态
@@ -171,8 +176,8 @@ int32_t PDL_BMC_PowerReset(bmc_handle_t handle);
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_BMC_GetPowerState(bmc_handle_t handle,
-                            bmc_power_state_t *state);
+int32_t PDL_BMC_GetPowerState(pdl_bmc_handle_t handle,
+                            pdl_bmc_power_state_t *state);
 
 /**
  * @brief 读取传感器
@@ -185,9 +190,9 @@ int32_t PDL_BMC_GetPowerState(bmc_handle_t handle,
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_BMC_ReadSensors(bmc_handle_t handle,
-                          bmc_sensor_type_t type,
-                          bmc_sensor_reading_t *readings,
+int32_t PDL_BMC_ReadSensors(pdl_bmc_handle_t handle,
+                          pdl_bmc_sensor_type_t type,
+                          pdl_bmc_sensor_reading_t *readings,
                           uint32_t max_count,
                           uint32_t *actual_count);
 
@@ -202,7 +207,7 @@ int32_t PDL_BMC_ReadSensors(bmc_handle_t handle,
  * @return 实际接收字节数
  * @return <0 错误码
  */
-int32_t PDL_BMC_ExecuteCommand(bmc_handle_t handle,
+int32_t PDL_BMC_ExecuteCommand(pdl_bmc_handle_t handle,
                              const char *cmd,
                              char *response,
                              uint32_t resp_size);
@@ -215,17 +220,17 @@ int32_t PDL_BMC_ExecuteCommand(bmc_handle_t handle,
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_BMC_SwitchChannel(bmc_handle_t handle,
-                            bmc_channel_t channel);
+int32_t PDL_BMC_SwitchChannel(pdl_bmc_handle_t handle,
+                            pdl_bmc_channel_t channel);
 
 /**
  * @brief 获取当前通道
  *
  * @param[in] handle 服务句柄
  *
- * @return bmc_channel_t 当前通道
+ * @return pdl_bmc_channel_t 当前通道
  */
-bmc_channel_t PDL_BMC_GetChannel(bmc_handle_t handle);
+pdl_bmc_channel_t PDL_BMC_GetChannel(pdl_bmc_handle_t handle);
 
 /**
  * @brief 检查连接状态
@@ -235,7 +240,7 @@ bmc_channel_t PDL_BMC_GetChannel(bmc_handle_t handle);
  * @return true 已连接
  * @return false 未连接
  */
-bool PDL_BMC_IsConnected(bmc_handle_t handle);
+bool PDL_BMC_IsConnected(pdl_bmc_handle_t handle);
 
 /**
  * @brief 获取服务统计信息
@@ -248,7 +253,7 @@ bool PDL_BMC_IsConnected(bmc_handle_t handle);
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_BMC_GetStats(bmc_handle_t handle,
+int32_t PDL_BMC_GetStats(pdl_bmc_handle_t handle,
                        uint32_t *cmd_count,
                        uint32_t *success_count,
                        uint32_t *fail_count,

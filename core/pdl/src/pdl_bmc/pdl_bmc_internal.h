@@ -112,10 +112,10 @@ int32_t bmc_ipmi_unpack_response(const uint8_t *frame,
 int32_t bmc_ipmi_power_on(void *protocol_handle);
 int32_t bmc_ipmi_power_off(void *protocol_handle);
 int32_t bmc_ipmi_power_reset(void *protocol_handle);
-int32_t bmc_ipmi_get_power_state(void *protocol_handle, bmc_power_state_t *state);
+int32_t bmc_ipmi_get_power_state(void *protocol_handle, pdl_bmc_power_state_t *state);
 int32_t bmc_ipmi_read_sensors(void *protocol_handle,
-                              bmc_sensor_type_t type,
-                              bmc_sensor_reading_t *readings,
+                              pdl_bmc_sensor_type_t type,
+                              pdl_bmc_sensor_reading_t *readings,
                               uint32_t max_count,
                               uint32_t *actual_count);
 
@@ -173,10 +173,10 @@ int32_t bmc_redfish_request(void *protocol_handle,
 int32_t bmc_redfish_power_on(void *protocol_handle);
 int32_t bmc_redfish_power_off(void *protocol_handle);
 int32_t bmc_redfish_power_reset(void *protocol_handle);
-int32_t bmc_redfish_get_power_state(void *protocol_handle, bmc_power_state_t *state);
+int32_t bmc_redfish_get_power_state(void *protocol_handle, pdl_bmc_power_state_t *state);
 int32_t bmc_redfish_read_sensors(void *protocol_handle,
-                                 bmc_sensor_type_t type,
-                                 bmc_sensor_reading_t *readings,
+                                 pdl_bmc_sensor_type_t type,
+                                 pdl_bmc_sensor_reading_t *readings,
                                  uint32_t max_count,
                                  uint32_t *actual_count);
 

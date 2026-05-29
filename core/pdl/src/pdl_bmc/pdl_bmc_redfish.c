@@ -406,7 +406,7 @@ int32_t bmc_redfish_power_reset(void *protocol_handle)
 /**
  * @brief 获取电源状态
  */
-int32_t bmc_redfish_get_power_state(void *protocol_handle, bmc_power_state_t *state)
+int32_t bmc_redfish_get_power_state(void *protocol_handle, pdl_bmc_power_state_t *state)
 {
     char response[2048];
     uint32_t response_len;
@@ -423,7 +423,7 @@ int32_t bmc_redfish_get_power_state(void *protocol_handle, bmc_power_state_t *st
                                      NULL, response, sizeof(response), &response_len);
     if (OSAL_SUCCESS != ret)
     {
-        *state = BMC_POWER_UNKNOWN;
+        *state = PDL_BMC_POWER_UNKNOWN;
         return ret;
     }
 
@@ -431,20 +431,20 @@ int32_t bmc_redfish_get_power_state(void *protocol_handle, bmc_power_state_t *st
     {
         if (OSAL_Strcmp(power_state, "On") == 0)
         {
-            *state = BMC_POWER_ON;
+            *state = PDL_BMC_POWER_ON;
         }
         else if (OSAL_Strcmp(power_state, "Off") == 0)
         {
-            *state = BMC_POWER_OFF;
+            *state = PDL_BMC_POWER_OFF;
         }
         else
         {
-            *state = BMC_POWER_UNKNOWN;
+            *state = PDL_BMC_POWER_UNKNOWN;
         }
     }
     else
     {
-        *state = BMC_POWER_UNKNOWN;
+        *state = PDL_BMC_POWER_UNKNOWN;
     }
 
     return OSAL_SUCCESS;
@@ -454,8 +454,8 @@ int32_t bmc_redfish_get_power_state(void *protocol_handle, bmc_power_state_t *st
  * @brief 读取传感器
  */
 int32_t bmc_redfish_read_sensors(void *protocol_handle,
-                                 bmc_sensor_type_t type,
-                                 bmc_sensor_reading_t *readings,
+                                 pdl_bmc_sensor_type_t type,
+                                 pdl_bmc_sensor_reading_t *readings,
                                  uint32_t max_count,
                                  uint32_t *actual_count)
 {

@@ -16,9 +16,9 @@
  */
 typedef struct
 {
-    satellite_service_config_t config;
+    pdl_satellite_config_t config;
     void *can_handle;                 /* CAN通信句柄 */
-    satellite_cmd_callback_t callback;
+    pdl_satellite_cmd_callback_t callback;
     void *user_data;
 
     /* 统计信息 */
@@ -47,7 +47,7 @@ static void *heartbeat_task(void *arg)
     while (ctx->running)
     {
         /* 发送心跳 */
-        if (OSAL_SUCCESS == satellite_can_send_heartbeat(ctx->can_handle, STATUS_OK))
+        if (OSAL_SUCCESS == satellite_can_send_heartbeat(ctx->can_handle, PDL_SATELLITE_STATUS_OK))
         {
             OSAL_MutexLock(ctx->mutex);
             ctx->tx_count++;
@@ -93,7 +93,7 @@ static void *can_rx_task(void *arg)
             /* 处理命令请求 */
             if (msg.msg_type == CAN_MSG_TYPE_CMD_REQ)
             {
-                satellite_cmd_callback_t callback;
+                pdl_satellite_cmd_callback_t callback;
                 void *user_data;
 
                 OSAL_MutexLock(ctx->mutex);
@@ -123,8 +123,8 @@ static void *can_rx_task(void *arg)
 /**
  * @brief 初始化卫星平台服务
  */
-int32_t PDL_Satellite_Init(const satellite_service_config_t *config,
-                        satellite_service_handle_t *handle)
+int32_t PDL_Satellite_Init(const pdl_satellite_config_t *config,
+                        pdl_satellite_handle_t *handle)
 {
     satellite_service_context_t *ctx;
     int32_t ret;
@@ -143,7 +143,7 @@ int32_t PDL_Satellite_Init(const satellite_service_config_t *config,
     }
 
     OSAL_Memset(ctx, 0, sizeof(satellite_service_context_t));
-    OSAL_Memcpy(&ctx->config, config, sizeof(satellite_service_config_t));
+    OSAL_Memcpy(&ctx->config, config, sizeof(pdl_satellite_config_t));
     ctx->running = true;
 
     /* 创建互斥锁 */
@@ -191,7 +191,7 @@ int32_t PDL_Satellite_Init(const satellite_service_config_t *config,
         return ret;
     }
 
-    *handle = (satellite_service_handle_t)ctx;
+    *handle = (pdl_satellite_handle_t)ctx;
     LOG_INFO("SAT", "Satellite service initialized");
 
     return OSAL_SUCCESS;
@@ -200,7 +200,7 @@ int32_t PDL_Satellite_Init(const satellite_service_config_t *config,
 /**
  * @brief 反初始化卫星平台服务
  */
-int32_t PDL_Satellite_Deinit(satellite_service_handle_t handle)
+int32_t PDL_Satellite_Deinit(pdl_satellite_handle_t handle)
 {
     satellite_service_context_t *ctx;
 
@@ -231,8 +231,8 @@ int32_t PDL_Satellite_Deinit(satellite_service_handle_t handle)
 /**
  * @brief 注册命令回调函数
  */
-int32_t PDL_Satellite_RegisterCallback(satellite_service_handle_t handle,
-                                    satellite_cmd_callback_t callback,
+int32_t PDL_Satellite_RegisterCallback(pdl_satellite_handle_t handle,
+                                    pdl_satellite_cmd_callback_t callback,
                                     void *user_data)
 {
     satellite_service_context_t *ctx;
@@ -255,9 +255,9 @@ int32_t PDL_Satellite_RegisterCallback(satellite_service_handle_t handle,
 /**
  * @brief 发送响应到卫星平台
  */
-int32_t PDL_Satellite_SendResponse(satellite_service_handle_t handle,
+int32_t PDL_Satellite_SendResponse(pdl_satellite_handle_t handle,
                                 uint32_t seq_num,
-                                can_status_t status,
+                                pdl_satellite_status_t status,
                                 uint32_t result)
 {
     satellite_service_context_t *ctx;
@@ -291,8 +291,8 @@ int32_t PDL_Satellite_SendResponse(satellite_service_handle_t handle,
 /**
  * @brief 发送心跳到卫星平台
  */
-int32_t PDL_Satellite_SendHeartbeat(satellite_service_handle_t handle,
-                                 can_status_t status)
+int32_t PDL_Satellite_SendHeartbeat(pdl_satellite_handle_t handle,
+                                 pdl_satellite_status_t status)
 {
     satellite_service_context_t *ctx;
     int32_t ret;
@@ -326,7 +326,7 @@ int32_t PDL_Satellite_SendHeartbeat(satellite_service_handle_t handle,
 /**
  * @brief 获取服务统计信息
  */
-int32_t PDL_Satellite_GetStats(satellite_service_handle_t handle,
+int32_t PDL_Satellite_GetStats(pdl_satellite_handle_t handle,
                             uint32_t *rx_count,
                             uint32_t *tx_count,
                             uint32_t *error_count)
