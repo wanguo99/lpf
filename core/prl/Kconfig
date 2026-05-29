@@ -1,0 +1,87 @@
+config PRL
+    bool "Enable PRL (Protocol Layer)"
+    default y
+    depends on OSAL
+    help
+      Enable Protocol Layer for inter-product communication.
+      PRL provides protocol encoding/decoding for:
+      - GSC-PMC: Ground Station <-> Payload Management Controller
+      - PMC-CCM: Payload Management Controller <-> Communication Controller
+      - CCM-Satellite: Communication Controller <-> Satellite Platform
+      - CCM-Power: Communication Controller <-> Power Management Board
+
+if PRL
+
+config PRL_BUILD_SHARED
+    bool "Build PRL as shared library"
+    default y
+    help
+      Build PRL as a shared library (.so) instead of static library (.a).
+
+menu "Protocol Selection"
+
+config PRL_GSC_PMC
+    bool "Enable GSC-PMC Protocol"
+    default y
+    help
+      Enable protocol between Ground Station Controller and
+      Payload Management Controller.
+      Transport: 10GbE Ethernet
+
+config PRL_PMC_CCM
+    bool "Enable PMC-CCM Protocol"
+    default y
+    help
+      Enable protocol between Payload Management Controller and
+      Communication Controller Management.
+      Transport: 1GbE Ethernet
+
+config PRL_CCM_SATELLITE
+    bool "Enable CCM-Satellite Protocol"
+    default y
+    help
+      Enable protocol between Communication Controller Management
+      and Satellite Platform.
+      Transport: CAN Bus + OC Commands
+
+config PRL_CCM_POWER
+    bool "Enable CCM-Power Protocol"
+    default y
+    help
+      Enable protocol between Communication Controller Management
+      and Power Management Board.
+      Transport: CAN Bus
+
+endmenu
+
+menu "Protocol Features"
+
+config PRL_CRC_CHECK
+    bool "Enable CRC16 checksum"
+    default y
+    help
+      Enable CRC16-CCITT checksum for all protocol packets.
+
+config PRL_SEQUENCE_CHECK
+    bool "Enable sequence number check"
+    default y
+    help
+      Enable sequence number validation for packet ordering.
+
+config PRL_TIMESTAMP_CHECK
+    bool "Enable timestamp validation"
+    default n
+    help
+      Enable timestamp validation for packet freshness.
+
+config PRL_MAX_PAYLOAD_SIZE
+    int "Maximum payload size (bytes)"
+    default 4096
+    range 256 65536
+    help
+      Maximum payload size for protocol packets.
+      Larger values allow bigger messages but consume more memory.
+
+endmenu
+
+endif # PRL

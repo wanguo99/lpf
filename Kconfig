@@ -201,6 +201,7 @@ osource "$SDK_PATH/core/osal/Kconfig"
 osource "$SDK_PATH/core/hal/Kconfig"
 osource "$SDK_PATH/core/pcl/Kconfig"
 osource "$SDK_PATH/core/pdl/Kconfig"
+osource "$SDK_PATH/core/prl/Kconfig"
 osource "$SDK_PATH/core/acl/Kconfig"
 
 endmenu

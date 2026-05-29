@@ -31,6 +31,10 @@ if(CONFIG_PDL)
     add_subdirectory(${SDK_PATH}/core/pdl ${CMAKE_CURRENT_BINARY_DIR}/pdl)
 endif()
 
+if(CONFIG_PRL)
+    add_subdirectory(${SDK_PATH}/core/prl ${CMAKE_CURRENT_BINARY_DIR}/prl)
+endif()
+
 # Register ACL with platform config
 if(CONFIG_ACL)
     # Add platform ACL config sources to ACL component
