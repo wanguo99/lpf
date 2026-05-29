@@ -50,7 +50,7 @@ int32_t HAL_CAN_Deinit(hal_can_handle_t handle);
  * @return OSAL_ERR_TIMEOUT 超时
  * @return OSAL_ERR_GENERIC 其他错误
  */
-int32_t HAL_CAN_Send(hal_can_handle_t handle, const can_frame_t *frame);
+int32_t HAL_CAN_Send(hal_can_handle_t handle, const hal_can_frame_t *frame);
 
 /**
  * @brief 接收CAN帧
@@ -63,7 +63,7 @@ int32_t HAL_CAN_Send(hal_can_handle_t handle, const can_frame_t *frame);
  * @return OSAL_ERR_TIMEOUT 超时
  * @return OSAL_ERR_GENERIC 其他错误
  */
-int32_t HAL_CAN_Recv(hal_can_handle_t handle, can_frame_t *frame, int32_t timeout);
+int32_t HAL_CAN_Recv(hal_can_handle_t handle, hal_can_frame_t *frame, int32_t timeout);
 
 /**
  * @brief 设置CAN过滤器

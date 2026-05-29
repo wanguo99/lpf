@@ -21,6 +21,6 @@ typedef struct
     uint8_t      dlc;         /* 数据长度 (0-8) */
     uint8_t      data[8];     /* 数据字节 */
     uint32_t     timestamp;   /* 时间戳 (可选) */
-} can_frame_t;
+} hal_can_frame_t;
 
 #endif /* CAN_TYPES_H */

@@ -33,6 +33,6 @@ typedef struct
     uint16_t       delay_usecs; /* 传输后延迟(us) */
     uint8_t        bits_per_word; /* 每字位数 (0表示使用默认) */
     uint8_t        cs_change;   /* 传输后改变CS状态 */
-} spi_transfer_t;
+} hal_spi_transfer_t;
 
 #endif /* SPI_TYPES_H */

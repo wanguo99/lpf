@@ -130,7 +130,7 @@ int32_t HAL_CAN_Deinit(hal_can_handle_t handle)
     return OSAL_SUCCESS;
 }
 
-int32_t HAL_CAN_Send(hal_can_handle_t handle, const can_frame_t *frame)
+int32_t HAL_CAN_Send(hal_can_handle_t handle, const hal_can_frame_t *frame)
 {
     hal_can_context_t *impl = (hal_can_context_t *)handle;
     struct can_frame can_frame;
@@ -163,7 +163,7 @@ int32_t HAL_CAN_Send(hal_can_handle_t handle, const can_frame_t *frame)
     return OSAL_SUCCESS;
 }
 
-int32_t HAL_CAN_Recv(hal_can_handle_t handle, can_frame_t *frame, int32_t timeout)
+int32_t HAL_CAN_Recv(hal_can_handle_t handle, hal_can_frame_t *frame, int32_t timeout)
 {
     hal_can_context_t *impl = (hal_can_context_t *)handle;
     struct can_frame can_frame;
@@ -208,7 +208,7 @@ int32_t HAL_CAN_Recv(hal_can_handle_t handle, can_frame_t *frame, int32_t timeou
         return OSAL_ERR_GENERIC;
     }
 
-    OSAL_Memset(frame, 0, sizeof(can_frame_t));
+    OSAL_Memset(frame, 0, sizeof(hal_can_frame_t));
     frame->can_id = can_frame.can_id;
     frame->dlc = (can_frame.can_dlc > 8) ? 8 : can_frame.can_dlc;
     OSAL_Memcpy(frame->data, can_frame.data, frame->dlc);

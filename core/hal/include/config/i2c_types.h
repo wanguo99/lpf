@@ -26,7 +26,7 @@ typedef struct
     uint16_t flags;       /* 传输标志 (读/写) */
     uint16_t len;         /* 数据长度 */
     uint8_t *buf;         /* 数据缓冲区 */
-} i2c_msg_t;
+} hal_i2c_msg_t;
 
 /* I2C传输标志 */
 #define I2C_M_RD        0x0001  /* 读操作 */

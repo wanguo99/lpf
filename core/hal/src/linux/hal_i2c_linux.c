@@ -282,7 +282,7 @@ int32_t HAL_I2C_ReadReg(hal_i2c_handle_t handle, uint16_t slave_addr,
 /**
  * @brief 执行I2C传输
  */
-int32_t HAL_I2C_Transfer(hal_i2c_handle_t handle, i2c_msg_t *msgs, uint32_t num)
+int32_t HAL_I2C_Transfer(hal_i2c_handle_t handle, hal_i2c_msg_t *msgs, uint32_t num)
 {
     hal_i2c_context_t *impl = (hal_i2c_context_t *)handle;
     struct i2c_msg *kernel_msgs;

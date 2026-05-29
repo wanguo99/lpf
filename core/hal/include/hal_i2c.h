@@ -108,6 +108,6 @@ int32_t HAL_I2C_ReadReg(hal_i2c_handle_t handle, uint16_t slave_addr,
  * @return OSAL_SUCCESS 成功
  * @return OSAL_ERR_GENERIC 失败
  */
-int32_t HAL_I2C_Transfer(hal_i2c_handle_t handle, i2c_msg_t *msgs, uint32_t num);
+int32_t HAL_I2C_Transfer(hal_i2c_handle_t handle, hal_i2c_msg_t *msgs, uint32_t num);
 
 #endif /* HAL_I2C_H */

@@ -270,7 +270,7 @@ int32_t HAL_SPI_Transfer(hal_spi_handle_t handle, const uint8_t *tx_buffer,
 /**
  * @brief SPI批量传输
  */
-int32_t HAL_SPI_TransferMulti(hal_spi_handle_t handle, spi_transfer_t *transfers, uint32_t num)
+int32_t HAL_SPI_TransferMulti(hal_spi_handle_t handle, hal_spi_transfer_t *transfers, uint32_t num)
 {
     hal_spi_context_t *impl = (hal_spi_context_t *)handle;
     struct spi_ioc_transfer *xfers;

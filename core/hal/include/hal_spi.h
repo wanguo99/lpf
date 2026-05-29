@@ -89,7 +89,7 @@ int32_t HAL_SPI_Transfer(hal_spi_handle_t handle, const uint8_t *tx_buffer,
  * @return OSAL_SUCCESS 成功
  * @return OSAL_ERR_GENERIC 失败
  */
-int32_t HAL_SPI_TransferMulti(hal_spi_handle_t handle, spi_transfer_t *transfers, uint32_t num);
+int32_t HAL_SPI_TransferMulti(hal_spi_handle_t handle, hal_spi_transfer_t *transfers, uint32_t num);
 
 /**
  * @brief 设置SPI配置
