@@ -1,43 +1,31 @@
-# H200-200P Product Configuration
-# 完整型号：启用所有应用
+# ============================================================================
+# HAL Unit Test Configuration (Linux)
+# ============================================================================
+# Only HAL module (and its dependency OSAL) is enabled for unit testing.
+# All other modules are disabled.
+# ============================================================================
 
-# 产品选择
-CONFIG_PRODUCT_CCM=y
-
-# 启用的应用
-CONFIG_APP_COLLECTOR=y
-CONFIG_APP_COMM=y
-CONFIG_APP_HEALTH=y
-CONFIG_APP_LOGGER=y
-CONFIG_APP_SUPERVISOR=y
-
-# SDK 组件（必需）
-CONFIG_OSAL=y
-CONFIG_HAL=y
-CONFIG_PCL=y
-CONFIG_PDL=y
-CONFIG_ACL=y
-
-# 产品组件（必需）
-CONFIG_PROJECT_H200_AM625=y
-CONFIG_LIBCCM=y
-
-# 平台配置
+# Architecture and OS
 CONFIG_OS_LINUX=y
-CONFIG_ARCH_ARM64=y
-CONFIG_PCL_PLATFORM_TI_AM625=y
-CONFIG_PCL_PRODUCT_H200_200P=y
+CONFIG_ARCH_X86_64=y
 
-# OSAL 构建配置
-CONFIG_OSAL_BUILD_STATIC=y
-
-# HAL 构建配置
-CONFIG_HAL_BUILD_STATIC=y
-
-# HAL 平台
+# Platform
 CONFIG_PLATFORM_LINUX=y
 
-# HAL 驱动
+# Core Modules - OSAL + HAL
+CONFIG_OSAL=y
+CONFIG_HAL=y
+# CONFIG_PCL is not set
+# CONFIG_PDL is not set
+# CONFIG_ACL is not set
+
+# OSAL Build Configuration
+CONFIG_OSAL_BUILD_SHARED=y
+
+# HAL Build Configuration
+CONFIG_HAL_BUILD_SHARED=y
+
+# HAL Drivers - Enable All
 CONFIG_HAL_CAN=y
 CONFIG_HAL_UART=y
 CONFIG_HAL_I2C=y
@@ -45,7 +33,7 @@ CONFIG_HAL_SPI=y
 CONFIG_HAL_GPIO=y
 CONFIG_HAL_WATCHDOG=y
 
-# HAL Linux 驱动
+# HAL Linux Drivers - Enable All
 CONFIG_HAL_CAN_LINUX=y
 CONFIG_HAL_GPIO_LINUX=y
 CONFIG_HAL_I2C_LINUX=y
@@ -53,16 +41,7 @@ CONFIG_HAL_SPI_LINUX=y
 CONFIG_HAL_UART_LINUX=y
 CONFIG_HAL_WATCHDOG_LINUX=y
 
-# PCL 构建配置
-CONFIG_PCL_BUILD_STATIC=y
-
-# PDL 构建配置
-CONFIG_PDL_BUILD_STATIC=y
-
-# ACL 构建配置
-CONFIG_ACL_BUILD_STATIC=y
-
-# OSAL 功能
+# OSAL Features - Enable All (HAL dependency)
 CONFIG_OSAL_IPC=y
 CONFIG_OSAL_FILE=y
 CONFIG_OSAL_THREAD=y
@@ -101,3 +80,9 @@ CONFIG_OSAL_NET_TERMIOS=y
 # OSAL Utility
 CONFIG_OSAL_UTIL_LOG=y
 CONFIG_OSAL_UTIL_VERSION=y
+
+# Testing
+CONFIG_BUILD_TESTING=y
+
+# Products - All Disabled
+# CONFIG_PRODUCT_CCM is not set

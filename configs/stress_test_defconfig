@@ -1,50 +1,38 @@
 # ============================================================================
-# Products Layer Trimming Test Configuration
+# Stress Test Configuration
 # ============================================================================
-# This configuration demonstrates products layer (libs/apps) trimming.
-# Only selected apps are enabled.
+# All core modules, all products, and all applications enabled.
+# Used for stress and performance testing.
 # ============================================================================
 
-# Product Selection
+# Product Selection - All Products
 CONFIG_PRODUCT_CCM=y
 
-# Core Components - Full stack
+# Core Components - Full Stack
 CONFIG_OSAL=y
 CONFIG_HAL=y
 CONFIG_PCL=y
 CONFIG_PDL=y
 CONFIG_ACL=y
 
-# OSAL Configuration (use defaults)
+# Architecture and OS
 CONFIG_OS_LINUX=y
 CONFIG_ARCH_X86_64=y
-CONFIG_OSAL_BUILD_SHARED=y
 
-# HAL Configuration (use defaults)
+# Platform
 CONFIG_PLATFORM_LINUX=y
-CONFIG_HAL_BUILD_SHARED=y
 
 # CCM Platform
 CONFIG_PROJECT_H200_AM625=y
 
-# ============================================================================
-# Products Layer Trimming - Only 2 apps
-# ============================================================================
-
-# CCM Libraries - Enable
-CONFIG_LIBCCM=y
-
-# CCM Applications - Only enable 2 apps
-CONFIG_APP_COLLECTOR=y
-CONFIG_APP_COMM=y
-
-# OSAL 构建配置
+# Build Configuration - Dynamic Libraries
 CONFIG_OSAL_BUILD_SHARED=y
-
-# HAL 构建配置
 CONFIG_HAL_BUILD_SHARED=y
+CONFIG_PCL_BUILD_SHARED=y
+CONFIG_PDL_BUILD_SHARED=y
+CONFIG_ACL_BUILD_SHARED=y
 
-# HAL 驱动
+# HAL Drivers - All Enabled
 CONFIG_HAL_CAN=y
 CONFIG_HAL_UART=y
 CONFIG_HAL_I2C=y
@@ -52,7 +40,7 @@ CONFIG_HAL_SPI=y
 CONFIG_HAL_GPIO=y
 CONFIG_HAL_WATCHDOG=y
 
-# HAL Linux 驱动
+# HAL Linux Drivers - All Enabled
 CONFIG_HAL_CAN_LINUX=y
 CONFIG_HAL_GPIO_LINUX=y
 CONFIG_HAL_I2C_LINUX=y
@@ -60,29 +48,23 @@ CONFIG_HAL_SPI_LINUX=y
 CONFIG_HAL_UART_LINUX=y
 CONFIG_HAL_WATCHDOG_LINUX=y
 
-# PCL 构建配置
-CONFIG_PCL_BUILD_SHARED=y
-
-# PDL 构建配置
-CONFIG_PDL_BUILD_SHARED=y
-
-# PDL 子模块配置
+# PDL Sub-modules - All Enabled
 CONFIG_PDL_SATELLITE_SUPPORT=y
 CONFIG_PDL_BMC_SUPPORT=y
 CONFIG_PDL_MCU_SUPPORT=y
 CONFIG_PDL_WATCHDOG_SUPPORT=y
 
-# PDL Satellite 驱动
+# PDL Satellite Drivers - All Enabled
 CONFIG_PDL_SATELLITE=y
 CONFIG_PDL_SATELLITE_CAN=y
 
-# PDL BMC 驱动
+# PDL BMC Drivers - All Enabled
 CONFIG_PDL_BMC=y
 CONFIG_PDL_BMC_IPMI=y
 CONFIG_PDL_BMC_REDFISH=y
 CONFIG_PDL_BMC_TRANSPORT=y
 
-# PDL MCU 驱动
+# PDL MCU Drivers - All Enabled
 CONFIG_PDL_MCU=y
 CONFIG_PDL_MCU_CAN_SUPPORT=y
 CONFIG_PDL_MCU_UART_SUPPORT=y
@@ -90,17 +72,24 @@ CONFIG_PDL_MCU_CAN=y
 CONFIG_PDL_MCU_SERIAL=y
 CONFIG_PDL_MCU_PROTOCOL=y
 
-# ACL 构建配置
-CONFIG_ACL_BUILD_SHARED=y
+# CCM Libraries - All Enabled
+CONFIG_LIBCCM=y
 
-# OSAL 功能
+# CCM Applications - All Enabled
+CONFIG_APP_COLLECTOR=y
+CONFIG_APP_COMM=y
+CONFIG_APP_LOGGER=y
+CONFIG_APP_HEALTH=y
+CONFIG_APP_SUPERVISOR=y
+
+# OSAL Features - All Enabled
 CONFIG_OSAL_IPC=y
 CONFIG_OSAL_FILE=y
 CONFIG_OSAL_THREAD=y
 CONFIG_OSAL_NETWORK=y
 CONFIG_OSAL_SIGNAL=y
 
-# OSAL IPC
+# OSAL IPC - All Enabled
 CONFIG_OSAL_IPC_ATOMIC=y
 CONFIG_OSAL_IPC_MUTEX=y
 CONFIG_OSAL_IPC_SEMAPHORE=y
@@ -108,13 +97,13 @@ CONFIG_OSAL_IPC_COND=y
 CONFIG_OSAL_IPC_SHM=y
 CONFIG_OSAL_IPC_SHM_CACHE=y
 
-# OSAL Library
+# OSAL Library - All Enabled
 CONFIG_OSAL_LIB_ERRNO=y
 CONFIG_OSAL_LIB_HEAP=y
 CONFIG_OSAL_LIB_STDIO=y
 CONFIG_OSAL_LIB_STRING=y
 
-# OSAL System
+# OSAL System - All Enabled
 CONFIG_OSAL_SYS_CLOCK=y
 CONFIG_OSAL_SYS_ENV=y
 CONFIG_OSAL_SYS_FILE=y
@@ -125,10 +114,13 @@ CONFIG_OSAL_SYS_SIGNAL=y
 CONFIG_OSAL_SYS_THREAD=y
 CONFIG_OSAL_SYS_TIME=y
 
-# OSAL Network
+# OSAL Network - All Enabled
 CONFIG_OSAL_NET_SOCKET=y
 CONFIG_OSAL_NET_TERMIOS=y
 
-# OSAL Utility
+# OSAL Utility - All Enabled
 CONFIG_OSAL_UTIL_LOG=y
 CONFIG_OSAL_UTIL_VERSION=y
+
+# Testing
+CONFIG_BUILD_TESTING=y

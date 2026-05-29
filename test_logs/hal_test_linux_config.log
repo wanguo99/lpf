@@ -1,0 +1,8 @@
+-- Load default: /home/wanguo/EMS/configs/hal_test_linux_defconfig
+-- Write makefile config at: /home/wanguo/EMS/_build/config/global_config.mk
+-- Write  cmake  config  at: /home/wanguo/EMS/_build/config/global_config.cmake
+-- write  c header file  at: /home/wanguo/EMS/_build/config/global_config.h
+-- build type:debug, write DEBUG definition to c header
+Loading config: hal_test_linux
+Configuration loaded: hal_test_linux
+Run 'python3 build.py build' to compile
