@@ -97,8 +97,12 @@ int32_t HAL_ErrnoToError(int32_t sys_errno)
 
         /* 不支持 */
         case ENOSYS:
+#if defined(ENOTSUP) && (!defined(EOPNOTSUPP) || ENOTSUP != EOPNOTSUPP)
         case ENOTSUP:
+#endif
+#ifdef EOPNOTSUPP
         case EOPNOTSUPP:
+#endif
             return HAL_ERR_NOT_SUPPORTED;
 
         /* 其他错误 */
