@@ -24,7 +24,7 @@ typedef struct {
 
 static pcl_registry_t g_registry = {0};
 static bool g_initialized = false;
-static osal_mutex_t g_registry_mutex = NULL;
+static osal_mutex_t *g_registry_mutex = NULL;
 
 /*===========================================================================
  * 配置库初始化
