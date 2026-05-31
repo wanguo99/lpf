@@ -9,8 +9,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
 #include <poll.h>
 #include <errno.h>
 
@@ -76,22 +74,22 @@ static void gpio_module_cleanup(void)
  */
 static int32_t gpio_write_file(const char *path, const char *value)
 {
-    int fd;
-    ssize_t len;
-    ssize_t written;
+    int32_t fd;
+    uint32_t len;
+    int32_t written;
 
-    fd = open(path, O_WRONLY);
+    fd = OSAL_open(path, OSAL_O_WRONLY, 0);
     if (fd < 0) {
         if (errno == EACCES) return OSAL_ERR_PERMISSION;
         if (errno == ENOENT) return OSAL_ENOENT;
         return OSAL_EIO;
     }
 
-    len = strlen(value);
-    written = write(fd, value, len);
-    close(fd);
+    len = (uint32_t)strlen(value);
+    written = OSAL_write(fd, value, len);
+    OSAL_close(fd);
 
-    if (written != len) {
+    if (written != (int32_t)len) {
         return OSAL_EIO;
     }
 
@@ -103,18 +101,18 @@ static int32_t gpio_write_file(const char *path, const char *value)
  */
 static int32_t gpio_read_file(const char *path, char *buffer, size_t size)
 {
-    int fd;
-    ssize_t len;
+    int32_t fd;
+    int32_t len;
 
-    fd = open(path, O_RDONLY);
+    fd = OSAL_open(path, OSAL_O_RDONLY, 0);
     if (fd < 0) {
         if (errno == EACCES) return OSAL_ERR_PERMISSION;
         if (errno == ENOENT) return OSAL_ENOENT;
         return OSAL_EIO;
     }
 
-    len = read(fd, buffer, size - 1);
-    close(fd);
+    len = OSAL_read(fd, buffer, (uint32_t)(size - 1));
+    OSAL_close(fd);
 
     if (len < 0) {
         return OSAL_EIO;
@@ -162,16 +160,16 @@ static void* gpio_isr_thread(void *arg)
     struct pollfd pfd;
     char value_str[4];
     hal_gpio_level_t level;
-    ssize_t bytes_read;
+    int32_t bytes_read;
     int ret;
-    ssize_t len;
+    int32_t len;
 
     pfd.fd = ctx->value_fd;
     pfd.events = POLLPRI | POLLERR;
 
     /* 清除初始中断 */
     lseek(ctx->value_fd, 0, SEEK_SET);
-    bytes_read = read(ctx->value_fd, value_str, sizeof(value_str));
+    bytes_read = OSAL_read(ctx->value_fd, value_str, sizeof(value_str));
     (void)bytes_read;  /* Suppress unused result warning */
 
     while (ctx->running) {
@@ -181,14 +179,14 @@ static void* gpio_isr_thread(void *arg)
             if (!ctx->enabled) {
                 /* 清除中断但不调用回调 */
                 lseek(ctx->value_fd, 0, SEEK_SET);
-                bytes_read = read(ctx->value_fd, value_str, sizeof(value_str));
+                bytes_read = OSAL_read(ctx->value_fd, value_str, sizeof(value_str));
                 (void)bytes_read;  /* Suppress unused result warning */
                 continue;
             }
 
             /* 读取当前电平 */
             lseek(ctx->value_fd, 0, SEEK_SET);
-            len = read(ctx->value_fd, value_str, sizeof(value_str));
+            len = OSAL_read(ctx->value_fd, value_str, sizeof(value_str));
             if (len > 0) {
                 value_str[len] = '\0';
                 level = (value_str[0] == '1') ? HAL_GPIO_LEVEL_HIGH : HAL_GPIO_LEVEL_LOW;
@@ -275,7 +273,7 @@ int32_t HAL_GPIO_Deinit(uint32_t gpio_num)
 
         OSAL_MutexLock(gpio_isr_mutex);
         if (gpio_isr_table[gpio_num].value_fd >= 0) {
-            close(gpio_isr_table[gpio_num].value_fd);
+            OSAL_close(gpio_isr_table[gpio_num].value_fd);
             gpio_isr_table[gpio_num].value_fd = -1;
         }
         memset(&gpio_isr_table[gpio_num], 0, sizeof(gpio_isr_context_t));
@@ -365,7 +363,7 @@ int32_t HAL_GPIO_SetInterrupt(uint32_t gpio_num, hal_gpio_edge_t edge,
     char path[256];
     const char *edge_str;
     int32_t ret;
-    int fd;
+    int32_t fd;
 
     if (gpio_num >= MAX_GPIO_PINS || !callback) {
         return OSAL_EINVAL;
@@ -392,7 +390,7 @@ int32_t HAL_GPIO_SetInterrupt(uint32_t gpio_num, hal_gpio_edge_t edge,
 
     /* 打开value文件用于poll */
     snprintf(path, sizeof(path), "/sys/class/gpio/gpio%u/value", gpio_num);
-    fd = open(path, O_RDONLY);
+    fd = OSAL_open(path, OSAL_O_RDONLY, 0);
     if (fd < 0) {
         return OSAL_EIO;
     }
@@ -407,7 +405,7 @@ int32_t HAL_GPIO_SetInterrupt(uint32_t gpio_num, hal_gpio_edge_t edge,
         OSAL_ThreadJoin(gpio_isr_table[gpio_num].thread);
         OSAL_MutexLock(gpio_isr_mutex);
         if (gpio_isr_table[gpio_num].value_fd >= 0) {
-            close(gpio_isr_table[gpio_num].value_fd);
+            OSAL_close(gpio_isr_table[gpio_num].value_fd);
         }
     }
 
@@ -425,7 +423,7 @@ int32_t HAL_GPIO_SetInterrupt(uint32_t gpio_num, hal_gpio_edge_t edge,
     OSAL_MutexUnlock(gpio_isr_mutex);
 
     if (ret != OSAL_SUCCESS) {
-        close(fd);
+        OSAL_close(fd);
         memset(&gpio_isr_table[gpio_num], 0, sizeof(gpio_isr_context_t));
         return ret;
     }
