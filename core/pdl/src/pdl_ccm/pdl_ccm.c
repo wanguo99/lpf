@@ -9,6 +9,7 @@
 
 #include "pdl_ccm.h"
 #include "pdl_ccm_internal.h"
+#include "prl_pmc_ccm.h"
 #include "osal.h"
 #include <string.h>
 
@@ -63,12 +64,15 @@ static void *heartbeat_task(void *arg)
             continue;
         }
 
-        /* 编码心跳消息 */
+        /* 编码心跳消息 - 直接调用 PRL 层 */
+        prl_pmc_ccm_heartbeat_t hb = {
+            .sender_status = PDL_CCM_STATUS_OK,
+            .link_quality = ctx->link_quality,
+            .packet_loss = 0,
+            .rtt_ms = 0
+        };
         len = sizeof(buf);
-        ret = ccm_protocol_encode_heartbeat(PDL_CCM_STATUS_OK,
-                                            ctx->link_quality,
-                                            buf,
-                                            &len);
+        ret = prl_pmc_ccm_encode_heartbeat(&hb, buf, &len);
         if (ret != OSAL_SUCCESS)
         {
             LOG_ERROR("PDL_CCM", "Failed to encode heartbeat");
@@ -135,56 +139,53 @@ static void *eth_rx_task(void *arg)
             /* 处理遥测数据 */
             if (msg.msg_type == 0x02)  /* 遥测消息类型 */
             {
-                uint32_t tm_id, tm_source;
+                prl_pmc_ccm_telemetry_t tm;
                 uint8_t *data;
                 size_t data_len;
 
-                ret = ccm_protocol_decode_telemetry(msg.payload,
-                                                     msg.payload_len,
-                                                     &tm_id,
-                                                     &tm_source,
-                                                     &data,
-                                                     &data_len);
+                ret = prl_pmc_ccm_decode_telemetry(msg.payload,
+                                                    msg.payload_len,
+                                                    &tm,
+                                                    &data,
+                                                    &data_len);
                 if (ret == OSAL_SUCCESS && ctx->tm_callback)
                 {
-                    ctx->tm_callback(tm_id, tm_source, data, data_len, ctx->tm_user_data);
+                    ctx->tm_callback(tm.tm_id, tm.tm_source, data, data_len, ctx->tm_user_data);
                 }
             }
             /* 处理遥控指令 */
             else if (msg.msg_type == 0x03)  /* 遥控消息类型 */
             {
-                uint32_t tc_id, tc_target, tc_action;
+                prl_pmc_ccm_command_t tc;
                 uint8_t *params;
                 size_t params_len;
 
-                ret = ccm_protocol_decode_command(msg.payload,
-                                                   msg.payload_len,
-                                                   &tc_id,
-                                                   &tc_target,
-                                                   &tc_action,
-                                                   &params,
-                                                   &params_len);
+                ret = prl_pmc_ccm_decode_command(msg.payload,
+                                                  msg.payload_len,
+                                                  &tc,
+                                                  &params,
+                                                  &params_len);
                 if (ret == OSAL_SUCCESS && ctx->tc_callback)
                 {
-                    ctx->tc_callback(tc_id, tc_target, tc_action, params, params_len, ctx->tc_user_data);
+                    ctx->tc_callback(tc.tc_id, tc.tc_target, tc.tc_action, params, params_len, ctx->tc_user_data);
                 }
             }
             /* 处理应答消息 */
             else if (msg.msg_type == 0xFF)  /* 应答消息类型 */
             {
-                uint32_t ack_seq;
-                uint8_t result;
-                uint16_t error_code;
+                prl_pmc_ccm_ack_t ack;
+                uint8_t *data;
+                size_t data_len;
 
-                ret = ccm_protocol_decode_ack(msg.payload,
-                                               msg.payload_len,
-                                               &ack_seq,
-                                               &result,
-                                               &error_code);
+                ret = prl_pmc_ccm_decode_ack(msg.payload,
+                                              msg.payload_len,
+                                              &ack,
+                                              &data,
+                                              &data_len);
                 if (ret == OSAL_SUCCESS)
                 {
                     LOG_DEBUG("PDL_CCM: Received ACK seq=%u result=%u error=%u",
-                                   ack_seq, result, error_code);
+                                   ack.ack_seq, ack.result, ack.error_code);
                 }
             }
         }
@@ -375,9 +376,16 @@ int32_t PDL_CCM_SendTelemetry(pdl_ccm_handle_t handle,
         return OSAL_ERR_INVALID_PARAM;
     }
 
-    /* 编码遥测消息 */
+    /* 编码遥测消息 - 直接调用 PRL 层 */
+    prl_pmc_ccm_telemetry_t tm = {
+        .tm_id = tm_id,
+        .tm_source = tm_source,
+        .timestamp_us = OSAL_GetMonotonicTime(),
+        .data_type = 0,
+        .data_length = len
+    };
     buf_len = sizeof(buf);
-    ret = ccm_protocol_encode_telemetry(tm_id, tm_source, data, len, buf, &buf_len);
+    ret = prl_pmc_ccm_encode_telemetry(&tm, data, len, buf, &buf_len);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("PDL_CCM", "Failed to encode telemetry");
@@ -429,9 +437,16 @@ int32_t PDL_CCM_SendCommand(pdl_ccm_handle_t handle,
         return OSAL_ERR_INVALID_PARAM;
     }
 
-    /* 编码遥控消息 */
+    /* 编码遥控消息 - 直接调用 PRL 层 */
+    prl_pmc_ccm_command_t tc = {
+        .tc_id = tc_id,
+        .tc_target = tc_target,
+        .tc_action = tc_action,
+        .priority = 0,
+        .param_length = params_len
+    };
     buf_len = sizeof(buf);
-    ret = ccm_protocol_encode_command(tc_id, tc_target, tc_action, params, params_len, buf, &buf_len);
+    ret = prl_pmc_ccm_encode_command(&tc, params, params_len, buf, &buf_len);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("PDL_CCM", "Failed to encode command");
@@ -486,10 +501,18 @@ int32_t PDL_CCM_SendFirmwareUpdate(pdl_ccm_handle_t handle,
         return OSAL_ERR_INVALID_PARAM;
     }
 
-    /* 编码固件升级消息 */
+    /* 编码固件升级消息 - 直接调用 PRL 层 */
+    prl_pmc_ccm_firmware_update_t fw = {
+        .firmware_id = firmware_id,
+        .target_device = target_device,
+        .firmware_version = firmware_version,
+        .total_size = total_size,
+        .offset = offset,
+        .chunk_size = len
+    };
+    OSAL_Memcpy(fw.md5, md5, 16);
     buf_len = sizeof(buf);
-    ret = ccm_protocol_encode_firmware_update(firmware_id, target_device, firmware_version,
-                                              total_size, offset, data, len, md5, buf, &buf_len);
+    ret = prl_pmc_ccm_encode_firmware_update(&fw, data, len, buf, &buf_len);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("PDL_CCM", "Failed to encode firmware update");
@@ -539,9 +562,16 @@ int32_t PDL_CCM_NodeManage(pdl_ccm_handle_t handle,
         return OSAL_ERR_INVALID_PARAM;
     }
 
-    /* 编码节点管理消息 */
+    /* 编码节点管理消息 - 直接调用 PRL 层 */
+    prl_pmc_ccm_node_manage_t nm = {
+        .node_id = node_id,
+        .operation = operation,
+        .node_type = 0,
+        .node_status = 0
+    };
+    OSAL_Memset(nm.node_name, 0, sizeof(nm.node_name));
     buf_len = sizeof(buf);
-    ret = ccm_protocol_encode_node_manage(node_id, operation, buf, &buf_len);
+    ret = prl_pmc_ccm_encode_node_manage(&nm, buf, &buf_len);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("PDL_CCM", "Failed to encode node manage");
@@ -597,9 +627,16 @@ int32_t PDL_CCM_PowerControl(pdl_ccm_handle_t handle,
         return OSAL_ERR_INVALID_PARAM;
     }
 
-    /* 编码电源控制消息 */
+    /* 编码电源控制消息 - 直接调用 PRL 层 */
+    prl_pmc_ccm_power_control_t pc = {
+        .power_domain = power_domain,
+        .operation = operation,
+        .voltage_mv = 0,
+        .current_ma = 0,
+        .power_status = 0
+    };
     buf_len = sizeof(buf);
-    ret = ccm_protocol_encode_power_control(power_domain, operation, buf, &buf_len);
+    ret = prl_pmc_ccm_encode_power_control(&pc, buf, &buf_len);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("PDL_CCM", "Failed to encode power control");
@@ -655,9 +692,14 @@ int32_t PDL_CCM_QueryStatus(pdl_ccm_handle_t handle,
         return OSAL_ERR_INVALID_PARAM;
     }
 
-    /* 编码状态查询消息 */
+    /* 编码状态查询消息 - 直接调用 PRL 层 */
+    prl_pmc_ccm_status_query_t sq = {
+        .query_type = query_type,
+        .query_target = query_target,
+        .query_param = 0
+    };
     buf_len = sizeof(buf);
-    ret = ccm_protocol_encode_status_query(query_type, query_target, buf, &buf_len);
+    ret = prl_pmc_ccm_encode_status_query(&sq, buf, &buf_len);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("PDL_CCM", "Failed to encode status query");
@@ -711,9 +753,15 @@ int32_t PDL_CCM_SendHeartbeat(pdl_ccm_handle_t handle,
         return OSAL_ERR_INVALID_PARAM;
     }
 
-    /* 编码心跳消息 */
+    /* 编码心跳消息 - 直接调用 PRL 层 */
+    prl_pmc_ccm_heartbeat_t hb = {
+        .sender_status = status,
+        .link_quality = ctx->link_quality,
+        .packet_loss = 0,
+        .rtt_ms = 0
+    };
     len = sizeof(buf);
-    ret = ccm_protocol_encode_heartbeat(status, ctx->link_quality, buf, &len);
+    ret = prl_pmc_ccm_encode_heartbeat(&hb, buf, &len);
     if (ret != OSAL_SUCCESS)
     {
         return ret;
