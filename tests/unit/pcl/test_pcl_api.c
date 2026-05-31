@@ -409,6 +409,283 @@ TEST_CASE(test_pcl_validate_null_pointer)
     TEST_ASSERT_EQUAL(OSAL_ERR_GENERIC, ret);
 }
 
+/* ========== 多线程并发测试 ========== */
+
+#define NUM_THREADS 10
+#define NUM_ITERATIONS 100
+
+/* 线程测试数据 */
+typedef struct {
+    int thread_id;
+    int success_count;
+    int error_count;
+} thread_test_data_t;
+
+/* 测试用的多个配置 */
+static pcl_platform_config_t test_configs[NUM_THREADS];
+static pcl_mcu_cfg_t test_mcus[NUM_THREADS];
+static pcl_mcu_cfg_t *test_mcu_arrays[NUM_THREADS][2];
+
+/* 初始化测试配置数组 */
+static void init_test_configs(void)
+{
+    int i;
+    for (i = 0; i < NUM_THREADS; i++) {
+        /* 初始化MCU配置 */
+        OSAL_Memset(&test_mcus[i], 0, sizeof(pcl_mcu_cfg_t));
+        OSAL_Snprintf((char *)test_mcus[i].name, 32, "mcu_%d", i);
+        test_mcus[i].description = "Thread test MCU";
+        test_mcus[i].enabled = true;
+        test_mcus[i].interface = PCL_MCU_INTERFACE_SERIAL;
+
+        /* 设置MCU数组 */
+        test_mcu_arrays[i][0] = &test_mcus[i];
+        test_mcu_arrays[i][1] = NULL;
+
+        /* 初始化平台配置 */
+        OSAL_Memset(&test_configs[i], 0, sizeof(pcl_platform_config_t));
+        test_configs[i].platform_name = "test_platform";
+        test_configs[i].chip_name = "test_chip";
+        test_configs[i].project_name = "test_project";
+
+        /* 为每个线程创建唯一的产品名 */
+        static char product_names[NUM_THREADS][32];
+        OSAL_Snprintf(product_names[i], 32, "product_%d", i);
+        test_configs[i].product_name = product_names[i];
+        test_configs[i].mcu_arr = test_mcu_arrays[i];
+    }
+}
+
+/* 线程1：并发注册配置 */
+static void* thread_register_func(void *arg)
+{
+    thread_test_data_t *data = (thread_test_data_t *)arg;
+    int i;
+
+    for (i = 0; i < NUM_ITERATIONS; i++) {
+        int32_t ret = PCL_Register(&test_configs[data->thread_id]);
+        if (ret == OSAL_SUCCESS) {
+            data->success_count++;
+        } else {
+            data->error_count++;
+        }
+
+        /* 短暂休眠，增加并发冲突概率 */
+        OSAL_Sleep(1);
+    }
+
+    return NULL;
+}
+
+/* 线程2：并发查询配置 */
+static void* thread_find_func(void *arg)
+{
+    thread_test_data_t *data = (thread_test_data_t *)arg;
+    int i;
+    char product_name[32];
+
+    OSAL_Snprintf(product_name, 32, "product_%d", data->thread_id % NUM_THREADS);
+
+    for (i = 0; i < NUM_ITERATIONS; i++) {
+        const pcl_platform_config_t *found = PCL_Find("test_platform", product_name, NULL);
+        if (found != NULL) {
+            data->success_count++;
+        } else {
+            data->error_count++;
+        }
+
+        OSAL_Sleep(1);
+    }
+
+    return NULL;
+}
+
+/* 线程3：并发列举配置 */
+static void* thread_list_func(void *arg)
+{
+    thread_test_data_t *data = (thread_test_data_t *)arg;
+    int i;
+
+    for (i = 0; i < NUM_ITERATIONS; i++) {
+        const pcl_platform_config_t *configs[32];
+        uint32_t count = 32;
+
+        int32_t ret = PCL_List(configs, &count);
+        if (ret == OSAL_SUCCESS) {
+            data->success_count++;
+        } else {
+            data->error_count++;
+        }
+
+        OSAL_Sleep(1);
+    }
+
+    return NULL;
+}
+
+/* 线程4：并发获取当前配置 */
+static void* thread_getboard_func(void *arg)
+{
+    thread_test_data_t *data = (thread_test_data_t *)arg;
+    int i;
+
+    for (i = 0; i < NUM_ITERATIONS; i++) {
+        const pcl_platform_config_t *board = PCL_GetBoard();
+        /* GetBoard可能返回NULL（如果没有设置current），这是正常的 */
+        data->success_count++;
+        (void)board;  /* 避免未使用变量警告 */
+
+        OSAL_Sleep(1);
+    }
+
+    return NULL;
+}
+
+TEST_CASE(test_pcl_concurrent_register)
+{
+    osal_thread_t threads[NUM_THREADS];
+    thread_test_data_t thread_data[NUM_THREADS];
+    int i;
+    int32_t ret;
+
+    /* 初始化测试配置 */
+    init_test_configs();
+
+    /* 初始化PCL */
+    ret = PCL_Init();
+    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
+
+    /* 创建多个线程并发注册配置 */
+    for (i = 0; i < NUM_THREADS; i++) {
+        thread_data[i].thread_id = i;
+        thread_data[i].success_count = 0;
+        thread_data[i].error_count = 0;
+
+        ret = OSAL_ThreadCreate(&threads[i], thread_register_func, &thread_data[i]);
+        TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
+    }
+
+    /* 等待所有线程完成 */
+    for (i = 0; i < NUM_THREADS; i++) {
+        OSAL_ThreadJoin(threads[i], NULL);
+    }
+
+    /* 验证结果：每个配置应该只被成功注册一次 */
+    for (i = 0; i < NUM_THREADS; i++) {
+        TEST_ASSERT_EQUAL(1, thread_data[i].success_count);
+        TEST_ASSERT_EQUAL(NUM_ITERATIONS - 1, thread_data[i].error_count);
+    }
+
+    /* 验证注册表中有正确数量的配置 */
+    const pcl_platform_config_t *configs[32];
+    uint32_t count = 32;
+    ret = PCL_List(configs, &count);
+    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
+    TEST_ASSERT_EQUAL(NUM_THREADS, count);
+
+    PCL_Cleanup();
+}
+
+TEST_CASE(test_pcl_concurrent_find)
+{
+    osal_thread_t threads[NUM_THREADS];
+    thread_test_data_t thread_data[NUM_THREADS];
+    int i;
+    int32_t ret;
+
+    /* 初始化测试配置 */
+    init_test_configs();
+
+    /* 初始化PCL并注册配置 */
+    ret = PCL_Init();
+    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
+
+    for (i = 0; i < NUM_THREADS; i++) {
+        ret = PCL_Register(&test_configs[i]);
+        TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
+    }
+
+    /* 创建多个线程并发查询配置 */
+    for (i = 0; i < NUM_THREADS; i++) {
+        thread_data[i].thread_id = i;
+        thread_data[i].success_count = 0;
+        thread_data[i].error_count = 0;
+
+        ret = OSAL_ThreadCreate(&threads[i], thread_find_func, &thread_data[i]);
+        TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
+    }
+
+    /* 等待所有线程完成 */
+    for (i = 0; i < NUM_THREADS; i++) {
+        OSAL_ThreadJoin(threads[i], NULL);
+    }
+
+    /* 验证结果：所有查询都应该成功 */
+    for (i = 0; i < NUM_THREADS; i++) {
+        TEST_ASSERT_EQUAL(NUM_ITERATIONS, thread_data[i].success_count);
+        TEST_ASSERT_EQUAL(0, thread_data[i].error_count);
+    }
+
+    PCL_Cleanup();
+}
+
+TEST_CASE(test_pcl_concurrent_mixed_operations)
+{
+    osal_thread_t threads[NUM_THREADS * 3];
+    thread_test_data_t thread_data[NUM_THREADS * 3];
+    int i;
+    int32_t ret;
+
+    /* 初始化测试配置 */
+    init_test_configs();
+
+    /* 初始化PCL并注册一些配置 */
+    ret = PCL_Init();
+    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
+
+    for (i = 0; i < NUM_THREADS / 2; i++) {
+        ret = PCL_Register(&test_configs[i]);
+        TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
+    }
+
+    /* 创建多个线程执行不同操作 */
+    for (i = 0; i < NUM_THREADS; i++) {
+        thread_data[i].thread_id = i;
+        thread_data[i].success_count = 0;
+        thread_data[i].error_count = 0;
+
+        /* 线程组1：查询操作 */
+        ret = OSAL_ThreadCreate(&threads[i], thread_find_func, &thread_data[i]);
+        TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
+
+        /* 线程组2：列举操作 */
+        thread_data[NUM_THREADS + i].thread_id = i;
+        thread_data[NUM_THREADS + i].success_count = 0;
+        thread_data[NUM_THREADS + i].error_count = 0;
+        ret = OSAL_ThreadCreate(&threads[NUM_THREADS + i], thread_list_func,
+                                &thread_data[NUM_THREADS + i]);
+        TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
+
+        /* 线程组3：获取当前配置 */
+        thread_data[NUM_THREADS * 2 + i].thread_id = i;
+        thread_data[NUM_THREADS * 2 + i].success_count = 0;
+        thread_data[NUM_THREADS * 2 + i].error_count = 0;
+        ret = OSAL_ThreadCreate(&threads[NUM_THREADS * 2 + i], thread_getboard_func,
+                                &thread_data[NUM_THREADS * 2 + i]);
+        TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
+    }
+
+    /* 等待所有线程完成 */
+    for (i = 0; i < NUM_THREADS * 3; i++) {
+        OSAL_ThreadJoin(threads[i], NULL);
+    }
+
+    /* 验证没有发生崩溃或死锁 */
+    TEST_ASSERT_TRUE(true);
+
+    PCL_Cleanup();
+}
+
 /* ========== 测试套件注册 ========== */
 
 TEST_MODULE_BEGIN(test_pcl_init_suite, "PCL")
@@ -448,3 +725,9 @@ TEST_MODULE_BEGIN(test_pcl_validate_suite, "PCL")
     TEST_CASE_REF(test_pcl_validate_success)
     TEST_CASE_REF(test_pcl_validate_null_pointer)
 TEST_MODULE_END(test_pcl_validate_suite, "PCL")
+
+TEST_MODULE_BEGIN(test_pcl_concurrent_suite, "PCL")
+    TEST_CASE_REF(test_pcl_concurrent_register)
+    TEST_CASE_REF(test_pcl_concurrent_find)
+    TEST_CASE_REF(test_pcl_concurrent_mixed_operations)
+TEST_MODULE_END(test_pcl_concurrent_suite, "PCL")
