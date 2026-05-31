@@ -26,6 +26,14 @@ config OSAL_IPC_MUTEX
 	  Enable mutex (mutual exclusion) support.
 	  Source: src/posix/ipc/osal_mutex.c
 
+config OSAL_IPC_RWLOCK
+	bool "Read-write lock support"
+	default n
+	help
+	  Enable read-write lock support for read-heavy scenarios.
+	  Allows multiple readers or single writer.
+	  Source: src/posix/ipc/osal_rwlock.c
+
 config OSAL_IPC_SEMAPHORE
 	bool "Semaphore support"
 	default n

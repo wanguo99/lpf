@@ -3,6 +3,7 @@
  * @brief Protocol Layer Common Implementation
  */
 
+#include <stddef.h>  /* for offsetof */
 #include "prl_common.h"
 #include "sys/osal_clock.h"
 #include "lib/osal_heap.h"
@@ -127,19 +128,28 @@ bool prl_verify_packet_crc(const uint8_t *packet, size_t total_len)
     const prl_header_t *hdr = (const prl_header_t *)packet;
     uint16_t received_crc = hdr->crc16;
 
-    /* 创建临时缓冲区，CRC 字段置 0 */
-    uint8_t *temp = (uint8_t *)OSAL_Malloc((uint32_t)total_len);
-    if (!temp) {
-        return false;
+    /* 分段计算 CRC，避免动态内存分配
+     * CRC 字段位于协议头的偏移 14-15 字节处
+     * 计算顺序：[0, crc_offset) + 0x0000 + (crc_offset+2, total_len)
+     */
+    uint16_t crc = 0xFFFF;
+
+    /* CRC 字段在结构体中的偏移量 */
+    const size_t crc_offset = offsetof(prl_header_t, crc16);
+
+    /* 第一段：从报文开始到 CRC 字段之前 */
+    for (size_t i = 0; i < crc_offset; i++) {
+        crc = (crc << 8) ^ crc16_table[((crc >> 8) ^ packet[i]) & 0xFF];
     }
 
-    OSAL_Memcpy(temp, packet, (uint32_t)total_len);
-    ((prl_header_t *)temp)->crc16 = 0;
+    /* 第二段：CRC 字段作为 0x0000 处理 */
+    crc = (crc << 8) ^ crc16_table[((crc >> 8) ^ 0x00) & 0xFF];
+    crc = (crc << 8) ^ crc16_table[((crc >> 8) ^ 0x00) & 0xFF];
 
-    /* 计算 CRC */
-    uint16_t calculated_crc = prl_calc_crc16(temp, total_len);
+    /* 第三段：从 CRC 字段之后到报文结束 */
+    for (size_t i = crc_offset + sizeof(uint16_t); i < total_len; i++) {
+        crc = (crc << 8) ^ crc16_table[((crc >> 8) ^ packet[i]) & 0xFF];
+    }
 
-    OSAL_Free(temp);
-
-    return (calculated_crc == received_crc);
+    return (crc == received_crc);
 }

@@ -2,6 +2,7 @@
 #include "libccm/libccm_ipc.h"
 #include "sys/osal_signal.h"
 #include "sys/osal_process.h"
+#include <unistd.h>
 
 /* 全局变量 */
 static pmc_process_heartbeat_t *g_heartbeat = NULL;
@@ -29,8 +30,9 @@ static process_info_t g_processes[] = {
 static void signal_handler(int32_t sig)
 {
     if (sig == SIGTERM || sig == SIGINT) {
+        const char msg[] = "SUPERVISOR: 收到退出信号\n";
         g_running = false;
-        LOG_INFO("SUPERVISOR", "收到退出信号");
+        (void)write(STDERR_FILENO, msg, sizeof(msg) - 1);
     }
     /* SIGCHLD处理移除，改用轮询检查子进程状态 */
 }

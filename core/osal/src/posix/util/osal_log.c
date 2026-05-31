@@ -38,12 +38,18 @@ typedef enum
 
 /*
  * 日志配置
+ *
+ * 线程安全说明：
+ * - g_log_mutex: 保护日志文件操作和输出
+ * - g_config_mutex: 保护配置变量（级别、过滤器、远程日志等）
+ * - 统计计数器使用原子操作（通过 __sync_* 内建函数）
  */
 static log_level_t g_log_level = LOG_LEVEL_INFO;
 static log_level_t g_module_levels[LOG_MODULE_MAX];  /* 模块级日志级别 */
 static bool g_module_level_set[LOG_MODULE_MAX] = {false};  /* 是否设置了模块级别 */
 static FILE *g_log_file = NULL;
-static pthread_mutex_t g_log_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t g_log_mutex = PTHREAD_MUTEX_INITIALIZER;  /* 保护文件操作 */
+static pthread_mutex_t g_config_mutex = PTHREAD_MUTEX_INITIALIZER;  /* 保护配置变量 */
 static char g_log_file_path[OSAL_LOG_PATH_SIZE] = {0};
 static uint32_t g_max_log_size = OSAL_LOG_FILE_MAX_SIZE_MB * 1024 * 1024;  /* 10MB */
 static uint32_t g_max_log_files = OSAL_LOG_FILE_BACKUP_COUNT;
@@ -52,7 +58,7 @@ static uint32_t g_max_log_files = OSAL_LOG_FILE_BACKUP_COUNT;
 static regex_t g_log_filter_regex;
 static bool g_log_filter_enabled = false;
 static uint32_t g_log_sampling_rate = 1;  /* 1表示全部记录 */
-static uint64_t g_log_counter = 0;
+static uint64_t g_log_counter = 0;  /* 使用原子操作访问 */
 
 /* 远程日志 */
 static int g_remote_log_socket = -1;
@@ -60,8 +66,8 @@ static struct sockaddr_in g_remote_log_addr;
 static bool g_remote_log_enabled = false;
 
 /* 统计信息 */
-static uint64_t g_total_log_count = 0;
-static uint64_t g_dropped_log_count = 0;
+static uint64_t g_total_log_count = 0;  /* 使用原子操作访问 */
+static uint64_t g_dropped_log_count = 0;  /* 使用原子操作访问 */
 
 /*
  * 日志级别名称
@@ -112,6 +118,9 @@ int32_t OSAL_LogInit(const char *log_file_path, int32_t level)
 {
     uint32_t i;
 
+    /* 加锁保护配置变量 */
+    pthread_mutex_lock(&g_config_mutex);
+
     if (level >= LOG_LEVEL_DEBUG && level <= LOG_LEVEL_FATAL)
     {
         g_log_level = level;
@@ -124,11 +133,17 @@ int32_t OSAL_LogInit(const char *log_file_path, int32_t level)
         g_module_levels[i] = LOG_LEVEL_INFO;
     }
 
+    pthread_mutex_unlock(&g_config_mutex);
+
+    /* 文件操作需要 g_log_mutex 保护 */
     if (NULL != log_file_path)
     {
+        pthread_mutex_lock(&g_log_mutex);
         strncpy(g_log_file_path, log_file_path, sizeof(g_log_file_path) - 1);
         g_log_file_path[sizeof(g_log_file_path) - 1] = '\0';
         g_log_file = fopen(log_file_path, "a");
+        pthread_mutex_unlock(&g_log_mutex);
+
         if (NULL == g_log_file)
         {
             fprintf(stderr, "无法打开日志文件: %s\n", log_file_path);
@@ -144,13 +159,16 @@ int32_t OSAL_LogInit(const char *log_file_path, int32_t level)
  */
 void OSAL_LogShutdown(void)
 {
+    pthread_mutex_lock(&g_log_mutex);
     if (NULL != g_log_file)
     {
         fclose(g_log_file);
         g_log_file = NULL;
     }
+    pthread_mutex_unlock(&g_log_mutex);
 
     /* 关闭远程日志 */
+    pthread_mutex_lock(&g_config_mutex);
     if (g_remote_log_enabled && g_remote_log_socket >= 0)
     {
         close(g_remote_log_socket);
@@ -164,6 +182,7 @@ void OSAL_LogShutdown(void)
         regfree(&g_log_filter_regex);
         g_log_filter_enabled = false;
     }
+    pthread_mutex_unlock(&g_config_mutex);
 }
 
 /**
@@ -173,7 +192,9 @@ void OSAL_LogSetLevel(int32_t level)
 {
     if (level >= LOG_LEVEL_DEBUG && level <= LOG_LEVEL_FATAL)
     {
+        pthread_mutex_lock(&g_config_mutex);
         g_log_level = level;
+        pthread_mutex_unlock(&g_config_mutex);
     }
 }
 
@@ -184,8 +205,10 @@ void OSAL_LogSetModuleLevel(log_module_t module, int32_t level)
 {
     if (module < LOG_MODULE_MAX && level >= LOG_LEVEL_DEBUG && level <= LOG_LEVEL_FATAL)
     {
+        pthread_mutex_lock(&g_config_mutex);
         g_module_levels[module] = level;
         g_module_level_set[module] = true;
+        pthread_mutex_unlock(&g_config_mutex);
     }
 }
 
@@ -194,11 +217,20 @@ void OSAL_LogSetModuleLevel(log_module_t module, int32_t level)
  */
 int32_t OSAL_LogGetModuleLevel(log_module_t module)
 {
+    int32_t level;
+
+    pthread_mutex_lock(&g_config_mutex);
     if (module < LOG_MODULE_MAX && g_module_level_set[module])
     {
-        return g_module_levels[module];
+        level = g_module_levels[module];
     }
-    return g_log_level;  /* 返回全局级别 */
+    else
+    {
+        level = g_log_level;  /* 返回全局级别 */
+    }
+    pthread_mutex_unlock(&g_config_mutex);
+
+    return level;
 }
 
 /**
@@ -207,27 +239,38 @@ int32_t OSAL_LogGetModuleLevel(log_module_t module)
 int32_t OSAL_LogSetFilter(const char *pattern)
 {
     int ret;
-
-    /* 清除旧的过滤器 */
-    if (g_log_filter_enabled)
-    {
-        regfree(&g_log_filter_regex);
-        g_log_filter_enabled = false;
-    }
+    regex_t new_regex;
 
     if (NULL == pattern)
     {
-        return OSAL_SUCCESS;  /* 清除过滤器 */
+        /* 清除过滤器 */
+        pthread_mutex_lock(&g_config_mutex);
+        if (g_log_filter_enabled)
+        {
+            regfree(&g_log_filter_regex);
+            g_log_filter_enabled = false;
+        }
+        pthread_mutex_unlock(&g_config_mutex);
+        return OSAL_SUCCESS;
     }
 
-    /* 编译正则表达式 */
-    ret = regcomp(&g_log_filter_regex, pattern, REG_EXTENDED | REG_NOSUB);
+    /* 先编译正则表达式（不持有锁） */
+    ret = regcomp(&new_regex, pattern, REG_EXTENDED | REG_NOSUB);
     if (ret != 0)
     {
         return OSAL_ERR_GENERIC;
     }
 
+    /* 加锁替换旧的过滤器 */
+    pthread_mutex_lock(&g_config_mutex);
+    if (g_log_filter_enabled)
+    {
+        regfree(&g_log_filter_regex);
+    }
+    g_log_filter_regex = new_regex;
     g_log_filter_enabled = true;
+    pthread_mutex_unlock(&g_config_mutex);
+
     return OSAL_SUCCESS;
 }
 
@@ -238,7 +281,9 @@ void OSAL_LogSetSampling(uint32_t rate)
 {
     if (rate > 0)
     {
+        pthread_mutex_lock(&g_config_mutex);
         g_log_sampling_rate = rate;
+        pthread_mutex_unlock(&g_config_mutex);
     }
 }
 
@@ -247,30 +292,46 @@ void OSAL_LogSetSampling(uint32_t rate)
  */
 int32_t OSAL_LogSetRemote(const char *host, uint16_t port)
 {
+    int sock;
+    struct sockaddr_in addr;
+
     if (NULL == host || port == 0)
     {
         return OSAL_ERR_INVALID_SIZE;
     }
 
-    /* 创建UDP socket */
-    g_remote_log_socket = socket(AF_INET, SOCK_DGRAM, 0);
-    if (g_remote_log_socket < 0)
+    /* 创建UDP socket（不持有锁） */
+    sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock < 0)
     {
         return OSAL_ERR_GENERIC;
     }
 
     /* 配置远程地址 */
-    memset(&g_remote_log_addr, 0, sizeof(g_remote_log_addr));
-    g_remote_log_addr.sin_family = AF_INET;
-    g_remote_log_addr.sin_port = htons(port);
-    if (inet_pton(AF_INET, host, &g_remote_log_addr.sin_addr) <= 0)
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    if (inet_pton(AF_INET, host, &addr.sin_addr) <= 0)
     {
-        close(g_remote_log_socket);
-        g_remote_log_socket = -1;
+        close(sock);
         return OSAL_ERR_GENERIC;
     }
 
+    /* 加锁更新全局变量 */
+    pthread_mutex_lock(&g_config_mutex);
+
+    /* 关闭旧的 socket */
+    if (g_remote_log_enabled && g_remote_log_socket >= 0)
+    {
+        close(g_remote_log_socket);
+    }
+
+    g_remote_log_socket = sock;
+    g_remote_log_addr = addr;
     g_remote_log_enabled = true;
+
+    pthread_mutex_unlock(&g_config_mutex);
+
     return OSAL_SUCCESS;
 }
 
@@ -279,12 +340,14 @@ int32_t OSAL_LogSetRemote(const char *host, uint16_t port)
  */
 void OSAL_LogDisableRemote(void)
 {
+    pthread_mutex_lock(&g_config_mutex);
     if (g_remote_log_enabled && g_remote_log_socket >= 0)
     {
         close(g_remote_log_socket);
         g_remote_log_socket = -1;
     }
     g_remote_log_enabled = false;
+    pthread_mutex_unlock(&g_config_mutex);
 }
 
 /**
@@ -294,11 +357,11 @@ void OSAL_LogGetStats(uint64_t *total_count, uint64_t *dropped_count)
 {
     if (total_count)
     {
-        *total_count = g_total_log_count;
+        *total_count = __sync_fetch_and_add(&g_total_log_count, 0);
     }
     if (dropped_count)
     {
-        *dropped_count = g_dropped_log_count;
+        *dropped_count = __sync_fetch_and_add(&g_dropped_log_count, 0);
     }
 }
 
@@ -308,7 +371,11 @@ void OSAL_LogGetStats(uint64_t *total_count, uint64_t *dropped_count)
 void OSAL_LogSetMaxFileSize(uint32_t size_bytes)
 {
     if (size_bytes > 0)
+    {
+        pthread_mutex_lock(&g_config_mutex);
         g_max_log_size = size_bytes;
+        pthread_mutex_unlock(&g_config_mutex);
+    }
 }
 
 /**
@@ -317,7 +384,11 @@ void OSAL_LogSetMaxFileSize(uint32_t size_bytes)
 void OSAL_LogSetMaxFiles(uint32_t max_files)
 {
     if (max_files > 0)
+    {
+        pthread_mutex_lock(&g_config_mutex);
         g_max_log_files = max_files;
+        pthread_mutex_unlock(&g_config_mutex);
+    }
 }
 
 /**
@@ -343,6 +414,8 @@ static void get_timestamp(char *buffer, osal_size_t size)
 
 /**
  * @brief 轮转日志文件
+ *
+ * 注意：调用此函数前必须持有 g_log_mutex
  */
 static void rotate_log_file(void)
 {
@@ -350,9 +423,17 @@ static void rotate_log_file(void)
     char from[OSAL_LOG_FILENAME_SIZE], to[OSAL_LOG_FILENAME_SIZE];
     char current_backup[OSAL_LOG_FILENAME_SIZE];
     uint32_t i;
+    uint32_t max_files;
 
     if (g_log_file_path[0] == '\0')
         return;
+
+    /* 读取配置（需要临时获取 config_mutex） */
+    pthread_mutex_unlock(&g_log_mutex);
+    pthread_mutex_lock(&g_config_mutex);
+    max_files = g_max_log_files;
+    pthread_mutex_unlock(&g_config_mutex);
+    pthread_mutex_lock(&g_log_mutex);
 
     /* 关闭当前日志文件 */
     if (NULL != g_log_file)
@@ -362,7 +443,7 @@ static void rotate_log_file(void)
     }
 
     /* 删除最旧的日志文件 */
-    snprintf(old_file, sizeof(old_file), "%s.%u", g_log_file_path, g_max_log_files);
+    snprintf(old_file, sizeof(old_file), "%s.%u", g_log_file_path, max_files);
     if (remove(old_file) != 0 && errno != ENOENT)
     {
         /* 文件不存在是正常情况，其他错误记录到 stderr */
@@ -370,7 +451,7 @@ static void rotate_log_file(void)
     }
 
     /* 重命名日志文件 */
-    for (i = g_max_log_files - 1; i > 0; i--)
+    for (i = max_files - 1; i > 0; i--)
     {
         snprintf(from, sizeof(from), "%s.%u", g_log_file_path, i - 1);
         snprintf(to, sizeof(to), "%s.%u", g_log_file_path, i);
@@ -405,10 +486,13 @@ static void rotate_log_file(void)
 
 /**
  * @brief 检查日志文件大小并轮转
+ *
+ * 注意：调用此函数前必须持有 g_log_mutex
  */
 static void check_and_rotate_log(void)
 {
     int64_t file_size;
+    uint32_t max_size;
 
     if (NULL == g_log_file || g_log_file_path[0] == '\0')
         return;
@@ -417,7 +501,14 @@ static void check_and_rotate_log(void)
     fseek(g_log_file, 0, SEEK_END);
     file_size = (int64_t)ftell(g_log_file);
 
-    if (file_size > (int64_t)g_max_log_size)
+    /* 读取配置（需要临时获取 config_mutex） */
+    pthread_mutex_unlock(&g_log_mutex);
+    pthread_mutex_lock(&g_config_mutex);
+    max_size = g_max_log_size;
+    pthread_mutex_unlock(&g_config_mutex);
+    pthread_mutex_lock(&g_log_mutex);
+
+    if (file_size > (int64_t)max_size)
     {
         rotate_log_file();
     }
@@ -425,43 +516,79 @@ static void check_and_rotate_log(void)
 
 /**
  * @brief 检查日志是否应该被记录（采样和过滤）
+ *
+ * 注意：使用原子操作更新计数器，使用 config_mutex 保护配置读取
  */
 static bool should_log_message(const char *message)
 {
+    uint64_t counter;
+    uint32_t sampling_rate;
+    bool filter_enabled;
+
+    /* 原子递增计数器 */
+    counter = __sync_add_and_fetch(&g_log_counter, 1);
+
+    /* 读取采样率配置 */
+    pthread_mutex_lock(&g_config_mutex);
+    sampling_rate = g_log_sampling_rate;
+    filter_enabled = g_log_filter_enabled;
+
     /* 采样检查 */
-    g_log_counter++;
-    if (g_log_sampling_rate > 1 && (g_log_counter % g_log_sampling_rate) != 0)
+    if (sampling_rate > 1 && (counter % sampling_rate) != 0)
     {
-        g_dropped_log_count++;
+        pthread_mutex_unlock(&g_config_mutex);
+        __sync_add_and_fetch(&g_dropped_log_count, 1);
         return false;
     }
 
     /* 过滤器检查 */
-    if (g_log_filter_enabled && message != NULL)
+    if (filter_enabled && message != NULL)
     {
         if (regexec(&g_log_filter_regex, message, 0, NULL, 0) != 0)
         {
-            g_dropped_log_count++;
+            pthread_mutex_unlock(&g_config_mutex);
+            __sync_add_and_fetch(&g_dropped_log_count, 1);
             return false;
         }
     }
 
-    g_total_log_count++;
+    pthread_mutex_unlock(&g_config_mutex);
+
+    __sync_add_and_fetch(&g_total_log_count, 1);
     return true;
 }
 
 /**
  * @brief 发送日志到远程服务器
+ *
+ * 注意：使用 config_mutex 保护远程日志配置的读取
  */
 static void send_remote_log(const char *log_message)
 {
-    if (!g_remote_log_enabled || g_remote_log_socket < 0 || log_message == NULL)
+    int sock;
+    struct sockaddr_in addr;
+    bool enabled;
+
+    if (log_message == NULL)
     {
         return;
     }
 
-    sendto(g_remote_log_socket, log_message, strlen(log_message), 0,
-           (struct sockaddr *)&g_remote_log_addr, sizeof(g_remote_log_addr));
+    /* 读取远程日志配置 */
+    pthread_mutex_lock(&g_config_mutex);
+    enabled = g_remote_log_enabled;
+    sock = g_remote_log_socket;
+    addr = g_remote_log_addr;
+    pthread_mutex_unlock(&g_config_mutex);
+
+    if (!enabled || sock < 0)
+    {
+        return;
+    }
+
+    /* 发送日志（不持有锁，避免阻塞） */
+    sendto(sock, log_message, strlen(log_message), 0,
+           (struct sockaddr *)&addr, sizeof(addr));
 }
 
 /**
@@ -484,9 +611,15 @@ static void log_internal_ex(log_level_t level, const char *module,
     char message[OSAL_LOG_MESSAGE_SIZE];
     char full_log[OSAL_LOG_MESSAGE_SIZE + 256];
     const char *filename = extract_filename(file);
+    log_level_t current_level;
+
+    /* 读取日志级别配置 */
+    pthread_mutex_lock(&g_config_mutex);
+    current_level = g_log_level;
+    pthread_mutex_unlock(&g_config_mutex);
 
     /* 检查日志级别 */
-    if (level < g_log_level)
+    if (level < current_level)
         return;
 
     /* 获取时间戳 */
@@ -530,11 +663,11 @@ static void log_internal_ex(log_level_t level, const char *module,
         fflush(g_log_file);
     }
 
-    /* 发送到远程服务器 */
-    send_remote_log(full_log);
-
     /* 解锁 */
     pthread_mutex_unlock(&g_log_mutex);
+
+    /* 发送到远程服务器（不持有锁） */
+    send_remote_log(full_log);
 }
 
 /**
@@ -545,9 +678,15 @@ static void log_internal(log_level_t level, const char *module,
 {
     char timestamp[OSAL_LOG_TIMESTAMP_SIZE];
     char message[OSAL_LOG_MESSAGE_SIZE];
+    log_level_t current_level;
+
+    /* 读取日志级别配置 */
+    pthread_mutex_lock(&g_config_mutex);
+    current_level = g_log_level;
+    pthread_mutex_unlock(&g_config_mutex);
 
     /* 检查日志级别 */
-    if (level < g_log_level)
+    if (level < current_level)
         return;
 
     /* 获取时间戳 */
@@ -699,19 +838,38 @@ void OSAL_LogStructured(int32_t level, log_module_t module, const char *message,
     char timestamp[OSAL_LOG_TIMESTAMP_SIZE];
     char full_message[OSAL_LOG_MESSAGE_SIZE];
     char kv_buffer[512];
+    char remote_log[OSAL_LOG_MESSAGE_SIZE + 256];
     uint32_t i;
     size_t offset = 0;
+    log_level_t current_level;
+    log_level_t module_level;
+    bool module_level_set;
 
     if (level < LOG_LEVEL_DEBUG || level > LOG_LEVEL_FATAL)
         return;
 
-    /* 检查模块级别 */
-    if (module < LOG_MODULE_MAX && g_module_level_set[module])
+    /* 读取日志级别配置 */
+    pthread_mutex_lock(&g_config_mutex);
+    current_level = g_log_level;
+    if (module < LOG_MODULE_MAX)
     {
-        if (level < g_module_levels[module])
+        module_level_set = g_module_level_set[module];
+        module_level = g_module_levels[module];
+    }
+    else
+    {
+        module_level_set = false;
+        module_level = LOG_LEVEL_INFO;
+    }
+    pthread_mutex_unlock(&g_config_mutex);
+
+    /* 检查模块级别 */
+    if (module < LOG_MODULE_MAX && module_level_set)
+    {
+        if (level < module_level)
             return;
     }
-    else if (level < g_log_level)
+    else if (level < current_level)
     {
         return;
     }
@@ -770,8 +928,10 @@ void OSAL_LogStructured(int32_t level, log_module_t module, const char *message,
         fflush(g_log_file);
     }
 
-    /* 发送到远程服务器 */
-    char remote_log[OSAL_LOG_MESSAGE_SIZE + 256];
+    /* 解锁 */
+    pthread_mutex_unlock(&g_log_mutex);
+
+    /* 发送到远程服务器（不持有锁） */
     snprintf(remote_log, sizeof(remote_log),
              "[%s] [%s] [%s] %s",
              timestamp,
@@ -779,7 +939,4 @@ void OSAL_LogStructured(int32_t level, log_module_t module, const char *message,
              module < LOG_MODULE_MAX ? log_module_names[module] : "UNKNOWN",
              full_message);
     send_remote_log(remote_log);
-
-    /* 解锁 */
-    pthread_mutex_unlock(&g_log_mutex);
 }

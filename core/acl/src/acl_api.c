@@ -9,12 +9,25 @@
 /* 全局配置表 */
 static const acl_config_table_t *g_acl_table = NULL;
 
+/* 读写锁保护全局配置表（读多写少场景） */
+static osal_rwlock_t *g_acl_rwlock = NULL;
+
 /**
  * @brief 初始化ACL层
  */
 int32_t ACL_Init(void)
 {
+    int32_t ret;
+
     g_acl_table = NULL;
+
+    /* 创建读写锁保护全局配置表 */
+    ret = OSAL_RwlockCreate(&g_acl_rwlock);
+    if (OSAL_SUCCESS != ret) {
+        LOG_ERROR("ACL", "Failed to create rwlock: %d", ret);
+        return ret;
+    }
+
     LOG_INFO("ACL", "Initialized");
     return OSAL_SUCCESS;
 }
@@ -24,9 +37,18 @@ int32_t ACL_Init(void)
  */
 int32_t ACL_RegisterTable(const acl_config_table_t *table)
 {
+    int32_t ret;
+
     if (NULL == table) {
         LOG_ERROR("ACL", "Invalid table pointer");
         return OSAL_ERR_INVALID_POINTER;
+    }
+
+    /* 获取写锁（独占访问） */
+    ret = OSAL_RwlockWrlock(g_acl_rwlock);
+    if (OSAL_SUCCESS != ret) {
+        LOG_ERROR("ACL", "Failed to acquire write lock: %d", ret);
+        return ret;
     }
 
     if (NULL != g_acl_table) {
@@ -41,6 +63,9 @@ int32_t ACL_RegisterTable(const acl_config_table_t *table)
                table->tm_count,
                table->inv_count);
 
+    /* 释放写锁 */
+    OSAL_RwlockUnlock(g_acl_rwlock);
+
     return OSAL_SUCCESS;
 }
 
@@ -49,16 +74,24 @@ int32_t ACL_RegisterTable(const acl_config_table_t *table)
  */
 const acl_tc_config_t* ACL_GetTcConfig(uint32_t function_id)
 {
-    if (NULL == g_acl_table || NULL == g_acl_table->tc_table) {
+    const acl_tc_config_t *config = NULL;
+
+    /* 获取读锁（允许多个读者） */
+    if (OSAL_SUCCESS != OSAL_RwlockRdlock(g_acl_rwlock)) {
         return NULL;
     }
 
-    /* O(1)直接索引 */
-    if (function_id < g_acl_table->tc_count) {
-        return &g_acl_table->tc_table[function_id];
+    if (NULL != g_acl_table && NULL != g_acl_table->tc_table) {
+        /* O(1)直接索引 */
+        if (function_id < g_acl_table->tc_count) {
+            config = &g_acl_table->tc_table[function_id];
+        }
     }
 
-    return NULL;
+    /* 释放读锁 */
+    OSAL_RwlockUnlock(g_acl_rwlock);
+
+    return config;
 }
 
 /**
@@ -66,16 +99,24 @@ const acl_tc_config_t* ACL_GetTcConfig(uint32_t function_id)
  */
 const acl_tm_config_t* ACL_GetTmConfig(uint32_t function_id)
 {
-    if (NULL == g_acl_table || NULL == g_acl_table->tm_table) {
+    const acl_tm_config_t *config = NULL;
+
+    /* 获取读锁（允许多个读者） */
+    if (OSAL_SUCCESS != OSAL_RwlockRdlock(g_acl_rwlock)) {
         return NULL;
     }
 
-    /* O(1)直接索引 */
-    if (function_id < g_acl_table->tm_count) {
-        return &g_acl_table->tm_table[function_id];
+    if (NULL != g_acl_table && NULL != g_acl_table->tm_table) {
+        /* O(1)直接索引 */
+        if (function_id < g_acl_table->tm_count) {
+            config = &g_acl_table->tm_table[function_id];
+        }
     }
 
-    return NULL;
+    /* 释放读锁 */
+    OSAL_RwlockUnlock(g_acl_rwlock);
+
+    return config;
 }
 
 /**
@@ -105,6 +146,7 @@ int32_t ACL_GetInvalidationMap(uint32_t source_tm_id,
                                 uint32_t *actual_count)
 {
     uint32_t i;
+    int32_t ret = OSAL_SUCCESS;
 
     if (NULL == affected_ids || NULL == actual_count) {
         return OSAL_ERR_INVALID_POINTER;
@@ -112,7 +154,13 @@ int32_t ACL_GetInvalidationMap(uint32_t source_tm_id,
 
     *actual_count = 0;
 
+    /* 获取读锁 */
+    if (OSAL_SUCCESS != OSAL_RwlockRdlock(g_acl_rwlock)) {
+        return OSAL_ERR_GENERIC;
+    }
+
     if (NULL == g_acl_table || NULL == g_acl_table->inv_map) {
+        OSAL_RwlockUnlock(g_acl_rwlock);
         return OSAL_SUCCESS;
     }
 
@@ -125,11 +173,14 @@ int32_t ACL_GetInvalidationMap(uint32_t source_tm_id,
                                    map->affected_count : max_count;
             OSAL_Memcpy(affected_ids, map->affected_tm_ids, copy_count * sizeof(uint32_t));
             *actual_count = map->affected_count;
-            return OSAL_SUCCESS;
+            break;
         }
     }
 
-    return OSAL_SUCCESS;
+    /* 释放读锁 */
+    OSAL_RwlockUnlock(g_acl_rwlock);
+
+    return ret;
 }
 
 /**
@@ -143,7 +194,13 @@ int32_t ACL_GetStatistics(acl_statistics_t *stats)
 
     OSAL_Memset(stats, 0, sizeof(acl_statistics_t));
 
+    /* 获取读锁 */
+    if (OSAL_SUCCESS != OSAL_RwlockRdlock(g_acl_rwlock)) {
+        return OSAL_ERR_GENERIC;
+    }
+
     if (NULL == g_acl_table) {
+        OSAL_RwlockUnlock(g_acl_rwlock);
         return OSAL_SUCCESS;
     }
 
@@ -175,6 +232,9 @@ int32_t ACL_GetStatistics(acl_statistics_t *stats)
 
     stats->invalidation_map_count = g_acl_table->inv_count;
 
+    /* 释放读锁 */
+    OSAL_RwlockUnlock(g_acl_rwlock);
+
     return OSAL_SUCCESS;
 }
 
@@ -185,8 +245,15 @@ void ACL_PrintConfig(void)
 {
     acl_statistics_t stats = {0};
 
+    /* 获取读锁 */
+    if (OSAL_SUCCESS != OSAL_RwlockRdlock(g_acl_rwlock)) {
+        LOG_ERROR("ACL", "Failed to acquire read lock");
+        return;
+    }
+
     if (NULL == g_acl_table) {
         LOG_INFO("ACL", "No table registered");
+        OSAL_RwlockUnlock(g_acl_rwlock);
         return;
     }
 
@@ -194,6 +261,10 @@ void ACL_PrintConfig(void)
     LOG_INFO("ACL", "  TC entries: %u", g_acl_table->tc_count);
     LOG_INFO("ACL", "  TM entries: %u", g_acl_table->tm_count);
     LOG_INFO("ACL", "  Invalidation maps: %u", g_acl_table->inv_count);
+
+    /* 释放读锁 */
+    OSAL_RwlockUnlock(g_acl_rwlock);
+
     if (OSAL_SUCCESS == ACL_GetStatistics(&stats)) {
         LOG_INFO("ACL", "  TC enabled: %u, disabled: %u",
                    stats.tc_enabled_count, stats.tc_disabled_count);

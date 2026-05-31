@@ -1,6 +1,7 @@
 #include "ccm_health.h"
 #include "libccm/libccm_ipc.h"
 #include "sys/osal_signal.h"
+#include <unistd.h>
 
 /* 全局变量 */
 static pmc_process_heartbeat_t *g_heartbeat = NULL;
@@ -17,8 +18,9 @@ static osal_thread_t g_watchdog_thread = 0;
 static void signal_handler(int32_t sig)
 {
     if (sig == SIGTERM || sig == SIGINT) {
+        const char msg[] = "HEALTH: 收到退出信号\n";
         g_running = false;
-        LOG_INFO("HEALTH", "收到退出信号");
+        (void)write(STDERR_FILENO, msg, sizeof(msg) - 1);
     }
 }
 

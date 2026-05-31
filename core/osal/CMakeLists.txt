@@ -26,6 +26,10 @@ if(CONFIG_OSAL_OS_POSIX)
         list(APPEND ADD_SRCS "src/posix/ipc/osal_mutex.c")
     endif()
 
+    if(CONFIG_OSAL_IPC_RWLOCK)
+        list(APPEND ADD_SRCS "src/posix/ipc/osal_rwlock.c")
+    endif()
+
     if(CONFIG_OSAL_IPC_SEMAPHORE)
         list(APPEND ADD_SRCS "src/posix/ipc/osal_semaphore.c")
     endif()
