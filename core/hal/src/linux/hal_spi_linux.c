@@ -9,7 +9,6 @@
 
 #include <linux/spi/spidev.h>
 #include <sys/ioctl.h>
-#include <pthread.h>
 #include "hal_spi.h"
 #include "osal.h"
 
@@ -22,7 +21,7 @@ typedef struct
     uint32_t max_speed_hz;
     uint32_t timeout;
     bool initialized;
-    pthread_mutex_t lock;  /* 操作级别互斥锁 */
+    osal_mutex_t *lock;  /* 操作级别互斥锁 */
 } hal_spi_context_t;
 
 /**
@@ -58,7 +57,7 @@ int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
     impl->initialized = false;
 
     /* 初始化互斥锁，检查返回值 */
-    if (0 != pthread_mutex_init(&impl->lock, NULL))
+    if (OSAL_SUCCESS != OSAL_MutexCreate(&impl->lock))
     {
         LOG_ERROR("HAL_SPI", "Failed to initialize mutex");
         OSAL_Free(impl);
@@ -140,7 +139,7 @@ int32_t HAL_SPI_Close(hal_spi_handle_t handle)
     }
 
     impl->initialized = false;
-    pthread_mutex_destroy(&impl->lock);
+    OSAL_MutexDelete(impl->lock);
     OSAL_Free(impl);
 
     LOG_INFO("HAL_SPI", "Device closed");
@@ -161,25 +160,25 @@ int32_t HAL_SPI_Write(hal_spi_handle_t handle, const uint8_t *buffer, uint32_t s
     if (!impl->initialized || size == 0)
         return OSAL_ERR_GENERIC;
 
-    pthread_mutex_lock(&impl->lock);
+    OSAL_MutexLock(impl->lock);
 
     /* 写入数据 */
     ret = OSAL_write(impl->fd, buffer, size);
     if (ret < 0)
     {
         LOG_ERROR("HAL_SPI", "Write failed: %s", OSAL_StrError(OSAL_GetErrno()));
-        pthread_mutex_unlock(&impl->lock);
+        OSAL_MutexUnlock(impl->lock);
         return OSAL_ERR_GENERIC;
     }
 
     if ((uint32_t)ret != size)
     {
         LOG_ERROR("HAL_SPI", "Partial write: %d/%u bytes", ret, size);
-        pthread_mutex_unlock(&impl->lock);
+        OSAL_MutexUnlock(impl->lock);
         return OSAL_ERR_GENERIC;
     }
 
-    pthread_mutex_unlock(&impl->lock);
+    OSAL_MutexUnlock(impl->lock);
     return OSAL_SUCCESS;
 }
 
@@ -197,25 +196,25 @@ int32_t HAL_SPI_Read(hal_spi_handle_t handle, uint8_t *buffer, uint32_t size)
     if (!impl->initialized || size == 0)
         return OSAL_ERR_GENERIC;
 
-    pthread_mutex_lock(&impl->lock);
+    OSAL_MutexLock(impl->lock);
 
     /* 读取数据 */
     ret = OSAL_read(impl->fd, buffer, size);
     if (ret < 0)
     {
         LOG_ERROR("HAL_SPI", "Read failed: %s", OSAL_StrError(OSAL_GetErrno()));
-        pthread_mutex_unlock(&impl->lock);
+        OSAL_MutexUnlock(impl->lock);
         return OSAL_ERR_GENERIC;
     }
 
     if ((uint32_t)ret != size)
     {
         LOG_ERROR("HAL_SPI", "Partial read: %d/%u bytes", ret, size);
-        pthread_mutex_unlock(&impl->lock);
+        OSAL_MutexUnlock(impl->lock);
         return OSAL_ERR_GENERIC;
     }
 
-    pthread_mutex_unlock(&impl->lock);
+    OSAL_MutexUnlock(impl->lock);
     return OSAL_SUCCESS;
 }
 
@@ -235,7 +234,7 @@ int32_t HAL_SPI_Transfer(hal_spi_handle_t handle, const uint8_t *tx_buffer,
     if (!impl->initialized || size == 0)
         return OSAL_ERR_GENERIC;
 
-    pthread_mutex_lock(&impl->lock);
+    OSAL_MutexLock(impl->lock);
 
     /* 构造传输结构 (参考: Linux内核 spidev.h) */
     OSAL_Memset(&xfer, 0, sizeof(xfer));
@@ -252,18 +251,18 @@ int32_t HAL_SPI_Transfer(hal_spi_handle_t handle, const uint8_t *tx_buffer,
     if (ret < 0)
     {
         LOG_ERROR("HAL_SPI", "Transfer failed: %s", OSAL_StrError(OSAL_GetErrno()));
-        pthread_mutex_unlock(&impl->lock);
+        OSAL_MutexUnlock(impl->lock);
         return OSAL_ERR_GENERIC;
     }
 
     if ((uint32_t)ret != size)
     {
         LOG_ERROR("HAL_SPI", "Partial transfer: %d/%u bytes", ret, size);
-        pthread_mutex_unlock(&impl->lock);
+        OSAL_MutexUnlock(impl->lock);
         return OSAL_ERR_GENERIC;
     }
 
-    pthread_mutex_unlock(&impl->lock);
+    OSAL_MutexUnlock(impl->lock);
     return OSAL_SUCCESS;
 }
 
