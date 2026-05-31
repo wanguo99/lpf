@@ -1,0 +1,87 @@
+# TM_CACHE (Telemetry Cache) Configuration
+
+menuconfig TM_CACHE
+	bool "TM_CACHE (Telemetry Cache)"
+	default n
+	select OSAL
+	help
+	  Telemetry Cache provides runtime data caching for telemetry systems.
+
+	  TM_CACHE is a runtime data management module that:
+	  - Caches telemetry data for fast access (<50μs read time)
+	  - Manages data freshness and validity
+	  - Supports multi-process access (IPC via shared memory)
+	  - Provides CRC32 checksums for data integrity
+
+	  Architecture:
+	  - Telemetry processes write data to cache (background updates)
+	  - Telecommand processes read from cache (fast response <2ms)
+	  - Cache tracks timestamps, freshness, and statistics
+
+	  Use cases:
+	  - Satellite telemetry systems requiring fast response
+	  - Multi-process systems with shared telemetry data
+	  - Systems with strict timing requirements
+
+	  Memory footprint: ~300 bytes per cache entry
+
+	  Dependencies: OSAL only (no hardware dependencies)
+
+	  Recommended: Enable for systems requiring telemetry caching
+
+	  If unsure, say N.
+
+if TM_CACHE
+
+menu "TM_CACHE Build Configuration"
+
+config TM_CACHE_BUILD_STATIC
+	bool "Build static library (.a)"
+	default n
+	help
+	  Build TM_CACHE as a static library (libtm_cache.a).
+
+	  Static linking advantages:
+	  - No runtime dependencies
+	  - Slightly faster
+
+	  Recommended: Enable for embedded systems
+
+config TM_CACHE_BUILD_SHARED
+	bool "Build shared library (.so)"
+	default n
+	help
+	  Build TM_CACHE as a shared library (libtm_cache.so).
+
+	  Shared library advantages:
+	  - Can update cache implementation without recompiling apps
+	  - Smaller executable size
+	  - Code sharing between processes
+
+	  Recommended: Enable for multi-application systems
+
+endmenu
+
+menu "TM_CACHE Configuration"
+
+config TM_CACHE_MAX_ENTRIES
+	int "Maximum number of cache entries"
+	default 256
+	range 1 4096
+	help
+	  Maximum number of telemetry entries that can be cached.
+
+	  Memory impact: ~300 bytes per entry
+	  Total memory: TM_CACHE_MAX_ENTRIES × 300 bytes
+
+	  Recommended values:
+	  - Small systems: 64-128 entries (~20-40KB)
+	  - Medium systems: 256 entries (~80KB)
+	  - Large systems: 512-1024 entries (~160-320KB)
+
+	  Note: Set this to the maximum number of telemetry points
+	  your system will manage.
+
+endmenu
+
+endif # TM_CACHE

@@ -35,6 +35,10 @@ if(CONFIG_PRL)
     add_subdirectory(${SDK_PATH}/core/prl ${CMAKE_CURRENT_BINARY_DIR}/prl)
 endif()
 
+if(CONFIG_TM_CACHE)
+    add_subdirectory(${SDK_PATH}/core/tm_cache ${CMAKE_CURRENT_BINARY_DIR}/tm_cache)
+endif()
+
 # Register ACL with platform config
 if(CONFIG_ACL)
     # Add platform ACL config sources to ACL component

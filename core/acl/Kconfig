@@ -4,7 +4,6 @@ menuconfig ACL
 	bool "ACL (Application Configuration Layer)"
 	default n
 	select OSAL
-	select PDL
 	help
 	  Application Configuration Layer provides business logic to hardware
 	  device mapping and high-level application APIs.
@@ -33,7 +32,10 @@ menuconfig ACL
 	  - Applications that need hardware abstraction
 	  - Systems with configurable device mappings
 
-	  Dependencies: OSAL, PDL (which includes HAL and PCL)
+	  Dependencies: OSAL
+
+	  Note: ACL provides configuration management only. Runtime data
+	  caching (telemetry cache) is provided by the separate TM_CACHE module.
 
 	  Recommended: Enable for application-level development
 
