@@ -60,7 +60,7 @@ int32_t ccm_eth_init(const pdl_ccm_config_t *config, void **handle)
     }
 
     OSAL_Memset(ctx, 0, sizeof(ccm_eth_context_t));
-    strncpy(ctx->ccm_ip, config->ccm_ip, sizeof(ctx->ccm_ip) - 1);
+    OSAL_Strncpy(ctx->ccm_ip, config->ccm_ip, sizeof(ctx->ccm_ip) - 1);
     ctx->ccm_port = config->ccm_port;
     ctx->timeout_ms = config->send_timeout_ms;
     ctx->seq_num = 0;

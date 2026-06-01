@@ -32,7 +32,7 @@ static void signal_handler(int32_t sig)
     if (sig == SIGTERM || sig == SIGINT) {
         const char msg[] = "SUPERVISOR: 收到退出信号\n";
         g_running = false;
-        (void)write(STDERR_FILENO, msg, sizeof(msg) - 1);
+        (void)OSAL_write(STDERR_FILENO, msg, sizeof(msg) - 1);
     }
     /* SIGCHLD处理移除，改用轮询检查子进程状态 */
 }

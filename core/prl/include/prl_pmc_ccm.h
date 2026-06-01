@@ -201,7 +201,7 @@ static inline int prl_pmc_ccm_decode_telemetry(const uint8_t *buf, size_t len,
 
     int ret = PRL_Decode(buf, len, &dev_type, &msg_type, &payload, &payload_len);
     if (ret == PRL_OK && payload_len >= sizeof(*tm)) {
-        memcpy(tm, payload, sizeof(*tm));
+        OSAL_Memcpy(tm, payload, sizeof(*tm));
         *data = payload + sizeof(*tm);
         *data_len = payload_len - sizeof(*tm);
         return 0;
@@ -219,7 +219,7 @@ static inline int prl_pmc_ccm_decode_command(const uint8_t *buf, size_t len,
 
     int ret = PRL_Decode(buf, len, &dev_type, &msg_type, &payload, &payload_len);
     if (ret == PRL_OK && payload_len >= sizeof(*tc)) {
-        memcpy(tc, payload, sizeof(*tc));
+        OSAL_Memcpy(tc, payload, sizeof(*tc));
         *params = payload + sizeof(*tc);
         *params_len = payload_len - sizeof(*tc);
         return 0;
@@ -237,7 +237,7 @@ static inline int prl_pmc_ccm_decode_ack(const uint8_t *buf, size_t len,
 
     int ret = PRL_Decode(buf, len, &dev_type, &msg_type, &payload, &payload_len);
     if (ret == PRL_OK && payload_len >= sizeof(*ack)) {
-        memcpy(ack, payload, sizeof(*ack));
+        OSAL_Memcpy(ack, payload, sizeof(*ack));
         if (data && data_len) {
             *data = payload + sizeof(*ack);
             *data_len = payload_len - sizeof(*ack);

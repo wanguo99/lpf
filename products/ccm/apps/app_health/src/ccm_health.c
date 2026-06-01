@@ -20,7 +20,7 @@ static void signal_handler(int32_t sig)
     if (sig == SIGTERM || sig == SIGINT) {
         const char msg[] = "HEALTH: 收到退出信号\n";
         g_running = false;
-        (void)write(STDERR_FILENO, msg, sizeof(msg) - 1);
+        (void)OSAL_write(STDERR_FILENO, msg, sizeof(msg) - 1);
     }
 }
 

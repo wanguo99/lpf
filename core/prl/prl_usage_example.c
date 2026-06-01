@@ -185,7 +185,7 @@ void ccm_send_telemetry_to_pmc(int socket_fd, uint32_t tm_id)
     /* 2. 准备遥测数据 */
     uint8_t tm_data[128];
     size_t tm_data_len = 64;
-    memset(tm_data, 0xAA, tm_data_len);
+    OSAL_Memset(tm_data, 0xAA, tm_data_len);
 
     /* 3. 编码为协议报文 */
     uint8_t buf[PRL_MAX_PACKET_SIZE];

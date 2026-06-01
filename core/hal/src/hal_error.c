@@ -6,7 +6,6 @@
 #include "osal.h"
 #include <stdio.h>
 #include <stdarg.h>
-#include <string.h>
 
 /************************************************************************
  * 线程局部错误上下文
@@ -42,7 +41,7 @@ const hal_error_context_t* HAL_GetLastError(void)
 
 void HAL_ClearError(void)
 {
-    memset(&g_hal_error_ctx, 0, sizeof(hal_error_context_t));
+    OSAL_Memset(&g_hal_error_ctx, 0, sizeof(hal_error_context_t));
 }
 
 /************************************************************************
