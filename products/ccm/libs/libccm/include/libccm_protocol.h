@@ -1,5 +1,5 @@
-#ifndef LIBPMC_PROTOCOL_H
-#define LIBPMC_PROTOCOL_H
+#ifndef LIBCCM_PROTOCOL_H
+#define LIBCCM_PROTOCOL_H
 
 #include "osal.h"
 #include "libccm/libccm_ipc.h"
@@ -22,14 +22,14 @@ typedef enum {
 
 /* 遥测类型 */
 typedef enum {
-    PMC_TM_SERVER_STATUS = 0x01,        /* 服务器状态 */
-    PMC_TM_CPU_TEMP,                    /* CPU温度 */
-    PMC_TM_BOARD_TEMP,                  /* 板卡温度 */
-    PMC_TM_VOLTAGE_54V,                 /* 54V电压 */
-    PMC_TM_VOLTAGE_12V,                 /* 12V电压 */
-    PMC_TM_MCU_STATUS,                  /* MCU状态 */
-    PMC_TM_FPGA_STATUS,                 /* FPGA状态 */
-    PMC_TM_MAX
+    CCM_TM_SERVER_STATUS = 0x01,        /* 服务器状态 */
+    CCM_TM_CPU_TEMP,                    /* CPU温度 */
+    CCM_TM_BOARD_TEMP,                  /* 板卡温度 */
+    CCM_TM_VOLTAGE_54V,                 /* 54V电压 */
+    CCM_TM_VOLTAGE_12V,                 /* 12V电压 */
+    CCM_TM_MCU_STATUS,                  /* MCU状态 */
+    CCM_TM_FPGA_STATUS,                 /* FPGA状态 */
+    CCM_TM_MAX
 } pmc_tm_type_t;
 
 /* CAN帧结构 */
@@ -53,7 +53,7 @@ typedef struct {
 /* 遥测应答帧 */
 typedef struct {
     pmc_tm_type_t tm_type;              /* 遥测类型 */
-    uint8_t data[PMC_TM_MAX_DATA_SIZE];   /* 遥测数据 */
+    uint8_t data[CCM_TM_MAX_DATA_SIZE];   /* 遥测数据 */
     uint32_t data_size;                   /* 数据长度 */
     uint8_t freshness;                    /* 新鲜度 */
 } pmc_tm_response_t;
@@ -74,4 +74,4 @@ int32_t PMC_Protocol_BuildHeartbeat(const pmc_heartbeat_t *hb, pmc_can_frame_t *
 int32_t PMC_Protocol_EncodeTC(const pmc_tc_frame_t *tc, pmc_can_frame_t *frame);
 int32_t PMC_Protocol_EncodeTM_Request(const pmc_tm_request_t *req, pmc_can_frame_t *frame);
 
-#endif /* LIBPMC_PROTOCOL_H */
+#endif /* LIBCCM_PROTOCOL_H */

@@ -2,7 +2,7 @@
 #include "util/osal_log.h"
 
 /* 遥测缓存初始化 */
-int32_t PMC_TM_Cache_Init(pmc_tm_cache_t **cache)
+int32_t CCM_TM_Cache_Init(pmc_tm_cache_t **cache)
 {
     osal_shm_t shm;
     int32_t ret;
@@ -25,14 +25,14 @@ int32_t PMC_TM_Cache_Init(pmc_tm_cache_t **cache)
     }
 
     /* 初始化缓存条目 */
-    (*cache)->entry_count = PMC_TM_MAX_COUNT;
-    for (i = 0; i < PMC_TM_MAX_COUNT; i++) {
+    (*cache)->entry_count = CCM_TM_MAX_COUNT;
+    for (i = 0; i < CCM_TM_MAX_COUNT; i++) {
         pmc_tm_cache_entry_t *entry = &(*cache)->entries[i];
         entry->tm_id = i;
         entry->data_size = 0;
         entry->timestamp_us = 0;
         entry->validity_ms = 1000;  /* 默认1秒有效期 */
-        entry->freshness = PMC_TM_INVALID;
+        entry->freshness = CCM_TM_INVALID;
 
         /* 创建读写锁 */
         ret = OSAL_MutexCreate(&entry->rwlock);
@@ -53,22 +53,22 @@ static pmc_tm_freshness_t calculate_freshness(uint64_t timestamp_us, uint32_t va
     uint64_t age_ms = (now_us - timestamp_us) / 1000;
 
     if (age_ms > validity_ms * 2) {
-        return PMC_TM_INVALID;
+        return CCM_TM_INVALID;
     } else if (age_ms > validity_ms) {
-        return PMC_TM_STALE;
+        return CCM_TM_STALE;
     } else {
-        return PMC_TM_FRESH;
+        return CCM_TM_FRESH;
     }
 }
 
 /* 写入遥测缓存 */
-int32_t PMC_TM_Cache_Write(pmc_tm_cache_t *cache, uint32_t tm_id,
+int32_t CCM_TM_Cache_Write(pmc_tm_cache_t *cache, uint32_t tm_id,
                           const uint8_t *data, uint32_t size, uint32_t validity_ms)
 {
     pmc_tm_cache_entry_t *entry;
     int32_t ret;
 
-    if (!cache || !data || tm_id >= PMC_TM_MAX_COUNT || size > PMC_TM_MAX_DATA_SIZE) {
+    if (!cache || !data || tm_id >= CCM_TM_MAX_COUNT || size > CCM_TM_MAX_DATA_SIZE) {
         return OSAL_ERR_INVALID_POINTER;
     }
 
@@ -85,7 +85,7 @@ int32_t PMC_TM_Cache_Write(pmc_tm_cache_t *cache, uint32_t tm_id,
     entry->data_size = size;
     entry->timestamp_us = OSAL_GetMonotonicTime();
     entry->validity_ms = validity_ms;
-    entry->freshness = PMC_TM_FRESH;
+    entry->freshness = CCM_TM_FRESH;
 
     /* 解锁 */
     OSAL_MutexUnlock(entry->rwlock);
@@ -94,13 +94,13 @@ int32_t PMC_TM_Cache_Write(pmc_tm_cache_t *cache, uint32_t tm_id,
 }
 
 /* 读取遥测缓存 */
-int32_t PMC_TM_Cache_Read(pmc_tm_cache_t *cache, uint32_t tm_id,
+int32_t CCM_TM_Cache_Read(pmc_tm_cache_t *cache, uint32_t tm_id,
                          uint8_t *data, uint32_t *size, pmc_tm_freshness_t *freshness)
 {
     pmc_tm_cache_entry_t *entry;
     int32_t ret;
 
-    if (!cache || !data || !size || tm_id >= PMC_TM_MAX_COUNT) {
+    if (!cache || !data || !size || tm_id >= CCM_TM_MAX_COUNT) {
         return OSAL_ERR_INVALID_POINTER;
     }
 
@@ -116,7 +116,7 @@ int32_t PMC_TM_Cache_Read(pmc_tm_cache_t *cache, uint32_t tm_id,
     entry->freshness = calculate_freshness(entry->timestamp_us, entry->validity_ms);
 
     /* 读取数据 */
-    if (entry->freshness != PMC_TM_INVALID) {
+    if (entry->freshness != CCM_TM_INVALID) {
         OSAL_Memcpy(data, entry->data, entry->data_size);
         *size = entry->data_size;
         if (freshness) {
@@ -134,7 +134,7 @@ int32_t PMC_TM_Cache_Read(pmc_tm_cache_t *cache, uint32_t tm_id,
 }
 
 /* 清理遥测缓存 */
-void PMC_TM_Cache_Cleanup(pmc_tm_cache_t *cache)
+void CCM_TM_Cache_Cleanup(pmc_tm_cache_t *cache)
 {
     if (cache) {
         OSAL_ShmUnmap(cache, PMC_SHM_TM_CACHE_SIZE);
@@ -142,7 +142,7 @@ void PMC_TM_Cache_Cleanup(pmc_tm_cache_t *cache)
 }
 
 /* 系统状态初始化 */
-int32_t PMC_Status_Init(pmc_system_status_t **status)
+int32_t CCM_Status_Init(pmc_system_status_t **status)
 {
     osal_shm_t shm;
     int32_t ret;
@@ -185,7 +185,7 @@ int32_t PMC_Status_Init(pmc_system_status_t **status)
 }
 
 /* 写入系统状态 */
-int32_t PMC_Status_Write(pmc_system_status_t *status, const pmc_system_status_t *new_status)
+int32_t CCM_Status_Write(pmc_system_status_t *status, const pmc_system_status_t *new_status)
 {
     int32_t ret;
 
@@ -212,7 +212,7 @@ int32_t PMC_Status_Write(pmc_system_status_t *status, const pmc_system_status_t 
 }
 
 /* 读取系统状态 */
-int32_t PMC_Status_Read(pmc_system_status_t *status, pmc_system_status_t *out_status)
+int32_t CCM_Status_Read(pmc_system_status_t *status, pmc_system_status_t *out_status)
 {
     int32_t ret;
 
@@ -239,7 +239,7 @@ int32_t PMC_Status_Read(pmc_system_status_t *status, pmc_system_status_t *out_st
 }
 
 /* 清理系统状态 */
-void PMC_Status_Cleanup(pmc_system_status_t *status)
+void CCM_Status_Cleanup(pmc_system_status_t *status)
 {
     if (status) {
         OSAL_ShmUnmap(status, PMC_SHM_STATUS_SIZE);
