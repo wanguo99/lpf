@@ -14,20 +14,20 @@
  */
 const aconfig_tc_config_t g_pmc_tc_configs[] = {
     /* 服务器电源控制 → BMC */
-    { TC_POWER_ON,             ACONFIG_DEVICE_BMC, "payload_bmc", 0, true, NULL },
-    { TC_POWER_OFF,            ACONFIG_DEVICE_BMC, "payload_bmc", 0, true, NULL },
-    { TC_POWER_RESET,          ACONFIG_DEVICE_BMC, "payload_bmc", 0, true, NULL },
-    { TC_POWER_CYCLE,          ACONFIG_DEVICE_BMC, "payload_bmc", 0, true, NULL },
-    { TC_SOFT_RESET,           ACONFIG_DEVICE_BMC, "payload_bmc", 0, true, NULL },
-    { TC_HARD_RESET,           ACONFIG_DEVICE_BMC, "payload_bmc", 0, true, NULL },
+    { TC_POWER_ON,             ACONFIG_DEVICE_BMC, "payload_bmc", true, NULL },
+    { TC_POWER_OFF,            ACONFIG_DEVICE_BMC, "payload_bmc", true, NULL },
+    { TC_POWER_RESET,          ACONFIG_DEVICE_BMC, "payload_bmc", true, NULL },
+    { TC_POWER_CYCLE,          ACONFIG_DEVICE_BMC, "payload_bmc", true, NULL },
+    { TC_SOFT_RESET,           ACONFIG_DEVICE_BMC, "payload_bmc", true, NULL },
+    { TC_HARD_RESET,           ACONFIG_DEVICE_BMC, "payload_bmc", true, NULL },
 
     /* MCU控制 → MCU */
-    { TC_MCU_RESET,            ACONFIG_DEVICE_MCU, "power_mcu", 0, true, NULL },
-    { TC_MCU_POWER_CTRL,       ACONFIG_DEVICE_MCU, "power_mcu", 0, true, NULL },
+    { TC_MCU_RESET,            ACONFIG_DEVICE_MCU, "power_mcu", true, NULL },
+    { TC_MCU_POWER_CTRL,       ACONFIG_DEVICE_MCU, "power_mcu", true, NULL },
 
     /* FPGA控制 → FPGA */
-    { TC_FPGA_RESET,           ACONFIG_DEVICE_FPGA, "main_fpga", 0, true, NULL },
-    { TC_FPGA_CONFIG_LOAD,     ACONFIG_DEVICE_FPGA, "main_fpga", 0, true, NULL },
+    { TC_FPGA_RESET,           ACONFIG_DEVICE_FPGA, "main_fpga", true, NULL },
+    { TC_FPGA_CONFIG_LOAD,     ACONFIG_DEVICE_FPGA, "main_fpga", true, NULL },
 
     /* 固件升级 → MCU[0] */
     { TC_FIRMWARE_UPGRADE_START,  ACONFIG_DEVICE_MCU, 0, true, NULL },
