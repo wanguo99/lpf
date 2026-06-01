@@ -1,0 +1,54 @@
+# ============================================================================
+# Minimal Configuration
+# ============================================================================
+# 最小化配置，仅包含核心功能
+# 用于资源受限的嵌入式系统或快速原型验证
+# ============================================================================
+
+# Architecture and OS
+CONFIG_OS_LINUX=y
+CONFIG_ARCH_X86_64=y
+
+# Platform
+CONFIG_PLATFORM_LINUX=y
+
+# Core Components - Minimal
+CONFIG_OSAL=y
+CONFIG_TYPES=y
+
+# Build Configuration - Static Libraries for Minimal Size
+# CONFIG_OSAL_BUILD_SHARED is not set
+
+# OSAL Features - Minimal Required
+CONFIG_OSAL_THREAD=y
+
+# OSAL IPC - Minimal
+CONFIG_OSAL_IPC=y
+CONFIG_OSAL_IPC_MUTEX=y
+
+# OSAL Library - Minimal
+CONFIG_OSAL_LIB_ERRNO=y
+CONFIG_OSAL_LIB_STRING=y
+
+# OSAL System - Minimal
+CONFIG_OSAL_SYS_CLOCK=y
+CONFIG_OSAL_SYS_THREAD=y
+CONFIG_OSAL_SYS_TIME=y
+
+# OSAL Utility - Minimal
+CONFIG_OSAL_UTIL_LOG=y
+
+# Testing - Disabled
+# CONFIG_BUILD_TESTING is not set
+
+# Products - All Disabled
+# CONFIG_PRODUCT_CCM is not set
+
+# HAL - Disabled
+# CONFIG_HAL is not set
+
+# PDL - Disabled
+# CONFIG_PDL is not set
+
+# PRL - Disabled
+# CONFIG_PRL is not set
