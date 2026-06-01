@@ -19,8 +19,10 @@ endif()
 ###############################################
 
 ###### Add required/dependent components ######
-# ACL 依赖 OSAL 和 PDL
-list(APPEND ADD_REQUIREMENTS osal pdl)
+# ACL 只依赖 OSAL
+# ACL 提供通用的遥测遥控配置管理框架
+# 不依赖具体的设备驱动层（PDL）
+list(APPEND ADD_REQUIREMENTS osal)
 ###############################################
 
 #### Add compile option for this component ####

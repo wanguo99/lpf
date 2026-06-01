@@ -35,10 +35,10 @@ endif()
 # PDL 定义配置类型（pdl_types.h），不依赖 PCL
 # PCL 使用 PDL 的配置类型（包含 pdl_types.h）
 # 依赖关系：PCL→PDL（头文件），无循环依赖
-# PDL_CCM 需要 PRL 协议层支持
+# PDL_CCM 和 PDL_MCU 需要 PRL 协议层支持
 list(APPEND ADD_REQUIREMENTS osal hal)
 
-if(CONFIG_PDL_CCM_SUPPORT)
+if(CONFIG_PDL_CCM_SUPPORT OR CONFIG_PDL_MCU_SUPPORT)
     list(APPEND ADD_REQUIREMENTS prl)
 endif()
 ###############################################

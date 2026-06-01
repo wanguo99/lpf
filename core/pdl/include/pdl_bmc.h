@@ -79,6 +79,23 @@ int32_t PDL_BMC_Init(const pdl_bmc_config_t *config,
                    pdl_bmc_handle_t *handle);
 
 /**
+ * @brief 通过设备名称初始化BMC服务（便捷接口）
+ *
+ * 此接口内部会调用 PCL_GetBoard() 和 PCL_HW_FindBMC() 查询配置，
+ * 然后调用 PDL_BMC_Init() 完成初始化。
+ *
+ * @param[in] device_name 设备名称（如 "payload_bmc"）
+ * @param[out] handle 服务句柄
+ *
+ * @return OSAL_SUCCESS 成功
+ * @return OSAL_ERR_NOT_FOUND 设备未找到
+ * @return OSAL_ERR_GENERIC 初始化失败
+ *
+ * @note 使用此接口前需要先调用 PCL_Register() 注册平台配置
+ */
+int32_t PDL_BMC_InitByName(const char *device_name, pdl_bmc_handle_t *handle);
+
+/**
  * @brief 反初始化BMC服务
  *
  * @param[in] handle 服务句柄
