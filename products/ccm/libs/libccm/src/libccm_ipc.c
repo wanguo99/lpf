@@ -2,14 +2,14 @@
 #include "util/osal_log.h"
 
 /* 遥测缓存初始化 */
-int32_t CCM_TM_Cache_Init(pmc_tm_cache_t **cache)
+int32_t CCM_TM_Cache_Init(ccm_tm_cache_t **cache)
 {
     osal_shm_t shm;
     int32_t ret;
     uint32_t i;
 
     /* 创建或打开共享内存 */
-    ret = OSAL_ShmCreate(PMC_SHM_TELEMETRY_CACHE, PMC_SHM_TM_CACHE_SIZE,
+    ret = OSAL_ShmCreate(CCM_SHM_TELEMETRY_CACHE, CCM_SHM_TM_CACHE_SIZE,
                          OSAL_SHM_CREATE | OSAL_SHM_RDWR, &shm);
     if (ret != OSAL_SUCCESS) {
         LOG_ERROR("LIBPMC", "创建遥测缓存共享内存失败: %d", ret);
@@ -27,7 +27,7 @@ int32_t CCM_TM_Cache_Init(pmc_tm_cache_t **cache)
     /* 初始化缓存条目 */
     (*cache)->entry_count = CCM_TM_MAX_COUNT;
     for (i = 0; i < CCM_TM_MAX_COUNT; i++) {
-        pmc_tm_cache_entry_t *entry = &(*cache)->entries[i];
+        ccm_tm_cache_entry_t *entry = &(*cache)->entries[i];
         entry->tm_id = i;
         entry->data_size = 0;
         entry->timestamp_us = 0;
@@ -47,7 +47,7 @@ int32_t CCM_TM_Cache_Init(pmc_tm_cache_t **cache)
 }
 
 /* 计算新鲜度 */
-static pmc_tm_freshness_t calculate_freshness(uint64_t timestamp_us, uint32_t validity_ms)
+static ccm_tm_freshness_t calculate_freshness(uint64_t timestamp_us, uint32_t validity_ms)
 {
     uint64_t now_us = OSAL_GetMonotonicTime();
     uint64_t age_ms = (now_us - timestamp_us) / 1000;
@@ -62,10 +62,10 @@ static pmc_tm_freshness_t calculate_freshness(uint64_t timestamp_us, uint32_t va
 }
 
 /* 写入遥测缓存 */
-int32_t CCM_TM_Cache_Write(pmc_tm_cache_t *cache, uint32_t tm_id,
+int32_t CCM_TM_Cache_Write(ccm_tm_cache_t *cache, uint32_t tm_id,
                           const uint8_t *data, uint32_t size, uint32_t validity_ms)
 {
-    pmc_tm_cache_entry_t *entry;
+    ccm_tm_cache_entry_t *entry;
     int32_t ret;
 
     if (!cache || !data || tm_id >= CCM_TM_MAX_COUNT || size > CCM_TM_MAX_DATA_SIZE) {
@@ -94,10 +94,10 @@ int32_t CCM_TM_Cache_Write(pmc_tm_cache_t *cache, uint32_t tm_id,
 }
 
 /* 读取遥测缓存 */
-int32_t CCM_TM_Cache_Read(pmc_tm_cache_t *cache, uint32_t tm_id,
-                         uint8_t *data, uint32_t *size, pmc_tm_freshness_t *freshness)
+int32_t CCM_TM_Cache_Read(ccm_tm_cache_t *cache, uint32_t tm_id,
+                         uint8_t *data, uint32_t *size, ccm_tm_freshness_t *freshness)
 {
-    pmc_tm_cache_entry_t *entry;
+    ccm_tm_cache_entry_t *entry;
     int32_t ret;
 
     if (!cache || !data || !size || tm_id >= CCM_TM_MAX_COUNT) {
@@ -134,21 +134,21 @@ int32_t CCM_TM_Cache_Read(pmc_tm_cache_t *cache, uint32_t tm_id,
 }
 
 /* 清理遥测缓存 */
-void CCM_TM_Cache_Cleanup(pmc_tm_cache_t *cache)
+void CCM_TM_Cache_Cleanup(ccm_tm_cache_t *cache)
 {
     if (cache) {
-        OSAL_ShmUnmap(cache, PMC_SHM_TM_CACHE_SIZE);
+        OSAL_ShmUnmap(cache, CCM_SHM_TM_CACHE_SIZE);
     }
 }
 
 /* 系统状态初始化 */
-int32_t CCM_Status_Init(pmc_system_status_t **status)
+int32_t CCM_Status_Init(ccm_system_status_t **status)
 {
     osal_shm_t shm;
     int32_t ret;
 
     /* 创建或打开共享内存 */
-    ret = OSAL_ShmCreate(PMC_SHM_SYSTEM_STATUS, PMC_SHM_STATUS_SIZE,
+    ret = OSAL_ShmCreate(CCM_SHM_SYSTEM_STATUS, CCM_SHM_STATUS_SIZE,
                          OSAL_SHM_CREATE | OSAL_SHM_RDWR, &shm);
     if (ret != OSAL_SUCCESS) {
         LOG_ERROR("LIBPMC", "创建系统状态共享内存失败: %d", ret);
@@ -185,7 +185,7 @@ int32_t CCM_Status_Init(pmc_system_status_t **status)
 }
 
 /* 写入系统状态 */
-int32_t CCM_Status_Write(pmc_system_status_t *status, const pmc_system_status_t *new_status)
+int32_t CCM_Status_Write(ccm_system_status_t *status, const ccm_system_status_t *new_status)
 {
     int32_t ret;
 
@@ -212,7 +212,7 @@ int32_t CCM_Status_Write(pmc_system_status_t *status, const pmc_system_status_t 
 }
 
 /* 读取系统状态 */
-int32_t CCM_Status_Read(pmc_system_status_t *status, pmc_system_status_t *out_status)
+int32_t CCM_Status_Read(ccm_system_status_t *status, ccm_system_status_t *out_status)
 {
     int32_t ret;
 
@@ -239,10 +239,10 @@ int32_t CCM_Status_Read(pmc_system_status_t *status, pmc_system_status_t *out_st
 }
 
 /* 清理系统状态 */
-void CCM_Status_Cleanup(pmc_system_status_t *status)
+void CCM_Status_Cleanup(ccm_system_status_t *status)
 {
     if (status) {
-        OSAL_ShmUnmap(status, PMC_SHM_STATUS_SIZE);
+        OSAL_ShmUnmap(status, CCM_SHM_STATUS_SIZE);
     }
 }
 
@@ -254,7 +254,7 @@ int32_t PMC_Heartbeat_Init(pmc_process_heartbeat_t **heartbeat)
     uint32_t i;
 
     /* 创建或打开共享内存 */
-    ret = OSAL_ShmCreate(PMC_SHM_PROCESS_HEARTBEAT, PMC_SHM_HEARTBEAT_SIZE,
+    ret = OSAL_ShmCreate(CCM_SHM_PROCESS_HEARTBEAT, CCM_SHM_HEARTBEAT_SIZE,
                          OSAL_SHM_CREATE | OSAL_SHM_RDWR, &shm);
     if (ret != OSAL_SUCCESS) {
         LOG_ERROR("LIBPMC", "创建心跳共享内存失败: %d", ret);
@@ -270,7 +270,7 @@ int32_t PMC_Heartbeat_Init(pmc_process_heartbeat_t **heartbeat)
     }
 
     /* 初始化心跳 */
-    for (i = 0; i < PMC_PROCESS_MAX; i++) {
+    for (i = 0; i < CCM_PROCESS_MAX; i++) {
         (*heartbeat)->heartbeat_us[i] = 0;
     }
 
@@ -279,9 +279,9 @@ int32_t PMC_Heartbeat_Init(pmc_process_heartbeat_t **heartbeat)
 }
 
 /* 更新进程心跳 */
-int32_t PMC_Heartbeat_Update(pmc_process_heartbeat_t *heartbeat, pmc_process_id_t process_id)
+int32_t PMC_Heartbeat_Update(pmc_process_heartbeat_t *heartbeat, ccm_process_id_t process_id)
 {
-    if (!heartbeat || process_id >= PMC_PROCESS_MAX) {
+    if (!heartbeat || process_id >= CCM_PROCESS_MAX) {
         return OSAL_ERR_INVALID_POINTER;
     }
 
@@ -290,14 +290,14 @@ int32_t PMC_Heartbeat_Update(pmc_process_heartbeat_t *heartbeat, pmc_process_id_
 }
 
 /* 检查进程心跳 */
-int32_t PMC_Heartbeat_Check(pmc_process_heartbeat_t *heartbeat, pmc_process_id_t process_id,
+int32_t PMC_Heartbeat_Check(pmc_process_heartbeat_t *heartbeat, ccm_process_id_t process_id,
                            uint32_t timeout_ms, bool *alive)
 {
     uint64_t now_us;
     uint64_t last_hb;
     uint64_t age_ms;
 
-    if (!heartbeat || !alive || process_id >= PMC_PROCESS_MAX) {
+    if (!heartbeat || !alive || process_id >= CCM_PROCESS_MAX) {
         return OSAL_ERR_INVALID_POINTER;
     }
 
@@ -313,18 +313,18 @@ int32_t PMC_Heartbeat_Check(pmc_process_heartbeat_t *heartbeat, pmc_process_id_t
 void PMC_Heartbeat_Cleanup(pmc_process_heartbeat_t *heartbeat)
 {
     if (heartbeat) {
-        OSAL_ShmUnmap(heartbeat, PMC_SHM_HEARTBEAT_SIZE);
+        OSAL_ShmUnmap(heartbeat, CCM_SHM_HEARTBEAT_SIZE);
     }
 }
 
 /* 日志环形缓冲区初始化 */
-int32_t PMC_Log_Init(pmc_log_ringbuffer_t **log_ring)
+int32_t CCM_Log_Init(pmc_log_ringbuffer_t **log_ring)
 {
     osal_shm_t shm;
     int32_t ret;
 
     /* 创建或打开共享内存 */
-    ret = OSAL_ShmCreate(PMC_SHM_LOG_RINGBUFFER, PMC_SHM_LOG_SIZE,
+    ret = OSAL_ShmCreate(CCM_SHM_LOG_RINGBUFFER, CCM_SHM_LOG_SIZE,
                          OSAL_SHM_CREATE | OSAL_SHM_RDWR, &shm);
     if (ret != OSAL_SUCCESS) {
         LOG_ERROR("LIBPMC", "创建日志共享内存失败: %d", ret);
@@ -348,7 +348,7 @@ int32_t PMC_Log_Init(pmc_log_ringbuffer_t **log_ring)
 }
 
 /* 写入日志 */
-int32_t PMC_Log_Write(pmc_log_ringbuffer_t *log_ring, const char *log_entry)
+int32_t CCM_Log_Write(pmc_log_ringbuffer_t *log_ring, const char *log_entry)
 {
     uint32_t write_idx;
     uint32_t next_idx;
@@ -376,7 +376,7 @@ int32_t PMC_Log_Write(pmc_log_ringbuffer_t *log_ring, const char *log_entry)
 }
 
 /* 读取日志 */
-int32_t PMC_Log_Read(pmc_log_ringbuffer_t *log_ring, char *log_entry, uint32_t size)
+int32_t CCM_Log_Read(pmc_log_ringbuffer_t *log_ring, char *log_entry, uint32_t size)
 {
     uint32_t read_idx;
 
@@ -402,9 +402,9 @@ int32_t PMC_Log_Read(pmc_log_ringbuffer_t *log_ring, char *log_entry, uint32_t s
 }
 
 /* 清理日志缓冲区 */
-void PMC_Log_Cleanup(pmc_log_ringbuffer_t *log_ring)
+void CCM_Log_Cleanup(pmc_log_ringbuffer_t *log_ring)
 {
     if (log_ring) {
-        OSAL_ShmUnmap(log_ring, PMC_SHM_LOG_SIZE);
+        OSAL_ShmUnmap(log_ring, CCM_SHM_LOG_SIZE);
     }
 }
