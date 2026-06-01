@@ -143,4 +143,22 @@ int32_t OSAL_ioctl(int32_t fd, uint32_t request, void *argp);
  */
 int32_t OSAL_unlink(const char *pathname);
 
+/*===========================================================================
+ * 文件访问权限检查
+ *===========================================================================*/
+
+/* access()的mode参数 */
+#define OSAL_F_OK    0  /* 文件存在 */
+#define OSAL_R_OK    4  /* 可读 */
+#define OSAL_W_OK    2  /* 可写 */
+#define OSAL_X_OK    1  /* 可执行 */
+
+/**
+ * @brief 检查文件访问权限
+ * @param pathname 文件路径
+ * @param mode 检查模式（OSAL_F_OK/R_OK/W_OK/X_OK）
+ * @return 0成功（有权限），-1失败（无权限或文件不存在）
+ */
+int32_t OSAL_access(const char *pathname, int32_t mode);
+
 #endif /* OSAL_FILE_H */

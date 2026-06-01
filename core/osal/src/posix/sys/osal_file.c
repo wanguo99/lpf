@@ -211,3 +211,13 @@ int32_t OSAL_unlink(const char *pathname)
     int32_t result = unlink(pathname);
     return result;
 }
+
+/*===========================================================================
+ * 文件访问权限检查
+ *===========================================================================*/
+
+int32_t OSAL_access(const char *pathname, int32_t mode)
+{
+    int32_t result = access(pathname, mode);
+    return result;
+}

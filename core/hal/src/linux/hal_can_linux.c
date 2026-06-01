@@ -10,7 +10,7 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 #include <sys/ioctl.h>
-#include <poll.h>
+#include "sys/osal_poll.h"
 #include "hal_can.h"
 #include "hal_error.h"
 #include "osal.h"
@@ -270,12 +270,12 @@ int32_t HAL_CAN_Recv(hal_can_handle_t handle, hal_can_frame_t *frame, int32_t ti
      */
     if (timeout >= 0)
     {
-        struct pollfd pfd = {
+        osal_pollfd_t pfd = {
             .fd = impl->sockfd,
-            .events = POLLIN,
+            .events = OSAL_POLLIN,
         };
 
-        int32_t poll_ret = poll(&pfd, 1, timeout);
+        int32_t poll_ret = OSAL_poll(&pfd, 1, timeout);
         if (poll_ret == 0)
             return OSAL_ERR_TIMEOUT;
         else if (poll_ret < 0)

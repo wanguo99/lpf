@@ -63,7 +63,7 @@ void PCONFIG_Cleanup(void)
 
     /* 销毁互斥锁 */
     if (NULL != g_registry_mutex) {
-        OSAL_MutexDestroy(g_registry_mutex);
+        OSAL_MutexDelete(g_registry_mutex);
         g_registry_mutex = NULL;
     }
 
