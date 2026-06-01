@@ -247,7 +247,7 @@ void CCM_Status_Cleanup(ccm_system_status_t *status)
 }
 
 /* 进程心跳初始化 */
-int32_t PMC_Heartbeat_Init(pmc_process_heartbeat_t **heartbeat)
+int32_t CCM_Heartbeat_Init(ccm_process_heartbeat_t **heartbeat)
 {
     osal_shm_t shm;
     int32_t ret;
@@ -279,7 +279,7 @@ int32_t PMC_Heartbeat_Init(pmc_process_heartbeat_t **heartbeat)
 }
 
 /* 更新进程心跳 */
-int32_t PMC_Heartbeat_Update(pmc_process_heartbeat_t *heartbeat, ccm_process_id_t process_id)
+int32_t CCM_Heartbeat_Update(ccm_process_heartbeat_t *heartbeat, ccm_process_id_t process_id)
 {
     if (!heartbeat || process_id >= CCM_PROCESS_MAX) {
         return OSAL_ERR_INVALID_POINTER;
@@ -290,7 +290,7 @@ int32_t PMC_Heartbeat_Update(pmc_process_heartbeat_t *heartbeat, ccm_process_id_
 }
 
 /* 检查进程心跳 */
-int32_t PMC_Heartbeat_Check(pmc_process_heartbeat_t *heartbeat, ccm_process_id_t process_id,
+int32_t CCM_Heartbeat_Check(ccm_process_heartbeat_t *heartbeat, ccm_process_id_t process_id,
                            uint32_t timeout_ms, bool *alive)
 {
     uint64_t now_us;
@@ -310,7 +310,7 @@ int32_t PMC_Heartbeat_Check(pmc_process_heartbeat_t *heartbeat, ccm_process_id_t
 }
 
 /* 清理进程心跳 */
-void PMC_Heartbeat_Cleanup(pmc_process_heartbeat_t *heartbeat)
+void CCM_Heartbeat_Cleanup(ccm_process_heartbeat_t *heartbeat)
 {
     if (heartbeat) {
         OSAL_ShmUnmap(heartbeat, CCM_SHM_HEARTBEAT_SIZE);
@@ -318,7 +318,7 @@ void PMC_Heartbeat_Cleanup(pmc_process_heartbeat_t *heartbeat)
 }
 
 /* 日志环形缓冲区初始化 */
-int32_t CCM_Log_Init(pmc_log_ringbuffer_t **log_ring)
+int32_t CCM_Log_Init(ccm_log_ringbuffer_t **log_ring)
 {
     osal_shm_t shm;
     int32_t ret;
@@ -348,7 +348,7 @@ int32_t CCM_Log_Init(pmc_log_ringbuffer_t **log_ring)
 }
 
 /* 写入日志 */
-int32_t CCM_Log_Write(pmc_log_ringbuffer_t *log_ring, const char *log_entry)
+int32_t CCM_Log_Write(ccm_log_ringbuffer_t *log_ring, const char *log_entry)
 {
     uint32_t write_idx;
     uint32_t next_idx;
@@ -366,8 +366,8 @@ int32_t CCM_Log_Write(pmc_log_ringbuffer_t *log_ring, const char *log_entry)
     }
 
     /* 写入日志 */
-    OSAL_Strncpy(log_ring->entries[write_idx], log_entry, PMC_LOG_ENTRY_SIZE - 1);
-    log_ring->entries[write_idx][PMC_LOG_ENTRY_SIZE - 1] = '\0';
+    OSAL_Strncpy(log_ring->entries[write_idx], log_entry, CCM_LOG_ENTRY_SIZE - 1);
+    log_ring->entries[write_idx][CCM_LOG_ENTRY_SIZE - 1] = '\0';
 
     /* 更新写索引 */
     log_ring->write_index = next_idx;
@@ -376,11 +376,11 @@ int32_t CCM_Log_Write(pmc_log_ringbuffer_t *log_ring, const char *log_entry)
 }
 
 /* 读取日志 */
-int32_t CCM_Log_Read(pmc_log_ringbuffer_t *log_ring, char *log_entry, uint32_t size)
+int32_t CCM_Log_Read(ccm_log_ringbuffer_t *log_ring, char *log_entry, uint32_t size)
 {
     uint32_t read_idx;
 
-    if (!log_ring || !log_entry || size < PMC_LOG_ENTRY_SIZE) {
+    if (!log_ring || !log_entry || size < CCM_LOG_ENTRY_SIZE) {
         return OSAL_ERR_INVALID_POINTER;
     }
 
@@ -402,7 +402,7 @@ int32_t CCM_Log_Read(pmc_log_ringbuffer_t *log_ring, char *log_entry, uint32_t s
 }
 
 /* 清理日志缓冲区 */
-void CCM_Log_Cleanup(pmc_log_ringbuffer_t *log_ring)
+void CCM_Log_Cleanup(ccm_log_ringbuffer_t *log_ring)
 {
     if (log_ring) {
         OSAL_ShmUnmap(log_ring, CCM_SHM_LOG_SIZE);
