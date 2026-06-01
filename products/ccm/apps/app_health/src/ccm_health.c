@@ -129,7 +129,7 @@ static void *watchdog_thread(void *arg)
 }
 
 /* 初始化 */
-int32_t PMC_Health_Init(void)
+int32_t CCM_Health_Init(void)
 {
     int32_t ret;
 
@@ -159,7 +159,7 @@ int32_t PMC_Health_Init(void)
 }
 
 /* 主循环 */
-int32_t PMC_Health_Run(void)
+int32_t CCM_Health_Run(void)
 {
     int32_t ret;
 
@@ -207,7 +207,7 @@ int32_t PMC_Health_Run(void)
 }
 
 /* 清理 */
-void PMC_Health_Cleanup(void)
+void CCM_Health_Cleanup(void)
 {
     LOG_INFO("HEALTH", "Health进程清理...");
 

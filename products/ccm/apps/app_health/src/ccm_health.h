@@ -4,12 +4,12 @@
 #include "osal.h"
 
 /* Health进程初始化 */
-int32_t PMC_Health_Init(void);
+int32_t CCM_Health_Init(void);
 
 /* Health进程运行 */
-int32_t PMC_Health_Run(void);
+int32_t CCM_Health_Run(void);
 
 /* Health进程清理 */
-void PMC_Health_Cleanup(void);
+void CCM_Health_Cleanup(void);
 
 #endif /* PMC_HEALTH_H */

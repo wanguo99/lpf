@@ -21,7 +21,7 @@ static void signal_handler(int32_t sig)
 }
 
 /* 初始化 */
-int32_t PMC_Collector_Init(void)
+int32_t CCM_Collector_Init(void)
 {
     int32_t ret;
 
@@ -157,7 +157,7 @@ static int32_t update_system_status(void)
 }
 
 /* 主循环 */
-int32_t PMC_Collector_Run(void)
+int32_t CCM_Collector_Run(void)
 {
     uint32_t fast_cycle_count = 0;  /* 快遥周期计数 */
     uint32_t slow_cycle_count = 0;  /* 慢遥周期计数 */
@@ -194,7 +194,7 @@ int32_t PMC_Collector_Run(void)
 }
 
 /* 清理 */
-void PMC_Collector_Cleanup(void)
+void CCM_Collector_Cleanup(void)
 {
     LOG_INFO("COLLECTOR", "Collector进程清理...");
 

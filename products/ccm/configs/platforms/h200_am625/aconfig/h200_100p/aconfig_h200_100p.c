@@ -12,7 +12,7 @@
 /**
  * @brief PMC v1.0遥控配置表
  */
-const aconfig_tc_config_t g_pmc_tc_configs[] = {
+const aconfig_tc_config_t g_ccm_tc_configs[] = {
     /* 服务器电源控制 → BMC */
     { TC_POWER_ON,             ACONFIG_DEVICE_BMC, "payload_bmc", true, NULL },
     { TC_POWER_OFF,            ACONFIG_DEVICE_BMC, "payload_bmc", true, NULL },
@@ -41,7 +41,7 @@ const aconfig_tc_config_t g_pmc_tc_configs[] = {
     { TC_WATCHDOG_DISABLE,     ACONFIG_DEVICE_MCU, 2, true, NULL },
 };
 
-const uint32_t g_pmc_tc_config_count = sizeof(g_pmc_tc_configs) / sizeof(aconfig_tc_config_t);
+const uint32_t g_ccm_tc_config_count = sizeof(g_ccm_tc_configs) / sizeof(aconfig_tc_config_t);
 
 /**
  * @brief PMC v1.0遥测配置表
@@ -49,7 +49,7 @@ const uint32_t g_pmc_tc_config_count = sizeof(g_pmc_tc_configs) / sizeof(aconfig
  *       validity_ms：有效期，超过此时间标记为STALE
  *       update_period_ms：后台采集周期
  */
-const aconfig_tm_config_t g_pmc_tm_configs[] = {
+const aconfig_tm_config_t g_ccm_tm_configs[] = {
     /* 服务器遥测 → BMC，1秒更新周期，2秒有效期 */
     { TM_CPU_TEMP,             ACONFIG_DEVICE_BMC, "payload_bmc", 0, 2000, 1000, true, NULL },
     { TM_BOARD_TEMP,           ACONFIG_DEVICE_BMC, "payload_bmc", 0, 2000, 1000, true, NULL },
@@ -76,4 +76,4 @@ const aconfig_tm_config_t g_pmc_tm_configs[] = {
     { TM_ERROR_COUNT,          ACONFIG_DEVICE_MCU, "power_mcu", 0, 4000, 2000, true, NULL },
 };
 
-const uint32_t g_pmc_tm_config_count = sizeof(g_pmc_tm_configs) / sizeof(aconfig_tm_config_t);
+const uint32_t g_ccm_tm_config_count = sizeof(g_ccm_tm_configs) / sizeof(aconfig_tm_config_t);

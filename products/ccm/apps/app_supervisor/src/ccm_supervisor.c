@@ -133,7 +133,7 @@ static void check_process_heartbeat(void)
 }
 
 /* 初始化 */
-int32_t PMC_Supervisor_Init(void)
+int32_t CCM_Supervisor_Init(void)
 {
     int32_t ret;
 
@@ -155,7 +155,7 @@ int32_t PMC_Supervisor_Init(void)
 }
 
 /* 主循环 */
-int32_t PMC_Supervisor_Run(void)
+int32_t CCM_Supervisor_Run(void)
 {
     uint32_t i;
 
@@ -190,7 +190,7 @@ int32_t PMC_Supervisor_Run(void)
 }
 
 /* 清理 */
-void PMC_Supervisor_Cleanup(void)
+void CCM_Supervisor_Cleanup(void)
 {
     LOG_INFO("SUPERVISOR", "Supervisor进程清理...");
 

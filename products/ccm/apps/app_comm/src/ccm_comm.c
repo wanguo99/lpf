@@ -20,7 +20,7 @@ static void signal_handler(int32_t sig)
 }
 
 /* 初始化 */
-int32_t PMC_Comm_Init(void)
+int32_t CCM_Comm_Init(void)
 {
     int32_t ret;
 
@@ -107,7 +107,7 @@ static int32_t handle_telecommand(const pmc_tc_frame_t *tc)
 }
 
 /* 主循环 */
-int32_t PMC_Comm_Run(void)
+int32_t CCM_Comm_Run(void)
 {
     LOG_INFO("COMM", "Communication进程开始运行");
 
@@ -157,7 +157,7 @@ int32_t PMC_Comm_Run(void)
 }
 
 /* 清理 */
-void PMC_Comm_Cleanup(void)
+void CCM_Comm_Cleanup(void)
 {
     LOG_INFO("COMM", "Communication进程清理...");
 

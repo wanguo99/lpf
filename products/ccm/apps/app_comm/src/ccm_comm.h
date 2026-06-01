@@ -51,12 +51,12 @@ typedef struct {
 } process_heartbeat_t;
 
 /* Communication进程初始化 */
-int32_t PMC_Comm_Init(void);
+int32_t CCM_Comm_Init(void);
 
 /* Communication进程运行 */
-int32_t PMC_Comm_Run(void);
+int32_t CCM_Comm_Run(void);
 
 /* Communication进程清理 */
-void PMC_Comm_Cleanup(void);
+void CCM_Comm_Cleanup(void);
 
 #endif /* PMC_COMM_H */
