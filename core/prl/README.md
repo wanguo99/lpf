@@ -90,15 +90,17 @@ if (ret == PRL_OK) {
 
 ## 支持的设备类型
 
-| 设备类型 | 枚举值 | 说明 | 是否使用 PRL |
-|---------|--------|------|-------------|
-| MCU | `PRL_DEV_TYPE_MCU` | 微控制器 | ✅ 是 |
-| CCM | `PRL_DEV_TYPE_CCM` | 通信管理板 | ✅ 是 |
-| PMC | `PRL_DEV_TYPE_PMC` | 载荷管理器 | ✅ 是 |
-| GSC | `PRL_DEV_TYPE_GSC` | 地面站控制器 | ✅ 是 |
-| POWER | `PRL_DEV_TYPE_POWER` | 电源板 | ✅ 是 |
-| SATELLITE | `PRL_DEV_TYPE_SATELLITE` | 卫星平台 | ❌ 否（使用卫星专用协议） |
-| BMC | `PRL_DEV_TYPE_BMC` | 基板管理控制器 | ❌ 否（使用 IPMI/Redfish） |
+| 设备类型 | 枚举值 | 头文件 | 说明 | 是否使用 PRL |
+|---------|--------|--------|------|-------------|
+| MCU | `PRL_DEV_TYPE_MCU` | `prl_mcu.h` | 微控制器 | ✅ 是 |
+| CCM | `PRL_DEV_TYPE_CCM` | `prl_ccm.h` | 通信管理板 | ✅ 是 |
+| PMC | `PRL_DEV_TYPE_PMC` | `prl_pmc.h` | 载荷管理器 | ✅ 是 |
+| GSC | `PRL_DEV_TYPE_GSC` | `prl_gsc.h` | 地面站控制器 | ✅ 是 |
+| POWER | `PRL_DEV_TYPE_POWER` | `prl_power.h` | 电源板 | ✅ 是 |
+| SATELLITE | `PRL_DEV_TYPE_SATELLITE` | - | 卫星平台 | ❌ 否（使用卫星专用协议） |
+| BMC | `PRL_DEV_TYPE_BMC` | - | 基板管理控制器 | ❌ 否（使用 IPMI/Redfish） |
+
+**注意**：协议是统一的，任何设备都可以与任何设备通信，只需指定正确的设备类型和消息类型。
 
 ## 协议格式
 
@@ -232,11 +234,11 @@ int32_t PDL_MCU_GetVersion(pdl_mcu_handle_t handle, pdl_mcu_version_t *version)
 ```kconfig
 CONFIG_PRL=y                    # 启用协议层
 CONFIG_PRL_BUILD_SHARED=y       # 构建为动态库
-CONFIG_PRL_MCU=y                # 启用 MCU 协议
-CONFIG_PRL_GSC_PMC=y            # 启用 GSC-PMC 协议
-CONFIG_PRL_PMC_CCM=y            # 启用 PMC-CCM 协议
-CONFIG_PRL_CCM_SATELLITE=y      # 启用 CCM-Satellite 协议
-CONFIG_PRL_CCM_POWER=y          # 启用 CCM-Power 协议
+CONFIG_PRL_MCU=y                # 启用 MCU 设备协议
+CONFIG_PRL_CCM=y                # 启用 CCM 设备协议
+CONFIG_PRL_PMC=y                # 启用 PMC 设备协议
+CONFIG_PRL_GSC=y                # 启用 GSC 设备协议
+CONFIG_PRL_POWER=y              # 启用 POWER 设备协议
 ```
 
 ## 错误码
@@ -276,26 +278,33 @@ core/prl/
 │   ├── prl_api.h             # 对外 API（推荐使用）
 │   ├── prl_common.h          # 通用定义（内部）
 │   ├── prl_device.h          # 设备消息定义（内部）
-│   ├── prl_mcu.h             # MCU 协议（已废弃，兼容性）
-│   ├── prl_gsc_pmc.h         # GSC-PMC 协议
-│   ├── prl_pmc_ccm.h         # PMC-CCM 协议
-│   ├── prl_ccm_satellite.h   # CCM-Satellite 协议
-│   └── prl_ccm_power.h       # CCM-Power 协议
+│   ├── prl_mcu.h             # MCU 设备协议
+│   ├── prl_ccm.h             # CCM 设备协议
+│   ├── prl_pmc.h             # PMC 设备协议
+│   ├── prl_gsc.h             # GSC 设备协议
+│   └── prl_power.h           # POWER 设备协议
 ├── src/
 │   ├── prl_api.c             # 对外 API 实现
 │   ├── prl_common.c          # 通用实现
 │   ├── prl_device.c          # 设备消息实现
 │   ├── prl_mcu.c             # MCU 协议实现
-│   ├── prl_gsc_pmc.c         # GSC-PMC 实现
-│   ├── prl_pmc_ccm.c         # PMC-CCM 实现
-│   ├── prl_ccm_satellite.c   # CCM-Satellite 实现
-│   └── prl_ccm_power.c       # CCM-Power 实现
+│   ├── prl_ccm.c             # CCM 协议实现
+│   ├── prl_pmc.c             # PMC 协议实现
+│   ├── prl_gsc.c             # GSC 协议实现
+│   └── prl_power.c           # POWER 协议实现
 ├── CMakeLists.txt            # 构建配置
 ├── Kconfig                   # 配置选项
 └── README.md                 # 本文档
 ```
 
 ## 版本历史
+
+- **v1.2** (2026-06-01): 架构重构
+  - 从"点对点"协议改为"按设备类型"组织
+  - 删除 prl_gsc_pmc, prl_pmc_ccm, prl_ccm_satellite, prl_ccm_power
+  - 新增 prl_gsc, prl_pmc, prl_ccm, prl_power
+  - 更新配置选项（CONFIG_PRL_MCU, CONFIG_PRL_CCM 等）
+  - 符合统一协议的设计理念
 
 - **v1.1** (2026-06-01): 架构优化
   - 统一命名规范（对外 API 使用 PRL_ 前缀）

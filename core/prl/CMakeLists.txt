@@ -10,29 +10,29 @@ list(APPEND ADD_SRCS
     "src/prl_api.c"
 )
 
-# MCU 协议
+# MCU 协议（按设备类型组织）
 if(CONFIG_PRL_MCU)
     list(APPEND ADD_SRCS "src/prl_mcu.c")
 endif()
 
-# GSC-PMC 协议
-if(CONFIG_PRL_GSC_PMC)
-    list(APPEND ADD_SRCS "src/prl_gsc_pmc.c")
+# CCM 协议（按设备类型组织）
+if(CONFIG_PRL_CCM)
+    list(APPEND ADD_SRCS "src/prl_ccm.c")
 endif()
 
-# PMC-CCM 协议
-if(CONFIG_PRL_PMC_CCM)
-    list(APPEND ADD_SRCS "src/prl_pmc_ccm.c")
+# PMC 协议（按设备类型组织）
+if(CONFIG_PRL_PMC)
+    list(APPEND ADD_SRCS "src/prl_pmc.c")
 endif()
 
-# CCM-Satellite 协议
-if(CONFIG_PRL_CCM_SATELLITE)
-    list(APPEND ADD_SRCS "src/prl_ccm_satellite.c")
+# GSC 协议（按设备类型组织）
+if(CONFIG_PRL_GSC)
+    list(APPEND ADD_SRCS "src/prl_gsc.c")
 endif()
 
-# CCM-Power 协议
-if(CONFIG_PRL_CCM_POWER)
-    list(APPEND ADD_SRCS "src/prl_ccm_power.c")
+# POWER 协议（按设备类型组织）
+if(CONFIG_PRL_POWER)
+    list(APPEND ADD_SRCS "src/prl_power.c")
 endif()
 ###############################################
 

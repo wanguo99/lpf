@@ -9,7 +9,7 @@
 
 #include "pdl_ccm.h"
 #include "pdl_ccm_internal.h"
-#include "prl_pmc_ccm.h"
+#include "prl_pmc_ccm.h"  /* 兼容层 */
 #include "osal.h"
 #include <string.h>
 
@@ -184,7 +184,7 @@ static void *eth_rx_task(void *arg)
                                               &data_len);
                 if (ret == OSAL_SUCCESS)
                 {
-                    LOG_DEBUG("PDL_CCM: Received ACK seq=%u result=%u error=%u",
+                    LOG_DEBUG("PDL_CCM", "Received ACK seq=%u result=%u error=%u",
                                    ack.ack_seq, ack.result, ack.error_code);
                 }
             }

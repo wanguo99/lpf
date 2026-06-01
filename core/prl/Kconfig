@@ -3,12 +3,13 @@ config PRL
     default y
     depends on OSAL
     help
-      Enable Protocol Layer for inter-product communication.
-      PRL provides protocol encoding/decoding for:
-      - GSC-PMC: Ground Station <-> Payload Management Controller
-      - PMC-CCM: Payload Management Controller <-> Communication Controller
-      - CCM-Satellite: Communication Controller <-> Satellite Platform
-      - CCM-Power: Communication Controller <-> Power Management Board
+      Enable Protocol Layer for unified device communication.
+      PRL provides protocol encoding/decoding for all internal devices:
+      - MCU: Microcontroller
+      - CCM: Communication Controller Management
+      - PMC: Payload Management Controller
+      - GSC: Ground Station Controller
+      - POWER: Power Management Board
 
 if PRL
 
@@ -18,39 +19,42 @@ config PRL_BUILD_SHARED
     help
       Build PRL as a shared library (.so) instead of static library (.a).
 
-menu "Protocol Selection"
+menu "Device Protocol Selection"
 
-config PRL_GSC_PMC
-    bool "Enable GSC-PMC Protocol"
+config PRL_MCU
+    bool "Enable MCU Device Protocol"
     default y
     help
-      Enable protocol between Ground Station Controller and
-      Payload Management Controller.
-      Transport: 10GbE Ethernet
+      Enable protocol for Microcontroller (MCU) devices.
+      Supports version query, status query, reset, power control, etc.
 
-config PRL_PMC_CCM
-    bool "Enable PMC-CCM Protocol"
+config PRL_CCM
+    bool "Enable CCM Device Protocol"
     default y
     help
-      Enable protocol between Payload Management Controller and
-      Communication Controller Management.
-      Transport: 1GbE Ethernet
+      Enable protocol for Communication Controller Management (CCM) devices.
+      Supports telemetry, telecommand, time sync, orbit/attitude data, etc.
 
-config PRL_CCM_SATELLITE
-    bool "Enable CCM-Satellite Protocol"
+config PRL_PMC
+    bool "Enable PMC Device Protocol"
     default y
     help
-      Enable protocol between Communication Controller Management
-      and Satellite Platform.
-      Transport: CAN Bus + OC Commands
+      Enable protocol for Payload Management Controller (PMC) devices.
+      Supports telemetry, command, firmware update, node management, etc.
 
-config PRL_CCM_POWER
-    bool "Enable CCM-Power Protocol"
+config PRL_GSC
+    bool "Enable GSC Device Protocol"
     default y
     help
-      Enable protocol between Communication Controller Management
-      and Power Management Board.
-      Transport: CAN Bus
+      Enable protocol for Ground Station Controller (GSC) devices.
+      Supports telemetry, command, file transfer, database sync, etc.
+
+config PRL_POWER
+    bool "Enable POWER Device Protocol"
+    default y
+    help
+      Enable protocol for Power Management Board (POWER) devices.
+      Supports power on/off, voltage/current query, alarm, etc.
 
 endmenu
 
