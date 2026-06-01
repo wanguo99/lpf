@@ -6,7 +6,7 @@
 
 /* 全局变量 */
 static ccm_tm_cache_t *g_tm_cache = NULL;
-static pmc_process_heartbeat_t *g_heartbeat = NULL;
+static ccm_process_heartbeat_t *g_heartbeat = NULL;
 static volatile bool g_running = true;
 
 /* 信号处理 */
@@ -38,7 +38,7 @@ int32_t PMC_Comm_Init(void)
     }
 
     /* 初始化心跳 */
-    ret = PMC_Heartbeat_Init(&g_heartbeat);
+    ret = CCM_Heartbeat_Init(&g_heartbeat);
     if (ret != OSAL_SUCCESS) {
         LOG_ERROR("COMM", "初始化心跳失败: %d", ret);
         CCM_TM_Cache_Cleanup(g_tm_cache);
@@ -113,7 +113,7 @@ int32_t PMC_Comm_Run(void)
 
     while (g_running) {
         /* 更新心跳 */
-        PMC_Heartbeat_Update(g_heartbeat, CCM_PROCESS_COMM);
+        CCM_Heartbeat_Update(g_heartbeat, CCM_PROCESS_COMM);
 
         /* TODO: 实现CAN接收和处理
          * 1. 从CAN总线接收帧
@@ -167,7 +167,7 @@ void PMC_Comm_Cleanup(void)
     }
 
     if (g_heartbeat) {
-        PMC_Heartbeat_Cleanup(g_heartbeat);
+        CCM_Heartbeat_Cleanup(g_heartbeat);
         g_heartbeat = NULL;
     }
 
