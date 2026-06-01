@@ -59,14 +59,14 @@ const tc_tm_invalidation_map_t g_invalidation_map[] = {
     /* MCU复位 → 影响MCU状态遥测 */
     {
         .tc_function = TC_MCU_RESET,
-        .affected_tm = { TM_MCU_STATUS, TM_MCU_TEMP, TM_MCU_VOLTAGE, TM_MCU_UPTIME },
+        .affected_tm = { TM_MCU_STATUS, TM_MCU_TEMP, TM_VOLTAGE_3V3, TM_MCU_UPTIME },
         .affected_count = 4
     },
 
     /* MCU电源控制 → 影响电压遥测 */
     {
         .tc_function = TC_MCU_POWER_CTRL,
-        .affected_tm = { TM_SERVER_VOLTAGE_12V, TM_SERVER_VOLTAGE_5V, TM_SERVER_VOLTAGE_3V3 },
+        .affected_tm = { TM_VOLTAGE_12V, TM_VOLTAGE_5V, TM_VOLTAGE_3V3 },
         .affected_count = 3
     },
 
@@ -100,7 +100,7 @@ const tc_tm_invalidation_map_t g_invalidation_map[] = {
     {
         .tc_function = TC_SYSTEM_RESET,
         .affected_tm = {
-            TM_MCU_STATUS, TM_MCU_TEMP, TM_MCU_VOLTAGE, TM_MCU_UPTIME,
+            TM_MCU_STATUS, TM_MCU_TEMP, TM_VOLTAGE_3V3, TM_MCU_UPTIME,
             TM_SYSTEM_UPTIME, TM_ERROR_COUNT
         },
         .affected_count = 6
