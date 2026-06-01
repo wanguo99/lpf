@@ -4,7 +4,7 @@
 #include <unistd.h>
 
 /* 全局变量 */
-static pmc_process_heartbeat_t *g_heartbeat = NULL;
+static ccm_process_heartbeat_t *g_heartbeat = NULL;
 static ccm_system_status_t *g_status = NULL;
 static volatile bool g_running = true;
 
@@ -37,7 +37,7 @@ static void *satellite_heartbeat_thread(void *arg)
         ccm_system_status_t status;
 
         /* 更新进程心跳 */
-        PMC_Heartbeat_Update(g_heartbeat, CCM_PROCESS_HEALTH);
+        CCM_Heartbeat_Update(g_heartbeat, CCM_PROCESS_HEALTH);
 
         /* TODO: 发送心跳到卫星平台（CAN） */
         LOG_DEBUG("HEALTH", "发送卫星心跳: seq=%u", sequence);
@@ -140,7 +140,7 @@ int32_t PMC_Health_Init(void)
     OSAL_SignalRegister(SIGINT, signal_handler);
 
     /* 初始化心跳 */
-    ret = PMC_Heartbeat_Init(&g_heartbeat);
+    ret = CCM_Heartbeat_Init(&g_heartbeat);
     if (ret != OSAL_SUCCESS) {
         LOG_ERROR("HEALTH", "初始化心跳失败: %d", ret);
         return ret;
@@ -150,7 +150,7 @@ int32_t PMC_Health_Init(void)
     ret = CCM_Status_Init(&g_status);
     if (ret != OSAL_SUCCESS) {
         LOG_ERROR("HEALTH", "初始化系统状态失败: %d", ret);
-        PMC_Heartbeat_Cleanup(g_heartbeat);
+        CCM_Heartbeat_Cleanup(g_heartbeat);
         return ret;
     }
 
@@ -212,7 +212,7 @@ void PMC_Health_Cleanup(void)
     LOG_INFO("HEALTH", "Health进程清理...");
 
     if (g_heartbeat) {
-        PMC_Heartbeat_Cleanup(g_heartbeat);
+        CCM_Heartbeat_Cleanup(g_heartbeat);
         g_heartbeat = NULL;
     }
 
