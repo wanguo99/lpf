@@ -10,6 +10,29 @@
 #include "osal_types.h"
 #include "config/i2c_types.h"
 
+/*===========================================================================
+ * 锁配置
+ *===========================================================================*/
+
+/**
+ * @brief I2C 驱动文件锁路径格式
+ *
+ * 参数：bus - I2C 总线号（如 0, 1, 2）
+ * 示例：/var/lock/hal_i2c_0.lock
+ *
+ * 注意：需要包含 osal_flock.h 以使用 OSAL_LOCK_DIR
+ */
+#define HAL_I2C_LOCK_PATH_FMT    OSAL_LOCK_DIR "/hal_i2c_%d.lock"
+
+/**
+ * @brief I2C 驱动文件锁超时时间（毫秒）
+ */
+#define HAL_I2C_LOCK_TIMEOUT_MS  OSAL_LOCK_DEFAULT_TIMEOUT_MS
+
+/*===========================================================================
+ * 类型定义
+ *===========================================================================*/
+
 typedef void* hal_i2c_handle_t;
 
 typedef struct

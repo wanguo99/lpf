@@ -182,14 +182,14 @@ int32_t HAL_Serial_Open(const char *device, const hal_serial_config_t *config, h
     OSAL_tcflush(ctx->fd, OSAL_TCIOFLUSH);
 
     /* 创建文件锁（进程间保护） */
-    char lock_file[256];
-    /* 将设备路径转换为锁文件名（替换 / 为 _） */
+    char lock_file[OSAL_LOCK_PATH_MAX_LEN];
+    /* 将设备路径转换为锁文件名（跳过 /dev/ 前缀） */
     const char *dev_name = device;
     if (OSAL_Strncmp(device, "/dev/", 5) == 0)
     {
         dev_name = device + 5;  /* 跳过 /dev/ */
     }
-    OSAL_Snprintf(lock_file, sizeof(lock_file), "/var/lock/hal_serial_%s.lock", dev_name);
+    OSAL_Snprintf(lock_file, sizeof(lock_file), HAL_SERIAL_LOCK_PATH_FMT, dev_name);
     ret = OSAL_FlockCreate(lock_file, &ctx->flock);
     if (ret != OSAL_SUCCESS)
     {
@@ -307,7 +307,7 @@ int32_t HAL_Serial_Write(hal_serial_handle_t handle, const void *buffer, uint32_
     }
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(ctx->flock, OSAL_FLOCK_EXCLUSIVE, 5000);
+    ret = OSAL_FlockTimedLock(ctx->flock, OSAL_FLOCK_EXCLUSIVE, HAL_SERIAL_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_Serial", "Failed to acquire file lock (timeout or error)");
@@ -397,7 +397,7 @@ int32_t HAL_Serial_Read(hal_serial_handle_t handle, void *buffer, uint32_t size,
     }
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(ctx->flock, OSAL_FLOCK_EXCLUSIVE, 5000);
+    ret = OSAL_FlockTimedLock(ctx->flock, OSAL_FLOCK_EXCLUSIVE, HAL_SERIAL_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_Serial", "Failed to acquire file lock (timeout or error)");
@@ -456,7 +456,7 @@ int32_t HAL_Serial_Flush(hal_serial_handle_t handle)
     }
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(ctx->flock, OSAL_FLOCK_EXCLUSIVE, 5000);
+    ret = OSAL_FlockTimedLock(ctx->flock, OSAL_FLOCK_EXCLUSIVE, HAL_SERIAL_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_Serial", "Failed to acquire file lock (timeout or error)");
@@ -513,7 +513,7 @@ int32_t HAL_Serial_SetConfig(hal_serial_handle_t handle,
     }
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(ctx->flock, OSAL_FLOCK_EXCLUSIVE, 5000);
+    ret = OSAL_FlockTimedLock(ctx->flock, OSAL_FLOCK_EXCLUSIVE, HAL_SERIAL_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_Serial", "Failed to acquire file lock (timeout or error)");

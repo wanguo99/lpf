@@ -57,8 +57,8 @@ int32_t HAL_I2C_Open(const hal_i2c_config_t *config, hal_i2c_handle_t *handle)
     impl->initialized = false;
 
     /* 创建文件锁（进程间保护） */
-    char lock_file[256];
-    /* 从设备路径提取总线号，例如 /dev/i2c-0 -> i2c-0 */
+    char lock_file[OSAL_LOCK_PATH_MAX_LEN];
+    /* 从设备路径提取总线号，例如 /dev/i2c-0 -> 0 */
     const char *dev_name = config->device;
     const char *slash = config->device;
     while (*slash)
@@ -67,8 +67,18 @@ int32_t HAL_I2C_Open(const hal_i2c_config_t *config, hal_i2c_handle_t *handle)
             dev_name = slash + 1;
         slash++;
     }
+    /* 提取数字部分，例如 i2c-0 -> 0 */
+    int bus_num = 0;
+    if (OSAL_Sscanf(dev_name, "i2c-%d", &bus_num) == 1)
+    {
+        OSAL_Snprintf(lock_file, sizeof(lock_file), HAL_I2C_LOCK_PATH_FMT, bus_num);
+    }
+    else
+    {
+        /* 如果无法解析，使用设备名 */
+        OSAL_Snprintf(lock_file, sizeof(lock_file), OSAL_LOCK_DIR "/hal_i2c_%s.lock", dev_name);
+    }
 
-    OSAL_Snprintf(lock_file, sizeof(lock_file), "/var/lock/hal_i2c_%s.lock", dev_name);
     ret = OSAL_FlockCreate(lock_file, &impl->flock);
     if (ret != OSAL_SUCCESS)
     {
@@ -165,7 +175,7 @@ int32_t HAL_I2C_Write(hal_i2c_handle_t handle, uint16_t slave_addr,
         return OSAL_ERR_GENERIC;
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, 5000);
+    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_I2C_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_I2C", "Failed to acquire file lock (timeout or error)");
@@ -240,7 +250,7 @@ int32_t HAL_I2C_Read(hal_i2c_handle_t handle, uint16_t slave_addr,
         return OSAL_ERR_GENERIC;
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, 5000);
+    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_I2C_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_I2C", "Failed to acquire file lock (timeout or error)");
@@ -351,7 +361,7 @@ int32_t HAL_I2C_ReadReg(hal_i2c_handle_t handle, uint16_t slave_addr,
         return OSAL_ERR_GENERIC;
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, 5000);
+    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_I2C_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_I2C", "Failed to acquire file lock (timeout or error)");
@@ -436,7 +446,7 @@ int32_t HAL_I2C_Transfer(hal_i2c_handle_t handle, hal_i2c_msg_t *msgs, uint32_t 
     }
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, 5000);
+    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_I2C_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_I2C", "Failed to acquire file lock (timeout or error)");

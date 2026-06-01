@@ -10,6 +10,29 @@
 #include "osal_types.h"
 #include "config/can_types.h"
 
+/*===========================================================================
+ * 锁配置
+ *===========================================================================*/
+
+/**
+ * @brief CAN 驱动文件锁路径格式
+ *
+ * 参数：interface - CAN 接口名（如 can0, can1）
+ * 示例：/var/lock/hal_can_can0.lock
+ *
+ * 注意：需要包含 osal_flock.h 以使用 OSAL_LOCK_DIR
+ */
+#define HAL_CAN_LOCK_PATH_FMT    OSAL_LOCK_DIR "/hal_can_%s.lock"
+
+/**
+ * @brief CAN 驱动文件锁超时时间（毫秒）
+ */
+#define HAL_CAN_LOCK_TIMEOUT_MS  OSAL_LOCK_DEFAULT_TIMEOUT_MS
+
+/*===========================================================================
+ * 类型定义
+ *===========================================================================*/
+
 typedef void* hal_can_handle_t;
 
 typedef struct

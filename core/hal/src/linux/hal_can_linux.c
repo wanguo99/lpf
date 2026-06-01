@@ -65,8 +65,8 @@ int32_t HAL_CAN_Init(const hal_can_config_t *config, hal_can_handle_t *handle)
     impl->initialized = false;
 
     /* 创建文件锁（进程间保护） */
-    char lock_file[256];
-    OSAL_Snprintf(lock_file, sizeof(lock_file), "/var/lock/hal_can_%s.lock", config->interface);
+    char lock_file[OSAL_LOCK_PATH_MAX_LEN];
+    OSAL_Snprintf(lock_file, sizeof(lock_file), HAL_CAN_LOCK_PATH_FMT, config->interface);
     ret = OSAL_FlockCreate(lock_file, &impl->flock);
     if (ret != OSAL_SUCCESS)
     {
@@ -111,7 +111,7 @@ int32_t HAL_CAN_Init(const hal_can_config_t *config, hal_can_handle_t *handle)
         LOG_ERROR("HAL_CAN", "Interface %s not found: %s (errno=%d, hal_err=%d)",
                   config->interface, OSAL_StrError(err), err, hal_err);
         OSAL_close(impl->sockfd);
-        OSAL_MutexDestroy(impl->mutex);
+        OSAL_MutexDelete(impl->mutex);
         OSAL_FlockDestroy(impl->flock);
         OSAL_Free(impl);
         return hal_err;
@@ -130,7 +130,7 @@ int32_t HAL_CAN_Init(const hal_can_config_t *config, hal_can_handle_t *handle)
         LOG_ERROR("HAL_CAN", "Failed to bind interface: %s (errno=%d, hal_err=%d)",
                   OSAL_StrError(err), err, hal_err);
         OSAL_close(impl->sockfd);
-        OSAL_MutexDestroy(impl->mutex);
+        OSAL_MutexDelete(impl->mutex);
         OSAL_FlockDestroy(impl->flock);
         OSAL_Free(impl);
         return hal_err;
@@ -211,7 +211,7 @@ int32_t HAL_CAN_Send(hal_can_handle_t handle, const hal_can_frame_t *frame)
     }
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, 5000);
+    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_CAN_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_CAN", "Failed to acquire file lock (timeout or error)");
@@ -290,7 +290,7 @@ int32_t HAL_CAN_Recv(hal_can_handle_t handle, hal_can_frame_t *frame, int32_t ti
     }
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, 5000);
+    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_CAN_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_CAN", "Failed to acquire file lock (timeout or error)");
@@ -360,7 +360,7 @@ int32_t HAL_CAN_SetFilter(hal_can_handle_t handle, uint32_t filter_id, uint32_t 
         return OSAL_ERR_INVALID_ID;
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, 5000);
+    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_CAN_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_CAN", "Failed to acquire file lock (timeout or error)");

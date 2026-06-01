@@ -52,7 +52,7 @@ static int32_t gpio_module_init(void)
     }
 
     /* 创建文件锁 */
-    ret = OSAL_FlockCreate("/var/lock/hal_gpio.lock", &g_gpio_flock);
+    ret = OSAL_FlockCreate(HAL_GPIO_LOCK_PATH, &g_gpio_flock);
     if (ret != OSAL_SUCCESS) {
         return ret;
     }

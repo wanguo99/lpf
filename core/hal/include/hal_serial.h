@@ -9,6 +9,29 @@
 
 #include "osal.h"
 
+/*===========================================================================
+ * 锁配置
+ *===========================================================================*/
+
+/**
+ * @brief Serial 驱动文件锁路径格式
+ *
+ * 参数：device - 串口设备名（如 ttyS0, ttyUSB0）
+ * 示例：/var/lock/hal_serial_ttyS0.lock
+ *
+ * 注意：需要包含 osal_flock.h 以使用 OSAL_LOCK_DIR
+ */
+#define HAL_SERIAL_LOCK_PATH_FMT    OSAL_LOCK_DIR "/hal_serial_%s.lock"
+
+/**
+ * @brief Serial 驱动文件锁超时时间（毫秒）
+ */
+#define HAL_SERIAL_LOCK_TIMEOUT_MS  OSAL_LOCK_DEFAULT_TIMEOUT_MS
+
+/*===========================================================================
+ * 类型定义
+ *===========================================================================*/
+
 typedef void* hal_serial_handle_t;
 
 typedef struct

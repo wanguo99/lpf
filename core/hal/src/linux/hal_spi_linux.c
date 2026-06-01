@@ -65,8 +65,8 @@ int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
     impl->initialized = false;
 
     /* 创建文件锁（进程间保护） */
-    char lock_file[256];
-    /* 从设备路径提取总线号，例如 /dev/spidev0.0 -> spidev0.0 */
+    char lock_file[OSAL_LOCK_PATH_MAX_LEN];
+    /* 从设备路径提取设备名，例如 /dev/spidev0.0 -> spidev0.0 */
     const char *dev_name = config->device;
     const char *slash = config->device;
     while (*slash)
@@ -76,7 +76,7 @@ int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
         slash++;
     }
 
-    OSAL_Snprintf(lock_file, sizeof(lock_file), "/var/lock/hal_spi_%s.lock", dev_name);
+    OSAL_Snprintf(lock_file, sizeof(lock_file), HAL_SPI_LOCK_PATH_FMT, dev_name);
     ret = OSAL_FlockCreate(lock_file, &impl->flock);
     if (ret != OSAL_SUCCESS)
     {
@@ -220,7 +220,7 @@ int32_t HAL_SPI_Write(hal_spi_handle_t handle, const uint8_t *buffer, uint32_t s
         return OSAL_ERR_GENERIC;
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, 5000);
+    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_SPI_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_SPI", "Failed to acquire file lock (timeout or error)");
@@ -276,7 +276,7 @@ int32_t HAL_SPI_Read(hal_spi_handle_t handle, uint8_t *buffer, uint32_t size)
         return OSAL_ERR_GENERIC;
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, 5000);
+    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_SPI_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_SPI", "Failed to acquire file lock (timeout or error)");
@@ -334,7 +334,7 @@ int32_t HAL_SPI_Transfer(hal_spi_handle_t handle, const uint8_t *tx_buffer,
         return OSAL_ERR_GENERIC;
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, 5000);
+    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_SPI_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_SPI", "Failed to acquire file lock (timeout or error)");
@@ -423,7 +423,7 @@ int32_t HAL_SPI_TransferMulti(hal_spi_handle_t handle, hal_spi_transfer_t *trans
     }
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, 5000);
+    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_SPI_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_SPI", "Failed to acquire file lock (timeout or error)");
@@ -477,7 +477,7 @@ int32_t HAL_SPI_SetConfig(hal_spi_handle_t handle, const hal_spi_config_t *confi
         return OSAL_ERR_GENERIC;
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, 5000);
+    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_SPI_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_SPI", "Failed to acquire file lock (timeout or error)");
