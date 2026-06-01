@@ -106,9 +106,9 @@ int32_t PMC_Heartbeat_Check(pmc_process_heartbeat_t *heartbeat, ccm_process_id_t
 void PMC_Heartbeat_Cleanup(pmc_process_heartbeat_t *heartbeat);
 
 /* IPC辅助函数 - 日志操作 */
-int32_t PMC_Log_Init(pmc_log_ringbuffer_t **log_ring);
-int32_t PMC_Log_Write(pmc_log_ringbuffer_t *log_ring, const char *log_entry);
-int32_t PMC_Log_Read(pmc_log_ringbuffer_t *log_ring, char *log_entry, uint32_t size);
-void PMC_Log_Cleanup(pmc_log_ringbuffer_t *log_ring);
+int32_t CCM_Log_Init(pmc_log_ringbuffer_t **log_ring);
+int32_t CCM_Log_Write(pmc_log_ringbuffer_t *log_ring, const char *log_entry);
+int32_t CCM_Log_Read(pmc_log_ringbuffer_t *log_ring, char *log_entry, uint32_t size);
+void CCM_Log_Cleanup(pmc_log_ringbuffer_t *log_ring);
 
 #endif /* LIBCCM_IPC_H */

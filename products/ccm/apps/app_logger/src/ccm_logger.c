@@ -37,7 +37,7 @@ static void *log_collector_thread(void *arg)
         PMC_Heartbeat_Update(g_heartbeat, CCM_PROCESS_LOGGER);
 
         /* 从共享内存读取日志 */
-        ret = PMC_Log_Read(g_log_ring, log_entry, sizeof(log_entry));
+        ret = CCM_Log_Read(g_log_ring, log_entry, sizeof(log_entry));
         if (ret == OSAL_SUCCESS) {
             /* TODO: 写入日志文件或输出到控制台 */
             LOG_DEBUG("LOGGER", "收到日志: %s", log_entry);
@@ -64,7 +64,7 @@ int32_t PMC_Logger_Init(void)
     OSAL_SignalRegister(SIGINT, signal_handler);
 
     /* 初始化日志环形缓冲区 */
-    ret = PMC_Log_Init(&g_log_ring);
+    ret = CCM_Log_Init(&g_log_ring);
     if (ret != OSAL_SUCCESS) {
         LOG_ERROR("LOGGER", "初始化日志环形缓冲区失败: %d", ret);
         return ret;
@@ -74,7 +74,7 @@ int32_t PMC_Logger_Init(void)
     ret = PMC_Heartbeat_Init(&g_heartbeat);
     if (ret != OSAL_SUCCESS) {
         LOG_ERROR("LOGGER", "初始化心跳失败: %d", ret);
-        PMC_Log_Cleanup(g_log_ring);
+        CCM_Log_Cleanup(g_log_ring);
         return ret;
     }
 
@@ -122,7 +122,7 @@ void PMC_Logger_Cleanup(void)
     }
 
     if (g_log_ring) {
-        PMC_Log_Cleanup(g_log_ring);
+        CCM_Log_Cleanup(g_log_ring);
         g_log_ring = NULL;
     }
 
