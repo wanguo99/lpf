@@ -42,7 +42,6 @@ typedef struct {
     uint32_t function_id;          /* 功能ID（由项目定义） */
     aconfig_device_type_t device_type; /* 设备类型 */
     const char *device_name;       /* 设备名称（如 "power_mcu", "payload_bmc"） */
-    uint32_t logic_index;          /* 逻辑索引（第几个同类设备，已废弃，使用 device_name） */
     bool enabled;                  /* 是否使能 */
     void *extra_data;              /* 扩展数据（项目特定） */
 } aconfig_tc_config_t;
@@ -55,7 +54,6 @@ typedef struct {
     uint32_t function_id;          /* 功能ID（由项目定义） */
     aconfig_device_type_t device_type; /* 设备类型 */
     const char *device_name;       /* 设备名称（如 "power_mcu", "payload_bmc"） */
-    uint32_t logic_index;          /* 逻辑索引（第几个同类设备，已废弃，使用 device_name） */
     uint32_t validity_ms;          /* 有效期（毫秒），超过此时间标记为STALE */
     uint32_t update_period_ms;     /* 后台更新周期（毫秒） */
     bool enabled;                  /* 是否使能 */
