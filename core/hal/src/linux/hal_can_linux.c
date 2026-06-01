@@ -93,7 +93,7 @@ int32_t HAL_CAN_Init(const hal_can_config_t *config, hal_can_handle_t *handle)
         HAL_SET_ERROR(hal_err, err, "Failed to create socket: %s", OSAL_StrError(err));
         LOG_ERROR("HAL_CAN", "Failed to create socket: %s (errno=%d, hal_err=%d)",
                   OSAL_StrError(err), err, hal_err);
-        OSAL_MutexDestroy(impl->mutex);
+        OSAL_MutexDelete(impl->mutex);
         OSAL_FlockDestroy(impl->flock);
         OSAL_Free(impl);
         return hal_err;
@@ -176,7 +176,7 @@ int32_t HAL_CAN_Deinit(hal_can_handle_t handle)
     /* 销毁锁 */
     if (impl->mutex)
     {
-        OSAL_MutexDestroy(impl->mutex);
+        OSAL_MutexDelete(impl->mutex);
     }
 
     if (impl->flock)
