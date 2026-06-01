@@ -162,9 +162,9 @@ typedef struct
  */
 typedef enum
 {
-    WATCHDOG_MODE_MANUAL = 0,    /* 手动模式：应用自己调用Kick */
-    WATCHDOG_MODE_AUTO = 1       /* 自动模式：PDL内部线程自动喂狗 */
-} watchdog_mode_t;
+    PDL_WATCHDOG_MODE_MANUAL = 0,    /* 手动模式：应用自己调用Kick */
+    PDL_WATCHDOG_MODE_AUTO = 1       /* 自动模式：PDL内部线程自动喂狗 */
+} pdl_watchdog_mode_t;
 
 /**
  * @brief Watchdog配置
@@ -174,9 +174,9 @@ typedef struct
     char name[64];                  /* Watchdog名称 */
     const char *device;             /* 设备路径（如/dev/watchdog） */
     uint32_t timeout_sec;           /* 超时时间（秒） */
-    watchdog_mode_t mode;           /* 工作模式 */
+    pdl_watchdog_mode_t mode;           /* 工作模式 */
     uint32_t kick_interval_ms;      /* 自动模式下的喂狗间隔（毫秒） */
     bool enable_on_init;            /* 初始化时是否启用看门狗 */
-} watchdog_config_t;
+} pdl_watchdog_config_t;
 
 #endif /* PDL_TYPES_H */
