@@ -2,31 +2,32 @@
  * @file aconfig_h200_100p.c
  * @brief H200_100P应用配置
  * @note 命名规范：aconfig_{project}_{product}_{version}.c
- *       ACL配置关注业务功能，不关注硬件平台
+ *       AConfig配置关注业务功能，不关注硬件平台
  */
 
 #include "aconfig_config.h"
-#include "pmc_aconfig_types.h"
+#include "aconfig_tc.h"
+#include "aconfig_tm.h"
 
 /**
  * @brief PMC v1.0遥控配置表
  */
 const aconfig_tc_config_t g_pmc_tc_configs[] = {
     /* 服务器电源控制 → BMC */
-    { TC_SERVER_POWER_ON,      ACONFIG_DEVICE_BMC, 0, true, NULL },
-    { TC_SERVER_POWER_OFF,     ACONFIG_DEVICE_BMC, 0, true, NULL },
-    { TC_SERVER_POWER_RESET,   ACONFIG_DEVICE_BMC, 0, true, NULL },
-    { TC_SERVER_POWER_CYCLE,   ACONFIG_DEVICE_BMC, 0, true, NULL },
-    { TC_SERVER_SOFT_RESET,    ACONFIG_DEVICE_BMC, 0, true, NULL },
-    { TC_SERVER_HARD_RESET,    ACONFIG_DEVICE_BMC, 0, true, NULL },
+    { TC_POWER_ON,             ACONFIG_DEVICE_BMC, "payload_bmc", 0, true, NULL },
+    { TC_POWER_OFF,            ACONFIG_DEVICE_BMC, "payload_bmc", 0, true, NULL },
+    { TC_POWER_RESET,          ACONFIG_DEVICE_BMC, "payload_bmc", 0, true, NULL },
+    { TC_POWER_CYCLE,          ACONFIG_DEVICE_BMC, "payload_bmc", 0, true, NULL },
+    { TC_SOFT_RESET,           ACONFIG_DEVICE_BMC, "payload_bmc", 0, true, NULL },
+    { TC_HARD_RESET,           ACONFIG_DEVICE_BMC, "payload_bmc", 0, true, NULL },
 
-    /* MCU控制 → MCU[0] */
-    { TC_MCU_RESET,            ACONFIG_DEVICE_MCU, 0, true, NULL },
-    { TC_MCU_POWER_CTRL,       ACONFIG_DEVICE_MCU, 1, true, NULL },  /* MCU[1]是电源管理 */
+    /* MCU控制 → MCU */
+    { TC_MCU_RESET,            ACONFIG_DEVICE_MCU, "power_mcu", 0, true, NULL },
+    { TC_MCU_POWER_CTRL,       ACONFIG_DEVICE_MCU, "power_mcu", 0, true, NULL },
 
-    /* FPGA控制 → FPGA[0] */
-    { TC_FPGA_RESET,           ACONFIG_DEVICE_FPGA, 0, true, NULL },
-    { TC_FPGA_CONFIG_LOAD,     ACONFIG_DEVICE_FPGA, 0, true, NULL },
+    /* FPGA控制 → FPGA */
+    { TC_FPGA_RESET,           ACONFIG_DEVICE_FPGA, "main_fpga", 0, true, NULL },
+    { TC_FPGA_CONFIG_LOAD,     ACONFIG_DEVICE_FPGA, "main_fpga", 0, true, NULL },
 
     /* 固件升级 → MCU[0] */
     { TC_FIRMWARE_UPGRADE_START,  ACONFIG_DEVICE_MCU, 0, true, NULL },
@@ -50,30 +51,29 @@ const uint32_t g_pmc_tc_config_count = sizeof(g_pmc_tc_configs) / sizeof(aconfig
  */
 const aconfig_tm_config_t g_pmc_tm_configs[] = {
     /* 服务器遥测 → BMC，1秒更新周期，2秒有效期 */
-    { TM_SERVER_CPU_TEMP,      ACONFIG_DEVICE_BMC, 0, 2000, 1000, true, NULL },
-    { TM_SERVER_BOARD_TEMP,    ACONFIG_DEVICE_BMC, 0, 2000, 1000, true, NULL },
-    { TM_SERVER_FAN_SPEED,     ACONFIG_DEVICE_BMC, 0, 4000, 2000, true, NULL },
-    { TM_SERVER_VOLTAGE_12V,   ACONFIG_DEVICE_MCU, 1, 4000, 2000, true, NULL },
-    { TM_SERVER_VOLTAGE_5V,    ACONFIG_DEVICE_MCU, 1, 4000, 2000, true, NULL },
-    { TM_SERVER_VOLTAGE_3V3,   ACONFIG_DEVICE_MCU, 1, 4000, 2000, true, NULL },
-    { TM_SERVER_CURRENT,       ACONFIG_DEVICE_MCU, 1, 4000, 2000, true, NULL },
-    { TM_SERVER_POWER_STATUS,  ACONFIG_DEVICE_BMC, 0, 500,  100,  true, NULL },
+    { TM_CPU_TEMP,             ACONFIG_DEVICE_BMC, "payload_bmc", 0, 2000, 1000, true, NULL },
+    { TM_BOARD_TEMP,           ACONFIG_DEVICE_BMC, "payload_bmc", 0, 2000, 1000, true, NULL },
+    { TM_FAN_SPEED,            ACONFIG_DEVICE_BMC, "payload_bmc", 0, 4000, 2000, true, NULL },
+    { TM_VOLTAGE_12V,          ACONFIG_DEVICE_MCU, "power_mcu", 0, 4000, 2000, true, NULL },
+    { TM_VOLTAGE_5V,           ACONFIG_DEVICE_MCU, "power_mcu", 0, 4000, 2000, true, NULL },
+    { TM_VOLTAGE_3V3,          ACONFIG_DEVICE_MCU, "power_mcu", 0, 4000, 2000, true, NULL },
+    { TM_CURRENT,              ACONFIG_DEVICE_MCU, "power_mcu", 0, 4000, 2000, true, NULL },
+    { TM_POWER_STATUS,         ACONFIG_DEVICE_BMC, "payload_bmc", 0, 500,  100,  true, NULL },
 
     /* MCU遥测 → MCU，2秒更新周期，4秒有效期 */
-    { TM_MCU_STATUS,           ACONFIG_DEVICE_MCU, 0, 500,  100,  true, NULL },
-    { TM_MCU_TEMP,             ACONFIG_DEVICE_MCU, 0, 4000, 2000, true, NULL },
-    { TM_MCU_VOLTAGE,          ACONFIG_DEVICE_MCU, 0, 4000, 2000, true, NULL },
-    { TM_MCU_UPTIME,           ACONFIG_DEVICE_MCU, 0, 4000, 2000, true, NULL },
+    { TM_MCU_STATUS,           ACONFIG_DEVICE_MCU, "power_mcu", 0, 500,  100,  true, NULL },
+    { TM_MCU_TEMP,             ACONFIG_DEVICE_MCU, "power_mcu", 0, 4000, 2000, true, NULL },
+    { TM_MCU_UPTIME,           ACONFIG_DEVICE_MCU, "power_mcu", 0, 4000, 2000, true, NULL },
 
     /* FPGA遥测 → FPGA，2秒更新周期，4秒有效期 */
-    { TM_FPGA_STATUS,          ACONFIG_DEVICE_FPGA, 0, 500,  100,  true, NULL },
-    { TM_FPGA_TEMP,            ACONFIG_DEVICE_FPGA, 0, 4000, 2000, true, NULL },
-    { TM_FPGA_CONFIG_STATUS,   ACONFIG_DEVICE_FPGA, 0, 500,  100,  true, NULL },
+    { TM_FPGA_STATUS,          ACONFIG_DEVICE_FPGA, "main_fpga", 0, 500,  100,  true, NULL },
+    { TM_FPGA_TEMP,            ACONFIG_DEVICE_FPGA, "main_fpga", 0, 4000, 2000, true, NULL },
+    { TM_FPGA_CONFIG_STATUS,   ACONFIG_DEVICE_FPGA, "main_fpga", 0, 500,  100,  true, NULL },
 
     /* 系统遥测 */
-    { TM_SYSTEM_UPTIME,        ACONFIG_DEVICE_MCU, 0, 4000, 2000, true, NULL },
-    { TM_WATCHDOG_STATUS,      ACONFIG_DEVICE_MCU, 2, 500,  100,  true, NULL },
-    { TM_ERROR_COUNT,          ACONFIG_DEVICE_MCU, 0, 4000, 2000, true, NULL },
+    { TM_SYSTEM_UPTIME,        ACONFIG_DEVICE_MCU, "power_mcu", 0, 4000, 2000, true, NULL },
+    { TM_WATCHDOG_STATUS,      ACONFIG_DEVICE_MCU, "watchdog_mcu", 0, 500,  100,  true, NULL },
+    { TM_ERROR_COUNT,          ACONFIG_DEVICE_MCU, "power_mcu", 0, 4000, 2000, true, NULL },
 };
 
 const uint32_t g_pmc_tm_config_count = sizeof(g_pmc_tm_configs) / sizeof(aconfig_tm_config_t);

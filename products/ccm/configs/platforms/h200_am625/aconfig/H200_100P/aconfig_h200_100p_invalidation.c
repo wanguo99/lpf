@@ -5,7 +5,17 @@
  */
 
 #include "aconfig_config.h"
-#include "pmc_aconfig_types.h"
+#include "aconfig_tc.h"
+#include "aconfig_tm.h"
+
+/**
+ * @brief 遥控命令对遥测的失效映射
+ */
+typedef struct {
+    uint32_t tc_function;          /* 遥控功能 ID */
+    uint32_t affected_tm[16];      /* 受影响的遥测 ID 数组（最多 16 个）*/
+    uint32_t affected_count;       /* 受影响的遥测数量 */
+} tc_tm_invalidation_map_t;
 
 /**
  * @brief PMC v1.0遥控命令失效映射表
@@ -14,8 +24,8 @@
 const tc_tm_invalidation_map_t g_invalidation_map[] = {
     /* 电源控制命令 → 影响电源状态遥测 */
     {
-        .tc_function = TC_SERVER_POWER_ON,
-        .affected_tm = { TM_SERVER_POWER_STATUS },
+        .tc_function = TC_POWER_ON,
+        .affected_tm = { TM_POWER_STATUS },
         .affected_count = 1
     },
     {
