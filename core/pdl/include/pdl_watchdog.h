@@ -33,7 +33,7 @@ typedef struct
     uint32_t timeout_sec;           /* 超时时间（秒） */
     uint32_t kick_count;            /* 喂狗次数 */
     uint32_t kick_interval_ms;      /* 喂狗间隔（毫秒） */
-    watchdog_mode_t mode;           /* 工作模式 */
+    pdl_watchdog_mode_t mode;           /* 工作模式 */
     uint64_t last_kick_time_us;     /* 上次喂狗时间戳（微秒） */
 } watchdog_status_t;
 
@@ -47,7 +47,7 @@ typedef struct
  * @return OSAL_ERR_INVALID_POINTER 参数为NULL
  * @return OSAL_ERR_GENERIC 失败
  */
-int32_t PDL_WATCHDOG_Init(const watchdog_config_t *config, watchdog_handle_t *handle);
+int32_t PDL_WATCHDOG_Init(const pdl_watchdog_config_t *config, watchdog_handle_t *handle);
 
 /**
  * @brief 关闭Watchdog服务

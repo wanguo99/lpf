@@ -10,7 +10,7 @@ typedef struct
 {
     char name[64];
     hal_watchdog_handle_t hal_handle;
-    watchdog_mode_t mode;
+    pdl_watchdog_mode_t mode;
     uint32_t kick_interval_ms;
     bool enabled;
 
@@ -57,7 +57,7 @@ static void *watchdog_kick_thread(void *arg)
 /**
  * @brief 初始化Watchdog服务
  */
-int32_t PDL_WATCHDOG_Init(const watchdog_config_t *config, watchdog_handle_t *handle)
+int32_t PDL_WATCHDOG_Init(const pdl_watchdog_config_t *config, watchdog_handle_t *handle)
 {
     watchdog_context_t *ctx;
     hal_watchdog_config_t hal_config;
@@ -103,7 +103,7 @@ int32_t PDL_WATCHDOG_Init(const watchdog_config_t *config, watchdog_handle_t *ha
 
     LOG_INFO("PDL_WDT", "Watchdog service initialized: %s (mode=%s, interval=%ums)",
              ctx->name,
-             ctx->mode == WATCHDOG_MODE_AUTO ? "auto" : "manual",
+             ctx->mode == PDL_WATCHDOG_MODE_AUTO ? "auto" : "manual",
              ctx->kick_interval_ms);
 
     *handle = (watchdog_handle_t)ctx;
@@ -157,7 +157,7 @@ int32_t PDL_WATCHDOG_Start(watchdog_handle_t handle)
 
     ctx = (watchdog_context_t *)handle;
 
-    if (ctx->mode != WATCHDOG_MODE_AUTO)
+    if (ctx->mode != PDL_WATCHDOG_MODE_AUTO)
     {
         LOG_WARN("PDL_WDT", "[%s] Not in auto mode, cannot start", ctx->name);
         return OSAL_ERR_GENERIC;
@@ -286,7 +286,7 @@ int32_t PDL_WATCHDOG_SetInterval(watchdog_handle_t handle, uint32_t interval_ms)
 
     ctx = (watchdog_context_t *)handle;
 
-    if (ctx->mode != WATCHDOG_MODE_AUTO)
+    if (ctx->mode != PDL_WATCHDOG_MODE_AUTO)
     {
         LOG_WARN("PDL_WDT", "[%s] Not in auto mode", ctx->name);
         return OSAL_ERR_GENERIC;
