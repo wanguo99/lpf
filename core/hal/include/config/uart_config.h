@@ -2,25 +2,25 @@
  * UART配置
  ************************************************************************/
 
-#ifndef UART_CONFIG_H
-#define UART_CONFIG_H
+#ifndef HAL_UART_CONFIG_H
+#define HAL_UART_CONFIG_H
 
 /* UART设备 */
-#define UART_DEVICE             "/dev/ttyS0"
+#define HAL_UART_DEVICE             "/dev/ttyS0"
 
 /* UART波特率 */
-#define UART_BAUDRATE           115200
+#define HAL_UART_BAUDRATE           115200
 
 /* UART数据位 */
-#define UART_DATABITS           8
+#define HAL_UART_DATABITS           8
 
 /* UART停止位 */
-#define UART_STOPBITS           1
+#define HAL_UART_STOPBITS           1
 
 /* UART校验位 */
-#define UART_PARITY             0  /* 0=无, 1=奇, 2=偶 */
+#define HAL_UART_PARITY             0  /* 0=无, 1=奇, 2=偶 */
 
 /* UART超时时间(ms) */
-#define UART_TIMEOUT_MS         2000
+#define HAL_UART_TIMEOUT_MS         2000
 
-#endif /* UART_CONFIG_H */
+#endif /* HAL_UART_CONFIG_H */
