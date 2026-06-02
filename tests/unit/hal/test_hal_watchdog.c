@@ -2,7 +2,7 @@
  * HAL层 - Watchdog驱动测试
  ************************************************************************/
 
-#include "tests_core.h"
+#include "test_core.h"
 #include "test_assert.h"
 #include "test_registry.h"
 #include "hal_watchdog.h"

@@ -12,7 +12,7 @@
 #define TEST_FRAMEWORK_H
 
 /* 包含所有测试框架组件 */
-#include "tests_core.h"
+#include "test_core.h"
 #include "test_assert.h"
 #include "test_registry.h"
 

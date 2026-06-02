@@ -3,7 +3,7 @@
  * @brief Test execution engine
  */
 
-#include "tests_core.h"
+#include "test_core.h"
 #include "test_assert.h"
 #include "osal.h"
 #include <stdarg.h>
@@ -382,7 +382,26 @@ const test_stats_t* libutest_get_stats(void)
     return &g_stats;
 }
 
+/**
+ * @brief 释放测试结果链表
+ */
+static void free_result_list(test_result_node_t *head)
+{
+    test_result_node_t *current = head;
+    while (current)
+    {
+        test_result_node_t *next = current->next;
+        OSAL_Free(current);
+        current = next;
+    }
+}
+
 void libutest_reset_stats(void)
 {
+    /* 释放链表内存 */
+    free_result_list(g_stats.passed_list_head);
+    free_result_list(g_stats.failed_list_head);
+
+    /* 清零统计结构 */
     OSAL_Memset(&g_stats, 0, sizeof(test_stats_t));
 }

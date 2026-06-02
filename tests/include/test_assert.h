@@ -48,7 +48,7 @@ extern const char *g_current_test;
     do { \
         if ((expected) != (actual)) { \
             OSAL_Printf("[  FAILED  ] %s:%d: Expected %ld, got %ld\n", \
-                   __FILE__, __LINE__, (intptr_t)(expected), (intptr_t)(actual)); \
+                   __FILE__, __LINE__, (long)(expected), (long)(actual)); \
             g_test_failed = true; \
             return; \
         } \
@@ -58,8 +58,49 @@ extern const char *g_current_test;
     do { \
         if ((expected) != (actual)) { \
             OSAL_Printf("[  FAILED  ] %s:%d: Expected %ld, got %ld\n", \
-                   __FILE__, __LINE__, (intptr_t)(expected), (intptr_t)(actual)); \
+                   __FILE__, __LINE__, (long)(expected), (long)(actual)); \
             g_test_failed = true; \
+        } \
+    } while(0)
+
+/* Type-safe comparison assertions (new) */
+
+/* Integer comparisons */
+#define TEST_ASSERT_INT_EQUAL(expected, actual) \
+    do { \
+        int32_t _test_exp = (expected); \
+        int32_t _test_act = (actual); \
+        if (_test_exp != _test_act) { \
+            OSAL_Printf("[  FAILED  ] %s:%d: Expected %d, got %d\n", \
+                   __FILE__, __LINE__, _test_exp, _test_act); \
+            g_test_failed = true; \
+            return; \
+        } \
+    } while(0)
+
+/* Unsigned integer comparisons */
+#define TEST_ASSERT_UINT_EQUAL(expected, actual) \
+    do { \
+        uint32_t _test_exp = (expected); \
+        uint32_t _test_act = (actual); \
+        if (_test_exp != _test_act) { \
+            OSAL_Printf("[  FAILED  ] %s:%d: Expected %u, got %u\n", \
+                   __FILE__, __LINE__, _test_exp, _test_act); \
+            g_test_failed = true; \
+            return; \
+        } \
+    } while(0)
+
+/* Pointer comparisons */
+#define TEST_ASSERT_PTR_EQUAL(expected, actual) \
+    do { \
+        const void *_test_exp = (const void *)(expected); \
+        const void *_test_act = (const void *)(actual); \
+        if (_test_exp != _test_act) { \
+            OSAL_Printf("[  FAILED  ] %s:%d: Expected %p, got %p\n", \
+                   __FILE__, __LINE__, _test_exp, _test_act); \
+            g_test_failed = true; \
+            return; \
         } \
     } while(0)
 
@@ -149,6 +190,24 @@ extern const char *g_current_test;
             return; \
         } \
     } while(0)
+
+/* Floating point assertions - using simple integer-based comparison */
+#define TEST_ASSERT_FLOAT_EQUAL(expected, actual, tolerance) \
+    do { \
+        double _exp = (double)(expected); \
+        double _act = (double)(actual); \
+        double _tol = (double)(tolerance); \
+        double _diff = (_exp > _act) ? (_exp - _act) : (_act - _exp); \
+        if (_diff > _tol) { \
+            OSAL_Printf("[  FAILED  ] %s:%d: Expected %.6f, got %.6f (tolerance %.6f, diff %.6f)\n", \
+                   __FILE__, __LINE__, _exp, _act, _tol, _diff); \
+            g_test_failed = true; \
+            return; \
+        } \
+    } while(0)
+
+#define TEST_ASSERT_DOUBLE_EQUAL(expected, actual, tolerance) \
+    TEST_ASSERT_FLOAT_EQUAL(expected, actual, tolerance)
 
 /* Memory assertions */
 #define TEST_ASSERT_MEMORY_EQUAL(expected, actual, size) \

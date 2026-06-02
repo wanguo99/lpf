@@ -2,7 +2,7 @@
  * PDL层 - Watchdog服务测试
  ************************************************************************/
 
-#include "tests_core.h"
+#include "test_core.h"
 #include "test_assert.h"
 #include "test_registry.h"
 #include "pdl_watchdog.h"

@@ -1,6 +1,6 @@
 /**
- * @file tests_core.h
- * @brief libutest - 通用单元测试框架
+ * @file test_core.h
+ * @brief 通用单元测试框架核心
  *
  * 提供通用的、平台无关的测试框架，支持：
  * - 自动测试注册
@@ -10,8 +10,8 @@
  * 依赖：仅依赖OSAL（保证可移植性）
  */
 
-#ifndef LIBUTEST_H
-#define LIBUTEST_H
+#ifndef TEST_CORE_H
+#define TEST_CORE_H
 
 #include "osal_types.h"
 
@@ -96,4 +96,4 @@ int32_t libutest_interactive_menu(void);
 const test_stats_t* libutest_get_stats(void);
 void libutest_reset_stats(void);
 
-#endif /* LIBUTEST_H */
+#endif /* TEST_CORE_H */

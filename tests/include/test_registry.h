@@ -9,7 +9,7 @@
 #ifndef TEST_REGISTRY_H
 #define TEST_REGISTRY_H
 
-#include "tests_core.h"
+#include "test_core.h"
 
 /* Define a test case */
 #define TEST_CASE(name) \
