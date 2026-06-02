@@ -15,6 +15,7 @@
 #include "test_core.h"
 #include "test_assert.h"
 #include "test_registry.h"
+#include "test_parameterized.h"
 
 /* 简化的测试模块注册宏 */
 
