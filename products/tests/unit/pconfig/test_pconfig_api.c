@@ -4,7 +4,7 @@
  */
 
 #include "test_framework.h"
-#include "pconfig_api.h"
+#include "api/pconfig_api.h"
 #include "pconfig_mcu.h"
 #include "pconfig_bmc.h"
 #include <string.h>
@@ -27,8 +27,7 @@ static pconfig_mcu_entry_t test_mcu_entries[] = {
                 .rx_id = 0x101
             },
             .cmd_timeout_ms = 1000,
-            .retry_count = 3,
-            .enable_crc = true
+            .retry_count = 3
         },
         .reset_gpio = NULL,
         .irq_gpio = NULL
@@ -49,8 +48,7 @@ static pconfig_mcu_entry_t test_mcu_entries[] = {
                 .rx_id = 0x201
             },
             .cmd_timeout_ms = 1000,
-            .retry_count = 3,
-            .enable_crc = true
+            .retry_count = 3
         },
         .reset_gpio = NULL,
         .irq_gpio = NULL
