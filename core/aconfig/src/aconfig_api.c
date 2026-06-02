@@ -81,12 +81,20 @@ const aconfig_tc_config_t* ACONFIG_GetTcConfig(uint32_t function_id)
         return NULL;
     }
 
-    if (NULL != g_acl_table && NULL != g_acl_table->tc_table) {
-        /* O(1)直接索引 */
-        if (function_id < g_acl_table->tc_count) {
-            config = &g_acl_table->tc_table[function_id];
-        }
+    /* 完整的 NULL 检查和边界检查，都在锁内 */
+    if (NULL == g_acl_table || NULL == g_acl_table->tc_table) {
+        OSAL_RwlockUnlock(g_acl_rwlock);
+        return NULL;
     }
+
+    /* 边界检查：防止数组越界 */
+    if (function_id >= g_acl_table->tc_count) {
+        OSAL_RwlockUnlock(g_acl_rwlock);
+        return NULL;
+    }
+
+    /* O(1)直接索引 */
+    config = &g_acl_table->tc_table[function_id];
 
     /* 释放读锁 */
     OSAL_RwlockUnlock(g_acl_rwlock);
@@ -106,12 +114,20 @@ const aconfig_tm_config_t* ACONFIG_GetTmConfig(uint32_t function_id)
         return NULL;
     }
 
-    if (NULL != g_acl_table && NULL != g_acl_table->tm_table) {
-        /* O(1)直接索引 */
-        if (function_id < g_acl_table->tm_count) {
-            config = &g_acl_table->tm_table[function_id];
-        }
+    /* 完整的 NULL 检查和边界检查，都在锁内 */
+    if (NULL == g_acl_table || NULL == g_acl_table->tm_table) {
+        OSAL_RwlockUnlock(g_acl_rwlock);
+        return NULL;
     }
+
+    /* 边界检查：防止数组越界 */
+    if (function_id >= g_acl_table->tm_count) {
+        OSAL_RwlockUnlock(g_acl_rwlock);
+        return NULL;
+    }
+
+    /* O(1)直接索引 */
+    config = &g_acl_table->tm_table[function_id];
 
     /* 释放读锁 */
     OSAL_RwlockUnlock(g_acl_rwlock);

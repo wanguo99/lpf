@@ -104,7 +104,13 @@ int32_t CCM_Logger_Run(void)
 
     /* 等待线程退出 */
     LOG_INFO("LOGGER", "等待线程退出...");
-    OSAL_msleep(2000);
+    if (g_log_thread != 0) {
+        ret = OSAL_ThreadJoin(g_log_thread);
+        if (ret != OSAL_SUCCESS) {
+            LOG_ERROR("LOGGER", "等待线程退出失败: %d", ret);
+        }
+        g_log_thread = 0;
+    }
 
     LOG_INFO("LOGGER", "Logger进程退出");
     return OSAL_SUCCESS;

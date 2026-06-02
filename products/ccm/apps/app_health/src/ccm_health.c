@@ -200,7 +200,38 @@ int32_t CCM_Health_Run(void)
 
     /* 等待所有线程退出 */
     LOG_INFO("HEALTH", "等待线程退出...");
-    OSAL_msleep(2000);
+
+    if (g_satellite_hb_thread != 0) {
+        ret = OSAL_ThreadJoin(g_satellite_hb_thread);
+        if (ret != OSAL_SUCCESS) {
+            LOG_ERROR("HEALTH", "等待卫星心跳线程退出失败: %d", ret);
+        }
+        g_satellite_hb_thread = 0;
+    }
+
+    if (g_mcu_fpga_hb_thread != 0) {
+        ret = OSAL_ThreadJoin(g_mcu_fpga_hb_thread);
+        if (ret != OSAL_SUCCESS) {
+            LOG_ERROR("HEALTH", "等待MCU/FPGA心跳线程退出失败: %d", ret);
+        }
+        g_mcu_fpga_hb_thread = 0;
+    }
+
+    if (g_cpld_hb_thread != 0) {
+        ret = OSAL_ThreadJoin(g_cpld_hb_thread);
+        if (ret != OSAL_SUCCESS) {
+            LOG_ERROR("HEALTH", "等待CPLD心跳线程退出失败: %d", ret);
+        }
+        g_cpld_hb_thread = 0;
+    }
+
+    if (g_watchdog_thread != 0) {
+        ret = OSAL_ThreadJoin(g_watchdog_thread);
+        if (ret != OSAL_SUCCESS) {
+            LOG_ERROR("HEALTH", "等待看门狗线程退出失败: %d", ret);
+        }
+        g_watchdog_thread = 0;
+    }
 
     LOG_INFO("HEALTH", "Health进程退出");
     return OSAL_SUCCESS;

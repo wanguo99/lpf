@@ -6,6 +6,7 @@
 
 #include "prl_device.h"
 #include "lib/osal_string.h"
+#include "net/osal_socket.h"  /* for OSAL_ntohs/ntohl */
 
 /* 设备类型名称映射表 */
 static const char *device_type_names[] = {

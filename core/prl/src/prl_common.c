@@ -8,6 +8,7 @@
 #include "sys/osal_clock.h"
 #include "lib/osal_heap.h"
 #include "lib/osal_string.h"
+#include "net/osal_socket.h"  /* for OSAL_htons/htonl/ntohs/ntohl */
 
 /* 全局序列号（非静态，供 prl_api.c 访问） */
 uint32_t g_seq_number = 0;
@@ -78,19 +79,28 @@ void prl_init_header(prl_header_t *hdr, uint8_t dev_type, uint8_t msg_type,
 {
     OSAL_Memset(hdr, 0, sizeof(prl_header_t));
 
-    hdr->magic = PRL_MAGIC_NUMBER;
+    /* 多字节字段使用网络字节序（大端），确保跨平台兼容性 */
+    hdr->magic = OSAL_htons(PRL_MAGIC_NUMBER);
     hdr->version = PRL_VERSION;
     hdr->dev_type = dev_type;
     hdr->msg_type = msg_type;
     hdr->flags = flags;
-    hdr->length = payload_len;
-    hdr->seq = prl_get_next_seq();
-    hdr->timestamp = prl_get_timestamp();
+    hdr->length = OSAL_htons(payload_len);
+    hdr->seq = OSAL_htonl(prl_get_next_seq());
+    hdr->timestamp = OSAL_htonl(prl_get_timestamp());
+    /* crc16 将在 prl_set_packet_crc() 中转换 */
 }
 
 int prl_validate_header(const prl_header_t *hdr, uint8_t expected_type)
 {
-    if (hdr->magic != PRL_MAGIC_NUMBER) {
+    uint16_t magic;
+    uint16_t length;
+
+    /* 将网络字节序转换为主机字节序后再验证 */
+    magic = OSAL_ntohs(hdr->magic);
+    length = OSAL_ntohs(hdr->length);
+
+    if (magic != PRL_MAGIC_NUMBER) {
         return PRL_ERR_INVALID_MAGIC;
     }
 
@@ -102,7 +112,7 @@ int prl_validate_header(const prl_header_t *hdr, uint8_t expected_type)
         return PRL_ERR_INVALID_TYPE;
     }
 
-    if (hdr->length > PRL_MAX_PAYLOAD_SIZE) {
+    if (length > PRL_MAX_PAYLOAD_SIZE) {
         return PRL_ERR_INVALID_LENGTH;
     }
 
@@ -119,14 +129,14 @@ void prl_set_packet_crc(uint8_t *packet, size_t total_len)
     /* 计算整个报文的 CRC */
     uint16_t crc = prl_calc_crc16(packet, total_len);
 
-    /* 设置 CRC */
-    hdr->crc16 = crc;
+    /* 设置 CRC（转换为网络字节序） */
+    hdr->crc16 = OSAL_htons(crc);
 }
 
 bool prl_verify_packet_crc(const uint8_t *packet, size_t total_len)
 {
     const prl_header_t *hdr = (const prl_header_t *)packet;
-    uint16_t received_crc = hdr->crc16;
+    uint16_t received_crc = OSAL_ntohs(hdr->crc16);  /* 转换为主机字节序 */
 
     /* 分段计算 CRC，避免动态内存分配
      * CRC 字段位于协议头的偏移 14-15 字节处

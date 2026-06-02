@@ -134,27 +134,34 @@ static int32_t mcu_send_command_internal(mcu_context_t *ctx,
                                       uint32_t *actual_size)
 {
     int32_t ret = OSAL_ERR_GENERIC;
+    pdl_mcu_interface_t interface;
+    void *comm_handle;
+    uint32_t timeout_ms;
 
+    /* 缩小锁范围：只在读取上下文时加锁 */
     OSAL_MutexLock(ctx->mutex);
+    interface = ctx->interface;
+    comm_handle = ctx->comm_handle;
+    timeout_ms = ctx->config.cmd_timeout_ms;
+    OSAL_MutexUnlock(ctx->mutex);
 
-    switch (ctx->interface)
+    /* 发送命令时不持有锁，由 HAL 层提供线程安全保护 */
+    switch (interface)
     {
         case PDL_MCU_INTERFACE_CAN:
-            ret = mcu_can_send_command(ctx->comm_handle, cmd_code, data, data_len,
+            ret = mcu_can_send_command(comm_handle, cmd_code, data, data_len,
                                       response, resp_size, actual_size,
-                                      ctx->config.cmd_timeout_ms);
+                                      timeout_ms);
             break;
         case PDL_MCU_INTERFACE_SERIAL:
-            ret = mcu_serial_send_command(ctx->comm_handle, cmd_code, data, data_len,
+            ret = mcu_serial_send_command(comm_handle, cmd_code, data, data_len,
                                          response, resp_size, actual_size,
-                                         ctx->config.cmd_timeout_ms);
+                                         timeout_ms);
             break;
         default:
             ret = OSAL_ERR_GENERIC;
             break;
     }
-
-    OSAL_MutexUnlock(ctx->mutex);
 
     return ret;
 }
