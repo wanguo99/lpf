@@ -293,3 +293,26 @@ TEST_CASE(test_prl_max_payload)
     /* 验证应该成功 */
     TEST_ASSERT_TRUE(prl_verify_packet_crc(packet, total_len));
 }
+
+/*===========================================================================
+ * 测试套件注册
+ *===========================================================================*/
+
+TEST_MODULE_BEGIN(test_prl_common, "PRL")
+    TEST_CASE_REGISTER(test_prl_crc16_basic, "CRC16 basic")
+    TEST_CASE_REGISTER(test_prl_crc16_consistency, "CRC16 consistency")
+    TEST_CASE_REGISTER(test_prl_crc16_different_data, "CRC16 different data")
+    TEST_CASE_REGISTER(test_prl_seq_number, "Sequence number")
+    TEST_CASE_REGISTER(test_prl_init_header, "Init header")
+    TEST_CASE_REGISTER(test_prl_init_header_with_flags, "Init header with flags")
+    TEST_CASE_REGISTER(test_prl_validate_header_valid, "Validate valid header")
+    TEST_CASE_REGISTER(test_prl_validate_header_invalid_magic, "Validate invalid magic")
+    TEST_CASE_REGISTER(test_prl_validate_header_invalid_version, "Validate invalid version")
+    TEST_CASE_REGISTER(test_prl_validate_header_invalid_type, "Validate invalid type")
+    TEST_CASE_REGISTER(test_prl_validate_header_invalid_length, "Validate invalid length")
+    TEST_CASE_REGISTER(test_prl_packet_crc, "Packet CRC")
+    TEST_CASE_REGISTER(test_prl_packet_crc_tampered, "Packet CRC tampered")
+    TEST_CASE_REGISTER(test_prl_packet_crc_header_tampered, "Packet CRC header tampered")
+    TEST_CASE_REGISTER(test_prl_zero_length_payload, "Zero length payload")
+    TEST_CASE_REGISTER(test_prl_max_payload, "Max payload")
+TEST_MODULE_END(test_prl_common, "PRL")

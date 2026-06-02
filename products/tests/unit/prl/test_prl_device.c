@@ -247,3 +247,19 @@ TEST_CASE(test_prl_device_large_payload)
     TEST_ASSERT_EQUAL(sizeof(large_payload), payload_len);
     TEST_ASSERT_EQUAL(0, memcmp(large_payload, decoded_payload, payload_len));
 }
+
+/*===========================================================================
+ * 测试套件注册
+ *===========================================================================*/
+
+TEST_MODULE_BEGIN(test_prl_device, "PRL")
+    TEST_CASE_REGISTER(test_prl_device_encode_decode_basic, "Encode/decode basic")
+    TEST_CASE_REGISTER(test_prl_device_encode_empty_payload, "Encode empty payload")
+    TEST_CASE_REGISTER(test_prl_device_type_valid, "Device type valid")
+    TEST_CASE_REGISTER(test_prl_device_type_name, "Device type name")
+    TEST_CASE_REGISTER(test_prl_device_encode_all_device_types, "Encode all device types")
+    TEST_CASE_REGISTER(test_prl_device_encode_invalid_params, "Encode invalid params")
+    TEST_CASE_REGISTER(test_prl_device_decode_invalid_params, "Decode invalid params")
+    TEST_CASE_REGISTER(test_prl_device_crc_verification, "CRC verification")
+    TEST_CASE_REGISTER(test_prl_device_large_payload, "Large payload")
+TEST_MODULE_END(test_prl_device, "PRL")
