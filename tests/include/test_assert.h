@@ -47,8 +47,10 @@ extern const char *g_current_test;
 #define TEST_ASSERT_EQUAL(expected, actual) \
     do { \
         if ((expected) != (actual)) { \
-            OSAL_Printf("[  FAILED  ] %s:%d: Expected %ld, got %ld\n", \
-                   __FILE__, __LINE__, (long)(expected), (long)(actual)); \
+            OSAL_Printf("[  FAILED  ] %s:%d\n", __FILE__, __LINE__); \
+            OSAL_Printf("            Expression: %s == %s\n", #expected, #actual); \
+            OSAL_Printf("            Expected: %ld\n", (long)(expected)); \
+            OSAL_Printf("            Actual:   %ld\n", (long)(actual)); \
             g_test_failed = true; \
             return; \
         } \
@@ -57,8 +59,10 @@ extern const char *g_current_test;
 #define TEST_EXPECT_EQUAL(expected, actual) \
     do { \
         if ((expected) != (actual)) { \
-            OSAL_Printf("[  FAILED  ] %s:%d: Expected %ld, got %ld\n", \
-                   __FILE__, __LINE__, (long)(expected), (long)(actual)); \
+            OSAL_Printf("[  FAILED  ] %s:%d\n", __FILE__, __LINE__); \
+            OSAL_Printf("            Expression: %s == %s\n", #expected, #actual); \
+            OSAL_Printf("            Expected: %ld\n", (long)(expected)); \
+            OSAL_Printf("            Actual:   %ld\n", (long)(actual)); \
             g_test_failed = true; \
         } \
     } while(0)
@@ -71,8 +75,10 @@ extern const char *g_current_test;
         int32_t _test_exp = (expected); \
         int32_t _test_act = (actual); \
         if (_test_exp != _test_act) { \
-            OSAL_Printf("[  FAILED  ] %s:%d: Expected %d, got %d\n", \
-                   __FILE__, __LINE__, _test_exp, _test_act); \
+            OSAL_Printf("[  FAILED  ] %s:%d\n", __FILE__, __LINE__); \
+            OSAL_Printf("            Expression: %s == %s\n", #expected, #actual); \
+            OSAL_Printf("            Expected: %d (int32_t)\n", _test_exp); \
+            OSAL_Printf("            Actual:   %d (int32_t)\n", _test_act); \
             g_test_failed = true; \
             return; \
         } \
@@ -84,8 +90,10 @@ extern const char *g_current_test;
         uint32_t _test_exp = (expected); \
         uint32_t _test_act = (actual); \
         if (_test_exp != _test_act) { \
-            OSAL_Printf("[  FAILED  ] %s:%d: Expected %u, got %u\n", \
-                   __FILE__, __LINE__, _test_exp, _test_act); \
+            OSAL_Printf("[  FAILED  ] %s:%d\n", __FILE__, __LINE__); \
+            OSAL_Printf("            Expression: %s == %s\n", #expected, #actual); \
+            OSAL_Printf("            Expected: %u (uint32_t)\n", _test_exp); \
+            OSAL_Printf("            Actual:   %u (uint32_t)\n", _test_act); \
             g_test_failed = true; \
             return; \
         } \
@@ -97,8 +105,10 @@ extern const char *g_current_test;
         const void *_test_exp = (const void *)(expected); \
         const void *_test_act = (const void *)(actual); \
         if (_test_exp != _test_act) { \
-            OSAL_Printf("[  FAILED  ] %s:%d: Expected %p, got %p\n", \
-                   __FILE__, __LINE__, _test_exp, _test_act); \
+            OSAL_Printf("[  FAILED  ] %s:%d\n", __FILE__, __LINE__); \
+            OSAL_Printf("            Expression: %s == %s\n", #expected, #actual); \
+            OSAL_Printf("            Expected: %p (pointer)\n", _test_exp); \
+            OSAL_Printf("            Actual:   %p (pointer)\n", _test_act); \
             g_test_failed = true; \
             return; \
         } \
@@ -118,8 +128,10 @@ extern const char *g_current_test;
 #define TEST_ASSERT_NULL(ptr) \
     do { \
         if ((ptr) != NULL) { \
-            OSAL_Printf("[  FAILED  ] %s:%d: Expected NULL pointer\n", \
-                   __FILE__, __LINE__); \
+            OSAL_Printf("[  FAILED  ] %s:%d\n", __FILE__, __LINE__); \
+            OSAL_Printf("            Expression: %s == NULL\n", #ptr); \
+            OSAL_Printf("            Expected: NULL\n"); \
+            OSAL_Printf("            Actual:   %p (non-NULL)\n", (void*)(ptr)); \
             g_test_failed = true; \
             return; \
         } \
@@ -128,8 +140,10 @@ extern const char *g_current_test;
 #define TEST_ASSERT_NOT_NULL(ptr) \
     do { \
         if ((ptr) == NULL) { \
-            OSAL_Printf("[  FAILED  ] %s:%d: Expected non-NULL pointer\n", \
-                   __FILE__, __LINE__); \
+            OSAL_Printf("[  FAILED  ] %s:%d\n", __FILE__, __LINE__); \
+            OSAL_Printf("            Expression: %s != NULL\n", #ptr); \
+            OSAL_Printf("            Expected: non-NULL pointer\n"); \
+            OSAL_Printf("            Actual:   NULL\n"); \
             g_test_failed = true; \
             return; \
         } \
