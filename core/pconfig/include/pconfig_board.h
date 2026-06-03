@@ -1,47 +1,24 @@
 /************************************************************************
- * PCL板级配置
+ * PCONFIG 内部板级配置头文件
  *
  * 功能：
- * - 板级配置类型定义（顶层）
- * - 聚合所有硬件外设配置（MCU、BMC、FPGA、Switch）
+ * - 内部使用的板级配置相关定义
  *
- * 设计原则：
- * - 只包含纯硬件外设配置
- * - 不包含业务逻辑（卫星平台、传感器、存储、应用等）
- * - 配置以外设为单位，简洁明了
- * - 使用 PCL 配置条目（pconfig_xxx_entry_t）而非自定义配置
+ * 说明：
+ * - 本文件仅供 PCONFIG 模块内部使用
+ * - 所有类型定义已移至 api/pconfig_types.h
+ * - 本文件包含内部工具函数和私有定义
  ************************************************************************/
 
 #ifndef PCONFIG_BOARD_H
 #define PCONFIG_BOARD_H
 
-#include "pconfig_mcu.h"
-#include "pconfig_bmc.h"
-#include "pconfig_fpga.h"
-#include "pconfig_switch.h"
+#include "pconfig_common.h"
 
 /*===========================================================================
- * 板级配置（顶层）
+ * 内部工具函数声明（如需要）
  *===========================================================================*/
 
-/**
- * @brief 板级硬件配置
- *
- * 这是顶层配置结构，以外设为单位描述整个板子的硬件配置
- * 只包含纯硬件外设：MCU、BMC、FPGA、Switch
- */
-typedef struct {
-    /* 板级信息 */
-    const char *platform_name;    /* 平台名称（如"ti"） */
-    const char *chip_name;        /* 芯片名称（如"am6254"） */
-    const char *project_name;     /* 项目名称（如"H200_100P"） */
-    const char *product_name;     /* 产品名称（如"h200_100p_base"） */
-
-    /* 硬件外设配置数组（NULL结尾） */
-    pconfig_mcu_entry_t    **mcu_arr;      /* MCU外设数组 */
-    pconfig_bmc_entry_t    **bmc_arr;      /* BMC外设数组 */
-    pconfig_fpga_cfg_t     **fpga_arr;     /* FPGA外设数组 */
-    pconfig_switch_cfg_t   **switch_arr;   /* Switch外设数组 */
-} pconfig_platform_config_t;
+/* 未来可以在这里添加板级配置相关的内部工具函数声明 */
 
 #endif /* PCONFIG_BOARD_H */

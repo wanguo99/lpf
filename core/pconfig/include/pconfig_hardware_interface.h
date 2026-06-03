@@ -1,58 +1,24 @@
 /************************************************************************
- * PCL硬件接口定义
+ * PCONFIG 内部硬件接口头文件
  *
  * 功能：
- * - 硬件通信接口类型枚举（CAN/UART/I2C/SPI/Ethernet/USB/SpaceWire/1553B）
+ * - 内部使用的硬件接口相关定义
  *
  * 说明：
- * - 本文件定义物理层硬件通信接口类型枚举
- * - 实际硬件配置结构由 HAL 层定义（hal_can.h, hal_serial.h 等）
- * - PDL 层直接嵌入 HAL 配置，不需要 PCL 层的配置结构
- *
- * 注意：
- * - 本文件中的配置结构体已废弃，仅保留接口类型枚举
- * - 请直接使用 HAL 层的配置结构体（hal_can_config_t, hal_serial_config_t 等）
+ * - 本文件仅供 PCONFIG 模块内部使用
+ * - 所有类型定义已移至 api/pconfig_types.h
+ * - 本文件包含内部工具函数和私有定义
  ************************************************************************/
 
 #ifndef PCONFIG_HARDWARE_INTERFACE_H
 #define PCONFIG_HARDWARE_INTERFACE_H
 
-#include "osal_types.h"
+#include "pconfig_common.h"
 
 /*===========================================================================
- * 硬件接口类型枚举
+ * 内部工具函数声明（如需要）
  *===========================================================================*/
 
-/**
- * @brief 硬件接口类型枚举
- */
-typedef enum {
-    PCONFIG_HW_INTERFACE_NONE = 0,
-    PCONFIG_HW_INTERFACE_CAN,
-    PCONFIG_HW_INTERFACE_UART,
-    PCONFIG_HW_INTERFACE_I2C,
-    PCONFIG_HW_INTERFACE_SPI,
-    PCONFIG_HW_INTERFACE_ETHERNET,
-    PCONFIG_HW_INTERFACE_USB,
-    PCONFIG_HW_INTERFACE_SPACEWIRE,
-    PCONFIG_HW_INTERFACE_1553B,
-    PCONFIG_HW_INTERFACE_MAX
-} pconfig_hw_interface_type_t;
-
-/*===========================================================================
- * 注意：硬件接口配置结构已废弃
- *===========================================================================*/
-
-/*
- * 以下配置结构已废弃，请直接使用 HAL 层的配置结构：
- *
- * - CAN:      使用 hal_can_config_t     (hal_can.h)
- * - UART:     使用 hal_serial_config_t  (hal_serial.h)
- * - I2C:      使用 hal_i2c_config_t     (hal_i2c.h)
- * - SPI:      使用 hal_spi_config_t     (hal_spi.h)
- * - GPIO:     使用 hal_gpio_config_t    (hal_gpio.h)
- *
- * PDL 层配置直接嵌入 HAL 配置，避免重复定义和转换开销。
- */
+/* 未来可以在这里添加硬件接口相关的内部工具函数声明 */
 
 #endif /* PCONFIG_HARDWARE_INTERFACE_H */

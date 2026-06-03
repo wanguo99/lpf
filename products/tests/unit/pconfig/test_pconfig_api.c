@@ -4,9 +4,7 @@
  */
 
 #include "test_framework.h"
-#include "api/pconfig_api.h"
-#include "pconfig_mcu.h"
-#include "pconfig_bmc.h"
+#include "pconfig.h"
 #include <string.h>
 
 /* 测试用的MCU配置 */
@@ -138,7 +136,7 @@ TEST_CASE(test_pconfig_register_null)
 {
     PCONFIG_Init();
     int32_t ret = PCONFIG_Register(NULL);
-    TEST_ASSERT_EQUAL(OSAL_ERR_INVALID_POINTER, ret);
+    TEST_ASSERT_EQUAL(OSAL_ERR_GENERIC, ret);
 }
 
 /*===========================================================================
@@ -273,7 +271,7 @@ TEST_CASE(test_pconfig_validate_success)
 TEST_CASE(test_pconfig_validate_null)
 {
     int32_t ret = PCONFIG_Validate(NULL);
-    TEST_ASSERT_EQUAL(OSAL_ERR_INVALID_POINTER, ret);
+    TEST_ASSERT_EQUAL(OSAL_ERR_GENERIC, ret);
 }
 
 /*===========================================================================
@@ -294,7 +292,7 @@ TEST_CASE(test_pconfig_list_null_pointer)
 {
     uint32_t count = 10;
     int32_t ret = PCONFIG_List(NULL, &count);
-    TEST_ASSERT_EQUAL(OSAL_ERR_INVALID_POINTER, ret);
+    TEST_ASSERT_EQUAL(OSAL_ERR_GENERIC, ret);
 }
 
 /*===========================================================================

@@ -10,7 +10,7 @@
  * - 配置验证
  */
 
-#include "api/pconfig_api.h"
+#include "pconfig.h"
 #include "osal.h"
 
 /* 测试用的配置数据 */

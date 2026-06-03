@@ -1,48 +1,24 @@
 /************************************************************************
- * XConfig通用类型定义
+ * PCONFIG 内部通用头文件
  *
  * 功能：
- * - GPIO配置
- * - 电源域配置
+ * - 内部使用的通用定义和工具函数声明
  *
  * 说明：
- * - 本文件定义所有外设配置共用的基础类型
- * - 被所有xconfig头文件引用
+ * - 本文件仅供 PCONFIG 模块内部使用
+ * - 所有类型定义已移至 api/pconfig_types.h
+ * - 本文件包含内部工具函数和私有定义
  ************************************************************************/
 
 #ifndef PCONFIG_COMMON_H
 #define PCONFIG_COMMON_H
 
-#include "osal_types.h"
+#include "../api/pconfig_types.h"
 
 /*===========================================================================
- * GPIO配置
+ * 内部工具函数声明（如需要）
  *===========================================================================*/
 
-/**
- * @brief GPIO配置
- */
-typedef struct {
-    uint32_t gpio_num;              /* GPIO编号 */
-    uint32_t pin_mux;               /* 引脚复用配置 */
-    bool   active_low;            /* 低电平有效 */
-    bool   pull_up;               /* 上拉使能 */
-    bool   pull_down;             /* 下拉使能 */
-} pconfig_gpio_config_t;
-
-/*===========================================================================
- * 电源域配置
- *===========================================================================*/
-
-/**
- * @brief 电源域配置
- */
-typedef struct {
-    const char *name;             /* 电源域名称 */
-    pconfig_gpio_config_t *enable_gpio; /* 使能GPIO */
-    uint32_t      voltage_mv;       /* 电压（mV） */
-    uint32_t      current_ma;       /* 电流限制（mA） */
-    uint32_t      startup_delay_ms; /* 启动延时（ms） */
-} pconfig_power_domain_t;
+/* 未来可以在这里添加内部工具函数声明 */
 
 #endif /* PCONFIG_COMMON_H */

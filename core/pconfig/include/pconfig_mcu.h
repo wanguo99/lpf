@@ -1,45 +1,24 @@
 /************************************************************************
- * PCL MCU外设配置
+ * PCONFIG 内部 MCU 配置头文件
  *
  * 功能：
- * - MCU外设配置容器
- * - 直接使用 types 模块的 pdl_mcu_config_t 结构体
- * - PCL 只负责配置的存储、查询和管理
+ * - 内部使用的 MCU 配置相关定义
  *
- * 设计原则：
- * - 配置结构体由 types 模块定义（pdl_types.h）
- * - PCL 层只添加配置管理字段（name, description, enabled）
- * - 避免重复定义，零拷贝传递配置
- * - 打破 PCL 和 PDL 之间的循环依赖
+ * 说明：
+ * - 本文件仅供 PCONFIG 模块内部使用
+ * - 所有类型定义已移至 api/pconfig_types.h
+ * - 本文件包含内部工具函数和私有定义
  ************************************************************************/
 
 #ifndef PCONFIG_MCU_H
 #define PCONFIG_MCU_H
 
-#include "pdl_types.h"  /* 使用 PDL 模块的配置类型定义 */
 #include "pconfig_common.h"
 
 /*===========================================================================
- * MCU外设配置条目（PCL层配置容器）
+ * 内部工具函数声明（如需要）
  *===========================================================================*/
 
-/**
- * @brief MCU外设配置条目
- *
- * PCL 层只负责配置管理，实际配置结构由 types 模块定义
- */
-typedef struct {
-    /* PCL 配置管理字段 */
-    const char *name;             /* MCU名称（用于查询，如"power_mcu"） */
-    const char *description;      /* 描述信息 */
-    bool        enabled;          /* 是否启用此MCU */
-
-    /* PDL 配置（来自 types 模块） */
-    pdl_mcu_config_t config;      /* MCU配置（来自 pdl_types.h） */
-
-    /* GPIO控制（可选，PCL层扩展） */
-    pconfig_gpio_config_t *reset_gpio;  /* 复位GPIO */
-    pconfig_gpio_config_t *irq_gpio;    /* 中断GPIO */
-} pconfig_mcu_entry_t;
+/* 未来可以在这里添加 MCU 配置相关的内部工具函数声明 */
 
 #endif /* PCONFIG_MCU_H */

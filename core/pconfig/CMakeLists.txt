@@ -35,7 +35,8 @@ list(APPEND ADD_REQUIREMENTS osal pdl)
 ###############################################
 
 # 注册组件（使用公共函数）
-list(APPEND ADD_INCLUDE "include")
+# api/ 目录对外暴露，include/ 目录仅内部使用
+list(APPEND ADD_INCLUDE "api" "include")
 get_filename_component(PARENT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" DIRECTORY)
 list(APPEND ADD_INCLUDE "${PARENT_DIR}")
 

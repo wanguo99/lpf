@@ -6,7 +6,7 @@
  * - PCONFIG_HW_*    - 硬件配置接口
  ************************************************************************/
 
-#include "api/pconfig_api.h"
+#include "pconfig_api.h"
 #include "util/osal_log.h"
 #include "osal.h"
 
