@@ -1,4 +1,5 @@
 /**
+#include "osal_types.h"
  * @file prl_common.h
  * @brief Protocol Layer Common Definitions
  */
@@ -11,6 +12,22 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* ========== Error Codes ========== */
+
+#define PRL_OK                      0
+#define PRL_ERR_INVALID_PARAM      -1
+#define PRL_ERR_INVALID_LENGTH     -2
+#define PRL_ERR_BUFFER_TOO_SMALL   -3
+#define PRL_ERR_CRC_MISMATCH       -4
+#define PRL_ERR_INVALID_MAGIC      -5
+#define PRL_ERR_INVALID_VERSION    -6
+
+/* ========== Protocol Flags ========== */
+
+#define PRL_FLAG_NONE               0x00
+#define PRL_FLAG_IS_ACK             0x01
+#define PRL_FLAG_NEED_ACK           0x02
 
 /* ========== Protocol Constants ========== */
 

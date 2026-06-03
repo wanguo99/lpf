@@ -7,7 +7,7 @@
  * - 实际硬件访问需要在 Linux 平台上运行
  ************************************************************************/
 
-#include "hal_watchdog.h"
+#include "hal/hal_watchdog_api.h"
 #include "osal.h"
 
 int32_t HAL_WATCHDOG_Init(const hal_watchdog_config_t *config, hal_watchdog_handle_t *handle)

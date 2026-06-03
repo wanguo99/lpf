@@ -1,4 +1,5 @@
 /**
+#include "osal_types.h"
  * @file prl_types.h
  * @brief Protocol Layer Type Definitions
  */

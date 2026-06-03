@@ -7,7 +7,7 @@
  * - 实际硬件访问需要在 Linux 平台上运行
  ************************************************************************/
 
-#include "hal_can.h"
+#include "hal/hal_can_api.h"
 #include "osal.h"
 
 int32_t HAL_CAN_Init(const hal_can_config_t *config, hal_can_handle_t *handle)

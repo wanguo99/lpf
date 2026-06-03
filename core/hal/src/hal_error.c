@@ -2,7 +2,8 @@
  * HAL层 - 错误码实现
  ************************************************************************/
 
-#include "hal_error.h"
+#include "hal/hal_error_api.h"
+#include "osal/osal.h"
 #include "osal.h"
 #include <stdarg.h>
 

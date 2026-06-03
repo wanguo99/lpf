@@ -10,8 +10,8 @@
 #include <linux/watchdog.h>
 #include <sys/ioctl.h>
 #include <stdatomic.h>
-#include "hal_watchdog.h"
-#include "hal_error.h"
+#include "hal/hal_watchdog_api.h"
+#include "hal/hal_error_api.h"
 #include "osal.h"
 
 typedef struct

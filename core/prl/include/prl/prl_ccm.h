@@ -1,4 +1,5 @@
 /**
+#include "osal_types.h"
  * @file prl_ccm.h (compatibility header)
  * @brief CCM Device Protocol - Compatibility Header
  * @details 兼容性头文件 - 重定向到新的 API 目录

@@ -4,9 +4,9 @@
  * 基于POSIX termios实现
  ************************************************************************/
 
-#include "hal_serial.h"
-#include "hal_serial_internal.h"
-#include "hal_error.h"
+#include "hal/hal_serial_api.h"
+#include "hal/hal_serial_internal_api.h"
+#include "hal/hal_error_api.h"
 #include "osal.h"
 #include "osal_flock.h"
 #include <termios.h>  /* 系统波特率常量 B9600 等 */

@@ -1,4 +1,5 @@
 /**
+#include "osal_types.h"
  * @file prl_device.h
  * @brief Protocol Layer Device Message Utilities
  */

@@ -1,4 +1,5 @@
 /**
+#include "osal_types.h"
  * @file prl_gsc.h (compatibility header)
  * @brief GSC Device Protocol - Compatibility Header
  * @details 兼容性头文件 - 重定向到新的 API 目录

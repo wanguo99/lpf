@@ -12,7 +12,7 @@
 #include <sys/ioctl.h>
 #include "hal_i2c.h"
 #include "hal_i2c_internal.h"
-#include "hal_error.h"
+#include "hal/hal_error_api.h"
 #include "osal.h"
 #include "osal_flock.h"
 

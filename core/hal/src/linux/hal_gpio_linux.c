@@ -4,9 +4,9 @@
  * 使用Linux sysfs GPIO接口实现
  ************************************************************************/
 
-#include "hal_gpio.h"
-#include "hal_gpio_internal.h"
-#include "hal_error.h"
+#include "hal/hal_gpio_api.h"
+#include "hal/hal_gpio_internal_api.h"
+#include "hal/hal_error_api.h"
 #include "osal.h"
 #include "osal_flock.h"
 #include "sys/osal_poll.h"
