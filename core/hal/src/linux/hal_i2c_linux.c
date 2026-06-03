@@ -11,21 +11,10 @@
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
 #include "hal_i2c.h"
+#include "hal_i2c_internal.h"
 #include "hal_error.h"
 #include "osal.h"
 #include "osal_flock.h"
-
-typedef struct
-{
-    int32_t fd;
-    char device[64];
-    uint32_t timeout;
-    bool initialized;
-
-    /* 双重保护机制 */
-    osal_flock_t *flock;  /* 文件锁（进程间保护） */
-    osal_mutex_t *mutex;  /* 互斥锁（线程间保护） */
-} hal_i2c_context_t;
 
 /**
  * @brief 打开I2C设备

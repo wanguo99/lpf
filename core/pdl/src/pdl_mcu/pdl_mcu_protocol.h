@@ -9,6 +9,7 @@
 
 #include "pdl_mcu.h"
 #include "prl_device.h"
+#include "prl_mcu.h"
 
 #ifdef __cplusplus
 extern "C" {

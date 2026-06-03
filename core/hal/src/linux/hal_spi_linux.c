@@ -10,27 +10,10 @@
 #include <linux/spi/spidev.h>
 #include <sys/ioctl.h>
 #include "hal_spi.h"
+#include "hal_spi_internal.h"
 #include "hal_error.h"
 #include "osal.h"
 #include "osal_flock.h"
-
-/**
- * @brief SPI 设备上下文（带双重保护）
- */
-typedef struct
-{
-    int32_t fd;
-    char device[64];
-    uint8_t mode;
-    uint8_t bits_per_word;
-    uint32_t max_speed_hz;
-    uint32_t timeout;
-    bool initialized;
-
-    /* 双重保护机制 */
-    osal_flock_t *flock;    /* 文件锁（进程间保护） */
-    osal_mutex_t *mutex;    /* 互斥锁（线程间保护） */
-} hal_spi_context_t;
 
 /**
  * @brief 打开SPI设备

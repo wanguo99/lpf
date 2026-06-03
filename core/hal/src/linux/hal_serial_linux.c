@@ -5,24 +5,11 @@
  ************************************************************************/
 
 #include "hal_serial.h"
+#include "hal_serial_internal.h"
 #include "hal_error.h"
 #include "osal.h"
 #include "osal_flock.h"
 #include <termios.h>  /* 系统波特率常量 B9600 等 */
-
-/**
- * @brief Serial 设备上下文（带双重保护）
- */
-typedef struct
-{
-    int32_t fd;
-    hal_serial_config_t config;
-    char device[64];
-
-    /* 双重保护机制 */
-    osal_flock_t *flock;    /* 文件锁（进程间保护） */
-    osal_mutex_t *mutex;    /* 互斥锁（线程间保护） */
-} hal_serial_context_t;
 
 static uint32_t hal_serial_get_baudrate(uint32_t baudrate)
 {
