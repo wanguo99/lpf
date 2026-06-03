@@ -5,7 +5,7 @@
  ************************************************************************/
 
 #include "hal/hal_serial_api.h"
-#include "hal/hal_serial_internal_api.h"
+#include "hal_serial_internal.h"
 #include "hal/hal_error_api.h"
 #include "osal.h"
 #include "osal_flock.h"

@@ -10,7 +10,7 @@
 #include <linux/spi/spidev.h>
 #include <sys/ioctl.h>
 #include "hal/hal_spi_api.h"
-#include "hal/hal_spi_internal_api.h"
+#include "hal_spi_internal.h"
 #include "hal/hal_error_api.h"
 #include "osal.h"
 #include "osal_flock.h"

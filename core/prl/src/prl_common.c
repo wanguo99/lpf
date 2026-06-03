@@ -79,7 +79,7 @@ void prl_init_header(prl_header_t *hdr, uint8_t dev_type, uint8_t msg_type,
     OSAL_Memset(hdr, 0, sizeof(prl_header_t));
 
     /* 多字节字段使用网络字节序（大端），确保跨平台兼容性 */
-    hdr->magic = OSAL_htons(PRL_MAGIC_NUMBER);
+    hdr->magic = OSAL_htons(PRL_MAGIC);
     hdr->version = PRL_VERSION;
     hdr->dev_type = dev_type;
     hdr->msg_type = msg_type;
@@ -99,7 +99,7 @@ int prl_validate_header(const prl_header_t *hdr, uint8_t expected_type)
     magic = OSAL_ntohs(hdr->magic);
     length = OSAL_ntohs(hdr->length);
 
-    if (magic != PRL_MAGIC_NUMBER) {
+    if (magic != PRL_MAGIC) {
         return PRL_ERR_INVALID_MAGIC;
     }
 
@@ -108,7 +108,7 @@ int prl_validate_header(const prl_header_t *hdr, uint8_t expected_type)
     }
 
     if (expected_type != 0 && hdr->msg_type != expected_type) {
-        return PRL_ERR_INVALID_TYPE;
+        return PRL_ERR_INVALID_DEV_TYPE;
     }
 
     if (length > PRL_MAX_PAYLOAD_SIZE) {

@@ -5,7 +5,7 @@
  ************************************************************************/
 
 #include "hal/hal_gpio_api.h"
-#include "hal/hal_gpio_internal_api.h"
+#include "hal_gpio_internal.h"
 #include "hal/hal_error_api.h"
 #include "osal.h"
 #include "osal_flock.h"
