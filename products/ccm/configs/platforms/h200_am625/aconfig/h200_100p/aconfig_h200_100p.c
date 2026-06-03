@@ -6,8 +6,8 @@
  */
 
 #include <aconfig/aconfig_api.h>
-#include <aconfig/aconfig_tc.h>
-#include <aconfig/aconfig_tm.h>
+#include "aconfig/aconfig_tc.h"
+#include "aconfig/aconfig_tm.h"
 
 /**
  * @brief CCM v1.0遥控配置表

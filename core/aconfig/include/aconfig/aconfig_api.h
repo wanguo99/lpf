@@ -7,8 +7,8 @@
 #ifndef ACONFIG_ACONFIG_API_H
 #define ACONFIG_ACONFIG_API_H
 
-#include <osal/osal_types.h>
-#include <aconfig/aconfig_types.h>
+#include "osal_types.h"
+#include "aconfig_types.h"
 
 /**
  * @brief ACONFIG 配置统计信息

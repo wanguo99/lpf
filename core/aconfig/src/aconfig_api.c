@@ -3,8 +3,8 @@
  * @brief ACONFIG 层 API 实现（通用）
  */
 
-#include <aconfig/aconfig_api.h>
-#include <osal/osal.h>
+#include "aconfig/aconfig_api.h"
+#include "osal.h"
 #include "aconfig_internal.h"
 
 /* 全局配置表 */
