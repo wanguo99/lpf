@@ -347,7 +347,14 @@ if(CONFIG_TEST_SYSTEM)
         message(STATUS "  - HAL system tests")
         target_sources(ems-test PRIVATE
             system/hal/test_system_hal.c
+        )
+        # Create separate executable for concurrent access test (has its own main)
+        add_executable(test-hal-concurrent
             system/hal/test_hal_concurrent_access.c
+        )
+        target_link_libraries(test-hal-concurrent PRIVATE osal pthread rt m)
+        set_target_properties(test-hal-concurrent PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
         )
     endif()
 
