@@ -193,7 +193,7 @@ void test_multithread_concurrent(void)
     }
 
     /* 清理 */
-    OSAL_MutexDestroy(mutex);
+    OSAL_MutexDelete(mutex);
     OSAL_FlockDestroy(flock);
 
     printf("✅ 多线程并发测试完成\n");
