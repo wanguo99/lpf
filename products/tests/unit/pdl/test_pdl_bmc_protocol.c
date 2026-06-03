@@ -4,7 +4,7 @@
  * @brief PDL BMC协议层单元测试（IPMI和Redfish）
  */
 
-#include "pdl_bmc_internal.h"
+#include "pdl/pdl_bmc_internal_api.h"
 #include "osal.h"
 
 /*===========================================================================

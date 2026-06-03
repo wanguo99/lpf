@@ -4,7 +4,7 @@
  * @brief PDL BMC通信服务单元测试
  */
 
-#include "pdl_bmc.h"
+#include "pdl/pdl_bmc_api.h"
 #include "osal.h"
 
 /*===========================================================================

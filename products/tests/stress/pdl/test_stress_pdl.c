@@ -5,10 +5,10 @@
 
 #include "test_framework.h"
 #include "test_stress.h"
-#include "pdl_bmc.h"
-#include "pdl_mcu.h"
-#include "pdl_satellite.h"
-#include "pdl_watchdog.h"
+#include "pdl/pdl_bmc_api.h"
+#include "pdl/pdl_mcu_api.h"
+#include "pdl/pdl_satellite_api.h"
+#include "pdl/pdl_watchdog_api.h"
 
 /**
  * 测试BMC传感器并发读取压力
