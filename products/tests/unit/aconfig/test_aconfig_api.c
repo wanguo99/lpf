@@ -5,8 +5,8 @@
 
 #include "test_framework.h"
 #include "aconfig_api.h"
-#include "aconfig_tc.h"
-#include "aconfig_tm.h"
+#include <aconfig/aconfig_tc.h>
+#include <aconfig/aconfig_tm.h>
 #include <string.h>
 
 /* 测试用的配置表 */
