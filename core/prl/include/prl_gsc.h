@@ -1,17 +1,19 @@
 /**
- * @file prl_gsc.h
- * @brief GSC Device Protocol Messages
- * @details GSC（地面站控制器）设备的消息类型和结构体定义
+ * @file prl_gsc.h (compatibility header)
+ * @brief GSC Device Protocol - Compatibility Header
+ * @details 兼容性头文件 - 重定向到新的 API 目录
+ * @deprecated 请直接包含 "prl.h" 或 "prl_gsc.h"（从 api 目录）
  */
 
-#ifndef PRL_GSC_H
-#define PRL_GSC_H
+#ifndef PRL_INCLUDE_PRL_GSC_H
+#define PRL_INCLUDE_PRL_GSC_H
 
-#include "prl_common.h"
+#warning "Including prl_gsc.h from include/ is deprecated. Please include from api/ or use prl.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/* 重定向到新的 API 头文件 */
+#include "../api/prl_gsc.h"
+
+#endif /* PRL_INCLUDE_PRL_GSC_H */
 
 /**
  * @brief GSC 消息类型

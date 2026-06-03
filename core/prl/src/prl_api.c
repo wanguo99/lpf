@@ -5,6 +5,8 @@
  */
 
 #include "prl_api.h"
+#include "prl_common.h"
+#include "prl_device.h"
 #include "lib/osal_string.h"
 
 /* 全局初始化标志 */

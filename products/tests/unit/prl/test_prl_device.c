@@ -69,31 +69,31 @@ TEST_CASE(test_PRL_Encode_empty_payload)
 TEST_CASE(test_prl_device_type_valid)
 {
     /* 有效的设备类型 */
-    TEST_ASSERT_TRUE(prl_device_type_valid(PRL_DEV_TYPE_MCU));
-    TEST_ASSERT_TRUE(prl_device_type_valid(PRL_DEV_TYPE_CCM));
-    TEST_ASSERT_TRUE(prl_device_type_valid(PRL_DEV_TYPE_PMC));
-    TEST_ASSERT_TRUE(prl_device_type_valid(PRL_DEV_TYPE_GSC));
-    TEST_ASSERT_TRUE(prl_device_type_valid(PRL_DEV_TYPE_SATELLITE));
-    TEST_ASSERT_TRUE(prl_device_type_valid(PRL_DEV_TYPE_POWER));
-    TEST_ASSERT_TRUE(prl_device_type_valid(PRL_DEV_TYPE_BMC));
+    TEST_ASSERT_TRUE(PRL_IsDeviceTypeValid(PRL_DEV_TYPE_MCU));
+    TEST_ASSERT_TRUE(PRL_IsDeviceTypeValid(PRL_DEV_TYPE_CCM));
+    TEST_ASSERT_TRUE(PRL_IsDeviceTypeValid(PRL_DEV_TYPE_PMC));
+    TEST_ASSERT_TRUE(PRL_IsDeviceTypeValid(PRL_DEV_TYPE_GSC));
+    TEST_ASSERT_TRUE(PRL_IsDeviceTypeValid(PRL_DEV_TYPE_SATELLITE));
+    TEST_ASSERT_TRUE(PRL_IsDeviceTypeValid(PRL_DEV_TYPE_POWER));
+    TEST_ASSERT_TRUE(PRL_IsDeviceTypeValid(PRL_DEV_TYPE_BMC));
 
     /* 无效的设备类型 */
-    TEST_ASSERT_FALSE(prl_device_type_valid(PRL_DEV_TYPE_UNKNOWN));
-    TEST_ASSERT_FALSE(prl_device_type_valid(0xFF));
+    TEST_ASSERT_FALSE(PRL_IsDeviceTypeValid(PRL_DEV_TYPE_UNKNOWN));
+    TEST_ASSERT_FALSE(PRL_IsDeviceTypeValid(0xFF));
 }
 
 TEST_CASE(test_prl_device_type_name)
 {
     /* 验证设备类型名称 */
-    TEST_ASSERT_STRING_EQUAL("MCU", prl_device_type_name(PRL_DEV_TYPE_MCU));
-    TEST_ASSERT_STRING_EQUAL("CCM", prl_device_type_name(PRL_DEV_TYPE_CCM));
-    TEST_ASSERT_STRING_EQUAL("PMC", prl_device_type_name(PRL_DEV_TYPE_PMC));
-    TEST_ASSERT_STRING_EQUAL("GSC", prl_device_type_name(PRL_DEV_TYPE_GSC));
-    TEST_ASSERT_STRING_EQUAL("SATELLITE", prl_device_type_name(PRL_DEV_TYPE_SATELLITE));
-    TEST_ASSERT_STRING_EQUAL("POWER", prl_device_type_name(PRL_DEV_TYPE_POWER));
-    TEST_ASSERT_STRING_EQUAL("BMC", prl_device_type_name(PRL_DEV_TYPE_BMC));
-    TEST_ASSERT_STRING_EQUAL("UNKNOWN", prl_device_type_name(PRL_DEV_TYPE_UNKNOWN));
-    TEST_ASSERT_STRING_EQUAL("INVALID", prl_device_type_name(0xFF));
+    TEST_ASSERT_STRING_EQUAL("MCU", PRL_GetDeviceTypeName(PRL_DEV_TYPE_MCU));
+    TEST_ASSERT_STRING_EQUAL("CCM", PRL_GetDeviceTypeName(PRL_DEV_TYPE_CCM));
+    TEST_ASSERT_STRING_EQUAL("PMC", PRL_GetDeviceTypeName(PRL_DEV_TYPE_PMC));
+    TEST_ASSERT_STRING_EQUAL("GSC", PRL_GetDeviceTypeName(PRL_DEV_TYPE_GSC));
+    TEST_ASSERT_STRING_EQUAL("SATELLITE", PRL_GetDeviceTypeName(PRL_DEV_TYPE_SATELLITE));
+    TEST_ASSERT_STRING_EQUAL("POWER", PRL_GetDeviceTypeName(PRL_DEV_TYPE_POWER));
+    TEST_ASSERT_STRING_EQUAL("BMC", PRL_GetDeviceTypeName(PRL_DEV_TYPE_BMC));
+    TEST_ASSERT_STRING_EQUAL("UNKNOWN", PRL_GetDeviceTypeName(PRL_DEV_TYPE_UNKNOWN));
+    TEST_ASSERT_STRING_EQUAL("INVALID", PRL_GetDeviceTypeName(0xFF));
 }
 
 /*===========================================================================

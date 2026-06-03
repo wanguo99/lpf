@@ -1,5 +1,8 @@
 ################# Add include #################
-list(APPEND ADD_INCLUDE "include")
+# API 目录：对外公开的头文件（PUBLIC）
+list(APPEND ADD_INCLUDE "api")
+# include 目录：内部私有头文件（PRIVATE）
+list(APPEND ADD_PRIVATE_INCLUDE "include")
 ###############################################
 
 ############## Add source files ###############
