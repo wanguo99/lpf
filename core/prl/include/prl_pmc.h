@@ -1,17 +1,19 @@
 /**
- * @file prl_pmc.h
- * @brief PMC Device Protocol Messages
- * @details PMC（载荷管理器）设备的消息类型和结构体定义
+ * @file prl_pmc.h (compatibility header)
+ * @brief PMC Device Protocol - Compatibility Header
+ * @details 兼容性头文件 - 重定向到新的 API 目录
+ * @deprecated 请直接包含 "prl.h" 或 "prl_pmc.h"（从 api 目录）
  */
 
-#ifndef PRL_PMC_H
-#define PRL_PMC_H
+#ifndef PRL_INCLUDE_PRL_PMC_H
+#define PRL_INCLUDE_PRL_PMC_H
 
-#include "prl_common.h"
+#warning "Including prl_pmc.h from include/ is deprecated. Please include from api/ or use prl.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/* 重定向到新的 API 头文件 */
+#include "../api/prl_pmc.h"
+
+#endif /* PRL_INCLUDE_PRL_PMC_H */
 
 /**
  * @brief PMC 消息类型

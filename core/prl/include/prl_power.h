@@ -1,17 +1,19 @@
 /**
- * @file prl_power.h
- * @brief POWER Device Protocol Messages
- * @details POWER（电源管理板）设备的消息类型和结构体定义
+ * @file prl_power.h (compatibility header)
+ * @brief POWER Device Protocol - Compatibility Header
+ * @details 兼容性头文件 - 重定向到新的 API 目录
+ * @deprecated 请直接包含 "prl.h" 或 "prl_power.h"（从 api 目录）
  */
 
-#ifndef PRL_POWER_H
-#define PRL_POWER_H
+#ifndef PRL_INCLUDE_PRL_POWER_H
+#define PRL_INCLUDE_PRL_POWER_H
 
-#include "prl_common.h"
+#warning "Including prl_power.h from include/ is deprecated. Please include from api/ or use prl.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/* 重定向到新的 API 头文件 */
+#include "../api/prl_power.h"
+
+#endif /* PRL_INCLUDE_PRL_POWER_H */
 
 /**
  * @brief POWER 消息类型

@@ -93,6 +93,7 @@ target_include_directories(ems-test PRIVATE
     ${SDK_PATH}/core/hal/include
     ${SDK_PATH}/core/pconfig/include
     ${SDK_PATH}/core/pdl/include
+    ${SDK_PATH}/core/prl/api
     ${SDK_PATH}/core/prl/include
     ${SDK_PATH}/core/aconfig/include
 )

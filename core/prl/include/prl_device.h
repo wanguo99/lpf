@@ -20,12 +20,8 @@
 extern "C" {
 #endif
 
-/* 包含各设备的消息定义 */
-#include "prl_mcu.h"
-#include "prl_ccm.h"
-#include "prl_pmc.h"
-#include "prl_gsc.h"
-#include "prl_power.h"
+/* 包含各设备的消息定义（从 API 目录）*/
+#include "prl_types.h"
 
 /* ========== 内部编解码接口（仅供 PRL 内部使用） ========== */
 
