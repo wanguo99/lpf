@@ -13,8 +13,8 @@
  * - 对外 API 使用者只需包含 pconfig.h 或本文件
  ************************************************************************/
 
-#ifndef PCONFIG_TYPES_H
-#define PCONFIG_TYPES_H
+#ifndef PCONFIG_PCONFIG_TYPES_H
+#define PCONFIG_PCONFIG_TYPES_H
 
 #include "osal_types.h"
 #include "pdl_types.h"

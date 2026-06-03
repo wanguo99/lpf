@@ -11,8 +11,8 @@
  * - PCONFIG_HW_*   - 硬件配置相关接口
  ************************************************************************/
 
-#ifndef PCONFIG_API_H
-#define PCONFIG_API_H
+#ifndef PCONFIG_PCONFIG_API_H
+#define PCONFIG_PCONFIG_API_H
 
 #include "pconfig_types.h"
 

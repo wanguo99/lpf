@@ -13,10 +13,10 @@
  *   - pconfig_api.h    - 所有 API 函数
  ************************************************************************/
 
-#ifndef PCONFIG_H
-#define PCONFIG_H
+#ifndef PCONFIG_PCONFIG_H
+#define PCONFIG_PCONFIG_H
 
 #include "pconfig_types.h"
 #include "pconfig_api.h"
 
-#endif /* PCONFIG_H */
+#endif /* PCONFIG_PCONFIG_H */
