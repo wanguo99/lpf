@@ -3,7 +3,7 @@
  * @brief Protocol Layer Common Implementation
  */
 
-#include "prl_common.h"
+#include "prl/prl_common.h"
 #include "sys/osal_clock.h"
 #include "lib/osal_heap.h"
 #include "lib/osal_string.h"

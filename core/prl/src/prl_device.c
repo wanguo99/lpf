@@ -4,7 +4,7 @@
  * @details 统一设备协议消息实现
  */
 
-#include "prl_device.h"
+#include "prl/prl_device.h"
 #include "lib/osal_string.h"
 #include "net/osal_socket.h"  /* for OSAL_ntohs/ntohl */
 

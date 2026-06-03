@@ -4,6 +4,6 @@
  * @details GSC（地面站控制器）设备协议实现
  */
 
-#include "prl_gsc.h"
+#include "prl/prl_gsc.h"
 
 /* GSC 协议实现（待完善） */

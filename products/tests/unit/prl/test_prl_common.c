@@ -7,13 +7,13 @@
  ************************************************************************/
 
 #include "test_framework.h"
-#include "prl_common.h"
-#include "prl_api.h"      /* 用于公共API */
-#include "prl_mcu.h"
-#include "prl_ccm.h"
-#include "prl_pmc.h"
-#include "prl_gsc.h"
-#include "prl_power.h"
+#include "prl/prl_common.h"
+#include "prl/prl_api.h"      /* 用于公共API */
+#include "prl/prl_mcu.h"
+#include "prl/prl_ccm.h"
+#include "prl/prl_pmc.h"
+#include "prl/prl_gsc.h"
+#include "prl/prl_power.h"
 #include "net/osal_socket.h"  /* for OSAL_htons/ntohl */
 #include "lib/osal_string.h"  /* for OSAL_Memcmp */
 

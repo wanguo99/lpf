@@ -4,9 +4,9 @@
  * @details PRL 协议层对外 API 实现
  */
 
-#include "prl_api.h"
-#include "prl_common.h"
-#include "prl_device.h"
+#include "prl/prl_api.h"
+#include "prl/prl_common.h"
+#include "prl/prl_device.h"
 #include "lib/osal_string.h"
 
 /* 全局初始化标志 */

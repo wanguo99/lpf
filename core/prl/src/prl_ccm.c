@@ -4,6 +4,6 @@
  * @details CCM（通信管理板）设备协议实现
  */
 
-#include "prl_ccm.h"
+#include "prl/prl_ccm.h"
 
 /* CCM 协议实现（待完善） */
