@@ -9,28 +9,30 @@
 # Register SDK Core Components (like other products do)
 # ============================================================================
 # Build core modules required by tests
+# Note: Check if target already exists to avoid duplicate registration
+# when tests are built alongside products
 
-if(CONFIG_OSAL)
+if(CONFIG_OSAL AND NOT TARGET osal)
     add_subdirectory(${SDK_PATH}/core/osal ${CMAKE_CURRENT_BINARY_DIR}/osal)
 endif()
 
-if(CONFIG_HAL)
+if(CONFIG_HAL AND NOT TARGET hal)
     add_subdirectory(${SDK_PATH}/core/hal ${CMAKE_CURRENT_BINARY_DIR}/hal)
 endif()
 
-if(CONFIG_PCL)
+if(CONFIG_PCL AND NOT TARGET pconfig)
     add_subdirectory(${SDK_PATH}/core/pconfig ${CMAKE_CURRENT_BINARY_DIR}/pconfig)
 endif()
 
-if(CONFIG_PDL)
+if(CONFIG_PDL AND NOT TARGET pdl)
     add_subdirectory(${SDK_PATH}/core/pdl ${CMAKE_CURRENT_BINARY_DIR}/pdl)
 endif()
 
-if(CONFIG_PRL)
+if(CONFIG_PRL AND NOT TARGET prl)
     add_subdirectory(${SDK_PATH}/core/prl ${CMAKE_CURRENT_BINARY_DIR}/prl)
 endif()
 
-if(CONFIG_ACL)
+if(CONFIG_ACL AND NOT TARGET aconfig)
     add_subdirectory(${SDK_PATH}/core/aconfig ${CMAKE_CURRENT_BINARY_DIR}/aconfig)
 endif()
 
@@ -320,6 +322,20 @@ if(CONFIG_TEST_SYSTEM)
         system/test_system_core.c
     )
 
+    # System tests need core libraries - link them in correct order (dependencies first)
+    if(TARGET osal)
+        target_link_libraries(ems-test PRIVATE osal)
+    endif()
+    if(TARGET hal)
+        target_link_libraries(ems-test PRIVATE hal)
+    endif()
+    if(TARGET pdl)
+        target_link_libraries(ems-test PRIVATE pdl)
+    endif()
+    if(TARGET prl)
+        target_link_libraries(ems-test PRIVATE prl)
+    endif()
+
     if(CONFIG_TEST_SYSTEM_OSAL)
         message(STATUS "  - OSAL system tests")
         target_sources(ems-test PRIVATE
@@ -375,6 +391,7 @@ if(CONFIG_TEST_SYSTEM)
         target_sources(ems-test PRIVATE
             system/integration/test_system_integration.c
         )
+        # Libraries already linked at system test level
     endif()
 
 endif() # CONFIG_TEST_SYSTEM
@@ -389,6 +406,12 @@ target_link_libraries(ems-test PRIVATE
     rt
     m
 )
+
+# Force re-link osal at the end to resolve symbols
+# This ensures OSAL symbols are available for all tests
+if(TARGET osal)
+    target_link_libraries(ems-test PRIVATE osal)
+endif()
 
 # Set output directory
 set_target_properties(ems-test PROPERTIES

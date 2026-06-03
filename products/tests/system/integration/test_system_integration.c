@@ -6,9 +6,9 @@
 #include "test_framework.h"
 #include "test_system.h"
 #include "osal.h"
-#include "hal_can.h"
-#include "hal_serial.h"
-#include "hal_gpio.h"
+#include "hal/hal_can_api.h"
+#include "hal/hal_serial_api.h"
+#include "hal/hal_gpio_api.h"
 #include "pdl/pdl_bmc_api.h"
 #include "pdl/pdl_mcu_api.h"
 #include "pdl/pdl_satellite_api.h"
@@ -79,12 +79,12 @@ SYSTEM_TEST_CASE(hal_pdl_integration) {
     SYSTEM_CHECKPOINT(NULL, "PDL initialized", env->pdl_initialized);
 
     /* 检查点3：Watchdog操作 */
-    watchdog_config_t wdt_config = {
+    pdl_watchdog_config_t wdt_config = {
         .timeout_sec = 5,
         .enable_on_init = 0
     };
 
-    watchdog_handle_t wdt_handle = NULL;
+    pdl_watchdog_handle_t wdt_handle = NULL;
     int32_t ret = PDL_WATCHDOG_Init(&wdt_config, &wdt_handle);
     SYSTEM_CHECKPOINT(NULL, "Watchdog init", ret == 0);
 
@@ -95,7 +95,7 @@ SYSTEM_TEST_CASE(hal_pdl_integration) {
         ret = PDL_WATCHDOG_Kick(wdt_handle);
         SYSTEM_CHECKPOINT(NULL, "Watchdog kick", ret == 0);
 
-        watchdog_status_t status;
+        pdl_watchdog_status_t status;
         ret = PDL_WATCHDOG_GetStatus(wdt_handle, &status);
         SYSTEM_CHECKPOINT(NULL, "Watchdog get status",
                          ret == 0 && status.running);
