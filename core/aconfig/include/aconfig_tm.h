@@ -1,45 +1,13 @@
 /**
  * @file aconfig_tm.h
- * @brief ACL遥测功能枚举定义（通用）
+ * @brief ACONFIG 兼容性头文件（已废弃）
+ * @deprecated 请使用 api/aconfig_tm.h 替代
+ * @note 本文件保留用于向后兼容，将在未来版本中移除
  */
 
-#ifndef ACONFIG_TM_H
-#define ACONFIG_TM_H
+#ifndef ACONFIG_INCLUDE_TM_H
+#define ACONFIG_INCLUDE_TM_H
 
-#include "osal_types.h"
+#include "../api/aconfig_tm.h"
 
-/**
- * @brief 遥测功能通用枚举
- * @note 按功能类别分组，预留足够ID空间支持扩展
- */
-typedef enum {
-    /* 温度遥测类 (0-99) */
-    ACONFIG_TM_CPU_TEMP = 0,
-    ACONFIG_TM_BOARD_TEMP = 1,
-    ACONFIG_TM_MCU_TEMP = 2,
-    ACONFIG_TM_FPGA_TEMP = 3,
-    ACONFIG_TM_FAN_SPEED = 4,
-
-    /* 电压遥测类 (100-199) */
-    ACONFIG_TM_VOLTAGE_12V = 100,
-    ACONFIG_TM_VOLTAGE_5V = 101,
-    ACONFIG_TM_VOLTAGE_3V3 = 102,
-    ACONFIG_TM_CURRENT = 103,
-
-    /* 状态遥测类 (200-299) */
-    ACONFIG_TM_POWER_STATUS = 200,
-    ACONFIG_TM_MCU_STATUS = 201,
-    ACONFIG_TM_FPGA_STATUS = 202,
-    ACONFIG_TM_FPGA_CONFIG_STATUS = 203,
-    ACONFIG_TM_WATCHDOG_STATUS = 204,
-
-    /* 系统遥测类 (300-399) */
-    ACONFIG_TM_SYSTEM_UPTIME = 300,
-    ACONFIG_TM_MCU_UPTIME = 301,
-    ACONFIG_TM_ERROR_COUNT = 302,
-
-    /* 预留扩展空间 */
-    ACONFIG_TM_FUNC_MAX = 1000
-} aconfig_tm_function_t;
-
-#endif /* ACONFIG_TM_H */
+#endif /* ACONFIG_INCLUDE_TM_H */

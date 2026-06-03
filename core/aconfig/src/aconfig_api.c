@@ -1,6 +1,6 @@
 /**
  * @file aconfig_api.c
- * @brief ACL层API实现（通用）
+ * @brief ACONFIG 层 API 实现（通用）
  */
 
 #include "aconfig_api.h"
@@ -75,6 +75,7 @@ int32_t ACONFIG_RegisterTable(const aconfig_config_table_t *table)
 const aconfig_tc_config_t* ACONFIG_GetTcConfig(uint32_t function_id)
 {
     const aconfig_tc_config_t *config = NULL;
+    uint32_t i;
 
     /* 获取读锁（允许多个读者） */
     if (OSAL_SUCCESS != OSAL_RwlockRdlock(g_acl_rwlock)) {
@@ -87,14 +88,13 @@ const aconfig_tc_config_t* ACONFIG_GetTcConfig(uint32_t function_id)
         return NULL;
     }
 
-    /* 边界检查：防止数组越界 */
-    if (function_id >= g_acl_table->tc_count) {
-        OSAL_RwlockUnlock(g_acl_rwlock);
-        return NULL;
+    /* 查找匹配的 function_id */
+    for (i = 0; i < g_acl_table->tc_count; i++) {
+        if (g_acl_table->tc_table[i].function_id == function_id) {
+            config = &g_acl_table->tc_table[i];
+            break;
+        }
     }
-
-    /* O(1)直接索引 */
-    config = &g_acl_table->tc_table[function_id];
 
     /* 释放读锁 */
     OSAL_RwlockUnlock(g_acl_rwlock);
@@ -108,6 +108,7 @@ const aconfig_tc_config_t* ACONFIG_GetTcConfig(uint32_t function_id)
 const aconfig_tm_config_t* ACONFIG_GetTmConfig(uint32_t function_id)
 {
     const aconfig_tm_config_t *config = NULL;
+    uint32_t i;
 
     /* 获取读锁（允许多个读者） */
     if (OSAL_SUCCESS != OSAL_RwlockRdlock(g_acl_rwlock)) {
@@ -120,14 +121,13 @@ const aconfig_tm_config_t* ACONFIG_GetTmConfig(uint32_t function_id)
         return NULL;
     }
 
-    /* 边界检查：防止数组越界 */
-    if (function_id >= g_acl_table->tm_count) {
-        OSAL_RwlockUnlock(g_acl_rwlock);
-        return NULL;
+    /* 查找匹配的 function_id */
+    for (i = 0; i < g_acl_table->tm_count; i++) {
+        if (g_acl_table->tm_table[i].function_id == function_id) {
+            config = &g_acl_table->tm_table[i];
+            break;
+        }
     }
-
-    /* O(1)直接索引 */
-    config = &g_acl_table->tm_table[function_id];
 
     /* 释放读锁 */
     OSAL_RwlockUnlock(g_acl_rwlock);

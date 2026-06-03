@@ -32,6 +32,9 @@ endif()
 ###############################################
 
 # 注册组件（使用公共函数）
+# api 目录：对外 API 头文件（PUBLIC）
+# include 目录：内部实现头文件（PRIVATE，保留用于向后兼容）
+list(APPEND ADD_INCLUDE "api")
 list(APPEND ADD_INCLUDE "include")
 get_filename_component(PARENT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" DIRECTORY)
 list(APPEND ADD_INCLUDE "${PARENT_DIR}")

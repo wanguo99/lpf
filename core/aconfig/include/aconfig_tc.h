@@ -1,45 +1,13 @@
 /**
  * @file aconfig_tc.h
- * @brief ACL遥控功能枚举定义（通用）
+ * @brief ACONFIG 兼容性头文件（已废弃）
+ * @deprecated 请使用 api/aconfig_tc.h 替代
+ * @note 本文件保留用于向后兼容，将在未来版本中移除
  */
 
-#ifndef ACONFIG_TC_H
-#define ACONFIG_TC_H
+#ifndef ACONFIG_INCLUDE_TC_H
+#define ACONFIG_INCLUDE_TC_H
 
-#include "osal_types.h"
+#include "../api/aconfig_tc.h"
 
-/**
- * @brief 遥控功能通用枚举
- * @note 按功能类别分组，预留足够ID空间支持扩展
- */
-typedef enum {
-    /* 电源控制类 (0-99) */
-    ACONFIG_TC_POWER_ON = 0,
-    ACONFIG_TC_POWER_OFF = 1,
-    ACONFIG_TC_POWER_RESET = 2,
-    ACONFIG_TC_POWER_CYCLE = 3,
-
-    /* 复位控制类 (100-199) */
-    ACONFIG_TC_SOFT_RESET = 100,
-    ACONFIG_TC_HARD_RESET = 101,
-    ACONFIG_TC_MCU_RESET = 102,
-    ACONFIG_TC_MCU_POWER_CTRL = 103,
-    ACONFIG_TC_FPGA_RESET = 104,
-    ACONFIG_TC_FPGA_CONFIG_LOAD = 105,
-
-    /* 固件升级类 (200-299) */
-    ACONFIG_TC_FIRMWARE_UPGRADE_START = 200,
-    ACONFIG_TC_FIRMWARE_UPGRADE_DATA = 201,
-    ACONFIG_TC_FIRMWARE_UPGRADE_VERIFY = 202,
-    ACONFIG_TC_FIRMWARE_UPGRADE_COMMIT = 203,
-
-    /* 系统控制类 (300-399) */
-    ACONFIG_TC_SYSTEM_RESET = 300,
-    ACONFIG_TC_WATCHDOG_ENABLE = 301,
-    ACONFIG_TC_WATCHDOG_DISABLE = 302,
-
-    /* 预留扩展空间 */
-    ACONFIG_TC_FUNC_MAX = 1000
-} aconfig_tc_function_t;
-
-#endif /* ACONFIG_TC_H */
+#endif /* ACONFIG_INCLUDE_TC_H */
