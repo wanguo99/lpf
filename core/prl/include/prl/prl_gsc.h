@@ -11,7 +11,7 @@
 #warning "Including prl_gsc.h from include/ is deprecated. Please include from api/ or use prl.h"
 
 /* 重定向到新的 API 头文件 */
-#include "../api/prl_gsc.h"
+#include "prl_gsc.h"
 
 #endif /* PRL_INCLUDE_PRL_GSC_H */
 

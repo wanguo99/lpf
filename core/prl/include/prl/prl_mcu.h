@@ -11,6 +11,6 @@
 #warning "Including prl_mcu.h from include/ is deprecated. Please include from api/ or use prl.h"
 
 /* 重定向到新的 API 头文件 */
-#include "../api/prl_mcu.h"
+#include "prl_mcu.h"
 
 #endif /* PRL_INCLUDE_PRL_MCU_H */

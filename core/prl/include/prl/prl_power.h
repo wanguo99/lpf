@@ -11,7 +11,7 @@
 #warning "Including prl_power.h from include/ is deprecated. Please include from api/ or use prl.h"
 
 /* 重定向到新的 API 头文件 */
-#include "../api/prl_power.h"
+#include "prl_power.h"
 
 #endif /* PRL_INCLUDE_PRL_POWER_H */
 
