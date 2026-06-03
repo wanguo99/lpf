@@ -4,10 +4,10 @@
  * @note 本文件定义标准的遥控功能枚举，项目可以扩展或自定义
  */
 
-#ifndef ACONFIG_TC_H
-#define ACONFIG_TC_H
+#ifndef ACONFIG_ACONFIG_TC_H
+#define ACONFIG_ACONFIG_TC_H
 
-#include "osal_types.h"
+#include <osal/osal_types.h>
 
 /**
  * @brief 遥控功能通用枚举
@@ -43,4 +43,4 @@ typedef enum {
 	ACONFIG_TC_FUNC_MAX = 1000
 } aconfig_tc_function_t;
 
-#endif /* ACONFIG_TC_H */
+#endif /* ACONFIG_ACONFIG_TC_H */

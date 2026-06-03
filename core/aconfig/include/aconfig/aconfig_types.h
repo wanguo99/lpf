@@ -4,10 +4,10 @@
  * @note 本文件定义 ACONFIG 模块的对外数据类型，不依赖具体业务
  */
 
-#ifndef ACONFIG_TYPES_H
-#define ACONFIG_TYPES_H
+#ifndef ACONFIG_ACONFIG_TYPES_H
+#define ACONFIG_ACONFIG_TYPES_H
 
-#include "osal_types.h"
+#include <osal/osal_types.h>
 
 /**
  * @brief ACONFIG 设备类型枚举
@@ -84,4 +84,4 @@ typedef struct {
 	uint32_t inv_count;			/* 失效映射数量 */
 } aconfig_config_table_t;
 
-#endif /* ACONFIG_TYPES_H */
+#endif /* ACONFIG_ACONFIG_TYPES_H */

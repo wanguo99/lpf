@@ -4,11 +4,11 @@
  * @note 本文件为 ACONFIG 模块的对外 API，提供配置注册和查询功能
  */
 
-#ifndef ACONFIG_API_H
-#define ACONFIG_API_H
+#ifndef ACONFIG_ACONFIG_API_H
+#define ACONFIG_ACONFIG_API_H
 
-#include "osal_types.h"
-#include "aconfig_types.h"
+#include <osal/osal_types.h>
+#include <aconfig/aconfig_types.h>
 
 /**
  * @brief ACONFIG 配置统计信息
@@ -88,4 +88,4 @@ int32_t ACONFIG_GetStatistics(aconfig_statistics_t *stats);
  */
 void ACONFIG_PrintConfig(void);
 
-#endif /* ACONFIG_API_H */
+#endif /* ACONFIG_ACONFIG_API_H */
