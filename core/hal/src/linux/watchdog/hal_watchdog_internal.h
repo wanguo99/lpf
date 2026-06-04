@@ -7,7 +7,7 @@
 #ifndef HAL_WATCHDOG_INTERNAL_H
 #define HAL_WATCHDOG_INTERNAL_H
 
-#include "osal.h"
+#include "osal/osal.h"
 #include "hal/hal_watchdog_api.h"
 
 /*===========================================================================

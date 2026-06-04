@@ -7,7 +7,7 @@
 #ifndef HAL_CAN_TYPES_H
 #define HAL_CAN_TYPES_H
 
-#include "osal/osal_types_api.h"
+#include "osal/osal.h"
 
 /*
  * ============================================================================

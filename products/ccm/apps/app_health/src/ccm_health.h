@@ -1,7 +1,7 @@
 #ifndef CCM_HEALTH_H
 #define CCM_HEALTH_H
 
-#include "osal.h"
+#include "osal/osal.h"
 
 /* Health进程初始化 */
 int32_t CCM_Health_Init(void);

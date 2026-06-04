@@ -14,7 +14,7 @@
 #include "prl/prl_pmc.h"
 #include "prl/prl_gsc.h"
 #include "prl/prl_power.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 
 /*===========================================================================

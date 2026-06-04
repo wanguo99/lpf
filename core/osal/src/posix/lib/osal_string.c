@@ -1,13 +1,12 @@
 /************************************************************************
  * OSAL - string系统调用封装实现（POSIX）
  ************************************************************************/
-
-#include "osal_string_internal.h"
 #include <string.h>
 #include <strings.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include "osal/osal.h"
 
 /*
  * 内存操作

@@ -7,7 +7,7 @@
 #ifndef HAL_WATCHDOG_API_H
 #define HAL_WATCHDOG_API_H
 
-#include "osal/osal_types_api.h"
+#include "osal/osal.h"
 
 #ifdef __cplusplus
 extern "C" {

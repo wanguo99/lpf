@@ -8,7 +8,7 @@
  ************************************************************************/
 
 #include "hal/hal_can_api.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 int32_t HAL_CAN_Init(const hal_can_config_t *config, hal_can_handle_t *handle)
 {

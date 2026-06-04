@@ -6,8 +6,7 @@
 
 #include "hal/hal_gpio_api.h"
 #include "hal_gpio_internal.h"
-#include "osal.h"
-#include "osal/osal_flock_api.h"
+#include "osal/osal.h"
 
 /*===========================================================================
  * GPIO中断监听线程管理

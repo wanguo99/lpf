@@ -5,7 +5,7 @@
  */
 
 #include "pdl/pdl_satellite_api.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 /* 测试回调函数 */
 static int32_t g_callback_count = 0;

@@ -10,8 +10,7 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 #include <sys/ioctl.h>
-#include "osal.h"
-#include "osal/osal_flock_api.h"
+#include "osal/osal.h"
 #include "hal_can_internal.h"
 
 #ifndef IFNAMSIZ

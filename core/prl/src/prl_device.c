@@ -4,9 +4,10 @@
  * @details 统一设备协议消息实现
  */
 
+#include "osal/osal.h"
+
 #include "prl/prl_device.h"
-#include "osal/osal_string_api.h"
-#include "osal/osal_socket_api.h"  /* for OSAL_ntohs/ntohl */
+
 
 /* 设备类型名称映射表 */
 static const char *device_type_names[] = {

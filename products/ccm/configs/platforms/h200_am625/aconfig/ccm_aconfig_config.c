@@ -7,7 +7,7 @@
 #include "aconfig/aconfig_api.h"
 #include "aconfig/aconfig_tc.h"
 #include "aconfig/aconfig_tm.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 /* 遥控配置表 */
 static const aconfig_tc_config_t g_ccm_tc_table[ACONFIG_TC_FUNC_MAX] = {

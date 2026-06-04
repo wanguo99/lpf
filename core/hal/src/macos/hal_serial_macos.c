@@ -8,7 +8,7 @@
  ************************************************************************/
 
 #include "hal/hal_serial_api.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 int32_t HAL_Serial_Open(const char *device, const hal_serial_config_t *config,
                       hal_serial_handle_t *handle)

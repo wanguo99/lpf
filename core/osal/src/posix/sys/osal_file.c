@@ -6,9 +6,9 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
-#include "osal_file_internal.h"
 #include <stdint.h>
 #include <errno.h>
+#include "osal/osal.h"
 
 /*===========================================================================
  * 标志位映射（OSAL -> POSIX）

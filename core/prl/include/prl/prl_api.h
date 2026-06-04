@@ -13,8 +13,6 @@
 #ifndef PRL_API_H
 #define PRL_API_H
 
-#include "prl_types.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

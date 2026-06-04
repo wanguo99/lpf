@@ -5,7 +5,7 @@
  */
 
 #include "pdl_mcu_protocol.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 /* ========== 编码函数 ========== */
 

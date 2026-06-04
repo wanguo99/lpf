@@ -2,7 +2,7 @@
  * OSAL POSIX实现 - 信号量
  ************************************************************************/
 
-#include "osal.h"
+#include "osal/osal.h"
 #include <semaphore.h>
 #include <stdlib.h>
 #include <time.h>

@@ -7,7 +7,6 @@
 #define PRL_PRL_H
 
 /* Core types and API */
-#include "prl_types.h"
 #include "prl_api.h"
 
 /* Device protocols */

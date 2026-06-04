@@ -13,7 +13,7 @@
 #ifndef TEST_CORE_H
 #define TEST_CORE_H
 
-#include "osal/osal_types_api.h"
+#include "osal/osal.h"
 
 /* Test function signatures */
 typedef void (*test_func_t)(void);

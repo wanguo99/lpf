@@ -10,7 +10,7 @@
 #include "pdl_mcu_internal.h"
 #include "pdl/pdl_mcu_api.h"
 #include "hal/hal_can_api.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 /*
  * CAN通信上下文

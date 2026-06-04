@@ -25,7 +25,7 @@
 ### 最小示例
 
 ```c
-#include "osal.h"
+#include "osal/osal.h"
 
 int main(void)
 {
@@ -55,7 +55,7 @@ target_link_libraries(my_app osal)
 ### 创建和删除任务
 
 ```c
-#include "osal.h"
+#include "osal/osal.h"
 
 /* 任务入口函数 */
 static void worker_task(void *arg)
@@ -153,7 +153,7 @@ int main(void)
 ### 基本队列通信
 
 ```c
-#include "osal.h"
+#include "osal/osal.h"
 
 #define QUEUE_DEPTH     10
 #define MSG_SIZE        64
@@ -246,7 +246,7 @@ if (ret == OS_QUEUE_EMPTY) {
 ### 保护共享资源
 
 ```c
-#include "osal.h"
+#include "osal/osal.h"
 
 static osal_id_t g_mutex_id;
 static uint32_t g_shared_counter = 0;
@@ -341,7 +341,7 @@ void good_example(void)
 ### 生产者-消费者模式
 
 ```c
-#include "osal.h"
+#include "osal/osal.h"
 #include <pthread.h>
 
 #define BUFFER_SIZE 10
@@ -452,7 +452,7 @@ int main(void)
 ### 资源池管理
 
 ```c
-#include "osal.h"
+#include "osal/osal.h"
 
 #define MAX_CONNECTIONS 5
 
@@ -559,7 +559,7 @@ if (ret == OSAL_SUCCESS) {
 ### 任务队列
 
 ```c
-#include "osal.h"
+#include "osal/osal.h"
 #include <pthread.h>
 
 #define MAX_TASKS 100
@@ -694,7 +694,7 @@ int main(void)
 ### 事件通知
 
 ```c
-#include "osal.h"
+#include "osal/osal.h"
 
 static osal_mutex_t *event_mutex = NULL;
 static osal_cond_t *event_cond = NULL;
@@ -830,7 +830,7 @@ OSAL_CondSignal(cond);
 ### 优雅退出
 
 ```c
-#include "osal.h"
+#include "osal/osal.h"
 
 static volatile bool g_running = true;
 

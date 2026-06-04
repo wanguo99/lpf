@@ -1,7 +1,7 @@
 #ifndef CCM_LOGGER_H
 #define CCM_LOGGER_H
 
-#include "osal.h"
+#include "osal/osal.h"
 
 /* Logger进程初始化 */
 int32_t CCM_Logger_Init(void);

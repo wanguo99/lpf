@@ -2,7 +2,7 @@
  * OSAL - socket系统调用封装实现（POSIX）
  ************************************************************************/
 
-#include "osal/osal_socket_api.h"
+#include "osal/osal.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>

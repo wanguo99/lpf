@@ -6,7 +6,7 @@
  * 使用新的libtest框架，测试自动注册
  */
 
-#include "osal.h"
+#include "osal/osal.h"
 
 static volatile int32_t g_signal_received = 0;
 static volatile int32_t g_signal_number = 0;

@@ -7,8 +7,8 @@
 #ifndef HAL_GPIO_INTERNAL_H
 #define HAL_GPIO_INTERNAL_H
 
-#include "osal.h"
-#include "osal/osal_flock_api.h"
+#include "osal/osal.h"
+#include "osal/osal.h"
 #include "hal/hal_gpio_api.h"
 
 /*===========================================================================

@@ -5,7 +5,7 @@
 
 #include "test_system.h"
 #include "test_assert.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 #define MAX_CHECKPOINTS 100
 

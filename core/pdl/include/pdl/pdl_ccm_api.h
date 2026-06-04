@@ -14,7 +14,7 @@
 #ifndef PDL_CCM_API_H
 #define PDL_CCM_API_H
 
-#include "osal/osal_types_api.h"
+#include "osal/osal.h"
 
 /* CCM 状态码 */
 typedef enum

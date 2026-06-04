@@ -3,6 +3,7 @@
  * @brief GSC Device Protocol Implementation
  * @details GSC（地面站控制器）设备协议实现
  */
+#include "osal/osal.h"
 
 #include "prl/prl_gsc.h"
 

@@ -11,7 +11,7 @@
 #include <sys/ioctl.h>
 #include <stdatomic.h>
 #include "hal/hal_watchdog_api.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 typedef struct
 {

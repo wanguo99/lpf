@@ -4,7 +4,7 @@
  * 基于 pthread_rwlock_t 实现
  ************************************************************************/
 
-#include "osal.h"
+#include "osal/osal.h"
 #include <pthread.h>
 #include <stdlib.h>
 #include <errno.h>

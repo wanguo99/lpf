@@ -15,7 +15,7 @@
 #ifndef PDL_MCU_API_H
 #define PDL_MCU_API_H
 
-#include "osal/osal_types_api.h"
+#include "osal/osal.h"
 #include "pdl_types_api.h"
 
 /*

@@ -7,8 +7,6 @@
 #ifndef PRL_CCM_H
 #define PRL_CCM_H
 
-#include "prl_types.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

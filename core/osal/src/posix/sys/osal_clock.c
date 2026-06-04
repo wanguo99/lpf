@@ -2,7 +2,7 @@
  * OSAL POSIX实现 - 时间服务
  ************************************************************************/
 
-#include "osal.h"
+#include "osal/osal.h"
 #include <stdint.h>
 #include <sys/time.h>
 #include <time.h>

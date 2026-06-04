@@ -11,7 +11,7 @@
  */
 
 #include "pconfig/pconfig.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 /* 测试用的配置数据 */
 static pconfig_mcu_cfg_t test_mcu = {

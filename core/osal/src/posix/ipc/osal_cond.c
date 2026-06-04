@@ -2,7 +2,7 @@
  * OSAL 条件变量实现（POSIX）
  ************************************************************************/
 
-#include "osal.h"
+#include "osal/osal.h"
 #include <pthread.h>
 #include <stdlib.h>
 #include <errno.h>

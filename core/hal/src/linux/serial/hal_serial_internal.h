@@ -7,8 +7,7 @@
 #ifndef HAL_SERIAL_INTERNAL_H
 #define HAL_SERIAL_INTERNAL_H
 
-#include "osal.h"
-#include "osal/osal_flock_api.h"
+#include "osal/osal.h"
 #include "hal/hal_serial_api.h"
 
 /*===========================================================================

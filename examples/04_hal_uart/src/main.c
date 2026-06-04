@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "hal_serial.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 int main(int argc, char *argv[])
 {

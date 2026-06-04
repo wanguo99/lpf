@@ -2,8 +2,7 @@
  * OSAL - 进程管理接口实现（POSIX）
  ************************************************************************/
 
-#include "osal/osal_process_api.h"
-#include "osal.h"
+#include "osal/osal.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>

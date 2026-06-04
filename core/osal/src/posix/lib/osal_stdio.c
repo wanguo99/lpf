@@ -2,7 +2,7 @@
  * OSAL - stdio系统调用封装实现（POSIX）
  ************************************************************************/
 
-#include "osal/osal_stdio_api.h"
+#include "osal/osal.h"
 #include <stdio.h>
 
 /*

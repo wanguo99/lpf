@@ -10,7 +10,7 @@
 #define PDL_CCM_INTERNAL_H
 
 #include "pdl/pdl_ccm_api.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 /* 以太网消息最大长度 */
 #define CCM_ETH_MAX_MSG_SIZE    4096

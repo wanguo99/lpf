@@ -48,7 +48,7 @@ This is the simplest example.
 
 ```c
 #include <stdio.h>
-#include "osal.h"
+#include "osal/osal.h"
 
 int main(int argc, char *argv[])
 {

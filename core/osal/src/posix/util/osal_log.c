@@ -10,7 +10,7 @@
  * - 自动日志轮转
  ************************************************************************/
 
-#include "osal.h"
+#include "osal/osal.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <time.h>

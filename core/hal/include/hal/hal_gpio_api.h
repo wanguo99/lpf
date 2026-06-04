@@ -7,7 +7,7 @@
 #ifndef HAL_GPIO_API_H
 #define HAL_GPIO_API_H
 
-#include "osal.h"
+#include "osal/osal.h"
 
 #ifdef __cplusplus
 extern "C" {

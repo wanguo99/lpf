@@ -5,6 +5,8 @@
  *          新代码应使用 prl_device.c 中的统一接口
  */
 
+#include "osal/osal.h"
+
 #include "prl/prl_mcu.h"
 #include "prl/prl_device.h"
 

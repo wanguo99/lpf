@@ -2,7 +2,7 @@
  * OSAL - errno系统调用封装实现（POSIX）
  ************************************************************************/
 
-#include "osal.h"
+#include "osal/osal.h"
 #include <errno.h>
 #include <string.h>
 

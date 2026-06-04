@@ -1,7 +1,7 @@
 #ifndef LIBCCM_PROTOCOL_H
 #define LIBCCM_PROTOCOL_H
 
-#include "osal.h"
+#include "osal/osal.h"
 #include "libccm_ipc.h"
 
 /* CAN帧ID定义 */

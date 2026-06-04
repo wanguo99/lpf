@@ -4,7 +4,7 @@
  * @brief OSAL时间操作单元测试
  */
 
-#include "osal.h"
+#include "osal/osal.h"
 #include <sys/time.h>  /* for gettimeofday */
 
 /* 辅助函数：获取当前时间（微秒） */

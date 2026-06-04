@@ -11,8 +11,7 @@
 #include <sys/ioctl.h>
 #include "hal/hal_spi_api.h"
 #include "hal_spi_internal.h"
-#include "osal.h"
-#include "osal/osal_flock_api.h"
+#include "osal/osal.h"
 
 /**
  * @brief 打开SPI设备

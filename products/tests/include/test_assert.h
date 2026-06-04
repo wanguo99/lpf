@@ -10,7 +10,7 @@
 #ifndef TEST_ASSERT_H
 #define TEST_ASSERT_H
 
-#include "osal.h"
+#include "osal/osal.h"
 
 /* Internal state tracking */
 extern bool g_test_failed;

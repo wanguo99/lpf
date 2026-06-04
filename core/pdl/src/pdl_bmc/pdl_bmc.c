@@ -9,7 +9,7 @@
 
 #include "pdl/pdl_bmc_api.h"
 #include "pdl_bmc_internal.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 /*
  * BMC服务上下文

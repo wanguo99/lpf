@@ -9,7 +9,7 @@
 
 #include "pdl/pdl_satellite_api.h"
 #include "pdl_satellite_internal.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 /*
  * 卫星平台服务上下文

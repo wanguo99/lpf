@@ -1,7 +1,7 @@
 #ifndef CCM_COLLECTOR_H
 #define CCM_COLLECTOR_H
 
-#include "osal.h"
+#include "osal/osal.h"
 
 /* Collector进程初始化 */
 int32_t CCM_Collector_Init(void);

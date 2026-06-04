@@ -7,7 +7,7 @@
 #include "pdl/pdl_mcu_api.h"
 #include "pconfig/pconfig.h"
 #include "hal/hal_serial_api.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 /*===========================================================================
  * 辅助函数：创建测试配置

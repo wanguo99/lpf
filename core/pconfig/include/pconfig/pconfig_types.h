@@ -16,7 +16,7 @@
 #ifndef PCONFIG_PCONFIG_TYPES_H
 #define PCONFIG_PCONFIG_TYPES_H
 
-#include "osal/osal_types_api.h"
+#include "osal/osal.h"
 #include "pdl/pdl_types_api.h"
 
 /*===========================================================================

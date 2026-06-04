@@ -9,7 +9,7 @@
 
 #include "pdl_satellite_internal.h"
 #include "hal/hal_can_api.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 /**
  * @brief 初始化卫星CAN通信

@@ -2,7 +2,7 @@
  * OSAL - POSIX线程封装实现
  ************************************************************************/
 
-#include "osal.h"
+#include "osal/osal.h"
 #include <pthread.h>
 #include <sched.h>
 

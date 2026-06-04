@@ -3,7 +3,7 @@
  ************************************************************************/
 
 #include "test_framework.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 /* 测试多进程场景需要使用fork，使用OSAL封装接口 */
 

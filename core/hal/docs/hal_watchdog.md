@@ -67,7 +67,7 @@ int32_t HAL_WATCHDOG_GetStats(hal_watchdog_handle_t handle, uint32_t *kick_count
 
 ```c
 #include "hal_watchdog.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 hal_watchdog_handle_t wdt_handle;
 hal_watchdog_config_t config = {

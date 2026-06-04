@@ -8,11 +8,7 @@
  ************************************************************************/
 
 #include "pdl_ccm_internal.h"
-#include "osal/osal_socket_api.h"
-#include "osal/osal_time_api.h"
-#include "osal/osal_log_api.h"
-#include "osal/osal_errno_api.h"
-#include "osal.h"
+#include "osal/osal.h"
 #include <string.h>
 
 /*

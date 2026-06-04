@@ -8,7 +8,7 @@
  ************************************************************************/
 
 #include "hal/hal_gpio_api.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 int32_t HAL_GPIO_Init(uint32_t gpio_num, const hal_gpio_config_t *config)
 {

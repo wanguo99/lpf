@@ -2,7 +2,7 @@
  * 信号处理实现 (Linux)
  ************************************************************************/
 
-#include "osal.h"
+#include "osal/osal.h"
 #include <signal.h>
 #include <string.h>
 #include <errno.h>

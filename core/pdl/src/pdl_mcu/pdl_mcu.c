@@ -10,7 +10,7 @@
 #include "pdl/pdl_mcu_api.h"
 #include "pdl_mcu_internal.h"
 #include "pdl_mcu_protocol.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 /*
  * MCU驱动上下文

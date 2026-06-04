@@ -9,7 +9,7 @@
  ************************************************************************/
 
 #include "pdl_bmc_internal.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 /*
  * IPMI协议上下文

@@ -5,7 +5,7 @@
 
 #include "test_performance.h"
 #include "test_assert.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 /* 性能测量上下文结构 */
 struct perf_context {

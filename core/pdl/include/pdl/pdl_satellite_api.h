@@ -11,7 +11,7 @@
 #ifndef PDL_SATELLITE_API_H
 #define PDL_SATELLITE_API_H
 
-#include "osal/osal_types_api.h"
+#include "osal/osal.h"
 #include "pdl_types_api.h"
 
 /* CAN状态码 */

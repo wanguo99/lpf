@@ -4,7 +4,7 @@
  */
 
 #include "aconfig/aconfig_api.h"
-#include "osal.h"
+#include "osal/osal.h"
 #include "aconfig_internal.h"
 
 /* 全局配置表 */

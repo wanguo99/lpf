@@ -7,8 +7,6 @@
 #ifndef PRL_GSC_H
 #define PRL_GSC_H
 
-#include "prl_types.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

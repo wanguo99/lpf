@@ -5,7 +5,7 @@
 
 #include "test_framework.h"
 #include "test_performance.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 /* 性能基准定义 */
 static const perf_baseline_t mutex_lock_baseline = {

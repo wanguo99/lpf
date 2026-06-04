@@ -2,6 +2,10 @@
  * PRL测试 - 统一设备协议测试
  ************************************************************************/
 
+#include "osal/osal.h"
+
+#include "prl/prl_common.h"
+
 #include "test_framework.h"
 #include "prl/prl_api.h"      /* 使用公共API */
 #include "prl/prl_mcu.h"      /* 设备消息类型定义 */
@@ -9,7 +13,6 @@
 #include "prl/prl_pmc.h"
 #include "prl/prl_gsc.h"
 #include "prl/prl_power.h"
-#include "osal.h"
 
 /*===========================================================================
  * 基础编解码测试

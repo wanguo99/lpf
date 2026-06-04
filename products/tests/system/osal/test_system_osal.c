@@ -5,7 +5,7 @@
 
 #include "test_framework.h"
 #include "test_system.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 /**
  * 测试多线程协同工作

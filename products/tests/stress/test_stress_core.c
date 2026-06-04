@@ -5,7 +5,7 @@
 
 #include "test_stress.h"
 #include "test_assert.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 #define MAX_ERROR_MESSAGES 100
 

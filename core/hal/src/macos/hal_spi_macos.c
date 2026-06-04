@@ -8,7 +8,7 @@
  ************************************************************************/
 
 #include "hal/hal_spi_api.h"
-#include "osal.h"
+#include "osal/osal.h"
 
 int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
 {
