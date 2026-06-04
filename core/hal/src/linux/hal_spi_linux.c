@@ -11,7 +11,6 @@
 #include <sys/ioctl.h>
 #include "hal/hal_spi_api.h"
 #include "hal_spi_internal.h"
-#include "hal/hal_error_api.h"
 #include "osal.h"
 #include "osal_flock.h"
 
@@ -83,15 +82,12 @@ int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
     if (impl->fd < 0)
     {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Failed to open device %s: %s",
-                      config->device, OSAL_StrError(err));
-        LOG_ERROR("HAL_SPI", "Failed to open device %s: %s %d(sys_err=%d, hal_err=%d)",
-                  config->device, OSAL_StrError(err), err, hal_err);
+        LOG_ERROR("HAL_SPI", "Failed to open device %s: %s %d (%d)",
+                  config->device, OSAL_StrError(err), err);
         OSAL_MutexDelete(impl->mutex);
         OSAL_FlockDestroy(impl->flock);
         OSAL_Free(impl);
-        return hal_err;
+        return err;
     }
 
     /* 设置SPI模式 (参考: Linux内核文档 spidev.txt) */
@@ -99,15 +95,13 @@ int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
     if (ret < 0)
     {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Failed to set SPI mode: %s", OSAL_StrError(err));
-        LOG_ERROR("HAL_SPI", "Failed to set SPI mode: %s %d(sys_err=%d, hal_err=%d)",
-                  OSAL_StrError(err), err, hal_err);
+        LOG_ERROR("HAL_SPI", "Failed to set SPI mode: %s %d (%d)",
+                  OSAL_StrError(err), err);
         OSAL_close(impl->fd);
         OSAL_MutexDelete(impl->mutex);
         OSAL_FlockDestroy(impl->flock);
         OSAL_Free(impl);
-        return hal_err;
+        return err;
     }
 
     /* 设置每字位数 */
@@ -115,15 +109,13 @@ int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
     if (ret < 0)
     {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Failed to set bits per word: %s", OSAL_StrError(err));
-        LOG_ERROR("HAL_SPI", "Failed to set bits per word: %s %d(sys_err=%d, hal_err=%d)",
-                  OSAL_StrError(err), err, hal_err);
+        LOG_ERROR("HAL_SPI", "Failed to set bits per word: %s %d (%d)",
+                  OSAL_StrError(err), err);
         OSAL_close(impl->fd);
         OSAL_MutexDelete(impl->mutex);
         OSAL_FlockDestroy(impl->flock);
         OSAL_Free(impl);
-        return hal_err;
+        return err;
     }
 
     /* 设置最大速率 */
@@ -131,15 +123,13 @@ int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
     if (ret < 0)
     {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Failed to set max speed: %s", OSAL_StrError(err));
-        LOG_ERROR("HAL_SPI", "Failed to set max speed: %s %d(sys_err=%d, hal_err=%d)",
-                  OSAL_StrError(err), err, hal_err);
+        LOG_ERROR("HAL_SPI", "Failed to set max speed: %s %d (%d)",
+                  OSAL_StrError(err), err);
         OSAL_close(impl->fd);
         OSAL_MutexDelete(impl->mutex);
         OSAL_FlockDestroy(impl->flock);
         OSAL_Free(impl);
-        return hal_err;
+        return err;
     }
 
     impl->initialized = true;
@@ -224,11 +214,9 @@ int32_t HAL_SPI_Write(hal_spi_handle_t handle, const uint8_t *buffer, uint32_t s
     if (ret < 0)
     {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Write failed: %s", OSAL_StrError(err));
-        LOG_ERROR("HAL_SPI", "Write failed: %s %d(sys_err=%d, hal_err=%d)",
-                  OSAL_StrError(err), err, hal_err);
-        result = hal_err;
+        LOG_ERROR("HAL_SPI", "Write failed: %s %d (%d)",
+                  OSAL_StrError(err), err);
+        result = err;
     }
     else if ((uint32_t)ret != size)
     {
@@ -280,11 +268,9 @@ int32_t HAL_SPI_Read(hal_spi_handle_t handle, uint8_t *buffer, uint32_t size)
     if (ret < 0)
     {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Read failed: %s", OSAL_StrError(err));
-        LOG_ERROR("HAL_SPI", "Read failed: %s %d(sys_err=%d, hal_err=%d)",
-                  OSAL_StrError(err), err, hal_err);
-        result = hal_err;
+        LOG_ERROR("HAL_SPI", "Read failed: %s %d (%d)",
+                  OSAL_StrError(err), err);
+        result = err;
     }
     else if ((uint32_t)ret != size)
     {
@@ -348,11 +334,9 @@ int32_t HAL_SPI_Transfer(hal_spi_handle_t handle, const uint8_t *tx_buffer,
     if (ret < 0)
     {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Transfer failed: %s", OSAL_StrError(err));
-        LOG_ERROR("HAL_SPI", "Transfer failed: %s %d(sys_err=%d, hal_err=%d)",
-                  OSAL_StrError(err), err, hal_err);
-        result = hal_err;
+        LOG_ERROR("HAL_SPI", "Transfer failed: %s %d (%d)",
+                  OSAL_StrError(err), err);
+        result = err;
     }
     else if ((uint32_t)ret != size)
     {
@@ -429,11 +413,9 @@ int32_t HAL_SPI_TransferMulti(hal_spi_handle_t handle, hal_spi_transfer_t *trans
     if (ret < 0)
     {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Multi-transfer failed: %s", OSAL_StrError(err));
-        LOG_ERROR("HAL_SPI", "Multi-transfer failed: %s %d(sys_err=%d, hal_err=%d)",
-                  OSAL_StrError(err), err, hal_err);
-        result = hal_err;
+        LOG_ERROR("HAL_SPI", "Multi-transfer failed: %s %d (%d)",
+                  OSAL_StrError(err), err);
+        result = err;
     }
 
     /* 释放锁（逆序） */
@@ -485,11 +467,9 @@ int32_t HAL_SPI_SetConfig(hal_spi_handle_t handle, const hal_spi_config_t *confi
         if (ret < 0)
         {
             int32_t err = OSAL_GetErrno();
-            int32_t hal_err = HAL_ErrnoToError(err);
-            HAL_SET_ERROR(hal_err, err, "Failed to update mode: %s", OSAL_StrError(err));
-            LOG_ERROR("HAL_SPI", "Failed to update mode: %s %d(sys_err=%d, hal_err=%d)",
-                      OSAL_StrError(err), err, hal_err);
-            result = hal_err;
+            LOG_ERROR("HAL_SPI", "Failed to update mode: %s %d (%d)",
+                      OSAL_StrError(err), err);
+            result = err;
             goto unlock;
         }
         impl->mode = config->mode;
@@ -503,11 +483,9 @@ int32_t HAL_SPI_SetConfig(hal_spi_handle_t handle, const hal_spi_config_t *confi
         if (ret < 0)
         {
             int32_t err = OSAL_GetErrno();
-            int32_t hal_err = HAL_ErrnoToError(err);
-            HAL_SET_ERROR(hal_err, err, "Failed to update bits per word: %s", OSAL_StrError(err));
-            LOG_ERROR("HAL_SPI", "Failed to update bits per word: %s %d(sys_err=%d, hal_err=%d)",
-                      OSAL_StrError(err), err, hal_err);
-            result = hal_err;
+            LOG_ERROR("HAL_SPI", "Failed to update bits per word: %s %d (%d)",
+                      OSAL_StrError(err), err);
+            result = err;
             goto unlock;
         }
         impl->bits_per_word = config->bits_per_word;
@@ -521,11 +499,9 @@ int32_t HAL_SPI_SetConfig(hal_spi_handle_t handle, const hal_spi_config_t *confi
         if (ret < 0)
         {
             int32_t err = OSAL_GetErrno();
-            int32_t hal_err = HAL_ErrnoToError(err);
-            HAL_SET_ERROR(hal_err, err, "Failed to update max speed: %s", OSAL_StrError(err));
-            LOG_ERROR("HAL_SPI", "Failed to update max speed: %s %d(sys_err=%d, hal_err=%d)",
-                      OSAL_StrError(err), err, hal_err);
-            result = hal_err;
+            LOG_ERROR("HAL_SPI", "Failed to update max speed: %s %d (%d)",
+                      OSAL_StrError(err), err);
+            result = err;
             goto unlock;
         }
         impl->max_speed_hz = config->max_speed_hz;

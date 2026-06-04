@@ -12,7 +12,6 @@
 #include <sys/ioctl.h>
 #include "hal/hal_i2c_api.h"
 #include "hal_i2c_internal.h"
-#include "hal/hal_error_api.h"
 #include "osal.h"
 #include "osal_flock.h"
 
@@ -91,15 +90,12 @@ int32_t HAL_I2C_Open(const hal_i2c_config_t *config, hal_i2c_handle_t *handle)
     if (impl->fd < 0)
     {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Failed to open device %s: %s",
-                      config->device, OSAL_StrError(err));
-        LOG_ERROR("HAL_I2C", "Failed to open device %s: %s %d(sys_err=%d, hal_err=%d)",
-                  config->device, OSAL_StrError(err), err, hal_err);
+        LOG_ERROR("HAL_I2C", "Failed to open device %s: %s %d (%d)",
+                  config->device, OSAL_StrError(err), err);
         OSAL_MutexDelete(impl->mutex);
         OSAL_FlockDestroy(impl->flock);
         OSAL_Free(impl);
-        return hal_err;
+        return err;
     }
 
     impl->initialized = true;
@@ -186,12 +182,9 @@ int32_t HAL_I2C_Write(hal_i2c_handle_t handle, uint16_t slave_addr,
     if (ret < 0)
     {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Failed to set slave address 0x%02X: %s",
-                      slave_addr, OSAL_StrError(err));
-        LOG_ERROR("HAL_I2C", "Failed to set slave address 0x%02X: %s %d(sys_err=%d, hal_err=%d)",
-                  slave_addr, OSAL_StrError(err), err, hal_err);
-        result = hal_err;
+        LOG_ERROR("HAL_I2C", "Failed to set slave address 0x%02X: %s (%d)",
+                  slave_addr, OSAL_StrError(err), err);
+        result = err;
         goto unlock;
     }
 
@@ -200,11 +193,9 @@ int32_t HAL_I2C_Write(hal_i2c_handle_t handle, uint16_t slave_addr,
     if (ret < 0)
     {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Write failed: %s", OSAL_StrError(err));
-        LOG_ERROR("HAL_I2C", "Write failed: %s %d(sys_err=%d, hal_err=%d)",
-                  OSAL_StrError(err), err, hal_err);
-        result = hal_err;
+        LOG_ERROR("HAL_I2C", "Write failed: %s (%d)",
+                  OSAL_StrError(err), err);
+        result = err;
         goto unlock;
     }
 
@@ -261,12 +252,9 @@ int32_t HAL_I2C_Read(hal_i2c_handle_t handle, uint16_t slave_addr,
     if (ret < 0)
     {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Failed to set slave address 0x%02X: %s",
-                      slave_addr, OSAL_StrError(err));
-        LOG_ERROR("HAL_I2C", "Failed to set slave address 0x%02X: %s %d(sys_err=%d, hal_err=%d)",
-                  slave_addr, OSAL_StrError(err), err, hal_err);
-        result = hal_err;
+        LOG_ERROR("HAL_I2C", "Failed to set slave address 0x%02X: %s (%d)",
+                  slave_addr, OSAL_StrError(err), err);
+        result = err;
         goto unlock;
     }
 
@@ -275,11 +263,9 @@ int32_t HAL_I2C_Read(hal_i2c_handle_t handle, uint16_t slave_addr,
     if (ret < 0)
     {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Read failed: %s", OSAL_StrError(err));
-        LOG_ERROR("HAL_I2C", "Read failed: %s %d(sys_err=%d, hal_err=%d)",
-                  OSAL_StrError(err), err, hal_err);
-        result = hal_err;
+        LOG_ERROR("HAL_I2C", "Read failed: %s (%d)",
+                  OSAL_StrError(err), err);
+        result = err;
         goto unlock;
     }
 
@@ -385,11 +371,9 @@ int32_t HAL_I2C_ReadReg(hal_i2c_handle_t handle, uint16_t slave_addr,
     if (ret < 0)
     {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Read register failed: %s", OSAL_StrError(err));
-        LOG_ERROR("HAL_I2C", "Read register failed: %s %d(sys_err=%d, hal_err=%d)",
-                  OSAL_StrError(err), err, hal_err);
-        result = hal_err;
+        LOG_ERROR("HAL_I2C", "Read register failed: %s (%d)",
+                  OSAL_StrError(err), err);
+        result = err;
     }
 
     /* 释放锁（逆序） */
@@ -462,11 +446,9 @@ int32_t HAL_I2C_Transfer(hal_i2c_handle_t handle, hal_i2c_msg_t *msgs, uint32_t 
     if (ret < 0)
     {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Transfer failed: %s", OSAL_StrError(err));
-        LOG_ERROR("HAL_I2C", "Transfer failed: %s %d(sys_err=%d, hal_err=%d)",
-                  OSAL_StrError(err), err, hal_err);
-        result = hal_err;
+        LOG_ERROR("HAL_I2C", "Transfer failed: %s (%d)",
+                  OSAL_StrError(err), err);
+        result = err;
     }
 
     /* 释放锁（逆序） */

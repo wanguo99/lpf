@@ -12,7 +12,6 @@
 #include <sys/ioctl.h>
 #include "sys/osal_poll.h"
 #include "hal_can_internal.h"
-#include "hal/hal_error_api.h"
 #include "osal.h"
 #include "osal_flock.h"
 
@@ -74,14 +73,12 @@ int32_t HAL_CAN_Init(const hal_can_config_t *config, hal_can_handle_t *handle)
     if (impl->sockfd < 0)
     {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Failed to create socket: %s", OSAL_StrError(err));
-        LOG_ERROR("HAL_CAN", "Failed to create socket: %s %d(sys_err=%d, hal_err=%d)",
-                  OSAL_StrError(err), err, hal_err);
+        LOG_ERROR("HAL_CAN", "Failed to create socket: %s (%d)",
+                  OSAL_StrError(err), err);
         OSAL_MutexDelete(impl->mutex);
         OSAL_FlockDestroy(impl->flock);
         OSAL_Free(impl);
-        return hal_err;
+        return err;
     }
 
     OSAL_Memset(&ifr, 0, sizeof(ifr));
@@ -90,16 +87,13 @@ int32_t HAL_CAN_Init(const hal_can_config_t *config, hal_can_handle_t *handle)
     if (ret < 0)
     {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Interface %s not found: %s",
-                      config->interface, OSAL_StrError(err));
-        LOG_ERROR("HAL_CAN", "Interface %s not found: %s %d(sys_err=%d, hal_err=%d)",
-                  config->interface, OSAL_StrError(err), err, hal_err);
+        LOG_ERROR("HAL_CAN", "Interface %s not found: %s %d (%d)",
+                  config->interface, OSAL_StrError(err), err);
         OSAL_close(impl->sockfd);
         OSAL_MutexDelete(impl->mutex);
         OSAL_FlockDestroy(impl->flock);
         OSAL_Free(impl);
-        return hal_err;
+        return err;
     }
 
     OSAL_Memset(&addr, 0, sizeof(addr));
@@ -110,15 +104,13 @@ int32_t HAL_CAN_Init(const hal_can_config_t *config, hal_can_handle_t *handle)
     if (ret < 0)
     {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Failed to bind interface: %s", OSAL_StrError(err));
-        LOG_ERROR("HAL_CAN", "Failed to bind interface: %s %d(sys_err=%d, hal_err=%d)",
-                  OSAL_StrError(err), err, hal_err);
+        LOG_ERROR("HAL_CAN", "Failed to bind interface: %s %d (%d)",
+                  OSAL_StrError(err), err);
         OSAL_close(impl->sockfd);
         OSAL_MutexDelete(impl->mutex);
         OSAL_FlockDestroy(impl->flock);
         OSAL_Free(impl);
-        return hal_err;
+        return err;
     }
 
     if (config->rx_timeout > 0)
@@ -222,11 +214,9 @@ int32_t HAL_CAN_Send(hal_can_handle_t handle, const hal_can_frame_t *frame)
     if (ret != sizeof(struct can_frame))
     {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Send failed: %s", OSAL_StrError(err));
-        LOG_ERROR("HAL_CAN", "Send failed: %s %d(sys_err=%d, hal_err=%d)",
-                  OSAL_StrError(err), err, hal_err);
-        result = hal_err;
+        LOG_ERROR("HAL_CAN", "Send failed: %s (%d)",
+                  OSAL_StrError(err), err);
+        result = err;
     }
 
     /* 释放锁（逆序） */
@@ -266,11 +256,9 @@ int32_t HAL_CAN_Recv(hal_can_handle_t handle, hal_can_frame_t *frame, int32_t ti
         else if (poll_ret < 0)
         {
             int32_t err = OSAL_GetErrno();
-            int32_t hal_err = HAL_ErrnoToError(err);
-            HAL_SET_ERROR(hal_err, err, "Poll failed: %s", OSAL_StrError(err));
-            LOG_ERROR("HAL_CAN", "Poll failed: %s %d(sys_err=%d, hal_err=%d)",
-                      OSAL_StrError(err), err, hal_err);
-            return hal_err;
+            LOG_ERROR("HAL_CAN", "Poll failed: %s %d (%d)",
+                      OSAL_StrError(err), err);
+            return err;
         }
     }
 
@@ -302,11 +290,9 @@ int32_t HAL_CAN_Recv(hal_can_handle_t handle, hal_can_frame_t *frame, int32_t ti
         }
         else
         {
-            int32_t hal_err = HAL_ErrnoToError(err);
-            HAL_SET_ERROR(hal_err, err, "Receive failed: %s", OSAL_StrError(err));
-            LOG_ERROR("HAL_CAN", "Receive failed: %s %d(sys_err=%d, hal_err=%d)",
-                      OSAL_StrError(err), err, hal_err);
-            result = hal_err;
+            LOG_ERROR("HAL_CAN", "Receive failed: %s (%d)",
+                      OSAL_StrError(err), err);
+            result = err;
         }
     }
     else if (ret != sizeof(struct can_frame))
@@ -368,11 +354,9 @@ int32_t HAL_CAN_SetFilter(hal_can_handle_t handle, uint32_t filter_id, uint32_t 
     if (OSAL_setsockopt(impl->sockfd, OSAL_SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter, sizeof(rfilter)) < 0)
     {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Failed to set filter: %s", OSAL_StrError(err));
-        LOG_ERROR("HAL_CAN", "Failed to set filter: %s %d(sys_err=%d, hal_err=%d)",
-                  OSAL_StrError(err), err, hal_err);
-        result = hal_err;
+        LOG_ERROR("HAL_CAN", "Failed to set filter: %s (%d)",
+                  OSAL_StrError(err), err);
+        result = err;
     }
     else
     {

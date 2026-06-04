@@ -6,7 +6,6 @@
 
 #include "hal/hal_gpio_api.h"
 #include "hal_gpio_internal.h"
-#include "hal/hal_error_api.h"
 #include "osal.h"
 #include "osal_flock.h"
 #include "sys/osal_poll.h"
@@ -95,9 +94,7 @@ static int32_t gpio_write_file(const char *path, const char *value)
     fd = OSAL_open(path, OSAL_O_WRONLY, 0);
     if (fd < 0) {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Failed to open %s: %s", path, OSAL_StrError(err));
-        return hal_err;
+        return err;
     }
 
     len = (uint32_t)OSAL_Strlen(value);
@@ -106,9 +103,7 @@ static int32_t gpio_write_file(const char *path, const char *value)
 
     if (written != (int32_t)len) {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Failed to write to %s: %s", path, OSAL_StrError(err));
-        return hal_err;
+        return err;
     }
 
     return OSAL_SUCCESS;
@@ -125,9 +120,7 @@ static int32_t gpio_read_file(const char *path, char *buffer, size_t size)
     fd = OSAL_open(path, OSAL_O_RDONLY, 0);
     if (fd < 0) {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Failed to open %s: %s", path, OSAL_StrError(err));
-        return hal_err;
+        return err;
     }
 
     len = OSAL_read(fd, buffer, (uint32_t)(size - 1));
@@ -135,9 +128,7 @@ static int32_t gpio_read_file(const char *path, char *buffer, size_t size)
 
     if (len < 0) {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Failed to read from %s: %s", path, OSAL_StrError(err));
-        return hal_err;
+        return err;
     }
 
     buffer[len] = '\0';
@@ -517,10 +508,8 @@ int32_t HAL_GPIO_SetInterrupt(uint32_t gpio_num, hal_gpio_edge_t edge,
     fd = OSAL_open(path, OSAL_O_RDONLY, 0);
     if (fd < 0) {
         int32_t err = OSAL_GetErrno();
-        int32_t hal_err = HAL_ErrnoToError(err);
-        HAL_SET_ERROR(hal_err, err, "Failed to open %s: %s", path, OSAL_StrError(err));
         OSAL_FlockUnlock(g_gpio_flock);
-        return hal_err;
+        return err;
     }
 
     /* 初始化中断上下文 */
