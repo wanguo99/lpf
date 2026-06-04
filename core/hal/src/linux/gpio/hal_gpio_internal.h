@@ -9,7 +9,7 @@
 
 #include "osal/osal.h"
 #include "osal/osal.h"
-#include "hal/hal_gpio_api.h"
+#include "hal/hal.h"
 
 /*===========================================================================
  * 锁配置

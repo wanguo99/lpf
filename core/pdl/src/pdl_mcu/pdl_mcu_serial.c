@@ -9,7 +9,7 @@
 
 #include "pdl_mcu_internal.h"
 #include "pdl/pdl_mcu_api.h"
-#include "hal/hal_serial_api.h"
+#include "hal/hal.h"
 #include "osal/osal.h"
 
 /*

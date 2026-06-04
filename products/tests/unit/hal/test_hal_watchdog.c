@@ -5,7 +5,7 @@
 #include "test_core.h"
 #include "test_assert.h"
 #include "test_registry.h"
-#include "hal/hal_watchdog_api.h"
+#include "hal/hal.h"
 #include "osal/osal.h"
 
 /**

@@ -4,7 +4,7 @@
  * @brief HAL CAN驱动单元测试
  */
 
-#include "hal/hal_can_api.h"
+#include "hal/hal.h"
 #include "osal/osal.h"
 
 /*===========================================================================

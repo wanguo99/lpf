@@ -3,7 +3,7 @@
  ************************************************************************/
 
 #include "pdl/pdl_watchdog_api.h"
-#include "hal/hal_watchdog_api.h"
+#include "hal/hal.h"
 #include "osal/osal.h"
 
 typedef struct

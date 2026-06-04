@@ -8,7 +8,7 @@
 #define HAL_SPI_INTERNAL_H
 
 #include "osal/osal.h"
-#include "hal/hal_spi_api.h"
+#include "hal/hal.h"
 
 /*===========================================================================
  * 锁配置

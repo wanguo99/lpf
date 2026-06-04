@@ -5,9 +5,7 @@
 
 #include "test_framework.h"
 #include "test_system.h"
-#include "hal/hal_can_api.h"
-#include "hal/hal_serial_api.h"
-#include "hal/hal_gpio_api.h"
+#include "hal/hal.h"
 
 /**
  * 测试CAN总线端到端通信

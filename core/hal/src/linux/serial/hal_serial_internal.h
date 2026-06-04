@@ -8,7 +8,7 @@
 #define HAL_SERIAL_INTERNAL_H
 
 #include "osal/osal.h"
-#include "hal/hal_serial_api.h"
+#include "hal/hal.h"
 
 /*===========================================================================
  * 锁配置

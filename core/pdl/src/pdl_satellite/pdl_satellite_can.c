@@ -8,7 +8,7 @@
  ************************************************************************/
 
 #include "pdl_satellite_internal.h"
-#include "hal/hal_can_api.h"
+#include "hal/hal.h"
 #include "osal/osal.h"
 
 /**

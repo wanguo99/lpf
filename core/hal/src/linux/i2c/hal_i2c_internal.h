@@ -8,7 +8,7 @@
 #define HAL_I2C_INTERNAL_H
 
 #include "osal/osal.h"
-#include "hal/hal_i2c_api.h"
+#include "hal/hal.h"
 
 /*===========================================================================
  * 锁配置
