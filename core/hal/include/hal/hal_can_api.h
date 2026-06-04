@@ -8,7 +8,7 @@
 #define HAL_CAN_API_H
 
 #include "osal_types.h"
-#include "hal/config/can_types.h"
+#include "hal/config/hal_can_types.h"
 
 #ifdef __cplusplus
 extern "C" {
