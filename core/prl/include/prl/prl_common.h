@@ -13,28 +13,13 @@
 extern "C" {
 #endif
 
-/* ========== Error Codes (DEPRECATED - 迁移到 OSAL 错误码) ========== */
-
 /*
- * PRL 现在使用 OSAL 标准错误码体系:
+ * PRL 使用 OSAL 标准错误码体系:
  * - 成功: OSAL_SUCCESS (0)
  * - 参数错误: OSAL_ERR_INVALID_PARAM, OSAL_EINVAL
  * - 缓冲区不足: OSAL_ENOBUFS
  * - 协议错误: OSAL_EPROTO, OSAL_EBADMSG
- *
- * 兼容性宏（2026-07-01 删除）：
  */
-#ifndef PRL_NO_DEPRECATED_ERROR_CODES
-#define PRL_OK                      OSAL_SUCCESS         /* DEPRECATED: use OSAL_SUCCESS */
-#define PRL_ERR_INVALID_PARAM       OSAL_ERR_INVALID_PARAM  /* DEPRECATED: use OSAL_ERR_INVALID_PARAM */
-#define PRL_ERR_INVALID_LENGTH      OSAL_EINVAL          /* DEPRECATED: use OSAL_EINVAL */
-#define PRL_ERR_BUFFER_TOO_SMALL    OSAL_ENOBUFS         /* DEPRECATED: use OSAL_ENOBUFS */
-#define PRL_ERR_CRC_MISMATCH        OSAL_EBADMSG         /* DEPRECATED: use OSAL_EBADMSG */
-#define PRL_ERR_CRC_FAILED          OSAL_EBADMSG         /* DEPRECATED: use OSAL_EBADMSG */
-#define PRL_ERR_INVALID_MAGIC       OSAL_EPROTO          /* DEPRECATED: use OSAL_EPROTO */
-#define PRL_ERR_INVALID_VERSION     OSAL_EPROTO          /* DEPRECATED: use OSAL_EPROTO */
-#define PRL_ERR_INVALID_DEV_TYPE    OSAL_EINVAL          /* DEPRECATED: use OSAL_EINVAL */
-#endif
 
 /* ========== Protocol Version ========== */
 

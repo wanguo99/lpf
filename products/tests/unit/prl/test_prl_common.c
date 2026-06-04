@@ -134,11 +134,11 @@ TEST_CASE(test_prl_validate_header_valid)
 
     /* 验证应该成功 */
     ret = prl_validate_header(&hdr, 0);
-    TEST_ASSERT_EQUAL(PRL_OK, ret);
+    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     /* 验证特定消息类型 */
     ret = prl_validate_header(&hdr, PRL_PMC_MSG_COMMAND);
-    TEST_ASSERT_EQUAL(PRL_OK, ret);
+    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 }
 
 TEST_CASE(test_prl_validate_header_invalid_magic)
@@ -152,7 +152,7 @@ TEST_CASE(test_prl_validate_header_invalid_magic)
     hdr.magic = 0x1234;
 
     ret = prl_validate_header(&hdr, 0);
-    TEST_ASSERT_EQUAL(PRL_ERR_INVALID_MAGIC, ret);
+    TEST_ASSERT_EQUAL(OSAL_EPROTO, ret);
 }
 
 TEST_CASE(test_prl_validate_header_invalid_version)
@@ -166,7 +166,7 @@ TEST_CASE(test_prl_validate_header_invalid_version)
     hdr.version = 0x20;  /* 主版本 = 2 */
 
     ret = prl_validate_header(&hdr, 0);
-    TEST_ASSERT_EQUAL(PRL_ERR_INVALID_VERSION, ret);
+    TEST_ASSERT_EQUAL(OSAL_EPROTO, ret);
 }
 
 TEST_CASE(test_prl_validate_header_invalid_type)
@@ -178,7 +178,7 @@ TEST_CASE(test_prl_validate_header_invalid_type)
 
     /* 验证错误的消息类型 */
     ret = prl_validate_header(&hdr, PRL_MCU_MSG_GET_VERSION);
-    TEST_ASSERT_EQUAL(PRL_ERR_INVALID_DEV_TYPE, ret);
+    TEST_ASSERT_EQUAL(OSAL_EINVAL, ret);
 }
 
 TEST_CASE(test_prl_validate_header_invalid_length)
@@ -192,7 +192,7 @@ TEST_CASE(test_prl_validate_header_invalid_length)
     hdr.length = OSAL_htons(PRL_MAX_PAYLOAD_SIZE + 1);
 
     ret = prl_validate_header(&hdr, 0);
-    TEST_ASSERT_EQUAL(PRL_ERR_INVALID_LENGTH, ret);
+    TEST_ASSERT_EQUAL(OSAL_EINVAL, ret);
 }
 
 /*===========================================================================
