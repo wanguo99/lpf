@@ -271,8 +271,8 @@ menuconfig HAL_WATCHDOG
 endmenu
 
 # Platform-specific fine-grained configuration
-source "core/hal/src/Kconfig.linux"
-source "core/hal/src/Kconfig.macos"
+source "core/hal/src/linux/Kconfig"
+source "core/hal/src/macos/Kconfig"
 
 # =============================================================================
 # Advanced Features
