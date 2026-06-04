@@ -10,6 +10,7 @@
 #include "prl_api.h"
 
 #include "prl_common.h"
+#include "prl_device.h"
 
 /* Device protocols */
 #include "prl_mcu.h"
