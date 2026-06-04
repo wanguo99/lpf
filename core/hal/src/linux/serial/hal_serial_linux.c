@@ -5,7 +5,7 @@
  ************************************************************************/
 
 #include "hal/hal_serial_api.h"
-#include "include/hal_serial_internal.h"
+#include "hal_serial_internal.h"
 #include "osal.h"
 #include "osal_flock.h"
 #include <termios.h>  /* 系统波特率常量 B9600 等 */
