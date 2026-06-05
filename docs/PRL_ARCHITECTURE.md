@@ -280,7 +280,7 @@ uint32_t prl_get_timestamp(void);
 ### 4.1 基本编解码
 
 ```c
-#include "prl_api.h"
+#include "prl.h"
 
 /* 编码示例 */
 void example_encode(void)

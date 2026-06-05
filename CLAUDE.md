@@ -192,6 +192,30 @@ CONFIG_BUILD_SHARED=y      # 构建共享库
 - **缩进**: Tab（8 空格宽度）
 - **命名**: 小写加下划线（snake_case）
 
+### 头文件引用规范
+
+**所有头文件引用不使用命名空间前缀**，直接使用文件名：
+
+```c
+/* 正确 ✓ */
+#include "osal.h"
+#include "hal_can.h"
+#include "pdl.h"
+#include "prl_api.h"
+#include "pconfig.h"
+#include "aconfig.h"
+
+/* 错误 ✗ - 不要使用命名空间前缀 */
+#include "osal/osal.h"
+#include "hal/hal_can.h"
+#include "pdl/pdl.h"
+```
+
+**说明**：
+- CMakeLists.txt 已配置正确的头文件搜索路径
+- 便于 IDE 查找和跳转头文件
+- 适用于所有核心模块：OSAL、HAL、PDL、PRL、PCONFIG、ACONFIG
+
 ### POSIX 特性宏
 
 项目自动定义以下宏以启用 POSIX 扩展：
@@ -246,7 +270,7 @@ typedef struct {
 ```
 core/prl/
 ├── include/
-│   ├── prl_api.h          # 对外 API（推荐使用）
+│   ├── prl.h              # 对外统一头文件（推荐使用）
 │   ├── prl_common.h       # 通用定义（内部）
 │   ├── prl_device.h       # 设备消息定义（内部）
 │   ├── prl_mcu.h          # MCU 设备协议
@@ -269,7 +293,7 @@ core/prl/
 ### PRL API 使用
 
 ```c
-#include "prl_api.h"
+#include "prl.h"
 
 /* 编码消息 */
 uint8_t buffer[PRL_MAX_PACKET_SIZE];
@@ -375,6 +399,17 @@ cat .config | grep CONFIG_
 
 ## 最近更新
 
+- **2026-06-05**: 头文件引用规范更新
+  - 移除所有头文件 include 的命名空间前缀
+  - 统一使用直接文件名引用（如 `#include "osal.h"` 而非 `#include "osal/osal.h"`）
+  - 更新所有核心模块 CMakeLists.txt 的头文件搜索路径
+  - 方便 IDE 查找和跳转头文件
+  - 涉及 197 个文件修改
+
+- **2026-06-05**: 统一头文件命名
+  - PDL 新增 `pdl.h` 统一头文件（参考 OSAL）
+  - PRL 使用 `prl.h` 作为对外统一头文件
+
 - **2026-06-01**: PRL 协议层重构完成（v1.2）
   - 从点对点协议改为按设备类型组织
   - 统一命名规范（对外 API 使用 `PRL_` 前缀）
@@ -389,6 +424,6 @@ cat .config | grep CONFIG_
 
 ---
 
-**最后更新**: 2026-06-01  
+**最后更新**: 2026-06-05  
 **维护者**: wanguo  
 **分支**: master

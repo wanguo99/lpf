@@ -41,7 +41,7 @@ OSAL (操作系统抽象层)
 ### 1. 包含头文件
 
 ```c
-#include "prl_api.h"  /* PRL 对外 API */
+#include "prl.h"  /* PRL 统一头文件 */
 ```
 
 ### 2. 编码消息
@@ -275,7 +275,7 @@ PRL_ERR_INVALID_DEV_TYPE = -10  /* 无效设备类型 */
 ```
 core/prl/
 ├── include/
-│   ├── prl_api.h             # 对外 API（推荐使用）
+│   ├── prl.h                 # 统一头文件（推荐使用）
 │   ├── prl_common.h          # 通用定义（内部）
 │   ├── prl_device.h          # 设备消息定义（内部）
 │   ├── prl_mcu.h             # MCU 设备协议
@@ -308,7 +308,7 @@ core/prl/
 
 - **v1.1** (2026-06-01): 架构优化
   - 统一命名规范（对外 API 使用 PRL_ 前缀）
-  - 新增 `prl_api.h` 统一对外接口
+  - 新增 `prl.h` 统一对外接口
   - 完善文档（架构设计、使用指南）
   - 明确 PRL 与 PDL 的职责边界
 
