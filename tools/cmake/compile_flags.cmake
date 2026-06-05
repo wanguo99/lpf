@@ -1,11 +1,11 @@
 
 ########## set C flags #########
-set(CMAKE_C_FLAGS -Wall)
+set(CMAKE_C_FLAGS -Wall -Werror)
 ################################
 
 
 ###### set CXX(cpp) flags ######
-set(CMAKE_CXX_FLAGS -Wall)
+set(CMAKE_CXX_FLAGS -Wall -Werror)
 ################################
 
 # set(LINK_FLAGS -Wl,-EL) # (default little edian)
