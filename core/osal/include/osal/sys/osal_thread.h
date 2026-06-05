@@ -4,8 +4,8 @@
  * Thread creation, management, and synchronization primitives
  ************************************************************************/
 
-#ifndef OSAL_THREAD_API_H
-#define OSAL_THREAD_API_H
+#ifndef OSAL_THREAD_H
+#define OSAL_THREAD_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -93,4 +93,4 @@ osal_thread_t OSAL_ThreadSelf(void);
 }
 #endif
 
-#endif /* OSAL_THREAD_API_H */
+#endif /* OSAL_THREAD_H */

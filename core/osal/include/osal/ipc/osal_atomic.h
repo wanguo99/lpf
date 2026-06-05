@@ -4,8 +4,8 @@
  * Lock-free atomic operations for lock-free programming
  ************************************************************************/
 
-#ifndef OSAL_ATOMIC_API_H
-#define OSAL_ATOMIC_API_H
+#ifndef OSAL_ATOMIC_H
+#define OSAL_ATOMIC_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -166,4 +166,4 @@ bool OSAL_AtomicCompareExchange64(osal_atomic_uint64_t *atomic, uint64_t expecte
 }
 #endif
 
-#endif /* OSAL_ATOMIC_API_H */
+#endif /* OSAL_ATOMIC_H */

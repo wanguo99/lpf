@@ -11,8 +11,8 @@
  * - 状态码转字符串函数
  ************************************************************************/
 
-#ifndef OSAL_ERRNO_API_H
-#define OSAL_ERRNO_API_H
+#ifndef OSAL_ERRNO_H
+#define OSAL_ERRNO_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -274,4 +274,4 @@ const char *OSAL_StatusToString(osal_status_t status);
 }
 #endif
 
-#endif /* OSAL_ERRNO_API_H */
+#endif /* OSAL_ERRNO_H */

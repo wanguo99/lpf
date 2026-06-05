@@ -4,8 +4,8 @@
  * Reader-writer lock for concurrent read access
  ************************************************************************/
 
-#ifndef OSAL_RWLOCK_API_H
-#define OSAL_RWLOCK_API_H
+#ifndef OSAL_RWLOCK_H
+#define OSAL_RWLOCK_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -111,4 +111,4 @@ int32_t OSAL_RwlockTryWrlock(osal_rwlock_t *rwlock);
 }
 #endif
 
-#endif /* OSAL_RWLOCK_API_H */
+#endif /* OSAL_RWLOCK_H */

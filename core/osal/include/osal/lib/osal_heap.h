@@ -5,8 +5,8 @@
  * heap statistics, and memory usage monitoring.
  ************************************************************************/
 
-#ifndef OSAL_HEAP_API_H
-#define OSAL_HEAP_API_H
+#ifndef OSAL_HEAP_H
+#define OSAL_HEAP_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -106,4 +106,4 @@ int32_t OSAL_HeapGetStats(uint32_t *current, uint32_t *peak);
 }
 #endif
 
-#endif /* OSAL_HEAP_API_H */
+#endif /* OSAL_HEAP_H */

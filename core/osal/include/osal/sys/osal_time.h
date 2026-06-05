@@ -4,8 +4,8 @@
  * Time management, sleep functions, and high-resolution timers
  ************************************************************************/
 
-#ifndef OSAL_TIME_API_H
-#define OSAL_TIME_API_H
+#ifndef OSAL_TIME_H
+#define OSAL_TIME_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -100,4 +100,4 @@ int64_t OSAL_GetHighResTime(void);
 }
 #endif
 
-#endif /* OSAL_TIME_API_H */
+#endif /* OSAL_TIME_H */

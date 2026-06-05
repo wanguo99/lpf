@@ -4,8 +4,8 @@
  * Mutex lock operations for thread synchronization
  ************************************************************************/
 
-#ifndef OSAL_MUTEX_API_H
-#define OSAL_MUTEX_API_H
+#ifndef OSAL_MUTEX_H
+#define OSAL_MUTEX_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -125,4 +125,4 @@ int32_t OSAL_MutexTimedLock(osal_mutex_t *mutex, uint32_t timeout_ms);
 }
 #endif
 
-#endif /* OSAL_MUTEX_API_H */
+#endif /* OSAL_MUTEX_H */

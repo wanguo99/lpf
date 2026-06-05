@@ -26,39 +26,39 @@
 #include "osal_types.h"
 
 /* IPC - 进程间通信 */
-#include "ipc/osal_atomic_api.h"
-#include "ipc/osal_mutex_api.h"
-#include "ipc/osal_cond_api.h"
-#include "ipc/osal_rwlock_api.h"
-#include "ipc/osal_semaphore_api.h"
-#include "ipc/osal_shm_api.h"
-#include "ipc/osal_shm_cache_api.h"
+#include "ipc/osal_atomic.h"
+#include "ipc/osal_mutex.h"
+#include "ipc/osal_cond.h"
+#include "ipc/osal_rwlock.h"
+#include "ipc/osal_semaphore.h"
+#include "ipc/osal_shm.h"
+#include "ipc/osal_shm_cache.h"
 
 /* LIB - 标准库封装 */
-#include "lib/osal_errno_api.h"
-#include "lib/osal_flock_api.h"
-#include "lib/osal_heap_api.h"
-#include "lib/osal_stdio_api.h"
-#include "lib/osal_string_api.h"
+#include "lib/osal_errno.h"
+#include "lib/osal_flock.h"
+#include "lib/osal_heap.h"
+#include "lib/osal_stdio.h"
+#include "lib/osal_string.h"
 
 /* NET - 网络相关 */
-#include "net/osal_socket_api.h"
-#include "net/osal_termios_api.h"
+#include "net/osal_socket.h"
+#include "net/osal_termios.h"
 
 /* SYS - 系统调用封装 */
-#include "sys/osal_clock_api.h"
-#include "sys/osal_env_api.h"
-#include "sys/osal_file_api.h"
-#include "sys/osal_poll_api.h"
-#include "sys/osal_process_api.h"
-#include "sys/osal_thread_api.h"
-#include "sys/osal_sched_api.h"
-#include "sys/osal_select_api.h"
-#include "sys/osal_signal_api.h"
-#include "sys/osal_time_api.h"
+#include "sys/osal_clock.h"
+#include "sys/osal_env.h"
+#include "sys/osal_file.h"
+#include "sys/osal_poll.h"
+#include "sys/osal_process.h"
+#include "sys/osal_thread.h"
+#include "sys/osal_sched.h"
+#include "sys/osal_select.h"
+#include "sys/osal_signal.h"
+#include "sys/osal_time.h"
 
 /* UTIL - 工具类 */
-#include "util/osal_log_api.h"
-#include "util/osal_version_api.h"
+#include "util/osal_log.h"
+#include "util/osal_version.h"
 
 #endif /* OSAL_H */

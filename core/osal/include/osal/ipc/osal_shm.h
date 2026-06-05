@@ -4,8 +4,8 @@
  * Shared memory operations for inter-process communication
  ************************************************************************/
 
-#ifndef OSAL_SHM_API_H
-#define OSAL_SHM_API_H
+#ifndef OSAL_SHM_H
+#define OSAL_SHM_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -109,4 +109,4 @@ int32_t OSAL_ShmSync(void *addr, size_t size, bool async);
 }
 #endif
 
-#endif /* OSAL_SHM_API_H */
+#endif /* OSAL_SHM_H */

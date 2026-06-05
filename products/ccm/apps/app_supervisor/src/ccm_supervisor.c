@@ -1,7 +1,7 @@
 #include "ccm_supervisor.h"
 #include "libccm/libccm_ipc.h"
-#include "osal/sys/osal_signal_api.h"
-#include "osal/sys/osal_process_api.h"
+#include "osal/sys/osal_signal.h"
+#include "osal/sys/osal_process.h"
 #include <unistd.h>
 
 /* 全局变量 */

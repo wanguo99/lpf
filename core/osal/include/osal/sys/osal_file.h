@@ -4,8 +4,8 @@
  * File operations (open, read, write, ioctl)
  ************************************************************************/
 
-#ifndef OSAL_FILE_API_H
-#define OSAL_FILE_API_H
+#ifndef OSAL_FILE_H
+#define OSAL_FILE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -142,4 +142,4 @@ int32_t OSAL_access(const char *pathname, int32_t mode);
 }
 #endif
 
-#endif /* OSAL_FILE_API_H */
+#endif /* OSAL_FILE_H */

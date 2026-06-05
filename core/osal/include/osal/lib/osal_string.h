@@ -4,8 +4,8 @@
  * String and memory manipulation functions
  ************************************************************************/
 
-#ifndef OSAL_STRING_API_H
-#define OSAL_STRING_API_H
+#ifndef OSAL_STRING_H
+#define OSAL_STRING_H
 
 #include <stdarg.h>
 
@@ -212,4 +212,4 @@ long OSAL_Strtol(const char *nptr, char **endptr, int32_t base);
 }
 #endif
 
-#endif /* OSAL_STRING_API_H */
+#endif /* OSAL_STRING_H */

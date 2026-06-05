@@ -4,8 +4,8 @@
  * Semaphore operations for resource counting and signaling
  ************************************************************************/
 
-#ifndef OSAL_SEMAPHORE_API_H
-#define OSAL_SEMAPHORE_API_H
+#ifndef OSAL_SEMAPHORE_H
+#define OSAL_SEMAPHORE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -84,4 +84,4 @@ int32_t OSAL_SemaphorePost(osal_semaphore_t *sem);
 }
 #endif
 
-#endif /* OSAL_SEMAPHORE_API_H */
+#endif /* OSAL_SEMAPHORE_H */
