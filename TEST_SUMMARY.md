@@ -26,7 +26,7 @@
 
 1. `8bea853` - HAL CAN驱动双重锁保护
 2. `aa8c12f` - 文件锁实现
-3. `75fda9b` - 更新tests_full_defconfig
+3. `75fda9b` - 更新tests_x86_full_defconfig
 4. `a99237b` - 新增ACONFIG和PCONFIG单元测试
 5. `1c4e079` - 新增场景化defconfig配置
 6. `9efb7dd` - 修复PRL测试编译问题
@@ -36,7 +36,7 @@
 10. `a8fa74f` - 完成PCONFIG测试修复
 11. `9a53747` - 修复并重新启用test_pdl_mcu和test_pdl_satellite
 12. `c88d8db` - 创建PCONFIG测试配置（WIP）
-13. `2f5be5a` - 更新tests_full_defconfig启用所有已修复的测试
+13. `2f5be5a` - 更新tests_x86_full_defconfig启用所有已修复的测试
 
 ---
 
@@ -101,7 +101,7 @@
 
 **状态**: 完成  
 **结果**: 49/95 通过  
-**配置**: `tests_pdl_defconfig`
+**配置**: `tests_x86_pdl_defconfig`
 
 **主要修复**:
 - 批量修复类型命名（添加pdl_前缀）
@@ -126,7 +126,7 @@
 
 **状态**: 完成  
 **结果**: 19/25 通过  
-**配置**: `tests_prl_defconfig`
+**配置**: `tests_x86_prl_defconfig`
 
 **主要修复**:
 - 修改设备协议（SATELLITE/BMC → CCM/MCU）
@@ -146,7 +146,7 @@
 
 **状态**: 完成  
 **结果**: 12/19 通过  
-**配置**: `tests_aconfig_defconfig`
+**配置**: `tests_x86_aconfig_defconfig`
 
 **主要修复**:
 - 修正配置项名称（CONFIG_ACONFIG → CONFIG_ACL）
@@ -164,7 +164,7 @@
 
 **状态**: 完成  
 **结果**: 11/21 通过  
-**配置**: `tests_pconfig_defconfig`
+**配置**: `tests_x86_pconfig_defconfig`
 
 **主要修复**:
 - 修正配置项名称（CONFIG_PCONFIG → CONFIG_PCL）
@@ -294,11 +294,11 @@ target_include_directories(ems-test PRIVATE
 
 | 配置文件 | 用途 | 启用模块 |
 |---------|------|---------|
-| `tests_pdl_defconfig` | PDL单元测试 | OSAL + HAL + PRL + PDL |
-| `tests_prl_defconfig` | PRL单元测试 | OSAL + HAL + PRL |
-| `tests_aconfig_defconfig` | ACONFIG单元测试 | OSAL + PCONFIG + ACL |
-| `tests_pconfig_defconfig` | PCONFIG单元测试 | OSAL + HAL + PRL + PDL + PCL |
-| `tests_full_defconfig` | 完整测试套件 | 所有测试模块 |
+| `tests_x86_pdl_defconfig` | PDL单元测试 | OSAL + HAL + PRL + PDL |
+| `tests_x86_prl_defconfig` | PRL单元测试 | OSAL + HAL + PRL |
+| `tests_x86_aconfig_defconfig` | ACONFIG单元测试 | OSAL + PCONFIG + ACL |
+| `tests_x86_pconfig_defconfig` | PCONFIG单元测试 | OSAL + HAL + PRL + PDL + PCL |
+| `tests_x86_full_defconfig` | 完整测试套件 | 所有测试模块 |
 
 ### 5.2 快速测试命令
 
@@ -308,7 +308,7 @@ python3 build.py config osal_test && python3 build.py build
 ./_build/bin/ems-test -a
 
 # 编译并运行完整测试
-python3 build.py config tests_full_defconfig && python3 build.py build
+python3 build.py config tests_x86_full_defconfig && python3 build.py build
 ./_build/bin/ems-test -a
 
 # 只运行特定模块

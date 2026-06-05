@@ -265,10 +265,10 @@ Examples:
   python3 build.py menuconfig
 
   # Load a specific config (without building)
-  python3 build.py config tests_full_defconfig
+  python3 build.py config tests_x86_full_defconfig
 
   # Build with specific config
-  python3 build.py build --config tests_full_defconfig
+  python3 build.py build --config tests_x86_full_defconfig
 
   # Clean build directory
   python3 build.py clean
@@ -282,11 +282,11 @@ Examples:
                         choices=["build", "menuconfig", "config", "clean", "distclean"],
                         help="Command to execute")
     parser.add_argument("config_name", nargs="?",
-                        help="Configuration file name (e.g., tests_full_defconfig)")
+                        help="Configuration file name (e.g., tests_x86_full_defconfig)")
     parser.add_argument("--list", action="store_true",
                         help="List all available products and configs")
     parser.add_argument("--config", "-c", type=str,
-                        help="Configuration file name (e.g., tests_full_defconfig)")
+                        help="Configuration file name (e.g., tests_x86_full_defconfig)")
     parser.add_argument("--build-dir", "-b", type=str, default="_build",
                         help="Build directory (default: _build)")
     parser.add_argument("--jobs", "-j", type=int,

@@ -105,14 +105,14 @@ EMS/
 
 | 配置 | 测试范围 | 平台 | 用途 |
 |------|---------|------|------|
-| `tests_full_defconfig` | 全栈测试 | x86_64 | 所有模块、所有功能 |
-| `tests_pdl_defconfig` | PDL 单元测试 | x86_64 | 仅测试 PDL 模块 |
-| `tests_prl_defconfig` | PRL 单元测试 | x86_64 | 仅测试 PRL 协议层 |
-| `tests_aconfig_defconfig` | ACONFIG 单元测试 | x86_64 | 仅测试 ACONFIG 模块 |
-| `tests_pconfig_defconfig` | PCONFIG 单元测试 | x86_64 | 仅测试 PCONFIG 模块 |
-| `tests_system_defconfig` | 系统测试 | x86_64 | 系统级集成测试 |
-| `tests_stress_defconfig` | 压力测试 | x86_64 | 性能和稳定性测试 |
-| `tests_minimal_defconfig` | 最小化配置 | x86_64 | 仅包含核心功能，适合资源受限环境 |
+| `tests_x86_full_defconfig` | 全栈测试 | x86_64 | 所有模块、所有功能 |
+| `tests_x86_pdl_defconfig` | PDL 单元测试 | x86_64 | 仅测试 PDL 模块 |
+| `tests_x86_prl_defconfig` | PRL 单元测试 | x86_64 | 仅测试 PRL 协议层 |
+| `tests_x86_aconfig_defconfig` | ACONFIG 单元测试 | x86_64 | 仅测试 ACONFIG 模块 |
+| `tests_x86_pconfig_defconfig` | PCONFIG 单元测试 | x86_64 | 仅测试 PCONFIG 模块 |
+| `tests_x86_system_defconfig` | 系统测试 | x86_64 | 系统级集成测试 |
+| `tests_x86_stress_defconfig` | 压力测试 | x86_64 | 性能和稳定性测试 |
+| `tests_x86_minimal_defconfig` | 最小化配置 | x86_64 | 仅包含核心功能，适合资源受限环境 |
 
 ## 🔧 常用命令
 
