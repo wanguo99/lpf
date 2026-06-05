@@ -85,7 +85,7 @@ int32_t HAL_CAN_Init(const hal_can_config_t *config, hal_can_handle_t *handle)
     if (ret < 0)
     {
         int32_t err = OSAL_GetErrno();
-        LOG_ERROR("HAL_CAN", "Interface %s not found: %s %d (%d)",
+        LOG_ERROR("HAL_CAN", "Interface %s not found: %s (%d)",
                   config->interface, OSAL_StrError(err), err);
         OSAL_close(impl->sockfd);
         OSAL_MutexDelete(impl->mutex);
@@ -102,7 +102,7 @@ int32_t HAL_CAN_Init(const hal_can_config_t *config, hal_can_handle_t *handle)
     if (ret < 0)
     {
         int32_t err = OSAL_GetErrno();
-        LOG_ERROR("HAL_CAN", "Failed to bind interface: %s %d (%d)",
+        LOG_ERROR("HAL_CAN", "Failed to bind interface: %s (%d)",
                   OSAL_StrError(err), err);
         OSAL_close(impl->sockfd);
         OSAL_MutexDelete(impl->mutex);

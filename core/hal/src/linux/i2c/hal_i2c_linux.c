@@ -89,7 +89,7 @@ int32_t HAL_I2C_Open(const hal_i2c_config_t *config, hal_i2c_handle_t *handle)
     if (impl->fd < 0)
     {
         int32_t err = OSAL_GetErrno();
-        LOG_ERROR("HAL_I2C", "Failed to open device %s: %s %d (%d)",
+        LOG_ERROR("HAL_I2C", "Failed to open device %s: %s (%d)",
                   config->device, OSAL_StrError(err), err);
         OSAL_MutexDelete(impl->mutex);
         OSAL_FlockDestroy(impl->flock);
