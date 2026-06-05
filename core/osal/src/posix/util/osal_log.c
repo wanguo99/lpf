@@ -666,17 +666,24 @@ static void log_internal_ex(log_level_t level, const char *module,
              timestamp, log_level_names[level], module,
              filename, func, line, message);
 
-    /* 输出到终端（带颜色） */
-    printf("%s[%s] [%s] [%s] [%s:%s:%d]%s %s\n",
-           log_level_colors[level],
-           timestamp,
-           log_level_names[level],
-           module,
-           filename,
-           func,
-           line,
-           color_reset,
-           message);
+    /* 输出到终端（带颜色） - 使用 write 系统调用 */
+    {
+        char console_buf[OSAL_LOG_MESSAGE_SIZE + 512];
+        int console_len = snprintf(console_buf, sizeof(console_buf),
+                                   "%s[%s] [%s] [%s] [%s:%s:%d]%s %s\n",
+                                   log_level_colors[level],
+                                   timestamp,
+                                   log_level_names[level],
+                                   module,
+                                   filename,
+                                   func,
+                                   line,
+                                   color_reset,
+                                   message);
+        if (console_len > 0) {
+            write(STDOUT_FILENO, console_buf, console_len);
+        }
+    }
 
     /* 输出到文件（无颜色） */
     if (NULL != g_log_file)
@@ -723,25 +730,35 @@ static void log_internal(log_level_t level, const char *module,
     /* 检查并轮转日志文件 */
     check_and_rotate_log();
 
-    /* 输出到终端（带颜色） */
+    /* 输出到终端（带颜色） - 使用 write 系统调用 */
     if (NULL != module)
     {
-        printf("%s[%s] [%s] [%s]%s %s\n",
-               log_level_colors[level],
-               timestamp,
-               log_level_names[level],
-               module,
-               color_reset,
-               message);
+        char console_buf[OSAL_LOG_MESSAGE_SIZE + 256];
+        int console_len = snprintf(console_buf, sizeof(console_buf),
+                                   "%s[%s] [%s] [%s]%s %s\n",
+                                   log_level_colors[level],
+                                   timestamp,
+                                   log_level_names[level],
+                                   module,
+                                   color_reset,
+                                   message);
+        if (console_len > 0) {
+            write(STDOUT_FILENO, console_buf, console_len);
+        }
     }
     else
     {
-        printf("%s[%s] [%s]%s %s\n",
-               log_level_colors[level],
-               timestamp,
-               log_level_names[level],
-               color_reset,
-               message);
+        char console_buf[OSAL_LOG_MESSAGE_SIZE + 256];
+        int console_len = snprintf(console_buf, sizeof(console_buf),
+                                   "%s[%s] [%s]%s %s\n",
+                                   log_level_colors[level],
+                                   timestamp,
+                                   log_level_names[level],
+                                   color_reset,
+                                   message);
+        if (console_len > 0) {
+            write(STDOUT_FILENO, console_buf, console_len);
+        }
     }
 
     /* 输出到文件（无颜色） */
@@ -823,11 +840,17 @@ void OSAL_LogEmit(int32_t level, const char *module,
  */
 void OSAL_Printf(const char *format, ...)
 {
+    char buffer[OSAL_LOG_MESSAGE_SIZE];
     va_list args;
+    int len;
+
     va_start(args, format);
-    vprintf(format, args);
+    len = vsnprintf(buffer, sizeof(buffer), format, args);
     va_end(args);
-    fflush(stdout);
+
+    if (len > 0) {
+        write(STDOUT_FILENO, buffer, len);
+    }
 }
 
 /**
@@ -909,14 +932,21 @@ void OSAL_LogStructured(int32_t level, log_module_t module, const char *message,
     /* 检查并轮转日志文件 */
     check_and_rotate_log();
 
-    /* 输出到终端（带颜色） */
-    printf("%s[%s] [%s] [%s]%s %s\n",
-           log_level_colors[level],
-           timestamp,
-           log_level_names[level],
-           module < LOG_MODULE_MAX ? log_module_names[module] : "UNKNOWN",
-           color_reset,
-           full_message);
+    /* 输出到终端（带颜色） - 使用 write 系统调用 */
+    {
+        char console_buf[OSAL_LOG_MESSAGE_SIZE + 256];
+        int console_len = snprintf(console_buf, sizeof(console_buf),
+                                   "%s[%s] [%s] [%s]%s %s\n",
+                                   log_level_colors[level],
+                                   timestamp,
+                                   log_level_names[level],
+                                   module < LOG_MODULE_MAX ? log_module_names[module] : "UNKNOWN",
+                                   color_reset,
+                                   full_message);
+        if (console_len > 0) {
+            write(STDOUT_FILENO, console_buf, console_len);
+        }
+    }
 
     /* 输出到文件（无颜色） */
     if (NULL != g_log_file)
