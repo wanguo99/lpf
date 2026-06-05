@@ -4,8 +4,8 @@
  * @brief PDL卫星平台服务单元测试
  */
 
-#include "pdl/pdl_satellite.h"
 #include "osal/osal.h"
+#include "pdl/pdl.h"
 
 /* 测试回调函数 */
 static int32_t g_callback_count = 0;

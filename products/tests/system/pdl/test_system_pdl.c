@@ -5,10 +5,7 @@
 
 #include "test_framework.h"
 #include "test_system.h"
-#include "pdl/pdl_bmc.h"
-#include "pdl/pdl_mcu.h"
-#include "pdl/pdl_satellite.h"
-#include "pdl/pdl_watchdog.h"
+#include "pdl/pdl.h"
 
 /**
  * 测试外设系统端到端初始化

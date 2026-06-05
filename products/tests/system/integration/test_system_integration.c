@@ -7,10 +7,7 @@
 #include "test_system.h"
 #include "osal/osal.h"
 #include "hal/hal.h"
-#include "pdl/pdl_bmc.h"
-#include "pdl/pdl_mcu.h"
-#include "pdl/pdl_satellite.h"
-#include "pdl/pdl_watchdog.h"
+#include "pdl/pdl.h"
 
 /**
  * 环境初始化：OSAL + HAL + PDL

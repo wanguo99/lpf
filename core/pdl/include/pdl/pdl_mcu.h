@@ -16,7 +16,7 @@
 #define PDL_MCU_H
 
 #include "osal/osal.h"
-#include "pdl/pdl_types.h"
+#include "pdl/pdl.h"
 
 /*
  * MCU服务句柄

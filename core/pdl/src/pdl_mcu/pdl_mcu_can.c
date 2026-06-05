@@ -8,9 +8,9 @@
  ************************************************************************/
 
 #include "pdl_mcu_internal.h"
-#include "pdl/pdl_mcu.h"
 #include "hal/hal.h"
 #include "osal/osal.h"
+#include "pdl/pdl.h"
 
 /*
  * CAN通信上下文

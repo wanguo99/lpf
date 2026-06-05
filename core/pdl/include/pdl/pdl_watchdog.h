@@ -16,7 +16,7 @@
 #define PDL_WATCHDOG_H
 
 #include "osal/osal.h"
-#include "pdl/pdl_types.h"
+#include "pdl/pdl.h"
 
 /*
  * Watchdog服务句柄

@@ -12,7 +12,7 @@
 #define PDL_BMC_H
 
 #include "osal/osal.h"
-#include "pdl/pdl_types.h"
+#include "pdl/pdl.h"
 
 /*
  * BMC服务句柄
