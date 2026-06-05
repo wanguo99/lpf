@@ -1,0 +1,48 @@
+# PCL Performance Test Configuration
+#
+# Measures platform configuration layer performance.
+# Tests configuration loading, parsing, and device mapping speed.
+
+if TEST_PERFORMANCE_PCL
+
+menu "PCL Performance Tests"
+
+config TEST_PERF_PCL_PARSE
+	bool "Configuration parsing performance tests"
+	default n
+	help
+	  Configuration file parsing speed benchmarks.
+
+	  Measures:
+	    - JSON/XML parsing throughput
+	    - Large file parsing (MB range)
+	    - Schema validation overhead
+	    - Error detection speed
+
+	  Runtime: 2-3 seconds
+	  Hardware: None
+	  Dependencies: CONFIG_PCL
+	  Tags: performance, parsing
+	  Test file: test_perf_pcl_parse.c
+
+config TEST_PERF_PCL_LOOKUP
+	bool "Device lookup performance tests"
+	default n
+	help
+	  Device table lookup speed benchmarks.
+
+	  Measures:
+	    - Device ID lookup latency
+	    - Device name resolution speed
+	    - Configuration query performance
+	    - Large device table handling
+
+	  Runtime: 1-2 seconds
+	  Hardware: None
+	  Dependencies: CONFIG_PCL
+	  Tags: performance, lookup
+	  Test file: test_perf_pcl_lookup.c
+
+endmenu
+
+endif # TEST_PERFORMANCE_PCL

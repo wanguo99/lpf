@@ -1,0 +1,137 @@
+# PDL System Test Configuration
+#
+# Cross-device integration tests for PDL components.
+# Tests multi-device scenarios and protocol interactions.
+
+if TEST_SYSTEM_PDL
+
+menu "PDL System Tests"
+
+config TEST_SYSTEM_PDL_MULTIDEVICE
+	bool "Multi-device concurrent operations"
+	default n
+	help
+	  Concurrent operations across multiple PDL devices.
+
+	  Tests:
+	    - Simultaneous MCU, BMC, Satellite commands
+	    - Interleaved command/response sequences
+	    - Device priority handling
+	    - Concurrent telemetry collection
+	    - Cross-device timing interactions
+
+	  Verifies:
+	    - Device independence (no interference)
+	    - Correct command routing
+	    - Response correlation correctness
+	    - No message cross-contamination
+
+	  Runtime: 5-10 seconds
+	  Hardware: Multiple mock devices
+	  Dependencies: CONFIG_PDL
+	  Tags: integration, pdl, multidevice
+	  Test file: test_system_pdl_multidevice.c
+
+config TEST_SYSTEM_PDL_PROTOCOL_STACK
+	bool "Full protocol stack integration tests"
+	default n
+	help
+	  End-to-end protocol stack tests (PRL + PDL + HAL).
+
+	  Tests:
+	    - Application data → PRL encode → PDL send → HAL transmit
+	    - HAL receive → PDL process → PRL decode → Application
+	    - Error injection at each layer
+	    - Layer-to-layer data integrity
+	    - Protocol state machine coordination
+
+	  Verifies:
+	    - Correct data flow through all layers
+	    - No data corruption between layers
+	    - Error propagation correctness
+	    - Layer boundary validation
+
+	  Runtime: 5-10 seconds
+	  Hardware: Mock devices
+	  Dependencies: CONFIG_PDL, CONFIG_PRL, CONFIG_HAL
+	  Tags: integration, protocol, stack
+	  Test file: test_system_pdl_protocol_stack.c
+
+config TEST_SYSTEM_PDL_BUS_SHARING
+	bool "Shared bus arbitration tests"
+	default n
+	help
+	  Multiple PDL devices sharing same physical bus.
+
+	  Tests:
+	    - CAN bus with MCU + BMC + Satellite
+	    - Serial bus with multiple devices
+	    - Bus arbitration fairness
+	    - Collision detection and recovery
+	    - Bus congestion handling
+
+	  Verifies:
+	    - Fair bus access for all devices
+	    - No message collisions
+	    - Correct bus error handling
+	    - Performance under congestion
+
+	  Runtime: 5-10 seconds
+	  Hardware: Shared bus configuration
+	  Dependencies: CONFIG_PDL, CONFIG_HAL
+	  Tags: integration, bus, arbitration
+	  Test file: test_system_pdl_bus_sharing.c
+
+config TEST_SYSTEM_PDL_ERROR_PROPAGATION
+	bool "Cross-device error propagation tests"
+	default n
+	help
+	  Error handling across multiple devices.
+
+	  Tests:
+	    - Device error impact on other devices
+	    - Error recovery coordination
+	    - Cascading failure prevention
+	    - Error isolation verification
+	    - System recovery after device failure
+
+	  Verifies:
+	    - Errors don't propagate incorrectly
+	    - Failed device doesn't affect others
+	    - Correct error reporting
+	    - System stability during failures
+
+	  Runtime: 5-10 seconds
+	  Hardware: Mock devices with error injection
+	  Dependencies: CONFIG_PDL
+	  Tags: integration, error, robustness
+	  Test file: test_system_pdl_error_propagation.c
+
+config TEST_SYSTEM_PDL_TELEMETRY
+	bool "Multi-device telemetry collection tests"
+	default n
+	help
+	  Concurrent telemetry collection from multiple devices.
+
+	  Tests:
+	    - Simultaneous telemetry from all devices
+	    - Telemetry aggregation correctness
+	    - Timestamp synchronization
+	    - High-frequency telemetry bursts
+	    - Telemetry buffer management
+
+	  Verifies:
+	    - No telemetry loss under load
+	    - Correct device attribution
+	    - Timestamp accuracy
+	    - Buffer overflow handling
+
+	  Runtime: 5-10 seconds
+	  Hardware: Mock devices
+	  Dependencies: CONFIG_PDL
+	  Tags: integration, telemetry
+	  Test file: test_system_pdl_telemetry.c
+
+endmenu
+
+endif # TEST_SYSTEM_PDL

@@ -70,7 +70,22 @@ CONFIG_OSAL_UTIL_VERSION=y
 # Testing - Enabled
 CONFIG_BUILD_TESTING=y
 CONFIG_TEST_UNIT=y
+
+# PRL Unit Tests - All Enabled
 CONFIG_TEST_PRL=y
+CONFIG_TEST_PRL_ALL=y
+CONFIG_TEST_PRL_COMMON=y
+CONFIG_TEST_PRL_DEVICE=y
+
+# Other test modules disabled
+# CONFIG_TEST_OSAL is not set
+# CONFIG_TEST_HAL is not set
+# CONFIG_TEST_PDL is not set
+# CONFIG_TEST_PCONFIG is not set
+# CONFIG_TEST_ACONFIG is not set
+# CONFIG_TEST_PERFORMANCE is not set
+# CONFIG_TEST_STRESS is not set
+# CONFIG_TEST_SYSTEM is not set
 
 # Products - All Disabled
 # CONFIG_PRODUCT_CCM is not set

@@ -18,6 +18,9 @@ config TEST_OSAL
 	  Build OSAL layer unit tests.
 	  This will automatically enable the OSAL module.
 
+	  Fine-grained control over individual OSAL test files is available
+	  in the OSAL Unit Tests submenu.
+
 config TEST_HAL
 	bool "Build HAL unit tests"
 	select HAL
@@ -25,6 +28,9 @@ config TEST_HAL
 	help
 	  Build HAL layer unit tests.
 	  This will automatically enable the HAL module.
+
+	  Fine-grained control over individual HAL test files is available
+	  in the HAL Unit Tests submenu.
 
 config TEST_PCL
 	bool "Build PCL unit tests"
@@ -42,6 +48,9 @@ config TEST_PDL
 	  Build PDL layer unit tests.
 	  This will automatically enable the PDL module.
 
+	  Fine-grained control over individual PDL test files is available
+	  in the PDL Unit Tests submenu.
+
 config TEST_ACL
 	bool "Build ACL unit tests"
 	select ACL
@@ -58,6 +67,9 @@ config TEST_PRL
 	  Build PRL layer unit tests.
 	  This will automatically enable the PRL module.
 
+	  Fine-grained control over individual PRL test files is available
+	  in the PRL Unit Tests submenu.
+
 config TEST_ACONFIG
 	bool "Build ACONFIG unit tests"
 	select ACONFIG
@@ -66,6 +78,9 @@ config TEST_ACONFIG
 	  Build ACONFIG layer unit tests.
 	  This will automatically enable the ACONFIG module.
 
+	  Fine-grained control over individual ACONFIG test files is available
+	  in the ACONFIG Unit Tests submenu.
+
 config TEST_PCONFIG
 	bool "Build PCONFIG unit tests"
 	select PCONFIG
@@ -73,6 +88,12 @@ config TEST_PCONFIG
 	help
 	  Build PCONFIG layer unit tests.
 	  This will automatically enable the PCONFIG module.
+
+	  Fine-grained control over individual PCONFIG test files is available
+	  in the PCONFIG Unit Tests submenu.
+
+# Source fine-grained unit test configurations
+source "products/tests/unit/Kconfig"
 
 endif # TEST_UNIT
 
@@ -121,6 +142,9 @@ config TEST_PERFORMANCE_ACL
 	help
 	  Build ACL layer performance tests.
 
+# Source fine-grained performance test configurations
+source "products/tests/performance/Kconfig"
+
 endif # TEST_PERFORMANCE
 
 config TEST_STRESS
@@ -167,6 +191,9 @@ config TEST_STRESS_ACL
 	default n
 	help
 	  Build ACL layer stress tests.
+
+# Source fine-grained stress test configurations
+source "products/tests/stress/Kconfig"
 
 endif # TEST_STRESS
 
@@ -234,5 +261,8 @@ config TEST_INTEGRATION
 	default n
 	help
 	  Build integration tests that verify interactions between multiple modules.
+
+# Source fine-grained system and integration test configurations
+source "products/tests/system/Kconfig"
 
 endif # TEST_SYSTEM

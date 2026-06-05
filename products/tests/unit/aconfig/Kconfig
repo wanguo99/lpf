@@ -1,0 +1,42 @@
+# ACONFIG Unit Test Configuration
+#
+# Fine-grained control for individual ACONFIG test files.
+# Each option corresponds to a single test_aconfig_*.c file.
+
+if TEST_ACONFIG
+
+menu "ACONFIG Unit Tests"
+
+config TEST_ACONFIG_ALL
+	bool "Enable all ACONFIG unit tests"
+	default y
+	select TEST_ACONFIG_API
+	help
+	  Enable all ACONFIG unit tests at once.
+	  Disabling this allows individual test selection below.
+
+config TEST_ACONFIG_API
+	bool "ACONFIG API tests"
+	default y
+	help
+	  Test ACONFIG API operations (init, telecommand lookup, telemetry query).
+
+	  Coverage:
+	    - Application configuration initialization
+	    - Telecommand (TC) lookup by ID and name
+	    - Telemetry (TM) lookup by ID and name
+	    - Device mapping (business function to hardware device)
+	    - Configuration table iteration
+	    - TC/TM enumeration
+	    - Runtime configuration queries
+	    - Error handling for invalid lookups
+
+	  Runtime: <100ms
+	  Hardware: None
+	  Dependencies: CONFIG_ACONFIG
+	  Tags: fast
+	  Test file: test_aconfig_api.c
+
+endmenu
+
+endif # TEST_ACONFIG

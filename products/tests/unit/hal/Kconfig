@@ -1,0 +1,155 @@
+# HAL Unit Test Configuration
+#
+# Fine-grained control for individual HAL test files.
+# Each option corresponds to a single test_hal_*.c file.
+
+if TEST_HAL
+
+menu "HAL Unit Tests"
+
+config TEST_HAL_ALL
+	bool "Enable all HAL unit tests"
+	default y
+	select TEST_HAL_CAN
+	select TEST_HAL_GPIO
+	select TEST_HAL_I2C
+	select TEST_HAL_SERIAL
+	select TEST_HAL_SPI
+	select TEST_HAL_WATCHDOG
+	help
+	  Enable all HAL unit tests at once.
+	  Disabling this allows individual test selection below.
+
+config TEST_HAL_CAN
+	bool "CAN bus tests"
+	default y
+	help
+	  Test HAL CAN bus operations (init, send, receive, filter, error handling).
+
+	  Coverage:
+	    - CAN controller initialization and configuration
+	    - Message transmission (standard and extended ID)
+	    - Message reception with filtering
+	    - Error frame handling
+	    - Bus-off recovery
+	    - Loopback mode testing
+	    - Bit timing configuration
+
+	  Runtime: <200ms
+	  Hardware: Requires CAN hardware or loopback mode
+	  Dependencies: CONFIG_HAL
+	  Tags: hardware
+	  Test file: test_hal_can.c
+
+config TEST_HAL_GPIO
+	bool "GPIO tests"
+	default y
+	help
+	  Test HAL GPIO operations (init, set, get, toggle, interrupt).
+
+	  Coverage:
+	    - GPIO pin initialization and configuration
+	    - Digital output operations (set, clear, toggle)
+	    - Digital input operations (read pin state)
+	    - Pin direction control (input/output)
+	    - Pull-up/pull-down resistor configuration
+	    - GPIO interrupt handling (edge and level triggered)
+	    - Debouncing support
+
+	  Runtime: <100ms
+	  Hardware: Requires GPIO pins or simulation
+	  Dependencies: CONFIG_HAL
+	  Tags: hardware
+	  Test file: test_hal_gpio.c
+
+config TEST_HAL_I2C
+	bool "I2C bus tests"
+	default y
+	help
+	  Test HAL I2C bus operations (init, read, write, transfer).
+
+	  Coverage:
+	    - I2C bus initialization and configuration
+	    - Master mode operations
+	    - 7-bit and 10-bit addressing
+	    - Single and multi-byte transfers
+	    - Read and write operations
+	    - Repeated start conditions
+	    - Clock speed configuration
+	    - Error detection and recovery
+
+	  Runtime: <200ms
+	  Hardware: Requires I2C hardware or simulation
+	  Dependencies: CONFIG_HAL
+	  Tags: hardware
+	  Test file: test_hal_i2c.c
+
+config TEST_HAL_SERIAL
+	bool "Serial port tests"
+	default y
+	help
+	  Test HAL serial port operations (init, send, receive, config).
+
+	  Coverage:
+	    - Serial port initialization
+	    - Baud rate configuration
+	    - Data bits, stop bits, parity settings
+	    - Flow control (hardware and software)
+	    - Synchronous and asynchronous transmission
+	    - Receive buffering
+	    - Loopback testing
+	    - Error handling (framing, parity, overrun)
+
+	  Runtime: <200ms
+	  Hardware: Requires UART hardware or loopback
+	  Dependencies: CONFIG_HAL
+	  Tags: hardware
+	  Test file: test_hal_serial.c
+
+config TEST_HAL_SPI
+	bool "SPI bus tests"
+	default y
+	help
+	  Test HAL SPI bus operations (init, transfer, config).
+
+	  Coverage:
+	    - SPI bus initialization and configuration
+	    - Master mode operations
+	    - Clock polarity and phase (CPOL, CPHA)
+	    - Bit order (MSB/LSB first)
+	    - Clock speed configuration
+	    - Full-duplex data transfer
+	    - Chip select management
+	    - Multi-slave support
+
+	  Runtime: <200ms
+	  Hardware: Requires SPI hardware or simulation
+	  Dependencies: CONFIG_HAL
+	  Tags: hardware
+	  Test file: test_hal_spi.c
+
+config TEST_HAL_WATCHDOG
+	bool "Watchdog timer tests"
+	default y
+	help
+	  Test HAL watchdog timer operations (init, start, stop, feed, timeout).
+
+	  Coverage:
+	    - Watchdog timer initialization
+	    - Watchdog enable/disable
+	    - Watchdog feed (kick) operations
+	    - Timeout configuration
+	    - Timeout event detection
+	    - System reset on timeout
+	    - Pre-timeout warnings (if supported)
+	    - Watchdog status queries
+
+	  Runtime: <500ms (includes watchdog timeout tests)
+	  Hardware: Requires watchdog hardware or simulation
+	  Dependencies: CONFIG_HAL
+	  Tags: hardware, slow
+	  Test file: test_hal_watchdog.c
+
+endmenu
+
+endif # TEST_HAL

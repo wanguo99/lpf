@@ -6,6 +6,7 @@
 
 #include "osal.h"
 #include "pdl.h"
+#include "pdl_bmc_internal.h"
 
 /*===========================================================================
  * IPMI协议测试

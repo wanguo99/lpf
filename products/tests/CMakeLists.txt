@@ -3,7 +3,15 @@
 # ============================================================================
 # This builds the test suite as a special "product".
 # Tests are conditionally compiled based on Kconfig configuration.
+#
+# Test Discovery System:
+# - Test files are automatically discovered and matched to Kconfig options
+# - No manual file list maintenance required
+# - Convention: test_<module>_<name>.c --> CONFIG_TEST_<MODULE>_<NAME>
 # ============================================================================
+
+# Include test discovery functions
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/TestDiscovery.cmake)
 
 # ============================================================================
 # Register SDK Core Components (like other products do)
@@ -49,6 +57,8 @@ target_sources(libutest PRIVATE
     core/test_runner.c
     core/test_menu.c
     core/test_mock.c
+    core/test_metadata.c
+    core/test_reporter.c
 )
 
 # Framework include directories
@@ -98,226 +108,243 @@ target_include_directories(ems-test PRIVATE
 )
 
 # ============================================================================
-# Unit Tests - Conditionally compiled based on CONFIG_TEST_*
+# Unit Tests - Auto-discovery based on Kconfig
 # ============================================================================
 
 if(CONFIG_TEST_UNIT)
     message(STATUS "Enabling unit tests")
 
-    # OSAL Unit Tests
+    # OSAL Unit Tests - Auto-discover all test_osal_*.c files
     if(CONFIG_TEST_OSAL)
-        message(STATUS "  - OSAL unit tests")
-        target_sources(ems-test PRIVATE
-            unit/osal/test_osal_atomic.c
-            unit/osal/test_osal_clock.c
-            unit/osal/test_osal_cond.c
-            unit/osal/test_osal_env.c
-            unit/osal/test_osal_errno.c
-            unit/osal/test_osal_file.c
-            unit/osal/test_osal_heap.c
-            unit/osal/test_osal_log.c
-            unit/osal/test_osal_mutex.c
-            unit/osal/test_osal_process.c
-            unit/osal/test_osal_sched.c
-            unit/osal/test_osal_semaphore.c
-            unit/osal/test_osal_shm.c
-            unit/osal/test_osal_signal.c
-            unit/osal/test_osal_stress.c
-            unit/osal/test_osal_string.c
-            unit/osal/test_osal_thread.c
-            unit/osal/test_osal_time.c
-            unit/osal/test_osal_version.c
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/osal
+            MODULE osal
+            LIBRARY osal
         )
     endif()
 
-    # HAL Unit Tests
+    # HAL Unit Tests - Auto-discover all test_hal_*.c files
     if(CONFIG_TEST_HAL)
-        message(STATUS "  - HAL unit tests")
-        target_sources(ems-test PRIVATE
-            unit/hal/test_hal_can.c
-            unit/hal/test_hal_gpio.c
-            unit/hal/test_hal_i2c.c
-            unit/hal/test_hal_serial.c
-            unit/hal/test_hal_spi.c
-            unit/hal/test_hal_watchdog.c
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/hal
+            MODULE hal
+            LIBRARY hal
         )
-        target_link_libraries(ems-test PRIVATE hal)
     endif()
 
-    # PCL Unit Tests
+    # PCL Unit Tests - Auto-discover all test_pcl_*.c files
     if(CONFIG_TEST_PCL)
-        message(STATUS "  - PCL unit tests")
-        target_sources(ems-test PRIVATE
-            unit/pcl/test_pcl_api.c
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/pcl
+            MODULE pcl
+            LIBRARY pconfig
         )
-        target_link_libraries(ems-test PRIVATE pcl)
     endif()
 
-    # PDL Unit Tests
+    # PDL Unit Tests - Auto-discover all test_pdl_*.c files
     if(CONFIG_TEST_PDL)
-        message(STATUS "  - PDL unit tests")
-        target_sources(ems-test PRIVATE
-            unit/pdl/test_pdl_bmc.c
-            # unit/pdl/test_pdl_bmc_protocol.c  # TODO: 需要修复内部 API 引用
-            unit/pdl/test_pdl_mcu.c
-            unit/pdl/test_pdl_satellite.c
-            unit/pdl/test_pdl_watchdog.c
-        )
-        target_link_libraries(ems-test PRIVATE pdl)
-        # Add PDL internal headers for protocol tests
-        target_include_directories(ems-test PRIVATE
-            ${SDK_PATH}/core/pdl/src/pdl_bmc
-            ${SDK_PATH}/core/pdl/src/pdl_mcu
-            ${SDK_PATH}/core/pdl/src/pdl_satellite
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/pdl
+            MODULE pdl
+            LIBRARY pdl
+            INCLUDE_DIRS
+                ${SDK_PATH}/core/pdl/src/pdl_bmc
+                ${SDK_PATH}/core/pdl/src/pdl_mcu
+                ${SDK_PATH}/core/pdl/src/pdl_satellite
         )
     endif()
 
-    # PRL Unit Tests (added to Kconfig if not present)
+    # PRL Unit Tests - Auto-discover all test_prl_*.c files
     if(CONFIG_TEST_PRL)
-        message(STATUS "  - PRL unit tests")
-        target_sources(ems-test PRIVATE
-            unit/prl/test_prl_common.c
-            unit/prl/test_prl_device.c
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/prl
+            MODULE prl
+            LIBRARY prl
         )
-        target_link_libraries(ems-test PRIVATE prl)
     endif()
 
-    # ACONFIG Unit Tests
+    # ACONFIG Unit Tests - Auto-discover all test_aconfig_*.c files
     if(CONFIG_TEST_ACONFIG)
-        message(STATUS "  - ACONFIG unit tests")
-        target_sources(ems-test PRIVATE
-            unit/aconfig/test_aconfig_api.c
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/aconfig
+            MODULE aconfig
+            LIBRARY aconfig
         )
-        target_link_libraries(ems-test PRIVATE aconfig)
     endif()
 
-    # PCONFIG Unit Tests
+    # PCONFIG Unit Tests - Auto-discover all test_pconfig_*.c files
     if(CONFIG_TEST_PCONFIG)
-        message(STATUS "  - PCONFIG unit tests")
-        target_sources(ems-test PRIVATE
-            unit/pconfig/test_pconfig_api.c
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/pconfig
+            MODULE pconfig
+            LIBRARY pconfig
         )
-        target_link_libraries(ems-test PRIVATE pconfig)
     endif()
 
-    # ACL Unit Tests
+    # ACL Unit Tests - Auto-discover all test_acl_*.c files
     if(CONFIG_TEST_ACL)
-        message(STATUS "  - ACL unit tests")
-        # Note: ACL test files to be added when available
-        # target_sources(ems-test PRIVATE
-        #     unit/acl/test_acl_api.c
-        # )
-        # target_link_libraries(ems-test PRIVATE acl)
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/acl
+            MODULE acl
+            LIBRARY aconfig
+        )
     endif()
 
 endif() # CONFIG_TEST_UNIT
 
 # ============================================================================
-# Performance Tests
+# Performance Tests - Auto-discovery based on Kconfig
 # ============================================================================
 
 if(CONFIG_TEST_PERFORMANCE)
     message(STATUS "Enabling performance tests")
 
-    target_sources(ems-test PRIVATE
-        performance/test_perf_core.c
-    )
+    # Core performance test file (always included)
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/performance/test_perf_core.c")
+        target_sources(ems-test PRIVATE
+            performance/test_perf_core.c
+        )
+    endif()
 
+    # OSAL Performance Tests - Auto-discover all test_perf_osal_*.c files
     if(CONFIG_TEST_PERFORMANCE_OSAL)
-        message(STATUS "  - OSAL performance tests")
-        target_sources(ems-test PRIVATE
-            performance/osal/test_perf_osal.c
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/performance/osal
+            MODULE perf_osal
+            LIBRARY osal
         )
     endif()
 
+    # HAL Performance Tests - Auto-discover all test_perf_hal_*.c files
     if(CONFIG_TEST_PERFORMANCE_HAL)
-        message(STATUS "  - HAL performance tests")
-        target_sources(ems-test PRIVATE
-            performance/hal/test_perf_hal.c
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/performance/hal
+            MODULE perf_hal
+            LIBRARY hal
         )
     endif()
 
+    # PDL Performance Tests - Auto-discover all test_perf_pdl_*.c files
     if(CONFIG_TEST_PERFORMANCE_PDL)
-        message(STATUS "  - PDL performance tests")
-        target_sources(ems-test PRIVATE
-            performance/pdl/test_perf_pdl.c
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/performance/pdl
+            MODULE perf_pdl
+            LIBRARY pdl
         )
     endif()
 
+    # PCL Performance Tests - Auto-discover all test_perf_pcl_*.c files
     if(CONFIG_TEST_PERFORMANCE_PCL)
-        message(STATUS "  - PCL performance tests")
-        # target_sources(ems-test PRIVATE
-        #     performance/pcl/test_perf_pcl.c
-        # )
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/performance/pcl
+            MODULE perf_pcl
+            LIBRARY pconfig
+        )
     endif()
 
+    # ACL Performance Tests - Auto-discover all test_perf_acl_*.c files
     if(CONFIG_TEST_PERFORMANCE_ACL)
-        message(STATUS "  - ACL performance tests")
-        # target_sources(ems-test PRIVATE
-        #     performance/acl/test_perf_acl.c
-        # )
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/performance/acl
+            MODULE perf_acl
+            LIBRARY aconfig
+        )
     endif()
 
 endif() # CONFIG_TEST_PERFORMANCE
 
 # ============================================================================
-# Stress Tests
+# Stress Tests - Auto-discovery based on Kconfig
 # ============================================================================
 
 if(CONFIG_TEST_STRESS)
     message(STATUS "Enabling stress tests")
 
-    target_sources(ems-test PRIVATE
-        stress/test_stress_core.c
-    )
+    # Core stress test file (always included)
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/stress/test_stress_core.c")
+        target_sources(ems-test PRIVATE
+            stress/test_stress_core.c
+        )
+    endif()
 
+    # OSAL Stress Tests - Auto-discover all test_stress_osal_*.c files
     if(CONFIG_TEST_STRESS_OSAL)
-        message(STATUS "  - OSAL stress tests")
-        target_sources(ems-test PRIVATE
-            stress/osal/test_stress_osal.c
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/stress/osal
+            MODULE stress_osal
+            LIBRARY osal
         )
     endif()
 
+    # HAL Stress Tests - Auto-discover all test_stress_hal_*.c files
     if(CONFIG_TEST_STRESS_HAL)
-        message(STATUS "  - HAL stress tests")
-        target_sources(ems-test PRIVATE
-            stress/hal/test_stress_hal.c
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/stress/hal
+            MODULE stress_hal
+            LIBRARY hal
         )
     endif()
 
+    # PDL Stress Tests - Auto-discover all test_stress_pdl_*.c files
     if(CONFIG_TEST_STRESS_PDL)
-        message(STATUS "  - PDL stress tests")
-        target_sources(ems-test PRIVATE
-            stress/pdl/test_stress_pdl.c
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/stress/pdl
+            MODULE stress_pdl
+            LIBRARY pdl
         )
     endif()
 
+    # PCL Stress Tests - Auto-discover all test_stress_pcl_*.c files
     if(CONFIG_TEST_STRESS_PCL)
-        message(STATUS "  - PCL stress tests")
-        # target_sources(ems-test PRIVATE
-        #     stress/pcl/test_stress_pcl.c
-        # )
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/stress/pcl
+            MODULE stress_pcl
+            LIBRARY pconfig
+        )
     endif()
 
+    # ACL Stress Tests - Auto-discover all test_stress_acl_*.c files
     if(CONFIG_TEST_STRESS_ACL)
-        message(STATUS "  - ACL stress tests")
-        # target_sources(ems-test PRIVATE
-        #     stress/acl/test_stress_acl.c
-        # )
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/stress/acl
+            MODULE stress_acl
+            LIBRARY aconfig
+        )
     endif()
 
 endif() # CONFIG_TEST_STRESS
 
 # ============================================================================
-# System Tests
+# System Tests - Auto-discovery based on Kconfig
 # ============================================================================
 
 if(CONFIG_TEST_SYSTEM)
     message(STATUS "Enabling system tests")
 
-    target_sources(ems-test PRIVATE
-        system/test_system_core.c
-    )
+    # Core system test file (always included)
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/system/test_system_core.c")
+        target_sources(ems-test PRIVATE
+            system/test_system_core.c
+        )
+    endif()
 
     # System tests need core libraries - link them in correct order (dependencies first)
     if(TARGET osal)
@@ -333,79 +360,107 @@ if(CONFIG_TEST_SYSTEM)
         target_link_libraries(ems-test PRIVATE prl)
     endif()
 
+    # OSAL System Tests - Auto-discover all test_system_osal_*.c files
     if(CONFIG_TEST_SYSTEM_OSAL)
-        message(STATUS "  - OSAL system tests")
-        target_sources(ems-test PRIVATE
-            system/osal/test_system_osal.c
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/system/osal
+            MODULE system_osal
+            # Library already linked at system test level
         )
     endif()
 
+    # HAL System Tests - Auto-discover all test_system_hal_*.c files
     if(CONFIG_TEST_SYSTEM_HAL)
-        message(STATUS "  - HAL system tests")
-        target_sources(ems-test PRIVATE
-            system/hal/test_system_hal.c
-        )
+        # Manually add HAL system test files, excluding test_hal_concurrent_access.c
+        # which has its own main() and is built separately
+        file(GLOB HAL_SYSTEM_TEST_FILES "${CMAKE_CURRENT_SOURCE_DIR}/system/hal/test_*.c")
+        list(REMOVE_ITEM HAL_SYSTEM_TEST_FILES
+            "${CMAKE_CURRENT_SOURCE_DIR}/system/hal/test_hal_concurrent_access.c")
+        if(HAL_SYSTEM_TEST_FILES)
+            target_sources(ems-test PRIVATE ${HAL_SYSTEM_TEST_FILES})
+        endif()
+
         # Create separate executable for concurrent access test (has its own main)
-        add_executable(test-hal-concurrent
-            system/hal/test_hal_concurrent_access.c
-        )
-        target_link_libraries(test-hal-concurrent PRIVATE pthread rt m)
-        if(TARGET osal)
-            target_link_libraries(test-hal-concurrent PRIVATE osal)
+        if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/system/hal/test_hal_concurrent_access.c")
+            add_executable(test-hal-concurrent
+                system/hal/test_hal_concurrent_access.c
+            )
+            target_link_libraries(test-hal-concurrent PRIVATE pthread rt m)
+            if(TARGET osal)
+                target_link_libraries(test-hal-concurrent PRIVATE osal)
+            endif()
+            if(TARGET hal)
+                target_link_libraries(test-hal-concurrent PRIVATE hal)
+            endif()
+            # Link osal again at the end to resolve symbols
+            if(TARGET osal)
+                target_link_libraries(test-hal-concurrent PRIVATE osal)
+            endif()
+            set_target_properties(test-hal-concurrent PROPERTIES
+                RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+            )
         endif()
-        if(TARGET hal)
-            target_link_libraries(test-hal-concurrent PRIVATE hal)
-        endif()
-        # Link osal again at the end to resolve symbols
-        if(TARGET osal)
-            target_link_libraries(test-hal-concurrent PRIVATE osal)
-        endif()
-        set_target_properties(test-hal-concurrent PROPERTIES
-            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-        )
     endif()
 
+    # PDL System Tests - Auto-discover all test_system_pdl_*.c files
     if(CONFIG_TEST_SYSTEM_PDL)
-        message(STATUS "  - PDL system tests")
-        target_sources(ems-test PRIVATE
-            system/pdl/test_system_pdl.c
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/system/pdl
+            MODULE system_pdl
+            # Library already linked at system test level
         )
     endif()
 
+    # PCL System Tests - Auto-discover all test_system_pcl_*.c files
     if(CONFIG_TEST_SYSTEM_PCL)
-        message(STATUS "  - PCL system tests")
-        # target_sources(ems-test PRIVATE
-        #     system/pcl/test_system_pcl.c
-        # )
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/system/pcl
+            MODULE system_pcl
+            LIBRARY pconfig
+        )
     endif()
 
+    # ACL System Tests - Auto-discover all test_system_acl_*.c files
     if(CONFIG_TEST_SYSTEM_ACL)
-        message(STATUS "  - ACL system tests")
-        # target_sources(ems-test PRIVATE
-        #     system/acl/test_system_acl.c
-        # )
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/system/acl
+            MODULE system_acl
+            LIBRARY aconfig
+        )
     endif()
 
+    # ACONFIG System Tests - Auto-discover all test_system_aconfig_*.c files
     if(CONFIG_TEST_SYSTEM_ACONFIG)
-        message(STATUS "  - ACONFIG system tests")
-        target_sources(ems-test PRIVATE
-            system/aconfig/test_system_aconfig.c
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/system/aconfig
+            MODULE system_aconfig
+            LIBRARY aconfig
         )
     endif()
 
+    # PCONFIG System Tests - Auto-discover all test_system_pconfig_*.c files
     if(CONFIG_TEST_SYSTEM_PCONFIG)
-        message(STATUS "  - PCONFIG system tests")
-        target_sources(ems-test PRIVATE
-            system/pconfig/test_system_pconfig.c
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/system/pconfig
+            MODULE system_pconfig
+            LIBRARY pconfig
         )
     endif()
 
+    # Integration Tests - Auto-discover all test_system_integration_*.c files
     if(CONFIG_TEST_INTEGRATION)
-        message(STATUS "  - Integration tests")
-        target_sources(ems-test PRIVATE
-            system/integration/test_system_integration.c
+        test_discover_and_add(
+            TARGET ems-test
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/system/integration
+            MODULE system_integration
+            # Libraries already linked at system test level
         )
-        # Libraries already linked at system test level
     endif()
 
 endif() # CONFIG_TEST_SYSTEM

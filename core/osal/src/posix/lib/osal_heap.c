@@ -230,3 +230,56 @@ void OSAL_Free(void *ptr)
     /* 释放内存（包括块头） */
     free(header);
 }
+
+void *OSAL_Realloc(void *ptr, uint32_t new_size)
+{
+    union {
+        void *user_ptr;
+        mem_block_header_t *header;
+        uint8_t *bytes;
+    } ptr_union;
+    mem_block_header_t *old_header;
+    void *new_ptr;
+    uint32_t old_size;
+    uint32_t copy_size;
+
+    /* 如果ptr为NULL，等同于OSAL_Malloc() */
+    if (NULL == ptr) {
+        return OSAL_Malloc(new_size);
+    }
+
+    /* 如果new_size为0，等同于OSAL_Free() */
+    if (0 == new_size) {
+        OSAL_Free(ptr);
+        return NULL;
+    }
+
+    /* 使用联合体避免强制转换 */
+    ptr_union.user_ptr = ptr;
+    /* 获取旧块头指针 */
+    old_header = ptr_union.header - 1;
+
+    /* 验证魔数，检测内存损坏 */
+    if (MEM_BLOCK_MAGIC != old_header->magic) {
+        OSAL_Printf("[HEAP] Memory corruption detected at %p (invalid magic: 0x%X)\n",
+                    ptr, old_header->magic);
+        return NULL;
+    }
+
+    old_size = old_header->size;
+
+    /* 分配新内存 */
+    new_ptr = OSAL_Malloc(new_size);
+    if (NULL == new_ptr) {
+        return NULL;
+    }
+
+    /* 复制数据（取旧大小和新大小的最小值） */
+    copy_size = (old_size < new_size) ? old_size : new_size;
+    memcpy(new_ptr, ptr, copy_size);
+
+    /* 释放旧内存 */
+    OSAL_Free(ptr);
+
+    return new_ptr;
+}

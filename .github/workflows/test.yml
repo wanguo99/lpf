@@ -1,0 +1,151 @@
+name: EMS Test Suite
+
+on:
+  push:
+    branches: [ master, develop ]
+  pull_request:
+    branches: [ master, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        config:
+          - name: "Full Test Suite"
+            defconfig: "tests_x86_full_defconfig"
+          - name: "Unit Tests Only"
+            defconfig: "tests_x86_minimal_defconfig"
+          - name: "PDL Tests"
+            defconfig: "tests_x86_pdl_defconfig"
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          python3 \
+          python3-pip \
+          libncurses-dev \
+          flex \
+          bison
+
+    - name: Configure build
+      run: |
+        python3 build.py config ${{ matrix.config.defconfig }}
+
+    - name: Build tests
+      run: |
+        python3 build.py build
+
+    - name: Run tests
+      run: |
+        ./_build/bin/ems-test -a --format junit --output test-results-${{ matrix.config.defconfig }}.xml
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results-${{ matrix.config.defconfig }}
+        path: test-results-${{ matrix.config.defconfig }}.xml
+
+    - name: Publish test results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: always()
+      with:
+        files: test-results-${{ matrix.config.defconfig }}.xml
+        check_name: Test Results (${{ matrix.config.name }})
+
+  performance-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake python3
+
+    - name: Configure for performance tests
+      run: |
+        python3 build.py config tests_x86_full_defconfig
+
+    - name: Build tests
+      run: |
+        python3 build.py build
+
+    - name: Run performance tests
+      run: |
+        ./_build/bin/ems-test -a --category performance --format json --output perf-results.json
+
+    - name: Upload performance results
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-results
+        path: perf-results.json
+
+  stress-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake python3
+
+    - name: Configure for stress tests
+      run: |
+        python3 build.py config tests_x86_stress_defconfig
+
+    - name: Build tests
+      run: |
+        python3 build.py build
+
+    - name: Run stress tests
+      run: |
+        ./_build/bin/ems-test -a --category stress --format junit --output stress-results.xml
+
+    - name: Upload stress test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: stress-test-results
+        path: stress-results.xml
+
+  fast-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake python3
+
+    - name: Configure build
+      run: |
+        python3 build.py config tests_x86_minimal_defconfig
+
+    - name: Build tests
+      run: |
+        python3 build.py build
+
+    - name: Run fast tests only
+      run: |
+        ./_build/bin/ems-test -a --fast --format junit --output fast-results.xml
+
+    - name: Upload fast test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: fast-test-results
+        path: fast-results.xml

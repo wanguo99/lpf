@@ -1,0 +1,87 @@
+# PCL Stress Test Configuration
+#
+# Tests platform configuration layer under extreme conditions.
+# Verifies configuration handling under load and error scenarios.
+
+if TEST_STRESS_PCL
+
+menu "PCL Stress Tests"
+
+config TEST_STRESS_PCL_LARGE_CONFIG
+	bool "Large configuration file stress tests"
+	default n
+	help
+	  Handling of very large configuration files.
+
+	  Tests:
+	    - Parse multi-MB configuration files
+	    - Thousands of device entries
+	    - Deep nesting in config structure
+	    - Memory allocation under large configs
+	    - Parse timeout handling
+
+	  Verifies:
+	    - No buffer overflows
+	    - Reasonable memory usage
+	    - Parse completion or timeout
+	    - Graceful degradation
+
+	  Runtime: 15-30 seconds
+	  Hardware: None
+	  Dependencies: CONFIG_PCL
+	  Tags: stress, config, large
+	  Test file: test_stress_pcl_large_config.c
+
+config TEST_STRESS_PCL_RELOAD
+	bool "Configuration reload stress tests"
+	default n
+	help
+	  Rapid configuration reload cycles.
+
+	  Tests:
+	    - Reload configuration 1000+ times
+	    - Concurrent reloads from threads
+	    - Reload during active operations
+	    - Memory leak detection
+
+	  Verifies:
+	    - No resource leaks
+	    - Configuration consistency
+	    - Thread-safe reload
+	    - System stability
+
+	  Runtime: 15-30 seconds
+	  Hardware: None
+	  Dependencies: CONFIG_PCL
+	  Tags: stress, config, reload
+	  Test file: test_stress_pcl_reload.c
+
+config TEST_STRESS_PCL_MALFORMED
+	bool "Malformed configuration stress tests"
+	default n
+	help
+	  Handling of corrupted and invalid configurations.
+
+	  Tests:
+	    - Syntax errors in config files
+	    - Invalid device parameters
+	    - Missing required fields
+	    - Type mismatches
+	    - Circular references
+	    - Random corruption injection
+
+	  Verifies:
+	    - Robust error detection
+	    - No crashes on bad input
+	    - Useful error messages
+	    - Fallback to defaults
+
+	  Runtime: 10-20 seconds
+	  Hardware: None
+	  Dependencies: CONFIG_PCL
+	  Tags: stress, config, robustness
+	  Test file: test_stress_pcl_malformed.c
+
+endmenu
+
+endif # TEST_STRESS_PCL

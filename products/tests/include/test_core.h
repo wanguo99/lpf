@@ -6,6 +6,8 @@
  * - 自动测试注册
  * - 层级化组织
  * - 交互式菜单和命令行模式
+ * - 测试元数据（分类、标签、超时）
+ * - 动态过滤
  *
  * 依赖：仅依赖OSAL（保证可移植性）
  */
@@ -14,6 +16,7 @@
 #define TEST_CORE_H
 
 #include "osal.h"
+#include "test_metadata.h"
 
 /* Test function signatures */
 typedef void (*test_func_t)(void);
@@ -27,7 +30,16 @@ typedef struct {
     fixture_func_t teardown;
 } test_case_t;
 
-/* Test suite structure */
+/**
+ * Auto-collected test case structure (for linker section-based collection)
+ * This allows TEST_CASE() to automatically register without explicit TEST_CASE_REF()
+ */
+typedef struct {
+    const char *section_name;  /**< Section name to identify which suite this belongs to */
+    test_case_t case_info;     /**< Test case information */
+} auto_test_case_t;
+
+/* Test suite structure with metadata support */
 typedef struct {
     const char *suite_name;
     const char *module_name;
@@ -36,6 +48,7 @@ typedef struct {
     uint32_t case_count;
     fixture_func_t suite_setup;
     fixture_func_t suite_teardown;
+    test_metadata_t metadata;  /**< Test suite metadata (category, tags, timeout, description) */
 } test_suite_t;
 
 /* Test result codes */
@@ -74,8 +87,11 @@ void libutest_register_suite(const test_suite_t *suite);
 
 /* Core API - Test Execution */
 int32_t libutest_run_all(void);
+int32_t libutest_run_all_filtered(const test_filter_t *filter);
 int32_t libutest_run_layer(const char *layer_name);
+int32_t libutest_run_layer_filtered(const char *layer_name, const test_filter_t *filter);
 int32_t libutest_run_module(const char *module_name);
+int32_t libutest_run_module_filtered(const char *module_name, const test_filter_t *filter);
 int32_t libutest_run_suite(const char *suite_name);
 int32_t libutest_run_test(const char *suite_name, const char *test_name);
 
@@ -91,9 +107,16 @@ void libutest_print_module(const char *module_name);
 
 /* Core API - Interactive Mode */
 int32_t libutest_interactive_menu(void);
+int32_t libutest_interactive_menu_filtered(const test_filter_t *filter);
 
 /* Core API - Statistics */
 const test_stats_t* libutest_get_stats(void);
 void libutest_reset_stats(void);
+
+/* Core API - Reporting and Export */
+int32_t libutest_export_junit_xml(const char *output_path);
+int32_t libutest_export_json(const char *output_path);
+void libutest_print_slowest_tests(uint32_t top_n);
+void libutest_print_suite_stats(void);
 
 #endif /* TEST_CORE_H */

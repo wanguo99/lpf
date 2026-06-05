@@ -1,0 +1,112 @@
+# ACL Stress Test Configuration
+#
+# Tests application configuration layer under extreme conditions.
+# Verifies TC/TM handling under load and error scenarios.
+
+if TEST_STRESS_ACL
+
+menu "ACL Stress Tests"
+
+config TEST_STRESS_ACL_TC
+	bool "Telecommand stress tests"
+	default n
+	help
+	  High-frequency telecommand processing.
+
+	  Tests:
+	    - Process 10000+ TCs rapidly
+	    - TC queue overflow handling
+	    - Concurrent TC submission from threads
+	    - Invalid TC rejection under load
+	    - TC execution timeout scenarios
+
+	  Verifies:
+	    - No TC loss (within queue limits)
+	    - Correct queue overflow behavior
+	    - Thread-safe TC processing
+	    - Proper error reporting
+
+	  Runtime: 15-30 seconds
+	  Hardware: Mock devices
+	  Dependencies: CONFIG_ACL
+	  Tags: stress, telecommand
+	  Test file: test_stress_acl_tc.c
+
+config TEST_STRESS_ACL_TM
+	bool "Telemetry stress tests"
+	default n
+	help
+	  High-throughput telemetry collection.
+
+	  Tests:
+	    - Collect 100000+ TM samples
+	    - TM buffer overflow scenarios
+	    - Concurrent TM collection from threads
+	    - High-frequency sampling (kHz range)
+	    - TM aggregation under load
+
+	  Verifies:
+	    - Acceptable data loss rate
+	    - Buffer overflow protection
+	    - Thread-safe TM collection
+	    - Memory management correctness
+
+	  Runtime: 15-30 seconds
+	  Hardware: Mock devices
+	  Dependencies: CONFIG_ACL
+	  Tags: stress, telemetry
+	  Test file: test_stress_acl_tm.c
+
+config TEST_STRESS_ACL_MAPPING
+	bool "Mapping table stress tests"
+	default n
+	help
+	  Mapping table lookup under extreme load.
+
+	  Tests:
+	    - Millions of TC/TM lookups
+	    - Very large mapping tables (1000+ entries)
+	    - Concurrent lookup from many threads
+	    - Mapping cache thrashing
+	    - Lookup performance degradation
+
+	  Verifies:
+	    - Acceptable lookup latency
+	    - No performance cliffs
+	    - Thread-safe lookups
+	    - Cache effectiveness
+
+	  Runtime: 10-20 seconds
+	  Hardware: None
+	  Dependencies: CONFIG_ACL
+	  Tags: stress, performance, lookup
+	  Test file: test_stress_acl_mapping.c
+
+config TEST_STRESS_ACL_INVALID
+	bool "Invalid TC/TM handling stress tests"
+	default n
+	help
+	  Robustness against invalid TC/TM data.
+
+	  Tests:
+	    - Unknown TC IDs
+	    - Malformed TC parameters
+	    - Out-of-range TM values
+	    - Invalid device references
+	    - Random corruption injection
+
+	  Verifies:
+	    - Robust error detection
+	    - No crashes on invalid data
+	    - Correct error reporting
+	    - System stability after errors
+
+	  Runtime: 10-20 seconds
+	  Hardware: Mock devices
+	  Dependencies: CONFIG_ACL
+	  Tags: stress, robustness
+	  Test file: test_stress_acl_invalid.c
+
+endmenu
+
+endif # TEST_STRESS_ACL

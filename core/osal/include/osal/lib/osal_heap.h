@@ -43,6 +43,24 @@ void *OSAL_Malloc(uint32_t size);
  */
 void OSAL_Free(void *ptr);
 
+/**
+ * @brief Reallocate memory block
+ *
+ * Changes the size of the memory block pointed to by ptr. The contents
+ * will be unchanged in the range from the start of the region up to the
+ * minimum of the old and new sizes.
+ *
+ * @param ptr Pointer to previously allocated memory (NULL allowed)
+ * @param new_size New size in bytes
+ * @return Pointer to reallocated memory, or NULL on failure
+ *
+ * @note If ptr is NULL, behaves like OSAL_Malloc()
+ * @note If new_size is 0 and ptr is not NULL, behaves like OSAL_Free()
+ * @note The returned pointer may differ from ptr
+ * @note Thread-safe
+ */
+void *OSAL_Realloc(void *ptr, uint32_t new_size);
+
 /************************************************************************
  * Heap Monitoring
  ************************************************************************/

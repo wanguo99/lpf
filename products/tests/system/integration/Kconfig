@@ -1,0 +1,199 @@
+# Integration Test Configuration
+#
+# Full stack integration tests spanning all layers.
+# Tests complete end-to-end system functionality.
+
+if TEST_INTEGRATION
+
+menu "Integration Tests"
+
+config TEST_INTEGRATION_ALL
+	bool "Enable all integration tests"
+	default y
+	select TEST_SYSTEM_INTEGRATION
+	select TEST_INTEGRATION_E2E
+	select TEST_INTEGRATION_STACK
+	select TEST_INTEGRATION_MISSION
+	help
+	  Enable all full-stack integration tests at once.
+
+	  Integration tests verify the complete system:
+	    - All layers working together (ACONFIG→PCONFIG→PDL→PRL→HAL→OSAL)
+	    - End-to-end data flows
+	    - Real mission scenarios
+	    - Cross-layer error handling
+	    - System-wide resource management
+
+	  Runtime: 10-60 seconds per test
+	  Tags: slow, integration, e2e, heavy
+
+config TEST_SYSTEM_INTEGRATION
+	bool "Core integration test suite"
+	default y
+	help
+	  Core full-stack integration tests.
+
+	  Tests:
+	    - Complete protocol stack (OSAL→HAL→PRL→PDL→PCL→ACL)
+	    - Multi-device coordination
+	    - Concurrent operations across all layers
+	    - System initialization and shutdown
+	    - Configuration loading and application
+
+	  Verifies:
+	    - All layers integrate correctly
+	    - Data flows through entire stack
+	    - No layer boundary issues
+	    - System stability end-to-end
+
+	  Runtime: 10-20 seconds
+	  Hardware: Mock devices
+	  Dependencies: CONFIG_OSAL, CONFIG_HAL, CONFIG_PDL
+	  Tags: integration, e2e
+	  Test file: test_system_integration.c
+
+config TEST_INTEGRATION_E2E
+	bool "End-to-end data flow tests"
+	default n
+	help
+	  Complete data flow validation tests.
+
+	  Tests:
+	    - Application data → ... → Wire → ... → Application data
+	    - Telecommand: Satellite → CCM → Device → Response → Satellite
+	    - Telemetry: Device → CCM → Satellite
+	    - Large data transfers end-to-end
+	    - Error injection at each layer
+
+	  Verifies:
+	    - Data integrity through entire path
+	    - Correct layer transitions
+	    - Error propagation correctness
+	    - Performance meets requirements
+
+	  Runtime: 10-20 seconds
+	  Hardware: Mock devices and interfaces
+	  Dependencies: All layers
+	  Tags: integration, e2e, dataflow
+	  Test file: test_integration_e2e.c
+
+config TEST_INTEGRATION_STACK
+	bool "Full protocol stack tests"
+	default n
+	help
+	  Complete protocol stack integration.
+
+	  Tests:
+	    - OSAL → HAL → PRL encoding → PDL processing → Device
+	    - Device → PDL processing → PRL decoding → HAL → OSAL
+	    - Error handling at each layer
+	    - Resource management across layers
+	    - Performance with all layers active
+
+	  Verifies:
+	    - Stack operates as designed
+	    - No memory leaks across layers
+	    - Correct abstraction boundaries
+	    - Acceptable end-to-end latency
+
+	  Runtime: 10-20 seconds
+	  Hardware: Mock devices
+	  Dependencies: CONFIG_OSAL, CONFIG_HAL, CONFIG_PRL, CONFIG_PDL
+	  Tags: integration, stack, protocol
+	  Test file: test_integration_stack.c
+
+config TEST_INTEGRATION_MISSION
+	bool "Mission scenario simulation tests"
+	default n
+	help
+	  Real-world mission scenario simulations.
+
+	  Tests complete mission phases:
+	    - System initialization (cold boot)
+	    - Device discovery and configuration
+	    - Normal operations (TC/TM processing)
+	    - Anomaly scenarios (device failure, timeout, error)
+	    - Mode transitions (normal, safe, emergency)
+	    - System shutdown (graceful)
+
+	  Scenarios:
+	    - Power-on self-test (POST)
+	    - Nominal data collection
+	    - Device failure recovery
+	    - Bus error handling
+	    - Graceful degradation
+	    - Emergency safe mode
+
+	  Verifies:
+	    - Mission scenarios complete successfully
+	    - Correct state machine behavior
+	    - Error recovery works in context
+	    - System meets mission requirements
+
+	  Runtime: 30-60 seconds
+	  Hardware: Full mock device suite
+	  Dependencies: All layers
+	  Tags: integration, mission, scenario, heavy, slow
+	  Test file: test_integration_mission.c
+
+config TEST_INTEGRATION_PERFORMANCE
+	bool "Full system performance tests"
+	default n
+	help
+	  End-to-end system performance validation.
+
+	  Measures:
+	    - TC processing latency (end-to-end)
+	    - TM collection throughput
+	    - Multi-device concurrent operations
+	    - CPU and memory usage
+	    - Bus utilization
+	    - System response time under load
+
+	  Verifies:
+	    - Performance meets requirements
+	    - System scales with device count
+	    - No performance cliffs or anomalies
+	    - Resource usage within limits
+
+	  Runtime: 20-40 seconds
+	  Hardware: Mock devices
+	  Dependencies: All layers
+	  Tags: integration, performance, e2e, slow
+	  Test file: test_integration_performance.c
+
+config TEST_INTEGRATION_ROBUSTNESS
+	bool "System robustness and fault injection tests"
+	default n
+	help
+	  Robustness testing with comprehensive fault injection.
+
+	  Fault injection points:
+	    - HAL: Device errors, timeouts, bus failures
+	    - PRL: Malformed packets, CRC errors
+	    - PDL: Protocol violations, unexpected responses
+	    - PCL: Invalid configurations
+	    - ACL: Invalid telecommands
+
+	  Tests:
+	    - Error isolation (faults don't propagate)
+	    - Recovery mechanisms at each layer
+	    - System stability during failures
+	    - Correct error reporting end-to-end
+	    - No resource leaks during error paths
+
+	  Verifies:
+	    - System remains stable under faults
+	    - Errors properly contained
+	    - Recovery mechanisms effective
+	    - Diagnostic information accurate
+
+	  Runtime: 20-40 seconds
+	  Hardware: Mock devices with error injection
+	  Dependencies: All layers
+	  Tags: integration, robustness, fault, slow
+	  Test file: test_integration_robustness.c
+
+endmenu
+
+endif # TEST_INTEGRATION

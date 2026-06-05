@@ -501,66 +501,100 @@ tests/
 
 ### 添加新的测试模块
 
+**⚡ 快速开始：** 查看 [如何添加测试完整指南](examples/HOWTO_ADD_TEST.md)
+
+### 简化流程（推荐）
+
+新的测试系统支持**自动发现**和**简化注册**，大幅减少样板代码。
+
 #### 1. 创建测试文件
 
-在对应测试分类和层级目录创建测试文件（如 `tests/unit/osal/test_osal_timer.c`）：
+文件命名：`test_<layer>_<module>.c`（例如：`test_osal_timer.c`）
 
 ```c
 #include "test_framework.h"
-#include <osal.h>
+#include "osal.h"
 
-/* 测试用例1 */
-TEST_CASE(test_timer_create)
+/* 测试用例 */
+TEST_CASE(test_timer_create_success)
 {
-    osal_id_t timer_id;
-    int32 ret = OSAL_TimerCreate(&timer_id, "test_timer", NULL, NULL);
-    TEST_ASSERT_EQUAL(OS_SUCCESS, ret);
-    
-    OSAL_TimerDelete(timer_id);
+    osal_timer_t *timer = NULL;
+    int32_t ret = OSAL_TimerCreate(&timer, "test_timer");
+    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
+    OSAL_TimerDelete(timer);
 }
 
-/* 测试用例2 */
-TEST_CASE(test_timer_set)
+TEST_CASE(test_timer_start_stop)
 {
-    osal_id_t timer_id;
-    OSAL_TimerCreate(&timer_id, "test_timer", NULL, NULL);
+    osal_timer_t *timer = NULL;
+    OSAL_TimerCreate(&timer, "test_timer");
     
-    int32 ret = OSAL_TimerSet(timer_id, 1000, 1000);
-    TEST_ASSERT_EQUAL(OS_SUCCESS, ret);
+    int32_t ret = OSAL_TimerStart(timer, 1000, 0);
+    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
     
-    OSAL_TimerDelete(timer_id);
+    OSAL_TimerStop(timer);
+    OSAL_TimerDelete(timer);
 }
 
-/* 注册测试模块 */
-TEST_MODULE_BEGIN(test_osal_timer, "定时器测试")
-    TEST_CASE_REGISTER(test_timer_create, "定时器创建")
-    TEST_CASE_REGISTER(test_timer_set, "定时器设置")
-TEST_MODULE_END()
+/* 创建测试用例数组 */
+static const test_case_t osal_timer_cases[] = {
+    TEST_CASE_ENTRY(test_timer_create_success),
+    TEST_CASE_ENTRY(test_timer_start_stop),
+};
+
+/* 注册测试套件（一行搞定！） */
+TEST_SUITE_REGISTER(osal_timer, "OSAL", osal_timer_cases,
+                    TEST_CATEGORY_UNIT, TEST_TAG_FAST, 100,
+                    "OSAL timer operations");
 ```
 
-#### 2. 在CMakeLists.txt中添加源文件
+#### 2. 添加 Kconfig 配置
 
-编辑 `tests/CMakeLists.txt`：
+在 `products/tests/unit/osal/Kconfig` 中添加：
 
-```cmake
-# Unit tests - OSAL
-set(UNIT_TEST_SOURCES
-    ${UNIT_TEST_SOURCES}
-    unit/osal/test_osal_version.c
-    unit/osal/test_osal_atomic.c
-    unit/osal/test_osal_timer.c      # 添加新测试文件
-    # ... 其他测试文件
-)
+```kconfig
+config TEST_OSAL_TIMER
+    bool "Test OSAL timer"
+    depends on CONFIG_OSAL
+    default y
+    help
+      Test OSAL timer operations (create, start, stop, delete).
+      Runtime: <100ms
+      Hardware: None
 ```
 
-#### 3. 重新编译并运行
+**重要：** 配置名必须与文件名对应：
+- 文件：`test_osal_timer.c`
+- 配置：`CONFIG_TEST_OSAL_TIMER`
+
+#### 3. 编译并运行（无需修改 CMakeLists.txt！）
 
 ```bash
-./build.sh -d
-./build/bin/ems-test -m test_osal_timer
-# 或使用快捷方式
-./build/bin/osal-test -m test_osal_timer
+# 配置
+python3 build.py config tests_x86_full_defconfig
+
+# 编译（CMake 自动发现新测试）
+python3 build.py build
+
+# 运行测试
+./_build/bin/ems-test -m osal_timer
 ```
+
+### 新系统优势
+
+✅ **自动发现**：CMake 自动扫描测试文件，无需手动编辑 CMakeLists.txt  
+✅ **简化注册**：相比传统方式减少 60% 样板代码  
+✅ **元数据支持**：支持分类、标签、超时、描述  
+✅ **灵活过滤**：按分类、标签、层级过滤测试  
+✅ **细粒度控制**：每个测试文件独立的 Kconfig 选项
+
+### 详细文档
+
+- **[如何添加测试完整指南](examples/HOWTO_ADD_TEST.md)** - 详细步骤和故障排除
+- **[测试模板](examples/test_template.c)** - 可复制的模板文件
+- **[简化示例](examples/test_example_simplified.c)** - 推荐的编写方式
+- **[元数据示例](examples/test_example_metadata.c)** - 元数据使用示例
+- **[Fixture 示例](examples/test_example_with_fixture.c)** - Setup/Teardown 使用
 
 ### 测试框架API
 

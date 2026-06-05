@@ -1,0 +1,424 @@
+# OSAL Unit Test Configuration
+#
+# Fine-grained control for individual OSAL test files.
+# Each option corresponds to a single test_osal_*.c file.
+
+if TEST_OSAL
+
+menu "OSAL Unit Tests"
+
+config TEST_OSAL_ALL
+	bool "Enable all OSAL unit tests"
+	default y
+	select TEST_OSAL_ATOMIC
+	select TEST_OSAL_CLOCK
+	select TEST_OSAL_COND
+	select TEST_OSAL_ENV
+	select TEST_OSAL_ERRNO
+	select TEST_OSAL_FILE
+	select TEST_OSAL_HEAP
+	select TEST_OSAL_LOG
+	select TEST_OSAL_MUTEX
+	select TEST_OSAL_PROCESS
+	select TEST_OSAL_SCHED
+	select TEST_OSAL_SEMAPHORE
+	select TEST_OSAL_SHM
+	select TEST_OSAL_SIGNAL
+	select TEST_OSAL_STRESS
+	select TEST_OSAL_STRING
+	select TEST_OSAL_THREAD
+	select TEST_OSAL_TIME
+	select TEST_OSAL_VERSION
+	help
+	  Enable all OSAL unit tests at once.
+	  Disabling this allows individual test selection below.
+
+config TEST_OSAL_ATOMIC
+	bool "Atomic operations tests"
+	default y
+	help
+	  Test OSAL atomic operations (atomic_load, atomic_store, atomic_add,
+	  atomic_sub, atomic_compare_exchange, etc.).
+
+	  Coverage:
+	    - Atomic integer operations (8/16/32/64-bit)
+	    - Compare-and-swap operations
+	    - Memory ordering guarantees
+	    - Thread-safety verification
+
+	  Runtime: <50ms
+	  Hardware: None
+	  Dependencies: CONFIG_OSAL
+	  Tags: fast
+	  Test file: test_osal_atomic.c
+
+config TEST_OSAL_CLOCK
+	bool "Clock and timing tests"
+	default y
+	help
+	  Test OSAL clock operations (gettime, monotonic clock, clock resolution).
+
+	  Coverage:
+	    - System clock retrieval (CLOCK_REALTIME)
+	    - Monotonic clock operations (CLOCK_MONOTONIC)
+	    - Clock resolution queries
+	    - Time conversion utilities
+	    - Clock accuracy verification
+
+	  Runtime: <100ms
+	  Hardware: None
+	  Dependencies: CONFIG_OSAL
+	  Tags: fast
+	  Test file: test_osal_clock.c
+
+config TEST_OSAL_COND
+	bool "Condition variable tests"
+	default y
+	help
+	  Test OSAL condition variable operations (wait, signal, broadcast, timed wait).
+
+	  Coverage:
+	    - Condition variable creation and destruction
+	    - Wait and timed wait operations
+	    - Signal single thread
+	    - Broadcast to multiple threads
+	    - Predicate-based waiting patterns
+	    - Spurious wakeup handling
+
+	  Runtime: <200ms
+	  Hardware: None
+	  Dependencies: CONFIG_OSAL
+	  Tags: fast
+	  Test file: test_osal_cond.c
+
+config TEST_OSAL_ENV
+	bool "Environment variable tests"
+	default y
+	help
+	  Test OSAL environment variable operations (getenv, setenv, unsetenv).
+
+	  Coverage:
+	    - Get environment variable values
+	    - Set/update environment variables
+	    - Unset environment variables
+	    - Environment variable existence checks
+	    - Value persistence verification
+
+	  Runtime: <50ms
+	  Hardware: None
+	  Dependencies: CONFIG_OSAL
+	  Tags: fast
+	  Test file: test_osal_env.c
+
+config TEST_OSAL_ERRNO
+	bool "Error number tests"
+	default y
+	help
+	  Test OSAL error number operations (errno handling, error strings).
+
+	  Coverage:
+	    - Error number retrieval
+	    - Error string conversion
+	    - Thread-local errno handling
+	    - Error code mapping (POSIX to OSAL)
+	    - Error propagation verification
+
+	  Runtime: <50ms
+	  Hardware: None
+	  Dependencies: CONFIG_OSAL
+	  Tags: fast
+	  Test file: test_osal_errno.c
+
+config TEST_OSAL_FILE
+	bool "File operations tests"
+	default y
+	help
+	  Test OSAL file operations (open, close, read, write, seek, stat).
+
+	  Coverage:
+	    - File open/close operations
+	    - Read/write operations
+	    - File seeking and positioning
+	    - File status queries (stat, fstat)
+	    - File deletion and truncation
+	    - Directory operations
+	    - Error handling for invalid operations
+
+	  Runtime: <200ms
+	  Hardware: Requires writable filesystem
+	  Dependencies: CONFIG_OSAL
+	  Tags: filesystem
+	  Test file: test_osal_file.c
+
+config TEST_OSAL_HEAP
+	bool "Heap memory tests"
+	default y
+	help
+	  Test OSAL heap memory operations (malloc, calloc, realloc, free).
+
+	  Coverage:
+	    - Memory allocation (malloc)
+	    - Zero-initialized allocation (calloc)
+	    - Memory reallocation (realloc)
+	    - Memory deallocation (free)
+	    - Alignment guarantees
+	    - Out-of-memory handling
+	    - Memory leak detection
+
+	  Runtime: <100ms
+	  Hardware: None
+	  Dependencies: CONFIG_OSAL
+	  Tags: fast
+	  Test file: test_osal_heap.c
+
+config TEST_OSAL_LOG
+	bool "Logging tests"
+	default y
+	help
+	  Test OSAL logging operations (log levels, log output, formatting).
+
+	  Coverage:
+	    - Log level filtering (ERROR, WARN, INFO, DEBUG)
+	    - Log message formatting
+	    - Log output redirection
+	    - Structured logging support
+	    - Thread-safe logging
+	    - Performance under high log volume
+
+	  Runtime: <100ms
+	  Hardware: None
+	  Dependencies: CONFIG_OSAL
+	  Tags: fast
+	  Test file: test_osal_log.c
+
+config TEST_OSAL_MUTEX
+	bool "Mutex tests"
+	default y
+	help
+	  Test OSAL mutex operations (create, lock, unlock, trylock, destroy).
+
+	  Coverage:
+	    - Mutex creation and destruction
+	    - Lock and unlock operations
+	    - Try-lock (non-blocking) operations
+	    - Recursive mutex support
+	    - Priority inheritance (if supported)
+	    - Deadlock detection
+	    - Thread-safety verification
+
+	  Runtime: <100ms
+	  Hardware: None
+	  Dependencies: CONFIG_OSAL
+	  Tags: fast
+	  Test file: test_osal_mutex.c
+
+config TEST_OSAL_PROCESS
+	bool "Process management tests"
+	default y
+	help
+	  Test OSAL process operations (exec, fork, waitpid, exit).
+
+	  Coverage:
+	    - Process creation (fork, exec)
+	    - Process termination and exit codes
+	    - Wait for child processes (waitpid)
+	    - Process ID queries (getpid, getppid)
+	    - Process group operations
+	    - Signal delivery to processes
+	    - Zombie process cleanup
+
+	  Runtime: <500ms
+	  Hardware: None
+	  Dependencies: CONFIG_OSAL
+	  Tags: slow
+	  Test file: test_osal_process.c
+
+config TEST_OSAL_SCHED
+	bool "Scheduler tests"
+	default y
+	help
+	  Test OSAL scheduler operations (priority, affinity, policy).
+
+	  Coverage:
+	    - Thread scheduling policies (FIFO, RR, OTHER)
+	    - Thread priority setting and retrieval
+	    - CPU affinity control
+	    - Scheduler parameter queries
+	    - Real-time scheduling (if available)
+	    - Priority inheritance verification
+
+	  Runtime: <100ms
+	  Hardware: None
+	  Dependencies: CONFIG_OSAL
+	  Tags: fast
+	  Test file: test_osal_sched.c
+
+config TEST_OSAL_SEMAPHORE
+	bool "Semaphore tests"
+	default y
+	help
+	  Test OSAL semaphore operations (create, wait, post, trywait, destroy).
+
+	  Coverage:
+	    - Semaphore creation and destruction
+	    - Wait (decrement) operations
+	    - Post (increment) operations
+	    - Try-wait (non-blocking) operations
+	    - Timed wait with timeout
+	    - Named and unnamed semaphores
+	    - Value queries and limits
+
+	  Runtime: <100ms
+	  Hardware: None
+	  Dependencies: CONFIG_OSAL
+	  Tags: fast
+	  Test file: test_osal_semaphore.c
+
+config TEST_OSAL_SHM
+	bool "Shared memory tests"
+	default y
+	help
+	  Test OSAL shared memory operations (create, attach, detach, delete).
+
+	  Coverage:
+	    - Shared memory creation (shm_open)
+	    - Memory mapping (mmap)
+	    - Memory unmapping (munmap)
+	    - Shared memory deletion (shm_unlink)
+	    - Inter-process data sharing
+	    - Synchronization with shared memory
+	    - Size and protection attributes
+
+	  Runtime: <200ms
+	  Hardware: None
+	  Dependencies: CONFIG_OSAL
+	  Tags: fast
+	  Test file: test_osal_shm.c
+
+config TEST_OSAL_SIGNAL
+	bool "Signal handling tests"
+	default y
+	help
+	  Test OSAL signal operations (signal, raise, sigaction).
+
+	  Coverage:
+	    - Signal handler registration
+	    - Signal delivery and handling
+	    - Signal masking and blocking
+	    - Signal sets operations
+	    - Synchronous signal handling (sigwait)
+	    - Signal safety and reentrancy
+	    - Common signals (SIGINT, SIGTERM, SIGUSR1, etc.)
+
+	  Runtime: <100ms
+	  Hardware: None
+	  Dependencies: CONFIG_OSAL
+	  Tags: fast
+	  Test file: test_osal_signal.c
+
+config TEST_OSAL_STRESS
+	bool "OSAL stress tests"
+	default y
+	help
+	  Test OSAL components under stress conditions (high concurrency, memory pressure).
+
+	  Coverage:
+	    - High-frequency mutex lock/unlock operations
+	    - Massive thread creation and destruction
+	    - Memory allocation under pressure
+	    - Concurrent file I/O operations
+	    - Semaphore contention scenarios
+	    - Resource exhaustion handling
+	    - System stability under load
+
+	  Runtime: <1s
+	  Hardware: None
+	  Dependencies: CONFIG_OSAL
+	  Tags: slow, stress
+
+config TEST_OSAL_STRING
+	bool "String operations tests"
+	default y
+	help
+	  Test OSAL string operations (copy, compare, format, token).
+
+	  Coverage:
+	    - String copy (strcpy, strncpy)
+	    - String comparison (strcmp, strncmp)
+	    - String formatting (snprintf, vsnprintf)
+	    - String tokenization (strtok)
+	    - String length and search operations
+	    - Buffer overflow protection
+	    - Null-termination guarantees
+
+	  Runtime: <50ms
+	  Hardware: None
+	  Dependencies: CONFIG_OSAL
+	  Tags: fast
+	  Test file: test_osal_string.c
+
+config TEST_OSAL_THREAD
+	bool "Thread management tests"
+	default y
+	help
+	  Test OSAL thread operations (create, join, detach, self, exit).
+
+	  Coverage:
+	    - Thread creation with attributes
+	    - Thread joining and exit status
+	    - Thread detachment
+	    - Thread ID queries (self)
+	    - Thread cancellation
+	    - Thread-local storage
+	    - Thread stack size configuration
+	    - Thread naming and identification
+
+	  Runtime: <200ms
+	  Hardware: None
+	  Dependencies: CONFIG_OSAL
+	  Tags: fast
+	  Test file: test_osal_thread.c
+
+config TEST_OSAL_TIME
+	bool "Time operations tests"
+	default y
+	help
+	  Test OSAL time operations (sleep, usleep, nanosleep, time conversions).
+
+	  Coverage:
+	    - Sleep operations (sleep, usleep, nanosleep)
+	    - Time retrieval (time, gettimeofday)
+	    - Time conversions (timespec, timeval)
+	    - Time arithmetic and comparison
+	    - Timeout calculations
+	    - Sleep interruption handling
+	    - Timer resolution verification
+
+	  Runtime: <300ms (includes actual sleep delays)
+	  Hardware: None
+	  Dependencies: CONFIG_OSAL
+	  Tags: slow
+	  Test file: test_osal_time.c
+
+config TEST_OSAL_VERSION
+	bool "Version information tests"
+	default y
+	help
+	  Test OSAL version reporting operations.
+
+	  Coverage:
+	    - Version string retrieval
+	    - Major/minor/patch version numbers
+	    - Build information (date, time, commit)
+	    - API version compatibility checks
+	    - Version comparison utilities
+
+	  Runtime: <50ms
+	  Hardware: None
+	  Dependencies: CONFIG_OSAL
+	  Tags: fast
+	  Test file: test_osal_version.c
+
+endmenu
+
+endif # TEST_OSAL

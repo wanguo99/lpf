@@ -1,0 +1,70 @@
+# System Test Configuration
+#
+# System tests verify integration and interaction between multiple components.
+# Tests cross-layer functionality and end-to-end scenarios.
+#
+# Organization:
+#   - system/Kconfig (this file) - Entry point, sources layer configs
+#   - system/osal/Kconfig - OSAL system/integration tests
+#   - system/hal/Kconfig - HAL system/integration tests
+#   - system/pdl/Kconfig - PDL system/integration tests
+#   - system/pconfig/Kconfig - PCONFIG system/integration tests
+#   - system/aconfig/Kconfig - ACONFIG system/integration tests
+#   - system/integration/Kconfig - Full stack integration tests
+
+if TEST_SYSTEM
+
+menu "System Tests"
+
+config TEST_SYSTEM_ALL
+	bool "Enable all system tests"
+	default y
+	select TEST_SYSTEM_OSAL if TEST_OSAL
+	select TEST_SYSTEM_HAL if TEST_HAL
+	select TEST_SYSTEM_PDL if TEST_PDL
+	select TEST_SYSTEM_PCL if TEST_PCL
+	select TEST_SYSTEM_ACL if TEST_ACL
+	select TEST_SYSTEM_ACONFIG if CONFIG_ACL
+	select TEST_SYSTEM_PCONFIG if CONFIG_PCL
+	select TEST_INTEGRATION
+	help
+	  Enable all system and integration tests at once.
+	  Disabling this allows individual layer selection below.
+
+	  System tests verify:
+	    - Cross-module integration
+	    - End-to-end data flow
+	    - Real-world usage scenarios
+	    - Multi-component interactions
+	    - System-level error handling
+
+	  Runtime: Varies by test (typically 5-30 seconds per test)
+	  Tags: slow, integration, system
+
+# Source layer-specific Kconfig files
+if TEST_OSAL
+	source "products/tests/system/osal/Kconfig"
+endif
+
+if TEST_HAL
+	source "products/tests/system/hal/Kconfig"
+endif
+
+if TEST_PDL
+	source "products/tests/system/pdl/Kconfig"
+endif
+
+if CONFIG_PCL
+	source "products/tests/system/pconfig/Kconfig"
+endif
+
+if CONFIG_ACL
+	source "products/tests/system/aconfig/Kconfig"
+endif
+
+# Integration tests (full stack)
+source "products/tests/system/integration/Kconfig"
+
+endmenu
+
+endif # TEST_SYSTEM

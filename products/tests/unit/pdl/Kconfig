@@ -1,0 +1,130 @@
+# PDL Unit Test Configuration
+#
+# Fine-grained control for individual PDL test files.
+# Each option corresponds to a single test_pdl_*.c file.
+
+if TEST_PDL
+
+menu "PDL Unit Tests"
+
+config TEST_PDL_ALL
+	bool "Enable all PDL unit tests"
+	default y
+	select TEST_PDL_BMC
+	select TEST_PDL_BMC_PROTOCOL
+	select TEST_PDL_MCU
+	select TEST_PDL_SATELLITE
+	select TEST_PDL_WATCHDOG
+	help
+	  Enable all PDL unit tests at once.
+	  Disabling this allows individual test selection below.
+
+config TEST_PDL_BMC
+	bool "BMC device driver tests"
+	default y
+	help
+	  Test PDL BMC device driver operations (init, read, write, control).
+
+	  Coverage:
+	    - BMC device initialization
+	    - Register read/write operations
+	    - Command interface testing
+	    - Status monitoring
+	    - Interrupt handling
+	    - Error detection and recovery
+	    - Device reset operations
+
+	  Runtime: <200ms
+	  Hardware: Requires BMC hardware or simulation
+	  Dependencies: CONFIG_PDL
+	  Tags: hardware
+	  Test file: test_pdl_bmc.c
+
+config TEST_PDL_BMC_PROTOCOL
+	bool "BMC protocol tests"
+	default y
+	help
+	  Test PDL BMC protocol operations (encode, decode, message handling).
+
+	  Coverage:
+	    - Protocol message encoding
+	    - Protocol message decoding
+	    - CRC/checksum validation
+	    - Message framing and parsing
+	    - Command/response matching
+	    - Timeout handling
+	    - Malformed packet handling
+
+	  Runtime: <100ms
+	  Hardware: None (protocol layer only)
+	  Dependencies: CONFIG_PDL
+	  Tags: fast
+	  Test file: test_pdl_bmc_protocol.c
+
+config TEST_PDL_MCU
+	bool "MCU device driver tests"
+	default y
+	help
+	  Test PDL MCU device driver operations (init, command, status, control).
+
+	  Coverage:
+	    - MCU device initialization
+	    - Command transmission
+	    - Status query operations
+	    - Firmware version retrieval
+	    - Device reset and control
+	    - Interrupt handling
+	    - Error reporting and handling
+
+	  Runtime: <200ms
+	  Hardware: Requires MCU hardware or simulation
+	  Dependencies: CONFIG_PDL
+	  Tags: hardware
+	  Test file: test_pdl_mcu.c
+
+config TEST_PDL_SATELLITE
+	bool "Satellite device driver tests"
+	default y
+	help
+	  Test PDL satellite device driver operations (init, telemetry, command).
+
+	  Coverage:
+	    - Satellite interface initialization
+	    - Telemetry data acquisition
+	    - Telecommand transmission
+	    - Protocol compliance (SpaceWire/MIL-STD-1553)
+	    - Time synchronization
+	    - Error detection and recovery
+	    - Health monitoring
+
+	  Runtime: <200ms
+	  Hardware: Requires satellite hardware or simulation
+	  Dependencies: CONFIG_PDL
+	  Tags: hardware
+	  Test file: test_pdl_satellite.c
+
+config TEST_PDL_WATCHDOG
+	bool "Watchdog device driver tests"
+	default y
+	help
+	  Test PDL watchdog device driver operations (init, enable, disable, feed).
+
+	  Coverage:
+	    - Watchdog driver initialization
+	    - Enable/disable operations
+	    - Feed (kick) operations
+	    - Timeout configuration
+	    - Timeout event detection
+	    - Cascaded watchdog support
+	    - Multi-stage timeout handling
+	    - System reset on watchdog expiration
+
+	  Runtime: <300ms
+	  Hardware: Requires watchdog hardware or simulation
+	  Dependencies: CONFIG_PDL
+	  Tags: hardware
+	  Test file: test_pdl_watchdog.c
+
+endmenu
+
+endif # TEST_PDL

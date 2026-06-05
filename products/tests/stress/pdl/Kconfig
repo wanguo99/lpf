@@ -1,0 +1,163 @@
+# PDL Stress Test Configuration
+#
+# Tests PDL device drivers under high load and error conditions.
+# Verifies device protocol stability and error recovery.
+
+if TEST_STRESS_PDL
+
+menu "PDL Stress Tests"
+
+config TEST_STRESS_PDL_MCU
+	bool "MCU device stress tests"
+	default n
+	help
+	  MCU communication stress tests.
+
+	  Tests:
+	    - Rapid command submission (1000s/sec)
+	    - Response timeout handling
+	    - Command queue overflow
+	    - Concurrent commands from many threads
+	    - Large data transfer stress
+	    - Malformed response handling
+
+	  Verifies:
+	    - Command serialization correctness
+	    - Timeout recovery mechanisms
+	    - Queue management under pressure
+	    - No command loss or corruption
+
+	  Runtime: 15-30 seconds
+	  Hardware: Mock MCU device
+	  Dependencies: CONFIG_PDL_MCU
+	  Tags: stress, pdl
+	  Test file: test_stress_pdl_mcu.c
+
+config TEST_STRESS_PDL_BMC
+	bool "BMC device stress tests"
+	default n
+	help
+	  BMC communication stress tests.
+
+	  Tests:
+	    - Rapid health check polling
+	    - Sensor data flooding
+	    - Configuration update storm
+	    - Concurrent access from many threads
+	    - Error response handling
+
+	  Verifies:
+	    - Polling stability under high frequency
+	    - Buffer management correctness
+	    - Thread-safe device access
+	    - Error recovery mechanisms
+
+	  Runtime: 15-30 seconds
+	  Hardware: Mock BMC device
+	  Dependencies: CONFIG_PDL_BMC
+	  Tags: stress, pdl
+	  Test file: test_stress_pdl_bmc.c
+
+config TEST_STRESS_PDL_SATELLITE
+	bool "Satellite device stress tests"
+	default n
+	help
+	  Satellite platform communication stress tests.
+
+	  Tests:
+	    - Telecommand flooding
+	    - Telemetry burst handling
+	    - Large data transfer stress (MB range)
+	    - Protocol timeout scenarios
+	    - State machine rapid transitions
+	    - Error frame injection
+
+	  Verifies:
+	    - Protocol state machine stability
+	    - Large transfer integrity
+	    - Timeout handling correctness
+	    - Buffer overflow protection
+
+	  Runtime: 20-40 seconds
+	  Hardware: Mock satellite interface
+	  Dependencies: CONFIG_PDL_SATELLITE
+	  Tags: stress, pdl, heavy
+	  Test file: test_stress_pdl_satellite.c
+
+config TEST_STRESS_PDL_WATCHDOG
+	bool "Watchdog device stress tests"
+	default n
+	help
+	  Watchdog device stress tests.
+
+	  Tests:
+	    - Rapid kick operations (1000s/sec)
+	    - Concurrent configuration changes
+	    - Timeout edge cases
+	    - Error response handling
+
+	  Verifies:
+	    - Operation serialization correctness
+	    - Thread-safe access
+	    - Configuration consistency
+
+	  Runtime: 10-20 seconds
+	  Hardware: Mock watchdog device
+	  Dependencies: CONFIG_PDL_WATCHDOG
+	  Tags: stress, pdl
+	  Test file: test_stress_pdl_watchdog.c
+
+config TEST_STRESS_PDL_PROTOCOL
+	bool "Protocol layer stress tests"
+	default n
+	help
+	  PDL protocol encoding/decoding stress tests.
+
+	  Tests:
+	    - Rapid encode/decode cycles (millions)
+	    - Malformed message parsing
+	    - Buffer exhaustion scenarios
+	    - CRC collision detection
+	    - Maximum message size handling
+	    - Concurrent encoding from many threads
+
+	  Verifies:
+	    - Parser robustness against malformed data
+	    - No buffer overflows
+	    - Thread-safe buffer management
+	    - Memory leak freedom
+
+	  Runtime: 15-30 seconds
+	  Hardware: None
+	  Dependencies: CONFIG_PDL
+	  Tags: stress, protocol
+	  Test file: test_stress_pdl_protocol.c
+
+config TEST_STRESS_PDL_MULTIDEVICE
+	bool "Multi-device concurrent stress tests"
+	default n
+	help
+	  Concurrent operations across multiple PDL devices.
+
+	  Tests:
+	    - Simultaneous operations on MCU, BMC, Satellite
+	    - Shared bus contention (CAN, Serial)
+	    - Device handle exhaustion
+	    - Cross-device timing interactions
+	    - System-wide error propagation
+
+	  Verifies:
+	    - Device independence (no cross-talk)
+	    - Bus arbitration correctness
+	    - Resource management under load
+	    - System stability with all devices active
+
+	  Runtime: 20-40 seconds
+	  Hardware: Multiple mock devices
+	  Dependencies: CONFIG_PDL
+	  Tags: stress, pdl, integration, heavy
+	  Test file: test_stress_pdl_multidevice.c
+
+endmenu
+
+endif # TEST_STRESS_PDL

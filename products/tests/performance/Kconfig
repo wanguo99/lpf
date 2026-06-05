@@ -1,0 +1,62 @@
+# Performance Test Configuration
+#
+# Performance tests measure throughput, latency, and resource usage
+# under typical and high-load conditions.
+#
+# Organization:
+#   - performance/Kconfig (this file) - Entry point, sources layer configs
+#   - performance/osal/Kconfig - OSAL performance tests
+#   - performance/hal/Kconfig - HAL performance tests
+#   - performance/pdl/Kconfig - PDL performance tests
+#   - performance/pcl/Kconfig - PCL performance tests
+#   - performance/acl/Kconfig - ACL performance tests
+
+if TEST_PERFORMANCE
+
+menu "Performance Tests"
+
+config TEST_PERFORMANCE_ALL
+	bool "Enable all performance tests"
+	default y
+	select TEST_PERFORMANCE_OSAL if TEST_OSAL
+	select TEST_PERFORMANCE_HAL if TEST_HAL
+	select TEST_PERFORMANCE_PDL if TEST_PDL
+	select TEST_PERFORMANCE_PCL if TEST_PCL
+	select TEST_PERFORMANCE_ACL if TEST_ACL
+	help
+	  Enable all performance tests at once.
+	  Disabling this allows individual layer selection below.
+
+	  Performance tests measure:
+	    - Throughput (operations per second)
+	    - Latency (min/max/avg/p99)
+	    - Resource usage (CPU, memory)
+	    - Scalability under load
+
+	  Runtime: Varies by test (typically 1-10 seconds per test)
+	  Tags: slow, performance
+
+# Source layer-specific Kconfig files
+if TEST_OSAL
+	source "products/tests/performance/osal/Kconfig"
+endif
+
+if TEST_HAL
+	source "products/tests/performance/hal/Kconfig"
+endif
+
+if TEST_PDL
+	source "products/tests/performance/pdl/Kconfig"
+endif
+
+if TEST_PCL
+	source "products/tests/performance/pcl/Kconfig"
+endif
+
+if TEST_ACL
+	source "products/tests/performance/acl/Kconfig"
+endif
+
+endmenu
+
+endif # TEST_PERFORMANCE

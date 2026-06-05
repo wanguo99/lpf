@@ -42,7 +42,26 @@
         .cases = suite_id##_cases, \
         .case_count = sizeof(suite_id##_cases) / sizeof(test_case_t), \
         .suite_setup = NULL, \
-        .suite_teardown = NULL \
+        .suite_teardown = NULL, \
+        .metadata = TEST_METADATA_DEFAULT \
+    }; \
+    __attribute__((constructor)) \
+    static void register_##suite_id(void) { \
+        libutest_register_suite(&suite_id##_suite); \
+    }
+
+/* End test suite definition with metadata and auto-register */
+#define TEST_SUITE_END_WITH_METADATA(suite_id, module, layer, meta) \
+    }; \
+    static const test_suite_t suite_id##_suite = { \
+        .suite_name = #suite_id, \
+        .module_name = module, \
+        .layer_name = layer, \
+        .cases = suite_id##_cases, \
+        .case_count = sizeof(suite_id##_cases) / sizeof(test_case_t), \
+        .suite_setup = NULL, \
+        .suite_teardown = NULL, \
+        .metadata = meta \
     }; \
     __attribute__((constructor)) \
     static void register_##suite_id(void) { \
@@ -66,7 +85,26 @@
         .cases = suite_id##_cases, \
         .case_count = sizeof(suite_id##_cases) / sizeof(test_case_t), \
         .suite_setup = setup, \
-        .suite_teardown = teardown \
+        .suite_teardown = teardown, \
+        .metadata = TEST_METADATA_DEFAULT \
+    }; \
+    __attribute__((constructor)) \
+    static void register_##suite_id(void) { \
+        libutest_register_suite(&suite_id##_suite); \
+    }
+
+/* Suite with setup/teardown and metadata */
+#define TEST_SUITE_END_WITH_FIXTURE_AND_METADATA(suite_id, module, layer, setup, teardown, meta) \
+    }; \
+    static const test_suite_t suite_id##_suite = { \
+        .suite_name = #suite_id, \
+        .module_name = module, \
+        .layer_name = layer, \
+        .cases = suite_id##_cases, \
+        .case_count = sizeof(suite_id##_cases) / sizeof(test_case_t), \
+        .suite_setup = setup, \
+        .suite_teardown = teardown, \
+        .metadata = meta \
     }; \
     __attribute__((constructor)) \
     static void register_##suite_id(void) { \

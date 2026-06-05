@@ -1,9 +1,16 @@
 #include "test_framework.h"
 /**
- * @file test_mutex.c
- * @brief OSAL互斥锁单元测试
+ * @file test_osal_mutex.c
+ * @brief OSAL Mutex Unit Tests
  *
- * 使用新的libtest框架，测试自动注册
+ * Tests OSAL mutex operations using the new simplified test framework.
+ * Demonstrates the new registration system with metadata support.
+ *
+ * Test Coverage:
+ * - Mutex creation and destruction
+ * - Mutex locking and unlocking
+ * - Null pointer handling
+ * - Multi-threaded synchronization
  */
 
 #include "osal.h"
@@ -116,14 +123,44 @@ TEST_CASE(test_mutex_protect_shared_resource)
     OSAL_MutexDelete(mutex);
 }
 
-/* 注册测试套件 - 自动注册 */
-TEST_MODULE_BEGIN(osal_mutex, "OSAL")
-    TEST_CASE_REF(test_mutex_create_success)
-    TEST_CASE_REF(test_mutex_create_nullpointer)
-    TEST_CASE_REF(test_mutex_lockunlock_success)
-    TEST_CASE_REF(test_mutex_lock_nullpointer)
-    TEST_CASE_REF(test_mutex_unlock_nullpointer)
-    TEST_CASE_REF(test_mutex_delete_success)
-    TEST_CASE_REF(test_mutex_delete_nullpointer)
-    TEST_CASE_REF(test_mutex_protect_shared_resource)
-TEST_MODULE_END(osal_mutex, "OSAL")
+/**
+ * Test suite registration using new simplified system
+ *
+ * This demonstrates the new TEST_SUITE_REGISTER macro which:
+ * - Eliminates TEST_MODULE_BEGIN/END boilerplate
+ * - Adds test metadata (category, tags, timeout, description)
+ * - Uses TEST_CASE_ENTRY for cleaner test case array definition
+ * - Auto-registers at program startup via constructor attribute
+ *
+ * Metadata:
+ * - Category: UNIT (isolated module testing)
+ * - Tags: FAST (<100ms execution time)
+ * - Timeout: 100ms (expected maximum runtime)
+ * - Description: Human-readable summary of what this suite tests
+ */
+
+/* Define test case array using simplified TEST_CASE_ENTRY macro */
+static const test_case_t osal_mutex_cases[] = {
+    TEST_CASE_ENTRY(test_mutex_create_success),
+    TEST_CASE_ENTRY(test_mutex_create_nullpointer),
+    TEST_CASE_ENTRY(test_mutex_lockunlock_success),
+    TEST_CASE_ENTRY(test_mutex_lock_nullpointer),
+    TEST_CASE_ENTRY(test_mutex_unlock_nullpointer),
+    TEST_CASE_ENTRY(test_mutex_delete_success),
+    TEST_CASE_ENTRY(test_mutex_delete_nullpointer),
+    TEST_CASE_ENTRY(test_mutex_protect_shared_resource),
+};
+
+/*
+ * Register test suite with metadata
+ *
+ * Parameters:
+ * - suite_id: osal_mutex (matches test_osal_mutex.c naming convention)
+ * - layer_name: "OSAL" (OSAL layer)
+ * - cases_array: osal_mutex_cases (test case array defined above)
+ * - category: TEST_CATEGORY_UNIT (unit test)
+ * - tags: TEST_TAG_FAST (fast execution, <100ms)
+ * - timeout: 100 (expected maximum runtime in milliseconds)
+ * - description: Human-readable summary of what this suite tests
+ */
+TEST_SUITE_REGISTER(osal_mutex, "OSAL", osal_mutex_cases, TEST_CATEGORY_UNIT, TEST_TAG_FAST, 100, "OSAL mutex operations (create, lock, unlock, destroy)")

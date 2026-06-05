@@ -1,0 +1,102 @@
+# PDL Performance Test Configuration
+#
+# Measures PDL device driver performance and protocol efficiency.
+# Tests peripheral driver layer throughput and latency.
+
+if TEST_PERFORMANCE_PDL
+
+menu "PDL Performance Tests"
+
+config TEST_PERF_PDL_MCU
+	bool "MCU device performance tests"
+	default n
+	help
+	  MCU communication performance benchmarks.
+
+	  Measures:
+	    - Command execution latency
+	    - Telemetry read throughput
+	    - Bulk data transfer speed
+	    - Protocol overhead analysis
+
+	  Runtime: 2-4 seconds
+	  Hardware: Mock MCU device
+	  Dependencies: CONFIG_PDL_MCU
+	  Tags: performance, pdl
+	  Test file: test_perf_pdl_mcu.c
+
+config TEST_PERF_PDL_BMC
+	bool "BMC device performance tests"
+	default n
+	help
+	  BMC communication performance benchmarks.
+
+	  Measures:
+	    - Health check latency
+	    - Sensor data collection speed
+	    - Configuration update overhead
+	    - Multi-command batching efficiency
+
+	  Runtime: 2-4 seconds
+	  Hardware: Mock BMC device
+	  Dependencies: CONFIG_PDL_BMC
+	  Tags: performance, pdl
+	  Test file: test_perf_pdl_bmc.c
+
+config TEST_PERF_PDL_SATELLITE
+	bool "Satellite device performance tests"
+	default n
+	help
+	  Satellite platform communication performance.
+
+	  Measures:
+	    - Telecommand processing latency
+	    - Telemetry generation throughput
+	    - Large data transfer efficiency
+	    - Protocol state machine overhead
+
+	  Runtime: 3-5 seconds
+	  Hardware: Mock satellite interface
+	  Dependencies: CONFIG_PDL_SATELLITE
+	  Tags: performance, pdl
+	  Test file: test_perf_pdl_satellite.c
+
+config TEST_PERF_PDL_WATCHDOG
+	bool "Watchdog device performance tests"
+	default n
+	help
+	  Watchdog device performance benchmarks.
+
+	  Measures:
+	    - Kick operation latency
+	    - Status query overhead
+	    - Configuration change time
+
+	  Runtime: 1-2 seconds
+	  Hardware: Mock watchdog device
+	  Dependencies: CONFIG_PDL_WATCHDOG
+	  Tags: performance, pdl
+	  Test file: test_perf_pdl_watchdog.c
+
+config TEST_PERF_PDL_PROTOCOL
+	bool "Protocol encoding/decoding performance tests"
+	default n
+	help
+	  PDL protocol layer performance benchmarks.
+
+	  Measures:
+	    - Message encoding speed
+	    - Message decoding speed
+	    - CRC calculation overhead
+	    - Serialization/deserialization efficiency
+	    - Protocol buffer reuse optimization
+
+	  Runtime: 2-3 seconds
+	  Hardware: None
+	  Dependencies: CONFIG_PDL
+	  Tags: performance, protocol
+	  Test file: test_perf_pdl_protocol.c
+
+endmenu
+
+endif # TEST_PERFORMANCE_PDL

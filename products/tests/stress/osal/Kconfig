@@ -1,0 +1,184 @@
+# OSAL Stress Test Configuration
+#
+# Tests OSAL components under extreme load and resource pressure.
+# Verifies stability, leak-free operation, and graceful degradation.
+
+if TEST_STRESS_OSAL
+
+menu "OSAL Stress Tests"
+
+config TEST_STRESS_OSAL_THREAD
+	bool "Thread creation stress tests"
+	default n
+	help
+	  Create and destroy large numbers of threads.
+
+	  Tests:
+	    - Create 1000+ threads rapidly
+	    - Thread pool exhaustion handling
+	    - Concurrent creation/destruction
+	    - Stack memory exhaustion
+	    - Thread-local storage limits
+
+	  Verifies:
+	    - No resource leaks
+	    - Proper error codes when limits reached
+	    - System recovery after cleanup
+
+	  Runtime: 15-30 seconds
+	  Hardware: None
+	  Dependencies: CONFIG_OSAL
+	  Tags: stress, threading, heavy
+	  Test file: test_stress_osal_thread.c
+
+config TEST_STRESS_OSAL_MUTEX
+	bool "Mutex contention stress tests"
+	default n
+	help
+	  High-frequency mutex operations under contention.
+
+	  Tests:
+	    - 100+ threads competing for single mutex
+	    - Rapid lock/unlock cycles (millions of ops)
+	    - Priority inversion scenarios
+	    - Deadlock detection under load
+	    - Recursive mutex depth limits
+
+	  Verifies:
+	    - Lock fairness under contention
+	    - No deadlocks or livelocks
+	    - Correct priority inheritance
+
+	  Runtime: 10-20 seconds
+	  Hardware: None
+	  Dependencies: CONFIG_OSAL
+	  Tags: stress, mutex, concurrency
+	  Test file: test_stress_osal_mutex.c
+
+config TEST_STRESS_OSAL_MEMORY
+	bool "Memory allocation stress tests"
+	default n
+	help
+	  Memory allocation/deallocation under pressure.
+
+	  Tests:
+	    - Allocate until exhaustion
+	    - Rapid alloc/free cycling
+	    - Fragmentation scenarios
+	    - Large allocation requests (GB range)
+	    - Realloc under pressure
+	    - Concurrent allocation from many threads
+
+	  Verifies:
+	    - No memory leaks
+	    - Correct OOM handling
+	    - Heap integrity under stress
+	    - Allocator performance degradation
+
+	  Runtime: 20-40 seconds
+	  Hardware: Sufficient RAM (may use several GB)
+	  Dependencies: CONFIG_OSAL
+	  Tags: stress, memory, heavy
+	  Test file: test_stress_osal_memory.c
+
+config TEST_STRESS_OSAL_FILE
+	bool "File I/O stress tests"
+	default n
+	help
+	  File system operations under heavy load.
+
+	  Tests:
+	    - Open files until fd limit reached
+	    - Concurrent file access from many threads
+	    - Rapid file create/delete cycles
+	    - Large file I/O (multi-GB)
+	    - Disk space exhaustion handling
+	    - Directory operations under load
+
+	  Verifies:
+	    - No file descriptor leaks
+	    - Correct error handling at limits
+	    - File system consistency
+	    - Data integrity under concurrent access
+
+	  Runtime: 20-40 seconds
+	  Hardware: Requires filesystem (may create temp files)
+	  Dependencies: CONFIG_OSAL
+	  Tags: stress, filesystem, heavy, slow
+	  Test file: test_stress_osal_file.c
+
+config TEST_STRESS_OSAL_IPC
+	bool "IPC stress tests"
+	default n
+	help
+	  Inter-process communication under load.
+
+	  Tests:
+	    - Semaphore rapid post/wait (millions of ops)
+	    - Condition variable storm (many threads)
+	    - Shared memory concurrent access
+	    - Pipe/FIFO flooding
+	    - Signal delivery under load
+
+	  Verifies:
+	    - IPC correctness under contention
+	    - No deadlocks or race conditions
+	    - Proper cleanup after stress
+
+	  Runtime: 15-30 seconds
+	  Hardware: None
+	  Dependencies: CONFIG_OSAL
+	  Tags: stress, ipc, concurrency
+	  Test file: test_stress_osal_ipc.c
+
+config TEST_STRESS_OSAL_SIGNAL
+	bool "Signal handling stress tests"
+	default n
+	help
+	  Signal delivery and handling under flood conditions.
+
+	  Tests:
+	    - Rapid signal delivery (thousands per second)
+	    - Multiple signals pending
+	    - Signal mask changes under load
+	    - Concurrent signal handlers
+	    - Real-time signal queue exhaustion
+
+	  Verifies:
+	    - No signal loss (for reliable signals)
+	    - Handler reentrancy safety
+	    - Signal queue behavior at limits
+
+	  Runtime: 10-20 seconds
+	  Hardware: None
+	  Dependencies: CONFIG_OSAL
+	  Tags: stress, signal, concurrency
+	  Test file: test_stress_osal_signal.c
+
+config TEST_STRESS_OSAL_PROCESS
+	bool "Process management stress tests"
+	default n
+	help
+	  Process creation and management under load.
+
+	  Tests:
+	    - Rapid fork/exec cycles
+	    - Many child processes (100+)
+	    - Process table exhaustion
+	    - Zombie process accumulation
+	    - Concurrent waitpid from many threads
+
+	  Verifies:
+	    - No process leaks (zombies)
+	    - Correct exit code propagation
+	    - Resource cleanup after children exit
+
+	  Runtime: 20-40 seconds
+	  Hardware: None
+	  Dependencies: CONFIG_OSAL
+	  Tags: stress, process, heavy, slow
+	  Test file: test_stress_osal_process.c
+
+endmenu
+
+endif # TEST_STRESS_OSAL

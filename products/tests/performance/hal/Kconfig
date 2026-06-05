@@ -1,0 +1,120 @@
+# HAL Performance Test Configuration
+#
+# Measures HAL driver performance and throughput.
+# Tests hardware abstraction layer efficiency.
+
+if TEST_PERFORMANCE_HAL
+
+menu "HAL Performance Tests"
+
+config TEST_PERF_HAL_CAN
+	bool "CAN bus performance tests"
+	default n
+	help
+	  CAN bus throughput and latency benchmarks.
+
+	  Measures:
+	    - Frame transmission throughput
+	    - Reception latency
+	    - Filter performance
+	    - Error handling overhead
+	    - Bus load vs latency
+
+	  Runtime: 3-5 seconds
+	  Hardware: CAN transceiver recommended
+	  Dependencies: CONFIG_HAL_CAN
+	  Tags: performance, hardware, can
+	  Test file: test_perf_hal_can.c
+
+config TEST_PERF_HAL_SERIAL
+	bool "Serial port performance tests"
+	default n
+	help
+	  UART/serial port performance benchmarks.
+
+	  Measures:
+	    - Transmit throughput at various baud rates
+	    - Receive buffer handling
+	    - Flow control overhead
+	    - Character loss under load
+
+	  Runtime: 3-5 seconds
+	  Hardware: Serial port or loopback
+	  Dependencies: CONFIG_HAL_SERIAL
+	  Tags: performance, hardware, serial
+	  Test file: test_perf_hal_serial.c
+
+config TEST_PERF_HAL_SPI
+	bool "SPI performance tests"
+	default n
+	help
+	  SPI bus transfer performance benchmarks.
+
+	  Measures:
+	    - Transfer speed at various clock rates
+	    - DMA vs polled mode performance
+	    - Chip select overhead
+	    - Full-duplex efficiency
+
+	  Runtime: 2-4 seconds
+	  Hardware: SPI device recommended
+	  Dependencies: CONFIG_HAL_SPI
+	  Tags: performance, hardware, spi
+	  Test file: test_perf_hal_spi.c
+
+config TEST_PERF_HAL_I2C
+	bool "I2C performance tests"
+	default n
+	help
+	  I2C bus transaction performance benchmarks.
+
+	  Measures:
+	    - Transaction throughput
+	    - Read/write latency
+	    - Multi-byte transfer efficiency
+	    - Clock stretching impact
+
+	  Runtime: 2-4 seconds
+	  Hardware: I2C device recommended
+	  Dependencies: CONFIG_HAL_I2C
+	  Tags: performance, hardware, i2c
+	  Test file: test_perf_hal_i2c.c
+
+config TEST_PERF_HAL_GPIO
+	bool "GPIO performance tests"
+	default n
+	help
+	  GPIO operation performance benchmarks.
+
+	  Measures:
+	    - Pin toggle frequency
+	    - Read operation latency
+	    - Interrupt latency
+	    - Batch operation efficiency
+
+	  Runtime: 2-3 seconds
+	  Hardware: GPIO pins
+	  Dependencies: CONFIG_HAL_GPIO
+	  Tags: performance, hardware, gpio
+	  Test file: test_perf_hal_gpio.c
+
+config TEST_PERF_HAL_WATCHDOG
+	bool "Watchdog timer performance tests"
+	default n
+	help
+	  Watchdog timer performance benchmarks.
+
+	  Measures:
+	    - Kick operation overhead
+	    - Timer accuracy
+	    - Configuration latency
+
+	  Runtime: 1-2 seconds
+	  Hardware: Watchdog hardware
+	  Dependencies: CONFIG_HAL_WATCHDOG
+	  Tags: performance, hardware, watchdog
+	  Test file: test_perf_hal_watchdog.c
+
+endmenu
+
+endif # TEST_PERFORMANCE_HAL
