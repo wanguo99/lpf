@@ -3,7 +3,7 @@
  * @brief OSAL 文件锁实现（基于 fcntl）
  */
 
-#include "osal/osal.h"
+#include "osal.h"
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>

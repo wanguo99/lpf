@@ -5,7 +5,7 @@
 #ifndef OSAPI_HEAP_H
 #define OSAPI_HEAP_H
 
-#include "osal/osal.h"
+#include "osal.h"
 
 #include <stdbool.h>
 

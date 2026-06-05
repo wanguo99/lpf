@@ -4,9 +4,9 @@
  */
 
 #include "test_framework.h"
-#include "aconfig/aconfig.h"
-#include "aconfig/aconfig_tc.h"
-#include "aconfig/aconfig_tm.h"
+#include "aconfig.h"
+#include "aconfig_tc.h"
+#include "aconfig_tm.h"
 #include <string.h>
 
 /* 测试用的配置表 */

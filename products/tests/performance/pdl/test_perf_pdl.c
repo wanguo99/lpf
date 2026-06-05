@@ -5,7 +5,7 @@
 
 #include "test_framework.h"
 #include "test_performance.h"
-#include "pdl/pdl.h"
+#include "pdl.h"
 
 /**
  * 测试BMC传感器读取性能

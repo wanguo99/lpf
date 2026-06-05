@@ -6,7 +6,7 @@
  */
 
 #include "test_framework.h"
-#include "osal/osal.h"
+#include "osal.h"
 
 /* 示例 1：简单的数学运算测试 */
 typedef struct {

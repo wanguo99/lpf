@@ -10,9 +10,9 @@
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
-#include "hal/hal.h"
+#include "hal.h"
 #include "hal_i2c_internal.h"
-#include "osal/osal.h"
+#include "osal.h"
 
 /**
  * @brief 打开I2C设备

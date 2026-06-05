@@ -7,8 +7,8 @@
 #ifndef HAL_CAN_H
 #define HAL_CAN_H
 
-#include "osal/osal.h"
-#include "hal/config/hal_can_types.h"
+#include "osal.h"
+#include "hal_can_types.h"
 
 #ifdef __cplusplus
 extern "C" {

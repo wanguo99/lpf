@@ -5,7 +5,7 @@
 
 #include "test_framework.h"
 #include "test_stress.h"
-#include "pdl/pdl.h"
+#include "pdl.h"
 
 /**
  * 测试BMC传感器并发读取压力

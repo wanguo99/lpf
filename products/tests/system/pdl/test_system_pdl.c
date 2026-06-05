@@ -5,7 +5,7 @@
 
 #include "test_framework.h"
 #include "test_system.h"
-#include "pdl/pdl.h"
+#include "pdl.h"
 
 /**
  * 测试外设系统端到端初始化

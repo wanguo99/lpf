@@ -4,7 +4,7 @@
  */
 
 #include "test_framework.h"
-#include "pconfig/pconfig.h"
+#include "pconfig.h"
 #include <string.h>
 
 /* 测试用的MCU配置 */

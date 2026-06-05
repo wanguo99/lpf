@@ -4,8 +4,8 @@
  * @details POWER（电源管理板）设备协议实现
  */
 
-#include "osal/osal.h"
+#include "osal.h"
 
-#include "prl/prl.h"
+#include "prl.h"
 
 /* POWER 协议实现（待完善） */

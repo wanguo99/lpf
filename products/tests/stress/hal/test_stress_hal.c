@@ -5,7 +5,7 @@
 
 #include "test_framework.h"
 #include "test_stress.h"
-#include "hal/hal.h"
+#include "hal.h"
 
 /**
  * 测试CAN并发发送压力

@@ -7,7 +7,7 @@
 #ifndef ACONFIG_H
 #define ACONFIG_H
 
-#include "osal/osal.h"
+#include "osal.h"
 #include "aconfig_types.h"
 
 /**

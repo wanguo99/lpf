@@ -99,7 +99,8 @@ endif()
 
 # 注册组件（使用公共函数）
 # PUBLIC: include/ 目录（对外API）
-list(APPEND ADD_INCLUDE "include")
+list(APPEND ADD_INCLUDE "include/hal")
+list(APPEND ADD_INCLUDE "include/hal/config")
 get_filename_component(PARENT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" DIRECTORY)
 list(APPEND ADD_INCLUDE "${PARENT_DIR}")
 

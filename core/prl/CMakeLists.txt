@@ -1,6 +1,6 @@
 ################# Add include #################
 # 公共头文件目录（对外暴露）
-list(APPEND ADD_INCLUDE "include")
+list(APPEND ADD_INCLUDE "include/prl")
 
 # 私有头文件目录（仅内部使用）
 list(APPEND ADD_PRIV_INCLUDE "src")

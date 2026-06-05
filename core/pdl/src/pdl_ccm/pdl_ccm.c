@@ -7,11 +7,11 @@
  * - 调度内部以太网通信模块
  ************************************************************************/
 
-#include "pdl/pdl.h"
+#include "pdl.h"
 #include "pdl_ccm_internal.h"
-#include "prl/prl.h"      /* 新的 PRL API */
+#include "prl.h"      /* 新的 PRL API */
 #include "prl_pmc.h"      /* PMC 设备协议 */
-#include "osal/osal.h"
+#include "osal.h"
 #include <string.h>
 
 /*

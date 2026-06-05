@@ -16,7 +16,7 @@
 #ifndef OSAL_SCHED_H
 #define OSAL_SCHED_H
 
-#include "osal/osal.h"
+#include "osal.h"
 
 
 /*

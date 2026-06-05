@@ -7,8 +7,8 @@
 #ifndef HAL_SPI_INTERNAL_H
 #define HAL_SPI_INTERNAL_H
 
-#include "osal/osal.h"
-#include "hal/hal.h"
+#include "osal.h"
+#include "hal.h"
 
 /*===========================================================================
  * 锁配置

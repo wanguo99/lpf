@@ -3,7 +3,7 @@
  * @brief OSAL版本信息
  */
 
-#include "osal/osal.h"
+#include "osal.h"
 
 /**
  * @brief 获取OSAL版本字符串

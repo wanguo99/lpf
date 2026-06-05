@@ -4,10 +4,10 @@
  * @note 项目层：提供CCM特定的配置表
  */
 
-#include "aconfig/aconfig.h"
-#include "aconfig/aconfig_tc.h"
-#include "aconfig/aconfig_tm.h"
-#include "osal/osal.h"
+#include "aconfig.h"
+#include "aconfig_tc.h"
+#include "aconfig_tm.h"
+#include "osal.h"
 
 /* 遥控配置表 */
 static const aconfig_tc_config_t g_ccm_tc_table[ACONFIG_TC_FUNC_MAX] = {

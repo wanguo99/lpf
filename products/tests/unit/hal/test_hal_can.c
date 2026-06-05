@@ -4,8 +4,8 @@
  * @brief HAL CAN驱动单元测试
  */
 
-#include "hal/hal.h"
-#include "osal/osal.h"
+#include "hal.h"
+#include "osal.h"
 
 /*===========================================================================
  * 初始化和清理测试

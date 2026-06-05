@@ -1,7 +1,7 @@
 #ifndef LIBCCM_IPC_H
 #define LIBCCM_IPC_H
 
-#include "osal/osal.h"
+#include "osal.h"
 
 /* 共享内存名称定义 */
 #define CCM_SHM_TELEMETRY_CACHE    "/ccm_tm_cache"

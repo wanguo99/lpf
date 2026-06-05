@@ -4,7 +4,7 @@
  * @brief OSAL文件I/O操作单元测试
  */
 
-#include "osal/osal.h"
+#include "osal.h"
 
 /* 测试文件路径 */
 #define TEST_FILE_PATH "/tmp/osal_test_file.txt"

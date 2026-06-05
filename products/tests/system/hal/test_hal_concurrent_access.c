@@ -13,7 +13,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <sys/wait.h>
-#include "osal/osal.h"
+#include "osal.h"
 
 /*===========================================================================
  * 测试 1：文件锁基本功能

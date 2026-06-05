@@ -4,10 +4,10 @@
  * @brief PDL MCU外设驱动单元测试
  */
 
-#include "pconfig/pconfig.h"
-#include "hal/hal.h"
-#include "osal/osal.h"
-#include "pdl/pdl.h"
+#include "pconfig.h"
+#include "hal.h"
+#include "osal.h"
+#include "pdl.h"
 
 /*===========================================================================
  * 辅助函数：创建测试配置

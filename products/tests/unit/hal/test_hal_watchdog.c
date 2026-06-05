@@ -5,8 +5,8 @@
 #include "test_core.h"
 #include "test_assert.h"
 #include "test_registry.h"
-#include "hal/hal.h"
-#include "osal/osal.h"
+#include "hal.h"
+#include "osal.h"
 
 /**
  * @brief 测试：初始化和反初始化

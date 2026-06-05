@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "osal/osal.h"
+#include "osal.h"
 
 int main(int argc, char *argv[])
 {

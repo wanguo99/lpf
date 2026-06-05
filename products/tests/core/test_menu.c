@@ -7,7 +7,7 @@
  */
 
 #include "test_core.h"
-#include "osal/osal.h"
+#include "osal.h"
 
 #define MAX_LAYERS 16
 #define MAX_MODULES 64

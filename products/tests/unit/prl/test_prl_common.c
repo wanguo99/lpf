@@ -6,8 +6,8 @@
  * 对于黑盒测试，请参考 test_prl_device.c
  ************************************************************************/
 
-#include "osal/osal.h"
-#include "prl/prl.h"
+#include "osal.h"
+#include "prl.h"
 #include "test_framework.h"
 
 

@@ -1,7 +1,7 @@
 #ifndef CCM_COMM_H
 #define CCM_COMM_H
 
-#include "osal/osal.h"
+#include "osal.h"
 
 /* 共享内存名称 */
 #define SHM_TELEMETRY_CACHE    "/ccm_tm_cache"

@@ -7,8 +7,8 @@
  * - 实际硬件访问需要在 Linux 平台上运行
  ************************************************************************/
 
-#include "hal/hal.h"
-#include "osal/osal.h"
+#include "hal.h"
+#include "osal.h"
 
 int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
 {

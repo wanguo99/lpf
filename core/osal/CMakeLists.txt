@@ -174,7 +174,12 @@ endif()
 
 # 注册组件（使用公共函数）
 # Public API headers (对外公开)
-list(APPEND ADD_INCLUDE "include")
+list(APPEND ADD_INCLUDE "include/osal")
+list(APPEND ADD_INCLUDE "include/osal/ipc")
+list(APPEND ADD_INCLUDE "include/osal/lib")
+list(APPEND ADD_INCLUDE "include/osal/net")
+list(APPEND ADD_INCLUDE "include/osal/sys")
+list(APPEND ADD_INCLUDE "include/osal/util")
 # Internal headers (在各自的源文件目录中，通过相对路径引用)
 get_filename_component(PARENT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" DIRECTORY)
 list(APPEND ADD_INCLUDE "${PARENT_DIR}")

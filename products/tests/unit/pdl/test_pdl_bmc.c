@@ -4,8 +4,8 @@
  * @brief PDL BMC通信服务单元测试
  */
 
-#include "osal/osal.h"
-#include "pdl/pdl.h"
+#include "osal.h"
+#include "pdl.h"
 
 /*===========================================================================
  * 初始化和清理测试

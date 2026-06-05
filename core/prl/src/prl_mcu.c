@@ -5,9 +5,9 @@
  *          新代码应使用 prl_device.c 中的统一接口
  */
 
-#include "osal/osal.h"
+#include "osal.h"
 
-#include "prl/prl.h"
+#include "prl.h"
 
 
 /* 本文件已废弃，所有功能已迁移到 prl_device.c */

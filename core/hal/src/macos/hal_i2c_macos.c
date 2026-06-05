@@ -8,7 +8,7 @@
  ************************************************************************/
 
 #include "hal_i2c.h"
-#include "osal/osal.h"
+#include "osal.h"
 
 int32_t HAL_I2C_Open(const hal_i2c_config_t *config, hal_i2c_handle_t *handle)
 {

@@ -4,9 +4,9 @@
  * @details 统一设备协议消息实现
  */
 
-#include "osal/osal.h"
+#include "osal.h"
 
-#include "prl/prl.h"
+#include "prl.h"
 
 
 /* 设备类型名称映射表 */

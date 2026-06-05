@@ -7,8 +7,8 @@
 #ifndef HAL_GPIO_INTERNAL_H
 #define HAL_GPIO_INTERNAL_H
 
-#include "osal/osal.h"
-#include "hal/hal.h"
+#include "osal.h"
+#include "hal.h"
 
 /*===========================================================================
  * 锁配置

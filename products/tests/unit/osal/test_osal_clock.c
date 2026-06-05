@@ -4,7 +4,7 @@
  * @brief OSAL Clock模块单元测试
  */
 
-#include "osal/osal.h"
+#include "osal.h"
 
 /*===========================================================================
  * OSAL_GetLocalTime 测试

@@ -5,8 +5,8 @@
  */
 
 #include <aconfig/aconfig.h>
-#include "aconfig/aconfig_tc.h"
-#include "aconfig/aconfig_tm.h"
+#include "aconfig_tc.h"
+#include "aconfig_tm.h"
 
 /**
  * @brief 遥控命令对遥测的失效映射

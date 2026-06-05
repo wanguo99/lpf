@@ -5,7 +5,7 @@
  ************************************************************************/
 
 #define _DEFAULT_SOURCE  /* 启用usleep等函数 */
-#include "osal/osal.h"
+#include "osal.h"
 #include <unistd.h>
 #include <time.h>
 #include <errno.h>

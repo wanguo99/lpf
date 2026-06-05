@@ -8,7 +8,7 @@
  ************************************************************************/
 
 #include "pdl_ccm_internal.h"
-#include "osal/osal.h"
+#include "osal.h"
 #include <string.h>
 
 /*

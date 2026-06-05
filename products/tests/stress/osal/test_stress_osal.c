@@ -5,7 +5,7 @@
 
 #include "test_framework.h"
 #include "test_stress.h"
-#include "osal/osal.h"
+#include "osal.h"
 
 /* 共享测试数据 */
 typedef struct {

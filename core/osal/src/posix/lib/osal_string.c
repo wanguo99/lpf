@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include "osal/osal.h"
+#include "osal.h"
 
 /*
  * 内存操作

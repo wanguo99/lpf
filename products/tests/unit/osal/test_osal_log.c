@@ -4,7 +4,7 @@
  * @brief OSAL日志系统单元测试
  */
 
-#include "osal/osal.h"
+#include "osal.h"
 #include <stdbool.h>
 
 /* 测试日志文件路径 */

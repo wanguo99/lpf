@@ -8,8 +8,8 @@
  ************************************************************************/
 
 #include "pdl_bmc_internal.h"
-#include "osal/osal.h"
-#include "pdl/pdl.h"
+#include "osal.h"
+#include "pdl.h"
 
 /*
  * BMC服务上下文

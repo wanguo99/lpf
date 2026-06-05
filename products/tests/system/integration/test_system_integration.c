@@ -5,9 +5,9 @@
 
 #include "test_framework.h"
 #include "test_system.h"
-#include "osal/osal.h"
-#include "hal/hal.h"
-#include "pdl/pdl.h"
+#include "osal.h"
+#include "hal.h"
+#include "pdl.h"
 
 /**
  * 环境初始化：OSAL + HAL + PDL

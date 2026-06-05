@@ -17,7 +17,7 @@ endif()
 ################# Add include #################
 # 公共头文件目录（对外暴露）
 # 用户代码通过 <aconfig/xxx.h> 包含
-list(APPEND ADD_INCLUDE "include")
+list(APPEND ADD_INCLUDE "include/aconfig")
 
 # 私有头文件目录（仅内部使用，不传递给依赖者）
 list(APPEND ADD_PRIV_INCLUDE "src")

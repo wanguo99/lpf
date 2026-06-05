@@ -5,7 +5,7 @@
 
 #include "test_framework.h"
 #include "test_stress.h"
-#include "aconfig/aconfig.h"
+#include "aconfig.h"
 #include <aconfig/aconfig.h>
 
 /**

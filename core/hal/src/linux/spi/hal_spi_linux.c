@@ -9,9 +9,9 @@
 
 #include <linux/spi/spidev.h>
 #include <sys/ioctl.h>
-#include "hal/hal.h"
+#include "hal.h"
 #include "hal_spi_internal.h"
-#include "osal/osal.h"
+#include "osal.h"
 
 /**
  * @brief 打开SPI设备

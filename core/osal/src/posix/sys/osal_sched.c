@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
-#include "osal/osal.h"
+#include "osal.h"
 
 
 /* 简化错误码别名 */

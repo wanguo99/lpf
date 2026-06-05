@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "osal/osal.h"
+#include "osal.h"
 
 // 共享计数器
 static int counter = 0;

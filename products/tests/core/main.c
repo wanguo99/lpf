@@ -7,7 +7,7 @@
  */
 
 #include "test_core.h"
-#include "osal/osal.h"
+#include "osal.h"
 
 /**
  * Extract program name from argv[0] (handles both full path and basename)

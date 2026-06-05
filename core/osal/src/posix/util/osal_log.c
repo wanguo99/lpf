@@ -22,7 +22,7 @@
  * - 单次锁获取：格式化后才获取锁，减少临界区时间
  ************************************************************************/
 
-#include "osal/osal.h"
+#include "osal.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <time.h>

@@ -53,7 +53,7 @@
 #ifndef TEST_MOCK_H
 #define TEST_MOCK_H
 
-#include "osal/osal.h"
+#include "osal.h"
 #include "test_assert.h"
 
 #ifdef __cplusplus

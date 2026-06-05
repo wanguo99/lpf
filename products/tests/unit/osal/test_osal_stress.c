@@ -6,7 +6,7 @@
  * 测试同步原语在高并发场景下的稳定性和正确性
  */
 
-#include "osal/osal.h"
+#include "osal.h"
 
 /* 压力测试配置 */
 #define STRESS_THREAD_COUNT     10

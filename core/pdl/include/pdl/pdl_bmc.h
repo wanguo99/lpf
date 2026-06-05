@@ -11,8 +11,8 @@
 #ifndef PDL_BMC_H
 #define PDL_BMC_H
 
-#include "osal/osal.h"
-#include "pdl/pdl.h"
+#include "osal.h"
+#include "pdl.h"
 
 /*
  * BMC服务句柄

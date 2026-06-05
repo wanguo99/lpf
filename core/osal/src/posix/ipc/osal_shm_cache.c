@@ -5,7 +5,7 @@
  * 使用POSIX共享内存和互斥锁实现进程间缓存
  */
 
-#include "osal/osal.h"
+#include "osal.h"
 #include <pthread.h>
 #include <sys/mman.h>
 #include <sys/stat.h>

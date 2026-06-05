@@ -5,7 +5,7 @@
 
 #include "test_framework.h"
 #include "test_system.h"
-#include "pconfig/pconfig.h"
+#include "pconfig.h"
 
 /**
  * 测试配置系统端到端加载

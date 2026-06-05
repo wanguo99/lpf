@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 #include <stdint.h>
 #include <errno.h>
-#include "osal/osal.h"
+#include "osal.h"
 
 /*===========================================================================
  * 标志位映射（OSAL -> POSIX）

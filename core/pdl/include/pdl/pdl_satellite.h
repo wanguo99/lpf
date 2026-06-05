@@ -11,8 +11,8 @@
 #ifndef PDL_SATELLITE_H
 #define PDL_SATELLITE_H
 
-#include "osal/osal.h"
-#include "pdl/pdl.h"
+#include "osal.h"
+#include "pdl.h"
 
 /* CAN状态码 */
 typedef enum

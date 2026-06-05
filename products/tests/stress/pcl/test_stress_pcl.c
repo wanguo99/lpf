@@ -5,7 +5,7 @@
 
 #include "test_framework.h"
 #include "test_stress.h"
-#include "pconfig/pconfig.h"
+#include "pconfig.h"
 
 /**
  * 测试配置查询并发压力

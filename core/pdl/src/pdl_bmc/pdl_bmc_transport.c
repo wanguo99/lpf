@@ -8,8 +8,8 @@
  ************************************************************************/
 
 #include "pdl_bmc_internal.h"
-#include "osal/osal.h"
-#include "hal/hal.h"
+#include "osal.h"
+#include "hal.h"
 
 /*
  * 网络传输上下文

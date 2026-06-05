@@ -6,7 +6,7 @@
 #ifndef PRL_PRL_POWER_H
 #define PRL_PRL_POWER_H
 
-#include "osal/osal.h"
+#include "osal.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,6 +1,6 @@
 #include "ccm_health.h"
 #include "libccm/libccm_ipc.h"
-#include "osal/sys/osal_signal.h"
+#include "osal_signal.h"
 #include <unistd.h>
 
 /* 全局变量 */

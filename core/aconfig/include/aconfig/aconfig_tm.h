@@ -7,7 +7,7 @@
 #ifndef ACONFIG_ACONFIG_TM_H
 #define ACONFIG_ACONFIG_TM_H
 
-#include "osal/osal.h"
+#include "osal.h"
 
 /**
  * @brief 遥测功能通用枚举

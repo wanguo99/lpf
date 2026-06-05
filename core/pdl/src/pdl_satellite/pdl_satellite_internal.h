@@ -7,8 +7,8 @@
 #ifndef PDL_SATELLITE_INTERNAL_H
 #define PDL_SATELLITE_INTERNAL_H
 
-#include "osal/osal.h"
-#include "pdl/pdl.h"
+#include "osal.h"
+#include "pdl.h"
 
 /*
  * 卫星CAN ID定义

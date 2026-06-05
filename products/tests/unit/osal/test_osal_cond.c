@@ -4,7 +4,7 @@
  * @brief OSAL条件变量单元测试
  */
 
-#include "osal/osal.h"
+#include "osal.h"
 
 static int32_t shared_data = 0;
 static bool data_ready = false;

@@ -7,8 +7,8 @@
 #ifndef ACONFIG_INTERNAL_H
 #define ACONFIG_INTERNAL_H
 
-#include "osal/osal.h"
-#include "aconfig/aconfig_types.h"
+#include "osal.h"
+#include "aconfig_types.h"
 
 /**
  * @brief ACONFIG 模块内部全局状态

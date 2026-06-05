@@ -2,7 +2,7 @@
  * OSAL进程管理单元测试
  ************************************************************************/
 
-#include "osal/osal.h"
+#include "osal.h"
 
 #include "test_framework.h"
 

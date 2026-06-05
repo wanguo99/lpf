@@ -3,9 +3,9 @@
  * @brief Protocol Layer Common Implementation
  */
 
-#include "osal/osal.h"
+#include "osal.h"
 
-#include "prl/prl.h"
+#include "prl.h"
 
 
 /* 全局序列号（非静态，供 prl_api.c 访问） */

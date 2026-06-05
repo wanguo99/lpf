@@ -8,8 +8,8 @@
  ************************************************************************/
 
 #include "pdl_satellite_internal.h"
-#include "osal/osal.h"
-#include "pdl/pdl.h"
+#include "osal.h"
+#include "pdl.h"
 
 /*
  * 卫星平台服务上下文

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "hal_can.h"
-#include "osal/osal.h"
+#include "osal.h"
 
 static void print_can_frame(const hal_can_frame_t *frame)
 {

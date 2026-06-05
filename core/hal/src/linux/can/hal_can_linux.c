@@ -10,7 +10,7 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 #include <sys/ioctl.h>
-#include "osal/osal.h"
+#include "osal.h"
 #include "hal_can_internal.h"
 
 #ifndef IFNAMSIZ

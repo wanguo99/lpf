@@ -2,7 +2,7 @@
  * OSAL POSIX实现 - 互斥锁
  ************************************************************************/
 
-#include "osal/osal.h"
+#include "osal.h"
 #include <pthread.h>
 #include <stdlib.h>
 #include <time.h>

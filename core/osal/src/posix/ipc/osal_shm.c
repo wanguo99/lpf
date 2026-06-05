@@ -12,7 +12,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "osal/osal.h"
+#include "osal.h"
 
 
 /* 共享内存对象结构 */

@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include "test_framework.h"
 #include "test_mock.h"
-#include "osal/osal.h"
+#include "osal.h"
 
 /* ============================================================================
  * 示例 1：Mock 外部函数以隔离测试

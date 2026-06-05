@@ -7,8 +7,8 @@
 #ifndef HAL_WATCHDOG_INTERNAL_H
 #define HAL_WATCHDOG_INTERNAL_H
 
-#include "osal/osal.h"
-#include "hal/hal.h"
+#include "osal.h"
+#include "hal.h"
 
 /*===========================================================================
  * 内部数据结构

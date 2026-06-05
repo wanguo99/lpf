@@ -6,7 +6,7 @@
  * 使用新的libtest框架，测试自动注册
  */
 
-#include "osal/osal.h"
+#include "osal.h"
 
 static int32_t shared_counter = 0;
 
