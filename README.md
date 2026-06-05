@@ -34,7 +34,7 @@ cd EMS
 
 ```bash
 # 加载开发配置
-python3 build.py config ccm_development_defconfig
+python3 build.py config ccm_h200p100_development_defconfig
 
 # 编译
 python3 build.py build
@@ -98,8 +98,8 @@ EMS/
 
 | 配置 | 场景 | 平台 | 用途 | 特点 |
 |------|------|------|------|------|
-| `ccm_development_defconfig` | 开发 | x86_64 | CCM 开发环境 | 包含所有调试功能和测试工具 |
-| `ccm_production_defconfig` | 生产 | ARM64 | CCM 生产部署 | 优化的生产配置，禁用测试 |
+| `ccm_h200p100_development_defconfig` | 开发 | x86_64 | CCM H200P100 开发环境 | 包含所有调试功能和测试工具 |
+| `ccm_h200p100_production_defconfig` | 生产 | ARM64 | CCM H200P100 生产部署 | 优化的生产配置，禁用测试 |
 
 ### 测试配置
 
