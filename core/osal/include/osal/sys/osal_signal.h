@@ -2,8 +2,8 @@
  * 信号处理API
  ************************************************************************/
 
-#ifndef OSAPI_SIGNAL_H
-#define OSAPI_SIGNAL_H
+#ifndef OSAL_SIGNAL_H
+#define OSAL_SIGNAL_H
 
 /*
  * 信号类型
@@ -96,4 +96,4 @@ int32_t OSAL_SignalBlock(int32_t signum);
  */
 int32_t OSAL_SignalUnblock(int32_t signum);
 
-#endif /* OSAPI_SIGNAL_H */
+#endif /* OSAL_SIGNAL_H */

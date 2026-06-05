@@ -10,8 +10,8 @@
  * - 自动日志轮转
  ************************************************************************/
 
-#ifndef OSAPI_LOG_H
-#define OSAPI_LOG_H
+#ifndef OSAL_LOG_H
+#define OSAL_LOG_H
 
 /*
  * 日志级别
@@ -279,4 +279,4 @@ void OSAL_LogEmit(int32_t level, const char *module,
                           sizeof(__kv_pairs) / sizeof(log_kv_pair_t)); \
     } while(0)
 
-#endif /* OSAPI_LOG_H */
+#endif /* OSAL_LOG_H */

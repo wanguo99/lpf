@@ -2,8 +2,8 @@
  * 时间服务API
  ************************************************************************/
 
-#ifndef OSAPI_CLOCK_H
-#define OSAPI_CLOCK_H
+#ifndef OSAL_CLOCK_H
+#define OSAL_CLOCK_H
 
 /* 时间转换常量 */
 #define OSAL_MS_PER_SEC         0x3E8ULL     /* 每秒毫秒数 */
@@ -54,4 +54,4 @@ uint32_t OSAL_GetTickCount(void);
  */
 int32_t OSAL_Milli2Ticks(uint32_t milliseconds, uint32_t *ticks);
 
-#endif /* OSAPI_CLOCK_H */
+#endif /* OSAL_CLOCK_H */
