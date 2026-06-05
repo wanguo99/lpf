@@ -1,11 +1,11 @@
 /**
- * @file aconfig_api.h
+ * @file aconfig.h
  * @brief ACONFIG 对外 API - 核心配置管理接口
  * @note 本文件为 ACONFIG 模块的对外 API，提供配置注册和查询功能
  */
 
-#ifndef ACONFIG_ACONFIG_API_H
-#define ACONFIG_ACONFIG_API_H
+#ifndef ACONFIG_H
+#define ACONFIG_H
 
 #include "osal/osal.h"
 #include "aconfig_types.h"
@@ -88,4 +88,4 @@ int32_t ACONFIG_GetStatistics(aconfig_statistics_t *stats);
  */
 void ACONFIG_PrintConfig(void);
 
-#endif /* ACONFIG_ACONFIG_API_H */
+#endif /* ACONFIG_H */

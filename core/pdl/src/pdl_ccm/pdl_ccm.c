@@ -9,7 +9,7 @@
 
 #include "pdl/pdl_ccm_api.h"
 #include "pdl_ccm_internal.h"
-#include "prl_api.h"      /* 新的 PRL API */
+#include "prl/prl.h"      /* 新的 PRL API */
 #include "prl_pmc.h"      /* PMC 设备协议 */
 #include "osal/osal.h"
 #include <string.h>

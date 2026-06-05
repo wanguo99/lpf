@@ -5,8 +5,8 @@
 
 #include "test_framework.h"
 #include "test_system.h"
-#include "aconfig_api.h"
-#include <aconfig/aconfig_api.h>
+#include "aconfig/aconfig.h"
+#include <aconfig/aconfig.h>
 
 /**
  * 测试应用配置端到端验证

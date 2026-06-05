@@ -5,8 +5,8 @@
 
 #include "test_framework.h"
 #include "test_stress.h"
-#include "aconfig_api.h"
-#include <aconfig/aconfig_api.h>
+#include "aconfig/aconfig.h"
+#include <aconfig/aconfig.h>
 
 /**
  * 测试配置验证并发压力

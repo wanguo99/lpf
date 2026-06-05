@@ -4,7 +4,7 @@
  * @note 定义遥控命令对遥测数据的影响关系
  */
 
-#include <aconfig/aconfig_api.h>
+#include <aconfig/aconfig.h>
 #include "aconfig/aconfig_tc.h"
 #include "aconfig/aconfig_tm.h"
 

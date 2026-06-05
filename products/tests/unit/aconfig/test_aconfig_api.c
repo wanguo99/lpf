@@ -4,7 +4,7 @@
  */
 
 #include "test_framework.h"
-#include "aconfig/aconfig_api.h"
+#include "aconfig/aconfig.h"
 #include "aconfig/aconfig_tc.h"
 #include "aconfig/aconfig_tm.h"
 #include <string.h>

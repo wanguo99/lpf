@@ -4,7 +4,7 @@
  * @note 项目层：提供CCM特定的配置表
  */
 
-#include "aconfig/aconfig_api.h"
+#include "aconfig/aconfig.h"
 #include "aconfig/aconfig_tc.h"
 #include "aconfig/aconfig_tm.h"
 #include "osal/osal.h"

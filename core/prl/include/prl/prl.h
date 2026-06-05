@@ -3,12 +3,10 @@
  * @brief PRL Protocol Layer - Unified API Entry Point
  */
 
-#ifndef PRL_PRL_H
-#define PRL_PRL_H
+#ifndef PRL_H
+#define PRL_H
 
-/* Core types and API */
-#include "prl_api.h"
-
+/* Common definitions and device protocols */
 #include "prl_common.h"
 #include "prl_device.h"
 
@@ -19,4 +17,4 @@
 #include "prl_gsc.h"
 #include "prl_power.h"
 
-#endif /* PRL_PRL_H */
+#endif /* PRL_H */

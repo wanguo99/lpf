@@ -15,7 +15,7 @@
 #define PCONFIG_INTERNAL_H
 
 /* 对外 API 和类型（从 api 目录） */
-#include "pconfig_api.h"
+#include "pconfig/pconfig.h"
 
 /* 内部头文件（仅内部使用） */
 #include "pconfig_common.h"
