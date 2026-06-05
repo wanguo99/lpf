@@ -176,16 +176,93 @@ void OSAL_Printf(const char *format, ...);
 void OSAL_LogGetStats(uint64_t *total_count, uint64_t *dropped_count);
 
 /*
+ * 编译时日志级别控制
+ * 可通过 Kconfig 配置 OSAL_LOG_COMPILE_LEVEL
+ * 低于此级别的日志在编译时被完全优化掉（零开销）
+ */
+#ifndef OSAL_LOG_COMPILE_LEVEL
+#define OSAL_LOG_COMPILE_LEVEL OS_LOG_LEVEL_DEBUG  /* 默认编译所有级别 */
+#endif
+
+/*
+ * 统一的底层日志实现函数
+ * 所有日志宏最终调用此函数
+ */
+void OSAL_LogEmit(int32_t level, const char *module,
+                  const char *file, const char *func, int32_t line,
+                  const char *format, ...) __attribute__((format(printf, 6, 7)));
+
+/*
  * 日志宏定义（推荐使用）
  *
- * 注意：请使用这些宏而不是直接调用 OSAL_Log* 函数
- * 宏会自动添加文件名、函数名、行号信息
+ * 设计说明：
+ * 1. 两级过滤：编译时级别检查 + 运行时级别检查
+ * 2. 编译时优化：低于 OSAL_LOG_COMPILE_LEVEL 的日志被完全移除
+ * 3. 运行时快速路径：级别不够时立即返回，不进行格式化
+ * 4. 自动添加文件名、函数名、行号信息用于调试
+ *
+ * 参考：Linux kernel pr_debug/pr_info 设计模式
  */
-#define LOG_DEBUG(module, ...) OSAL_LogDebug(module, __FILE__, __func__, __LINE__, __VA_ARGS__)
-#define LOG_INFO(module, ...)  OSAL_LogInfo(module, __FILE__, __func__, __LINE__, __VA_ARGS__)
-#define LOG_WARN(module, ...)  OSAL_LogWarn(module, __FILE__, __func__, __LINE__, __VA_ARGS__)
-#define LOG_ERROR(module, ...) OSAL_LogError(module, __FILE__, __func__, __LINE__, __VA_ARGS__)
-#define LOG_FATAL(module, ...) OSAL_LogFatal(module, __FILE__, __func__, __LINE__, __VA_ARGS__)
+#define LOG_DEBUG(module, ...) \
+    do { \
+        if (OS_LOG_LEVEL_DEBUG >= OSAL_LOG_COMPILE_LEVEL) \
+            OSAL_LogEmit(OS_LOG_LEVEL_DEBUG, module, __FILE__, __func__, __LINE__, __VA_ARGS__); \
+    } while(0)
+
+#define LOG_INFO(module, ...) \
+    do { \
+        if (OS_LOG_LEVEL_INFO >= OSAL_LOG_COMPILE_LEVEL) \
+            OSAL_LogEmit(OS_LOG_LEVEL_INFO, module, __FILE__, __func__, __LINE__, __VA_ARGS__); \
+    } while(0)
+
+#define LOG_WARN(module, ...) \
+    do { \
+        if (OS_LOG_LEVEL_WARN >= OSAL_LOG_COMPILE_LEVEL) \
+            OSAL_LogEmit(OS_LOG_LEVEL_WARN, module, __FILE__, __func__, __LINE__, __VA_ARGS__); \
+    } while(0)
+
+#define LOG_ERROR(module, ...) \
+    do { \
+        if (OS_LOG_LEVEL_ERROR >= OSAL_LOG_COMPILE_LEVEL) \
+            OSAL_LogEmit(OS_LOG_LEVEL_ERROR, module, __FILE__, __func__, __LINE__, __VA_ARGS__); \
+    } while(0)
+
+#define LOG_FATAL(module, ...) \
+    do { \
+        if (OS_LOG_LEVEL_FATAL >= OSAL_LOG_COMPILE_LEVEL) \
+            OSAL_LogEmit(OS_LOG_LEVEL_FATAL, module, __FILE__, __func__, __LINE__, __VA_ARGS__); \
+    } while(0)
+
+/*
+ * 仅打印一次的日志宏（防止日志洪水）
+ * 使用静态变量确保同一日志点只输出一次
+ */
+#define LOG_DEBUG_ONCE(module, ...) \
+    do { \
+        static uint8_t __logged = 0; \
+        if (!__logged && OS_LOG_LEVEL_DEBUG >= OSAL_LOG_COMPILE_LEVEL) { \
+            __logged = 1; \
+            OSAL_LogEmit(OS_LOG_LEVEL_DEBUG, module, __FILE__, __func__, __LINE__, __VA_ARGS__); \
+        } \
+    } while(0)
+
+#define LOG_WARN_ONCE(module, ...) \
+    do { \
+        static uint8_t __logged = 0; \
+        if (!__logged && OS_LOG_LEVEL_WARN >= OSAL_LOG_COMPILE_LEVEL) { \
+            __logged = 1; \
+            OSAL_LogEmit(OS_LOG_LEVEL_WARN, module, __FILE__, __func__, __LINE__, __VA_ARGS__); \
+        } \
+    } while(0)
+
+#define LOG_ERROR_ONCE(module, ...) \
+    do { \
+        static uint8_t __logged = 0; \
+        if (!__logged && OS_LOG_LEVEL_ERROR >= OSAL_LOG_COMPILE_LEVEL) { \
+            __logged = 1; \
+            OSAL_LogEmit(OS_LOG_LEVEL_ERROR, module, __FILE__, __func__, __LINE__, __VA_ARGS__); \
+        } \
+    } while(0)
 
 /*
  * 结构化日志宏（便捷接口）
@@ -201,14 +278,5 @@ void OSAL_LogGetStats(uint64_t *total_count, uint64_t *dropped_count);
         OSAL_LogStructured(OS_LOG_LEVEL_INFO, module, msg, __kv_pairs, \
                           sizeof(__kv_pairs) / sizeof(log_kv_pair_t)); \
     } while(0)
-
-/*
- * 内部实现函数（仅供宏使用，请勿直接调用）
- */
-void OSAL_LogDebug(const char *module, const char *file, const char *func, int32_t line, const char *format, ...);
-void OSAL_LogInfo(const char *module, const char *file, const char *func, int32_t line, const char *format, ...);
-void OSAL_LogWarn(const char *module, const char *file, const char *func, int32_t line, const char *format, ...);
-void OSAL_LogError(const char *module, const char *file, const char *func, int32_t line, const char *format, ...);
-void OSAL_LogFatal(const char *module, const char *file, const char *func, int32_t line, const char *format, ...);
 
 #endif /* OSAPI_LOG_H */
