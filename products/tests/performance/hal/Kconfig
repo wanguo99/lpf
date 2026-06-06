@@ -7,6 +7,23 @@ if TEST_PERFORMANCE_HAL
 
 menu "HAL Performance Tests"
 
+config TEST_PERF_HAL
+	bool "HAL综合性能测试"
+	default y
+	help
+	  HAL层综合性能测试套件。
+
+	  测试内容：
+	    - 各驱动基础性能基准测试
+	    - 跨驱动集成性能测试
+	    - 硬件抽象层开销测试
+
+	  运行时间: 3-5 秒
+	  硬件要求: 推荐有对应硬件，但可在无硬件环境运行
+	  依赖项: CONFIG_HAL
+	  标签: performance, hal
+	  测试文件: test_perf_hal.c
+
 config TEST_PERF_HAL_CAN
 	bool "CAN bus performance tests"
 	default n

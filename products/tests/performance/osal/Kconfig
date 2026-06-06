@@ -7,6 +7,23 @@ if TEST_PERFORMANCE_OSAL
 
 menu "OSAL Performance Tests"
 
+config TEST_PERF_OSAL
+	bool "OSAL综合性能测试"
+	default y
+	help
+	  OSAL层综合性能测试套件。
+
+	  测试内容：
+	    - 基础API性能基准测试
+	    - 跨模块集成性能测试
+	    - 常见使用场景性能验证
+
+	  运行时间: 3-5 秒
+	  硬件要求: 无
+	  依赖项: CONFIG_OSAL
+	  标签: performance, osal
+	  测试文件: test_perf_osal.c
+
 config TEST_PERF_OSAL_MUTEX
 	bool "Mutex performance tests"
 	default n

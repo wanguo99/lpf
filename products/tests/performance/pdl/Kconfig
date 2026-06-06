@@ -7,6 +7,23 @@ if TEST_PERFORMANCE_PDL
 
 menu "PDL Performance Tests"
 
+config TEST_PERF_PDL
+	bool "PDL综合性能测试"
+	default y
+	help
+	  PDL层综合性能测试套件。
+
+	  测试内容：
+	    - 外设驱动基础性能基准测试
+	    - 协议处理性能测试
+	    - 设备通信性能验证
+
+	  运行时间: 3-5 秒
+	  硬件要求: Mock设备或模拟环境
+	  依赖项: CONFIG_PDL
+	  标签: performance, pdl
+	  测试文件: test_perf_pdl.c
+
 config TEST_PERF_PDL_MCU
 	bool "MCU device performance tests"
 	default n
