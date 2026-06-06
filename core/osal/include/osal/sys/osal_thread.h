@@ -26,15 +26,63 @@ typedef uint64_t osal_thread_t;
 typedef void *(*osal_thread_func_t)(void *arg);
 
 /**
- * @brief 线程属性
+ * @brief 线程属性（不透明句柄）
  */
-typedef struct {
-	size_t stack_size;      /* 栈大小，0表示默认 */
-	bool   detached;        /* 是否分离 */
-	int32_t inherit_sched;  /* 是否继承调度属性（0=不继承，1=继承） */
-	int32_t sched_policy;   /* 调度策略（SCHED_OTHER/FIFO/RR） */
-	int32_t sched_priority; /* 调度优先级（1-99） */
-} osal_thread_attr_t;
+typedef struct osal_thread_attr_s osal_thread_attr_t;
+
+/*===========================================================================
+ * 线程属性管理 API
+ *===========================================================================*/
+
+/**
+ * @brief 创建线程属性对象（默认值）
+ *
+ * @param[out] attr 属性对象句柄指针
+ * @return OSAL_SUCCESS 成功
+ * @return OSAL_ERR_INVALID_POINTER attr 为 NULL
+ * @return OSAL_ERR_NO_MEMORY 内存不足
+ */
+int32_t OSAL_ThreadAttrCreate(osal_thread_attr_t **attr);
+
+/**
+ * @brief 销毁线程属性对象
+ *
+ * @param[in] attr 属性对象句柄
+ * @return OSAL_SUCCESS 成功
+ * @return OSAL_ERR_INVALID_POINTER attr 为 NULL
+ */
+int32_t OSAL_ThreadAttrDestroy(osal_thread_attr_t *attr);
+
+/**
+ * @brief 设置线程栈大小
+ *
+ * @param[in] attr 属性对象句柄
+ * @param[in] stack_size 栈大小（字节），0 表示使用默认值
+ * @return OSAL_SUCCESS 成功
+ * @return OSAL_ERR_INVALID_POINTER attr 为 NULL
+ */
+int32_t OSAL_ThreadAttrSetStackSize(osal_thread_attr_t *attr, size_t stack_size);
+
+/**
+ * @brief 设置线程分离状态
+ *
+ * @param[in] attr 属性对象句柄
+ * @param[in] detached true=分离线程，false=可连接线程
+ * @return OSAL_SUCCESS 成功
+ * @return OSAL_ERR_INVALID_POINTER attr 为 NULL
+ */
+int32_t OSAL_ThreadAttrSetDetached(osal_thread_attr_t *attr, bool detached);
+
+/**
+ * @brief 设置线程调度策略和优先级
+ *
+ * @param[in] attr 属性对象句柄
+ * @param[in] policy 调度策略（SCHED_OTHER/FIFO/RR）
+ * @param[in] priority 调度优先级（1-99）
+ * @return OSAL_SUCCESS 成功
+ * @return OSAL_ERR_INVALID_POINTER attr 为 NULL
+ */
+int32_t OSAL_ThreadAttrSetSched(osal_thread_attr_t *attr, int32_t policy, int32_t priority);
 
 /*===========================================================================
  * 线程管理 API

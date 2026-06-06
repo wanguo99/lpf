@@ -3,6 +3,7 @@
  ************************************************************************/
 
 #include "osal.h"
+#include "osal_mutex_types_private.h"
 #include <pthread.h>
 #include <stdlib.h>
 #include <time.h>
@@ -12,6 +13,60 @@ struct osal_mutex_s
 {
     pthread_mutex_t mutex;
 };
+
+/*===========================================================================
+ * 互斥锁属性管理 API 实现
+ *===========================================================================*/
+
+int32_t OSAL_MutexAttrCreate(osal_mutex_attr_t **attr)
+{
+	osal_mutex_attr_t *new_attr;
+
+	if (NULL == attr)
+		return OSAL_ERR_INVALID_POINTER;
+
+	new_attr = (osal_mutex_attr_t *)malloc(sizeof(osal_mutex_attr_t));
+	if (NULL == new_attr)
+		return OSAL_ERR_NO_MEMORY;
+
+	/* 默认类型：普通互斥锁 */
+	new_attr->type = OSAL_MUTEX_NORMAL;
+
+	*attr = new_attr;
+	return OSAL_SUCCESS;
+}
+
+int32_t OSAL_MutexAttrDestroy(osal_mutex_attr_t *attr)
+{
+	if (NULL == attr)
+		return OSAL_ERR_INVALID_POINTER;
+
+	free(attr);
+	return OSAL_SUCCESS;
+}
+
+int32_t OSAL_MutexAttrSetType(osal_mutex_attr_t *attr, osal_mutex_type_t type)
+{
+	if (NULL == attr)
+		return OSAL_ERR_INVALID_POINTER;
+
+	attr->type = type;
+	return OSAL_SUCCESS;
+}
+
+int32_t OSAL_MutexAttrGetType(const osal_mutex_attr_t *attr, osal_mutex_type_t *type)
+{
+	if (NULL == attr || NULL == type)
+		return OSAL_ERR_INVALID_POINTER;
+
+	*type = attr->type;
+	return OSAL_SUCCESS;
+}
+
+/*===========================================================================
+ * 互斥锁管理 API 实现
+ *===========================================================================*/
+
 
 int32_t OSAL_MutexCreate(osal_mutex_t **mutex)
 {

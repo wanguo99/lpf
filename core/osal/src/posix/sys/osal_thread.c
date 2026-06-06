@@ -3,8 +3,10 @@
  ************************************************************************/
 
 #include "osal.h"
+#include "osal_thread_types_private.h"
 #include <pthread.h>
 #include <sched.h>
+#include <stdlib.h>
 
 int32_t osal_pthread_create(osal_thread_t *thread,
                             void *attr,
@@ -41,6 +43,70 @@ int32_t osal_pthread_join(osal_thread_t thread, void **retval)
 
     thread_union.osal_thread = thread;
     return pthread_join(thread_union.posix_thread, retval);
+}
+
+/*===========================================================================
+ * 线程属性管理 API 实现
+ *===========================================================================*/
+
+int32_t OSAL_ThreadAttrCreate(osal_thread_attr_t **attr)
+{
+	osal_thread_attr_t *new_attr;
+
+	if (NULL == attr)
+		return OSAL_ERR_INVALID_POINTER;
+
+	new_attr = (osal_thread_attr_t *)malloc(sizeof(osal_thread_attr_t));
+	if (NULL == new_attr)
+		return OSAL_ERR_NO_MEMORY;
+
+	/* 默认值 */
+	new_attr->stack_size = 0;  /* 使用系统默认栈大小 */
+	new_attr->detached = false;  /* 可连接线程 */
+	new_attr->inherit_sched = 1;  /* 继承调度属性 */
+	new_attr->sched_policy = SCHED_OTHER;  /* 默认调度策略 */
+	new_attr->sched_priority = 0;  /* 默认优先级 */
+
+	*attr = new_attr;
+	return OSAL_SUCCESS;
+}
+
+int32_t OSAL_ThreadAttrDestroy(osal_thread_attr_t *attr)
+{
+	if (NULL == attr)
+		return OSAL_ERR_INVALID_POINTER;
+
+	free(attr);
+	return OSAL_SUCCESS;
+}
+
+int32_t OSAL_ThreadAttrSetStackSize(osal_thread_attr_t *attr, size_t stack_size)
+{
+	if (NULL == attr)
+		return OSAL_ERR_INVALID_POINTER;
+
+	attr->stack_size = stack_size;
+	return OSAL_SUCCESS;
+}
+
+int32_t OSAL_ThreadAttrSetDetached(osal_thread_attr_t *attr, bool detached)
+{
+	if (NULL == attr)
+		return OSAL_ERR_INVALID_POINTER;
+
+	attr->detached = detached;
+	return OSAL_SUCCESS;
+}
+
+int32_t OSAL_ThreadAttrSetSched(osal_thread_attr_t *attr, int32_t policy, int32_t priority)
+{
+	if (NULL == attr)
+		return OSAL_ERR_INVALID_POINTER;
+
+	attr->inherit_sched = 0;  /* 不继承，使用显式设置 */
+	attr->sched_policy = policy;
+	attr->sched_priority = priority;
+	return OSAL_SUCCESS;
 }
 
 int32_t OSAL_ThreadCreate(osal_thread_t *thread, osal_thread_func_t func, void *arg)

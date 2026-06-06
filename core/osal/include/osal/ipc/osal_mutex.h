@@ -31,11 +31,52 @@ typedef enum {
 } osal_mutex_type_t;
 
 /**
- * @brief 互斥锁属性
+ * @brief 互斥锁属性（不透明句柄）
  */
-typedef struct {
-	osal_mutex_type_t type;     /* 互斥锁类型 */
-} osal_mutex_attr_t;
+typedef struct osal_mutex_attr_s osal_mutex_attr_t;
+
+/*===========================================================================
+ * 互斥锁属性管理 API
+ *===========================================================================*/
+
+/**
+ * @brief 创建互斥锁属性对象（默认类型：OSAL_MUTEX_NORMAL）
+ *
+ * @param[out] attr 属性对象句柄指针
+ * @return OSAL_SUCCESS 成功
+ * @return OSAL_ERR_INVALID_POINTER attr 为 NULL
+ * @return OSAL_ERR_NO_MEMORY 内存不足
+ */
+int32_t OSAL_MutexAttrCreate(osal_mutex_attr_t **attr);
+
+/**
+ * @brief 销毁互斥锁属性对象
+ *
+ * @param[in] attr 属性对象句柄
+ * @return OSAL_SUCCESS 成功
+ * @return OSAL_ERR_INVALID_POINTER attr 为 NULL
+ */
+int32_t OSAL_MutexAttrDestroy(osal_mutex_attr_t *attr);
+
+/**
+ * @brief 设置互斥锁类型
+ *
+ * @param[in] attr 属性对象句柄
+ * @param[in] type 互斥锁类型
+ * @return OSAL_SUCCESS 成功
+ * @return OSAL_ERR_INVALID_POINTER attr 为 NULL
+ */
+int32_t OSAL_MutexAttrSetType(osal_mutex_attr_t *attr, osal_mutex_type_t type);
+
+/**
+ * @brief 获取互斥锁类型
+ *
+ * @param[in] attr 属性对象句柄
+ * @param[out] type 互斥锁类型指针
+ * @return OSAL_SUCCESS 成功
+ * @return OSAL_ERR_INVALID_POINTER attr 或 type 为 NULL
+ */
+int32_t OSAL_MutexAttrGetType(const osal_mutex_attr_t *attr, osal_mutex_type_t *type);
 
 /*===========================================================================
  * 互斥锁管理 API
