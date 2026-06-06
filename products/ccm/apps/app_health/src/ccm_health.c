@@ -1,7 +1,6 @@
 #include "ccm_health.h"
 #include "libccm/libccm_ipc.h"
 #include "osal_signal.h"
-#include <unistd.h>
 
 /* 全局变量 */
 static ccm_process_heartbeat_t *g_heartbeat = NULL;
@@ -20,7 +19,7 @@ static void signal_handler(int32_t sig)
     if (sig == SIGTERM || sig == SIGINT) {
         const char msg[] = "HEALTH: 收到退出信号\n";
         g_running = false;
-        (void)OSAL_write(STDERR_FILENO, msg, sizeof(msg) - 1);
+        (void)OSAL_write(OSAL_STDERR_FILENO, msg, sizeof(msg) - 1);
     }
 }
 

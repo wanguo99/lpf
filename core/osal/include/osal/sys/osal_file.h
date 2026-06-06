@@ -15,6 +15,11 @@ extern "C" {
  * 文件操作标志（对应fcntl.h中的O_*标志）
  *===========================================================================*/
 
+/* 标准文件描述符常量 */
+#define OSAL_STDIN_FILENO   0  /* 标准输入 */
+#define OSAL_STDOUT_FILENO  1  /* 标准输出 */
+#define OSAL_STDERR_FILENO  2  /* 标准错误 */
+
 /* 访问模式 */
 #define OSAL_O_RDONLY    0x0000  /* 只读 */
 #define OSAL_O_WRONLY    0x0001  /* 只写 */
