@@ -9,9 +9,7 @@
 /* 辅助函数：获取当前时间（微秒） */
 static uint64_t get_time_in_micros(void)
 {
-    OS_time_t time_struct;
-    OSAL_GetMonotonicTime(&time_struct);
-    return (uint64_t)time_struct.seconds * 1000000ULL + (uint64_t)time_struct.microsecs;
+    return (uint64_t)OSAL_GetMonotonicTime();
 }
 
 /*===========================================================================

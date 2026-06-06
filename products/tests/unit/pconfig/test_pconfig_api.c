@@ -146,15 +146,15 @@ TEST_CASE(test_pconfig_get_board)
 {
     const pconfig_platform_config_t *cfg = PCONFIG_GetBoard();
     TEST_ASSERT_NOT_EQUAL(NULL, cfg);
-    TEST_ASSERT_EQUAL(0, strcmp(cfg->platform_name, "ti"));
-    TEST_ASSERT_EQUAL(0, strcmp(cfg->product_name, "test_board"));
+    TEST_ASSERT_EQUAL(0, OSAL_Strcmp(cfg->platform_name, "ti"));
+    TEST_ASSERT_EQUAL(0, OSAL_Strcmp(cfg->product_name, "test_board"));
 }
 
 TEST_CASE(test_pconfig_find_by_name)
 {
     const pconfig_platform_config_t *cfg = PCONFIG_Find("ti", "test_board", NULL);
     TEST_ASSERT_NOT_EQUAL(NULL, cfg);
-    TEST_ASSERT_EQUAL(0, strcmp(cfg->chip_name, "am625"));
+    TEST_ASSERT_EQUAL(0, OSAL_Strcmp(cfg->chip_name, "am625"));
 }
 
 TEST_CASE(test_pconfig_find_not_found)
@@ -173,7 +173,7 @@ TEST_CASE(test_pconfig_hw_find_mcu_by_name)
     const pconfig_mcu_entry_t *mcu = PCONFIG_HW_FindMCU(platform, "power_mcu");
 
     TEST_ASSERT_NOT_EQUAL(NULL, mcu);
-    TEST_ASSERT_EQUAL(0, strcmp(mcu->name, "power_mcu"));
+    TEST_ASSERT_EQUAL(0, OSAL_Strcmp(mcu->name, "power_mcu"));
     TEST_ASSERT_EQUAL(0x100, mcu->config.can.tx_id);
     TEST_ASSERT_TRUE(mcu->enabled);
 }
@@ -192,7 +192,7 @@ TEST_CASE(test_pconfig_hw_get_mcu_by_id)
     const pconfig_mcu_entry_t *mcu = PCONFIG_HW_GetMCU(platform, 0);
 
     TEST_ASSERT_NOT_EQUAL(NULL, mcu);
-    TEST_ASSERT_EQUAL(0, strcmp(mcu->name, "power_mcu"));
+    TEST_ASSERT_EQUAL(0, OSAL_Strcmp(mcu->name, "power_mcu"));
 }
 
 TEST_CASE(test_pconfig_hw_get_mcu_invalid_id)
@@ -226,7 +226,7 @@ TEST_CASE(test_pconfig_hw_find_bmc_by_name)
     const pconfig_bmc_entry_t *bmc = PCONFIG_HW_FindBMC(platform, "satellite_bmc");
 
     TEST_ASSERT_NOT_EQUAL(NULL, bmc);
-    TEST_ASSERT_EQUAL(0, strcmp(bmc->name, "satellite_bmc"));
+    TEST_ASSERT_EQUAL(0, OSAL_Strcmp(bmc->name, "satellite_bmc"));
     TEST_ASSERT_EQUAL(115200, bmc->config.serial.baudrate);
     TEST_ASSERT_TRUE(bmc->enabled);
 }
@@ -245,7 +245,7 @@ TEST_CASE(test_pconfig_hw_get_bmc_by_id)
     const pconfig_bmc_entry_t *bmc = PCONFIG_HW_GetBMC(platform, 0);
 
     TEST_ASSERT_NOT_EQUAL(NULL, bmc);
-    TEST_ASSERT_EQUAL(0, strcmp(bmc->name, "satellite_bmc"));
+    TEST_ASSERT_EQUAL(0, OSAL_Strcmp(bmc->name, "satellite_bmc"));
 }
 
 TEST_CASE(test_pconfig_hw_get_bmc_invalid_id)

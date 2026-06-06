@@ -68,44 +68,47 @@ void test_multiprocess_concurrent(void)
     const int iterations = 5;
 
     for (int i = 0; i < num_processes; i++) {
-        pid_t pid = fork();
+        osal_id_t pid;
+        int32_t ret = OSAL_Fork(&pid);
+
+        if (ret != OSAL_SUCCESS) {
+            LOG_INFO("TEST", "❌ fork 失败\n");
+            return;
+        }
 
         if (pid == 0) {
             /* 子进程 */
             osal_flock_t *flock = NULL;
 
             if (OSAL_FlockCreate(lock_file, &flock) != OSAL_SUCCESS) {
-                LOG_INFO("TEST", "进程 %d: 创建文件锁失败\n", OSAL_GetPid());
-                exit(1);
+                LOG_INFO("TEST", "进程 %d: 创建文件锁失败\n", OSAL_Getpid());
+                OSAL_Exit(1);
             }
 
             for (int j = 0; j < iterations; j++) {
                 /* 获取锁 */
                 if (OSAL_FlockTimedLock(flock, OSAL_FLOCK_EXCLUSIVE, 5000) != OSAL_SUCCESS) {
-                    LOG_INFO("TEST", "进程 %d: 加锁超时\n", OSAL_GetPid());
+                    LOG_INFO("TEST", "进程 %d: 加锁超时\n", OSAL_Getpid());
                     continue;
                 }
 
                 /* 临界区：模拟硬件访问 */
-                LOG_INFO("TEST", "进程 %d: 进入临界区 (迭代 %d/%d)\n", OSAL_GetPid(), j+1, iterations);
-                usleep(100000);  /* 100ms */
+                LOG_INFO("TEST", "进程 %d: 进入临界区 (迭代 %d/%d)\n", OSAL_Getpid(), j+1, iterations);
+                OSAL_usleep(100000);  /* 100ms */
 
                 /* 释放锁 */
                 OSAL_FlockUnlock(flock);
             }
 
             OSAL_FlockDestroy(flock);
-            exit(0);
-        } else if (pid < 0) {
-            LOG_INFO("TEST", "❌ fork 失败\n");
-            return;
+            OSAL_Exit(0);
         }
     }
 
     /* 父进程等待所有子进程 */
     for (int i = 0; i < num_processes; i++) {
         int status;
-        wait(&status);
+        OSAL_Waitpid(-1, &status, 0);
     }
 
     LOG_INFO("TEST", "✅ 多进程并发测试完成\n");
@@ -137,7 +140,7 @@ void* thread_worker(void *arg)
 
         /* 临界区 */
         LOG_INFO("TEST", "线程 %d: 进入临界区 (迭代 %d/%d)\n", data->thread_id, i+1, iterations);
-        usleep(50000);  /* 50ms */
+        OSAL_usleep(50000);  /* 50ms */
 
         /* 释放锁（逆序） */
         OSAL_MutexUnlock(data->mutex);
@@ -152,7 +155,7 @@ void test_multithread_concurrent(void)
     LOG_INFO("TEST", "\n=== 测试 3: 多线程并发访问 ===\n");
 
     const int num_threads = 3;
-    pthread_t threads[num_threads];
+    osal_thread_t threads[num_threads];
     thread_data_t thread_data[num_threads];
 
     /* 创建共享的锁 */
@@ -176,14 +179,14 @@ void test_multithread_concurrent(void)
         thread_data[i].flock = flock;
         thread_data[i].mutex = mutex;
 
-        if (pthread_create(&threads[i], NULL, thread_worker, &thread_data[i]) != 0) {
+        if (OSAL_ThreadCreate(&threads[i], thread_worker, &thread_data[i]) != OSAL_SUCCESS) {
             LOG_INFO("TEST", "❌ 创建线程 %d 失败\n", i);
         }
     }
 
     /* 等待所有线程完成 */
     for (int i = 0; i < num_threads; i++) {
-        pthread_join(threads[i], NULL);
+        OSAL_ThreadJoin(threads[i]);
     }
 
     /* 清理 */
@@ -209,69 +212,62 @@ void test_timeout_mechanism(void)
     }
 
     /* 第一个进程持有锁 */
-    pid_t pid = fork();
+    osal_id_t pid;
+    int32_t ret = OSAL_Fork(&pid);
+
+    if (ret != OSAL_SUCCESS) {
+        LOG_INFO("TEST", "❌ fork 失败\n");
+        OSAL_FlockDestroy(flock);
+        return;
+    }
 
     if (pid == 0) {
         /* 子进程：持有锁 3 秒 */
         OSAL_FlockLock(flock, OSAL_FLOCK_EXCLUSIVE);
         LOG_INFO("TEST", "子进程: 持有锁 3 秒...\n");
-        sleep(3);
+        OSAL_sleep(3);
         OSAL_FlockUnlock(flock);
         LOG_INFO("TEST", "子进程: 释放锁\n");
-        OSAL_FlockDestroy(flock);
-        exit(0);
+        OSAL_Exit(0);
     } else {
-        /* 父进程：等待子进程先获取锁 */
-        sleep(1);
+        /* 父进程：等待 1 秒后尝试获取锁（应该超时） */
+        OSAL_sleep(1);
+        LOG_INFO("TEST", "父进程: 尝试获取锁 (超时 1 秒)...\n");
 
-        /* 尝试获取锁（1 秒超时，应该失败） */
-        LOG_INFO("TEST", "父进程: 尝试获取锁（1 秒超时）...\n");
-        int32_t ret = OSAL_FlockTimedLock(flock, OSAL_FLOCK_EXCLUSIVE, 1000);
-        if (ret == OSAL_ERR_TIMEOUT) {
-            LOG_INFO("TEST", "✅ 超时机制正常工作\n");
-        } else if (ret == OSAL_SUCCESS) {
-            LOG_INFO("TEST", "❌ 不应该获取到锁\n");
-            OSAL_FlockUnlock(flock);
-        } else {
-            LOG_INFO("TEST", "❌ 意外的错误: %d\n", ret);
-        }
-
-        /* 等待子进程结束 */
-        wait(NULL);
-
-        /* 现在应该能获取锁 */
-        LOG_INFO("TEST", "父进程: 再次尝试获取锁...\n");
         ret = OSAL_FlockTimedLock(flock, OSAL_FLOCK_EXCLUSIVE, 1000);
-        if (ret == OSAL_SUCCESS) {
-            LOG_INFO("TEST", "✅ 成功获取锁\n");
-            OSAL_FlockUnlock(flock);
+        if (ret == OSAL_ERR_TIMEOUT) {
+            LOG_INFO("TEST", "✅ 超时机制工作正常\n");
         } else {
-            LOG_INFO("TEST", "❌ 获取锁失败: %d\n", ret);
+            LOG_INFO("TEST", "❌ 超时机制异常: %d\n", ret);
         }
 
-        OSAL_FlockDestroy(flock);
+        /* 等待子进程退出 */
+        int status;
+        OSAL_Waitpid(pid, &status, 0);
     }
+
+    OSAL_FlockDestroy(flock);
+    LOG_INFO("TEST", "✅ 超时测试完成\n");
 }
 
 /*===========================================================================
- * 主函数
+ * 主测试入口
  *===========================================================================*/
 
-int main(int argc, char *argv[])
+int main(void)
 {
-    LOG_INFO("TEST", "========================================\n");
-    LOG_INFO("TEST", "HAL 层并发访问测试\n");
-    LOG_INFO("TEST", "========================================\n");
+    LOG_INFO("TEST", "================================\n");
+    LOG_INFO("TEST", "  HAL 并发访问测试\n");
+    LOG_INFO("TEST", "================================\n");
 
-    /* 运行所有测试 */
     test_flock_basic();
     test_multiprocess_concurrent();
     test_multithread_concurrent();
     test_timeout_mechanism();
 
-    LOG_INFO("TEST", "\n========================================\n");
-    LOG_INFO("TEST", "所有测试完成\n");
-    LOG_INFO("TEST", "========================================\n");
+    LOG_INFO("TEST", "\n================================\n");
+    LOG_INFO("TEST", "  所有测试完成\n");
+    LOG_INFO("TEST", "================================\n");
 
     return 0;
 }

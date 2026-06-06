@@ -311,6 +311,27 @@ static int compare_elapsed_desc(const void *a, const void *b)
 }
 
 /**
+ * Simple insertion sort for test results (replaces qsort)
+ */
+static void sort_tests_by_time(test_result_node_t **all_tests, uint32_t count)
+{
+    uint32_t i, j;
+    test_result_node_t *key;
+
+    for (i = 1; i < count; i++) {
+        key = all_tests[i];
+        j = i;
+
+        /* Move elements that are slower than key to one position ahead */
+        while (j > 0 && compare_elapsed_desc(&all_tests[j - 1], &key) > 0) {
+            all_tests[j] = all_tests[j - 1];
+            j--;
+        }
+        all_tests[j] = key;
+    }
+}
+
+/**
  * Print the N slowest tests
  */
 void libutest_print_slowest_tests(uint32_t top_n)
@@ -339,7 +360,7 @@ void libutest_print_slowest_tests(uint32_t top_n)
     }
 
     /* Sort by elapsed time (descending) */
-    qsort(all_tests, count, sizeof(test_result_node_t *), compare_elapsed_desc);
+    sort_tests_by_time(all_tests, count);
 
     /* Print top N */
     if (top_n > count) top_n = count;

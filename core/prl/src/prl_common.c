@@ -9,7 +9,7 @@
 
 
 /* 全局序列号（非静态，供 prl_api.c 访问） */
-static osal_atomic_uint32_t g_seq_number;
+osal_atomic_uint32_t g_seq_number;
 
 /* 初始化序列号（需要在模块加载时调用） */
 __attribute__((constructor)) static void prl_init_seq(void)
