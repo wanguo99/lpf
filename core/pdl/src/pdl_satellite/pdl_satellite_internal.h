@@ -8,7 +8,7 @@
 #define PDL_SATELLITE_INTERNAL_H
 
 #include "osal.h"
-#include "hal_can.h"
+#include "hal.h"
 #include "pdl_satellite.h"
 
 /*

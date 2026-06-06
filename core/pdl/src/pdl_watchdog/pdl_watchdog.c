@@ -3,7 +3,6 @@
  ************************************************************************/
 
 #include "hal.h"
-#include "hal_watchdog.h"
 #include "osal.h"
 #include "pdl_watchdog.h"
 

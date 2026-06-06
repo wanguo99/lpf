@@ -36,6 +36,16 @@ if(NOT python)
     message(FATAL_ERROR "python not found, please install python firstly(python3 recommend)!")
 endif()
 
+# Use the existing global_config.h as kconfig.h (it already contains all CONFIG_* macros)
+# Globally include it for all compilation units
+set(KCONFIG_HEADER "${CMAKE_CURRENT_BINARY_DIR}/config/global_config.h")
+if(EXISTS ${KCONFIG_HEADER})
+    add_compile_options(-include ${KCONFIG_HEADER})
+    message("-- Auto-including kconfig header: ${KCONFIG_HEADER}")
+else()
+    message(FATAL_ERROR "Configuration header not found: ${KCONFIG_HEADER}")
+endif()
+
 # Execute at configure time to generate build info headers
 execute_process(
     COMMAND ${python} ${SDK_PATH}/tools/kconfig/update_build_info.py

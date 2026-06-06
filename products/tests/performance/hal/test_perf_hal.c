@@ -5,11 +5,7 @@
 
 #include "test_framework.h"
 #include "test_performance.h"
-#include "hal_can.h"
-#include "hal_serial.h"
-#include "hal_gpio.h"
-#include "hal_i2c.h"
-#include "hal_spi.h"
+#include "hal.h"
 
 /**
  * 测试CAN发送性能

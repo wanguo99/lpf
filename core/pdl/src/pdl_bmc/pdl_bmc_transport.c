@@ -10,7 +10,6 @@
 #include "pdl_bmc_internal.h"
 #include "osal.h"
 #include "hal.h"
-#include "hal_serial.h"
 
 /*
  * 网络传输上下文
