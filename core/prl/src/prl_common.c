@@ -9,7 +9,13 @@
 
 
 /* 全局序列号（非静态，供 prl_api.c 访问） */
-uint32_t g_seq_number = 0;
+static osal_atomic_uint32_t g_seq_number;
+
+/* 初始化序列号（需要在模块加载时调用） */
+__attribute__((constructor)) static void prl_init_seq(void)
+{
+	OSAL_AtomicInit(&g_seq_number, 0);
+}
 
 /**
  * @brief CRC16-CCITT 查找表
@@ -62,7 +68,7 @@ uint16_t prl_calc_crc16(const uint8_t *data, size_t len)
 
 uint32_t prl_get_next_seq(void)
 {
-    return __sync_fetch_and_add(&g_seq_number, 1);
+    return OSAL_AtomicFetchAdd(&g_seq_number, 1);
 }
 
 uint32_t prl_get_timestamp(void)
