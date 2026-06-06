@@ -9,7 +9,6 @@
 
 #include "pdl_ccm_internal.h"
 #include "osal.h"
-#include <string.h>
 
 /*
  * 本地 timeval 结构体定义（用于 socket 超时设置）

@@ -12,7 +12,6 @@
 #include "prl.h"      /* 新的 PRL API */
 #include "prl_pmc.h"      /* PMC 设备协议 */
 #include "osal.h"
-#include <string.h>
 
 /*
  * CCM 系统驱动上下文
