@@ -8,6 +8,11 @@
 
 #include "osal.h"
 #include "prl.h"
+#include "prl_mcu.h"
+#include "prl_ccm.h"
+#include "prl_pmc.h"
+#include "prl_gsc.h"
+#include "prl_power.h"
 #include "test_framework.h"
 
 

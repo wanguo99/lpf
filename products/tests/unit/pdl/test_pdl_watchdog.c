@@ -7,6 +7,7 @@
 #include "test_registry.h"
 #include "osal.h"
 #include "pdl.h"
+#include "pdl_watchdog.h"
 
 /**
  * @brief 测试：初始化和反初始化

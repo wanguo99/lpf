@@ -9,18 +9,9 @@
 
 #include <linux/watchdog.h>
 #include <sys/ioctl.h>
-#include <stdatomic.h>
 #include "hal.h"
+#include "hal_watchdog_internal.h"
 #include "osal.h"
-
-typedef struct
-{
-    int32_t fd;
-    char device[256];
-    uint32_t timeout_sec;
-    bool enabled;
-    _Atomic uint32_t kick_count;
-} hal_watchdog_context_t;
 
 /**
  * @brief 初始化Watchdog驱动

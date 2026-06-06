@@ -8,6 +8,7 @@
 #include "osal.h"
 #include "hal.h"
 #include "pdl.h"
+#include "pdl_watchdog.h"
 
 /**
  * 环境初始化：OSAL + HAL + PDL

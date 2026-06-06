@@ -8,6 +8,7 @@
 #define PDL_MCU_INTERNAL_H
 
 #include "osal.h"
+#include "pdl_mcu.h"
 
 /*
  * MCU命令码定义

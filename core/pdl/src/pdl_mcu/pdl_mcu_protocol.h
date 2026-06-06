@@ -7,8 +7,10 @@
 #ifndef PDL_MCU_PROTOCOL_H
 #define PDL_MCU_PROTOCOL_H
 
-#include "pdl.h"
-#include "prl.h"
+#include "pdl_mcu.h"
+#include "prl_common.h"
+#include "prl_device.h"
+#include "prl_mcu.h"
 
 #ifdef __cplusplus
 extern "C" {

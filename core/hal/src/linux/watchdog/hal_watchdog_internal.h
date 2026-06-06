@@ -7,21 +7,14 @@
 #ifndef HAL_WATCHDOG_INTERNAL_H
 #define HAL_WATCHDOG_INTERNAL_H
 
+#include <stdatomic.h>
 #include "osal.h"
 #include "hal.h"
+#include "hal_watchdog.h"
 
 /*===========================================================================
  * 内部数据结构
  *===========================================================================*/
-
-/**
- * @brief 看门狗统计信息（内部维护）
- */
-typedef struct
-{
-	uint32_t kick_count;     /* 喂狗次数 */
-	uint32_t error_count;    /* 错误次数 */
-} hal_watchdog_stats_t;
 
 /**
  * @brief 看门狗设备上下文（内部实现）
@@ -33,9 +26,8 @@ typedef struct
 	int32_t fd;                       /* 看门狗设备文件描述符 */
 	char    device[256];              /* 设备路径 */
 	uint32_t timeout_sec;             /* 超时时间（秒） */
-	bool    initialized;              /* 初始化标志 */
 	bool    enabled;                  /* 启用状态 */
-	hal_watchdog_stats_t stats;       /* 统计信息 */
+	_Atomic uint32_t kick_count;      /* 喂狗次数（原子操作） */
 } hal_watchdog_context_t;
 
 /*===========================================================================

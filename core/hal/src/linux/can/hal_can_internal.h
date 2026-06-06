@@ -9,6 +9,7 @@
 
 #include "osal.h"
 #include "hal.h"
+#include "hal_can.h"
 
 #ifndef IFNAMSIZ
 #define IFNAMSIZ 0x10

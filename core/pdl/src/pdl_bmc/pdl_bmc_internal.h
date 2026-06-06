@@ -8,7 +8,7 @@
 #define PDL_BMC_INTERNAL_H
 
 #include "osal.h"
-#include "pdl.h"
+#include "pdl_bmc.h"
 
 /************************************************************************
  * 传输层接口（pdl_bmc_transport.c实现）

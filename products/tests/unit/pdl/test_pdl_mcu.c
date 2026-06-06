@@ -6,8 +6,10 @@
 
 #include "pconfig.h"
 #include "hal.h"
+#include "hal_serial.h"
 #include "osal.h"
 #include "pdl.h"
+#include "pdl_mcu.h"
 
 /*===========================================================================
  * 辅助函数：创建测试配置

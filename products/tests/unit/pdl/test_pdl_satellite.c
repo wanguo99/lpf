@@ -6,6 +6,7 @@
 
 #include "osal.h"
 #include "pdl.h"
+#include "pdl_satellite.h"
 
 /* 测试回调函数 */
 static int32_t g_callback_count = 0;
