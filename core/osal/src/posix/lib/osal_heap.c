@@ -207,9 +207,21 @@ void OSAL_Free(void *ptr)
 
     /* 验证魔数，检测内存损坏 */
     if (MEM_BLOCK_MAGIC != header->magic) {
-        OSAL_Printf("[HEAP] Memory corruption detected at %p (invalid magic: 0x%X)\n",
-                    ptr, header->magic);
+        OSAL_Printf("[HEAP] CRITICAL: Memory corruption detected at %p (invalid magic: 0x%X, expected: 0x%X)\n",
+                    ptr, header->magic, MEM_BLOCK_MAGIC);
+        OSAL_Printf("[HEAP] This indicates buffer overflow, use-after-free, or double-free\n");
+
+        /* 航天级代码要求：检测到内存损坏必须终止程序
+         * 继续运行可能导致更严重的数据损坏或不可预测的行为
+         *
+         * 如需调试模式下仅记录日志，可定义 OSAL_HEAP_CORRUPTION_CONTINUE
+         */
+#ifndef OSAL_HEAP_CORRUPTION_CONTINUE
+        abort();  /* 立即终止程序，生成core dump用于分析 */
+#else
+        /* 调试模式：仅记录错误但不释放内存，避免进一步损坏 */
         return;
+#endif
     }
 
     /* 更新统计信息 */
