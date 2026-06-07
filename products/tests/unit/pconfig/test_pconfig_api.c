@@ -96,9 +96,16 @@ static pconfig_platform_config_t test_platform_config = {
     .project_name = "test_project",
     .product_name = "test_board",
 
+    .mcu_count = 2,
     .mcu_arr = test_mcu_ptrs,
+
+    .bmc_count = 1,
     .bmc_arr = test_bmc_ptrs,
+
+    .fpga_count = 0,
     .fpga_arr = NULL,
+
+    .switch_count = 0,
     .switch_arr = NULL
 };
 

@@ -105,14 +105,24 @@ static pconfig_switch_cfg_t *pconfig_switch_arr[] = {
  * 平台配置注册
  *===========================================================================*/
 
+/* 辅助宏：计算指针数组中有效元素数量（排除NULL结尾） */
+#define ARRAY_COUNT(arr) ((sizeof(arr) / sizeof(arr[0])) - 1)
+
 const pconfig_platform_config_t pconfig_h200_100p_base = {
     .platform_name = "ti/am6254",
     .chip_name = "am6254",
     .project_name = "H200_100P",
     .product_name = "h200_100p_base",
-    
+
+    .mcu_count = ARRAY_COUNT(pconfig_mcu_arr),
     .mcu_arr = pconfig_mcu_arr,
+
+    .bmc_count = ARRAY_COUNT(pconfig_bmc_arr),
     .bmc_arr = pconfig_bmc_arr,
+
+    .fpga_count = ARRAY_COUNT(pconfig_fpga_arr),
     .fpga_arr = pconfig_fpga_arr,
+
+    .switch_count = ARRAY_COUNT(pconfig_switch_arr),
     .switch_arr = pconfig_switch_arr
 };

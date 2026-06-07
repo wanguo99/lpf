@@ -15,8 +15,12 @@ const pconfig_platform_config_t pconfig_h200_100p_v2 = {
     .project_name = "H200_100P",
     .product_name = "h200_100p_v2",
 
+    .mcu_count = ARRAY_COUNT(pconfig_mcu_arr),
     .mcu_arr = pconfig_mcu_arr,
+    .bmc_count = ARRAY_COUNT(pconfig_bmc_arr),
     .bmc_arr = pconfig_bmc_arr,
+    .fpga_count = ARRAY_COUNT(pconfig_fpga_arr),
     .fpga_arr = pconfig_fpga_arr,
+    .switch_count = ARRAY_COUNT(pconfig_switch_arr),
     .switch_arr = pconfig_switch_arr
 };

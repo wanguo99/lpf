@@ -238,7 +238,7 @@ const pconfig_mcu_entry_t* PCONFIG_HW_FindMCU(const pconfig_platform_config_t *p
         return NULL;
     }
 
-    for (i = 0; platform->mcu_arr[i] != NULL; i++) {
+    for (i = 0; i < platform->mcu_count; i++) {
         if (OSAL_Strcmp(platform->mcu_arr[i]->name, name) == 0) {
             return platform->mcu_arr[i];
         }
@@ -256,7 +256,7 @@ const pconfig_mcu_entry_t* PCONFIG_HW_GetMCU(const pconfig_platform_config_t *pl
         return NULL;
     }
 
-    for (i = 0; platform->mcu_arr[i] != NULL; i++) {
+    for (i = 0; i < platform->mcu_count; i++) {
         if (i == id) {
             return platform->mcu_arr[i];
         }
@@ -274,7 +274,7 @@ const pconfig_bmc_entry_t* PCONFIG_HW_FindBMC(const pconfig_platform_config_t *p
         return NULL;
     }
 
-    for (i = 0; platform->bmc_arr[i] != NULL; i++) {
+    for (i = 0; i < platform->bmc_count; i++) {
         if (OSAL_Strcmp(platform->bmc_arr[i]->name, name) == 0) {
             return platform->bmc_arr[i];
         }
@@ -292,7 +292,7 @@ const pconfig_bmc_entry_t* PCONFIG_HW_GetBMC(const pconfig_platform_config_t *pl
         return NULL;
     }
 
-    for (i = 0; platform->bmc_arr[i] != NULL; i++) {
+    for (i = 0; i < platform->bmc_count; i++) {
         if (i == id) {
             return platform->bmc_arr[i];
         }
@@ -310,7 +310,7 @@ const pconfig_fpga_cfg_t* PCONFIG_HW_FindFPGA(const pconfig_platform_config_t *p
         return NULL;
     }
 
-    for (i = 0; platform->fpga_arr[i] != NULL; i++) {
+    for (i = 0; i < platform->fpga_count; i++) {
         if (OSAL_Strcmp(platform->fpga_arr[i]->name, name) == 0) {
             return platform->fpga_arr[i];
         }
@@ -328,7 +328,7 @@ const pconfig_fpga_cfg_t* PCONFIG_HW_GetFPGA(const pconfig_platform_config_t *pl
         return NULL;
     }
 
-    for (i = 0; platform->fpga_arr[i] != NULL; i++) {
+    for (i = 0; i < platform->fpga_count; i++) {
         if (i == id) {
             return platform->fpga_arr[i];
         }
@@ -346,7 +346,7 @@ const pconfig_switch_cfg_t* PCONFIG_HW_FindSwitch(const pconfig_platform_config_
         return NULL;
     }
 
-    for (i = 0; platform->switch_arr[i] != NULL; i++) {
+    for (i = 0; i < platform->switch_count; i++) {
         if (OSAL_Strcmp(platform->switch_arr[i]->name, name) == 0) {
             return platform->switch_arr[i];
         }
@@ -364,7 +364,7 @@ const pconfig_switch_cfg_t* PCONFIG_HW_GetSwitch(const pconfig_platform_config_t
         return NULL;
     }
 
-    for (i = 0; platform->switch_arr[i] != NULL; i++) {
+    for (i = 0; i < platform->switch_count; i++) {
         if (i == id) {
             return platform->switch_arr[i];
         }
@@ -404,7 +404,7 @@ void PCONFIG_Print(const pconfig_platform_config_t *config)
 
     /* 打印MCU配置 */
     if (config->mcu_arr) {
-        for (i = 0; config->mcu_arr[i] != NULL; i++) {
+        for (i = 0; i < config->mcu_count; i++) {
             LOG_INFO("PCL", "  MCU[%u]: %s", i, config->mcu_arr[i]->name);
         }
     }
