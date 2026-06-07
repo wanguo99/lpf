@@ -25,15 +25,15 @@ extern "C" {
  * @param size Size in bytes to allocate
  * @return Pointer to allocated memory, or NULL on failure
  *
- * @note The caller must free the memory using OSAL_Free()
+ * @note The caller must free the memory using OSAL_free()
  * @note Thread-safe
  */
-void *OSAL_Malloc(uint32_t size);
+void *OSAL_malloc(uint32_t size);
 
 /**
  * @brief Free previously allocated memory
  *
- * Frees a memory block previously allocated by OSAL_Malloc().
+ * Frees a memory block previously allocated by OSAL_malloc().
  *
  * @param ptr Pointer to memory block to free (NULL is safe)
  *
@@ -41,7 +41,7 @@ void *OSAL_Malloc(uint32_t size);
  * @note Thread-safe
  * @warning Passing an invalid pointer causes undefined behavior
  */
-void OSAL_Free(void *ptr);
+void OSAL_free(void *ptr);
 
 /**
  * @brief Reallocate memory block
@@ -54,12 +54,12 @@ void OSAL_Free(void *ptr);
  * @param new_size New size in bytes
  * @return Pointer to reallocated memory, or NULL on failure
  *
- * @note If ptr is NULL, behaves like OSAL_Malloc()
- * @note If new_size is 0 and ptr is not NULL, behaves like OSAL_Free()
+ * @note If ptr is NULL, behaves like OSAL_malloc()
+ * @note If new_size is 0 and ptr is not NULL, behaves like OSAL_free()
  * @note The returned pointer may differ from ptr
  * @note Thread-safe
  */
-void *OSAL_Realloc(void *ptr, uint32_t new_size);
+void *OSAL_realloc(void *ptr, uint32_t new_size);
 
 /************************************************************************
  * Heap Monitoring
