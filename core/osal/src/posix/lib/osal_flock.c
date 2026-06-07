@@ -36,7 +36,7 @@ static int32_t flock_do_lock(int fd, osal_flock_type_t type, int cmd)
 {
     struct flock lock;
 
-    OSAL_Memset(&lock, 0, sizeof(lock));
+    OSAL_memset(&lock, 0, sizeof(lock));
     lock.l_type = (type == OSAL_FLOCK_SHARED) ? F_RDLCK : F_WRLCK;
     lock.l_whence = SEEK_SET;
     lock.l_start = 0;
@@ -59,7 +59,7 @@ static int32_t flock_do_unlock(int fd)
 {
     struct flock lock;
 
-    OSAL_Memset(&lock, 0, sizeof(lock));
+    OSAL_memset(&lock, 0, sizeof(lock));
     lock.l_type = F_UNLCK;
     lock.l_whence = SEEK_SET;
     lock.l_start = 0;
@@ -86,20 +86,20 @@ int32_t OSAL_FlockCreate(const char *lock_file, osal_flock_t **flock)
     }
 
     /* 分配内存 */
-    osal_flock_t *fl = (osal_flock_t *)OSAL_Malloc(sizeof(osal_flock_t));
+    osal_flock_t *fl = (osal_flock_t *)OSAL_malloc(sizeof(osal_flock_t));
     if (!fl) {
         return OSAL_ERR_NO_MEMORY;
     }
 
-    OSAL_Memset(fl, 0, sizeof(osal_flock_t));
+    OSAL_memset(fl, 0, sizeof(osal_flock_t));
 
     /* 保存锁文件路径 */
-    OSAL_Strncpy(fl->lock_file, lock_file, sizeof(fl->lock_file) - 1);
+    OSAL_strncpy(fl->lock_file, lock_file, sizeof(fl->lock_file) - 1);
 
     /* 打开或创建锁文件 */
     fl->fd = open(lock_file, O_RDWR | O_CREAT, 0666);
     if (fl->fd < 0) {
-        OSAL_Free(fl);
+        OSAL_free(fl);
         return OSAL_ERR_GENERIC;
     }
 
@@ -129,7 +129,7 @@ int32_t OSAL_FlockDestroy(osal_flock_t *flock)
     }
 
     /* 释放内存 */
-    OSAL_Free(flock);
+    OSAL_free(flock);
 
     return OSAL_SUCCESS;
 }

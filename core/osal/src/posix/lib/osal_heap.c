@@ -144,7 +144,7 @@ int32_t OSAL_HeapGetStats(uint32_t *current, uint32_t *peak)
     return OSAL_SUCCESS;
 }
 
-void *OSAL_Malloc(uint32_t size)
+void *OSAL_malloc(uint32_t size)
 {
     size_t total_size;
     void *raw_ptr;
@@ -187,7 +187,7 @@ void *OSAL_Malloc(uint32_t size)
     return ptr_union.header + 1;
 }
 
-void OSAL_Free(void *ptr)
+void OSAL_free(void *ptr)
 {
     union {
         void *user_ptr;
@@ -243,7 +243,7 @@ void OSAL_Free(void *ptr)
     free(header);
 }
 
-void *OSAL_Realloc(void *ptr, uint32_t new_size)
+void *OSAL_realloc(void *ptr, uint32_t new_size)
 {
     union {
         void *user_ptr;
@@ -255,14 +255,14 @@ void *OSAL_Realloc(void *ptr, uint32_t new_size)
     uint32_t old_size;
     uint32_t copy_size;
 
-    /* 如果ptr为NULL，等同于OSAL_Malloc() */
+    /* 如果ptr为NULL，等同于OSAL_malloc() */
     if (NULL == ptr) {
-        return OSAL_Malloc(new_size);
+        return OSAL_malloc(new_size);
     }
 
-    /* 如果new_size为0，等同于OSAL_Free() */
+    /* 如果new_size为0，等同于OSAL_free() */
     if (0 == new_size) {
-        OSAL_Free(ptr);
+        OSAL_free(ptr);
         return NULL;
     }
 
@@ -281,7 +281,7 @@ void *OSAL_Realloc(void *ptr, uint32_t new_size)
     old_size = old_header->size;
 
     /* 分配新内存 */
-    new_ptr = OSAL_Malloc(new_size);
+    new_ptr = OSAL_malloc(new_size);
     if (NULL == new_ptr) {
         return NULL;
     }
@@ -291,7 +291,7 @@ void *OSAL_Realloc(void *ptr, uint32_t new_size)
     memcpy(new_ptr, ptr, copy_size);
 
     /* 释放旧内存 */
-    OSAL_Free(ptr);
+    OSAL_free(ptr);
 
     return new_ptr;
 }
