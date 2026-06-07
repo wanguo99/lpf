@@ -34,15 +34,15 @@ int32_t HAL_WATCHDOG_Init(const hal_watchdog_config_t *config, hal_watchdog_hand
     }
 
     /* 分配上下文 */
-    ctx = (hal_watchdog_context_t *)OSAL_Malloc(sizeof(hal_watchdog_context_t));
+    ctx = (hal_watchdog_context_t *)OSAL_malloc(sizeof(hal_watchdog_context_t));
     if (ctx == NULL)
     {
         LOG_ERROR("HAL_WDT", "Failed to allocate context");
         return OSAL_ERR_NO_MEMORY;
     }
 
-    OSAL_Memset(ctx, 0, sizeof(hal_watchdog_context_t));
-    OSAL_Strncpy(ctx->device, config->device, sizeof(ctx->device) - 1);
+    OSAL_memset(ctx, 0, sizeof(hal_watchdog_context_t));
+    OSAL_strncpy(ctx->device, config->device, sizeof(ctx->device) - 1);
     ctx->timeout_sec = config->timeout_sec;
     OSAL_AtomicInit(&ctx->kick_count, 0);
 
@@ -53,7 +53,7 @@ int32_t HAL_WATCHDOG_Init(const hal_watchdog_config_t *config, hal_watchdog_hand
         int32_t err = OSAL_GetErrno();
         LOG_ERROR("HAL_WDT", "Failed to open %s: %s (%d)",
                   config->device, OSAL_StrError(err), err);
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return err;
     }
 
@@ -69,7 +69,7 @@ int32_t HAL_WATCHDOG_Init(const hal_watchdog_config_t *config, hal_watchdog_hand
             LOG_ERROR("HAL_WDT", "Failed to set timeout: %s (%d)",
                       OSAL_StrError(err), err);
             OSAL_close(ctx->fd);
-            OSAL_Free(ctx);
+            OSAL_free(ctx);
             return err;
         }
         ctx->timeout_sec = (uint32_t)timeout;
@@ -129,7 +129,7 @@ int32_t HAL_WATCHDOG_Deinit(hal_watchdog_handle_t handle)
                  OSAL_AtomicLoad(&ctx->kick_count));
     }
 
-    OSAL_Free(ctx);
+    OSAL_free(ctx);
     return OSAL_SUCCESS;
 }
 

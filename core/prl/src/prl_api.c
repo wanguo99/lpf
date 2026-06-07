@@ -243,7 +243,7 @@ int PRL_BuildResponse(const uint8_t *request_packet, size_t request_len,
 
     /* 复制响应负载 */
     if (response_payload && response_payload_len > 0) {
-        OSAL_Memcpy(response_buffer + PRL_HEADER_SIZE,
+        OSAL_memcpy(response_buffer + PRL_HEADER_SIZE,
                     response_payload, response_payload_len);
     }
 

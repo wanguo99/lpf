@@ -90,7 +90,7 @@ static void *heartbeat_task(void *arg)
             .seq_num = 0,
             .payload_len = len,
         };
-        OSAL_Memcpy(msg.payload, buf, len);
+        OSAL_memcpy(msg.payload, buf, len);
 
         ret = ccm_eth_send(ctx->eth_handle, &msg, ctx->config.send_timeout_ms);
         if (ret == OSAL_SUCCESS)
@@ -230,15 +230,15 @@ int32_t PDL_CCM_Init(const pdl_ccm_config_t *config,
     }
 
     /* 分配上下文 */
-    ctx = (ccm_driver_context_t *)OSAL_Malloc(sizeof(ccm_driver_context_t));
+    ctx = (ccm_driver_context_t *)OSAL_malloc(sizeof(ccm_driver_context_t));
     if (!ctx)
     {
         LOG_ERROR("PDL_CCM", "Failed to allocate context");
         return OSAL_ERR_NO_MEMORY;
     }
 
-    OSAL_Memset(ctx, 0, sizeof(ccm_driver_context_t));
-    OSAL_Memcpy(&ctx->config, config, sizeof(pdl_ccm_config_t));
+    OSAL_memset(ctx, 0, sizeof(ccm_driver_context_t));
+    OSAL_memcpy(&ctx->config, config, sizeof(pdl_ccm_config_t));
     ctx->link_quality = 100;  /* 初始链路质量 */
     OSAL_AtomicInitBool(&ctx->running, false);
 
@@ -247,7 +247,7 @@ int32_t PDL_CCM_Init(const pdl_ccm_config_t *config,
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("PDL_CCM", "Failed to create mutex");
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return ret;
     }
 
@@ -257,7 +257,7 @@ int32_t PDL_CCM_Init(const pdl_ccm_config_t *config,
     {
         LOG_ERROR("PDL_CCM", "Failed to init ethernet");
         OSAL_MutexDelete(ctx->mutex);
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return ret;
     }
 
@@ -269,7 +269,7 @@ int32_t PDL_CCM_Init(const pdl_ccm_config_t *config,
         LOG_ERROR("PDL_CCM", "Failed to create RX thread");
         ccm_eth_deinit(ctx->eth_handle);
         OSAL_MutexDelete(ctx->mutex);
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return ret;
     }
 
@@ -282,7 +282,7 @@ int32_t PDL_CCM_Init(const pdl_ccm_config_t *config,
         OSAL_ThreadJoin(ctx->rx_thread);
         ccm_eth_deinit(ctx->eth_handle);
         OSAL_MutexDelete(ctx->mutex);
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return ret;
     }
 
@@ -315,7 +315,7 @@ int32_t PDL_CCM_Deinit(pdl_ccm_handle_t handle)
     OSAL_MutexDelete(ctx->mutex);
 
     /* 释放上下文 */
-    OSAL_Free(ctx);
+    OSAL_free(ctx);
 
     LOG_INFO("PDL_CCM", "Deinitialized");
     return OSAL_SUCCESS;
@@ -398,7 +398,7 @@ int32_t PDL_CCM_SendTelemetry(pdl_ccm_handle_t handle,
     /* 拷贝变长数据 */
     if (len > 0 && len <= (PRL_MAX_PACKET_SIZE - sizeof(prl_pmc_telemetry_t)))
     {
-        OSAL_Memcpy(prl_buf + sizeof(prl_pmc_telemetry_t), data, len);
+        OSAL_memcpy(prl_buf + sizeof(prl_pmc_telemetry_t), data, len);
     }
     else if (len > (PRL_MAX_PACKET_SIZE - sizeof(prl_pmc_telemetry_t)))
     {
@@ -422,7 +422,7 @@ int32_t PDL_CCM_SendTelemetry(pdl_ccm_handle_t handle,
         .seq_num = 0,
         .payload_len = buf_len,
     };
-    OSAL_Memcpy(msg.payload, buf, buf_len);
+    OSAL_memcpy(msg.payload, buf, buf_len);
 
     ret = ccm_eth_send(ctx->eth_handle, &msg, ctx->config.send_timeout_ms);
     if (ret == OSAL_SUCCESS)
@@ -474,7 +474,7 @@ int32_t PDL_CCM_SendCommand(pdl_ccm_handle_t handle,
     /* 拷贝变长参数 */
     if (params_len > 0 && params && params_len <= (PRL_MAX_PACKET_SIZE - sizeof(prl_pmc_command_t)))
     {
-        OSAL_Memcpy(prl_buf + sizeof(prl_pmc_command_t), params, params_len);
+        OSAL_memcpy(prl_buf + sizeof(prl_pmc_command_t), params, params_len);
     }
     else if (params_len > (PRL_MAX_PACKET_SIZE - sizeof(prl_pmc_command_t)))
     {
@@ -498,7 +498,7 @@ int32_t PDL_CCM_SendCommand(pdl_ccm_handle_t handle,
         .seq_num = 0,
         .payload_len = buf_len,
     };
-    OSAL_Memcpy(msg.payload, buf, buf_len);
+    OSAL_memcpy(msg.payload, buf, buf_len);
 
     ret = ccm_eth_send(ctx->eth_handle, &msg, ctx->config.send_timeout_ms);
     if (ret == OSAL_SUCCESS)
@@ -555,7 +555,7 @@ int32_t PDL_CCM_SendFirmwareUpdate(pdl_ccm_handle_t handle,
     /* 拷贝变长数据 */
     if (len > 0 && len <= (PRL_MAX_PACKET_SIZE - sizeof(prl_pmc_firmware_update_t)))
     {
-        OSAL_Memcpy(prl_buf + sizeof(prl_pmc_firmware_update_t), data, len);
+        OSAL_memcpy(prl_buf + sizeof(prl_pmc_firmware_update_t), data, len);
     }
     else if (len > (PRL_MAX_PACKET_SIZE - sizeof(prl_pmc_firmware_update_t)))
     {
@@ -579,7 +579,7 @@ int32_t PDL_CCM_SendFirmwareUpdate(pdl_ccm_handle_t handle,
         .seq_num = 0,
         .payload_len = buf_len,
     };
-    OSAL_Memcpy(msg.payload, buf, buf_len);
+    OSAL_memcpy(msg.payload, buf, buf_len);
 
     ret = ccm_eth_send(ctx->eth_handle, &msg, ctx->config.send_timeout_ms);
     if (ret == OSAL_SUCCESS)
@@ -638,7 +638,7 @@ int32_t PDL_CCM_NodeManage(pdl_ccm_handle_t handle,
         .seq_num = 0,
         .payload_len = buf_len,
     };
-    OSAL_Memcpy(msg.payload, buf, buf_len);
+    OSAL_memcpy(msg.payload, buf, buf_len);
 
     ret = ccm_eth_send(ctx->eth_handle, &msg, ctx->config.send_timeout_ms);
     if (ret == OSAL_SUCCESS)
@@ -703,7 +703,7 @@ int32_t PDL_CCM_PowerControl(pdl_ccm_handle_t handle,
         .seq_num = 0,
         .payload_len = buf_len,
     };
-    OSAL_Memcpy(msg.payload, buf, buf_len);
+    OSAL_memcpy(msg.payload, buf, buf_len);
 
     ret = ccm_eth_send(ctx->eth_handle, &msg, ctx->config.send_timeout_ms);
     if (ret == OSAL_SUCCESS)
@@ -767,7 +767,7 @@ int32_t PDL_CCM_QueryStatus(pdl_ccm_handle_t handle,
         .seq_num = 0,
         .payload_len = buf_len,
     };
-    OSAL_Memcpy(msg.payload, buf, buf_len);
+    OSAL_memcpy(msg.payload, buf, buf_len);
 
     ret = ccm_eth_send(ctx->eth_handle, &msg, ctx->config.send_timeout_ms);
     if (ret == OSAL_SUCCESS)
@@ -829,7 +829,7 @@ int32_t PDL_CCM_SendHeartbeat(pdl_ccm_handle_t handle,
         .seq_num = 0,
         .payload_len = len,
     };
-    OSAL_Memcpy(msg.payload, buf, len);
+    OSAL_memcpy(msg.payload, buf, len);
 
     ret = ccm_eth_send(ctx->eth_handle, &msg, ctx->config.send_timeout_ms);
     if (ret == OSAL_SUCCESS)

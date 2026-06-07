@@ -49,9 +49,9 @@ static int32_t json_get_string(const char *json, const char *key, char *value, u
         return OSAL_ERR_GENERIC;
     }
 
-    OSAL_Snprintf(search_key, sizeof(search_key), "\"%s\"", key);
+    OSAL_snprintf(search_key, sizeof(search_key), "\"%s\"", key);
 
-    key_pos = OSAL_Strstr(json, search_key);
+    key_pos = OSAL_strstr(json, search_key);
     if (NULL == key_pos)
     {
         return OSAL_ERR_GENERIC;
@@ -94,7 +94,7 @@ static int32_t json_get_string(const char *json, const char *key, char *value, u
             len = value_size - 1;
         }
 
-        OSAL_Memcpy(value, value_start, len);
+        OSAL_memcpy(value, value_start, len);
         value[len] = '\0';
         return OSAL_SUCCESS;
     }
@@ -133,9 +133,9 @@ static int32_t build_http_request(bmc_redfish_context_t *ctx,
         default: return OSAL_ERR_GENERIC;
     }
 
-    body_len = (NULL != json_body) ? OSAL_Strlen(json_body) : 0;
+    body_len = (NULL != json_body) ? OSAL_strlen(json_body) : 0;
 
-    len = OSAL_Snprintf(request, request_size,
+    len = OSAL_snprintf(request, request_size,
         "%s %s HTTP/1.1\r\n"
         "Host: %s\r\n"
         "Content-Type: application/json\r\n"
@@ -144,24 +144,24 @@ static int32_t build_http_request(bmc_redfish_context_t *ctx,
 
     if (ctx->auth.use_session && ctx->auth.session_token[0] != '\0')
     {
-        len += OSAL_Snprintf(request + len, request_size - len,
+        len += OSAL_snprintf(request + len, request_size - len,
             "X-Auth-Token: %s\r\n", ctx->auth.session_token);
     }
     else if (ctx->auth.username != NULL && ctx->auth.password != NULL)
     {
-        OSAL_Snprintf(auth_str, sizeof(auth_str), "%s:%s", ctx->auth.username, ctx->auth.password);
-        len += OSAL_Snprintf(request + len, request_size - len,
+        OSAL_snprintf(auth_str, sizeof(auth_str), "%s:%s", ctx->auth.username, ctx->auth.password);
+        len += OSAL_snprintf(request + len, request_size - len,
             "Authorization: Basic %s\r\n", auth_str);
     }
 
     if (body_len > 0)
     {
-        len += OSAL_Snprintf(request + len, request_size - len,
+        len += OSAL_snprintf(request + len, request_size - len,
             "Content-Length: %u\r\n\r\n%s", body_len, json_body);
     }
     else
     {
-        len += OSAL_Snprintf(request + len, request_size - len, "\r\n");
+        len += OSAL_snprintf(request + len, request_size - len, "\r\n");
     }
 
     *actual_size = len;
@@ -186,17 +186,17 @@ static int32_t parse_http_response(const char *response,
         return OSAL_ERR_GENERIC;
     }
 
-    if (OSAL_Strncmp(response, "HTTP/1.1 ", 9) != 0)
+    if (OSAL_strncmp(response, "HTTP/1.1 ", 9) != 0)
     {
         return OSAL_ERR_GENERIC;
     }
 
     if (NULL != status_code)
     {
-        *status_code = OSAL_Atoi(response + 9);
+        *status_code = OSAL_atoi(response + 9);
     }
 
-    body_start = OSAL_Strstr(response, "\r\n\r\n");
+    body_start = OSAL_strstr(response, "\r\n\r\n");
     if (NULL != body_start)
     {
         body_start += 4;
@@ -208,7 +208,7 @@ static int32_t parse_http_response(const char *response,
             {
                 len = body_size - 1;
             }
-            OSAL_Memcpy(body, body_start, len);
+            OSAL_memcpy(body, body_start, len);
             body[len] = '\0';
         }
 
@@ -237,23 +237,23 @@ int32_t bmc_redfish_init(void *transport_handle,
         return OSAL_ERR_GENERIC;
     }
 
-    ctx = (bmc_redfish_context_t *)OSAL_Malloc(sizeof(bmc_redfish_context_t));
+    ctx = (bmc_redfish_context_t *)OSAL_malloc(sizeof(bmc_redfish_context_t));
     if (NULL == ctx)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    OSAL_Memset(ctx, 0, sizeof(bmc_redfish_context_t));
+    OSAL_memset(ctx, 0, sizeof(bmc_redfish_context_t));
     ctx->transport_handle = transport_handle;
     ctx->send_recv = send_recv;
     ctx->auth.username = username;
     ctx->auth.password = password;
     ctx->auth.use_session = false;
-    OSAL_Strcpy(ctx->base_url, "bmc");
+    OSAL_strcpy(ctx->base_url, "bmc");
 
     if (OSAL_SUCCESS != OSAL_MutexCreate(&ctx->mutex))
     {
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return OSAL_ERR_GENERIC;
     }
 
@@ -276,7 +276,7 @@ int32_t bmc_redfish_deinit(void *protocol_handle)
     ctx = (bmc_redfish_context_t *)protocol_handle;
 
     OSAL_MutexDelete(ctx->mutex);
-    OSAL_Free(ctx);
+    OSAL_free(ctx);
 
     return OSAL_SUCCESS;
 }
@@ -429,11 +429,11 @@ int32_t bmc_redfish_get_power_state(void *protocol_handle, pdl_bmc_power_state_t
 
     if (OSAL_SUCCESS == json_get_string(response, "PowerState", power_state, sizeof(power_state)))
     {
-        if (OSAL_Strcmp(power_state, "On") == 0)
+        if (OSAL_strcmp(power_state, "On") == 0)
         {
             *state = PDL_BMC_POWER_ON;
         }
-        else if (OSAL_Strcmp(power_state, "Off") == 0)
+        else if (OSAL_strcmp(power_state, "Off") == 0)
         {
             *state = PDL_BMC_POWER_OFF;
         }

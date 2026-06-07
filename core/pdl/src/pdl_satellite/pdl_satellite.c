@@ -135,22 +135,22 @@ int32_t PDL_SATELLITE_Init(const pdl_satellite_config_t *config,
     }
 
     /* 分配上下文 */
-    ctx = (satellite_service_context_t *)OSAL_Malloc(sizeof(satellite_service_context_t));
+    ctx = (satellite_service_context_t *)OSAL_malloc(sizeof(satellite_service_context_t));
     if (NULL == ctx)
     {
         LOG_ERROR("SAT", "Failed to allocate context");
         return OSAL_ERR_NO_MEMORY;
     }
 
-    OSAL_Memset(ctx, 0, sizeof(satellite_service_context_t));
-    OSAL_Memcpy(&ctx->config, config, sizeof(pdl_satellite_config_t));
+    OSAL_memset(ctx, 0, sizeof(satellite_service_context_t));
+    OSAL_memcpy(&ctx->config, config, sizeof(pdl_satellite_config_t));
     OSAL_AtomicInitBool(&ctx->running, true);
 
     /* 创建互斥锁 */
     if (OSAL_SUCCESS != OSAL_MutexCreate(&ctx->mutex))
     {
         LOG_ERROR("SAT", "Failed to create mutex");
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return OSAL_ERR_GENERIC;
     }
 
@@ -160,7 +160,7 @@ int32_t PDL_SATELLITE_Init(const pdl_satellite_config_t *config,
     {
         LOG_ERROR("SAT", "Failed to initialize CAN");
         OSAL_MutexDelete(ctx->mutex);
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return ret;
     }
 
@@ -174,7 +174,7 @@ int32_t PDL_SATELLITE_Init(const pdl_satellite_config_t *config,
         LOG_ERROR("SAT", "Failed to create RX thread");
         satellite_can_deinit(ctx->can_handle);
         OSAL_MutexDelete(ctx->mutex);
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return ret;
     }
 
@@ -187,7 +187,7 @@ int32_t PDL_SATELLITE_Init(const pdl_satellite_config_t *config,
         OSAL_ThreadJoin(ctx->rx_thread);
         satellite_can_deinit(ctx->can_handle);
         OSAL_MutexDelete(ctx->mutex);
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return ret;
     }
 
@@ -222,7 +222,7 @@ int32_t PDL_SATELLITE_Deinit(pdl_satellite_handle_t handle)
     /* 删除互斥锁 */
     OSAL_MutexDelete(ctx->mutex);
 
-    OSAL_Free(ctx);
+    OSAL_free(ctx);
     LOG_INFO("SAT", "Satellite service deinitialized");
 
     return OSAL_SUCCESS;

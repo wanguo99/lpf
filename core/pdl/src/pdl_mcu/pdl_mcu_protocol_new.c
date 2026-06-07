@@ -63,7 +63,7 @@ int32_t pdl_mcu_encode_custom_command(uint8_t cmd_code, const uint8_t *data,
 
     payload[0] = cmd_code;
     if (data && data_len > 0) {
-        OSAL_Memcpy(&payload[1], data, data_len);
+        OSAL_memcpy(&payload[1], data, data_len);
     }
 
     return prl_device_encode(PRL_DEV_TYPE_MCU, PRL_MCU_MSG_HEARTBEAT,
@@ -106,7 +106,7 @@ int32_t pdl_mcu_decode_get_version(const uint8_t *packet, size_t packet_len,
     version->patch = payload[2];
     version->build = payload[3];
 
-    OSAL_Snprintf(version->version_string, sizeof(version->version_string),
+    OSAL_snprintf(version->version_string, sizeof(version->version_string),
                   "%d.%d.%d.%d", version->major, version->minor,
                   version->patch, version->build);
 
@@ -215,7 +215,7 @@ int32_t pdl_mcu_decode_response(const uint8_t *packet, size_t packet_len,
     /* 复制负载数据 */
     if (response && payload_len > 0) {
         uint32_t copy_len = (payload_len < resp_size) ? payload_len : resp_size;
-        OSAL_Memcpy(response, payload, copy_len);
+        OSAL_memcpy(response, payload, copy_len);
 
         if (actual_size) {
             *actual_size = copy_len;

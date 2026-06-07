@@ -92,20 +92,20 @@ int32_t bmc_ipmi_init(void *transport_handle,
         return OSAL_ERR_GENERIC;
     }
 
-    ctx = (bmc_ipmi_context_t *)OSAL_Malloc(sizeof(bmc_ipmi_context_t));
+    ctx = (bmc_ipmi_context_t *)OSAL_malloc(sizeof(bmc_ipmi_context_t));
     if (NULL == ctx)
     {
         return OSAL_ERR_GENERIC;
     }
 
-    OSAL_Memset(ctx, 0, sizeof(bmc_ipmi_context_t));
+    OSAL_memset(ctx, 0, sizeof(bmc_ipmi_context_t));
     ctx->transport_handle = transport_handle;
     ctx->send_recv = send_recv;
     ctx->seq_num = 0;
 
     if (OSAL_SUCCESS != OSAL_MutexCreate(&ctx->mutex))
     {
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return OSAL_ERR_GENERIC;
     }
 
@@ -128,7 +128,7 @@ int32_t bmc_ipmi_deinit(void *protocol_handle)
     ctx = (bmc_ipmi_context_t *)protocol_handle;
 
     OSAL_MutexDelete(ctx->mutex);
-    OSAL_Free(ctx);
+    OSAL_free(ctx);
 
     return OSAL_SUCCESS;
 }
@@ -197,7 +197,7 @@ int32_t bmc_ipmi_pack_request(uint8_t netfn,
     /* 数据 */
     if (NULL != data && data_len > 0)
     {
-        OSAL_Memcpy(&frame[pos], data, data_len);
+        OSAL_memcpy(&frame[pos], data, data_len);
         pos += data_len;
     }
 
@@ -284,7 +284,7 @@ int32_t bmc_ipmi_unpack_response(const uint8_t *frame,
         {
             copy_len = data_size;
         }
-        OSAL_Memcpy(data, &frame[pos], copy_len);
+        OSAL_memcpy(data, &frame[pos], copy_len);
 
         if (NULL != actual_size)
         {

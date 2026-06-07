@@ -81,7 +81,7 @@ uint32_t prl_get_timestamp(void)
 void prl_init_header(prl_header_t *hdr, uint8_t dev_type, uint8_t msg_type,
                      uint16_t payload_len, uint8_t flags)
 {
-    OSAL_Memset(hdr, 0, sizeof(prl_header_t));
+    OSAL_memset(hdr, 0, sizeof(prl_header_t));
 
     /* 多字节字段使用网络字节序（大端），确保跨平台兼容性 */
     hdr->magic = OSAL_htons(PRL_MAGIC);

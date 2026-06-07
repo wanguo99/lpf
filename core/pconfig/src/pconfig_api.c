@@ -44,7 +44,7 @@ int32_t PCONFIG_Init(void)
         return ret;
     }
 
-    OSAL_Memset(&g_registry, 0, sizeof(g_registry));
+    OSAL_memset(&g_registry, 0, sizeof(g_registry));
     g_initialized = true;
 
     LOG_INFO("PCL", "Platform configuration library initialized");
@@ -57,7 +57,7 @@ void PCONFIG_Cleanup(void)
         return;
     }
 
-    OSAL_Memset(&g_registry, 0, sizeof(g_registry));
+    OSAL_memset(&g_registry, 0, sizeof(g_registry));
     g_initialized = false;
 
     /* 销毁互斥锁 */
@@ -113,8 +113,8 @@ int32_t PCONFIG_Register(const pconfig_platform_config_t *config)
     /* 检查重复 */
     for (i = 0; i < g_registry.count; i++) {
         existing = g_registry.configs[i];
-        if (0 == OSAL_Strcmp(existing->platform_name, config->platform_name) &&
-            0 == OSAL_Strcmp(existing->product_name, config->product_name)) {
+        if (0 == OSAL_strcmp(existing->platform_name, config->platform_name) &&
+            0 == OSAL_strcmp(existing->product_name, config->product_name)) {
             OSAL_MutexUnlock(g_registry_mutex);
             LOG_WARN("PCL", "Config already registered: %s/%s",
                      config->platform_name, config->product_name);
@@ -175,11 +175,11 @@ const pconfig_platform_config_t* PCONFIG_Find(const char *platform,
     for (i = 0; i < g_registry.count; i++) {
         config = g_registry.configs[i];
 
-        if (0 != OSAL_Strcmp(config->platform_name, platform)) {
+        if (0 != OSAL_strcmp(config->platform_name, platform)) {
             continue;
         }
 
-        if (0 != OSAL_Strcmp(config->product_name, product)) {
+        if (0 != OSAL_strcmp(config->product_name, product)) {
             continue;
         }
 
@@ -239,7 +239,7 @@ const pconfig_mcu_entry_t* PCONFIG_HW_FindMCU(const pconfig_platform_config_t *p
     }
 
     for (i = 0; i < platform->mcu_count; i++) {
-        if (OSAL_Strcmp(platform->mcu_arr[i]->name, name) == 0) {
+        if (OSAL_strcmp(platform->mcu_arr[i]->name, name) == 0) {
             return platform->mcu_arr[i];
         }
     }
@@ -275,7 +275,7 @@ const pconfig_bmc_entry_t* PCONFIG_HW_FindBMC(const pconfig_platform_config_t *p
     }
 
     for (i = 0; i < platform->bmc_count; i++) {
-        if (OSAL_Strcmp(platform->bmc_arr[i]->name, name) == 0) {
+        if (OSAL_strcmp(platform->bmc_arr[i]->name, name) == 0) {
             return platform->bmc_arr[i];
         }
     }
@@ -311,7 +311,7 @@ const pconfig_fpga_cfg_t* PCONFIG_HW_FindFPGA(const pconfig_platform_config_t *p
     }
 
     for (i = 0; i < platform->fpga_count; i++) {
-        if (OSAL_Strcmp(platform->fpga_arr[i]->name, name) == 0) {
+        if (OSAL_strcmp(platform->fpga_arr[i]->name, name) == 0) {
             return platform->fpga_arr[i];
         }
     }
@@ -347,7 +347,7 @@ const pconfig_switch_cfg_t* PCONFIG_HW_FindSwitch(const pconfig_platform_config_
     }
 
     for (i = 0; i < platform->switch_count; i++) {
-        if (OSAL_Strcmp(platform->switch_arr[i]->name, name) == 0) {
+        if (OSAL_strcmp(platform->switch_arr[i]->name, name) == 0) {
             return platform->switch_arr[i];
         }
     }
