@@ -12,7 +12,28 @@
 #define PDL_SATELLITE_H
 
 #include "osal.h"
-#include "pdl.h"
+
+/*===========================================================================
+ * Satellite 配置类型
+ *===========================================================================*/
+
+/**
+ * @brief 卫星平台服务配置
+ *
+ * 说明：直接嵌入 HAL 层配置结构体，避免重复定义
+ */
+typedef struct
+{
+	/* CAN配置 - 嵌入 HAL 配置 */
+	const char *can_device;        /* CAN设备名（传递给 HAL） */
+	uint32_t can_bitrate;            /* CAN波特率（传递给 HAL） */
+	uint32_t can_rx_timeout;         /* CAN接收超时（传递给 HAL） */
+	uint32_t can_tx_timeout;         /* CAN发送超时（传递给 HAL） */
+
+	/* 业务配置 */
+	uint32_t heartbeat_interval_ms;  /* 心跳间隔(ms) */
+	uint32_t cmd_timeout_ms;         /* 命令超时(ms) */
+} pdl_satellite_config_t;
 
 /* CAN状态码 */
 typedef enum

@@ -16,7 +16,57 @@
 #define PDL_MCU_H
 
 #include "osal.h"
-#include "pdl.h"
+
+/*===========================================================================
+ * MCU 配置类型
+ *===========================================================================*/
+
+/**
+ * @brief MCU通信接口类型
+ */
+typedef enum
+{
+	PDL_MCU_INTERFACE_CAN = 0x00,     /* CAN总线 */
+	PDL_MCU_INTERFACE_SERIAL = 0x01,  /* 串口 */
+	PDL_MCU_INTERFACE_I2C = 0x02,     /* I2C（预留） */
+	PDL_MCU_INTERFACE_SPI = 0x03      /* SPI（预留） */
+} pdl_mcu_interface_t;
+
+/**
+ * @brief MCU配置
+ *
+ * 说明：直接嵌入 HAL 层配置结构体，避免重复定义
+ */
+typedef struct
+{
+	char name[0x40];                  /* MCU名称 */
+	pdl_mcu_interface_t interface;  /* 通信接口 */
+
+	/* CAN配置 - 嵌入 HAL 配置 */
+	struct {
+		const char *device;           /* CAN设备（如can0，传递给 HAL） */
+		uint32_t bitrate;               /* 波特率（传递给 HAL） */
+		uint32_t rx_timeout;            /* 接收超时（传递给 HAL） */
+		uint32_t tx_timeout;            /* 发送超时（传递给 HAL） */
+		uint32_t tx_id;                 /* 发送CAN ID（PDL层使用） */
+		uint32_t rx_id;                 /* 接收CAN ID（PDL层使用） */
+	} can;
+
+	/* 串口配置 - 嵌入 HAL 配置 */
+	struct {
+		const char *device;           /* 串口设备（如/dev/ttyS1，传递给 HAL） */
+		uint32_t baudrate;              /* 波特率（传递给 HAL） */
+		uint8_t data_bits;              /* 数据位（5-8，传递给 HAL） */
+		uint8_t stop_bits;              /* 停止位（1-2，传递给 HAL） */
+		uint8_t parity;                /* 校验位（传递给 HAL） */
+		uint8_t flow_control;           /* 流控（传递给 HAL） */
+	} serial;
+
+	/* 通用配置 */
+	uint32_t cmd_timeout_ms;            /* 命令超时（ms） */
+	uint32_t retry_count;               /* 重试次数 */
+	/* 注意：串口通信强制启用 CRC 校验以确保数据完整性（航天环境要求） */
+} pdl_mcu_config_t;
 
 /*
  * MCU服务句柄

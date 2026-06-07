@@ -25,7 +25,8 @@
 #endif /* CONFIG_OSAL */
 
 /* Device driver layer - required for MCU/BMC configuration types */
-#include "pdl_types.h"
+#include "pdl_mcu.h"
+#include "pdl_bmc.h"
 
 /*===========================================================================
  * GPIO配置

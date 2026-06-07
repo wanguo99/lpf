@@ -12,7 +12,63 @@
 #define PDL_BMC_H
 
 #include "osal.h"
-#include "pdl.h"
+
+/*===========================================================================
+ * BMC 配置类型
+ *===========================================================================*/
+
+/**
+ * @brief BMC通信通道类型
+ */
+typedef enum
+{
+	PDL_BMC_CHANNEL_NETWORK = 0x00,  /* 网络通道（IPMI over LAN） */
+	PDL_BMC_CHANNEL_SERIAL  = 0x01   /* 串口通道（IPMI over Serial） */
+} pdl_bmc_channel_t;
+
+/**
+ * @brief BMC协议类型
+ */
+typedef enum
+{
+	PDL_BMC_PROTOCOL_IPMI = 0x00,    /* IPMI协议 */
+	PDL_BMC_PROTOCOL_REDFISH = 0x01  /* Redfish协议 */
+} pdl_bmc_protocol_t;
+
+/**
+ * @brief BMC配置
+ *
+ * 说明：直接嵌入 HAL 层配置结构体，避免重复定义
+ */
+typedef struct
+{
+	/* 网络配置 */
+	struct {
+		bool enabled;             /* 是否启用 */
+		const char *ip_addr;      /* IP地址 */
+		uint16_t port;              /* 端口（默认623） */
+		const char *username;     /* 用户名 */
+		const char *password;     /* 密码 */
+		uint32_t timeout_ms;        /* 超时时间 */
+	} network;
+
+	/* 串口配置 - 嵌入 HAL 配置 */
+	struct {
+		bool enabled;             /* 是否启用 */
+		const char *device;       /* 串口设备（传递给 HAL） */
+		uint32_t baudrate;          /* 波特率（传递给 HAL） */
+		uint8_t data_bits;          /* 数据位（传递给 HAL，默认8） */
+		uint8_t stop_bits;          /* 停止位（传递给 HAL，默认1） */
+		uint8_t parity;             /* 校验位（传递给 HAL，默认NONE） */
+		uint32_t timeout_ms;        /* 超时时间 */
+	} serial;
+
+	/* 服务配置 */
+	pdl_bmc_channel_t primary_channel;  /* 主通道 */
+	bool auto_switch;             /* 自动切换通道 */
+	uint32_t retry_count;           /* 重试次数 */
+	uint32_t health_check_interval; /* 健康检查间隔(ms) */
+} pdl_bmc_config_t;
 
 /*
  * BMC服务句柄
