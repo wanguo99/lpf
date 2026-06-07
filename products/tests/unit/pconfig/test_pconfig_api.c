@@ -15,7 +15,7 @@ static pconfig_mcu_entry_t test_mcu_entries[] = {
         .config = {
             .name = "power_mcu",
             .interface = PDL_MCU_INTERFACE_CAN,
-            .can = {
+            .hw.can = {
                 .device = "can0",
                 .bitrate = 500000,
                 .rx_timeout = 100,
@@ -36,7 +36,7 @@ static pconfig_mcu_entry_t test_mcu_entries[] = {
         .config = {
             .name = "payload_mcu",
             .interface = PDL_MCU_INTERFACE_CAN,
-            .can = {
+            .hw.can = {
                 .device = "can0",
                 .bitrate = 500000,
                 .rx_timeout = 100,
@@ -181,7 +181,7 @@ TEST_CASE(test_pconfig_hw_find_mcu_by_name)
 
     TEST_ASSERT_NOT_EQUAL(NULL, mcu);
     TEST_ASSERT_EQUAL(0, OSAL_Strcmp(mcu->name, "power_mcu"));
-    TEST_ASSERT_EQUAL(0x100, mcu->config.can.tx_id);
+    TEST_ASSERT_EQUAL(0x100, mcu->config.hw.can.tx_id);
     TEST_ASSERT_TRUE(mcu->enabled);
 }
 

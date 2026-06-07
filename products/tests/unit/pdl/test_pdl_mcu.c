@@ -18,10 +18,10 @@ static void create_can_config(pdl_mcu_config_t *config)
 {
     OSAL_Memset(config, 0, sizeof(pdl_mcu_config_t));
     config->interface = PDL_MCU_INTERFACE_CAN;
-    config->can.device = "can0";
-    config->can.bitrate = 500000;
-    config->can.tx_id = 0x100;
-    config->can.rx_id = 0x200;
+    config->hw.can.device = "can0";
+    config->hw.can.bitrate = 500000;
+    config->hw.can.tx_id = 0x100;
+    config->hw.can.rx_id = 0x200;
     config->cmd_timeout_ms = 5000;
     config->retry_count = 3;
     OSAL_Strcpy(config->name, "TEST_MCU");
@@ -32,11 +32,11 @@ static void create_serial_config(pdl_mcu_config_t *config)
 {
     OSAL_Memset(config, 0, sizeof(pdl_mcu_config_t));
     config->interface = PDL_MCU_INTERFACE_SERIAL;
-    config->serial.device = "/dev/ttyS1";
-    config->serial.baudrate = 115200;
-    config->serial.data_bits = 8;
-    config->serial.stop_bits = 1;
-    config->serial.parity = HAL_SERIAL_PARITY_NONE;
+    config->hw.serial.device = "/dev/ttyS1";
+    config->hw.serial.baudrate = 115200;
+    config->hw.serial.data_bits = 8;
+    config->hw.serial.stop_bits = 1;
+    config->hw.serial.parity = HAL_SERIAL_PARITY_NONE;
     config->cmd_timeout_ms = 5000;
     config->retry_count = 3;
     OSAL_Strcpy(config->name, "TEST_MCU");

@@ -35,32 +35,39 @@ typedef enum
 /**
  * @brief MCU配置
  *
- * 说明：直接嵌入 HAL 层配置结构体，避免重复定义
+ * 说明：
+ * - 使用 Tagged Union 模式表示互斥的硬件接口选择
+ * - interface 字段指定使用哪个接口（discriminator/tag）
+ * - hw union 包含各接口的具体配置（只占用最大成员的空间）
+ * - 避免同时定义多个接口造成的内存浪费
  */
 typedef struct
 {
 	char name[0x40];                  /* MCU名称 */
-	pdl_mcu_interface_t interface;  /* 通信接口 */
+	pdl_mcu_interface_t interface;    /* 通信接口类型（必须先设置） */
 
-	/* CAN配置 - 嵌入 HAL 配置 */
-	struct {
-		const char *device;           /* CAN设备（如can0，传递给 HAL） */
-		uint32_t bitrate;               /* 波特率（传递给 HAL） */
-		uint32_t rx_timeout;            /* 接收超时（传递给 HAL） */
-		uint32_t tx_timeout;            /* 发送超时（传递给 HAL） */
-		uint32_t tx_id;                 /* 发送CAN ID（PDL层使用） */
-		uint32_t rx_id;                 /* 接收CAN ID（PDL层使用） */
-	} can;
+	/* 硬件接口配置（互斥选择，由interface字段决定使用哪个） */
+	union {
+		/* CAN配置 - 嵌入 HAL 配置 */
+		struct {
+			const char *device;           /* CAN设备（如can0，传递给 HAL） */
+			uint32_t bitrate;             /* 波特率（传递给 HAL） */
+			uint32_t rx_timeout;          /* 接收超时（传递给 HAL） */
+			uint32_t tx_timeout;          /* 发送超时（传递给 HAL） */
+			uint32_t tx_id;               /* 发送CAN ID（PDL层使用） */
+			uint32_t rx_id;               /* 接收CAN ID（PDL层使用） */
+		} can;
 
-	/* 串口配置 - 嵌入 HAL 配置 */
-	struct {
-		const char *device;           /* 串口设备（如/dev/ttyS1，传递给 HAL） */
-		uint32_t baudrate;              /* 波特率（传递给 HAL） */
-		uint8_t data_bits;              /* 数据位（5-8，传递给 HAL） */
-		uint8_t stop_bits;              /* 停止位（1-2，传递给 HAL） */
-		uint8_t parity;                /* 校验位（传递给 HAL） */
-		uint8_t flow_control;           /* 流控（传递给 HAL） */
-	} serial;
+		/* 串口配置 - 嵌入 HAL 配置 */
+		struct {
+			const char *device;           /* 串口设备（如/dev/ttyS1，传递给 HAL） */
+			uint32_t baudrate;            /* 波特率（传递给 HAL） */
+			uint8_t data_bits;            /* 数据位（5-8，传递给 HAL） */
+			uint8_t stop_bits;            /* 停止位（1-2，传递给 HAL） */
+			uint8_t parity;               /* 校验位（传递给 HAL） */
+			uint8_t flow_control;         /* 流控（传递给 HAL） */
+		} serial;
+	} hw;
 
 	/* 通用配置 */
 	uint32_t cmd_timeout_ms;            /* 命令超时（ms） */

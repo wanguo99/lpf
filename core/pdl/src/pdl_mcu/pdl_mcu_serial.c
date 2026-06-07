@@ -56,13 +56,13 @@ int32_t mcu_serial_init(const void *config, void **handle)
     /* CRC 强制启用 */
 
     /* 打开串口设备 */
-    serial_config.baud_rate = mcu_cfg->serial.baudrate;
-    serial_config.data_bits = mcu_cfg->serial.data_bits;
-    serial_config.stop_bits = mcu_cfg->serial.stop_bits;
-    serial_config.parity = mcu_cfg->serial.parity;
+    serial_config.baud_rate = mcu_cfg->hw.serial.baudrate;
+    serial_config.data_bits = mcu_cfg->hw.serial.data_bits;
+    serial_config.stop_bits = mcu_cfg->hw.serial.stop_bits;
+    serial_config.parity = mcu_cfg->hw.serial.parity;
     serial_config.flow_control = 0;  /* NONE */
 
-    if (OSAL_SUCCESS != HAL_Serial_Open(mcu_cfg->serial.device, &serial_config, &ctx->serial_handle))
+    if (OSAL_SUCCESS != HAL_Serial_Open(mcu_cfg->hw.serial.device, &serial_config, &ctx->serial_handle))
     {
         OSAL_Free(ctx);
         return OSAL_ERR_GENERIC;

@@ -44,12 +44,12 @@ int32_t mcu_can_init(const void *config, void **handle)
     }
 
     OSAL_Memset(ctx, 0, sizeof(mcu_can_context_t));
-    ctx->tx_id = mcu_cfg->can.tx_id;
-    ctx->rx_id = mcu_cfg->can.rx_id;
+    ctx->tx_id = mcu_cfg->hw.can.tx_id;
+    ctx->rx_id = mcu_cfg->hw.can.rx_id;
 
     /* 打开CAN设备 */
-    can_config.interface = mcu_cfg->can.device;
-    can_config.baudrate = mcu_cfg->can.bitrate;
+    can_config.interface = mcu_cfg->hw.can.device;
+    can_config.baudrate = mcu_cfg->hw.can.bitrate;
     can_config.rx_timeout = 1000;
     can_config.tx_timeout = 1000;
 

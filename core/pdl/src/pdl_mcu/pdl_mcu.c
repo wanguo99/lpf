@@ -62,10 +62,10 @@ int32_t PDL_MCU_Init(const pdl_mcu_config_t *config, pdl_mcu_handle_t *handle)
     switch (config->interface)
     {
         case PDL_MCU_INTERFACE_CAN:
-            ret = mcu_can_init(&config->can, &ctx->comm_handle);
+            ret = mcu_can_init(&config->hw.can, &ctx->comm_handle);
             break;
         case PDL_MCU_INTERFACE_SERIAL:
-            ret = mcu_serial_init(&config->serial, &ctx->comm_handle);
+            ret = mcu_serial_init(&config->hw.serial, &ctx->comm_handle);
             break;
         case PDL_MCU_INTERFACE_I2C:
         case PDL_MCU_INTERFACE_SPI:
