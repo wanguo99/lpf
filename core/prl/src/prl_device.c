@@ -67,7 +67,7 @@ int prl_device_encode(uint8_t dev_type, uint8_t msg_type,
 
     /* 复制负载数据 */
     if (payload && payload_len > 0) {
-        OSAL_Memcpy(buffer + PRL_HEADER_SIZE, payload, payload_len);
+        OSAL_memcpy(buffer + PRL_HEADER_SIZE, payload, payload_len);
     }
 
     /* 计算并设置 CRC */

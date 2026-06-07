@@ -40,20 +40,20 @@ int32_t PDL_MCU_Init(const pdl_mcu_config_t *config, pdl_mcu_handle_t *handle)
         return OSAL_ERR_GENERIC;
     }
 
-    ctx = (mcu_context_t *)OSAL_Malloc(sizeof(mcu_context_t));
+    ctx = (mcu_context_t *)OSAL_malloc(sizeof(mcu_context_t));
     if (NULL == ctx)
     {
         return OSAL_ERR_NO_MEMORY;
     }
 
-    OSAL_Memset(ctx, 0, sizeof(mcu_context_t));
-    OSAL_Memcpy(&ctx->config, config, sizeof(pdl_mcu_config_t));
+    OSAL_memset(ctx, 0, sizeof(mcu_context_t));
+    OSAL_memcpy(&ctx->config, config, sizeof(pdl_mcu_config_t));
     ctx->interface = config->interface;
 
     /* 创建互斥锁 */
     if (OSAL_SUCCESS != OSAL_MutexCreate(&ctx->mutex))
     {
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return OSAL_ERR_GENERIC;
     }
 
@@ -80,7 +80,7 @@ int32_t PDL_MCU_Init(const pdl_mcu_config_t *config, pdl_mcu_handle_t *handle)
     if (OSAL_SUCCESS != ret)
     {
         OSAL_MutexDelete(ctx->mutex);
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return ret;
     }
 
@@ -119,7 +119,7 @@ int32_t PDL_MCU_Deinit(pdl_mcu_handle_t handle)
     }
 
     OSAL_MutexDelete(ctx->mutex);
-    OSAL_Free(ctx);
+    OSAL_free(ctx);
 
     return OSAL_SUCCESS;
 }

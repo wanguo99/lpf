@@ -37,13 +37,13 @@ int32_t mcu_can_init(const void *config, void **handle)
     }
 
     mcu_cfg = (const pdl_mcu_config_t *)config;
-    ctx = (mcu_can_context_t *)OSAL_Malloc(sizeof(mcu_can_context_t));
+    ctx = (mcu_can_context_t *)OSAL_malloc(sizeof(mcu_can_context_t));
     if (NULL == ctx)
     {
         return OSAL_ERR_NO_MEMORY;
     }
 
-    OSAL_Memset(ctx, 0, sizeof(mcu_can_context_t));
+    OSAL_memset(ctx, 0, sizeof(mcu_can_context_t));
     ctx->tx_id = mcu_cfg->hw.can.tx_id;
     ctx->rx_id = mcu_cfg->hw.can.rx_id;
 
@@ -55,7 +55,7 @@ int32_t mcu_can_init(const void *config, void **handle)
 
     if (OSAL_SUCCESS != HAL_CAN_Init(&can_config, &ctx->can_handle))
     {
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return OSAL_ERR_GENERIC;
     }
 
@@ -63,7 +63,7 @@ int32_t mcu_can_init(const void *config, void **handle)
     if (OSAL_SUCCESS != OSAL_MutexCreate(&ctx->rx_mutex))
     {
         HAL_CAN_Deinit(ctx->can_handle);
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return OSAL_ERR_GENERIC;
     }
 
@@ -87,7 +87,7 @@ int32_t mcu_can_deinit(void *handle)
 
     HAL_CAN_Deinit(ctx->can_handle);
     OSAL_MutexDelete(ctx->rx_mutex);
-    OSAL_Free(ctx);
+    OSAL_free(ctx);
 
     return OSAL_SUCCESS;
 }
@@ -136,14 +136,14 @@ int32_t mcu_can_send_command(void *handle,
     if (NULL != data && data_len > 0)
     {
         copy_len = (data_len > 6) ? 6 : data_len;  /* CAN最多8字节，留2字节给头 */
-        OSAL_Memcpy(&tx_frame[tx_len], data, copy_len);
+        OSAL_memcpy(&tx_frame[tx_len], data, copy_len);
         tx_len += copy_len;
     }
 
     /* 发送CAN帧 */
     can_frame.can_id = ctx->tx_id;
     can_frame.dlc = tx_len;
-    OSAL_Memcpy(can_frame.data, tx_frame, tx_len);
+    OSAL_memcpy(can_frame.data, tx_frame, tx_len);
 
     if (OSAL_SUCCESS != HAL_CAN_Send(ctx->can_handle, &can_frame))
     {
@@ -188,7 +188,7 @@ int32_t mcu_can_send_command(void *handle,
             {
                 copy_len = (resp_len < resp_size) ? resp_len : resp_size;
                 copy_len = (copy_len < ((uint32_t)rx_frame.dlc - 2)) ? copy_len : ((uint32_t)rx_frame.dlc - 2);
-                OSAL_Memcpy(response, &rx_frame.data[2], copy_len);
+                OSAL_memcpy(response, &rx_frame.data[2], copy_len);
 
                 if (NULL != actual_size)
                 {

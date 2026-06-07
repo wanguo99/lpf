@@ -70,15 +70,15 @@ int32_t PDL_WATCHDOG_Init(const pdl_watchdog_config_t *config, pdl_watchdog_hand
     }
 
     /* 分配上下文 */
-    ctx = (watchdog_context_t *)OSAL_Malloc(sizeof(watchdog_context_t));
+    ctx = (watchdog_context_t *)OSAL_malloc(sizeof(watchdog_context_t));
     if (ctx == NULL)
     {
         LOG_ERROR("PDL_WDT", "Failed to allocate context");
         return OSAL_ERR_NO_MEMORY;
     }
 
-    OSAL_Memset(ctx, 0, sizeof(watchdog_context_t));
-    OSAL_Strncpy(ctx->name, config->name, sizeof(ctx->name) - 1);
+    OSAL_memset(ctx, 0, sizeof(watchdog_context_t));
+    OSAL_strncpy(ctx->name, config->name, sizeof(ctx->name) - 1);
     ctx->mode = config->mode;
     ctx->kick_interval_ms = config->kick_interval_ms;
     ctx->enabled = false;
@@ -95,7 +95,7 @@ int32_t PDL_WATCHDOG_Init(const pdl_watchdog_config_t *config, pdl_watchdog_hand
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("PDL_WDT", "HAL_WATCHDOG_Init failed: %d", ret);
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return ret;
     }
 
@@ -137,7 +137,7 @@ int32_t PDL_WATCHDOG_Deinit(pdl_watchdog_handle_t handle)
     LOG_INFO("PDL_WDT", "Watchdog service deinitialized: %s (kicked %u times)",
              ctx->name, OSAL_AtomicLoad(&ctx->kick_count));
 
-    OSAL_Free(ctx);
+    OSAL_free(ctx);
     return OSAL_SUCCESS;
 }
 
@@ -253,7 +253,7 @@ int32_t PDL_WATCHDOG_GetStatus(pdl_watchdog_handle_t handle, pdl_watchdog_status
 
     ctx = (watchdog_context_t *)handle;
 
-    OSAL_Memset(status, 0, sizeof(pdl_watchdog_status_t));
+    OSAL_memset(status, 0, sizeof(pdl_watchdog_status_t));
     status->enabled = ctx->enabled;
     status->running = OSAL_AtomicLoadBool(&ctx->running);
     status->kick_interval_ms = ctx->kick_interval_ms;

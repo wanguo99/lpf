@@ -59,15 +59,15 @@ int32_t PDL_BMC_Init(const pdl_bmc_config_t *config,
     }
 
     /* 分配上下文 */
-    ctx = (bmc_context_t *)OSAL_Malloc(sizeof(bmc_context_t));
+    ctx = (bmc_context_t *)OSAL_malloc(sizeof(bmc_context_t));
     if (NULL == ctx)
     {
         LOG_ERROR("BMC", "Failed to allocate context");
         return OSAL_ERR_NO_MEMORY;
     }
 
-    OSAL_Memset(ctx, 0, sizeof(bmc_context_t));
-    OSAL_Memcpy(&ctx->config, config, sizeof(pdl_bmc_config_t));
+    OSAL_memset(ctx, 0, sizeof(bmc_context_t));
+    OSAL_memcpy(&ctx->config, config, sizeof(pdl_bmc_config_t));
     ctx->current_channel = config->primary_channel;
     ctx->current_protocol = PDL_BMC_PROTOCOL_REDFISH;
 
@@ -75,7 +75,7 @@ int32_t PDL_BMC_Init(const pdl_bmc_config_t *config,
     if (OSAL_SUCCESS != OSAL_MutexCreate(&ctx->mutex))
     {
         LOG_ERROR("BMC", "Failed to create mutex");
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return OSAL_ERR_GENERIC;
     }
 
@@ -226,7 +226,7 @@ int32_t PDL_BMC_Deinit(pdl_bmc_handle_t handle)
     /* 删除互斥锁 */
     OSAL_MutexDelete(ctx->mutex);
 
-    OSAL_Free(ctx);
+    OSAL_free(ctx);
     LOG_INFO("BMC", "BMC service deinitialized");
 
     return OSAL_SUCCESS;

@@ -46,13 +46,13 @@ int32_t mcu_serial_init(const void *config, void **handle)
     }
 
     mcu_cfg = (const pdl_mcu_config_t *)config;
-    ctx = (mcu_serial_context_t *)OSAL_Malloc(sizeof(mcu_serial_context_t));
+    ctx = (mcu_serial_context_t *)OSAL_malloc(sizeof(mcu_serial_context_t));
     if (NULL == ctx)
     {
         return OSAL_ERR_NO_MEMORY;
     }
 
-    OSAL_Memset(ctx, 0, sizeof(mcu_serial_context_t));
+    OSAL_memset(ctx, 0, sizeof(mcu_serial_context_t));
     /* CRC 强制启用 */
 
     /* 打开串口设备 */
@@ -64,7 +64,7 @@ int32_t mcu_serial_init(const void *config, void **handle)
 
     if (OSAL_SUCCESS != HAL_Serial_Open(mcu_cfg->hw.serial.device, &serial_config, &ctx->serial_handle))
     {
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return OSAL_ERR_GENERIC;
     }
 
@@ -72,7 +72,7 @@ int32_t mcu_serial_init(const void *config, void **handle)
     if (OSAL_SUCCESS != OSAL_MutexCreate(&ctx->rx_mutex))
     {
         HAL_Serial_Close(ctx->serial_handle);
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return OSAL_ERR_GENERIC;
     }
 
@@ -96,7 +96,7 @@ int32_t mcu_serial_deinit(void *handle)
 
     HAL_Serial_Close(ctx->serial_handle);
     OSAL_MutexDelete(ctx->rx_mutex);
-    OSAL_Free(ctx);
+    OSAL_free(ctx);
 
     return OSAL_SUCCESS;
 }
@@ -140,7 +140,7 @@ static int32_t mcu_serial_pack_frame(uint8_t cmd_code,
     /* 数据 */
     if (NULL != data && data_len > 0)
     {
-        OSAL_Memcpy(&frame[pos], data, data_len);
+        OSAL_memcpy(&frame[pos], data, data_len);
         pos += data_len;
     }
 
@@ -195,7 +195,7 @@ static int32_t mcu_serial_unpack_frame(const uint8_t *frame,
     if (NULL != data && data_len > 0)
     {
         copy_len = (data_len < data_size) ? data_len : data_size;
-        OSAL_Memcpy(data, &frame[4], copy_len);
+        OSAL_memcpy(data, &frame[4], copy_len);
         if (NULL != actual_size)
         {
             *actual_size = copy_len;

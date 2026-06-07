@@ -27,33 +27,33 @@ int32_t HAL_CAN_Init(const hal_can_config_t *config, hal_can_handle_t *handle)
     if (NULL == config || NULL == handle)
         return OSAL_ERR_INVALID_POINTER;
 
-    if (NULL == config->interface || 0 == OSAL_Strlen(config->interface))
+    if (NULL == config->interface || 0 == OSAL_strlen(config->interface))
         return OSAL_ERR_GENERIC;
 
-    if (OSAL_Strlen(config->interface) >= IFNAMSIZ)
+    if (OSAL_strlen(config->interface) >= IFNAMSIZ)
         return OSAL_ERR_NAME_TOO_LONG;
 
-    impl = (hal_can_context_t *)OSAL_Malloc(sizeof(hal_can_context_t));
+    impl = (hal_can_context_t *)OSAL_malloc(sizeof(hal_can_context_t));
     if (NULL == impl)
     {
         LOG_ERROR("HAL_CAN", "Failed to allocate memory");
         return OSAL_ERR_NO_MEMORY;
     }
 
-    OSAL_Memset(impl, 0, sizeof(hal_can_context_t));
-    OSAL_Strncpy(impl->interface, config->interface, IFNAMSIZ - 1);
+    OSAL_memset(impl, 0, sizeof(hal_can_context_t));
+    OSAL_strncpy(impl->interface, config->interface, IFNAMSIZ - 1);
     impl->interface[IFNAMSIZ - 1] = '\0';
     impl->baudrate = config->baudrate;
     impl->initialized = false;
 
     /* 创建文件锁（进程间保护） */
     char lock_file[OSAL_LOCK_PATH_MAX_LEN];
-    OSAL_Snprintf(lock_file, sizeof(lock_file), HAL_CAN_LOCK_PATH_FMT, config->interface);
+    OSAL_snprintf(lock_file, sizeof(lock_file), HAL_CAN_LOCK_PATH_FMT, config->interface);
     ret = OSAL_FlockCreate(lock_file, &impl->flock);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_CAN", "Failed to create file lock: %s", lock_file);
-        OSAL_Free(impl);
+        OSAL_free(impl);
         return ret;
     }
 
@@ -63,7 +63,7 @@ int32_t HAL_CAN_Init(const hal_can_config_t *config, hal_can_handle_t *handle)
     {
         LOG_ERROR("HAL_CAN", "Failed to create mutex");
         OSAL_FlockDestroy(impl->flock);
-        OSAL_Free(impl);
+        OSAL_free(impl);
         return ret;
     }
 
@@ -75,12 +75,12 @@ int32_t HAL_CAN_Init(const hal_can_config_t *config, hal_can_handle_t *handle)
                   OSAL_StrError(err), err);
         OSAL_MutexDelete(impl->mutex);
         OSAL_FlockDestroy(impl->flock);
-        OSAL_Free(impl);
+        OSAL_free(impl);
         return err;
     }
 
-    OSAL_Memset(&ifr, 0, sizeof(ifr));
-    OSAL_Strncpy(ifr.ifr_name, config->interface, IFNAMSIZ - 1);
+    OSAL_memset(&ifr, 0, sizeof(ifr));
+    OSAL_strncpy(ifr.ifr_name, config->interface, IFNAMSIZ - 1);
     ret = OSAL_ioctl(impl->sockfd, SIOCGIFINDEX, &ifr);
     if (ret < 0)
     {
@@ -90,11 +90,11 @@ int32_t HAL_CAN_Init(const hal_can_config_t *config, hal_can_handle_t *handle)
         OSAL_close(impl->sockfd);
         OSAL_MutexDelete(impl->mutex);
         OSAL_FlockDestroy(impl->flock);
-        OSAL_Free(impl);
+        OSAL_free(impl);
         return err;
     }
 
-    OSAL_Memset(&addr, 0, sizeof(addr));
+    OSAL_memset(&addr, 0, sizeof(addr));
     addr.can_family = OSAL_AF_CAN;
     addr.can_ifindex = ifr.ifr_ifindex;
 
@@ -107,7 +107,7 @@ int32_t HAL_CAN_Init(const hal_can_config_t *config, hal_can_handle_t *handle)
         OSAL_close(impl->sockfd);
         OSAL_MutexDelete(impl->mutex);
         OSAL_FlockDestroy(impl->flock);
-        OSAL_Free(impl);
+        OSAL_free(impl);
         return err;
     }
 
@@ -160,7 +160,7 @@ int32_t HAL_CAN_Deinit(hal_can_handle_t handle)
     }
 
     impl->initialized = false;
-    OSAL_Free(impl);
+    OSAL_free(impl);
 
     LOG_INFO("HAL_CAN", "Deinitialized successfully");
     return OSAL_SUCCESS;
@@ -203,10 +203,10 @@ int32_t HAL_CAN_Send(hal_can_handle_t handle, const hal_can_frame_t *frame)
     }
 
     /* 临界区：硬件访问 */
-    OSAL_Memset(&can_frame, 0, sizeof(can_frame));
+    OSAL_memset(&can_frame, 0, sizeof(can_frame));
     can_frame.can_id = frame->can_id;
     can_frame.can_dlc = frame->dlc;
-    OSAL_Memcpy(can_frame.data, frame->data, frame->dlc);
+    OSAL_memcpy(can_frame.data, frame->data, frame->dlc);
 
     ret = OSAL_write(impl->sockfd, &can_frame, sizeof(struct can_frame));
     if (ret != sizeof(struct can_frame))
@@ -300,10 +300,10 @@ int32_t HAL_CAN_Recv(hal_can_handle_t handle, hal_can_frame_t *frame, int32_t ti
     }
     else
     {
-        OSAL_Memset(frame, 0, sizeof(hal_can_frame_t));
+        OSAL_memset(frame, 0, sizeof(hal_can_frame_t));
         frame->can_id = can_frame.can_id;
         frame->dlc = (can_frame.can_dlc > 8) ? 8 : can_frame.can_dlc;
-        OSAL_Memcpy(frame->data, can_frame.data, frame->dlc);
+        OSAL_memcpy(frame->data, can_frame.data, frame->dlc);
         frame->timestamp = OSAL_GetTickCount();
         result = OSAL_SUCCESS;
     }

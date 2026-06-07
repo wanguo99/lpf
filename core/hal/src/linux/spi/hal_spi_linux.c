@@ -25,19 +25,19 @@ int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
     if (NULL == config || NULL == handle)
         return OSAL_ERR_INVALID_POINTER;
 
-    if (NULL == config->device || 0 == OSAL_Strlen(config->device))
+    if (NULL == config->device || 0 == OSAL_strlen(config->device))
         return OSAL_ERR_GENERIC;
 
     /* 分配句柄 */
-    impl = (hal_spi_context_t *)OSAL_Malloc(sizeof(hal_spi_context_t));
+    impl = (hal_spi_context_t *)OSAL_malloc(sizeof(hal_spi_context_t));
     if (NULL == impl)
     {
         LOG_ERROR("HAL_SPI", "Failed to allocate memory");
         return OSAL_ERR_NO_MEMORY;
     }
 
-    OSAL_Memset(impl, 0, sizeof(hal_spi_context_t));
-    OSAL_Strncpy(impl->device, config->device, sizeof(impl->device) - 1);
+    OSAL_memset(impl, 0, sizeof(hal_spi_context_t));
+    OSAL_strncpy(impl->device, config->device, sizeof(impl->device) - 1);
     impl->device[sizeof(impl->device) - 1] = '\0';
     impl->mode = config->mode;
     impl->bits_per_word = config->bits_per_word;
@@ -57,12 +57,12 @@ int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
         slash++;
     }
 
-    OSAL_Snprintf(lock_file, sizeof(lock_file), HAL_SPI_LOCK_PATH_FMT, dev_name);
+    OSAL_snprintf(lock_file, sizeof(lock_file), HAL_SPI_LOCK_PATH_FMT, dev_name);
     ret = OSAL_FlockCreate(lock_file, &impl->flock);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_SPI", "Failed to create file lock: %s", lock_file);
-        OSAL_Free(impl);
+        OSAL_free(impl);
         return ret;
     }
 
@@ -72,7 +72,7 @@ int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
     {
         LOG_ERROR("HAL_SPI", "Failed to create mutex");
         OSAL_FlockDestroy(impl->flock);
-        OSAL_Free(impl);
+        OSAL_free(impl);
         return ret;
     }
 
@@ -85,7 +85,7 @@ int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
                   config->device, OSAL_StrError(err), err);
         OSAL_MutexDelete(impl->mutex);
         OSAL_FlockDestroy(impl->flock);
-        OSAL_Free(impl);
+        OSAL_free(impl);
         return err;
     }
 
@@ -99,7 +99,7 @@ int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
         OSAL_close(impl->fd);
         OSAL_MutexDelete(impl->mutex);
         OSAL_FlockDestroy(impl->flock);
-        OSAL_Free(impl);
+        OSAL_free(impl);
         return err;
     }
 
@@ -113,7 +113,7 @@ int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
         OSAL_close(impl->fd);
         OSAL_MutexDelete(impl->mutex);
         OSAL_FlockDestroy(impl->flock);
-        OSAL_Free(impl);
+        OSAL_free(impl);
         return err;
     }
 
@@ -127,7 +127,7 @@ int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
         OSAL_close(impl->fd);
         OSAL_MutexDelete(impl->mutex);
         OSAL_FlockDestroy(impl->flock);
-        OSAL_Free(impl);
+        OSAL_free(impl);
         return err;
     }
 
@@ -170,7 +170,7 @@ int32_t HAL_SPI_Close(hal_spi_handle_t handle)
     }
 
     impl->initialized = false;
-    OSAL_Free(impl);
+    OSAL_free(impl);
 
     LOG_INFO("HAL_SPI", "Device closed");
     return OSAL_SUCCESS;
@@ -319,7 +319,7 @@ int32_t HAL_SPI_Transfer(hal_spi_handle_t handle, const uint8_t *tx_buffer,
     }
 
     /* 临界区：构造传输结构 (参考: Linux内核 spidev.h) */
-    OSAL_Memset(&xfer, 0, sizeof(xfer));
+    OSAL_memset(&xfer, 0, sizeof(xfer));
     xfer.tx_buf = (uintptr_t)tx_buffer;
     xfer.rx_buf = (uintptr_t)rx_buffer;
     xfer.len = size;
@@ -368,7 +368,7 @@ int32_t HAL_SPI_TransferMulti(hal_spi_handle_t handle, hal_spi_transfer_t *trans
         return OSAL_ERR_GENERIC;
 
     /* 分配内核传输结构 */
-    xfers = (struct spi_ioc_transfer *)OSAL_Malloc(sizeof(struct spi_ioc_transfer) * num);
+    xfers = (struct spi_ioc_transfer *)OSAL_malloc(sizeof(struct spi_ioc_transfer) * num);
     if (NULL == xfers)
     {
         LOG_ERROR("HAL_SPI", "Failed to allocate transfer buffer");
@@ -376,7 +376,7 @@ int32_t HAL_SPI_TransferMulti(hal_spi_handle_t handle, hal_spi_transfer_t *trans
     }
 
     /* 转换传输格式 */
-    OSAL_Memset(xfers, 0, sizeof(struct spi_ioc_transfer) * num);
+    OSAL_memset(xfers, 0, sizeof(struct spi_ioc_transfer) * num);
     for (i = 0; i < num; i++)
     {
         xfers[i].tx_buf = (uintptr_t)transfers[i].tx_buf;
@@ -393,7 +393,7 @@ int32_t HAL_SPI_TransferMulti(hal_spi_handle_t handle, hal_spi_transfer_t *trans
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_SPI", "Failed to acquire file lock (timeout or error)");
-        OSAL_Free(xfers);
+        OSAL_free(xfers);
         return ret;
     }
 
@@ -403,7 +403,7 @@ int32_t HAL_SPI_TransferMulti(hal_spi_handle_t handle, hal_spi_transfer_t *trans
     {
         LOG_ERROR("HAL_SPI", "Failed to acquire mutex");
         OSAL_FlockUnlock(impl->flock);
-        OSAL_Free(xfers);
+        OSAL_free(xfers);
         return ret;
     }
 
@@ -421,7 +421,7 @@ int32_t HAL_SPI_TransferMulti(hal_spi_handle_t handle, hal_spi_transfer_t *trans
     OSAL_MutexUnlock(impl->mutex);
     OSAL_FlockUnlock(impl->flock);
 
-    OSAL_Free(xfers);
+    OSAL_free(xfers);
     return result;
 }
 

@@ -48,14 +48,14 @@ int32_t ccm_eth_init(const pdl_ccm_config_t *config, void **handle)
     }
 
     /* 分配上下文 */
-    ctx = (ccm_eth_context_t *)OSAL_Malloc(sizeof(ccm_eth_context_t));
+    ctx = (ccm_eth_context_t *)OSAL_malloc(sizeof(ccm_eth_context_t));
     if (!ctx)
     {
         return OSAL_ERR_NO_MEMORY;
     }
 
-    OSAL_Memset(ctx, 0, sizeof(ccm_eth_context_t));
-    OSAL_Strncpy(ctx->ccm_ip, config->ccm_ip, sizeof(ctx->ccm_ip) - 1);
+    OSAL_memset(ctx, 0, sizeof(ccm_eth_context_t));
+    OSAL_strncpy(ctx->ccm_ip, config->ccm_ip, sizeof(ctx->ccm_ip) - 1);
     ctx->ccm_port = config->ccm_port;
     ctx->timeout_ms = config->send_timeout_ms;
     ctx->seq_num = 0;
@@ -66,7 +66,7 @@ int32_t ccm_eth_init(const pdl_ccm_config_t *config, void **handle)
     ret = OSAL_MutexCreate(&ctx->mutex);
     if (ret != OSAL_SUCCESS)
     {
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return ret;
     }
 
@@ -76,7 +76,7 @@ int32_t ccm_eth_init(const pdl_ccm_config_t *config, void **handle)
     {
         LOG_ERROR("PDL_CCM", "Failed to create socket");
         OSAL_MutexDelete(ctx->mutex);
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return OSAL_ERR_GENERIC;
     }
 
@@ -103,7 +103,7 @@ int32_t ccm_eth_init(const pdl_ccm_config_t *config, void **handle)
                     &nodelay, sizeof(nodelay));
 
     /* 构造服务器地址 */
-    OSAL_Memset(&server_addr, 0, sizeof(server_addr));
+    OSAL_memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = OSAL_AF_INET;
     server_addr.sin_port = OSAL_htons(config->ccm_port);
 
@@ -114,7 +114,7 @@ int32_t ccm_eth_init(const pdl_ccm_config_t *config, void **handle)
         LOG_ERROR("PDL_CCM", "Invalid IP address: %s", config->ccm_ip);
         OSAL_close(ctx->sockfd);
         OSAL_MutexDelete(ctx->mutex);
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return OSAL_ERR_INVALID_PARAM;
     }
 
@@ -159,7 +159,7 @@ int32_t ccm_eth_deinit(void *handle)
     OSAL_MutexDelete(ctx->mutex);
 
     /* 释放上下文 */
-    OSAL_Free(ctx);
+    OSAL_free(ctx);
 
     return OSAL_SUCCESS;
 }
@@ -216,7 +216,7 @@ int32_t ccm_eth_send(void *handle, const ccm_eth_msg_t *msg, uint32_t timeout_ms
     /* 拷贝负载 */
     if (msg->payload_len > 0)
     {
-        OSAL_Memcpy(&send_buf[16], msg->payload, msg->payload_len);
+        OSAL_memcpy(&send_buf[16], msg->payload, msg->payload_len);
     }
 
     /* 计算 CRC32（简化版，实际应使用标准 CRC32） */
