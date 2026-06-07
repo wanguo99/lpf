@@ -47,13 +47,13 @@ static int32_t read_choice(void)
 static void format_timeout(uint32_t timeout_ms, char *buf, uint32_t buf_size)
 {
     if (timeout_ms == 0) {
-        OSAL_Strncpy(buf, "none", buf_size);
+        OSAL_strncpy(buf, "none", buf_size);
     } else if (timeout_ms < 1000) {
-        OSAL_Snprintf(buf, buf_size, "%ums", timeout_ms);
+        OSAL_snprintf(buf, buf_size, "%ums", timeout_ms);
     } else if (timeout_ms < 60000) {
-        OSAL_Snprintf(buf, buf_size, "%.1fs", timeout_ms / 1000.0);
+        OSAL_snprintf(buf, buf_size, "%.1fs", timeout_ms / 1000.0);
     } else {
-        OSAL_Snprintf(buf, buf_size, "%.1fm", timeout_ms / 60000.0);
+        OSAL_snprintf(buf, buf_size, "%.1fm", timeout_ms / 60000.0);
     }
     buf[buf_size - 1] = '\0';
 }
@@ -420,7 +420,7 @@ static int32_t menu_select_module(const test_filter_t *filter)
             }
 
             char context[128];
-            OSAL_Snprintf(context, sizeof(context), "in module %s", modules[choice - 1]);
+            OSAL_snprintf(context, sizeof(context), "in module %s", modules[choice - 1]);
             menu_select_suite(suites, count, context);
         } else if (choice == (int32_t)(module_count + 1)) {
             return OSAL_SUCCESS;
@@ -476,7 +476,7 @@ static int32_t menu_select_layer(const test_filter_t *filter)
             }
 
             char context[128];
-            OSAL_Snprintf(context, sizeof(context), "in layer %s", layers[choice - 1]);
+            OSAL_snprintf(context, sizeof(context), "in layer %s", layers[choice - 1]);
             menu_select_suite(suites, count, context);
         } else if (choice == (int32_t)(layer_count + 1)) {
             return OSAL_SUCCESS;

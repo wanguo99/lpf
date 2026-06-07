@@ -250,7 +250,7 @@ TEST_CASE(test_pdl_bmc_read_sensors_success)
     int32_t ret = PDL_BMC_Init(&config, &handle);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
-    OSAL_Memset(readings, 0, sizeof(readings));
+    OSAL_memset(readings, 0, sizeof(readings));
     ret = PDL_BMC_ReadSensors(handle, PDL_BMC_SENSOR_TEMP, readings, 16, &actual_count);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 

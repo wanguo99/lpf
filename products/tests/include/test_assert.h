@@ -197,7 +197,7 @@ extern const char *g_current_test;
 /* String assertions */
 #define TEST_ASSERT_STRING_EQUAL(expected, actual) \
     do { \
-        if (OSAL_Strcmp((expected), (actual)) != 0) { \
+        if (OSAL_strcmp((expected), (actual)) != 0) { \
             OSAL_Printf("[  FAILED  ] %s:%d: Expected \"%s\", got \"%s\"\n", \
                    __FILE__, __LINE__, (expected), (actual)); \
             g_test_failed = true; \
@@ -226,7 +226,7 @@ extern const char *g_current_test;
 /* Memory assertions */
 #define TEST_ASSERT_MEMORY_EQUAL(expected, actual, size) \
     do { \
-        if (OSAL_Memcmp((expected), (actual), (size)) != 0) { \
+        if (OSAL_memcmp((expected), (actual), (size)) != 0) { \
             OSAL_Printf("[  FAILED  ] %s:%d: Memory contents differ\n", \
                    __FILE__, __LINE__); \
             g_test_failed = true; \

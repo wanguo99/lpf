@@ -40,15 +40,15 @@ TEST_CASE(test_osal_strerror)
 
     msg = OSAL_StrError(OSAL_EINVAL);
     TEST_ASSERT_NOT_NULL(msg);
-    TEST_ASSERT_TRUE(OSAL_Strlen(msg) > 0);
+    TEST_ASSERT_TRUE(OSAL_strlen(msg) > 0);
 
     msg = OSAL_StrError(OSAL_ENOENT);
     TEST_ASSERT_NOT_NULL(msg);
-    TEST_ASSERT_TRUE(OSAL_Strlen(msg) > 0);
+    TEST_ASSERT_TRUE(OSAL_strlen(msg) > 0);
 
     msg = OSAL_StrError(OSAL_ENOMEM);
     TEST_ASSERT_NOT_NULL(msg);
-    TEST_ASSERT_TRUE(OSAL_Strlen(msg) > 0);
+    TEST_ASSERT_TRUE(OSAL_strlen(msg) > 0);
 }
 
 TEST_CASE(test_osal_get_status_name)

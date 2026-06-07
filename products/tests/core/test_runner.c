@@ -34,7 +34,7 @@ extern uint32_t test_get_suites_by_module_filtered(const char *module_name, cons
 static inline void log_write(const char *msg)
 {
     if (g_test_log_fd >= 0) {
-        OSAL_write(g_test_log_fd, msg, OSAL_Strlen(msg));
+        OSAL_write(g_test_log_fd, msg, OSAL_strlen(msg));
     }
 }
 
@@ -44,9 +44,9 @@ static void log_printf(const char *fmt, ...)
         char buf[LOG_BUF_SIZE];
         va_list args;
         va_start(args, fmt);
-        OSAL_Vsnprintf(buf, sizeof(buf), fmt, args);
+        OSAL_vsnprintf(buf, sizeof(buf), fmt, args);
         va_end(args);
-        OSAL_write(g_test_log_fd, buf, OSAL_Strlen(buf));
+        OSAL_write(g_test_log_fd, buf, OSAL_strlen(buf));
     }
 }
 
@@ -91,7 +91,7 @@ static void append_to_list(test_result_node_t **head, test_result_node_t **tail,
 
 static void add_test_result(const char *suite_name, const char *test_name, test_result_t result, uint32_t elapsed_ms)
 {
-    test_result_node_t *node = (test_result_node_t *)OSAL_Malloc(sizeof(test_result_node_t));
+    test_result_node_t *node = (test_result_node_t *)OSAL_malloc(sizeof(test_result_node_t));
     if (NULL == node) return;
 
     node->suite_name = suite_name;
@@ -116,7 +116,7 @@ static void print_result_list(const char *header, uint32_t count, test_result_no
     OSAL_Printf("\n%s %u tests\n", header, count);
 
     for (node = head; NULL != node; node = node->next) {
-        if (NULL == current_suite || OSAL_Strcmp(current_suite, node->suite_name) != 0) {
+        if (NULL == current_suite || OSAL_strcmp(current_suite, node->suite_name) != 0) {
             if (current_suite) OSAL_Printf("\n");
             OSAL_Printf("  [%s]\n", node->suite_name);
             current_suite = node->suite_name;
@@ -277,7 +277,7 @@ int32_t libutest_run_all(void)
     OSAL_Printf(" Running %u test suites\n", count);
 
     char desc[64];
-    OSAL_Snprintf(desc, sizeof(desc), "%u test suites", count);
+    OSAL_snprintf(desc, sizeof(desc), "%u test suites", count);
     run_suites_and_report(suites, count, desc);
 
     return (g_stats.failed == 0) ? OSAL_SUCCESS : OSAL_ERR_GENERIC;
@@ -297,7 +297,7 @@ int32_t libutest_run_all_filtered(const test_filter_t *filter)
     OSAL_Printf(" Running %u filtered test suites\n", count);
 
     char desc[64];
-    OSAL_Snprintf(desc, sizeof(desc), "%u filtered test suites", count);
+    OSAL_snprintf(desc, sizeof(desc), "%u filtered test suites", count);
     run_suites_and_report(suites, count, desc);
 
     return (g_stats.failed == 0) ? OSAL_SUCCESS : OSAL_ERR_GENERIC;
@@ -319,7 +319,7 @@ int32_t libutest_run_layer(const char *layer_name)
     OSAL_Printf(" Running %u test suites from layer %s\n", count, layer_name);
 
     char desc[64];
-    OSAL_Snprintf(desc, sizeof(desc), "layer %s", layer_name);
+    OSAL_snprintf(desc, sizeof(desc), "layer %s", layer_name);
     run_suites_and_report(suites, count, desc);
 
     return (g_stats.failed == 0) ? OSAL_SUCCESS : OSAL_ERR_GENERIC;
@@ -341,7 +341,7 @@ int32_t libutest_run_layer_filtered(const char *layer_name, const test_filter_t 
     OSAL_Printf(" Running %u filtered test suites from layer %s\n", count, layer_name);
 
     char desc[64];
-    OSAL_Snprintf(desc, sizeof(desc), "filtered layer %s", layer_name);
+    OSAL_snprintf(desc, sizeof(desc), "filtered layer %s", layer_name);
     run_suites_and_report(suites, count, desc);
 
     return (g_stats.failed == 0) ? OSAL_SUCCESS : OSAL_ERR_GENERIC;
@@ -362,7 +362,7 @@ int32_t libutest_run_module(const char *module_name)
     OSAL_Printf("\n[==========] Running %u test suites from module %s\n", count, module_name);
 
     char desc[64];
-    OSAL_Snprintf(desc, sizeof(desc), "%u test suites", count);
+    OSAL_snprintf(desc, sizeof(desc), "%u test suites", count);
     run_suites_and_report(suites, count, desc);
 
     return (g_stats.failed == 0) ? OSAL_SUCCESS : OSAL_ERR_GENERIC;
@@ -383,7 +383,7 @@ int32_t libutest_run_module_filtered(const char *module_name, const test_filter_
     OSAL_Printf("\n[==========] Running %u filtered test suites from module %s\n", count, module_name);
 
     char desc[64];
-    OSAL_Snprintf(desc, sizeof(desc), "%u filtered test suites", count);
+    OSAL_snprintf(desc, sizeof(desc), "%u filtered test suites", count);
     run_suites_and_report(suites, count, desc);
 
     return (g_stats.failed == 0) ? OSAL_SUCCESS : OSAL_ERR_GENERIC;
@@ -427,7 +427,7 @@ int32_t libutest_run_test(const char *suite_name, const char *test_name)
     uint32_t i;
 
     for (i = 0; i < suite->case_count; i++) {
-        if (0 == OSAL_Strcmp(suite->cases[i].name, test_name)) {
+        if (0 == OSAL_strcmp(suite->cases[i].name, test_name)) {
             test = &suite->cases[i];
             break;
         }
@@ -467,7 +467,7 @@ static void free_result_list(test_result_node_t *head)
     while (current)
     {
         test_result_node_t *next = current->next;
-        OSAL_Free(current);
+        OSAL_free(current);
         current = next;
     }
 }
@@ -479,5 +479,5 @@ void libutest_reset_stats(void)
     free_result_list(g_stats.failed_list_head);
 
     /* 清零统计结构 */
-    OSAL_Memset(&g_stats, 0, sizeof(test_stats_t));
+    OSAL_memset(&g_stats, 0, sizeof(test_stats_t));
 }

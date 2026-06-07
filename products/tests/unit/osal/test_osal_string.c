@@ -18,7 +18,7 @@ TEST_CASE(test_osal_memset_success)
     void *ret;
 
     /* 填充0 */
-    ret = OSAL_Memset(buffer, 0, sizeof(buffer));
+    ret = OSAL_memset(buffer, 0, sizeof(buffer));
     TEST_ASSERT_NOT_NULL(ret);
     TEST_ASSERT_EQUAL(buffer, ret);
 
@@ -28,7 +28,7 @@ TEST_CASE(test_osal_memset_success)
     }
 
     /* 填充0xFF */
-    ret = OSAL_Memset(buffer, 0xFF, sizeof(buffer));
+    ret = OSAL_memset(buffer, 0xFF, sizeof(buffer));
     TEST_ASSERT_NOT_NULL(ret);
 
 
@@ -45,9 +45,9 @@ TEST_CASE(test_osal_memcpy_success)
     uint8_t dest[32];
     void *ret;
 
-    OSAL_Memset(dest, 0, sizeof(dest));
+    OSAL_memset(dest, 0, sizeof(dest));
 
-    ret = OSAL_Memcpy(dest, src, 8);
+    ret = OSAL_memcpy(dest, src, 8);
     TEST_ASSERT_NOT_NULL(ret);
     TEST_ASSERT_EQUAL(dest, ret);
 
@@ -64,7 +64,7 @@ TEST_CASE(test_osal_memmove_overlap)
     void *ret;
 
     /* 向后移动（重叠） */
-    ret = OSAL_Memmove(buffer + 4, buffer, 8);
+    ret = OSAL_memmove(buffer + 4, buffer, 8);
     TEST_ASSERT_NOT_NULL(ret);
     TEST_ASSERT_EQUAL(buffer + 4, ret);
 
@@ -80,7 +80,7 @@ TEST_CASE(test_osal_memcmp_equal)
     uint8_t buf1[8] = {1, 2, 3, 4, 5, 6, 7, 8};
     uint8_t buf2[8] = {1, 2, 3, 4, 5, 6, 7, 8};
 
-    int32_t ret = OSAL_Memcmp(buf1, buf2, 8);
+    int32_t ret = OSAL_memcmp(buf1, buf2, 8);
     TEST_ASSERT_EQUAL(0, ret);
 }
 
@@ -90,7 +90,7 @@ TEST_CASE(test_osal_memcmp_not_equal)
     uint8_t buf1[8] = {1, 2, 3, 4, 5, 6, 7, 8};
     uint8_t buf2[8] = {1, 2, 3, 5, 5, 6, 7, 8};  /* 第4个字节不同 */
 
-    int32_t ret = OSAL_Memcmp(buf1, buf2, 8);
+    int32_t ret = OSAL_memcmp(buf1, buf2, 8);
     TEST_ASSERT_NOT_EQUAL(0, ret);
     TEST_ASSERT_TRUE(ret < 0);  /* buf1[3] < buf2[3] */
 }
@@ -106,9 +106,9 @@ TEST_CASE(test_osal_strlen_success)
     const char *str2 = "";
     const char *str3 = "Hello, World!";
 
-    TEST_ASSERT_EQUAL(5, OSAL_Strlen(str1));
-    TEST_ASSERT_EQUAL(0, OSAL_Strlen(str2));
-    TEST_ASSERT_EQUAL(13, OSAL_Strlen(str3));
+    TEST_ASSERT_EQUAL(5, OSAL_strlen(str1));
+    TEST_ASSERT_EQUAL(0, OSAL_strlen(str2));
+    TEST_ASSERT_EQUAL(13, OSAL_strlen(str3));
 }
 
 /* 测试用例: Strcmp - 相等 */
@@ -117,7 +117,7 @@ TEST_CASE(test_osal_strcmp_equal)
     const char *str1 = "Hello";
     const char *str2 = "Hello";
 
-    int32_t ret = OSAL_Strcmp(str1, str2);
+    int32_t ret = OSAL_strcmp(str1, str2);
     TEST_ASSERT_EQUAL(0, ret);
 }
 
@@ -127,11 +127,11 @@ TEST_CASE(test_osal_strcmp_not_equal)
     const char *str1 = "Hello";
     const char *str2 = "World";
 
-    int32_t ret = OSAL_Strcmp(str1, str2);
+    int32_t ret = OSAL_strcmp(str1, str2);
     TEST_ASSERT_NOT_EQUAL(0, ret);
     TEST_ASSERT_TRUE(ret < 0);  /* "Hello" < "World" */
 
-    ret = OSAL_Strcmp(str2, str1);
+    ret = OSAL_strcmp(str2, str1);
     TEST_ASSERT_TRUE(ret > 0);  /* "World" > "Hello" */
 }
 
@@ -142,11 +142,11 @@ TEST_CASE(test_osal_strncmp_success)
     const char *str2 = "Hello Earth";
 
     /* 前5个字符相同 */
-    int32_t ret = OSAL_Strncmp(str1, str2, 5);
+    int32_t ret = OSAL_strncmp(str1, str2, 5);
     TEST_ASSERT_EQUAL(0, ret);
 
     /* 前7个字符不同 */
-    ret = OSAL_Strncmp(str1, str2, 7);
+    ret = OSAL_strncmp(str1, str2, 7);
     TEST_ASSERT_NOT_EQUAL(0, ret);
 }
 
@@ -157,13 +157,13 @@ TEST_CASE(test_osal_strcasecmp_success)
     const char *str2 = "HELLO";
     const char *str3 = "hello";
 
-    int32_t ret = OSAL_Strcasecmp(str1, str2);
+    int32_t ret = OSAL_strcasecmp(str1, str2);
     TEST_ASSERT_EQUAL(0, ret);
 
-    ret = OSAL_Strcasecmp(str1, str3);
+    ret = OSAL_strcasecmp(str1, str3);
     TEST_ASSERT_EQUAL(0, ret);
 
-    ret = OSAL_Strcasecmp(str2, str3);
+    ret = OSAL_strcasecmp(str2, str3);
     TEST_ASSERT_EQUAL(0, ret);
 }
 
@@ -174,12 +174,12 @@ TEST_CASE(test_osal_strcpy_success)
     char dest[32];
     char *ret;
 
-    OSAL_Memset(dest, 0, sizeof(dest));
+    OSAL_memset(dest, 0, sizeof(dest));
 
-    ret = OSAL_Strcpy(dest, src);
+    ret = OSAL_strcpy(dest, src);
     TEST_ASSERT_NOT_NULL(ret);
     TEST_ASSERT_EQUAL(dest, ret);
-    TEST_ASSERT_EQUAL(0, OSAL_Strcmp(dest, src));
+    TEST_ASSERT_EQUAL(0, OSAL_strcmp(dest, src));
 }
 
 /* 测试用例: Strncpy - 成功 */
@@ -189,13 +189,13 @@ TEST_CASE(test_osal_strncpy_success)
     char dest[32];
     char *ret;
 
-    OSAL_Memset(dest, 0, sizeof(dest));
+    OSAL_memset(dest, 0, sizeof(dest));
 
     /* 拷贝前5个字符 */
-    ret = OSAL_Strncpy(dest, src, 5);
+    ret = OSAL_strncpy(dest, src, 5);
     TEST_ASSERT_NOT_NULL(ret);
     TEST_ASSERT_EQUAL(dest, ret);
-    TEST_ASSERT_EQUAL(0, OSAL_Strncmp(dest, "Hello", 5));
+    TEST_ASSERT_EQUAL(0, OSAL_strncmp(dest, "Hello", 5));
 }
 
 /* 测试用例: Strcat - 成功 */
@@ -205,10 +205,10 @@ TEST_CASE(test_osal_strcat_success)
     const char *src = " World";
     char *ret;
 
-    ret = OSAL_Strcat(dest, src);
+    ret = OSAL_strcat(dest, src);
     TEST_ASSERT_NOT_NULL(ret);
     TEST_ASSERT_EQUAL(dest, ret);
-    TEST_ASSERT_EQUAL(0, OSAL_Strcmp(dest, "Hello World"));
+    TEST_ASSERT_EQUAL(0, OSAL_strcmp(dest, "Hello World"));
 }
 
 /* 测试用例: Strncat - 成功 */
@@ -219,10 +219,10 @@ TEST_CASE(test_osal_strncat_success)
     char *ret;
 
     /* 只追加3个字符 */
-    ret = OSAL_Strncat(dest, src, 3);
+    ret = OSAL_strncat(dest, src, 3);
     TEST_ASSERT_NOT_NULL(ret);
     TEST_ASSERT_EQUAL(dest, ret);
-    TEST_ASSERT_EQUAL(0, OSAL_Strcmp(dest, "Hello Wo"));
+    TEST_ASSERT_EQUAL(0, OSAL_strcmp(dest, "Hello Wo"));
 }
 
 /* 测试用例: Strstr - 找到子串 */
@@ -231,9 +231,9 @@ TEST_CASE(test_osal_strstr_found)
     const char *haystack = "Hello World";
     const char *needle = "World";
 
-    char *ret = OSAL_Strstr(haystack, needle);
+    char *ret = OSAL_strstr(haystack, needle);
     TEST_ASSERT_NOT_NULL(ret);
-    TEST_ASSERT_EQUAL(0, OSAL_Strcmp(ret, "World"));
+    TEST_ASSERT_EQUAL(0, OSAL_strcmp(ret, "World"));
 }
 
 /* 测试用例: Strstr - 未找到子串 */
@@ -242,7 +242,7 @@ TEST_CASE(test_osal_strstr_not_found)
     const char *haystack = "Hello World";
     const char *needle = "Earth";
 
-    char *ret = OSAL_Strstr(haystack, needle);
+    char *ret = OSAL_strstr(haystack, needle);
     TEST_ASSERT_NULL(ret);
 }
 
@@ -256,9 +256,9 @@ TEST_CASE(test_osal_sprintf_success)
     char buffer[64];
     int32_t ret;
 
-    ret = OSAL_Sprintf(buffer, "Hello %s, number %d", "World", 42);
+    ret = OSAL_sprintf(buffer, "Hello %s, number %d", "World", 42);
     TEST_ASSERT_TRUE(ret > 0);
-    TEST_ASSERT_EQUAL(0, OSAL_Strcmp(buffer, "Hello World, number 42"));
+    TEST_ASSERT_EQUAL(0, OSAL_strcmp(buffer, "Hello World, number 42"));
 }
 
 /* 测试用例: Snprintf - 成功 */
@@ -268,14 +268,14 @@ TEST_CASE(test_osal_snprintf_success)
     int32_t ret;
 
     /* 正常情况 */
-    ret = OSAL_Snprintf(buffer, sizeof(buffer), "Hello %s", "World");
+    ret = OSAL_snprintf(buffer, sizeof(buffer), "Hello %s", "World");
     TEST_ASSERT_TRUE(ret > 0);
-    TEST_ASSERT_EQUAL(0, OSAL_Strcmp(buffer, "Hello World"));
+    TEST_ASSERT_EQUAL(0, OSAL_strcmp(buffer, "Hello World"));
 
     /* 截断情况 */
-    ret = OSAL_Snprintf(buffer, sizeof(buffer), "This is a very long string");
+    ret = OSAL_snprintf(buffer, sizeof(buffer), "This is a very long string");
     TEST_ASSERT_TRUE(ret > 0);
-    TEST_ASSERT_EQUAL(15, OSAL_Strlen(buffer));  /* 最多15个字符（不含\0） */
+    TEST_ASSERT_EQUAL(15, OSAL_strlen(buffer));  /* 最多15个字符（不含\0） */
 }
 
 /* 测试用例: Sscanf - 成功 */
@@ -285,9 +285,9 @@ TEST_CASE(test_osal_sscanf_success)
     char word[32];
     int32_t num;
 
-    int32_t ret = OSAL_Sscanf(str, "%s %d", word, &num);
+    int32_t ret = OSAL_sscanf(str, "%s %d", word, &num);
     TEST_ASSERT_EQUAL(2, ret);  /* 成功解析2个字段 */
-    TEST_ASSERT_EQUAL(0, OSAL_Strcmp(word, "Hello"));
+    TEST_ASSERT_EQUAL(0, OSAL_strcmp(word, "Hello"));
     TEST_ASSERT_EQUAL(42, num);
 }
 
@@ -298,27 +298,27 @@ TEST_CASE(test_osal_sscanf_success)
 /* 测试用例: Atoi - 成功 */
 TEST_CASE(test_osal_atoi_success)
 {
-    TEST_ASSERT_EQUAL(0, OSAL_Atoi("0"));
-    TEST_ASSERT_EQUAL(42, OSAL_Atoi("42"));
-    TEST_ASSERT_EQUAL(-42, OSAL_Atoi("-42"));
-    TEST_ASSERT_EQUAL(123, OSAL_Atoi("123"));
-    TEST_ASSERT_EQUAL(123, OSAL_Atoi("  123"));  /* 前导空格 */
+    TEST_ASSERT_EQUAL(0, OSAL_atoi("0"));
+    TEST_ASSERT_EQUAL(42, OSAL_atoi("42"));
+    TEST_ASSERT_EQUAL(-42, OSAL_atoi("-42"));
+    TEST_ASSERT_EQUAL(123, OSAL_atoi("123"));
+    TEST_ASSERT_EQUAL(123, OSAL_atoi("  123"));  /* 前导空格 */
 }
 
 /* 测试用例: Atoi - 无效输入 */
 TEST_CASE(test_osal_atoi_invalid)
 {
-    TEST_ASSERT_EQUAL(0, OSAL_Atoi("abc"));
-    TEST_ASSERT_EQUAL(0, OSAL_Atoi(""));
-    TEST_ASSERT_EQUAL(123, OSAL_Atoi("123abc"));  /* 部分解析 */
+    TEST_ASSERT_EQUAL(0, OSAL_atoi("abc"));
+    TEST_ASSERT_EQUAL(0, OSAL_atoi(""));
+    TEST_ASSERT_EQUAL(123, OSAL_atoi("123abc"));  /* 部分解析 */
 }
 
 /* 测试用例: Atol - 成功 */
 TEST_CASE(test_osal_atol_success)
 {
-    TEST_ASSERT_EQUAL(0, OSAL_Atol("0"));
-    TEST_ASSERT_EQUAL(123456789, OSAL_Atol("123456789"));
-    TEST_ASSERT_EQUAL(-123456789, OSAL_Atol("-123456789"));
+    TEST_ASSERT_EQUAL(0, OSAL_atol("0"));
+    TEST_ASSERT_EQUAL(123456789, OSAL_atol("123456789"));
+    TEST_ASSERT_EQUAL(-123456789, OSAL_atol("-123456789"));
 }
 
 /* 测试用例: Strtol - 不同进制 */
@@ -328,23 +328,23 @@ TEST_CASE(test_osal_strtol_base)
     int64_t ret;
 
     /* 十进制 */
-    ret = OSAL_Strtol("123", &endptr, 10);
+    ret = OSAL_strtol("123", &endptr, 10);
     TEST_ASSERT_EQUAL(123, ret);
 
     /* 十六进制 */
-    ret = OSAL_Strtol("FF", &endptr, 16);
+    ret = OSAL_strtol("FF", &endptr, 16);
     TEST_ASSERT_EQUAL(255, ret);
 
     /* 八进制 */
-    ret = OSAL_Strtol("77", &endptr, 8);
+    ret = OSAL_strtol("77", &endptr, 8);
     TEST_ASSERT_EQUAL(63, ret);
 
     /* 二进制 */
-    ret = OSAL_Strtol("1010", &endptr, 2);
+    ret = OSAL_strtol("1010", &endptr, 2);
     TEST_ASSERT_EQUAL(10, ret);
 
     /* 自动检测（0x前缀） */
-    ret = OSAL_Strtol("0xFF", &endptr, 0);
+    ret = OSAL_strtol("0xFF", &endptr, 0);
     TEST_ASSERT_EQUAL(255, ret);
 }
 

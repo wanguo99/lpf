@@ -101,13 +101,13 @@ stress_context_t* stress_context_create(const char *name,
         return NULL;
     }
 
-    stress_context_t *ctx = (stress_context_t*)OSAL_Malloc(sizeof(stress_context_t));
+    stress_context_t *ctx = (stress_context_t*)OSAL_malloc(sizeof(stress_context_t));
     if (!ctx) {
         return NULL;
     }
 
-    OSAL_Memset(ctx, 0, sizeof(stress_context_t));
-    OSAL_Strncpy(ctx->name, name, sizeof(ctx->name) - 1);
+    OSAL_memset(ctx, 0, sizeof(stress_context_t));
+    OSAL_strncpy(ctx->name, name, sizeof(ctx->name) - 1);
     ctx->name[sizeof(ctx->name) - 1] = '\0';
     ctx->config = *config;
 
@@ -120,13 +120,13 @@ stress_context_t* stress_context_create(const char *name,
 
     /* 创建互斥锁 */
     if (OSAL_MutexCreate(&ctx->stats_mutex) != 0) {
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return NULL;
     }
 
     if (OSAL_MutexCreate(&ctx->error_mutex) != 0) {
         OSAL_MutexDelete(ctx->stats_mutex);
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return NULL;
     }
 
@@ -141,7 +141,7 @@ void stress_context_destroy(stress_context_t *ctx) {
         if (ctx->error_mutex) {
             OSAL_MutexDelete(ctx->error_mutex);
         }
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
     }
 }
 
@@ -157,14 +157,14 @@ int32_t stress_run(stress_context_t *ctx,
     ctx->start_time_ms = OSAL_GetMonotonicTime() / 1000;
 
     /* 创建工作线程 */
-    osal_thread_t *threads = (osal_thread_t*)OSAL_Malloc(
+    osal_thread_t *threads = (osal_thread_t*)OSAL_malloc(
         sizeof(osal_thread_t) * ctx->config.thread_count);
-    worker_thread_args_t *args = (worker_thread_args_t*)OSAL_Malloc(
+    worker_thread_args_t *args = (worker_thread_args_t*)OSAL_malloc(
         sizeof(worker_thread_args_t) * ctx->config.thread_count);
 
     if (!threads || !args) {
-        if (threads) OSAL_Free(threads);
-        if (args) OSAL_Free(args);
+        if (threads) OSAL_free(threads);
+        if (args) OSAL_free(args);
         return -1;
     }
 
@@ -178,7 +178,7 @@ int32_t stress_run(stress_context_t *ctx,
         args[i].thread_id = i;
 
         char thread_name[32];
-        OSAL_Snprintf(thread_name, sizeof(thread_name), "stress_worker_%u", i);
+        OSAL_snprintf(thread_name, sizeof(thread_name), "stress_worker_%u", i);
 
         if (OSAL_ThreadCreate(&threads[i], worker_thread_func, &args[i]) != 0) {
             /* 创建失败，停止已启动的线程 */
@@ -188,8 +188,8 @@ int32_t stress_run(stress_context_t *ctx,
             for (j = 0; j < i; j++) {
                 OSAL_ThreadJoin(threads[j]);
             }
-            OSAL_Free(threads);
-            OSAL_Free(args);
+            OSAL_free(threads);
+            OSAL_free(args);
             return -1;
         }
 
@@ -218,8 +218,8 @@ int32_t stress_run(stress_context_t *ctx,
 
     ctx->running = false;
 
-    OSAL_Free(threads);
-    OSAL_Free(args);
+    OSAL_free(threads);
+    OSAL_free(args);
 
     return 0;
 }
@@ -235,7 +235,7 @@ int32_t stress_get_stats(stress_context_t *ctx, stress_stats_t *stats) {
         return -1;
     }
 
-    OSAL_Memset(stats, 0, sizeof(stress_stats_t));
+    OSAL_memset(stats, 0, sizeof(stress_stats_t));
 
     stats->total_operations = OSAL_AtomicLoad64(&ctx->total_operations);
     stats->successful_ops = OSAL_AtomicLoad64(&ctx->successful_ops);
@@ -302,7 +302,7 @@ void stress_record_error(stress_context_t *ctx, const char *error_msg) {
 
     OSAL_MutexLock(ctx->error_mutex);
     if (ctx->error_msg_count < MAX_ERROR_MESSAGES) {
-        OSAL_Strncpy(ctx->error_messages[ctx->error_msg_count], error_msg, 127);
+        OSAL_strncpy(ctx->error_messages[ctx->error_msg_count], error_msg, 127);
         ctx->error_messages[ctx->error_msg_count][127] = '\0';
         ctx->error_msg_count++;
     }

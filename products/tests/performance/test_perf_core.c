@@ -86,18 +86,18 @@ perf_context_t* perf_context_create(const char *name,
         return NULL;
     }
 
-    perf_context_t *ctx = (perf_context_t*)OSAL_Malloc(sizeof(perf_context_t));
+    perf_context_t *ctx = (perf_context_t*)OSAL_malloc(sizeof(perf_context_t));
     if (!ctx) {
         return NULL;
     }
 
-    ctx->samples = (double*)OSAL_Malloc(sizeof(double) * max_samples);
+    ctx->samples = (double*)OSAL_malloc(sizeof(double) * max_samples);
     if (!ctx->samples) {
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
         return NULL;
     }
 
-    OSAL_Strncpy(ctx->name, name, sizeof(ctx->name) - 1);
+    OSAL_strncpy(ctx->name, name, sizeof(ctx->name) - 1);
     ctx->name[sizeof(ctx->name) - 1] = '\0';
     ctx->metric_type = metric_type;
     ctx->max_samples = max_samples;
@@ -111,9 +111,9 @@ perf_context_t* perf_context_create(const char *name,
 void perf_context_destroy(perf_context_t *ctx) {
     if (ctx) {
         if (ctx->samples) {
-            OSAL_Free(ctx->samples);
+            OSAL_free(ctx->samples);
         }
-        OSAL_Free(ctx);
+        OSAL_free(ctx);
     }
 }
 
@@ -147,7 +147,7 @@ int32_t perf_calculate_stats(perf_context_t *ctx, perf_stats_t *stats) {
         return -1;
     }
 
-    OSAL_Memset(stats, 0, sizeof(perf_stats_t));
+    OSAL_memset(stats, 0, sizeof(perf_stats_t));
 
     /* 计算基本统计量 */
     stats->count = ctx->sample_count;
@@ -178,9 +178,9 @@ int32_t perf_calculate_stats(perf_context_t *ctx, perf_stats_t *stats) {
     stats->stddev = simple_sqrt(stats->variance);
 
     /* 计算百分位数（需要排序） */
-    double *sorted = (double*)OSAL_Malloc(sizeof(double) * ctx->sample_count);
+    double *sorted = (double*)OSAL_malloc(sizeof(double) * ctx->sample_count);
     if (sorted) {
-        OSAL_Memcpy(sorted, ctx->samples, sizeof(double) * ctx->sample_count);
+        OSAL_memcpy(sorted, ctx->samples, sizeof(double) * ctx->sample_count);
         simple_sort(sorted, ctx->sample_count);
 
         stats->p50 = calculate_percentile(sorted, ctx->sample_count, 50.0);
@@ -188,7 +188,7 @@ int32_t perf_calculate_stats(perf_context_t *ctx, perf_stats_t *stats) {
         stats->p99 = calculate_percentile(sorted, ctx->sample_count, 99.0);
         stats->p999 = calculate_percentile(sorted, ctx->sample_count, 99.9);
 
-        OSAL_Free(sorted);
+        OSAL_free(sorted);
     }
 
     return 0;
@@ -201,7 +201,7 @@ int32_t perf_compare_baseline(perf_context_t *ctx,
         return -1;
     }
 
-    OSAL_Memset(result, 0, sizeof(perf_result_t));
+    OSAL_memset(result, 0, sizeof(perf_result_t));
 
     result->test_name = ctx->name;
     result->metric_type = ctx->metric_type;

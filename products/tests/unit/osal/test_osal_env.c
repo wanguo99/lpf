@@ -15,7 +15,7 @@ TEST_CASE(test_osal_getenv_existing)
     /* Get an existing environment variable */
     char *value = OSAL_getenv("PATH");
     TEST_ASSERT_NOT_NULL(value);
-    TEST_ASSERT_TRUE(OSAL_Strlen(value) > 0);
+    TEST_ASSERT_TRUE(OSAL_strlen(value) > 0);
 }
 
 TEST_CASE(test_osal_getenv_nonexistent)

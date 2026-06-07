@@ -121,7 +121,7 @@ TEST_CASE(test_osal_log_write_long_message)
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     /* 构造长消息 */
-    OSAL_Memset(long_msg, 'A', sizeof(long_msg) - 1);
+    OSAL_memset(long_msg, 'A', sizeof(long_msg) - 1);
     long_msg[sizeof(long_msg) - 1] = '\0';
 
     /* 写入长消息 */

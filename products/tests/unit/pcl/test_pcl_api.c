@@ -432,8 +432,8 @@ static void init_test_configs(void)
     int i;
     for (i = 0; i < NUM_THREADS; i++) {
         /* 初始化MCU配置 */
-        OSAL_Memset(&test_mcus[i], 0, sizeof(pconfig_mcu_cfg_t));
-        OSAL_Snprintf((char *)test_mcus[i].name, 32, "mcu_%d", i);
+        OSAL_memset(&test_mcus[i], 0, sizeof(pconfig_mcu_cfg_t));
+        OSAL_snprintf((char *)test_mcus[i].name, 32, "mcu_%d", i);
         test_mcus[i].description = "Thread test MCU";
         test_mcus[i].enabled = true;
         test_mcus[i].interface = PCONFIG_MCU_INTERFACE_SERIAL;
@@ -443,14 +443,14 @@ static void init_test_configs(void)
         test_mcu_arrays[i][1] = NULL;
 
         /* 初始化平台配置 */
-        OSAL_Memset(&test_configs[i], 0, sizeof(pconfig_platform_config_t));
+        OSAL_memset(&test_configs[i], 0, sizeof(pconfig_platform_config_t));
         test_configs[i].platform_name = "test_platform";
         test_configs[i].chip_name = "test_chip";
         test_configs[i].project_name = "test_project";
 
         /* 为每个线程创建唯一的产品名 */
         static char product_names[NUM_THREADS][32];
-        OSAL_Snprintf(product_names[i], 32, "product_%d", i);
+        OSAL_snprintf(product_names[i], 32, "product_%d", i);
         test_configs[i].product_name = product_names[i];
         test_configs[i].mcu_arr = test_mcu_arrays[i];
     }
@@ -484,7 +484,7 @@ static void* thread_find_func(void *arg)
     int i;
     char product_name[32];
 
-    OSAL_Snprintf(product_name, 32, "product_%d", data->thread_id % NUM_THREADS);
+    OSAL_snprintf(product_name, 32, "product_%d", data->thread_id % NUM_THREADS);
 
     for (i = 0; i < NUM_ITERATIONS; i++) {
         const pconfig_platform_config_t *found = PCONFIG_Find("test_platform", product_name, NULL);

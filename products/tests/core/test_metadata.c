@@ -26,7 +26,7 @@ const char* test_tags_to_string(uint32_t tags, char *buf, uint32_t buf_size)
     }
 
     if (tags == TEST_TAG_NONE) {
-        OSAL_Strncpy(output, "none", size);
+        OSAL_strncpy(output, "none", size);
         output[size - 1] = '\0';
         return output;
     }
@@ -39,9 +39,9 @@ const char* test_tags_to_string(uint32_t tags, char *buf, uint32_t buf_size)
             output[pos++] = ','; \
             output[pos++] = ' '; \
         } \
-        uint32_t len = OSAL_Strlen(name); \
+        uint32_t len = OSAL_strlen(name); \
         if (pos + len < size - 1) { \
-            OSAL_Strncpy(output + pos, name, size - pos); \
+            OSAL_strncpy(output + pos, name, size - pos); \
             pos += len; \
             first = false; \
         } \

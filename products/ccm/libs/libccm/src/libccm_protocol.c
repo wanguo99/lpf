@@ -49,7 +49,7 @@ int32_t CCM_Protocol_BuildTM_Response(const ccm_tm_response_t *resp, ccm_can_fra
 
     /* 数据长度限制在6字节内 */
     copy_size = (resp->data_size > 6) ? 6 : resp->data_size;
-    OSAL_Memcpy(&frame->data[2], resp->data, copy_size);
+    OSAL_memcpy(&frame->data[2], resp->data, copy_size);
 
     frame->dlc = 2 + copy_size;
 

@@ -15,10 +15,10 @@ TEST_CASE(test_osal_get_version_string)
     const char *version = OSAL_GetVersionString();
 
     TEST_ASSERT_NOT_NULL(version);
-    TEST_ASSERT_TRUE(OSAL_Strlen(version) > 0);
+    TEST_ASSERT_TRUE(OSAL_strlen(version) > 0);
 
     /* Version string should contain "OSAL" */
-    TEST_ASSERT_TRUE(OSAL_Strstr(version, "OSAL") != NULL);
+    TEST_ASSERT_TRUE(OSAL_strstr(version, "OSAL") != NULL);
 }
 
 TEST_CASE(test_osal_version_format)
@@ -26,7 +26,7 @@ TEST_CASE(test_osal_version_format)
     const char *version = OSAL_GetVersionString();
 
     /* Version should contain version number pattern */
-    bool has_v = (OSAL_Strstr(version, "v") != NULL || OSAL_Strstr(version, "V") != NULL);
+    bool has_v = (OSAL_strstr(version, "v") != NULL || OSAL_strstr(version, "V") != NULL);
     bool has_dot = false;
 
     /* Check for dot manually */

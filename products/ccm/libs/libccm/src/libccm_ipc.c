@@ -81,7 +81,7 @@ int32_t CCM_TM_Cache_Write(ccm_tm_cache_t *cache, uint32_t tm_id,
     }
 
     /* 写入数据 */
-    OSAL_Memcpy(entry->data, data, size);
+    OSAL_memcpy(entry->data, data, size);
     entry->data_size = size;
     entry->timestamp_us = OSAL_GetMonotonicTime();
     entry->validity_ms = validity_ms;
@@ -117,7 +117,7 @@ int32_t CCM_TM_Cache_Read(ccm_tm_cache_t *cache, uint32_t tm_id,
 
     /* 读取数据 */
     if (entry->freshness != CCM_TM_INVALID) {
-        OSAL_Memcpy(data, entry->data, entry->data_size);
+        OSAL_memcpy(data, entry->data, entry->data_size);
         *size = entry->data_size;
         if (freshness) {
             *freshness = entry->freshness;
@@ -366,7 +366,7 @@ int32_t CCM_Log_Write(ccm_log_ringbuffer_t *log_ring, const char *log_entry)
     }
 
     /* 写入日志 */
-    OSAL_Strncpy(log_ring->entries[write_idx], log_entry, CCM_LOG_ENTRY_SIZE - 1);
+    OSAL_strncpy(log_ring->entries[write_idx], log_entry, CCM_LOG_ENTRY_SIZE - 1);
     log_ring->entries[write_idx][CCM_LOG_ENTRY_SIZE - 1] = '\0';
 
     /* 更新写索引 */
@@ -392,7 +392,7 @@ int32_t CCM_Log_Read(ccm_log_ringbuffer_t *log_ring, char *log_entry, uint32_t s
     }
 
     /* 读取日志 */
-    OSAL_Strncpy(log_entry, log_ring->entries[read_idx], size - 1);
+    OSAL_strncpy(log_entry, log_ring->entries[read_idx], size - 1);
     log_entry[size - 1] = '\0';
 
     /* 更新读索引 */

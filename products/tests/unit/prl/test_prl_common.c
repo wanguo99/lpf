@@ -209,7 +209,7 @@ TEST_CASE(test_prl_packet_crc)
     /* 构造报文 */
     prl_init_header(hdr, PRL_DEV_TYPE_GSC, PRL_GSC_MSG_TELEMETRY,
                     sizeof(payload), 0);
-    OSAL_Memcpy(packet + PRL_HEADER_SIZE, payload, sizeof(payload));
+    OSAL_memcpy(packet + PRL_HEADER_SIZE, payload, sizeof(payload));
     total_len = PRL_HEADER_SIZE + sizeof(payload);
 
     /* 设置 CRC */
@@ -230,7 +230,7 @@ TEST_CASE(test_prl_packet_crc_tampered)
     /* 构造报文并设置 CRC */
     prl_init_header(hdr, PRL_DEV_TYPE_POWER, PRL_POWER_MSG_STATUS_REPORT,
                     sizeof(payload), 0);
-    OSAL_Memcpy(packet + PRL_HEADER_SIZE, payload, sizeof(payload));
+    OSAL_memcpy(packet + PRL_HEADER_SIZE, payload, sizeof(payload));
     total_len = PRL_HEADER_SIZE + sizeof(payload);
     prl_set_packet_crc(packet, total_len);
 
@@ -251,7 +251,7 @@ TEST_CASE(test_prl_packet_crc_header_tampered)
     /* 构造报文并设置 CRC */
     prl_init_header(hdr, PRL_DEV_TYPE_CCM, PRL_CCM_MSG_ORBIT_DATA,
                     sizeof(payload), 0);
-    OSAL_Memcpy(packet + PRL_HEADER_SIZE, payload, sizeof(payload));
+    OSAL_memcpy(packet + PRL_HEADER_SIZE, payload, sizeof(payload));
     total_len = PRL_HEADER_SIZE + sizeof(payload);
     prl_set_packet_crc(packet, total_len);
 

@@ -144,13 +144,13 @@ static int32_t mock_transport_send_recv(void *handle,
         "\r\n"
         "{\"PowerState\":\"On\"}";
 
-    uint32_t len = OSAL_Strlen(mock_response);
+    uint32_t len = OSAL_strlen(mock_response);
     if (len > resp_size)
     {
         len = resp_size;
     }
 
-    OSAL_Memcpy(response, mock_response, len);
+    OSAL_memcpy(response, mock_response, len);
     if (NULL != actual_size)
     {
         *actual_size = len;

@@ -56,7 +56,7 @@ TEST_CASE(test_pdl_satellite_init_null_config)
 TEST_CASE(test_pdl_satellite_init_null_handle)
 {
     pdl_satellite_config_t config;
-    OSAL_Memset(&config, 0, sizeof(config));
+    OSAL_memset(&config, 0, sizeof(config));
     config.can_device = "can0";
     config.can_bitrate = 500000;
     config.heartbeat_interval_ms = 1000;

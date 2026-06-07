@@ -16,19 +16,19 @@ TEST_CASE(test_osal_malloc_success)
     void *ptr;
 
     /* 分配小块内存 */
-    ptr = OSAL_Malloc(64);
+    ptr = OSAL_malloc(64);
     TEST_ASSERT_NOT_NULL(ptr);
-    OSAL_Free(ptr);
+    OSAL_free(ptr);
 
     /* 分配中等内存 */
-    ptr = OSAL_Malloc(1024);
+    ptr = OSAL_malloc(1024);
     TEST_ASSERT_NOT_NULL(ptr);
-    OSAL_Free(ptr);
+    OSAL_free(ptr);
 
     /* 分配大块内存 */
-    ptr = OSAL_Malloc(1024 * 1024);  /* 1MB */
+    ptr = OSAL_malloc(1024 * 1024);  /* 1MB */
     TEST_ASSERT_NOT_NULL(ptr);
-    OSAL_Free(ptr);
+    OSAL_free(ptr);
 }
 
 /* 测试用例: Malloc - 零大小 */
@@ -37,10 +37,10 @@ TEST_CASE(test_osal_malloc_zero_size)
     void *ptr;
 
     /* 分配0字节（行为依赖于实现） */
-    ptr = OSAL_Malloc(0);
+    ptr = OSAL_malloc(0);
     /* 某些实现返回NULL，某些返回有效指针 */
     if (NULL != ptr) {
-        OSAL_Free(ptr);
+        OSAL_free(ptr);
     }
 }
 
@@ -49,18 +49,18 @@ TEST_CASE(test_osal_free_success)
 {
     void *ptr;
 
-    ptr = OSAL_Malloc(64);
+    ptr = OSAL_malloc(64);
     TEST_ASSERT_NOT_NULL(ptr);
 
     /* 释放内存（不应崩溃） */
-    OSAL_Free(ptr);
+    OSAL_free(ptr);
 }
 
 /* 测试用例: Free - NULL指针 */
 TEST_CASE(test_osal_free_null_pointer)
 {
     /* Free(NULL) 应该安全（不崩溃） */
-    OSAL_Free(NULL);
+    OSAL_free(NULL);
 }
 
 /*===========================================================================
@@ -193,14 +193,14 @@ TEST_CASE(test_osal_malloc_alignment)
     void *ptr;
 
     /* 分配内存 */
-    ptr = OSAL_Malloc(64);
+    ptr = OSAL_malloc(64);
     TEST_ASSERT_NOT_NULL(ptr);
 
     /* 验证对齐（通常是8字节或16字节对齐） */
     uintptr_t addr = (uintptr_t)ptr;
     TEST_ASSERT_EQUAL(0, addr % sizeof(void *));
 
-    OSAL_Free(ptr);
+    OSAL_free(ptr);
 }
 
 /*===========================================================================
@@ -217,14 +217,14 @@ TEST_CASE(test_osal_malloc_free_multiple)
     int32_t i;
 
     for (i = 0; i < iterations; i++) {
-        ptrs[i] = OSAL_Malloc(64);
+        ptrs[i] = OSAL_malloc(64);
         TEST_ASSERT_NOT_NULL(ptrs[i]);
     }
 
     /* 释放所有内存 */
 
     for (i = 0; i < iterations; i++) {
-        OSAL_Free(ptrs[i]);
+        OSAL_free(ptrs[i]);
     }
 }
 
@@ -233,19 +233,19 @@ TEST_CASE(test_osal_malloc_free_interleaved)
 {
     void *ptr1, *ptr2, *ptr3;
 
-    ptr1 = OSAL_Malloc(64);
+    ptr1 = OSAL_malloc(64);
     TEST_ASSERT_NOT_NULL(ptr1);
 
-    ptr2 = OSAL_Malloc(128);
+    ptr2 = OSAL_malloc(128);
     TEST_ASSERT_NOT_NULL(ptr2);
 
-    OSAL_Free(ptr1);
+    OSAL_free(ptr1);
 
-    ptr3 = OSAL_Malloc(256);
+    ptr3 = OSAL_malloc(256);
     TEST_ASSERT_NOT_NULL(ptr3);
 
-    OSAL_Free(ptr2);
-    OSAL_Free(ptr3);
+    OSAL_free(ptr2);
+    OSAL_free(ptr3);
 }
 
 /*===========================================================================
@@ -259,7 +259,7 @@ TEST_CASE(test_osal_malloc_large)
     osal_size_t large_size = 10 * 1024 * 1024;  /* 10MB */
 
     /* 尝试分配大块内存 */
-    ptr = OSAL_Malloc(large_size);
+    ptr = OSAL_malloc(large_size);
     if (NULL != ptr) {
         /* 如果分配成功，验证可以写入 */
         uint8_t *byte_ptr = (uint8_t *)ptr;
@@ -268,7 +268,7 @@ TEST_CASE(test_osal_malloc_large)
         TEST_ASSERT_EQUAL(0xFF, byte_ptr[0]);
         TEST_ASSERT_EQUAL(0xFF, byte_ptr[large_size - 1]);
 
-        OSAL_Free(ptr);
+        OSAL_free(ptr);
     }
     /* 如果分配失败，也是可接受的（系统内存不足） */
 }
@@ -279,7 +279,7 @@ TEST_CASE(test_osal_malloc_write_verify)
     uint8_t *ptr;
     osal_size_t size = 256;
 
-    ptr = (uint8_t *)OSAL_Malloc(size);
+    ptr = (uint8_t *)OSAL_malloc(size);
     TEST_ASSERT_NOT_NULL(ptr);
 
     /* 写入数据 */
@@ -295,7 +295,7 @@ TEST_CASE(test_osal_malloc_write_verify)
         TEST_ASSERT_EQUAL((uint8_t)(i & 0xFF), ptr[i]);
     }
 
-    OSAL_Free(ptr);
+    OSAL_free(ptr);
 }
 
 /* 测试用例: 内存统计验证 */
@@ -308,7 +308,7 @@ TEST_CASE(test_osal_heap_stats_verify)
     OSAL_HeapGetStats(&current1, &peak1);
 
     /* 分配内存 */
-    ptr = OSAL_Malloc(1024);
+    ptr = OSAL_malloc(1024);
     TEST_ASSERT_NOT_NULL(ptr);
 
     /* 获取新统计 */
@@ -319,7 +319,7 @@ TEST_CASE(test_osal_heap_stats_verify)
     TEST_ASSERT_TRUE(peak2 >= peak1);
 
     /* 释放内存 */
-    OSAL_Free(ptr);
+    OSAL_free(ptr);
 }
 
 /*===========================================================================
@@ -338,7 +338,7 @@ TEST_CASE(test_osal_malloc_performance)
     int32_t i;
 
     for (i = 0; i < iterations; i++) {
-        ptrs[i] = OSAL_Malloc(64);
+        ptrs[i] = OSAL_malloc(64);
     }
     end_time = OSAL_GetTickCount();
 
@@ -355,7 +355,7 @@ TEST_CASE(test_osal_malloc_performance)
     /* 释放所有内存 */
 
     for (i = 0; i < iterations; i++) {
-        OSAL_Free(ptrs[i]);
+        OSAL_free(ptrs[i]);
     }
 }
 

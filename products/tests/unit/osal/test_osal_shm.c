@@ -96,7 +96,7 @@ TEST_CASE(test_osal_shm_map_unmap) {
     struct test_data *data = (struct test_data *)addr;
     data->magic = 0x12345678;
     data->counter = 100;
-    OSAL_Strcpy(data->message, "Hello from shared memory");
+    OSAL_strcpy(data->message, "Hello from shared memory");
 
     /* 验证数据 */
     TEST_ASSERT_EQUAL(0x12345678, data->magic);
@@ -160,7 +160,7 @@ TEST_CASE(test_osal_shm_multiprocess) {
         /* 修改共享数据 */
         struct test_data *child_data = (struct test_data *)child_addr;
         child_data->counter = 999;
-        OSAL_Strcpy(child_data->message, "Modified by child");
+        OSAL_strcpy(child_data->message, "Modified by child");
 
         /* 同步到磁盘 */
         OSAL_ShmSync(child_addr, TEST_SHM_SIZE, false);

@@ -36,7 +36,7 @@ TEST_CASE(test_PRL_Encode_decode_basic)
     TEST_ASSERT_EQUAL(PRL_DEV_TYPE_MCU, dev_type);
     TEST_ASSERT_EQUAL(PRL_MCU_MSG_GET_VERSION, msg_type);
     TEST_ASSERT_EQUAL(sizeof(payload), payload_len);
-    TEST_ASSERT_EQUAL(0, OSAL_Memcmp(payload, decoded_payload, payload_len));
+    TEST_ASSERT_EQUAL(0, OSAL_memcmp(payload, decoded_payload, payload_len));
 }
 
 TEST_CASE(test_PRL_Encode_empty_payload)
@@ -244,7 +244,7 @@ TEST_CASE(test_prl_device_large_payload)
     TEST_ASSERT_EQUAL(PRL_DEV_TYPE_PMC, dev_type);
     TEST_ASSERT_EQUAL(PRL_PMC_MSG_TELEMETRY, msg_type);
     TEST_ASSERT_EQUAL(sizeof(large_payload), payload_len);
-    TEST_ASSERT_EQUAL(0, OSAL_Memcmp(large_payload, decoded_payload, payload_len));
+    TEST_ASSERT_EQUAL(0, OSAL_memcmp(large_payload, decoded_payload, payload_len));
 }
 
 /*===========================================================================

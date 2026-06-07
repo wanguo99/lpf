@@ -25,7 +25,7 @@ static void init_registry(void)
 {
     if (g_registered_suites == NULL) {
         g_suite_capacity = INITIAL_CAPACITY;
-        g_registered_suites = (const test_suite_t **)OSAL_Malloc(
+        g_registered_suites = (const test_suite_t **)OSAL_malloc(
             g_suite_capacity * sizeof(test_suite_t *));
         if (g_registered_suites == NULL) {
             OSAL_Printf("FATAL: Failed to allocate test suite registry\n");
@@ -40,7 +40,7 @@ static void init_registry(void)
 static bool expand_registry(void)
 {
     uint32_t new_capacity = g_suite_capacity * GROWTH_FACTOR;
-    const test_suite_t **new_suites = (const test_suite_t **)OSAL_Malloc(
+    const test_suite_t **new_suites = (const test_suite_t **)OSAL_malloc(
         new_capacity * sizeof(test_suite_t *));
 
     if (new_suites == NULL) {
@@ -49,11 +49,11 @@ static bool expand_registry(void)
     }
 
     /* Copy old data to new buffer */
-    OSAL_Memcpy(new_suites, g_registered_suites,
+    OSAL_memcpy(new_suites, g_registered_suites,
                 g_suite_count * sizeof(test_suite_t *));
 
     /* Free old buffer and update registry */
-    OSAL_Free(g_registered_suites);
+    OSAL_free(g_registered_suites);
     g_registered_suites = new_suites;
     g_suite_capacity = new_capacity;
     return true;
@@ -129,7 +129,7 @@ const test_suite_t* test_find_suite(const char *name)
 
 
     for (i = 0; i < g_suite_count; i++) {
-        if (0 == OSAL_Strcmp(g_registered_suites[i]->suite_name, name)) {
+        if (0 == OSAL_strcmp(g_registered_suites[i]->suite_name, name)) {
             return g_registered_suites[i];
         }
     }
@@ -149,7 +149,7 @@ uint32_t test_get_suites_by_layer(const char *layer_name, const test_suite_t **s
     uint32_t i;
 
     for (i = 0; i < g_suite_count && count < max_suites; i++) {
-        if (0 == OSAL_Strcmp(g_registered_suites[i]->layer_name, layer_name)) {
+        if (0 == OSAL_strcmp(g_registered_suites[i]->layer_name, layer_name)) {
             suites[count++] = g_registered_suites[i];
         }
     }
@@ -172,7 +172,7 @@ uint32_t test_get_suites_by_layer_filtered(const char *layer_name,
     uint32_t i;
 
     for (i = 0; i < g_suite_count && count < max_suites; i++) {
-        if (0 == OSAL_Strcmp(g_registered_suites[i]->layer_name, layer_name)) {
+        if (0 == OSAL_strcmp(g_registered_suites[i]->layer_name, layer_name)) {
             if (test_metadata_matches_filter(&g_registered_suites[i]->metadata, filter)) {
                 suites[count++] = g_registered_suites[i];
             }
@@ -194,7 +194,7 @@ uint32_t test_get_suites_by_module(const char *module_name, const test_suite_t *
     uint32_t i;
 
     for (i = 0; i < g_suite_count && count < max_suites; i++) {
-        if (0 == OSAL_Strcmp(g_registered_suites[i]->module_name, module_name)) {
+        if (0 == OSAL_strcmp(g_registered_suites[i]->module_name, module_name)) {
             suites[count++] = g_registered_suites[i];
         }
     }
@@ -217,7 +217,7 @@ uint32_t test_get_suites_by_module_filtered(const char *module_name,
     uint32_t i;
 
     for (i = 0; i < g_suite_count && count < max_suites; i++) {
-        if (0 == OSAL_Strcmp(g_registered_suites[i]->module_name, module_name)) {
+        if (0 == OSAL_strcmp(g_registered_suites[i]->module_name, module_name)) {
             if (test_metadata_matches_filter(&g_registered_suites[i]->metadata, filter)) {
                 suites[count++] = g_registered_suites[i];
             }
@@ -290,7 +290,7 @@ uint32_t test_get_layers(const char **layers, uint32_t max_layers)
         uint32_t j;
 
         for (j = 0; j < count; j++) {
-            if (0 == OSAL_Strcmp(layers[j], layer)) {
+            if (0 == OSAL_strcmp(layers[j], layer)) {
                 found = true;
                 break;
             }
@@ -323,7 +323,7 @@ uint32_t test_get_modules(const char **modules, uint32_t max_modules)
         uint32_t j;
 
         for (j = 0; j < count; j++) {
-            if (0 == OSAL_Strcmp(modules[j], module)) {
+            if (0 == OSAL_strcmp(modules[j], module)) {
                 found = true;
                 break;
             }

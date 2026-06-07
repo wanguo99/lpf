@@ -83,7 +83,7 @@ static int32_t handle_telemetry_request(const ccm_tm_request_t *req, ccm_tm_resp
 
     /* 构造应答 */
     resp->tm_type = req->tm_type;
-    OSAL_Memcpy(resp->data, data, size);
+    OSAL_memcpy(resp->data, data, size);
     resp->data_size = size;
     resp->freshness = (uint8_t)freshness;
 

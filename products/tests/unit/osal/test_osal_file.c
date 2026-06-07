@@ -103,18 +103,18 @@ TEST_CASE(test_osal_file_write_read_success)
                    OSAL_S_IRUSR | OSAL_S_IWUSR);
     TEST_ASSERT_TRUE(fd >= 0);
 
-    ret = OSAL_write(fd, write_data, OSAL_Strlen(write_data));
-    TEST_ASSERT_EQUAL((osal_ssize_t)OSAL_Strlen(write_data), ret);
+    ret = OSAL_write(fd, write_data, OSAL_strlen(write_data));
+    TEST_ASSERT_EQUAL((osal_ssize_t)OSAL_strlen(write_data), ret);
 
     /* 移动到文件开头 */
     osal_ssize_t pos = OSAL_lseek(fd, 0, OSAL_SEEK_SET);
     TEST_ASSERT_EQUAL(0, pos);
 
     /* 读取数据 */
-    OSAL_Memset(read_buffer, 0, sizeof(read_buffer));
+    OSAL_memset(read_buffer, 0, sizeof(read_buffer));
     ret = OSAL_read(fd, read_buffer, sizeof(read_buffer));
-    TEST_ASSERT_EQUAL((osal_ssize_t)OSAL_Strlen(write_data), ret);
-    TEST_ASSERT_EQUAL(0, OSAL_Strncmp(read_buffer, write_data, OSAL_Strlen(write_data)));
+    TEST_ASSERT_EQUAL((osal_ssize_t)OSAL_strlen(write_data), ret);
+    TEST_ASSERT_EQUAL(0, OSAL_strncmp(read_buffer, write_data, OSAL_strlen(write_data)));
 
     OSAL_close(fd);
     OSAL_unlink(TEST_FILE_PATH);
@@ -133,23 +133,23 @@ TEST_CASE(test_osal_file_write_append)
     fd = OSAL_open(TEST_FILE_PATH, OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
                    OSAL_S_IRUSR | OSAL_S_IWUSR);
     TEST_ASSERT_TRUE(fd >= 0);
-    ret = OSAL_write(fd, data1, OSAL_Strlen(data1));
-    TEST_ASSERT_EQUAL((osal_ssize_t)OSAL_Strlen(data1), ret);
+    ret = OSAL_write(fd, data1, OSAL_strlen(data1));
+    TEST_ASSERT_EQUAL((osal_ssize_t)OSAL_strlen(data1), ret);
     OSAL_close(fd);
 
     /* 以追加模式打开并写入第二行 */
     fd = OSAL_open(TEST_FILE_PATH, OSAL_O_RDWR | OSAL_O_APPEND, 0);
     TEST_ASSERT_TRUE(fd >= 0);
-    ret = OSAL_write(fd, data2, OSAL_Strlen(data2));
-    TEST_ASSERT_EQUAL((osal_ssize_t)OSAL_Strlen(data2), ret);
+    ret = OSAL_write(fd, data2, OSAL_strlen(data2));
+    TEST_ASSERT_EQUAL((osal_ssize_t)OSAL_strlen(data2), ret);
     OSAL_close(fd);
 
     /* 读取并验证 */
     fd = OSAL_open(TEST_FILE_PATH, OSAL_O_RDONLY, 0);
     TEST_ASSERT_TRUE(fd >= 0);
-    OSAL_Memset(read_buffer, 0, sizeof(read_buffer));
+    OSAL_memset(read_buffer, 0, sizeof(read_buffer));
     ret = OSAL_read(fd, read_buffer, sizeof(read_buffer));
-    TEST_ASSERT_EQUAL((osal_ssize_t)(OSAL_Strlen(data1) + OSAL_Strlen(data2)), ret);
+    TEST_ASSERT_EQUAL((osal_ssize_t)(OSAL_strlen(data1) + OSAL_strlen(data2)), ret);
 
     OSAL_close(fd);
     OSAL_unlink(TEST_FILE_PATH);
@@ -167,12 +167,12 @@ TEST_CASE(test_osal_file_read_eof)
     fd = OSAL_open(TEST_FILE_PATH, OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
                    OSAL_S_IRUSR | OSAL_S_IWUSR);
     TEST_ASSERT_TRUE(fd >= 0);
-    OSAL_write(fd, data, OSAL_Strlen(data));
+    OSAL_write(fd, data, OSAL_strlen(data));
 
     /* 移动到文件开头并读取 */
     OSAL_lseek(fd, 0, OSAL_SEEK_SET);
     ret = OSAL_read(fd, buffer, sizeof(buffer));
-    TEST_ASSERT_EQUAL((osal_ssize_t)OSAL_Strlen(data), ret);
+    TEST_ASSERT_EQUAL((osal_ssize_t)OSAL_strlen(data), ret);
 
     /* 再次读取（应该返回0，表示EOF） */
     ret = OSAL_read(fd, buffer, sizeof(buffer));
@@ -198,14 +198,14 @@ TEST_CASE(test_osal_file_lseek_set)
     fd = OSAL_open(TEST_FILE_PATH, OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
                    OSAL_S_IRUSR | OSAL_S_IWUSR);
     TEST_ASSERT_TRUE(fd >= 0);
-    OSAL_write(fd, data, OSAL_Strlen(data));
+    OSAL_write(fd, data, OSAL_strlen(data));
 
     /* 移动到位置5 */
     pos = OSAL_lseek(fd, 5, OSAL_SEEK_SET);
     TEST_ASSERT_EQUAL(5, pos);
 
     /* 读取1个字节 */
-    OSAL_Memset(buffer, 0, sizeof(buffer));
+    OSAL_memset(buffer, 0, sizeof(buffer));
     OSAL_read(fd, buffer, 1);
     TEST_ASSERT_EQUAL('5', buffer[0]);
 
@@ -225,7 +225,7 @@ TEST_CASE(test_osal_file_lseek_cur)
     fd = OSAL_open(TEST_FILE_PATH, OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
                    OSAL_S_IRUSR | OSAL_S_IWUSR);
     TEST_ASSERT_TRUE(fd >= 0);
-    OSAL_write(fd, data, OSAL_Strlen(data));
+    OSAL_write(fd, data, OSAL_strlen(data));
 
     /* 移动到开头 */
     OSAL_lseek(fd, 0, OSAL_SEEK_SET);
@@ -240,7 +240,7 @@ TEST_CASE(test_osal_file_lseek_cur)
     TEST_ASSERT_EQUAL(5, pos);
 
     /* 读取1个字节 */
-    OSAL_Memset(buffer, 0, sizeof(buffer));
+    OSAL_memset(buffer, 0, sizeof(buffer));
     OSAL_read(fd, buffer, 1);
     TEST_ASSERT_EQUAL('5', buffer[0]);
 
@@ -259,15 +259,15 @@ TEST_CASE(test_osal_file_lseek_end)
     fd = OSAL_open(TEST_FILE_PATH, OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
                    OSAL_S_IRUSR | OSAL_S_IWUSR);
     TEST_ASSERT_TRUE(fd >= 0);
-    OSAL_write(fd, data, OSAL_Strlen(data));
+    OSAL_write(fd, data, OSAL_strlen(data));
 
     /* 移动到文件末尾 */
     pos = OSAL_lseek(fd, 0, OSAL_SEEK_END);
-    TEST_ASSERT_EQUAL((osal_ssize_t)OSAL_Strlen(data), pos);
+    TEST_ASSERT_EQUAL((osal_ssize_t)OSAL_strlen(data), pos);
 
     /* 从末尾向前移动5个字节 */
     pos = OSAL_lseek(fd, -5, OSAL_SEEK_END);
-    TEST_ASSERT_EQUAL((osal_ssize_t)(OSAL_Strlen(data) - 5), pos);
+    TEST_ASSERT_EQUAL((osal_ssize_t)(OSAL_strlen(data) - 5), pos);
 
     OSAL_close(fd);
     OSAL_unlink(TEST_FILE_PATH);
