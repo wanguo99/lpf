@@ -63,7 +63,7 @@ int32_t PDL_BMC_Init(const pdl_bmc_config_t *config,
     if (NULL == ctx)
     {
         LOG_ERROR("BMC", "Failed to allocate context");
-        return OSAL_ERR_GENERIC;
+        return OSAL_ERR_NO_MEMORY;
     }
 
     OSAL_Memset(ctx, 0, sizeof(bmc_context_t));

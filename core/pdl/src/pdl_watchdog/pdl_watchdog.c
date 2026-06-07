@@ -74,7 +74,7 @@ int32_t PDL_WATCHDOG_Init(const pdl_watchdog_config_t *config, pdl_watchdog_hand
     if (ctx == NULL)
     {
         LOG_ERROR("PDL_WDT", "Failed to allocate context");
-        return OSAL_ERR_GENERIC;
+        return OSAL_ERR_NO_MEMORY;
     }
 
     OSAL_Memset(ctx, 0, sizeof(watchdog_context_t));

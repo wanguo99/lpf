@@ -43,7 +43,7 @@ int32_t PDL_MCU_Init(const pdl_mcu_config_t *config, pdl_mcu_handle_t *handle)
     ctx = (mcu_context_t *)OSAL_Malloc(sizeof(mcu_context_t));
     if (NULL == ctx)
     {
-        return OSAL_ERR_GENERIC;
+        return OSAL_ERR_NO_MEMORY;
     }
 
     OSAL_Memset(ctx, 0, sizeof(mcu_context_t));

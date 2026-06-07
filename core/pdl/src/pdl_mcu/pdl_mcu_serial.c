@@ -49,7 +49,7 @@ int32_t mcu_serial_init(const void *config, void **handle)
     ctx = (mcu_serial_context_t *)OSAL_Malloc(sizeof(mcu_serial_context_t));
     if (NULL == ctx)
     {
-        return OSAL_ERR_GENERIC;
+        return OSAL_ERR_NO_MEMORY;
     }
 
     OSAL_Memset(ctx, 0, sizeof(mcu_serial_context_t));

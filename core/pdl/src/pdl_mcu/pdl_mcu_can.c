@@ -40,7 +40,7 @@ int32_t mcu_can_init(const void *config, void **handle)
     ctx = (mcu_can_context_t *)OSAL_Malloc(sizeof(mcu_can_context_t));
     if (NULL == ctx)
     {
-        return OSAL_ERR_GENERIC;
+        return OSAL_ERR_NO_MEMORY;
     }
 
     OSAL_Memset(ctx, 0, sizeof(mcu_can_context_t));

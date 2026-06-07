@@ -139,7 +139,7 @@ int32_t PDL_SATELLITE_Init(const pdl_satellite_config_t *config,
     if (NULL == ctx)
     {
         LOG_ERROR("SAT", "Failed to allocate context");
-        return OSAL_ERR_GENERIC;
+        return OSAL_ERR_NO_MEMORY;
     }
 
     OSAL_Memset(ctx, 0, sizeof(satellite_service_context_t));
