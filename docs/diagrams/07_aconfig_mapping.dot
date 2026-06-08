@@ -1,0 +1,58 @@
+digraph AConfig_Mapping {
+    rankdir=LR;
+    node [shape=box, style=filled, fontname="Arial"];
+
+    // 业务功能枚举
+    subgraph cluster_functions {
+        label="业务功能 (枚举)";
+        fillcolor="#E8F5E9";
+        style=filled;
+
+        tc_funcs [label="遥控功能\nTC_SERVER_POWER_ON\nTC_SERVER_POWER_OFF\nTC_MCU_RESET\nTC_WATCHDOG_FEED\n...", fillcolor="#C8E6C9"];
+        tm_funcs [label="遥测功能\nTM_SERVER_CPU_TEMP\nTM_SERVER_POWER_STATUS\nTM_MCU_STATUS\nTM_DISK_USAGE\n...", fillcolor="#C8E6C9"];
+    }
+
+    // AConfig 查找表
+    subgraph cluster_aconfig {
+        label="AConfig 查找表 (O(1))";
+        fillcolor="#FFF3E0";
+        style=filled;
+
+        tc_table [label="TC 配置表\n[\n  TC_SERVER_POWER_ON → BMC[0],\n  TC_SERVER_POWER_OFF → BMC[0],\n  TC_MCU_RESET → MCU[0],\n  ...\n]", fillcolor="#FFE082"];
+
+        tm_table [label="TM 配置表\n[\n  TM_SERVER_CPU_TEMP → BMC[0] (缓存型),\n  TM_SERVER_POWER_STATUS → BMC[0] (实时型),\n  TM_MCU_STATUS → MCU[0] (缓存型),\n  ...\n]", fillcolor="#FFE082"];
+    }
+
+    // 设备映射
+    subgraph cluster_devices {
+        label="硬件设备";
+        fillcolor="#E3F2FD";
+        style=filled;
+
+        bmc [label="BMC[0]\n基板管理控制器\nIP: 192.168.1.100", fillcolor="#90CAF9"];
+        mcu [label="MCU[0]\n微控制器\nCAN0: 500kbps", fillcolor="#90CAF9"];
+        mcu1 [label="MCU[1]\n备份微控制器\nUART: 115200", fillcolor="#90CAF9"];
+        sat [label="Satellite\n卫星平台\nCAN1: 1Mbps", fillcolor="#90CAF9"];
+    }
+
+    // 查找流程
+    tc_funcs -> tc_table [label="1. 枚举值作为数组索引"];
+    tm_funcs -> tm_table [label="1. 枚举值作为数组索引"];
+
+    tc_table -> bmc [label="2. 映射到设备\ndevice_type + logic_index"];
+    tc_table -> mcu [label="2. 映射到设备"];
+
+    tm_table -> bmc [label="2. 映射到设备\n+ 数据类型 + 有效期"];
+    tm_table -> mcu [label="2. 映射到设备"];
+
+    // 配置结构
+    config_struct [shape=record, label="<f0> aconfig_tc_config_t\l|<f1> function: pmc_tc_function_t\l|<f2> device_type: DEVICE_BMC/MCU/SAT\l|<f3> logic_index: uint32_t\l|<f4> enabled: bool\l", fillcolor="#FFF9C4"];
+
+    tm_config_struct [shape=record, label="<f0> aconfig_tm_config_t\l|<f1> function: pmc_tm_function_t\l|<f2> device_type: DEVICE_BMC/MCU/SAT\l|<f3> logic_index: uint32_t\l|<f4> data_type: CACHED/REALTIME\l|<f5> validity_ms: uint32_t\l|<f6> update_period_ms: uint32_t\l|<f7> realtime_timeout_us: uint32_t\l|<f8> enabled: bool\l", fillcolor="#FFF9C4"];
+
+    // 性能特性
+    perf [shape=note, label="性能特性：\n\n• O(1) 查找：数组索引\n• 查询时间：~5ns (1-2 条指令)\n• 缓存友好：连续内存\n• 无锁设计：初始化后只读\n• 零拷贝：返回 const 指针\n\n示例：\nconst aconfig_tc_config_t *cfg =\n    ACONFIG_GetTcConfig(TC_SERVER_POWER_ON);\n\n// cfg->device_type = DEVICE_BMC\n// cfg->logic_index = 0", fillcolor="#FFFDE7"];
+
+    // 失效映射
+    invalidation [shape=note, label="遥测缓存失效：\n\n遥控命令执行后，自动失效相关遥测缓存：\n\n• TC_SERVER_POWER_ON 失效：\n  - TM_SERVER_POWER_STATUS\n  - TM_SERVER_CPU_TEMP\n  \n• TC_MCU_RESET 失效：\n  - TM_MCU_STATUS\n  \n确保遥测数据实时性", fillcolor="#E1F5FE"];
+}

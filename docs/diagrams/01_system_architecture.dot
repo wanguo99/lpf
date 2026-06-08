@@ -1,0 +1,143 @@
+digraph EMS_Architecture {
+    rankdir=TB;
+    node [shape=box, style=filled, fontname="Arial"];
+
+    // 定义颜色方案
+    subgraph cluster_legend {
+        label="图例";
+        style=dashed;
+        node [shape=note];
+        leg1 [label="应用层", fillcolor="#E8F5E9"];
+        leg2 [label="配置层", fillcolor="#FFF3E0"];
+        leg3 [label="驱动层", fillcolor="#E3F2FD"];
+        leg4 [label="协议层", fillcolor="#F3E5F5"];
+        leg5 [label="硬件层", fillcolor="#FFEBEE"];
+        leg6 [label="系统层", fillcolor="#ECEFF1"];
+    }
+
+    // 应用层
+    subgraph cluster_apps {
+        label="产品应用层 (Products)";
+        fillcolor="#E8F5E9";
+        style=filled;
+
+        collector [label="Collector\n数据采集"];
+        logger [label="Logger\n日志服务"];
+        health [label="Health\n健康监控"];
+        supervisor [label="Supervisor\n监控管理"];
+        comm [label="Comm\n通信服务"];
+    }
+
+    // 应用配置层
+    subgraph cluster_aconfig {
+        label="应用配置层 (AConfig)";
+        fillcolor="#FFF3E0";
+        style=filled;
+
+        aconfig [label="AConfig\n业务功能→硬件映射\n• TC/TM 配置\n• O(1) 查找表\n• 缓存失效管理", fillcolor="#FFE082"];
+    }
+
+    // 外设驱动层
+    subgraph cluster_pdl {
+        label="外设驱动层 (PDL)";
+        fillcolor="#E3F2FD";
+        style=filled;
+
+        pdl_mcu [label="PDL_MCU\nMCU 外设驱动"];
+        pdl_bmc [label="PDL_BMC\nBMC 设备驱动"];
+        pdl_sat [label="PDL_Satellite\n主机接口驱动"];
+        pdl_linux [label="PDL_Linux\nLinux 设备驱动"];
+    }
+
+    // 平台配置层
+    subgraph cluster_pconfig {
+        label="平台配置层 (PConfig)";
+        fillcolor="#FFF3E0";
+        style=filled;
+
+        pconfig [label="PConfig\n硬件配置管理\n• 设备树风格\n• 多平台支持\n• 运行时查询", fillcolor="#FFE082"];
+    }
+
+    // 协议层
+    subgraph cluster_prl {
+        label="协议层 (PRL)";
+        fillcolor="#F3E5F5";
+        style=filled;
+
+        prl [label="PRL\n统一设备协议\n• 20 字节协议头\n• 零拷贝设计\n• CRC16 校验\n• 设备类型区分", fillcolor="#E1BEE7"];
+    }
+
+    // 硬件抽象层
+    subgraph cluster_hal {
+        label="硬件抽象层 (HAL)";
+        fillcolor="#FFEBEE";
+        style=filled;
+
+        hal_can [label="HAL_CAN\nCAN 总线"];
+        hal_uart [label="HAL_UART\n串口"];
+        hal_i2c [label="HAL_I2C\nI2C 总线"];
+        hal_spi [label="HAL_SPI\nSPI 总线"];
+        hal_gpio [label="HAL_GPIO\nGPIO"];
+        hal_wdt [label="HAL_Watchdog\n看门狗"];
+    }
+
+    // 操作系统抽象层
+    subgraph cluster_osal {
+        label="操作系统抽象层 (OSAL)";
+        fillcolor="#ECEFF1";
+        style=filled;
+
+        osal_ipc [label="OSAL_IPC\n进程间通信\n• 线程\n• 队列\n• 互斥锁\n• 信号量"];
+        osal_sys [label="OSAL_SYS\n系统调用\n• 文件\n• 时钟\n• 信号"];
+        osal_net [label="OSAL_NET\n网络\n• Socket\n• Termios"];
+        osal_lib [label="OSAL_LIB\n标准库\n• 字符串\n• 内存"];
+        osal_util [label="OSAL_UTIL\n工具类\n• 日志\n• 版本"];
+    }
+
+    // 操作系统
+    os [label="Linux Kernel / POSIX OS", shape=cylinder, fillcolor="#CFD8DC"];
+
+    // 依赖关系
+    collector -> aconfig [label="查询配置", style=dashed];
+    logger -> aconfig [style=dashed];
+    health -> aconfig [style=dashed];
+    supervisor -> aconfig [style=dashed];
+    comm -> aconfig [style=dashed];
+
+    aconfig -> pdl_mcu [label="设备映射"];
+    aconfig -> pdl_bmc;
+    aconfig -> pdl_sat;
+
+    pdl_mcu -> pconfig [label="查询配置", style=dashed];
+    pdl_bmc -> pconfig [style=dashed];
+    pdl_sat -> pconfig [style=dashed];
+    pdl_linux -> pconfig [style=dashed];
+
+    pdl_mcu -> prl [label="协议编解码", style=dashed];
+    pdl_bmc -> prl [style=dashed];
+    pdl_sat -> prl [style=dashed];
+
+    pdl_mcu -> hal_can [label="数据传输"];
+    pdl_mcu -> hal_uart;
+    pdl_bmc -> hal_uart;
+    pdl_sat -> hal_can;
+    pdl_linux -> hal_gpio;
+
+    hal_can -> osal_net [label="系统调用"];
+    hal_uart -> osal_sys;
+    hal_i2c -> osal_sys;
+    hal_spi -> osal_sys;
+    hal_gpio -> osal_sys;
+    hal_wdt -> osal_sys;
+
+    osal_ipc -> os;
+    osal_sys -> os;
+    osal_net -> os;
+    osal_lib -> os;
+    osal_util -> os;
+
+    // 注释
+    note1 [shape=note, label="数据流向：\n应用层 → 配置层 → 驱动层 → 硬件层 → 系统层", fillcolor="#FFFDE7"];
+    note2 [shape=note, label="配置查询：\nPConfig → PDL (硬件配置)\nAConfig → Apps (业务配置)", fillcolor="#FFFDE7"];
+    note3 [shape=note, label="协议处理：\nPRL 仅被 PDL 调用\n用于协议编解码，不参与传输", fillcolor="#FFFDE7"];
+}

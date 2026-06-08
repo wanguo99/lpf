@@ -75,93 +75,39 @@ PCL支持三种配置选择方式（优先级从高到低）：
 ### 快速开始
 
 ```bash
-# 在项目根目录编译整个项目（包含PCL）
-./build.sh              # Release模式
-./build.sh -d           # Debug模式
+# 在项目根目录使用统一构建脚本
+python3 build.py config ccm_h200p100_debug_defconfig
+python3 build.py build
 ```
 
-### 单独编译PCL模块
+PConfig 模块会作为核心模块的一部分自动编译。
 
-```bash
-# 方法1: 使用CMake直接编译
-mkdir -p build && cd build
-cmake ../.. -DCMAKE_BUILD_TYPE=Release
-make pcl -j$(nproc)
-cd ../..
+### 构建配置
 
-# 方法2: 在已配置的构建目录中编译
-cd build
-make pcl -j$(nproc)
-cd ../..
+PConfig 模块通过 Kconfig 配置启用：
+
+```kconfig
+CONFIG_PCONFIG=y          # 启用平台配置层
+CONFIG_PCONFIG_PLATFORM="ti/am6254/H200_100P"  # 平台路径
+CONFIG_PCONFIG_VERSION="v2"                     # 硬件版本
 ```
 
-### 支持的编译参数
+也可以通过环境变量或 CMake 参数指定平台：
 
-#### CMake配置参数
-
-| 参数 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `CMAKE_BUILD_TYPE` | STRING | Release | 编译类型：Release/Debug |
-| `PCONFIG_PLATFORM` | STRING | vendor_demo/platform_demo/project_demo | 平台配置路径 |
-| `PCONFIG_VERSION` | STRING | v1 | 硬件版本 |
-
-#### 平台配置（重要）
-
-**选择TI AM6254平台**：
 ```bash
-cd build
-cmake ../.. \
-    -DPCL_PLATFORM=ti/am6254/H200_100P \
-    -DPCL_VERSION=v2
-make pcl -j$(nproc)
-```
-
-**选择演示平台**：
-```bash
-cd build
-cmake ../.. \
-    -DPCL_PLATFORM=vendor_demo/platform_demo/project_demo \
-    -DPCL_VERSION=v1
-make pcl -j$(nproc)
-```
-
-**使用环境变量**：
-```bash
+# 方法1: 环境变量（最高优先级）
 export PCONFIG_PLATFORM=ti/am6254/H200_100P
 export PCONFIG_VERSION=v2
-./build.sh
+python3 build.py build
+
+# 方法2: 在 menuconfig 中配置
+python3 build.py menuconfig
+# 导航到 "Platform Configuration" → "Platform Path"
 ```
 
-### 编译输出
-
-```
-output/
-├── build/
-│   └── lib/
-│       └── libpcl.a           # PCL静态库
-└── target/
-    └── lib/
-        └── libpcl.a           # 最终产物
-```
-
-### 常用编译命令
-
-```bash
-# 完整编译流程
-./build.sh -d                   # Debug模式编译所有
-
-# 仅编译PCL库
-cd build && make pcl -j$(nproc) && cd ../..
-
-# 查看PCL编译配置
-cd build && cmake -L ../.. | grep PConfig && cd ../..
-
-# 清理并重新编译
-./build.sh -c && ./build.sh
-
-# 查看编译日志
-cat build.log | grep -A 5 "PConfig"
-```
+编译输出：
+- 库文件：`_build/lib/libpconfig.a`
+- 包含选定平台的硬件配置数据
 
 ## 模块结构
 

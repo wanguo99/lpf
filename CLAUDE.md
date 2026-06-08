@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 EMS (Embedded Management System) 是一个采用 **Kconfig + CMake** 混合构建系统的嵌入式软件项目。
 
+**架构总览**：参见 [系统架构文档](docs/ARCHITECTURE.md) 和 [架构图集](docs/diagrams/)
+
 ### 核心特点
 
 - **配置系统**: Kconfig（menuconfig 图形化配置）

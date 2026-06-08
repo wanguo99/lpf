@@ -1,0 +1,53 @@
+digraph PRL_Protocol {
+    rankdir=TB;
+    node [shape=record, style=filled, fontname="Arial"];
+
+    // 协议头结构
+    header [label="<f0> 协议头 (20 字节)\l|<f1> magic (2B): 0xAA55\l|<f2> version (1B): 0x10\l|<f3> dev_type (1B): 设备类型\l|<f4> msg_type (1B): 消息类型\l|<f5> flags (1B): 标志位\l|<f6> length (2B): 负载长度\l|<f7> seq (4B): 序列号\l|<f8> timestamp (4B): 时间戳\l|<f9> crc16 (2B): CRC16 校验\l|<f10> reserved (2B): 保留\l", fillcolor="#F3E5F5"];
+
+    // 设备类型
+    dev_types [label="<f0> 设备类型 (dev_type)\l|<f1> 0x01: MCU (微控制器)\l|<f2> 0x02: CCM (通信管理板)\l|<f3> 0x03: PMC (载荷管理器)\l|<f4> 0x04: GSC (地面站)\l|<f5> 0x05: POWER (电源板)\l|<f6> 0x80: SATELLITE (卫星)\l|<f7> 0x81: BMC (基板管理)\l", shape=record, fillcolor="#E1BEE7"];
+
+    // 消息类型示例 (MCU)
+    mcu_msgs [label="<f0> MCU 消息类型\l|<f1> 0x01: GET_VERSION\l|<f2> 0x02: RESET\l|<f3> 0x03: GET_STATUS\l|<f4> 0x10: FW_UPGRADE_START\l|<f5> 0x11: FW_UPGRADE_DATA\l|<f6> 0x12: FW_UPGRADE_END\l", shape=record, fillcolor="#E1BEE7"];
+
+    // 负载数据
+    payload [label="负载数据 (变长)\l最大 4076 字节\l(4096 - 20)", shape=box, fillcolor="#FFF9C4"];
+
+    // 完整报文
+    packet [label="<f0> 完整报文结构\l|<f1> 协议头 (20B)\l|<f2> 负载数据 (0-4076B)\l", shape=record, fillcolor="#C5E1A5"];
+
+    // 关系
+    header -> packet:f1 [label="包含"];
+    payload -> packet:f2 [label="包含"];
+
+    // 编解码流程
+    subgraph cluster_encode {
+        label="编码流程";
+        style=filled;
+        fillcolor="#E8F5E9";
+
+        enc1 [label="1. 填充协议头\ndev_type, msg_type"];
+        enc2 [label="2. 复制负载数据"];
+        enc3 [label="3. 计算 CRC16"];
+        enc4 [label="4. 输出完整报文"];
+
+        enc1 -> enc2 -> enc3 -> enc4;
+    }
+
+    subgraph cluster_decode {
+        label="解码流程";
+        style=filled;
+        fillcolor="#E3F2FD";
+
+        dec1 [label="1. 验证 magic"];
+        dec2 [label="2. 验证 CRC16"];
+        dec3 [label="3. 提取 dev_type/msg_type"];
+        dec4 [label="4. 零拷贝返回负载指针"];
+
+        dec1 -> dec2 -> dec3 -> dec4;
+    }
+
+    // 特性说明
+    features [shape=note, label="协议特性：\n• 统一格式：所有设备使用相同协议\n• 零拷贝：解码时直接返回负载指针\n• CRC 校验：保证数据完整性\n• 原子序列号：线程安全\n• 最大报文：4096 字节", fillcolor="#FFFDE7"];
+}

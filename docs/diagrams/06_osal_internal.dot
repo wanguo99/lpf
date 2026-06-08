@@ -1,0 +1,118 @@
+digraph OSAL_Internal {
+    rankdir=TB;
+    node [shape=box, style=filled, fontname="Arial"];
+
+    // OSAL 公共接口
+    osal_api [label="OSAL 公共接口\nosal.h", fillcolor="#B2DFDB", shape=folder];
+
+    // IPC 模块
+    subgraph cluster_ipc {
+        label="IPC 模块 - 进程间通信";
+        fillcolor="#E1F5FE";
+        style=filled;
+
+        task [label="任务管理\n• TaskCreate/Delete\n• 优雅退出机制\n• TaskShouldShutdown()"];
+        queue [label="消息队列\n• 引用计数管理\n• 线程安全\n• QueueGet/Put"];
+        mutex [label="互斥锁\n• 死锁检测 (5秒)\n• MutexLock/Unlock"];
+        sem [label="信号量\n• SemGive/Take\n• 超时控制"];
+        cond [label="条件变量\n• CondWait/Signal"];
+        atomic [label="原子操作\n• AtomicAdd/Sub\n• AtomicCompareSwap"];
+    }
+
+    // SYS 模块
+    subgraph cluster_sys {
+        label="SYS 模块 - 系统调用";
+        fillcolor="#F3E5F5";
+        style=filled;
+
+        file [label="文件操作\n• open/close/read/write\n• lseek/stat"];
+        clock [label="时钟\n• clock_gettime\n• nanosleep"];
+        signal [label="信号处理\n• signal/sigaction"];
+        select [label="I/O 多路复用\n• select/poll"];
+        env [label="环境变量\n• getenv/setenv"];
+        time [label="时间操作\n• time/localtime"];
+    }
+
+    // NET 模块
+    subgraph cluster_net {
+        label="NET 模块 - 网络";
+        fillcolor="#FFF3E0";
+        style=filled;
+
+        socket [label="Socket\n• socket/bind/listen\n• connect/send/recv"];
+        termios [label="串口控制\n• tcgetattr/tcsetattr"];
+    }
+
+    // LIB 模块
+    subgraph cluster_lib {
+        label="LIB 模块 - 标准库";
+        fillcolor="#FFEBEE";
+        style=filled;
+
+        string [label="字符串\n• memcpy/memset\n• strlen/strcmp"];
+        heap [label="堆内存\n• malloc/free\n• calloc/realloc"];
+        error [label="错误处理\n• 37 个错误码\n• errno 映射"];
+    }
+
+    // UTIL 模块
+    subgraph cluster_util {
+        label="UTIL 模块 - 工具类";
+        fillcolor="#E8F5E9";
+        style=filled;
+
+        log [label="日志系统\n• 5 级日志\n• 自动轮转 (10MB)\n• 线程安全"];
+        version [label="版本信息\n• GetVersion()\n• GetBuildInfo()"];
+    }
+
+    // POSIX 实现层
+    posix [label="POSIX 实现层\nsrc/posix/", fillcolor="#ECEFF1", shape=folder];
+
+    // Linux 内核
+    kernel [label="Linux Kernel / POSIX OS", shape=cylinder, fillcolor="#CFD8DC"];
+
+    // 依赖关系
+    osal_api -> task;
+    osal_api -> queue;
+    osal_api -> mutex;
+    osal_api -> sem;
+    osal_api -> cond;
+    osal_api -> atomic;
+    osal_api -> file;
+    osal_api -> clock;
+    osal_api -> signal;
+    osal_api -> select;
+    osal_api -> env;
+    osal_api -> time;
+    osal_api -> socket;
+    osal_api -> termios;
+    osal_api -> string;
+    osal_api -> heap;
+    osal_api -> error;
+    osal_api -> log;
+    osal_api -> version;
+
+    task -> posix;
+    queue -> posix;
+    mutex -> posix;
+    sem -> posix;
+    cond -> posix;
+    atomic -> posix;
+    file -> posix;
+    clock -> posix;
+    signal -> posix;
+    select -> posix;
+    env -> posix;
+    time -> posix;
+    socket -> posix;
+    termios -> posix;
+    string -> posix;
+    heap -> posix;
+    error -> posix;
+    log -> posix;
+    version -> posix;
+
+    posix -> kernel;
+
+    // 关键特性
+    features [shape=note, label="OSAL 关键特性：\n\n• 零初始化：静态初始化，无需 Init()\n• 优雅退出：避免 pthread_cancel\n• 引用计数：防止 use-after-free\n• 死锁检测：互斥锁 5 秒超时\n• 日志轮转：10MB/5 个备份\n• 线程安全：所有接口线程安全\n\n资源限制：\n• 最大任务数：64\n• 最大队列数：64\n• 最大互斥锁：64", fillcolor="#FFFDE7"];
+}

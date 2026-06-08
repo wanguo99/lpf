@@ -47,6 +47,10 @@ python3 build.py build
 
 ## 📚 文档导航
 
+### 架构文档
+- 🏛️ [系统架构](docs/ARCHITECTURE.md) - **完整的系统架构说明（含架构图）**
+- 📊 [架构图集](docs/diagrams/) - 7 张高清架构图（PNG/SVG）
+
 ### 新手入门
 - 📖 [新手入门教程](docs/GETTING_STARTED.md) - **从零开始，5分钟上手**
 - 🔧 [安装指南](docs/INSTALL.md) - 环境配置和依赖安装

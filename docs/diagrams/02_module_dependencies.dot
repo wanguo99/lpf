@@ -1,0 +1,67 @@
+digraph Module_Dependencies {
+    rankdir=BT;
+    node [shape=box, style=filled, fontname="Arial"];
+
+    // 定义层次
+    {
+        rank=same;
+        OSAL [label="OSAL\n操作系统抽象层", fillcolor="#ECEFF1"];
+    }
+
+    {
+        rank=same;
+        HAL [label="HAL\n硬件抽象层", fillcolor="#FFEBEE"];
+        LIB [label="第三方库\n(可选)", fillcolor="#E0E0E0", style=dashed];
+    }
+
+    {
+        rank=same;
+        PRL [label="PRL\n协议层", fillcolor="#F3E5F5"];
+    }
+
+    {
+        rank=same;
+        PConfig [label="PConfig\n平台配置层", fillcolor="#FFF3E0"];
+    }
+
+    {
+        rank=same;
+        PDL [label="PDL\n外设驱动层", fillcolor="#E3F2FD"];
+    }
+
+    {
+        rank=same;
+        AConfig [label="AConfig\n应用配置层", fillcolor="#FFF3E0"];
+    }
+
+    {
+        rank=same;
+        Apps [label="Products\n应用层", fillcolor="#E8F5E9"];
+    }
+
+    // 依赖关系 (箭头从被依赖者指向依赖者)
+    OSAL -> HAL [label="系统调用封装"];
+    OSAL -> PRL [label="时间、内存"];
+    OSAL -> PConfig [label="基础类型"];
+    OSAL -> PDL [label="日志、内存"];
+    OSAL -> AConfig [label="日志、内存"];
+    OSAL -> Apps [label="系统接口"];
+
+    HAL -> PDL [label="硬件操作"];
+    HAL -> PRL [label="传输层(可选)", style=dashed];
+
+    PRL -> PDL [label="协议编解码"];
+
+    PConfig -> PDL [label="硬件配置"];
+
+    PDL -> AConfig [label="设备驱动"];
+
+    AConfig -> Apps [label="业务配置"];
+
+    LIB -> Apps [label="第三方功能", style=dashed];
+
+    // 关键规则
+    note1 [shape=note, label="依赖规则：\n1. Core 不能依赖 Products\n2. 上层可以依赖下层\n3. 同层之间尽量避免依赖\n4. PDL 可以同时使用 PRL 和 HAL", fillcolor="#FFFDE7"];
+
+    note2 [shape=note, label="构建顺序（从下到上）：\n1. OSAL\n2. HAL, PConfig\n3. PRL\n4. PDL\n5. AConfig\n6. Products", fillcolor="#E1F5FE"];
+}
