@@ -7,8 +7,6 @@
 #ifndef HAL_CAN_TYPES_H
 #define HAL_CAN_TYPES_H
 
-#include "osal.h"
-
 /*
  * ============================================================================
  * CAN帧结构（硬件层）

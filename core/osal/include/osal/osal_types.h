@@ -21,11 +21,13 @@
     #include <stdint.h>
     #include <stdbool.h>
     #include <stddef.h>
+    #include <stdarg.h>
 #elif defined(__GNUC__) || defined(__clang__)
     /* GCC/Clang通常提供stdint.h */
     #include <stdint.h>
     #include <stdbool.h>
     #include <stddef.h>
+    #include <stdarg.h>
 #else
     /* 平台不支持stdint.h，手动定义固定宽度类型 */
 
@@ -59,6 +61,13 @@
         #define _SIZE_T_DEFINED
         typedef unsigned long size_t;
     #endif
+
+    /* va_list 类型（编译器内建支持） */
+    typedef __builtin_va_list va_list;
+    #define va_start(ap, last) __builtin_va_start(ap, last)
+    #define va_end(ap) __builtin_va_end(ap)
+    #define va_arg(ap, type) __builtin_va_arg(ap, type)
+    #define va_copy(dest, src) __builtin_va_copy(dest, src)
 #endif
 
 /*===========================================================================

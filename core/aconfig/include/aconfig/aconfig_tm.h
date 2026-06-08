@@ -7,8 +7,6 @@
 #ifndef ACONFIG_ACONFIG_TM_H
 #define ACONFIG_ACONFIG_TM_H
 
-#include "osal.h"
-
 /**
  * @brief 遥测功能通用枚举
  * @note 按功能类别分组，预留足够 ID 空间支持扩展

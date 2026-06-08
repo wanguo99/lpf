@@ -11,7 +11,6 @@
 #ifndef PDL_SATELLITE_H
 #define PDL_SATELLITE_H
 
-#include "osal.h"
 
 /*===========================================================================
  * Satellite 配置类型

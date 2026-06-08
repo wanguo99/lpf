@@ -9,9 +9,9 @@
 
 #include <linux/watchdog.h>
 #include <sys/ioctl.h>
+#include "osal.h"
 #include "hal.h"
 #include "hal_watchdog_internal.h"
-#include "osal.h"
 
 /**
  * @brief 初始化Watchdog驱动

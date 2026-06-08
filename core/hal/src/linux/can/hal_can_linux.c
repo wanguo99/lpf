@@ -11,6 +11,7 @@
 #include <linux/can/raw.h>
 #include <sys/ioctl.h>
 #include "osal.h"
+#include "hal.h"
 #include "hal_can_internal.h"
 
 #ifndef IFNAMSIZ

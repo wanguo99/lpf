@@ -7,11 +7,10 @@
  * - 调度内部以太网通信模块
  ************************************************************************/
 
+#include "osal.h"
+#include "prl.h"
 #include "pdl.h"
 #include "pdl_ccm_internal.h"
-#include "prl.h"      /* 新的 PRL API */
-#include "prl_pmc.h"      /* PMC 设备协议 */
-#include "osal.h"
 
 /*
  * CCM 系统驱动上下文

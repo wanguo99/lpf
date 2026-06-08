@@ -7,9 +7,10 @@
  * - 超时和重试机制
  ************************************************************************/
 
-#include "pdl_mcu_internal.h"
-#include "hal.h"
 #include "osal.h"
+#include "hal.h"
+#include "pdl.h"
+#include "pdl_mcu_internal.h"
 
 /*
  * CAN通信上下文

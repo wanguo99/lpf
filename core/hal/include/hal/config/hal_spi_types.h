@@ -7,7 +7,6 @@
 #ifndef HAL_SPI_TYPES_H
 #define HAL_SPI_TYPES_H
 
-#include "osal.h"
 
 /*
  * ============================================================================

@@ -7,7 +7,6 @@
 #ifndef HAL_SPI_H
 #define HAL_SPI_H
 
-#include "osal.h"
 #include "config/hal_spi_types.h"
 
 #ifdef __cplusplus

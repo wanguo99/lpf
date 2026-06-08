@@ -7,7 +7,6 @@
 #ifndef HAL_CAN_H
 #define HAL_CAN_H
 
-#include "osal.h"
 #include "config/hal_can_types.h"
 
 #ifdef __cplusplus

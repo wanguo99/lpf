@@ -7,9 +7,10 @@
  * - 协议解析和封装
  ************************************************************************/
 
-#include "pdl_satellite_internal.h"
-#include "hal.h"
 #include "osal.h"
+#include "hal.h"
+#include "pdl.h"
+#include "pdl_satellite_internal.h"
 
 /**
  * @brief 初始化卫星CAN通信

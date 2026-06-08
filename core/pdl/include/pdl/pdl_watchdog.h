@@ -15,7 +15,6 @@
 #ifndef PDL_WATCHDOG_H
 #define PDL_WATCHDOG_H
 
-#include "osal.h"
 
 /*===========================================================================
  * Watchdog 配置类型

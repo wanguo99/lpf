@@ -7,9 +7,9 @@
  * - 调度传输层和协议层模块
  ************************************************************************/
 
-#include "pdl_bmc_internal.h"
 #include "osal.h"
 #include "pdl.h"
+#include "pdl_bmc_internal.h"
 
 /*
  * BMC服务上下文

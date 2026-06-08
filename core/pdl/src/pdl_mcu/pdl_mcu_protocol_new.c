@@ -4,8 +4,10 @@
  * @details PDL_MCU 协议封装层实现，调用 PRL_DEVICE 统一协议
  */
 
-#include "pdl_mcu_protocol.h"
 #include "osal.h"
+#include "prl.h"
+#include "pdl.h"
+#include "pdl_mcu_protocol.h"
 
 /* ========== 编码函数 ========== */
 

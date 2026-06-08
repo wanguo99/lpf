@@ -15,7 +15,6 @@
 #ifndef OSAL_PROCESS_H
 #define OSAL_PROCESS_H
 
-#include <stdbool.h>
 
 /* 基础进程控制函数（保持兼容） */
 void OSAL_Exit(int32_t status);

@@ -6,7 +6,6 @@
 #ifndef PRL_PRL_COMMON_H
 #define PRL_PRL_COMMON_H
 
-#include "osal.h"
 
 
 #ifdef __cplusplus

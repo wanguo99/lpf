@@ -7,8 +7,8 @@
  * - 实际硬件访问需要在 Linux 平台上运行
  ************************************************************************/
 
-#include "hal_i2c.h"
 #include "osal.h"
+#include "hal.h"
 
 int32_t HAL_I2C_Open(const hal_i2c_config_t *config, hal_i2c_handle_t *handle)
 {

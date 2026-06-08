@@ -7,8 +7,6 @@
 #ifndef ACONFIG_ACONFIG_TYPES_H
 #define ACONFIG_ACONFIG_TYPES_H
 
-#include "osal.h"
-
 /**
  * @brief ACONFIG 设备类型枚举
  * @note 通用设备类型，可扩展

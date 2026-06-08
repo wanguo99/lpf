@@ -7,7 +7,6 @@
 #ifndef HAL_WATCHDOG_H
 #define HAL_WATCHDOG_H
 
-#include "osal.h"
 
 #ifdef __cplusplus
 extern "C" {

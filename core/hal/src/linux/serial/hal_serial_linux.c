@@ -4,9 +4,9 @@
  * 基于POSIX termios实现
  ************************************************************************/
 
+#include "osal.h"
 #include "hal.h"
 #include "hal_serial_internal.h"
-#include "osal.h"
 #include <termios.h>  /* 系统波特率常量 B9600 等 */
 
 static uint32_t hal_serial_get_baudrate(uint32_t baudrate)

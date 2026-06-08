@@ -16,14 +16,6 @@
 #ifndef PCONFIG_PCONFIG_TYPES_H
 #define PCONFIG_PCONFIG_TYPES_H
 
-#include <stdint.h>
-#include <stdbool.h>
-
-/* Core dependencies */
-#ifdef CONFIG_OSAL
-#include "osal.h"
-#endif /* CONFIG_OSAL */
-
 /* Device driver layer - required for MCU/BMC configuration types */
 #include "pdl_mcu.h"
 #include "pdl_bmc.h"

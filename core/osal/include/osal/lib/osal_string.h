@@ -7,8 +7,6 @@
 #ifndef OSAL_STRING_H
 #define OSAL_STRING_H
 
-#include <stdarg.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -7,7 +7,6 @@
 #ifndef HAL_I2C_H
 #define HAL_I2C_H
 
-#include "osal.h"
 #include "config/hal_i2c_types.h"
 
 #ifdef __cplusplus

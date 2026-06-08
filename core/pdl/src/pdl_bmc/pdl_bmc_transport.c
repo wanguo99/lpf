@@ -7,9 +7,10 @@
  * - 不涉及具体协议（IPMI/Redfish）的封装和解析
  ************************************************************************/
 
-#include "pdl_bmc_internal.h"
 #include "osal.h"
 #include "hal.h"
+#include "pdl.h"
+#include "pdl_bmc_internal.h"
 
 /*
  * 网络传输上下文
