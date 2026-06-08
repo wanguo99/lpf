@@ -10,31 +10,39 @@
 #include "pdl.h"
 #include "pdl_watchdog.h"
 
+/* 测试环境 */
+typedef struct {
+    int osal_initialized;
+    int hal_initialized;
+    int pdl_initialized;
+} test_env_t;
+
+static test_env_t g_test_env = {0};
+
 /**
  * 环境初始化：OSAL + HAL + PDL
  */
-SYSTEM_ENV_SETUP(full_stack) {
+static void setup_full_stack(void) {
     OSAL_Printf("[ SETUP    ] Initializing full stack environment\n");
 
     /* 注意：OSAL_Init/HAL_Init/PDL_Init不存在，简化初始化 */
-    env->osal_initialized = 1;
-    env->hal_initialized = 1;
-    env->pdl_initialized = 1;
+    g_test_env.osal_initialized = 1;
+    g_test_env.hal_initialized = 1;
+    g_test_env.pdl_initialized = 1;
 
     OSAL_Printf("[ SETUP OK ] Full stack initialized\n");
-    return 0;
 }
 
 /**
  * 环境清理
  */
-SYSTEM_ENV_TEARDOWN(full_stack) {
+static void teardown_full_stack(void) {
     OSAL_Printf("[ TEARDOWN ] Cleaning up full stack environment\n");
 
     /* 注意：PDL_Deinit/HAL_Deinit/OSAL_Deinit不存在，简化清理 */
-    env->pdl_initialized = 0;
-    env->hal_initialized = 0;
-    env->osal_initialized = 0;
+    g_test_env.pdl_initialized = 0;
+    g_test_env.hal_initialized = 0;
+    g_test_env.osal_initialized = 0;
 
     OSAL_Printf("[ TEARDOWN OK ] Full stack cleaned up\n");
 }
@@ -42,37 +50,37 @@ SYSTEM_ENV_TEARDOWN(full_stack) {
 /**
  * 系统测试：OSAL + HAL 集成
  */
-SYSTEM_static void osal_hal_integration(void) {
+static void test_osal_hal_integration(void) {
     OSAL_Printf("[ TEST     ] Testing OSAL + HAL integration\n");
 
     /* 检查点1：OSAL初始化 */
-    SYSTEM_CHECKPOINT(NULL, "OSAL initialized", env->osal_initialized);
+    TEST_ASSERT_TRUE(g_test_env.osal_initialized);
 
     /* 检查点2：HAL初始化 */
-    SYSTEM_CHECKPOINT(NULL, "HAL initialized", env->hal_initialized);
+    TEST_ASSERT_TRUE(g_test_env.hal_initialized);
 
     /* 检查点3：GPIO操作 */
     /* 注意：HAL_GPIO API简化，跳过测试 */
-    SYSTEM_CHECKPOINT(NULL, "GPIO test skipped", 1);
+    TEST_ASSERT_TRUE(1);
 
     /* 检查点4：线程创建 */
     /* 注意：线程测试已简化，避免使用lambda */
-    SYSTEM_CHECKPOINT(NULL, "Thread test skipped", 1);
+    TEST_ASSERT_TRUE(1);
 
-    return 0;
+    OSAL_Printf("[ PASS     ] OSAL + HAL integration test passed\n");
 }
 
 /**
  * 系统测试：HAL + PDL 集成
  */
-SYSTEM_static void hal_pdl_integration(void) {
+static void test_hal_pdl_integration(void) {
     OSAL_Printf("[ TEST     ] Testing HAL + PDL integration\n");
 
     /* 检查点1：HAL初始化 */
-    SYSTEM_CHECKPOINT(NULL, "HAL initialized", env->hal_initialized);
+    TEST_ASSERT_TRUE(g_test_env.hal_initialized);
 
     /* 检查点2：PDL初始化 */
-    SYSTEM_CHECKPOINT(NULL, "PDL initialized", env->pdl_initialized);
+    TEST_ASSERT_TRUE(g_test_env.pdl_initialized);
 
     /* 检查点3：Watchdog操作 */
     pdl_watchdog_config_t wdt_config = {
@@ -82,54 +90,54 @@ SYSTEM_static void hal_pdl_integration(void) {
 
     pdl_watchdog_handle_t wdt_handle = NULL;
     int32_t ret = PDL_WATCHDOG_Init(&wdt_config, &wdt_handle);
-    SYSTEM_CHECKPOINT(NULL, "Watchdog init", ret == 0);
+    TEST_ASSERT_EQUAL(0, ret);
 
     if (ret == 0 && wdt_handle != NULL) {
         ret = PDL_WATCHDOG_Start(wdt_handle);
-        SYSTEM_CHECKPOINT(NULL, "Watchdog start", ret == 0);
+        TEST_ASSERT_EQUAL(0, ret);
 
         ret = PDL_WATCHDOG_Kick(wdt_handle);
-        SYSTEM_CHECKPOINT(NULL, "Watchdog kick", ret == 0);
+        TEST_ASSERT_EQUAL(0, ret);
 
         pdl_watchdog_status_t status;
         ret = PDL_WATCHDOG_GetStatus(wdt_handle, &status);
-        SYSTEM_CHECKPOINT(NULL, "Watchdog get status",
-                         ret == 0 && status.running);
+        TEST_ASSERT_EQUAL(0, ret);
+        TEST_ASSERT_TRUE(status.running);
 
         ret = PDL_WATCHDOG_Stop(wdt_handle);
-        SYSTEM_CHECKPOINT(NULL, "Watchdog stop", ret == 0);
+        TEST_ASSERT_EQUAL(0, ret);
 
         PDL_WATCHDOG_Deinit(wdt_handle);
     }
 
-    return 0;
+    OSAL_Printf("[ PASS     ] HAL + PDL integration test passed\n");
 }
 
 /**
  * 系统测试：完整栈端到端测试
  */
-SYSTEM_static void full_stack_e2e(void) {
+static void test_full_stack_e2e(void) {
     OSAL_Printf("[ TEST     ] Testing full stack end-to-end\n");
 
     /* 检查点1：所有层初始化 */
-    SYSTEM_CHECKPOINT(NULL, "OSAL initialized", env->osal_initialized);
-    SYSTEM_CHECKPOINT(NULL, "HAL initialized", env->hal_initialized);
-    SYSTEM_CHECKPOINT(NULL, "PDL initialized", env->pdl_initialized);
+    TEST_ASSERT_TRUE(g_test_env.osal_initialized);
+    TEST_ASSERT_TRUE(g_test_env.hal_initialized);
+    TEST_ASSERT_TRUE(g_test_env.pdl_initialized);
 
     /* 检查点2：基本功能测试 */
     /* 注意：Queue API不存在，简化测试 */
     osal_mutex_t *mutex = NULL;
     int32_t ret = OSAL_MutexCreate(&mutex);
-    SYSTEM_CHECKPOINT(NULL, "Mutex create", ret == 0);
+    TEST_ASSERT_EQUAL(0, ret);
 
     if (ret == 0) {
         OSAL_MutexLock(mutex);
         OSAL_MutexUnlock(mutex);
-        SYSTEM_CHECKPOINT(NULL, "Mutex lock/unlock", 1);
+        TEST_ASSERT_TRUE(1);
         OSAL_MutexDelete(mutex);
     }
 
-    return 0;
+    OSAL_Printf("[ PASS     ] Full stack E2E test passed\n");
 }
 
 /* 线程数据结构 */
@@ -155,8 +163,7 @@ static void* concurrent_thread_func(void *arg) {
 /**
  * 系统测试：并发场景测试
  */
-SYSTEM_static void concurrent_scenario(void) {
-    (void)env;  /* 未使用的参数 */
+static void test_concurrent_scenario(void) {
     OSAL_Printf("[ TEST     ] Testing concurrent scenario\n");
 
     const uint32_t num_threads = 5;
@@ -168,7 +175,7 @@ SYSTEM_static void concurrent_scenario(void) {
 
     /* 检查点1：创建互斥锁 */
     int32_t ret = OSAL_MutexCreate(&mutex);
-    SYSTEM_CHECKPOINT(NULL, "Mutex create", ret == 0);
+    TEST_ASSERT_EQUAL(0, ret);
 
     /* 检查点2：创建多个并发线程 */
     concurrent_thread_data_t thread_data = { mutex, &counter };
@@ -183,20 +190,19 @@ SYSTEM_static void concurrent_scenario(void) {
             break;
         }
     }
-    SYSTEM_CHECKPOINT(NULL, "All threads created", all_created);
+    TEST_ASSERT_TRUE(all_created);
 
     /* 检查点3：等待所有线程完成 */
 
     for (i = 0; i < num_threads; i++) {
         OSAL_ThreadJoin(threads[i]);
     }
-    SYSTEM_CHECKPOINT(NULL, "All threads completed", 1);
+    TEST_ASSERT_TRUE(1);
 
     /* 检查点4：验证计数器 */
     uint32_t final_count = OSAL_AtomicLoad(&counter);
     uint32_t expected_count = num_threads * 1000;
-    SYSTEM_CHECKPOINT(NULL, "Counter correct",
-                     final_count == expected_count);
+    TEST_ASSERT_EQUAL(expected_count, final_count);
 
     OSAL_Printf("[ INFO     ] Final count: %u (expected: %u)\n",
                final_count, expected_count);
@@ -204,65 +210,34 @@ SYSTEM_static void concurrent_scenario(void) {
     /* 清理 */
     OSAL_MutexDelete(mutex);
 
-    return 0;
+    OSAL_Printf("[ PASS     ] Concurrent scenario test passed\n");
 }
-
-/**
- * 运行系统集成测试
- */
-static void test_system_integration_suite(void) {
-    system_test_context_t *ctx;
-
-    /* 测试1：OSAL + HAL 集成 */
-    ctx = system_test_create("OSAL+HAL Integration", SYSTEM_TEST_INTEGRATION);
-    TEST_ASSERT_NOT_NULL(ctx);
-    system_test_set_env_funcs(ctx,
-                              system_env_setup_full_stack,
-                              system_env_teardown_full_stack);
-    TEST_ASSERT_EQUAL(system_test_run(ctx, system_test_osal_hal_integration), 0);
-    system_test_print_report(ctx);
-    system_test_destroy(ctx);
-
-    /* 测试2：HAL + PDL 集成 */
-    ctx = system_test_create("HAL+PDL Integration", SYSTEM_TEST_INTEGRATION);
-    TEST_ASSERT_NOT_NULL(ctx);
-    system_test_set_env_funcs(ctx,
-                              system_env_setup_full_stack,
-                              system_env_teardown_full_stack);
-    TEST_ASSERT_EQUAL(system_test_run(ctx, system_test_hal_pdl_integration), 0);
-    system_test_print_report(ctx);
-    system_test_destroy(ctx);
-
-    /* 测试3：完整栈端到端 */
-    ctx = system_test_create("Full Stack E2E", SYSTEM_TEST_E2E);
-    TEST_ASSERT_NOT_NULL(ctx);
-    system_test_set_env_funcs(ctx,
-                              system_env_setup_full_stack,
-                              system_env_teardown_full_stack);
-    TEST_ASSERT_EQUAL(system_test_run(ctx, system_test_full_stack_e2e), 0);
-    system_test_print_report(ctx);
-    system_test_destroy(ctx);
-
-    /* 测试4：并发场景 */
-    ctx = system_test_create("Concurrent Scenario", SYSTEM_TEST_SCENARIO);
-    TEST_ASSERT_NOT_NULL(ctx);
-    system_test_set_env_funcs(ctx,
-                              system_env_setup_full_stack,
-                              system_env_teardown_full_stack);
-    TEST_ASSERT_EQUAL(system_test_run(ctx, system_test_concurrent_scenario), 0);
-    system_test_print_report(ctx);
-    system_test_destroy(ctx);
-}
-
-/* 注册系统测试模块 */
 
 /* 测试用例数组 - 使用函数指针数组 */
 static const test_case_t test_cases[] = {
 	{
-		.name = "test_system_integration_suite",
-		.func = test_system_integration_suite,
-		.setup = NULL,
-		.teardown = NULL
+		.name = "test_osal_hal_integration",
+		.func = test_osal_hal_integration,
+		.setup = setup_full_stack,
+		.teardown = teardown_full_stack
+	},
+	{
+		.name = "test_hal_pdl_integration",
+		.func = test_hal_pdl_integration,
+		.setup = setup_full_stack,
+		.teardown = teardown_full_stack
+	},
+	{
+		.name = "test_full_stack_e2e",
+		.func = test_full_stack_e2e,
+		.setup = setup_full_stack,
+		.teardown = teardown_full_stack
+	},
+	{
+		.name = "test_concurrent_scenario",
+		.func = test_concurrent_scenario,
+		.setup = setup_full_stack,
+		.teardown = teardown_full_stack
 	},
 };
 
@@ -270,7 +245,7 @@ static const test_case_t test_cases[] = {
 static const test_suite_t test_suite = {
 	.suite_name = "system_integration",
 	.module_name = "system_integration",
-	.layer_name = "UNKNOWN",
+	.layer_name = "SYSTEM",
 	.cases = test_cases,
 	.case_count = sizeof(test_cases) / sizeof(test_case_t),
 	.suite_setup = NULL,
@@ -279,7 +254,7 @@ static const test_suite_t test_suite = {
 		.category = TEST_CATEGORY_SYSTEM,
 		.tags = TEST_TAG_SLOW | TEST_TAG_HARDWARE,
 		.timeout_ms = 5000,
-		.description = "UNKNOWN system_integration tests"
+		.description = "System integration tests"
 	}
 };
 

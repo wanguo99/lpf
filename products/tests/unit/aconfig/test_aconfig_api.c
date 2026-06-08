@@ -273,23 +273,6 @@ static void test_aconfig_print_config(void)
     TEST_ASSERT_TRUE(true);
 }
 
-/* 注册测试套件 */
-
-static const test_suite_t aconfig_api_suite = {
-    .suite_name = "aconfig_api",
-    .module_name = "aconfig_api",
-    .layer_name = "ACONFIG",
-    .cases = aconfig_api_cases,
-    .case_count = sizeof(aconfig_api_cases) / sizeof(test_case_t),
-    .suite_setup = aconfig_test_setup,
-    .suite_teardown = aconfig_test_teardown
-};
-
-__attribute__((constructor))
-static void register_aconfig_api(void) {
-    libutest_register_suite(&aconfig_api_suite);
-}
-
 /* 测试用例数组 - 使用函数指针数组 */
 static const test_case_t test_cases[] = {
 	{

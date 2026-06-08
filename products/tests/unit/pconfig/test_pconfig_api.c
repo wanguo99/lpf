@@ -321,23 +321,6 @@ static void test_pconfig_print(void)
     TEST_ASSERT_TRUE(true);
 }
 
-/* 注册测试套件 */
-
-static const test_suite_t pconfig_api_suite = {
-    .suite_name = "pconfig_api",
-    .module_name = "pconfig_api",
-    .layer_name = "PCONFIG",
-    .cases = pconfig_api_cases,
-    .case_count = sizeof(pconfig_api_cases) / sizeof(test_case_t),
-    .suite_setup = pconfig_test_setup,
-    .suite_teardown = pconfig_test_teardown
-};
-
-__attribute__((constructor))
-static void register_pconfig_api(void) {
-    libutest_register_suite(&pconfig_api_suite);
-}
-
 /* 测试用例数组 - 使用函数指针数组 */
 static const test_case_t test_cases[] = {
 	{
