@@ -18,7 +18,7 @@ static pconfig_mcu_entry_t mcu_stm32 = {
         .name = "stm32_mcu",
         .interface = PDL_MCU_INTERFACE_SERIAL,
 
-        .serial = {
+        .hw.serial = {
             .device = "/dev/ttyS1",
             .baudrate = 115200,
             .data_bits = 8,
@@ -51,26 +51,32 @@ static pconfig_bmc_entry_t bmc_payload = {
     .enabled = true,
 
     .config = {
-        .network = {
-            .enabled = true,
-            .ip_addr = "192.168.1.100",
-            .port = 623,
-            .username = "admin",
-            .password = NULL,
-            .timeout_ms = 2000
-        },
-
-        .serial = {
-            .enabled = true,
-            .device = "/dev/ttyS2",
-            .baudrate = 115200,
-            .data_bits = 8,
-            .stop_bits = 1,
-            .parity = HAL_SERIAL_PARITY_NONE,
-            .timeout_ms = 2000
-        },
-
+        /* 主通道配置：网络 */
         .primary_channel = PDL_BMC_CHANNEL_NETWORK,
+        .primary_config = {
+            .network = {
+                .ip_addr = "192.168.1.100",
+                .port = 623,
+                .username = "admin",
+                .password = NULL,
+                .timeout_ms = 2000
+            }
+        },
+
+        /* 备用通道配置：串口 */
+        .backup_channel = PDL_BMC_CHANNEL_SERIAL,
+        .backup_config = {
+            .serial = {
+                .device = "/dev/ttyS2",
+                .baudrate = 115200,
+                .data_bits = 8,
+                .stop_bits = 1,
+                .parity = HAL_SERIAL_PARITY_NONE,
+                .timeout_ms = 2000
+            }
+        },
+
+        /* 服务配置 */
         .auto_switch = true,
         .retry_count = 3,
         .health_check_interval = 5000
@@ -114,15 +120,15 @@ const pconfig_platform_config_t pconfig_h200_100p_base = {
     .project_name = "H200_100P",
     .product_name = "h200_100p_base",
 
-    .mcu_count = ARRAY_COUNT(pconfig_mcu_arr),
+    .mcu_count = 1,  /* mcu_stm32 */
     .mcu_arr = pconfig_mcu_arr,
 
-    .bmc_count = ARRAY_COUNT(pconfig_bmc_arr),
+    .bmc_count = 1,  /* bmc_payload */
     .bmc_arr = pconfig_bmc_arr,
 
-    .fpga_count = ARRAY_COUNT(pconfig_fpga_arr),
+    .fpga_count = 0,  /* 空数组 */
     .fpga_arr = pconfig_fpga_arr,
 
-    .switch_count = ARRAY_COUNT(pconfig_switch_arr),
+    .switch_count = 0,  /* 空数组 */
     .switch_arr = pconfig_switch_arr
 };
