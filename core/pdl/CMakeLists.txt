@@ -40,7 +40,6 @@ endif()
 # PConfig 使用 PDL 的配置类型（包含 pdl_types.h）
 # 依赖关系：PConfig→PDL（头文件），无循环依赖
 # PDL_CCM 和 PDL_MCU 需要 PRL 协议层支持
-# 注意：pdl_*_helper.c 文件使用 PConfig，但不在此处声明依赖以避免循环
 list(APPEND ADD_REQUIREMENTS osal hal)
 
 if(CONFIG_PDL_CCM_SUPPORT OR CONFIG_PDL_MCU_SUPPORT)
