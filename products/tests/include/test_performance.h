@@ -14,7 +14,6 @@
 #define TEST_PERFORMANCE_H
 
 #include "osal.h"
-#include <stdbool.h>
 
 /* 性能指标类型 */
 typedef enum {

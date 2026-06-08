@@ -9,8 +9,7 @@
 #ifndef TEST_METADATA_H
 #define TEST_METADATA_H
 
-#include <stdint.h>
-#include <stdbool.h>
+#include "osal.h"
 
 /**
  * Test category enumeration

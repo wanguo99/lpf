@@ -14,7 +14,6 @@
 #define TEST_STRESS_H
 
 #include "osal.h"
-#include <stdbool.h>
 
 /* 压力测试类型 */
 typedef enum {

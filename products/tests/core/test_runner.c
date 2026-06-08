@@ -6,7 +6,6 @@
 #include "test_core.h"
 #include "test_assert.h"
 #include "osal.h"
-#include <stdarg.h>
 
 #define MAX_SUITES 128
 #define LOG_BUF_SIZE 512
