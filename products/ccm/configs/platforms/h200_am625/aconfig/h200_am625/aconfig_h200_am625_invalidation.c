@@ -1,6 +1,6 @@
 /**
- * @file aconfig_h200_100p_invalidation.c
- * @brief H200_100P遥控命令失效映射
+ * @file aconfig_h200_am625_invalidation.c
+ * @brief H200_AM625遥控命令失效映射
  * @note 定义遥控命令对遥测数据的影响关系
  */
 

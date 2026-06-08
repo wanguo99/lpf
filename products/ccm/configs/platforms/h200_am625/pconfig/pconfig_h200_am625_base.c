@@ -1,5 +1,5 @@
 /************************************************************************
- * TI AM625平台 - H200-100P载荷板基础配置
+ * TI AM625平台 - H200-AM625载荷板基础配置
  ************************************************************************/
 
 #include "pconfig.h"
@@ -114,11 +114,11 @@ static pconfig_switch_cfg_t *pconfig_switch_arr[] = {
 /* 辅助宏：计算指针数组中有效元素数量（排除NULL结尾） */
 #define ARRAY_COUNT(arr) ((sizeof(arr) / sizeof(arr[0])) - 1)
 
-const pconfig_platform_config_t pconfig_h200_100p_base = {
+const pconfig_platform_config_t pconfig_h200_am625_base = {
     .platform_name = "ti/am6254",
     .chip_name = "am6254",
-    .project_name = "H200_100P",
-    .product_name = "h200_100p_base",
+    .project_name = "H200_AM625",
+    .product_name = "h200_am625_base",
 
     .mcu_count = 1,  /* mcu_stm32 */
     .mcu_arr = pconfig_mcu_arr,
