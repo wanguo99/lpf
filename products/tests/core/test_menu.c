@@ -34,7 +34,7 @@ static int32_t read_choice(void)
     }
 
     int32_t choice;
-    if (OSAL_Sscanf(buffer, "%d", &choice) != 1) {
+    if (OSAL_sscanf(buffer, "%d", &choice) != 1) {
         return -1;
     }
 
