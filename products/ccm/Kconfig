@@ -15,14 +15,14 @@ menu "Platform Configuration"
 
 choice
     prompt "Select Platform"
-    default PROJECT_H200_AM625
+    default PROJECT_H200_100P_AM625
     help
       Select the hardware platform for CCM product.
 
-config PROJECT_H200_AM625
-    bool "H200 AM625 Platform"
+config PROJECT_H200_100P_AM625
+    bool "H200 100P AM625 Platform"
     help
-      TI AM625 SoC based H200 carrier board.
+      TI AM625 SoC based H200 100P carrier board.
       Provides ACL and PCL configuration for AM625 platform.
 
 config PROJECT_H200_200P
@@ -34,7 +34,7 @@ endchoice
 
 config PROJECT_NAME
     string
-    default "h200_am625" if PROJECT_H200_AM625
+    default "h200_100p_am625" if PROJECT_H200_100P_AM625
     default "h200_200p" if PROJECT_H200_200P
     help
       Project configuration directory name.

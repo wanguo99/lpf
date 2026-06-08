@@ -332,8 +332,8 @@ EMS 使用 **Kconfig + CMake** 混合构建系统：
 ### 配置类型
 
 **产品配置**：
-- `ccm_h200p100_debug_defconfig` - CCM 调试版本
-- `ccm_h200p100_release_defconfig` - CCM 发布版本
+- `ccm_h200_100p_am625_debug_defconfig` - CCM 调试版本
+- `ccm_h200_100p_am625_release_defconfig` - CCM 发布版本
 
 **测试配置**：
 - `tests_x86_full_defconfig` - 全栈测试

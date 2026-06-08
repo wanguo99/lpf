@@ -80,7 +80,7 @@ ccm_product/
 │
 ├── components/             # 产品组件（库）
 │   ├── libccm/            # CCM 通用库
-│   └── h200_am625/        # H200 平台库
+│   └── h200_100p_am625/   # H200 平台库
 │
 └── apps/                   # 应用组件
     ├── app_collector/

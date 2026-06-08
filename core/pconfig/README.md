@@ -76,7 +76,7 @@ PCL支持三种配置选择方式（优先级从高到低）：
 
 ```bash
 # 在项目根目录使用统一构建脚本
-python3 build.py config ccm_h200p100_debug_defconfig
+python3 build.py config ccm_h200_100p_am625_debug_defconfig
 python3 build.py build
 ```
 

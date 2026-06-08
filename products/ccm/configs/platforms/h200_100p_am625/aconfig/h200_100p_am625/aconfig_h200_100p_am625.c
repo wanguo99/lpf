@@ -1,6 +1,6 @@
 /**
- * @file aconfig_h200_am625.c
- * @brief H200_AM625应用配置
+ * @file aconfig_h200_100p_am625.c
+ * @brief H200_100P_AM625应用配置
  * @note 命名规范：aconfig_{project}_{product}_{version}.c
  *       AConfig配置关注业务功能，不关注硬件平台
  */
