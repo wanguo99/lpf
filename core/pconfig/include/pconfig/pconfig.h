@@ -81,15 +81,16 @@ int32_t PCONFIG_List(const pconfig_platform_config_t **configs, uint32_t *count)
  *
  * 从所有已注册的配置中，找到第一个支持当前硬件ID的配置
  *
- * @param[in] hwid 硬件ID
+ * @param[in] hwid 硬件ID结构体指针
  *
  * @return 配置指针，失败返回NULL
  *
  * @note 匹配规则：
  *       - 如果配置的 hwid_count == 0 或 hwid_list == NULL，表示支持所有HWID
- *       - 否则，hwid 必须在 hwid_list 中才匹配
+ *       - 否则，根据 product_id, project_id, board_type, hw_revision 进行匹配
+ *       - serial_number 和 manufacture_date 不参与匹配
  */
-const pconfig_platform_config_t* PCONFIG_FindByHWID(pdl_hwid_t hwid);
+const pconfig_platform_config_t* PCONFIG_FindByHWID(const pdl_hwid_t *hwid);
 
 /**
  * @brief 根据HWID自动加载配置
@@ -97,9 +98,9 @@ const pconfig_platform_config_t* PCONFIG_FindByHWID(pdl_hwid_t hwid);
  * 从PDL_MISC读取HWID，然后调用 PCONFIG_FindByHWID 查找并加载配置
  *
  * @return 错误码
- * @retval OSAL_OK              成功
- * @retval OSAL_ERR_NOT_FOUND   未找到匹配的配置
- * @retval OSAL_ERR_IO          读取HWID失败
+ * @retval OSAL_SUCCESS             成功
+ * @retval OSAL_ERR_NAME_NOT_FOUND  未找到匹配的配置
+ * @retval OSAL_ERR_IO              读取HWID失败
  */
 int32_t PCONFIG_LoadByHWID(void);
 

@@ -426,15 +426,15 @@ void PCONFIG_Print(const pconfig_platform_config_t *config)
  * @brief 检查配置是否支持指定的HWID
  *
  * @param[in] config 配置指针
- * @param[in] hwid   硬件ID
+ * @param[in] hwid   硬件ID结构体指针
  *
  * @return true=支持，false=不支持
  */
-static bool pconfig_is_hwid_supported(const pconfig_platform_config_t *config, pdl_hwid_t hwid)
+static bool pconfig_is_hwid_supported(const pconfig_platform_config_t *config, const pdl_hwid_t *hwid)
 {
     uint32_t i;
 
-    if (config == NULL) {
+    if (config == NULL || hwid == NULL) {
         return false;
     }
 
@@ -443,9 +443,16 @@ static bool pconfig_is_hwid_supported(const pconfig_platform_config_t *config, p
         return true;
     }
 
-    /* 在HWID列表中查找 */
+    /* 在HWID列表中查找匹配项 */
     for (i = 0; i < config->hwid_count; i++) {
-        if (config->hwid_list[i] == hwid) {
+        const pdl_hwid_t *pattern = &config->hwid_list[i];
+
+        /* 匹配规则：比较关键字段，忽略序列号和生产日期 */
+        if (pattern->magic == hwid->magic &&
+            pattern->product_id == hwid->product_id &&
+            pattern->project_id == hwid->project_id &&
+            pattern->board_type == hwid->board_type &&
+            pattern->hw_revision == hwid->hw_revision) {
             return true;
         }
     }
@@ -453,13 +460,18 @@ static bool pconfig_is_hwid_supported(const pconfig_platform_config_t *config, p
     return false;
 }
 
-const pconfig_platform_config_t* PCONFIG_FindByHWID(pdl_hwid_t hwid)
+const pconfig_platform_config_t* PCONFIG_FindByHWID(const pdl_hwid_t *hwid)
 {
     uint32_t i;
     const pconfig_platform_config_t *config = NULL;
 
     if (!g_initialized) {
         LOG_ERROR("PCL", "Library not initialized");
+        return NULL;
+    }
+
+    if (hwid == NULL) {
+        LOG_ERROR("PCL", "Invalid HWID pointer");
         return NULL;
     }
 
@@ -470,10 +482,9 @@ const pconfig_platform_config_t* PCONFIG_FindByHWID(pdl_hwid_t hwid)
     for (i = 0; i < g_registry.count; i++) {
         if (pconfig_is_hwid_supported(g_registry.configs[i], hwid)) {
             config = g_registry.configs[i];
-            LOG_INFO("PCL", "Found config for HWID 0x%08X: %s/%s",
-                     hwid,
-                     config->platform_name,
-                     config->product_name);
+            LOG_INFO("PCL", "Found config for HWID: product=0x%04X, project=0x%04X, board=0x%02X, hw_rev=0x%02X -> %s/%s",
+                     hwid->product_id, hwid->project_id, hwid->board_type, hwid->hw_revision,
+                     config->platform_name, config->product_name);
             break;
         }
     }
@@ -481,7 +492,8 @@ const pconfig_platform_config_t* PCONFIG_FindByHWID(pdl_hwid_t hwid)
     OSAL_MutexUnlock(g_registry_mutex);
 
     if (config == NULL) {
-        LOG_WARN("PCL", "No config found for HWID 0x%08X", hwid);
+        LOG_WARN("PCL", "No config found for HWID: product=0x%04X, project=0x%04X, board=0x%02X, hw_rev=0x%02X",
+                 hwid->product_id, hwid->project_id, hwid->board_type, hwid->hw_revision);
     }
 
     return config;
@@ -505,12 +517,13 @@ int32_t PCONFIG_LoadByHWID(void)
         return ret;
     }
 
-    LOG_INFO("PCL", "Read HWID: 0x%08X", hwid);
+    LOG_INFO("PCL", "Read HWID: magic=0x%08X, product=0x%04X, project=0x%04X, board=0x%02X, hw_rev=0x%02X, SN=%u",
+             hwid.magic, hwid.product_id, hwid.project_id, hwid.board_type, hwid.hw_revision, hwid.serial_number);
 
     /* 根据 HWID 查找配置 */
-    config = PCONFIG_FindByHWID(hwid);
+    config = PCONFIG_FindByHWID(&hwid);
     if (config == NULL) {
-        LOG_ERROR("PCL", "No matching config for HWID 0x%08X", hwid);
+        LOG_ERROR("PCL", "No matching config for HWID");
         return OSAL_ERR_NAME_NOT_FOUND;
     }
 
@@ -521,6 +534,6 @@ int32_t PCONFIG_LoadByHWID(void)
         return ret;
     }
 
-    LOG_INFO("PCL", "Successfully loaded config for HWID 0x%08X", hwid);
+    LOG_INFO("PCL", "Successfully loaded config for HWID");
     return OSAL_SUCCESS;
 }

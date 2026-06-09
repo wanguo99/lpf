@@ -297,14 +297,14 @@ void ACONFIG_PrintConfig(void)
 /**
  * @brief 检查配置表是否支持指定的HWID
  * @param table 配置表指针
- * @param hwid  硬件ID
+ * @param hwid  硬件ID结构体指针
  * @return true=支持，false=不支持
  */
-static bool aconfig_is_hwid_supported(const aconfig_config_table_t *table, pdl_hwid_t hwid)
+static bool aconfig_is_hwid_supported(const aconfig_config_table_t *table, const pdl_hwid_t *hwid)
 {
     uint32_t i;
 
-    if (table == NULL) {
+    if (table == NULL || hwid == NULL) {
         return false;
     }
 
@@ -313,9 +313,16 @@ static bool aconfig_is_hwid_supported(const aconfig_config_table_t *table, pdl_h
         return true;
     }
 
-    /* 在HWID列表中查找 */
+    /* 在HWID列表中查找匹配项 */
     for (i = 0; i < table->hwid_count; i++) {
-        if (table->hwid_list[i] == hwid) {
+        const pdl_hwid_t *pattern = &table->hwid_list[i];
+
+        /* 匹配规则：比较关键字段，忽略序列号和生产日期 */
+        if (pattern->magic == hwid->magic &&
+            pattern->product_id == hwid->product_id &&
+            pattern->project_id == hwid->project_id &&
+            pattern->board_type == hwid->board_type &&
+            pattern->hw_revision == hwid->hw_revision) {
             return true;
         }
     }
@@ -323,11 +330,20 @@ static bool aconfig_is_hwid_supported(const aconfig_config_table_t *table, pdl_h
     return false;
 }
 
-const aconfig_config_table_t* ACONFIG_FindTableByHWID(pdl_hwid_t hwid)
+const aconfig_config_table_t* ACONFIG_FindTableByHWID(const pdl_hwid_t *hwid)
 {
     /* TODO: 需要维护一个全局的配置表注册列表 */
     /* 当前简化实现：直接返回 NULL，需要在后续实现中添加配置表注册机制 */
+
+    if (hwid == NULL) {
+        LOG_ERROR("ACL", "Invalid HWID pointer");
+        return NULL;
+    }
+
     LOG_WARN("ACL", "ACONFIG_FindTableByHWID not fully implemented yet");
+    LOG_INFO("ACL", "HWID: magic=0x%08X, product=0x%04X, project=0x%04X, board=0x%02X, hw_rev=0x%02X",
+             hwid->magic, hwid->product_id, hwid->project_id, hwid->board_type, hwid->hw_revision);
+
     return NULL;
 }
 
@@ -344,12 +360,13 @@ int32_t ACONFIG_LoadByHWID(void)
         return ret;
     }
 
-    LOG_INFO("ACL", "Read HWID: 0x%08X", hwid);
+    LOG_INFO("ACL", "Read HWID: magic=0x%08X, product=0x%04X, project=0x%04X, board=0x%02X, hw_rev=0x%02X, SN=%u",
+             hwid.magic, hwid.product_id, hwid.project_id, hwid.board_type, hwid.hw_revision, hwid.serial_number);
 
     /* 根据 HWID 查找配置表 */
-    table = ACONFIG_FindTableByHWID(hwid);
+    table = ACONFIG_FindTableByHWID(&hwid);
     if (table == NULL) {
-        LOG_ERROR("ACL", "No matching config table for HWID 0x%08X", hwid);
+        LOG_ERROR("ACL", "No matching config table for HWID");
         return OSAL_ERR_NAME_NOT_FOUND;
     }
 
@@ -360,6 +377,6 @@ int32_t ACONFIG_LoadByHWID(void)
         return ret;
     }
 
-    LOG_INFO("ACL", "Successfully loaded config for HWID 0x%08X", hwid);
+    LOG_INFO("ACL", "Successfully loaded config for HWID");
     return OSAL_SUCCESS;
 }

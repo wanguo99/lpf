@@ -94,13 +94,14 @@ int32_t ACONFIG_GetStatistics(aconfig_statistics_t *stats);
 
 /**
  * @brief 根据HWID查找配置表
- * @param hwid 硬件ID
+ * @param hwid 硬件ID结构体指针
  * @return 配置表指针，失败返回NULL
  * @note 匹配规则：
  *       - 如果配置表的 hwid_count == 0 或 hwid_list == NULL，表示支持所有HWID
- *       - 否则，hwid 必须在 hwid_list 中才匹配
+ *       - 否则，根据 product_id, project_id, board_type, hw_revision 进行匹配
+ *       - serial_number 和 manufacture_date 不参与匹配
  */
-const aconfig_config_table_t* ACONFIG_FindTableByHWID(pdl_hwid_t hwid);
+const aconfig_config_table_t* ACONFIG_FindTableByHWID(const pdl_hwid_t *hwid);
 
 /**
  * @brief 根据HWID自动加载配置表

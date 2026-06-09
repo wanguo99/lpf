@@ -20,17 +20,46 @@ extern "C" {
  *===========================================================================*/
 
 /**
- * @brief 硬件ID类型
+ * @brief 硬件ID结构体（20字节紧凑型）
  *
- * HWID 用于标识不同的硬件版本，以便加载对应的配置
+ * 设计说明：
+ * - magic: 'HWID' ASCII 编码，用于验证数据有效性
+ * - format_version: 支持未来格式演进
+ * - 包含产品、项目、板卡类型、硬件版本
+ * - 每块板子有唯一的序列号
+ * - 包含生产日期和 CRC 校验
  */
-typedef uint32_t pdl_hwid_t;
+typedef struct __attribute__((packed)) {
+    uint32_t magic;             /* 魔数：0x48574944 ('HWID') */
+    uint8_t  format_version;    /* HWID 格式版本：0x01 */
+    uint8_t  vendor_id;         /* 厂商ID */
+
+    uint16_t product_id;        /* 产品ID */
+    uint16_t project_id;        /* 项目ID */
+
+    uint8_t  board_type;        /* 板卡类型 */
+    uint8_t  hw_revision;       /* 硬件版本 */
+
+    uint32_t serial_number;     /* 序列号（唯一标识） */
+
+    uint16_t manufacture_date;  /* 生产日期（压缩格式） */
+    uint16_t crc16;             /* CRC16 校验 */
+} pdl_hwid_t;
 
 /**
- * @brief 特殊HWID值
+ * @brief 魔数定义
  */
-#define PDL_HWID_INVALID    0x00000000  /* 无效HWID */
-#define PDL_HWID_UNKNOWN    0xFFFFFFFF  /* 未知HWID */
+#define PDL_HWID_MAGIC          0x48574944  /* 'HWID' ASCII 编码 */
+
+/**
+ * @brief HWID 格式版本
+ */
+#define PDL_HWID_FORMAT_V1      0x01        /* 当前版本 */
+
+/**
+ * @brief 特殊值定义（用于兼容性）
+ */
+#define PDL_HWID_INVALID        0x00000000  /* 无效的 magic，表示未初始化 */
 
 /**
  * @brief 读取硬件ID
