@@ -122,10 +122,10 @@ hal/
 **CMakeLists.txt配置**：
 ```cmake
 # 链接HAL接口库（获取头文件路径）
-target_link_libraries(your_module PUBLIC ems::hal_public_api)
+target_link_libraries(your_module PUBLIC es_middleware::hal_public_api)
 
 # 链接HAL实现库（运行时链接）
-target_link_libraries(your_module PRIVATE ems::hal)
+target_link_libraries(your_module PRIVATE es_middleware::hal)
 ```
 
 **代码中使用**：

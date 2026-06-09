@@ -1,6 +1,6 @@
-# EMS 架构图集
+# ES-Middleware 架构图集
 
-本目录包含 EMS 系统的所有架构图，每张图提供 PNG（位图）和 SVG（矢量图）两种格式。
+本目录包含 ES-Middleware 系统的所有架构图，每张图提供 PNG（位图）和 SVG（矢量图）两种格式。
 
 ## 图表列表
 
@@ -10,7 +10,7 @@
 
 ![系统架构](01_system_architecture.png)
 
-**说明**：展示 EMS 从应用层到系统层的完整架构，包括所有核心模块及其关系。
+**说明**：展示 ES-Middleware 从应用层到系统层的完整架构，包括所有核心模块及其关系。
 
 **关键内容**：
 - 7 个核心模块：OSAL、HAL、PConfig、PRL、PDL、AConfig、Products

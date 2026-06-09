@@ -1,6 +1,6 @@
 # Test Maintenance Scripts
 
-This directory contains maintenance scripts for the EMS test framework.
+This directory contains maintenance scripts for the ES-Middleware test framework.
 
 ## Overview
 

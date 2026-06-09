@@ -7,7 +7,7 @@ No installation required. Scripts are located in `products/tests/scripts/`.
 ## Prerequisites
 
 - Python 3.6+
-- EMS project environment
+- ES-Middleware project environment
 
 ## Quick Examples
 

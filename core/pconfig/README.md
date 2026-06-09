@@ -163,10 +163,10 @@ pcl/
 **CMakeLists.txt配置**：
 ```cmake
 # 链接PCL接口库（获取头文件路径）
-target_link_libraries(pdl PUBLIC ems::pconfig_public_api)
+target_link_libraries(pdl PUBLIC es_middleware::pconfig_public_api)
 
 # 链接PCL实现库（运行时链接）
-target_link_libraries(pdl PRIVATE ems::pcl)
+target_link_libraries(pdl PRIVATE es_middleware::pcl)
 ```
 
 **代码中使用**：

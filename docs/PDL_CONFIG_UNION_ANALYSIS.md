@@ -407,7 +407,7 @@ TEST_CASE(test_pdl_mcu_init_can) {
 
 ```bash
 # 查找所有使用pdl_mcu_config_t的文件
-grep -r "pdl_mcu_config_t" --include="*.c" --include="*.h" /home/wanguo/EMS/
+grep -r "pdl_mcu_config_t" --include="*.c" --include="*.h" /home/wanguo/CSPD/ES-Middleware/
 ```
 
 #### 迁移步骤

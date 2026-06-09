@@ -1,12 +1,12 @@
 # Hello World 示例
 
-最简单的 EMS SDK 示例，演示如何创建一个基本的应用程序。
+最简单的 ES-Middleware SDK 示例，演示如何创建一个基本的应用程序。
 
 ---
 
 ## 📖 学习目标
 
-- 了解 EMS SDK 的基本结构
+- 了解 ES-Middleware SDK 的基本结构
 - 学习如何使用 OSAL 版本信息 API
 - 掌握基本的编译和运行流程
 
@@ -27,16 +27,16 @@ python3 build.py build
 
 ```
 =================================
-  Hello, EMS SDK!
+  Hello, ES-Middleware SDK!
 =================================
 
-=== EMS Version Information ===
+=== ES-Middleware Version Information ===
 Version:      1.0.0
 Build Date:   2026-05-28
 Build Time:   18:00:00
 Git Commit:   72aba73
 
-Hello from EMS SDK!
+Hello from ES-Middleware SDK!
 This is the simplest example.
 ```
 
@@ -54,14 +54,14 @@ int main(int argc, char *argv[])
 {
     // 打印欢迎信息
     printf("=================================\n");
-    printf("  Hello, EMS SDK!\n");
+    printf("  Hello, ES-Middleware SDK!\n");
     printf("=================================\n\n");
 
     // 使用 OSAL API 打印版本信息
     print_version_info();
 
     // 你的代码
-    printf("\nHello from EMS SDK!\n");
+    printf("\nHello from ES-Middleware SDK!\n");
     printf("This is the simplest example.\n");
 
     return 0;

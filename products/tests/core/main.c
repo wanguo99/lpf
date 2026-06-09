@@ -337,7 +337,7 @@ int main(int argc, char *argv[])
         return result;
     }
 
-    /* Run tests by layer (only for ems-test) */
+    /* Run tests by layer (only for es-middleware-test) */
     if (0 == OSAL_strcmp(argv[1], "-L") && argc >= 3) {
         int32_t result;
 

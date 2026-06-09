@@ -1,4 +1,4 @@
-name: EMS Test Suite
+name: ES-Middleware Test Suite
 
 on:
   push:
@@ -45,7 +45,7 @@ jobs:
 
     - name: Run tests
       run: |
-        ./_build/bin/ems-test -a --format junit --output test-results-${{ matrix.config.defconfig }}.xml
+        ./_build/bin/es-middleware-test -a --format junit --output test-results-${{ matrix.config.defconfig }}.xml
 
     - name: Upload test results
       uses: actions/upload-artifact@v3
@@ -82,7 +82,7 @@ jobs:
 
     - name: Run performance tests
       run: |
-        ./_build/bin/ems-test -a --category performance --format json --output perf-results.json
+        ./_build/bin/es-middleware-test -a --category performance --format json --output perf-results.json
 
     - name: Upload performance results
       uses: actions/upload-artifact@v3
@@ -111,7 +111,7 @@ jobs:
 
     - name: Run stress tests
       run: |
-        ./_build/bin/ems-test -a --category stress --format junit --output stress-results.xml
+        ./_build/bin/es-middleware-test -a --category stress --format junit --output stress-results.xml
 
     - name: Upload stress test results
       uses: actions/upload-artifact@v3
@@ -141,7 +141,7 @@ jobs:
 
     - name: Run fast tests only
       run: |
-        ./_build/bin/ems-test -a --fast --format junit --output fast-results.xml
+        ./_build/bin/es-middleware-test -a --fast --format junit --output fast-results.xml
 
     - name: Upload fast test results
       uses: actions/upload-artifact@v3

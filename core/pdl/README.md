@@ -112,10 +112,10 @@ pdl/
 **CMakeLists.txt配置**：
 ```cmake
 # 链接PDL接口库（获取头文件路径）
-target_link_libraries(your_app PUBLIC ems::pdl_public_api)
+target_link_libraries(your_app PUBLIC es_middleware::pdl_public_api)
 
 # 链接PDL实现库（运行时链接）
-target_link_libraries(your_app PRIVATE ems::pdl)
+target_link_libraries(your_app PRIVATE es_middleware::pdl)
 ```
 
 **代码中使用**：

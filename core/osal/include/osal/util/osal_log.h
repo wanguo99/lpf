@@ -24,7 +24,7 @@
 
 /* 日志配置 */
 #define OSAL_LOG_DEFAULT_LEVEL       OS_LOG_LEVEL_INFO
-#define OSAL_LOG_FILE_PATH           "/var/log/ems.log"
+#define OSAL_LOG_FILE_PATH           "/var/log/es-middleware.log"
 #define OSAL_LOG_FILE_MAX_SIZE_MB    0xA
 #define OSAL_LOG_FILE_BACKUP_COUNT   0x5
 

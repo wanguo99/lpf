@@ -209,11 +209,11 @@ switch (config->interface) {
 
 ```bash
 $ python3 build.py build
-Building EMS SDK...
+Building ES-Middleware SDK...
 Compiling...
 
 Build successful!
-Output directory: /home/wanguo/EMS/_build
+Output directory: /home/wanguo/CSPD/ES-Middleware/_build
 ```
 
 **结果**：✅ 编译通过，无警告

@@ -43,7 +43,7 @@
 #   )
 #
 # Parameters:
-#   TARGET - CMake target to add test sources to (e.g., ems-test)
+#   TARGET - CMake target to add test sources to (e.g., es-middleware-test)
 #   DIRECTORY - Absolute path to directory containing test_*.c files
 #   MODULE - Module name used to derive Kconfig option (e.g., OSAL, HAL)
 #   LIBRARY - Optional library to link (e.g., osal, hal)
@@ -221,7 +221,7 @@ endfunction()
 #
 # Example:
 #   test_discover_category(
-#       TARGET ems-test
+#       TARGET es-middleware-test
 #       CATEGORY "unit"
 #       MODULES osal hal pdl prl pconfig aconfig
 #   )

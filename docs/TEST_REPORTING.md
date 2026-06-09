@@ -1,6 +1,6 @@
 # Test Reporting and CI Integration Guide
 
-This document describes the advanced reporting features added to the EMS test framework.
+This document describes the advanced reporting features added to the ES-Middleware test framework.
 
 ## Features
 
