@@ -93,6 +93,23 @@ int32_t ACONFIG_GetInvalidationMap(uint32_t source_tm_id,
 int32_t ACONFIG_GetStatistics(aconfig_statistics_t *stats);
 
 /**
+ * @brief 根据HWID查找配置表
+ * @param hwid 硬件ID
+ * @return 配置表指针，失败返回NULL
+ * @note 匹配规则：
+ *       - 如果配置表的 hwid_count == 0 或 hwid_list == NULL，表示支持所有HWID
+ *       - 否则，hwid 必须在 hwid_list 中才匹配
+ */
+const aconfig_config_table_t* ACONFIG_FindTableByHWID(pdl_hwid_t hwid);
+
+/**
+ * @brief 根据HWID自动加载配置表
+ * @return OSAL_SUCCESS 成功，OSAL_ERR_* 失败
+ * @note 从PDL_MISC读取HWID，然后查找并注册匹配的配置表
+ */
+int32_t ACONFIG_LoadByHWID(void);
+
+/**
  * @brief 打印配置信息（调试用）
  */
 void ACONFIG_PrintConfig(void);

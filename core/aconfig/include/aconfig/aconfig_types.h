@@ -7,6 +7,9 @@
 #ifndef ACONFIG_ACONFIG_TYPES_H
 #define ACONFIG_ACONFIG_TYPES_H
 
+/* PDL MISC - required for HWID type */
+#include "pdl_misc.h"
+
 /**
  * @brief ACONFIG 设备类型枚举
  * @note 通用设备类型，可扩展
@@ -74,6 +77,11 @@ typedef struct {
  */
 typedef struct {
 	const char *name;			/* 配置表名称 */
+
+	/* 硬件ID支持 */
+	uint32_t hwid_count;			/* 支持的HWID数量，0表示支持所有HWID */
+	const pdl_hwid_t *hwid_list;		/* 支持的HWID列表，NULL表示支持所有HWID */
+
 	const aconfig_tc_config_t *tc_table;	/* 遥控配置表 */
 	uint32_t tc_count;			/* 遥控配置数量 */
 	const aconfig_tm_config_t *tm_table;	/* 遥测配置表 */

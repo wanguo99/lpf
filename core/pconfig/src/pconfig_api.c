@@ -417,3 +417,110 @@ void PCONFIG_Print(const pconfig_platform_config_t *config)
         }
     }
 }
+
+/*===========================================================================
+ * HWID 相关接口
+ *===========================================================================*/
+
+/**
+ * @brief 检查配置是否支持指定的HWID
+ *
+ * @param[in] config 配置指针
+ * @param[in] hwid   硬件ID
+ *
+ * @return true=支持，false=不支持
+ */
+static bool pconfig_is_hwid_supported(const pconfig_platform_config_t *config, pdl_hwid_t hwid)
+{
+    uint32_t i;
+
+    if (config == NULL) {
+        return false;
+    }
+
+    /* hwid_count == 0 或 hwid_list == NULL 表示支持所有HWID */
+    if (config->hwid_count == 0 || config->hwid_list == NULL) {
+        return true;
+    }
+
+    /* 在HWID列表中查找 */
+    for (i = 0; i < config->hwid_count; i++) {
+        if (config->hwid_list[i] == hwid) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+const pconfig_platform_config_t* PCONFIG_FindByHWID(pdl_hwid_t hwid)
+{
+    uint32_t i;
+    const pconfig_platform_config_t *config = NULL;
+
+    if (!g_initialized) {
+        LOG_ERROR("PCL", "Library not initialized");
+        return NULL;
+    }
+
+    /* 加锁保护 */
+    OSAL_MutexLock(g_registry_mutex);
+
+    /* 遍历所有已注册的配置 */
+    for (i = 0; i < g_registry.count; i++) {
+        if (pconfig_is_hwid_supported(g_registry.configs[i], hwid)) {
+            config = g_registry.configs[i];
+            LOG_INFO("PCL", "Found config for HWID 0x%08X: %s/%s",
+                     hwid,
+                     config->platform_name,
+                     config->product_name);
+            break;
+        }
+    }
+
+    OSAL_MutexUnlock(g_registry_mutex);
+
+    if (config == NULL) {
+        LOG_WARN("PCL", "No config found for HWID 0x%08X", hwid);
+    }
+
+    return config;
+}
+
+int32_t PCONFIG_LoadByHWID(void)
+{
+    pdl_hwid_t hwid;
+    const pconfig_platform_config_t *config;
+    int32_t ret;
+
+    if (!g_initialized) {
+        LOG_ERROR("PCL", "Library not initialized");
+        return OSAL_ERR_INVALID_STATE;
+    }
+
+    /* 从 PDL_MISC 读取 HWID */
+    ret = PDL_MISC_GetHWID(&hwid);
+    if (ret != OSAL_SUCCESS) {
+        LOG_ERROR("PCL", "Failed to read HWID: %d", ret);
+        return ret;
+    }
+
+    LOG_INFO("PCL", "Read HWID: 0x%08X", hwid);
+
+    /* 根据 HWID 查找配置 */
+    config = PCONFIG_FindByHWID(hwid);
+    if (config == NULL) {
+        LOG_ERROR("PCL", "No matching config for HWID 0x%08X", hwid);
+        return OSAL_ERR_NAME_NOT_FOUND;
+    }
+
+    /* 注册配置（Register 会自动设置为 current） */
+    ret = PCONFIG_Register(config);
+    if (ret != OSAL_SUCCESS) {
+        LOG_ERROR("PCL", "Failed to register config: %d", ret);
+        return ret;
+    }
+
+    LOG_INFO("PCL", "Successfully loaded config for HWID 0x%08X", hwid);
+    return OSAL_SUCCESS;
+}

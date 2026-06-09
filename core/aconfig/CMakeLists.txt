@@ -29,10 +29,10 @@ endif()
 ###############################################
 
 ###### Add required/dependent components ######
-# ACONFIG 只依赖 OSAL
+# ACONFIG 依赖 OSAL 和 PDL（用于 HWID 支持）
 # ACONFIG 提供通用的遥测遥控配置管理框架
-# 不依赖具体的设备驱动层（PDL）
-list(APPEND ADD_REQUIREMENTS osal)
+# PDL_MISC 提供 HWID 读取接口
+list(APPEND ADD_REQUIREMENTS osal pdl)
 ###############################################
 
 #### Add compile option for this component ####

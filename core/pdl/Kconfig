@@ -285,4 +285,36 @@ menuconfig PDL_WATCHDOG_SUPPORT
 	  Note: Improper watchdog configuration can cause unexpected resets.
 	  Ensure all critical tasks can complete within the timeout period.
 
+menuconfig PDL_MISC_SUPPORT
+	bool "MISC (Miscellaneous) support"
+	default n
+	help
+	  Enable MISC module for non-standard peripheral functions.
+
+	  MISC module provides:
+	  - Hardware ID (HWID) reading
+	  - Partition table query
+	  - Boot information retrieval
+	  - Other platform-specific features
+
+	  Features:
+	  - HWID-based configuration selection
+	  - Device tree integration (Linux)
+	  - EEPROM/OTP reading support
+	  - Boot reason detection
+
+	  Memory footprint: ~2KB
+
+	  Use cases:
+	  - Multi-board product variants
+	  - Dynamic hardware configuration
+	  - Manufacturing and diagnostics
+	  - Boot failure analysis
+
+	  Dependencies: OSAL
+
+	  Recommended: Enable for products with multiple hardware variants
+
+	  If unsure, say Y.
+
 endif # PDL

@@ -32,6 +32,11 @@ if(CONFIG_PDL_CCM_SUPPORT)
     file(GLOB PDL_CCM_SRCS "src/pdl_ccm/*.c")
     list(APPEND ADD_SRCS ${PDL_CCM_SRCS})
 endif()
+
+if(CONFIG_PDL_MISC_SUPPORT)
+    file(GLOB PDL_MISC_SRCS "src/pdl_misc/*.c")
+    list(APPEND ADD_SRCS ${PDL_MISC_SRCS})
+endif()
 ###############################################
 
 ###### Add required/dependent components ######
@@ -74,6 +79,10 @@ endif()
 
 if(CONFIG_PDL_CCM_SUPPORT)
     list(APPEND ADD_DEFINITIONS -DPDL_CCM_SUPPORT=1)
+endif()
+
+if(CONFIG_PDL_MISC_SUPPORT)
+    list(APPEND ADD_DEFINITIONS -DPDL_MISC_SUPPORT=1)
 endif()
 ###############################################
 

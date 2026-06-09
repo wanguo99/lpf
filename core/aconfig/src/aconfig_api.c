@@ -289,3 +289,77 @@ void ACONFIG_PrintConfig(void)
                    stats.tm_enabled_count, stats.tm_disabled_count);
     }
 }
+
+/*===========================================================================
+ * HWID 相关接口
+ *===========================================================================*/
+
+/**
+ * @brief 检查配置表是否支持指定的HWID
+ * @param table 配置表指针
+ * @param hwid  硬件ID
+ * @return true=支持，false=不支持
+ */
+static bool aconfig_is_hwid_supported(const aconfig_config_table_t *table, pdl_hwid_t hwid)
+{
+    uint32_t i;
+
+    if (table == NULL) {
+        return false;
+    }
+
+    /* hwid_count == 0 或 hwid_list == NULL 表示支持所有HWID */
+    if (table->hwid_count == 0 || table->hwid_list == NULL) {
+        return true;
+    }
+
+    /* 在HWID列表中查找 */
+    for (i = 0; i < table->hwid_count; i++) {
+        if (table->hwid_list[i] == hwid) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+const aconfig_config_table_t* ACONFIG_FindTableByHWID(pdl_hwid_t hwid)
+{
+    /* TODO: 需要维护一个全局的配置表注册列表 */
+    /* 当前简化实现：直接返回 NULL，需要在后续实现中添加配置表注册机制 */
+    LOG_WARN("ACL", "ACONFIG_FindTableByHWID not fully implemented yet");
+    return NULL;
+}
+
+int32_t ACONFIG_LoadByHWID(void)
+{
+    pdl_hwid_t hwid;
+    const aconfig_config_table_t *table;
+    int32_t ret;
+
+    /* 从 PDL_MISC 读取 HWID */
+    ret = PDL_MISC_GetHWID(&hwid);
+    if (ret != OSAL_SUCCESS) {
+        LOG_ERROR("ACL", "Failed to read HWID: %d", ret);
+        return ret;
+    }
+
+    LOG_INFO("ACL", "Read HWID: 0x%08X", hwid);
+
+    /* 根据 HWID 查找配置表 */
+    table = ACONFIG_FindTableByHWID(hwid);
+    if (table == NULL) {
+        LOG_ERROR("ACL", "No matching config table for HWID 0x%08X", hwid);
+        return OSAL_ERR_NAME_NOT_FOUND;
+    }
+
+    /* 注册配置表 */
+    ret = ACONFIG_RegisterTable(table);
+    if (ret != OSAL_SUCCESS) {
+        LOG_ERROR("ACL", "Failed to register config table: %d", ret);
+        return ret;
+    }
+
+    LOG_INFO("ACL", "Successfully loaded config for HWID 0x%08X", hwid);
+    return OSAL_SUCCESS;
+}
