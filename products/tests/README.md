@@ -2,7 +2,7 @@
 
 ## 模块概述
 
-Tests是EMS的统一测试框架，提供完整的测试能力，支持单元测试、性能测试、压力测试和系统测试。
+Tests是ES-Middleware的统一测试框架，提供完整的测试能力，支持单元测试、性能测试、压力测试和系统测试。
 
 **设计理念**：
 - 统一测试框架，支持所有层级（OSAL/HAL/PDL/PConfig/AConfig）
@@ -61,9 +61,9 @@ Tests是EMS的统一测试框架，提供完整的测试能力，支持单元测
 ./tests/run_tests.sh -t all -r          # 运行所有测试并生成报告
 
 # 或直接运行测试二进制
-./build/bin/ems-test                    # 交互式菜单
-./build/bin/ems-test --all              # 运行所有测试
-./build/bin/ems-test --layer OSAL       # 运行OSAL层测试
+./build/bin/es-middleware-test                    # 交互式菜单
+./build/bin/es-middleware-test --all              # 运行所有测试
+./build/bin/es-middleware-test --layer OSAL       # 运行OSAL层测试
 ```
 
 ### 3. 查看测试报告
@@ -191,12 +191,12 @@ Performance:
 # 方法1: 使用CMake直接编译
 mkdir -p build && cd build
 cmake ../.. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
-make ems-test -j$(nproc)
+make es-middleware-test -j$(nproc)
 cd ../..
 
 # 方法2: 在已配置的构建目录中编译
 cd build
-make ems-test -j$(nproc)
+make es-middleware-test -j$(nproc)
 cd ../..
 
 # 方法3: 编译单个测试模块（快速迭代）
@@ -254,11 +254,11 @@ output/
 │       └── libpdl_tests.a     # PDL测试库
 └── target/
     └── bin/
-        ├── ems-test           # 统一测试运行器（主程序）
-        ├── osal-test -> ems-test  # OSAL层测试快捷方式
-        ├── hal-test -> ems-test   # HAL层测试快捷方式
-        ├── pcl-test -> ems-test   # PConfig层测试快捷方式
-        └── pdl-test -> ems-test   # PDL层测试快捷方式
+        ├── es-middleware-test           # 统一测试运行器（主程序）
+        ├── osal-test -> es-middleware-test  # OSAL层测试快捷方式
+        ├── hal-test -> es-middleware-test   # HAL层测试快捷方式
+        ├── pcl-test -> es-middleware-test   # PConfig层测试快捷方式
+        └── pdl-test -> es-middleware-test   # PDL层测试快捷方式
 ```
 
 ### 常用编译命令
@@ -268,11 +268,11 @@ output/
 ./build.sh -d                   # Debug模式编译所有
 
 # 仅编译测试
-cd build && make ems-test -j$(nproc) && cd ../..
+cd build && make es-middleware-test -j$(nproc) && cd ../..
 
 # 快速迭代单个测试模块
 cd build && make osal_tests -j$(nproc) && cd ../..
-./build/bin/ems-test -m test_osal_version
+./build/bin/es-middleware-test -m test_osal_version
 
 # 清理并重新编译
 ./build.sh -c && ./build.sh -d
@@ -288,8 +288,8 @@ cat build.log | grep -A 5 "test"
 测试框架采用 Busybox 风格设计，提供多种调用方式：
 
 ```bash
-# 方式1: 使用主程序 ems-test（运行所有层级测试）
-./build/bin/ems-test -h
+# 方式1: 使用主程序 es-middleware-test（运行所有层级测试）
+./build/bin/es-middleware-test -h
 
 # 方式2: 使用层级快捷方式（自动过滤对应层级）
 ./build/bin/osal-test --list    # 仅列出OSAL测试
@@ -298,21 +298,21 @@ cat build.log | grep -A 5 "test"
 ./build/bin/pdl-test --list     # 仅列出PDL测试
 
 # 方式3: 使用层级过滤参数
-./build/bin/ems-test -L OSAL    # 运行OSAL层测试
-./build/bin/ems-test -L HAL     # 运行HAL层测试
+./build/bin/es-middleware-test -L OSAL    # 运行OSAL层测试
+./build/bin/es-middleware-test -L HAL     # 运行HAL层测试
 ```
 
 **快捷方式说明**：
-- `osal-test`、`hal-test`、`pcl-test`、`pdl-test` 是指向 `ems-test` 的软链接
+- `osal-test`、`hal-test`、`pcl-test`、`pdl-test` 是指向 `es-middleware-test` 的软链接
 - 程序根据调用名称自动识别并过滤对应层级的测试
-- 等效于 `ems-test -L <LAYER>` 但更简洁直观
+- 等效于 `es-middleware-test -L <LAYER>` 但更简洁直观
 
 ### 交互式菜单
 
 ```bash
-./build/bin/ems-test -i
+./build/bin/es-middleware-test -i
 # 或
-./build/bin/ems-test --interactive
+./build/bin/es-middleware-test --interactive
 
 # 也可以使用层级快捷方式进入交互式菜单
 ./build/bin/osal-test -i    # 仅显示OSAL测试菜单
@@ -325,7 +325,7 @@ cat build.log | grep -A 5 "test"
 
 **使用示例**：
 ```
-=== EMS 测试框架 ===
+=== ES-Middleware 测试框架 ===
 请选择测试层级：
 1. OSAL (操作系统抽象层)
 2. HAL (硬件抽象层)
@@ -351,14 +351,14 @@ cat build.log | grep -A 5 "test"
 
 ```bash
 # 运行所有测试
-./build/bin/ems-test -a
-./build/bin/ems-test --all
+./build/bin/es-middleware-test -a
+./build/bin/es-middleware-test --all
 
 # 运行指定层级的测试（方式1：使用参数）
-./build/bin/ems-test -L OSAL    # OSAL层测试
-./build/bin/ems-test -L HAL     # HAL层测试
-./build/bin/ems-test -L PConfig     # PConfig层测试
-./build/bin/ems-test -L PDL     # PDL层测试
+./build/bin/es-middleware-test -L OSAL    # OSAL层测试
+./build/bin/es-middleware-test -L HAL     # HAL层测试
+./build/bin/es-middleware-test -L PConfig     # PConfig层测试
+./build/bin/es-middleware-test -L PDL     # PDL层测试
 
 # 运行指定层级的测试（方式2：使用快捷方式，推荐）
 ./build/bin/osal-test -a        # 运行所有OSAL测试
@@ -367,19 +367,19 @@ cat build.log | grep -A 5 "test"
 ./build/bin/pdl-test -a         # 运行所有PDL测试
 
 # 运行指定模块的测试
-./build/bin/ems-test -m test_osal_version    # 版本测试
-./build/bin/ems-test -m test_osal_atomic     # 原子操作测试
+./build/bin/es-middleware-test -m test_osal_version    # 版本测试
+./build/bin/es-middleware-test -m test_osal_atomic     # 原子操作测试
 ./build/bin/osal-test -m test_osal_version   # 等效于上面，但更简洁
 
 # 列出所有测试
-./build/bin/ems-test -l         # 列出所有层级测试
-./build/bin/ems-test --list
+./build/bin/es-middleware-test -l         # 列出所有层级测试
+./build/bin/es-middleware-test --list
 ./build/bin/osal-test --list    # 仅列出OSAL测试
 ./build/bin/hal-test --list     # 仅列出HAL测试
 
 # 显示帮助信息
-./build/bin/ems-test -h
-./build/bin/ems-test --help
+./build/bin/es-middleware-test -h
+./build/bin/es-middleware-test --help
 ./build/bin/osal-test -h        # 显示OSAL层专用帮助
 ```
 
@@ -577,7 +577,7 @@ python3 build.py config tests_x86_full_defconfig
 python3 build.py build
 
 # 运行测试
-./_build/bin/ems-test -m osal_timer
+./_build/bin/es-middleware-test -m osal_timer
 ```
 
 ### 新系统优势
@@ -812,7 +812,7 @@ cmake ../.. -DBUILD_TESTING=ON
 ```bash
 # 使用Debug模式编译，使用GDB调试
 ./build.sh -d
-gdb --args ./build/bin/ems-test -m test_osal_task
+gdb --args ./build/bin/es-middleware-test -m test_osal_task
 (gdb) run
 (gdb) bt
 ```
@@ -828,7 +828,7 @@ sudo ip link set up vcan0
 **Q: 如何跳过硬件相关测试？**
 ```bash
 # 只运行OSAL层测试（不需要硬件）
-./build/bin/ems-test -L OSAL
+./build/bin/es-middleware-test -L OSAL
 # 或使用快捷方式
 ./build/bin/osal-test -a
 ```

@@ -1,6 +1,6 @@
-# EMS SDK 示例代码
+# ES-Middleware SDK 示例代码
 
-本目录包含 EMS SDK 的示例代码，帮助你快速学习和使用各个模块。
+本目录包含 ES-Middleware SDK 的示例代码，帮助你快速学习和使用各个模块。
 
 ---
 
@@ -154,7 +154,7 @@ gdb ./_build/bin/example_hello_world
 如果示例代码有问题或建议，请：
 
 1. 查看 [故障排除指南](../docs/TROUBLESHOOTING.md)
-2. 提交 [Issue](https://github.com/wanguo99/EMS/issues)
+2. 提交 [Issue](https://github.com/wanguo99/ES-Middleware/issues)
 
 ---
 

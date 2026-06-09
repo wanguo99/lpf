@@ -1,6 +1,6 @@
 # Test Framework Error Handling and Validation
 
-This document describes the enhanced error handling and validation features in the EMS test framework.
+This document describes the enhanced error handling and validation features in the ES-Middleware test framework.
 
 ## Overview
 
@@ -40,7 +40,7 @@ The framework validates:
 **Error message**:
 ```
 WARNING: Test file 'test_osal_mutex.c' found but CONFIG_TEST_OSAL_MUTEX not defined in Kconfig.
-  File: /home/user/EMS/products/tests/unit/osal/test_osal_mutex.c
+  File: /home/user/ES-Middleware/products/tests/unit/osal/test_osal_mutex.c
   Expected config: CONFIG_TEST_OSAL_MUTEX
   Location: products/tests/unit/osal/Kconfig
 
@@ -106,7 +106,7 @@ cp test_osal_mutex.c test_osal_obsolete.c
 **Error message**:
 ```
 WARNING: Test file 'osal_mutex_test.c' does not follow naming convention.
-  File: /home/user/EMS/products/tests/unit/osal/osal_mutex_test.c
+  File: /home/user/ES-Middleware/products/tests/unit/osal/osal_mutex_test.c
   Expected: test_<module>_<name>.c
   Action: Rename the file to match convention, or move to non-test directory.
 ```
@@ -125,7 +125,7 @@ git mv osal_mutex_test.c test_osal_mutex.c
 ```
 WARNING: Test file 'test osal-mutex.c' contains invalid characters.
   Use only: a-z, A-Z, 0-9, underscore
-  Location: /home/user/EMS/products/tests/unit/osal/test osal-mutex.c
+  Location: /home/user/ES-Middleware/products/tests/unit/osal/test osal-mutex.c
 ```
 
 **Solution**:

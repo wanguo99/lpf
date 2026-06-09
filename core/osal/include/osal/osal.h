@@ -1,5 +1,5 @@
 /************************************************************************
- * EMS - Embedded Middleware System
+ * ES-Middleware - Embedded Software - Middleware
  *
  * 轻量化操作系统抽象层
  *

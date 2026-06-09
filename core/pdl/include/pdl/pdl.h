@@ -1,5 +1,5 @@
 /************************************************************************
- * EMS - Embedded Middleware System
+ * ES-Middleware - Embedded Software - Middleware
  *
  * 外设驱动层统一头文件
  *

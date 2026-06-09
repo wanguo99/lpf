@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
 
 # ============================================================================
-# EMS SDK Root CMakeLists.txt
+# ES-Middleware SDK Root CMakeLists.txt
 # ============================================================================
-# This is the unified build entry point for the entire EMS SDK.
+# This is the unified build entry point for the entire ES-Middleware SDK.
 # It builds all enabled products based on Kconfig configuration.
 # ============================================================================
 
@@ -20,7 +20,7 @@ else()
 endif()
 
 # Standard CMake project declaration
-project(ems_sdk C CXX ASM)
+project(es_middleware_sdk C CXX ASM)
 
 # Set global output directories for all targets
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)

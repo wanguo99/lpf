@@ -1,5 +1,5 @@
 # ============================================================================
-# EMS Test Suite CMakeLists.txt
+# ES-Middleware Test Suite CMakeLists.txt
 # ============================================================================
 # This builds the test suite as a special "product".
 # Tests are conditionally compiled based on Kconfig configuration.
@@ -79,26 +79,26 @@ if(CONFIG_OSAL)
 endif()
 
 # ============================================================================
-# Test Executable (ems-test)
+# Test Executable (es-middleware-test)
 # ============================================================================
 # Main entry point + conditionally compiled test cases
 
-add_executable(ems-test
+add_executable(es-middleware-test
     core/main.c
 )
 
 # Link test framework
-target_link_libraries(ems-test PRIVATE
+target_link_libraries(es-middleware-test PRIVATE
     libutest
 )
 
 # Link OSAL (required by test framework)
 if(CONFIG_OSAL)
-    target_link_libraries(ems-test PRIVATE osal)
+    target_link_libraries(es-middleware-test PRIVATE osal)
 endif()
 
 # Add include directories for test cases
-target_include_directories(ems-test PRIVATE
+target_include_directories(es-middleware-test PRIVATE
     ${SDK_PATH}/core/osal/include/osal
     ${SDK_PATH}/core/hal/include/hal
     ${SDK_PATH}/core/pconfig/include/pconfig
@@ -117,7 +117,7 @@ if(CONFIG_TEST_UNIT)
     # OSAL Unit Tests - Auto-discover all test_osal_*.c files
     if(CONFIG_TEST_OSAL)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/osal
             MODULE osal
             LIBRARY osal
@@ -127,7 +127,7 @@ if(CONFIG_TEST_UNIT)
     # HAL Unit Tests - Auto-discover all test_hal_*.c files
     if(CONFIG_TEST_HAL)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/hal
             MODULE hal
             LIBRARY hal
@@ -137,7 +137,7 @@ if(CONFIG_TEST_UNIT)
     # PCL Unit Tests - Auto-discover all test_pcl_*.c files
     if(CONFIG_TEST_PCL)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/pcl
             MODULE pcl
             LIBRARY pconfig
@@ -147,7 +147,7 @@ if(CONFIG_TEST_UNIT)
     # PDL Unit Tests - Auto-discover all test_pdl_*.c files
     if(CONFIG_TEST_PDL)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/pdl
             MODULE pdl
             LIBRARY pdl
@@ -161,7 +161,7 @@ if(CONFIG_TEST_UNIT)
     # PRL Unit Tests - Auto-discover all test_prl_*.c files
     if(CONFIG_TEST_PRL)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/prl
             MODULE prl
             LIBRARY prl
@@ -171,7 +171,7 @@ if(CONFIG_TEST_UNIT)
     # ACONFIG Unit Tests - Auto-discover all test_aconfig_*.c files
     if(CONFIG_TEST_ACONFIG)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/aconfig
             MODULE aconfig
             LIBRARY aconfig
@@ -181,7 +181,7 @@ if(CONFIG_TEST_UNIT)
     # PCONFIG Unit Tests - Auto-discover all test_pconfig_*.c files
     if(CONFIG_TEST_PCONFIG)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/pconfig
             MODULE pconfig
             LIBRARY pconfig
@@ -191,7 +191,7 @@ if(CONFIG_TEST_UNIT)
     # ACL Unit Tests - Auto-discover all test_acl_*.c files
     if(CONFIG_TEST_ACL)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/acl
             MODULE acl
             LIBRARY aconfig
@@ -209,7 +209,7 @@ if(CONFIG_TEST_PERFORMANCE)
 
     # Core performance test file (always included)
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/performance/test_perf_core.c")
-        target_sources(ems-test PRIVATE
+        target_sources(es-middleware-test PRIVATE
             performance/test_perf_core.c
         )
     endif()
@@ -217,7 +217,7 @@ if(CONFIG_TEST_PERFORMANCE)
     # OSAL Performance Tests - Auto-discover all test_perf_osal_*.c files
     if(CONFIG_TEST_PERFORMANCE_OSAL)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/performance/osal
             MODULE perf_osal
             LIBRARY osal
@@ -227,7 +227,7 @@ if(CONFIG_TEST_PERFORMANCE)
     # HAL Performance Tests - Auto-discover all test_perf_hal_*.c files
     if(CONFIG_TEST_PERFORMANCE_HAL)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/performance/hal
             MODULE perf_hal
             LIBRARY hal
@@ -237,7 +237,7 @@ if(CONFIG_TEST_PERFORMANCE)
     # PDL Performance Tests - Auto-discover all test_perf_pdl_*.c files
     if(CONFIG_TEST_PERFORMANCE_PDL)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/performance/pdl
             MODULE perf_pdl
             LIBRARY pdl
@@ -247,7 +247,7 @@ if(CONFIG_TEST_PERFORMANCE)
     # PCL Performance Tests - Auto-discover all test_perf_pcl_*.c files
     if(CONFIG_TEST_PERFORMANCE_PCL)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/performance/pcl
             MODULE perf_pcl
             LIBRARY pconfig
@@ -257,7 +257,7 @@ if(CONFIG_TEST_PERFORMANCE)
     # ACL Performance Tests - Auto-discover all test_perf_acl_*.c files
     if(CONFIG_TEST_PERFORMANCE_ACL)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/performance/acl
             MODULE perf_acl
             LIBRARY aconfig
@@ -275,7 +275,7 @@ if(CONFIG_TEST_STRESS)
 
     # Core stress test file (always included)
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/stress/test_stress_core.c")
-        target_sources(ems-test PRIVATE
+        target_sources(es-middleware-test PRIVATE
             stress/test_stress_core.c
         )
     endif()
@@ -283,7 +283,7 @@ if(CONFIG_TEST_STRESS)
     # OSAL Stress Tests - Auto-discover all test_stress_osal_*.c files
     if(CONFIG_TEST_STRESS_OSAL)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/stress/osal
             MODULE stress_osal
             LIBRARY osal
@@ -293,7 +293,7 @@ if(CONFIG_TEST_STRESS)
     # HAL Stress Tests - Auto-discover all test_stress_hal_*.c files
     if(CONFIG_TEST_STRESS_HAL)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/stress/hal
             MODULE stress_hal
             LIBRARY hal
@@ -303,7 +303,7 @@ if(CONFIG_TEST_STRESS)
     # PDL Stress Tests - Auto-discover all test_stress_pdl_*.c files
     if(CONFIG_TEST_STRESS_PDL)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/stress/pdl
             MODULE stress_pdl
             LIBRARY pdl
@@ -313,7 +313,7 @@ if(CONFIG_TEST_STRESS)
     # PCL Stress Tests - Auto-discover all test_stress_pcl_*.c files
     if(CONFIG_TEST_STRESS_PCL)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/stress/pcl
             MODULE stress_pcl
             LIBRARY pconfig
@@ -323,7 +323,7 @@ if(CONFIG_TEST_STRESS)
     # ACL Stress Tests - Auto-discover all test_stress_acl_*.c files
     if(CONFIG_TEST_STRESS_ACL)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/stress/acl
             MODULE stress_acl
             LIBRARY aconfig
@@ -341,29 +341,29 @@ if(CONFIG_TEST_SYSTEM)
 
     # Core system test file (always included)
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/system/test_system_core.c")
-        target_sources(ems-test PRIVATE
+        target_sources(es-middleware-test PRIVATE
             system/test_system_core.c
         )
     endif()
 
     # System tests need core libraries - link them in correct order (dependencies first)
     if(TARGET osal)
-        target_link_libraries(ems-test PRIVATE osal)
+        target_link_libraries(es-middleware-test PRIVATE osal)
     endif()
     if(TARGET hal)
-        target_link_libraries(ems-test PRIVATE hal)
+        target_link_libraries(es-middleware-test PRIVATE hal)
     endif()
     if(TARGET pdl)
-        target_link_libraries(ems-test PRIVATE pdl)
+        target_link_libraries(es-middleware-test PRIVATE pdl)
     endif()
     if(TARGET prl)
-        target_link_libraries(ems-test PRIVATE prl)
+        target_link_libraries(es-middleware-test PRIVATE prl)
     endif()
 
     # OSAL System Tests - Auto-discover all test_system_osal_*.c files
     if(CONFIG_TEST_SYSTEM_OSAL)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/system/osal
             MODULE system_osal
             # Library already linked at system test level
@@ -378,7 +378,7 @@ if(CONFIG_TEST_SYSTEM)
         list(REMOVE_ITEM HAL_SYSTEM_TEST_FILES
             "${CMAKE_CURRENT_SOURCE_DIR}/system/hal/test_hal_concurrent_access.c")
         if(HAL_SYSTEM_TEST_FILES)
-            target_sources(ems-test PRIVATE ${HAL_SYSTEM_TEST_FILES})
+            target_sources(es-middleware-test PRIVATE ${HAL_SYSTEM_TEST_FILES})
         endif()
 
         # Create separate executable for concurrent access test (has its own main)
@@ -406,7 +406,7 @@ if(CONFIG_TEST_SYSTEM)
     # PDL System Tests - Auto-discover all test_system_pdl_*.c files
     if(CONFIG_TEST_SYSTEM_PDL)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/system/pdl
             MODULE system_pdl
             # Library already linked at system test level
@@ -416,7 +416,7 @@ if(CONFIG_TEST_SYSTEM)
     # PCL System Tests - Auto-discover all test_system_pcl_*.c files
     if(CONFIG_TEST_SYSTEM_PCL)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/system/pcl
             MODULE system_pcl
             LIBRARY pconfig
@@ -426,7 +426,7 @@ if(CONFIG_TEST_SYSTEM)
     # ACL System Tests - Auto-discover all test_system_acl_*.c files
     if(CONFIG_TEST_SYSTEM_ACL)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/system/acl
             MODULE system_acl
             LIBRARY aconfig
@@ -436,7 +436,7 @@ if(CONFIG_TEST_SYSTEM)
     # ACONFIG System Tests - Auto-discover all test_system_aconfig_*.c files
     if(CONFIG_TEST_SYSTEM_ACONFIG)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/system/aconfig
             MODULE system_aconfig
             LIBRARY aconfig
@@ -446,7 +446,7 @@ if(CONFIG_TEST_SYSTEM)
     # PCONFIG System Tests - Auto-discover all test_system_pconfig_*.c files
     if(CONFIG_TEST_SYSTEM_PCONFIG)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/system/pconfig
             MODULE system_pconfig
             LIBRARY pconfig
@@ -456,7 +456,7 @@ if(CONFIG_TEST_SYSTEM)
     # Integration Tests - Auto-discover all test_system_integration_*.c files
     if(CONFIG_TEST_INTEGRATION)
         test_discover_and_add(
-            TARGET ems-test
+            TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/system/integration
             MODULE system_integration
             # Libraries already linked at system test level
@@ -470,7 +470,7 @@ endif() # CONFIG_TEST_SYSTEM
 # ============================================================================
 
 # Link pthread and rt for threading tests
-target_link_libraries(ems-test PRIVATE
+target_link_libraries(es-middleware-test PRIVATE
     pthread
     rt
     m
@@ -479,11 +479,11 @@ target_link_libraries(ems-test PRIVATE
 # Force re-link osal at the end to resolve symbols
 # This ensures OSAL symbols are available for all tests
 if(TARGET osal)
-    target_link_libraries(ems-test PRIVATE osal)
+    target_link_libraries(es-middleware-test PRIVATE osal)
 endif()
 
 # Set output directory
-set_target_properties(ems-test PROPERTIES
+set_target_properties(es-middleware-test PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
 )
 
@@ -491,7 +491,7 @@ set_target_properties(ems-test PROPERTIES
 # Installation
 # ============================================================================
 
-install(TARGETS ems-test
+install(TARGETS es-middleware-test
     RUNTIME DESTINATION bin
 )
 

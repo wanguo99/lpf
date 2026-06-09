@@ -222,10 +222,10 @@ def refactor_test_file(filepath):
 def main():
     # 测试文件目录
     test_dirs = [
-        '/home/wanguo/EMS/products/tests/unit',
-        '/home/wanguo/EMS/products/tests/performance',
-        '/home/wanguo/EMS/products/tests/stress',
-        '/home/wanguo/EMS/products/tests/system'
+        '/home/wanguo/ES-Middleware/products/tests/unit',
+        '/home/wanguo/ES-Middleware/products/tests/performance',
+        '/home/wanguo/ES-Middleware/products/tests/stress',
+        '/home/wanguo/ES-Middleware/products/tests/system'
     ]
 
     total_files = 0

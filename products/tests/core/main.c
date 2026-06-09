@@ -2,7 +2,7 @@
  * @file main.c
  * @brief Unified test runner - Busybox-style main entry point
  *
- * Supports both direct invocation (ems-test) and symlink invocation
+ * Supports both direct invocation (es-middleware-test) and symlink invocation
  * (osal-test, hal-test, pcl-test, pdl-test)
  */
 
@@ -43,7 +43,7 @@ static const char *detect_layer_filter(const char *program_name)
     } else if (0 == OSAL_strcmp(program_name, "pdl-test")) {
         return "PDL";
     }
-    return NULL;  /* ems-test: no filter */
+    return NULL;  /* es-middleware-test: no filter */
 }
 
 /**
@@ -51,10 +51,10 @@ static const char *detect_layer_filter(const char *program_name)
  */
 static void print_usage(const char *program_name)
 {
-    OSAL_Printf("\nEMS Test Runner (Busybox-style)\n");
-    OSAL_Printf("================================\n\n");
+    OSAL_Printf("\nES-Middleware Test Runner (Busybox-style)\n");
+    OSAL_Printf("==========================================\n\n");
 
-    if (0 == OSAL_strcmp(program_name, "ems-test")) {
+    if (0 == OSAL_strcmp(program_name, "es-middleware-test")) {
         OSAL_Printf("Usage: %s [options]\n\n", program_name);
         OSAL_Printf("Options:\n");
         OSAL_Printf("  -a, --all              Run all tests\n");
@@ -94,7 +94,7 @@ static void print_usage(const char *program_name)
         /* Invoked via symlink */
         const char *layer = detect_layer_filter(program_name);
         OSAL_Printf("Usage: %s [options]\n\n", program_name);
-        OSAL_Printf("This is a symlink to ems-test, filtered for %s layer tests.\n\n", layer);
+        OSAL_Printf("This is a symlink to es-middleware-test, filtered for %s layer tests.\n\n", layer);
         OSAL_Printf("Options:\n");
         OSAL_Printf("  -a, --all              Run all %s tests\n", layer);
         OSAL_Printf("  -s <suite>             Run specific test suite\n");

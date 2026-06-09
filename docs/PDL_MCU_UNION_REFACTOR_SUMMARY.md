@@ -221,7 +221,7 @@ Output directory: /home/wanguo/EMS/_build
 ### 3.2 测试验证
 
 ```bash
-$ ./bin/ems-test -L PDL
+$ ./bin/es-middleware-test -L PDL
 95 tests from layer PDL ran (5 ms total)
 [ PASSED   ] 49 tests
 [ FAILED   ] 46 tests

@@ -7,7 +7,7 @@
 #### A. Extended `test_core.h`
 - Added `auto_test_case_t` structure for linker section-based test case collection
 - This structure enables future automatic test case discovery using linker sections
-- **File**: `/home/wanguo/EMS/products/tests/include/test_core.h`
+- **File**: `/home/wanguo/ES-Middleware/products/tests/include/test_core.h`
 
 #### B. Enhanced `test_framework.h`
 Added comprehensive simplified registration macros:
@@ -31,33 +31,33 @@ Added comprehensive simplified registration macros:
 
 ### 2. Example Files Created
 
-#### A. `/home/wanguo/EMS/products/tests/examples/test_example_simplified.c`
+#### A. `/home/wanguo/ES-Middleware/products/tests/examples/test_example_simplified.c`
 **Recommended approach** - demonstrates the simplified registration workflow:
 - Reduces boilerplate by ~60% compared to traditional approach
 - Uses `TEST_CASE_ENTRY()` macro for clean test case arrays
 - Single-line registration with `TEST_SUITE_REGISTER()`
 - Includes real-world thread synchronization tests
 
-#### B. `/home/wanguo/EMS/products/tests/examples/test_example_with_fixture.c`
+#### B. `/home/wanguo/ES-Middleware/products/tests/examples/test_example_with_fixture.c`
 Comprehensive fixture (setup/teardown) example:
 - Shows per-case fixtures with `TEST_CASE_ENTRY_WITH_FIXTURE()`
 - Documents best practices for resource management
 - Explains suite-level vs case-level fixtures
 - Includes error handling patterns
 
-#### C. `/home/wanguo/EMS/products/tests/examples/test_example_simple_auto.c`
+#### C. `/home/wanguo/ES-Middleware/products/tests/examples/test_example_simple_auto.c`
 Transition approach showing manual array construction:
 - Bridge between old and new APIs
 - Documents the evolution path
 - Useful for understanding the simplification
 
-#### D. `/home/wanguo/EMS/products/tests/examples/test_example_minimal.c`
+#### D. `/home/wanguo/ES-Middleware/products/tests/examples/test_example_minimal.c`
 Theoretical implementation with linker section approach:
 - Documents the full auto-registration design
 - Explains linker section requirements
 - Provides roadmap for future complete automation
 
-#### E. `/home/wanguo/EMS/products/tests/examples/README.md`
+#### E. `/home/wanguo/ES-Middleware/products/tests/examples/README.md`
 Comprehensive documentation covering:
 - Quick start guide with code examples
 - API comparison (old vs new)

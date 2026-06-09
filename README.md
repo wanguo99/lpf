@@ -1,6 +1,6 @@
-# EMS SDK
+# ES-Middleware SDK
 
-EMS (Embedded Management System) 是一个采用 **Kconfig + CMake** 混合构建系统的嵌入式软件开发框架。
+ES-Middleware (Embedded Software - Middleware) 是一个采用 **Kconfig + CMake** 混合构建系统的嵌入式软件开发框架。
 
 ## ✨ 特性
 
@@ -26,8 +26,8 @@ brew install cmake python3 ncurses flex bison
 ### 2. 获取代码
 
 ```bash
-git clone https://github.com/wanguo99/EMS.git
-cd EMS
+git clone https://github.com/wanguo99/ES-Middleware.git
+cd ES-Middleware
 ```
 
 ### 3. 编译第一个示例
@@ -78,7 +78,7 @@ python3 build.py build
 ## 📂 项目结构
 
 ```
-EMS/
+ES-Middleware/
 ├── core/                     # 核心模块（可复用）
 │   ├── osal/                # 操作系统抽象层
 │   ├── hal/                 # 硬件抽象层
@@ -230,7 +230,7 @@ python3 build.py build       # 重新编译
 
 遇到问题？
 1. 查看 [故障排除指南](docs/TROUBLESHOOTING.md)
-2. 搜索 [Issues](https://github.com/wanguo99/EMS/issues)
+2. 搜索 [Issues](https://github.com/wanguo99/ES-Middleware/issues)
 3. 提交新的 Issue
 
 ## 📄 许可证
@@ -250,4 +250,4 @@ python3 build.py build       # 重新编译
 
 **文档**: 完整文档请访问 [docs/](docs/) 目录
 
-**更新日志**: 查看 [Git 提交历史](https://github.com/wanguo99/EMS/commits/master)
+**更新日志**: 查看 [Git 提交历史](https://github.com/wanguo99/ES-Middleware/commits/master)

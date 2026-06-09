@@ -59,9 +59,9 @@ static void log_printf(const char *fmt, ...)
 static void open_test_log(void)
 {
     if (g_test_log_fd < 0) {
-        g_test_log_fd = OSAL_open("/tmp/ems_test.log", OSAL_O_WRONLY | OSAL_O_CREAT | OSAL_O_TRUNC, 0644);
+        g_test_log_fd = OSAL_open("/tmp/es_middleware_test.log", OSAL_O_WRONLY | OSAL_O_CREAT | OSAL_O_TRUNC, 0644);
         if (g_test_log_fd >= 0) {
-            OSAL_Printf("Test log: /tmp/ems_test.log\n\n");
+            OSAL_Printf("Test log: /tmp/es_middleware_test.log\n\n");
         }
     }
 }

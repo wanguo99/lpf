@@ -400,7 +400,7 @@ python3 products/tests/scripts/validate_test_config.py \
 # 5. Build and test
 python3 build.py menuconfig  # Enable CONFIG_TEST_OSAL_NEW_FEATURE
 python3 build.py build
-./_build/bin/ems-test
+./_build/bin/es-middleware-test
 ```
 
 ## Workflow: Refactoring Test Structure

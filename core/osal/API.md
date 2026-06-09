@@ -452,7 +452,7 @@ void print_version_info(void);
 
 **输出**:
 ```
-=== EMS Version Information ===
+=== ES-Middleware Version Information ===
 Version:      1.0.0
 Build Date:   2026-05-28
 Build Time:   18:00:00

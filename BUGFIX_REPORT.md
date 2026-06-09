@@ -1,8 +1,8 @@
-# EMS SDK Bug修复报告
+# ES-Middleware SDK Bug修复报告
 
 ## 概述
 
-本次修复针对EMS SDK审计报告中的Critical (P0) 和 High (P1) 优先级问题进行了系统性修复。
+本次修复针对ES-Middleware SDK审计报告中的Critical (P0) 和 High (P1) 优先级问题进行了系统性修复。
 
 修复时间：2026年
 修复范围：core/osal, core/hal, core/pdl, core/pconfig

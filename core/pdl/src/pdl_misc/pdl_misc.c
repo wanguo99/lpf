@@ -58,7 +58,7 @@ static bool pdl_misc_validate_hwid(const pdl_hwid_t *hwid)
  * 实际实现建议：
  * - Linux: 从设备树 /proc/device-tree/hardware-id 读取
  * - RTOS: 从 EEPROM、OTP 或固定地址读取
- * - 测试: 从环境变量 EMS_HWID 读取
+ * - 测试: 从环境变量 ES_MIDDLEWARE_HWID 读取
  */
 int32_t PDL_MISC_GetHWID(pdl_hwid_t *hwid)
 {
@@ -68,9 +68,9 @@ int32_t PDL_MISC_GetHWID(pdl_hwid_t *hwid)
 
     /* TODO: 实际实现时需要根据平台读取真实HWID */
 
-#ifdef EMS_PLATFORM_LINUX
+#ifdef ES_MIDDLEWARE_PLATFORM_LINUX
     /* Linux平台：尝试从环境变量读取，用于测试 */
-    const char *hwid_env = OSAL_GetEnv("EMS_HWID");
+    const char *hwid_env = OSAL_GetEnv("ES_MIDDLEWARE_HWID");
 
     if (hwid_env != NULL) {
         /* TODO: 从环境变量解析 HWID 结构体 */

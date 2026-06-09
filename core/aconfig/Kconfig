@@ -8,7 +8,7 @@ menuconfig ACL
 	  Application Configuration Layer provides business logic to hardware
 	  device mapping and high-level application APIs.
 
-	  ACL is the top layer of the EMS SDK stack, providing:
+	  ACL is the top layer of the ES-Middleware SDK stack, providing:
 	  - Business function abstraction (telemetry, commands, data storage)
 	  - Device-to-function mapping (which sensor provides which telemetry)
 	  - Application-level APIs (hide hardware complexity)

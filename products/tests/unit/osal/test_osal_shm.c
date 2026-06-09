@@ -7,7 +7,7 @@
 
 /* 测试多进程场景需要使用fork，使用OSAL封装接口 */
 
-#define TEST_SHM_NAME   "/ems_test_shm"
+#define TEST_SHM_NAME   "/es_middleware_test_shm"
 #define TEST_SHM_SIZE   4096
 
 /* 测试数据结构 */

@@ -2,7 +2,7 @@
 
 ## 1. 概述
 
-PRL（Protocol Layer，协议层）是 EMS SDK 的核心协议层，为不同外设之间的通信提供统一的协议定义和编解码功能。
+PRL（Protocol Layer，协议层）是 ES-Middleware SDK 的核心协议层，为不同外设之间的通信提供统一的协议定义和编解码功能。
 
 ### 1.1 设计目标
 

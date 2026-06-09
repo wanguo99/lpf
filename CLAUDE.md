@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-EMS (Embedded Management System) 是一个采用 **Kconfig + CMake** 混合构建系统的嵌入式软件项目。
+ES-Middleware (Embedded Software - Middleware) 是一个采用 **Kconfig + CMake** 混合构建系统的嵌入式软件项目。
 
 **架构总览**：参见 [系统架构文档](docs/ARCHITECTURE.md) 和 [架构图集](docs/diagrams/)
 
@@ -29,7 +29,7 @@ python3 build.py build
 # 3. 运行测试（统一测试程序）
 python3 build.py config tests_x86_full_defconfig  # 或其他 tests_* 配置
 python3 build.py build
-./_build/bin/ems-test                              # 运行所有启用的测试
+./_build/bin/es-middleware-test                    # 运行所有启用的测试
 ```
 
 ### 构建流程
@@ -49,7 +49,7 @@ python3 build.py clean      # 清理编译产物
 python3 build.py distclean  # 完全清理（包括配置）
 
 # 4. 运行测试
-./_build/bin/ems-test       # 运行统一测试程序（根据 Kconfig 配置运行相应测试）
+./_build/bin/es-middleware-test       # 运行统一测试程序（根据 Kconfig 配置运行相应测试）
 
 # 方式二：图形化配置（高级用户）
 python3 build.py menuconfig  # 打开 Kconfig 图形界面
@@ -69,7 +69,7 @@ cmake --build build-cmake -j$(nproc)
 ### 目录结构
 
 ```
-EMS/
+ES-Middleware/
 ├── core/                   # 核心模块（可复用组件）
 │   ├── aconfig/           # 应用配置层（业务功能到硬件设备映射）
 │   ├── hal/               # 硬件抽象层（CAN、UART、I2C、SPI、GPIO 等）

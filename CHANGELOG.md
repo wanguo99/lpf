@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to EMS SDK will be documented in this file.
+All notable changes to ES-Middleware SDK will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🎉 首次正式发布
 
-这是 EMS SDK 的第一个正式版本，包含完整的核心功能和文档。
+这是 ES-Middleware SDK 的第一个正式版本，包含完整的核心功能和文档。
 
 ### Added - 新增功能
 
@@ -208,10 +208,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 链接
 
-- [项目主页](https://github.com/wanguo99/EMS)
-- [问题反馈](https://github.com/wanguo99/EMS/issues)
-- [发布页面](https://github.com/wanguo99/EMS/releases)
-- [文档](https://github.com/wanguo99/EMS/tree/master/docs)
+- [项目主页](https://github.com/wanguo99/ES-Middleware)
+- [问题反馈](https://github.com/wanguo99/ES-Middleware/issues)
+- [发布页面](https://github.com/wanguo99/ES-Middleware/releases)
+- [文档](https://github.com/wanguo99/ES-Middleware/tree/master/docs)
 
 ---
 

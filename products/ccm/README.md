@@ -25,7 +25,7 @@ CCM 产品线包含多个型号，每个型号启用不同的应用组合。
 ### 1. 选择产品配置
 
 ```bash
-cd /home/wanguo/EMS/products/ccm_product
+cd /home/wanguo/ES-Middleware/products/ccm_product
 
 # 加载 H200-100P V1 配置
 cp configs/h200_100p_v1_defconfig .config.mk

@@ -45,7 +45,7 @@ from collections import defaultdict
 
 
 def get_project_root() -> Path:
-    """Get the EMS project root directory."""
+    """Get the ES-Middleware project root directory."""
     script_dir = Path(__file__).resolve().parent
     return script_dir.parent.parent.parent
 

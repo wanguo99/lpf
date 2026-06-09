@@ -417,18 +417,18 @@ endfunction()
 #
 # 1. Replace this:
 #    if(CONFIG_TEST_OSAL)
-#        target_sources(ems-test PRIVATE
+#        target_sources(es-middleware-test PRIVATE
 #            unit/osal/test_osal_mutex.c
 #            unit/osal/test_osal_thread.c
 #            # ... 17 more files ...
 #        )
-#        target_link_libraries(ems-test PRIVATE osal)
+#        target_link_libraries(es-middleware-test PRIVATE osal)
 #    endif()
 #
 # 2. With this:
 #    if(CONFIG_TEST_OSAL)
 #        test_discover_and_add(
-#            TARGET ems-test
+#            TARGET es-middleware-test
 #            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/osal
 #            MODULE osal
 #            LIBRARY osal
@@ -438,7 +438,7 @@ endfunction()
 # 3. Or use the category-level function:
 #    if(CONFIG_TEST_UNIT)
 #        test_discover_category(
-#            TARGET ems-test
+#            TARGET es-middleware-test
 #            CATEGORY "unit"
 #            MODULES osal hal pdl prl pconfig aconfig
 #        )

@@ -10,13 +10,13 @@ Export test results in JUnit XML format for CI integration:
 
 ```bash
 # Run all tests and export to JUnit XML
-ems-test -a --format junit --output test-results.xml
+es-middleware-test -a --format junit --output test-results.xml
 
 # Run specific layer tests with JUnit output
-ems-test -L OSAL --format junit --output osal-results.xml
+es-middleware-test -L OSAL --format junit --output osal-results.xml
 
 # Run only fast tests with JUnit output
-ems-test -a --fast --format junit --output fast-results.xml
+es-middleware-test -a --fast --format junit --output fast-results.xml
 ```
 
 **Supported CI Systems:**
@@ -33,7 +33,7 @@ Export test results in JSON format for automation and custom tooling:
 
 ```bash
 # Run all tests and export to JSON
-ems-test -a --format json --output test-results.json
+es-middleware-test -a --format json --output test-results.json
 
 # JSON format includes:
 # - Summary statistics (total, passed, failed, timing)
@@ -114,7 +114,7 @@ See `.github/workflows/test.yml` for complete configuration.
 ```yaml
 - name: Run tests
   run: |
-    ./_build/bin/ems-test -a --format junit --output test-results.xml
+    ./_build/bin/es-middleware-test -a --format junit --output test-results.xml
 
 - name: Publish test results
   uses: EnricoMi/publish-unit-test-result-action@v2
@@ -129,7 +129,7 @@ See `.gitlab-ci.yml` for complete configuration.
 ```yaml
 test:unit:
   script:
-    - _build/bin/ems-test -a --format junit --output test-results.xml
+    - _build/bin/es-middleware-test -a --format junit --output test-results.xml
   artifacts:
     reports:
       junit: test-results.xml
@@ -142,7 +142,7 @@ pipeline {
     stages {
         stage('Test') {
             steps {
-                sh './_build/bin/ems-test -a --format junit --output test-results.xml'
+                sh './_build/bin/es-middleware-test -a --format junit --output test-results.xml'
             }
         }
     }
@@ -158,36 +158,36 @@ pipeline {
 
 ### Run all tests with full reporting
 ```bash
-ems-test -a --format junit --output results.xml
+es-middleware-test -a --format junit --output results.xml
 ```
 
 ### Run fast tests for quick feedback
 ```bash
-ems-test -a --fast --format junit --output fast-results.xml
+es-middleware-test -a --fast --format junit --output fast-results.xml
 ```
 
 ### Run specific layer with JSON export
 ```bash
-ems-test -L OSAL --format json --output osal-results.json
+es-middleware-test -L OSAL --format json --output osal-results.json
 ```
 
 ### Run tests without hardware requirements (CI-friendly)
 ```bash
-ems-test -a --exclude-hardware --format junit --output ci-results.xml
+es-middleware-test -a --exclude-hardware --format junit --output ci-results.xml
 ```
 
 ### Run unit tests only
 ```bash
-ems-test -a --category unit --format junit --output unit-results.xml
+es-middleware-test -a --category unit --format junit --output unit-results.xml
 ```
 
 ### Multiple output formats
 ```bash
 # Text output to console, XML for CI
-ems-test -a --format junit --output results.xml
+es-middleware-test -a --format junit --output results.xml
 
 # JSON for analysis, text for debugging
-ems-test -a --format json --output results.json
+es-middleware-test -a --format json --output results.json
 ```
 
 ## API Reference

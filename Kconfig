@@ -1,14 +1,14 @@
 # ============================================================================
-# EMS SDK Root Configuration
+# ES-Middleware SDK Root Configuration
 # ============================================================================
-# This is the root Kconfig file for the entire EMS SDK.
+# This is the root Kconfig file for the entire ES-Middleware SDK.
 # It provides a unified configuration interface for:
 #   - Product selection (which products to build)
 #   - Core components configuration (OSAL, HAL, PCL, PDL, ACL)
 #   - Product-specific configurations
 # ============================================================================
 
-mainmenu "EMS SDK Configuration"
+mainmenu "ES-Middleware SDK Configuration"
 
 # ============================================================================
 # Configuration Templates (Quick Start)
@@ -160,7 +160,7 @@ config PRODUCT_SAMPLE
 	  Enable Sample product (demonstration and template).
 
 	  Sample product provides a minimal working example showing
-	  how to structure a product using the EMS SDK framework.
+	  how to structure a product using the ES-Middleware SDK framework.
 
 	  Useful for learning and as a starting point for new products.
 

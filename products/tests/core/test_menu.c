@@ -510,7 +510,7 @@ int32_t libutest_interactive_menu_filtered(const test_filter_t *filter)
     }
 
     OSAL_Printf("\n========================================\n");
-    OSAL_Printf("  EMS Unit Test Framework\n");
+    OSAL_Printf("  ES-Middleware Unit Test Framework\n");
     OSAL_Printf("  Total: %u suites, %u tests\n", suite_count, count_total_tests(all_suites, suite_count));
     if (filter && filter->enabled) {
         OSAL_Printf("  Filtered: %u suites, %u tests\n", visible_suite_count, visible_test_count);

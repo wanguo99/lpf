@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-EMS SDK Root Build Script
+ES-Middleware SDK Root Build Script
 Unified build entry point for all products
 """
 
@@ -42,7 +42,7 @@ def menuconfig():
     """打开 menuconfig 配置界面"""
     root_dir = Path(__file__).parent
 
-    print("Opening menuconfig for EMS SDK")
+    print("Opening menuconfig for ES-Middleware SDK")
     print(f"SDK directory: {root_dir}")
     print()
 
@@ -201,7 +201,7 @@ def build(config=None, build_dir="_build", clean=False, jobs=None, verbose=False
             print("\nBuild cancelled.")
             return False
 
-    print("Building EMS SDK...")
+    print("Building ES-Middleware SDK...")
 
     # 配置 CMake
     build_path.mkdir(exist_ok=True)
@@ -254,7 +254,7 @@ def list_all():
 
 def main():
     parser = argparse.ArgumentParser(
-        description="EMS SDK Build Tool",
+        description="ES-Middleware SDK Build Tool",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
