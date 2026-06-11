@@ -64,7 +64,7 @@ _build_internal:
 	@if [ ! -f "$(BUILD_DIR)/Makefile" ]; then \
 		echo "  CMAKE     $(BUILD_DIR)"; \
 		mkdir -p $(BUILD_DIR); \
-		cd $(BUILD_DIR) && $(CMAKE) .. >/dev/null; \
+		cd $(BUILD_DIR) && $(CMAKE) ..; \
 	fi
 	@$(MAKE) -C $(BUILD_DIR) $(PARALLEL_BUILD)
 
