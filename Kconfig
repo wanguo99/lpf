@@ -153,16 +153,16 @@ config PRODUCT_CCM
 
 	  If unsure, say N.
 
-config PRODUCT_SAMPLE
-	bool "Sample Product"
-	default n
-	help
-	  Enable Sample product (demonstration and template).
-
-	  Sample product provides a minimal working example showing
-	  how to structure a product using the ES-Middleware SDK framework.
-
-	  Useful for learning and as a starting point for new products.
+# config PRODUCT_SAMPLE
+# 	bool "Sample Product"
+# 	default n
+# 	help
+# 	  Enable Sample product (demonstration and template).
+#
+# 	  Sample product provides a minimal working example showing
+# 	  how to structure a product using the ES-Middleware SDK framework.
+#
+# 	  Useful for learning and as a starting point for new products.
 
 endmenu
 
@@ -239,9 +239,9 @@ if PRODUCT_CCM
 	source "products/ccm/Kconfig"
 endif
 
-if PRODUCT_SAMPLE
-	source "products/sample/Kconfig"
-endif
+# if PRODUCT_SAMPLE
+# 	osource "products/sample/Kconfig"
+# endif
 
 endmenu
 
