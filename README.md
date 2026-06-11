@@ -10,7 +10,6 @@ ES-Middleware (Embedded Software - Middleware) 是一个采用 **Kconfig + CMake
 - 📦 **多产品支持**: 一套代码支持多个产品变体
 - 🔧 **跨平台**: 支持 Linux/RTOS/Bare-metal
 - 📋 **场景化配置**: 提供开发、生产、测试等多种预定义配置
-- ⚡ **零 Python 依赖**: 纯 CMake + Make 工作流，适合嵌入式环境
 
 ## 🚀 快速开始
 
@@ -23,8 +22,6 @@ sudo apt-get install build-essential cmake libncurses-dev
 # macOS
 brew install cmake ncurses
 ```
-
-**注意**: 无需安装 Python！构建系统完全基于 CMake + Make。
 
 ### 2. 获取代码
 
