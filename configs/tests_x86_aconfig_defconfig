@@ -13,14 +13,18 @@ CONFIG_ARCH_X86_64=y
 CONFIG_PLATFORM_LINUX=y
 CONFIG_PROJECT_H200_AM625=y
 
-# Core Components - OSAL + PCONFIG + ACL
+# Core Components - OSAL + PDL + PCONFIG + ACL
 CONFIG_OSAL=y
 CONFIG_TYPES=y
+CONFIG_HAL=y
+CONFIG_PDL=y
 CONFIG_PCONFIG=y
 CONFIG_ACL=y
 
 # Build Configuration
 CONFIG_OSAL_BUILD_SHARED=y
+CONFIG_HAL_BUILD_SHARED=y
+CONFIG_PDL_BUILD_STATIC=y
 CONFIG_PCONFIG_BUILD_SHARED=y
 CONFIG_ACONFIG_BUILD_SHARED=y
 
@@ -76,11 +80,12 @@ CONFIG_TEST_ACONFIG_API=y
 # Products - All Disabled
 # CONFIG_PRODUCT_CCM is not set
 
-# HAL - Disabled
-# CONFIG_HAL is not set
+# HAL - Minimal (required by PDL)
+CONFIG_HAL_CAN=y
+CONFIG_HAL_UART=y
 
-# PDL - Disabled
-# CONFIG_PDL is not set
+# PDL - Minimal (required by ACONFIG for hwid types)
+CONFIG_PDL_MISC_SUPPORT=y
 
 # PRL - Disabled
 # CONFIG_PRL is not set

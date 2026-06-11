@@ -1,0 +1,189 @@
+=== Step 1: Clean ===
+  CLEAN     _build
+  CLEAN     .config
+=== Step 2: Configure ===
+  DEFCONFIG tests_x86_pdl_defconfig
+=== Step 3: Build ===
+  CMAKE     _build
+-- SDK_PATH: /home/wanguo/CSPD/ES-Middleware
+-- Building Kconfig tools...
+-- ncurses found - mconf/nconf will be available
+-- Configuring kconfig tools in /home/wanguo/CSPD/ES-Middleware/_build/kconfig-tools-build
+-- Building conf tool...
+-- Built conf: /home/wanguo/CSPD/ES-Middleware/_build/kconfig-tools-build/conf
+-- Built mconf: /home/wanguo/CSPD/ES-Middleware/_build/kconfig-tools-build/mconf
+-- Built nconf: /home/wanguo/CSPD/ES-Middleware/_build/kconfig-tools-build/nconf
+-- Kconfig tools built successfully:
+--   conf:  /home/wanguo/CSPD/ES-Middleware/_build/kconfig-tools-build/conf
+--   mconf: /home/wanguo/CSPD/ES-Middleware/_build/kconfig-tools-build/mconf
+--   nconf: /home/wanguo/CSPD/ES-Middleware/_build/kconfig-tools-build/nconf
+-- Kconfig.cmake loaded (Native Buildroot tools backend)
+-- Loading Kconfig from: /home/wanguo/CSPD/ES-Middleware/.config
+-- Generated autoconf.h and kconfig.cmake
+-- Loaded 111 Kconfig symbols from .config
+-- Loaded CMake Kconfig: /home/wanguo/CSPD/ES-Middleware/_build/config/kconfig.cmake
+-- Created target: menuconfig (using mconf)
+-- Created target: nconfig (using nconf)
+-- Created target: savedefconfig
+-- Created target: oldconfig
+-- Created target: list_defconfigs
+-- Kconfig configuration:
+--   Backend: TRUE
+--   Kconfig: /home/wanguo/CSPD/ES-Middleware/Kconfig
+--   Config: /home/wanguo/CSPD/ES-Middleware/.config
+--   autoconf.h: /home/wanguo/CSPD/ES-Middleware/_build/config/autoconf.h
+--   kconfig.cmake: /home/wanguo/CSPD/ES-Middleware/_build/config/kconfig.cmake
+-- The C compiler identification is GNU 13.3.0
+-- The CXX compiler identification is GNU 13.3.0
+-- The ASM compiler identification is GNU
+-- Found assembler: /usr/bin/cc
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- SDK_PATH:/home/wanguo/CSPD/ES-Middleware
+-- PROJECT_PATH:/home/wanguo/CSPD/ES-Middleware
+-- Auto-including kconfig header: /home/wanguo/CSPD/ES-Middleware/_build/config/autoconf.h
+-- Generated build info headers (no Python required)
+-- Building test suite (as test product)
+-- OSAL: Selected 27 source files for compilation
+-- [register component: osal ], path:/home/wanguo/CSPD/ES-Middleware/core/osal
+-- component osal will compiled to dynamic lib
+-- HAL: Selected 6 driver source files for compilation
+-- [register component: hal ], path:/home/wanguo/CSPD/ES-Middleware/core/hal
+-- component hal will compiled to dynamic lib
+-- [register component: pconfig ], path:/home/wanguo/CSPD/ES-Middleware/core/pconfig
+-- component pconfig will compiled to static lib
+-- [register component: pdl ], path:/home/wanguo/CSPD/ES-Middleware/core/pdl
+-- component pdl will compiled to dynamic lib
+-- [register component: prl ], path:/home/wanguo/CSPD/ES-Middleware/core/prl
+-- component prl will compiled to dynamic lib
+-- Enabling unit tests
+--   pdl: 5/5 tests enabled
+--     Enabled: test_pdl_bmc, test_pdl_bmc_protocol, test_pdl_mcu, test_pdl_satellite, test_pdl_watchdog
+-- Test suite configuration complete
+-- Configuring done (9.2s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/wanguo/CSPD/ES-Middleware/_build
+make[1]: warning: -j96 forced in submake: resetting jobserver mode.
+make[1]: Entering directory '/home/wanguo/CSPD/ES-Middleware/_build'
+make[2]: Entering directory '/home/wanguo/CSPD/ES-Middleware/_build'
+make[3]: Entering directory '/home/wanguo/CSPD/ES-Middleware/_build'
+make[3]: Leaving directory '/home/wanguo/CSPD/ES-Middleware/_build'
+make[3]: Entering directory '/home/wanguo/CSPD/ES-Middleware/_build'
+[  1%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/ipc/osal_atomic.c.o
+[  2%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/common/osal_version.c.o
+[  4%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/ipc/osal_semaphore.c.o
+[  5%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/ipc/osal_mutex.c.o
+[  6%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/lib/osal_heap.c.o
+[  8%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/lib/osal_errno.c.o
+[  9%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/ipc/osal_shm.c.o
+[ 10%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/sys/osal_clock.c.o
+[ 12%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/lib/osal_stdio.c.o
+[ 13%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/ipc/osal_cond.c.o
+[ 14%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/ipc/osal_shm_cache.c.o
+[ 16%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/lib/osal_flock.c.o
+[ 17%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/lib/osal_string.c.o
+[ 18%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/sys/osal_env.c.o
+[ 20%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/sys/osal_sched.c.o
+[ 21%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/sys/osal_process.c.o
+[ 22%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/sys/osal_poll.c.o
+[ 24%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/sys/osal_file.c.o
+[ 25%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/sys/osal_time.c.o
+[ 27%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/sys/osal_thread.c.o
+[ 29%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/net/osal_termios.c.o
+[ 29%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/net/osal_socket.c.o
+[ 31%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/sys/osal_select.c.o
+[ 32%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/sys/osal_signal.c.o
+[ 33%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/util/osal_log.c.o
+[ 35%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/posix/util/osal_version.c.o
+[ 36%] Building C object products/tests/osal/CMakeFiles/osal.dir/src/osal_crc.c.o
+[ 37%] Linking C shared library ../../../lib/libosal.so
+make[3]: Leaving directory '/home/wanguo/CSPD/ES-Middleware/_build'
+[ 37%] Built target osal
+make[3]: Entering directory '/home/wanguo/CSPD/ES-Middleware/_build'
+make[3]: Entering directory '/home/wanguo/CSPD/ES-Middleware/_build'
+make[3]: Entering directory '/home/wanguo/CSPD/ES-Middleware/_build'
+make[3]: Leaving directory '/home/wanguo/CSPD/ES-Middleware/_build'
+make[3]: Leaving directory '/home/wanguo/CSPD/ES-Middleware/_build'
+make[3]: Leaving directory '/home/wanguo/CSPD/ES-Middleware/_build'
+make[3]: Entering directory '/home/wanguo/CSPD/ES-Middleware/_build'
+make[3]: Entering directory '/home/wanguo/CSPD/ES-Middleware/_build'
+make[3]: Entering directory '/home/wanguo/CSPD/ES-Middleware/_build'
+[ 39%] Building C object products/tests/hal/CMakeFiles/hal.dir/src/linux/spi/hal_spi_linux.c.o
+[ 40%] Building C object products/tests/hal/CMakeFiles/hal.dir/src/linux/can/hal_can_linux.c.o
+[ 41%] Building C object products/tests/CMakeFiles/libutest.dir/core/test_registry.c.o
+[ 44%] Building C object products/tests/hal/CMakeFiles/hal.dir/src/linux/gpio/hal_gpio_linux.c.o
+[ 44%] Building C object products/tests/CMakeFiles/libutest.dir/core/test_runner.c.o
+[ 45%] Building C object products/tests/CMakeFiles/libutest.dir/core/test_menu.c.o
+[ 47%] Building C object products/tests/prl/CMakeFiles/prl.dir/src/prl_common.c.o
+[ 50%] Building C object products/tests/CMakeFiles/libutest.dir/core/test_mock.c.o
+[ 50%] Building C object products/tests/hal/CMakeFiles/hal.dir/src/linux/i2c/hal_i2c_linux.c.o
+[ 51%] Building C object products/tests/hal/CMakeFiles/hal.dir/src/linux/serial/hal_serial_linux.c.o
+[ 52%] Building C object products/tests/prl/CMakeFiles/prl.dir/src/prl_device.c.o
+[ 54%] Building C object products/tests/CMakeFiles/libutest.dir/core/test_reporter.c.o
+[ 55%] Building C object products/tests/prl/CMakeFiles/prl.dir/src/prl_api.c.o
+[ 59%] Building C object products/tests/prl/CMakeFiles/prl.dir/src/prl_ccm.c.o
+[ 59%] Building C object products/tests/prl/CMakeFiles/prl.dir/src/prl_mcu.c.o
+[ 59%] Building C object products/tests/prl/CMakeFiles/prl.dir/src/prl_pmc.c.o
+[ 60%] Building C object products/tests/prl/CMakeFiles/prl.dir/src/prl_gsc.c.o
+[ 63%] Building C object products/tests/hal/CMakeFiles/hal.dir/src/linux/watchdog/hal_watchdog_linux.c.o
+[ 63%] Building C object products/tests/prl/CMakeFiles/prl.dir/src/prl_power.c.o
+[ 64%] Building C object products/tests/CMakeFiles/libutest.dir/core/test_metadata.c.o
+[ 66%] Linking C shared library ../../../lib/libprl.so
+[ 67%] Linking C shared library ../../../lib/libhal.so
+[ 68%] Linking C static library ../../lib/liblibutest.a
+make[3]: Leaving directory '/home/wanguo/CSPD/ES-Middleware/_build'
+[ 68%] Built target prl
+make[3]: Leaving directory '/home/wanguo/CSPD/ES-Middleware/_build'
+make[3]: Leaving directory '/home/wanguo/CSPD/ES-Middleware/_build'
+[ 68%] Built target libutest
+[ 68%] Built target hal
+make[3]: Entering directory '/home/wanguo/CSPD/ES-Middleware/_build'
+make[3]: Leaving directory '/home/wanguo/CSPD/ES-Middleware/_build'
+make[3]: Entering directory '/home/wanguo/CSPD/ES-Middleware/_build'
+[ 70%] Building C object products/tests/pdl/CMakeFiles/pdl.dir/src/pdl_satellite/pdl_satellite.c.o
+[ 71%] Building C object products/tests/pdl/CMakeFiles/pdl.dir/src/pdl_bmc/pdl_bmc.c.o
+[ 72%] Building C object products/tests/pdl/CMakeFiles/pdl.dir/src/pdl_bmc/pdl_bmc_ipmi.c.o
+[ 74%] Building C object products/tests/pdl/CMakeFiles/pdl.dir/src/pdl_bmc/pdl_bmc_redfish.c.o
+[ 75%] Building C object products/tests/pdl/CMakeFiles/pdl.dir/src/pdl_bmc/pdl_bmc_transport.c.o
+[ 77%] Building C object products/tests/pdl/CMakeFiles/pdl.dir/src/pdl_satellite/pdl_satellite_can.c.o
+[ 78%] Building C object products/tests/pdl/CMakeFiles/pdl.dir/src/pdl_mcu/pdl_mcu.c.o
+[ 79%] Building C object products/tests/pdl/CMakeFiles/pdl.dir/src/pdl_mcu/pdl_mcu_can.c.o
+[ 82%] Building C object products/tests/pdl/CMakeFiles/pdl.dir/src/pdl_mcu/pdl_mcu_protocol_new.c.o
+[ 82%] Building C object products/tests/pdl/CMakeFiles/pdl.dir/src/pdl_watchdog/pdl_watchdog.c.o
+[ 83%] Building C object products/tests/pdl/CMakeFiles/pdl.dir/src/pdl_mcu/pdl_mcu_protocol.c.o
+[ 85%] Building C object products/tests/pdl/CMakeFiles/pdl.dir/src/pdl_mcu/pdl_mcu_serial.c.o
+[ 86%] Linking C shared library ../../../lib/libpdl.so
+make[3]: Leaving directory '/home/wanguo/CSPD/ES-Middleware/_build'
+[ 86%] Built target pdl
+make[3]: Entering directory '/home/wanguo/CSPD/ES-Middleware/_build'
+make[3]: Entering directory '/home/wanguo/CSPD/ES-Middleware/_build'
+make[3]: Leaving directory '/home/wanguo/CSPD/ES-Middleware/_build'
+make[3]: Leaving directory '/home/wanguo/CSPD/ES-Middleware/_build'
+make[3]: Entering directory '/home/wanguo/CSPD/ES-Middleware/_build'
+make[3]: Entering directory '/home/wanguo/CSPD/ES-Middleware/_build'
+[ 87%] Building C object products/tests/CMakeFiles/es-middleware-test.dir/core/main.c.o
+[ 90%] Building C object products/tests/CMakeFiles/es-middleware-test.dir/unit/pdl/test_pdl_bmc.c.o
+[ 90%] Building C object products/tests/pconfig/CMakeFiles/pconfig.dir/src/pconfig_api.c.o
+[ 91%] Building C object products/tests/CMakeFiles/es-middleware-test.dir/unit/pdl/test_pdl_watchdog.c.o
+[ 94%] Building C object products/tests/pconfig/CMakeFiles/pconfig.dir/src/pconfig_register.c.o
+[ 94%] Building C object products/tests/CMakeFiles/es-middleware-test.dir/unit/pdl/test_pdl_mcu.c.o
+[ 95%] Building C object products/tests/CMakeFiles/es-middleware-test.dir/unit/pdl/test_pdl_satellite.c.o
+[ 97%] Building C object products/tests/CMakeFiles/es-middleware-test.dir/unit/pdl/test_pdl_bmc_protocol.c.o
+[ 98%] Linking C static library ../../../lib/libpconfig.a
+[100%] Linking C executable ../../bin/es-middleware-test
+make[3]: Leaving directory '/home/wanguo/CSPD/ES-Middleware/_build'
+[100%] Built target pconfig
+make[3]: Leaving directory '/home/wanguo/CSPD/ES-Middleware/_build'
+[100%] Built target es-middleware-test
+make[2]: Leaving directory '/home/wanguo/CSPD/ES-Middleware/_build'
+make[1]: Leaving directory '/home/wanguo/CSPD/ES-Middleware/_build'
+=== Step 4: Test clean ===
+  CLEAN     _build

@@ -61,10 +61,20 @@ _build_internal:
 		echo "***"; \
 		exit 1; \
 	fi
-	@if [ ! -f "$(BUILD_DIR)/Makefile" ]; then \
+	@CMAKE_ARGS=""; \
+	if [ -n "$(CMAKE_TOOLCHAIN_FILE)" ]; then \
+		CMAKE_ARGS="$$CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=$(CMAKE_TOOLCHAIN_FILE)"; \
+		if [ -f "$(BUILD_DIR)/CMakeCache.txt" ]; then \
+			if ! grep -q "CMAKE_TOOLCHAIN_FILE.*$(CMAKE_TOOLCHAIN_FILE)" "$(BUILD_DIR)/CMakeCache.txt" 2>/dev/null; then \
+				echo "  CLEAN     $(BUILD_DIR) (toolchain changed)"; \
+				rm -rf $(BUILD_DIR); \
+			fi; \
+		fi; \
+	fi; \
+	if [ ! -f "$(BUILD_DIR)/Makefile" ]; then \
 		echo "  CMAKE     $(BUILD_DIR)"; \
 		mkdir -p $(BUILD_DIR); \
-		cd $(BUILD_DIR) && $(CMAKE) ..; \
+		cd $(BUILD_DIR) && $(CMAKE) $$CMAKE_ARGS ..; \
 	fi
 	@$(MAKE) -C $(BUILD_DIR) $(PARALLEL_BUILD)
 

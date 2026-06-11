@@ -1,0 +1,13 @@
+=== Step 1: Clean ===
+  CLEAN     _build
+  CLEAN     .config
+=== Step 2: Configure ===
+  DEFCONFIG ccm_h200_100p_am625_debug_defconfig
+=== Step 3: Build ===
+  CMAKE     _build
+-- SDK_PATH: /home/wanguo/CSPD/ES-Middleware
+-- Building Kconfig tools...
+-- ncurses found - mconf/nconf will be available
+-- Configuring kconfig tools in /home/wanguo/CSPD/ES-Middleware/_build/kconfig-tools-build
+-- Building conf tool...
+make: *** [Makefile:56: _build_internal] Terminated

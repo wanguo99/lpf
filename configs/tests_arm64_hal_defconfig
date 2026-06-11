@@ -1,13 +1,13 @@
 # ============================================================================
-# ARM HAL Test Configuration
+# ARM64 HAL Test Configuration
 # ============================================================================
-# 专注于 HAL 层的 ARM 平台测试配置
-# 包含完整的 HAL 驱动和测试，基于 ARM 架构
+# 专注于 HAL 层的 ARM64 平台测试配置
+# 包含完整的 HAL 驱动和测试，基于 ARM64 架构
 # ============================================================================
 
 # Architecture and OS
 CONFIG_OS_LINUX=y
-CONFIG_ARCH_ARM32=y
+CONFIG_ARCH_ARM64=y
 
 # Platform
 CONFIG_PLATFORM_LINUX=y
