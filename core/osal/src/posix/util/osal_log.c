@@ -681,7 +681,7 @@ static void log_internal_ex(log_level_t level, const char *module,
                                    color_reset,
                                    message);
         if (console_len > 0) {
-            write(STDOUT_FILENO, console_buf, console_len);
+            (void)write(STDOUT_FILENO, console_buf, console_len);
         }
     }
 
@@ -743,7 +743,7 @@ static void log_internal(log_level_t level, const char *module,
                                    color_reset,
                                    message);
         if (console_len > 0) {
-            write(STDOUT_FILENO, console_buf, console_len);
+            (void)write(STDOUT_FILENO, console_buf, console_len);
         }
     }
     else
@@ -757,7 +757,7 @@ static void log_internal(log_level_t level, const char *module,
                                    color_reset,
                                    message);
         if (console_len > 0) {
-            write(STDOUT_FILENO, console_buf, console_len);
+            (void)write(STDOUT_FILENO, console_buf, console_len);
         }
     }
 
@@ -849,7 +849,7 @@ void OSAL_Printf(const char *format, ...)
     va_end(args);
 
     if (len > 0) {
-        write(STDOUT_FILENO, buffer, len);
+        (void)write(STDOUT_FILENO, buffer, len);
     }
 }
 
@@ -944,7 +944,7 @@ void OSAL_LogStructured(int32_t level, log_module_t module, const char *message,
                                    color_reset,
                                    full_message);
         if (console_len > 0) {
-            write(STDOUT_FILENO, console_buf, console_len);
+            (void)write(STDOUT_FILENO, console_buf, console_len);
         }
     }
 

@@ -1,0 +1,92 @@
+# ============================================================================
+# ACONFIG Test Configuration
+# ============================================================================
+# ACONFIG (Application Configuration Layer) 测试配置
+# 用于测试应用配置层功能
+# ============================================================================
+
+# Architecture and OS
+CONFIG_OS_LINUX=y
+CONFIG_ARCH_ARM64=y
+CONFIG_OSAL_OS_POSIX=y
+
+# Platform
+CONFIG_PLATFORM_LINUX=y
+CONFIG_PROJECT_H200_AM625=y
+
+# Core Components - OSAL + PDL + PCONFIG + ACL
+CONFIG_OSAL=y
+CONFIG_TYPES=y
+CONFIG_HAL=y
+CONFIG_PDL=y
+CONFIG_PCONFIG=y
+CONFIG_ACL=y
+
+# Build Configuration
+CONFIG_OSAL_BUILD_SHARED=y
+CONFIG_HAL_BUILD_SHARED=y
+CONFIG_PDL_BUILD_STATIC=y
+CONFIG_PCONFIG_BUILD_SHARED=y
+CONFIG_ACONFIG_BUILD_SHARED=y
+
+# OSAL Features - Required
+CONFIG_OSAL_IPC=y
+CONFIG_OSAL_FILE=y
+CONFIG_OSAL_THREAD=y
+
+# OSAL IPC
+CONFIG_OSAL_IPC_ATOMIC=y
+CONFIG_OSAL_IPC_MUTEX=y
+CONFIG_OSAL_IPC_RWLOCK=y
+
+# OSAL Library
+CONFIG_OSAL_LIB_ERRNO=y
+CONFIG_OSAL_LIB_HEAP=y
+CONFIG_OSAL_LIB_STDIO=y
+CONFIG_OSAL_LIB_STRING=y
+
+# OSAL System - Enable All
+CONFIG_OSAL_SYS_CLOCK=y
+CONFIG_OSAL_SYS_ENV=y
+CONFIG_OSAL_SYS_FILE=y
+CONFIG_OSAL_SYS_PROCESS=y
+CONFIG_OSAL_SYS_SCHED=y
+CONFIG_OSAL_SYS_SELECT=y
+CONFIG_OSAL_SYS_THREAD=y
+CONFIG_OSAL_SYS_TIME=y
+
+# OSAL Utility
+CONFIG_OSAL_UTIL_LOG=y
+CONFIG_OSAL_UTIL_VERSION=y
+
+# Testing - Enabled
+CONFIG_BUILD_TESTING=y
+CONFIG_TEST_UNIT=y
+
+# ACONFIG Unit Tests - All Enabled
+CONFIG_TEST_ACONFIG=y
+CONFIG_TEST_ACONFIG_ALL=y
+CONFIG_TEST_ACONFIG_API=y
+
+# Other test modules disabled
+# CONFIG_TEST_OSAL is not set
+# CONFIG_TEST_HAL is not set
+# CONFIG_TEST_PDL is not set
+# CONFIG_TEST_PRL is not set
+# CONFIG_TEST_PCONFIG is not set
+# CONFIG_TEST_PERFORMANCE is not set
+# CONFIG_TEST_STRESS is not set
+# CONFIG_TEST_SYSTEM is not set
+
+# Products - All Disabled
+# CONFIG_PRODUCT_CCM is not set
+
+# HAL - Minimal (required by PDL)
+CONFIG_HAL_CAN=y
+CONFIG_HAL_UART=y
+
+# PDL - Minimal (required by ACONFIG for hwid types)
+CONFIG_PDL_MISC_SUPPORT=y
+
+# PRL - Disabled
+# CONFIG_PRL is not set
