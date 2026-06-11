@@ -1,0 +1,502 @@
+# Build System User Guide
+
+## Overview
+
+ES-Middleware uses a unified build script (`build.py`) that integrates CMake and Kconfig configuration systems. This guide covers all build commands and workflows.
+
+## Quick Start
+
+```bash
+# 1. List available configurations
+python3 build.py --list
+
+# 2. Load a configuration
+python3 build.py config tests_x86_minimal
+
+# 3. Build
+python3 build.py build
+
+# 4. Run tests
+./_build/bin/es-middleware-test
+```
+
+## Available Commands
+
+### Configuration Management
+
+#### `config` - Load Configuration
+
+Load a predefined configuration from `configs/` directory.
+
+```bash
+# With short name (recommended)
+python3 build.py config tests_x86_minimal
+
+# With full name
+python3 build.py config tests_x86_minimal_defconfig
+
+# Available configurations are listed with --list
+```
+
+**Features:**
+- Validates configuration file syntax
+- Copies to `.config`
+- Runs CMake to generate `autoconf.h` and `kconfig.cmake`
+- Supports both short names and full `*_defconfig` names
+
+#### `menuconfig` - Interactive Configuration
+
+Open the graphical Kconfig configuration interface (ncurses-based).
+
+```bash
+python3 build.py menuconfig
+```
+
+**Features:**
+- Browse all configuration options
+- Enable/disable features interactively
+- View help text for each option
+- Save changes to `.config`
+
+**Navigation:**
+- Arrow keys: Navigate menu
+- Enter: Select/enter submenu
+- Space: Toggle option
+- `/`: Search
+- `?`: Help
+- `ESC ESC` or `Q`: Exit
+
+#### `nconfig` - Alternative Interactive Configuration
+
+Open an alternative ncurses-based configuration interface.
+
+```bash
+python3 build.py nconfig
+```
+
+Similar to `menuconfig` but with a different UI style.
+
+#### `savedefconfig` - Save Minimal Configuration
+
+Generate a minimal configuration file containing only non-default values.
+
+```bash
+# Save to root directory as 'defconfig'
+python3 build.py savedefconfig
+
+# Save to configs/ directory with a name
+python3 build.py savedefconfig my_custom_config
+```
+
+**Output:**
+- Without name: `defconfig` in root directory
+- With name: `configs/<name>_defconfig`
+
+**Use case:** After customizing with menuconfig, save your changes as a new configuration template.
+
+#### `oldconfig` - Update Configuration
+
+Update an existing `.config` with newly added Kconfig options.
+
+```bash
+python3 build.py oldconfig
+```
+
+**Use case:** After pulling new code that adds Kconfig options, update your existing configuration.
+
+### Build Commands
+
+#### `build` - Build Project
+
+Build the project with the current or specified configuration.
+
+```bash
+# Build with current configuration
+python3 build.py build
+
+# Build with specific configuration (load + build)
+python3 build.py build --config tests_x86_full
+
+# Build with custom options
+python3 build.py build --jobs 8 --verbose
+```
+
+**Options:**
+- `--config, -c`: Load configuration before building
+- `--jobs, -j`: Number of parallel jobs (default: CPU count)
+- `--verbose, -v`: Show detailed build output
+- `--build-dir, -b`: Custom build directory (default: `_build`)
+
+#### `clean` - Clean Build Directory
+
+Remove the build directory, preserving `.config`.
+
+```bash
+python3 build.py clean
+```
+
+#### `distclean` - Complete Clean
+
+Remove build directory and all configuration files (`.config`, `defconfig`).
+
+```bash
+python3 build.py distclean
+```
+
+**Warning:** This removes your current configuration. Save it first with `savedefconfig` if needed.
+
+### Information Commands
+
+#### `--list` - List Configurations
+
+Display all available configurations with details.
+
+```bash
+python3 build.py --list
+```
+
+**Output:**
+- Product configurations (for specific products)
+- Test configurations (for testing)
+- Metadata (description, platform, build type) if available
+
+#### `--help` - Show Help
+
+Display command-line help.
+
+```bash
+python3 build.py --help
+```
+
+## Configuration Workflow
+
+### Basic Workflow
+
+```bash
+# 1. Load a base configuration
+python3 build.py config ccm_h200_100p_am625_debug
+
+# 2. Build
+python3 build.py build
+
+# 3. Test
+./_build/bin/collector --help
+```
+
+### Customization Workflow
+
+```bash
+# 1. Load a base configuration
+python3 build.py config tests_x86_minimal
+
+# 2. Customize interactively
+python3 build.py menuconfig
+#   - Navigate to options
+#   - Enable/disable features
+#   - Save and exit
+
+# 3. Build with custom configuration
+python3 build.py build
+
+# 4. Save custom configuration
+python3 build.py savedefconfig my_custom
+#   - Saved to configs/my_custom_defconfig
+
+# 5. Use custom configuration later
+python3 build.py config my_custom
+```
+
+### One-Shot Build
+
+For quick builds without separate configuration step:
+
+```bash
+python3 build.py build -c tests_x86_full -j8
+```
+
+## Configuration Files
+
+### User-Facing Files
+
+- **`.config`**: Current configuration (generated, not committed to git)
+- **`configs/*_defconfig`**: Predefined configuration templates (committed to git)
+- **`defconfig`**: Minimal configuration generated by `savedefconfig` (temporary)
+
+### Generated Files
+
+- **`_build/config/autoconf.h`**: C header with `CONFIG_*` defines
+- **`_build/config/kconfig.cmake`**: CMake variables from Kconfig
+- **`_build/Makefile`**: Generated by CMake
+
+### Configuration Validation
+
+The build system validates configurations automatically:
+
+```bash
+python3 build.py config my_config
+# Output:
+# Validation: Configuration file is valid (85 config lines)
+```
+
+**Validation checks:**
+- File exists
+- Syntax is correct (lines start with `CONFIG_` or `# CONFIG_`)
+- Non-empty (has at least one config line)
+
+## Available Configurations
+
+### Product Configurations
+
+#### `ccm_h200_100p_am625_debug`
+- **Description**: CCM product for H200-100P-AM625 platform (debug build)
+- **Target**: ARM64 cross-compilation
+- **Features**: All CCM applications, full debugging
+
+#### `ccm_h200_100p_am625_release`
+- **Description**: CCM product for H200-100P-AM625 platform (release build)
+- **Target**: ARM64 cross-compilation
+- **Features**: Optimized, minimal debugging
+
+### Test Configurations
+
+#### `tests_x86_full`
+- **Description**: Full test suite for x86_64
+- **Features**: All modules, all tests, maximum coverage
+
+#### `tests_x86_minimal`
+- **Description**: Minimal test configuration
+- **Features**: Core modules only, basic tests
+
+#### `tests_x86_osal`
+- **Description**: OSAL unit tests
+- **Features**: OSAL module + unit tests
+
+#### `tests_x86_pdl`
+- **Description**: PDL unit tests
+- **Features**: PDL module + unit tests
+
+#### `tests_x86_prl`
+- **Description**: PRL protocol tests
+- **Features**: PRL module + protocol tests
+
+#### `tests_x86_aconfig`
+- **Description**: ACONFIG unit tests
+- **Features**: ACONFIG module + unit tests
+
+#### `tests_x86_pconfig`
+- **Description**: PCONFIG unit tests
+- **Features**: PCONFIG module + unit tests
+
+#### `tests_x86_system`
+- **Description**: System integration tests
+- **Features**: Full stack integration tests
+
+#### `tests_x86_stress`
+- **Description**: Stress tests
+- **Features**: Performance and stress tests
+
+#### `tests_arm32_hal`
+- **Description**: HAL tests for ARM32
+- **Features**: HAL module for ARM32 architecture
+
+## Build Outputs
+
+### Directory Structure
+
+```
+_build/
+├── bin/              # Executables
+│   ├── collector
+│   ├── supervisor
+│   ├── health
+│   ├── logger
+│   ├── comm
+│   └── es-middleware-test
+├── lib/              # Libraries
+│   ├── libosal.a
+│   ├── libhal.a
+│   ├── libprl.a
+│   └── libccm.a
+└── config/           # Generated configuration
+    ├── autoconf.h
+    └── kconfig.cmake
+```
+
+### Running Built Applications
+
+```bash
+# Run tests
+./_build/bin/es-middleware-test
+
+# Run CCM applications
+./_build/bin/collector
+./_build/bin/supervisor --help
+```
+
+## Advanced Usage
+
+### Custom Build Directory
+
+```bash
+python3 build.py config tests_x86_full -b build-test
+python3 build.py build -b build-test
+```
+
+### Verbose Build Output
+
+```bash
+python3 build.py build --verbose
+```
+
+Shows full compiler commands and flags.
+
+### Parallel Build Jobs
+
+```bash
+# Use 8 parallel jobs
+python3 build.py build -j8
+
+# Use all CPU cores (default)
+python3 build.py build
+```
+
+### Check Current Configuration
+
+```bash
+cat .config | grep "^CONFIG_"
+```
+
+Or use menuconfig to browse current settings.
+
+## Troubleshooting
+
+### "No configuration found"
+
+**Problem:** Running `build` without loading a configuration.
+
+**Solution:**
+```bash
+python3 build.py config <config_name>
+```
+
+### "CMake configuration failed"
+
+**Problem:** CMake cannot process `.config` file.
+
+**Solution:**
+```bash
+# Clean and retry
+python3 build.py distclean
+python3 build.py config <config_name>
+python3 build.py build
+```
+
+### "Build directory not configured" (for menuconfig)
+
+**Problem:** Running menuconfig before loading a configuration.
+
+**Solution:**
+```bash
+python3 build.py config <config_name>
+python3 build.py menuconfig
+```
+
+### Invalid configuration file
+
+**Problem:** Configuration file has syntax errors.
+
+**Solution:**
+- Use a known good configuration from `configs/`
+- Or fix syntax: lines must start with `CONFIG_` or `# CONFIG_`
+
+### Kconfig tools not available
+
+**Problem:** menuconfig/nconfig fail due to missing ncurses libraries.
+
+**Solution:**
+```bash
+sudo apt-get install libncurses-dev flex bison
+python3 build.py distclean
+python3 build.py config <config_name>
+```
+
+## Environment Variables
+
+The build system sets these automatically:
+
+- **`srctree`**: Project root directory (for Kconfig)
+- **`CMAKE_BUILD_TYPE`**: Debug (default)
+- **`CMAKE_EXPORT_COMPILE_COMMANDS`**: ON (for IDE integration)
+
+## Integration with IDEs
+
+### VSCode
+
+The build system generates `compile_commands.json` automatically for better C/C++ IntelliSense support.
+
+### CLion
+
+CLion can use the generated CMake build system directly:
+1. Open project root in CLion
+2. Load `.config` with `python3 build.py config <name>`
+3. Reload CMake project
+
+## Backward Compatibility
+
+The enhanced build.py maintains full backward compatibility with previous workflows:
+
+```bash
+# Old workflow (still works)
+python3 build.py config ccm_h200_100p_am625_debug_defconfig
+python3 build.py build
+
+# New workflow (recommended)
+python3 build.py config ccm_h200_100p_am625_debug
+python3 build.py build
+```
+
+## Summary of Changes (v2.1)
+
+### New Features
+
+1. **Enhanced configuration validation**
+   - Syntax checking
+   - Line counting
+   - Better error messages
+
+2. **Configuration state tracking**
+   - Shows current configuration
+   - Detects which defconfig is loaded
+   - Shows number of enabled options
+
+3. **New commands**
+   - `nconfig`: Alternative configuration UI
+   - `savedefconfig`: Save minimal configuration
+   - `oldconfig`: Update configuration with new options
+
+4. **Improved user feedback**
+   - Validation messages
+   - Configuration statistics
+   - Next-step suggestions
+   - ✓ Success indicators
+
+5. **Better error handling**
+   - Invalid configuration detection
+   - Missing file warnings
+   - Helpful error messages with suggestions
+
+6. **Short name support**
+   - Can use `tests_x86_minimal` instead of `tests_x86_minimal_defconfig`
+
+### Maintained Features
+
+- All existing commands work unchanged
+- Configuration file format unchanged
+- Build output directory structure unchanged
+- CMake integration unchanged
+
+---
+
+**Version:** 2.1  
+**Last Updated:** 2026-06-11  
+**Maintained by:** ES-Middleware Team

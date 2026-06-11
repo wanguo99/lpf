@@ -112,7 +112,44 @@ products/ccm/apps/*  →  libccm  →  core/aconfig  →  core/pconfig  →  cor
 - 依赖关系通过 CMake 的 `target_link_libraries` 自动管理
 - CMake 会自动处理传递依赖（transitive dependencies）
 
-## 配置系统（Kconfig）
+## 配置系统（Kconfig + CMake 集成）
+
+### 架构概述
+
+项目采用 **Kconfig + CMake 混合构建系统**，实现配置驱动的条件编译。这是一个完全原生的 CMake 集成方案，使用 Linux 内核标准的 Kconfig 工具链。
+
+```
+用户操作:
+  python3 build.py config <defconfig>  →  加载 defconfig
+                  ↓
+  Kconfig 工作流:
+  1. conf --defconfig=<defconfig>      →  生成 .config
+  2. conf --olddefconfig .config       →  规范化配置（填充派生值）
+                  ↓
+  CMake 配置阶段:
+  3. kconfig_load()                    →  调用 genconfig.py
+  4. genconfig.py .config              →  生成 kconfig.cmake + autoconf.h
+  5. include(kconfig.cmake)            →  导入 CMake 变量
+  6. add_compile_options(-include)     →  自动包含 autoconf.h
+                  ↓
+  构建阶段:
+  - CMakeLists.txt 使用 CONFIG_XXX 变量控制条件编译
+  - C 代码使用 autoconf.h 中的宏定义
+```
+
+**核心特性**：
+- **标准工具链**: 使用 Linux 内核 Kconfig 工具（conf、mconf）
+- **CMake 原生**: 配置管理完全在 CMake 中完成，无需外部脚本
+- **双重接口**: CMake 变量（条件编译）+ C 宏定义（代码内条件编译）
+- **自动同步**: 配置变更自动触发 CMake 重新配置
+- **派生值支持**: 自动填充 Kconfig 派生值（如 `CONFIG_PROJECT_NAME`）
+
+**工作流程**：
+1. `python3 build.py config <defconfig>` - 加载 defconfig，生成并规范化 `.config`
+2. `cmake -B _build` - CMake 调用 `kconfig_load()` 生成 `kconfig.cmake` 和 `autoconf.h`
+3. CMakeLists.txt 使用 `CONFIG_XXX` 变量控制库/应用的编译
+4. C 代码使用 `autoconf.h` 中的宏进行条件编译
+5. `python3 build.py savedefconfig` - 保存当前配置为新的 defconfig
 
 ### 可用配置
 
@@ -132,9 +169,64 @@ products/ccm/apps/*  →  libccm  →  core/aconfig  →  core/pconfig  →  cor
 
 ### 配置文件
 
-- **`.config`**: 当前配置文件（由 menuconfig 生成）
+- **`.config`**: 当前 Kconfig 配置（由 menuconfig 或 defconfig 生成）
 - **`configs/*_defconfig`**: 预定义配置模板
-- **`Kconfig`**: 配置选项定义文件
+- **`Kconfig`**: 配置选项定义文件（menu 结构）
+- **`_build/kconfig.cmake`**: CMake 变量文件（自动生成）
+- **`_build/autoconf.h`**: C 宏定义头文件（自动生成）
+
+### CMake 中使用配置变量
+
+在 CMakeLists.txt 中使用 Kconfig 配置：
+
+```cmake
+# 加载 Kconfig 配置（在顶层 CMakeLists.txt）
+include(cmake/Kconfig.cmake)
+
+# 条件编译库
+if(CONFIG_OSAL)
+    add_subdirectory(core/osal)
+endif()
+
+# 检查配置值
+if(CONFIG_BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
+
+# 使用字符串配置
+set(PLATFORM_NAME ${CONFIG_PLATFORM_NAME})
+```
+
+**可用的 CMake 变量**：
+- 布尔选项：`CONFIG_XXX` (ON/OFF)
+- 整数选项：`CONFIG_XXX` (数字)
+- 字符串选项：`CONFIG_XXX` (字符串)
+
+### C 代码中使用配置宏
+
+在 C 代码中使用 `autoconf.h` 中的宏：
+
+```c
+#include "autoconf.h"
+
+/* 条件编译代码 */
+#ifdef CONFIG_OSAL_DEBUG
+    printf("Debug mode enabled\n");
+#endif
+
+/* 使用配置值 */
+#if CONFIG_MAX_THREADS > 10
+    #warning "Thread pool may be too large"
+#endif
+
+/* 字符串配置 */
+const char *platform = CONFIG_PLATFORM_NAME;
+```
+
+**注意**：
+- `autoconf.h` 自动包含在所有源文件中（通过 `-include` 编译选项）
+- 布尔配置生成 `#define CONFIG_XXX 1` 或不定义
+- 字符串配置生成 `#define CONFIG_XXX "value"`
 
 ### 常用配置选项
 
@@ -162,6 +254,265 @@ CONFIG_OS_LINUX=y          # Linux 操作系统
 # 功能裁剪
 CONFIG_BUILD_TESTING=y     # 构建测试程序
 CONFIG_BUILD_SHARED=y      # 构建共享库
+```
+
+### CMake 函数参考
+
+项目提供的 Kconfig 集成函数（`cmake/Kconfig.cmake`）：
+
+#### `kconfig_load()`
+
+加载 Kconfig 配置并生成 CMake 变量和 C 头文件。
+
+```cmake
+# 在顶层 CMakeLists.txt 中调用
+include(cmake/Kconfig.cmake)
+kconfig_load()
+```
+
+**功能**：
+1. **检查 .config 存在性** - 如果不存在，提示运行 `python3 build.py config`
+2. **生成 CMake 变量文件** - 调用 `genconfig.py` 生成 `_build/kconfig.cmake`
+3. **生成 C 头文件** - 生成 `_build/autoconf.h` 供 C 代码使用
+4. **导入 CMake 变量** - `include(kconfig.cmake)` 使所有 `CONFIG_*` 变量在 CMake 中可用
+5. **配置自动包含** - 添加 `-include autoconf.h` 编译选项，使所有 C 文件自动包含配置宏
+
+**调用时机**：
+- 必须在顶层 `CMakeLists.txt` 的 `project()` 命令**之后**立即调用
+- 在任何使用 `CONFIG_*` 变量的条件判断之前调用
+
+**自动触发机制**：
+- CMake 会自动检测 `.config` 文件变化
+- 配置修改后，下次构建会自动重新生成 `kconfig.cmake` 和 `autoconf.h`
+- 无需手动清理 CMake 缓存
+
+**错误处理**：
+- 如果 `.config` 不存在，CMake 配置失败并显示错误消息
+- 如果 `genconfig.py` 执行失败，显示详细错误信息和诊断建议
+
+**示例**：
+```cmake
+# CMakeLists.txt
+cmake_minimum_required(VERSION 3.16)
+project(ES-Middleware C)
+
+# 加载 Kconfig 配置（必须在 project() 之后）
+include(cmake/Kconfig.cmake)
+kconfig_load()
+
+# 现在可以使用 CONFIG_* 变量
+if(CONFIG_OSAL)
+    add_subdirectory(core/osal)
+endif()
+
+if(CONFIG_BUILD_TESTING)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
+```
+
+#### `kconfig_print_summary()`
+
+打印当前配置摘要（用于调试）。
+
+```cmake
+kconfig_print_summary()
+```
+
+**输出示例**：
+```
+-- Kconfig Configuration Summary:
+--   CONFIG_PROJECT_NAME: ES-Middleware
+--   CONFIG_OSAL: ON
+--   CONFIG_HAL: ON
+--   CONFIG_PDL: ON
+--   CONFIG_PRL: ON
+--   CONFIG_ACONFIG: ON
+--   CONFIG_BUILD_TESTING: OFF
+--   CONFIG_ARCH_X86_64: ON
+--   CONFIG_BUILD_TYPE: debug
+--   ... (total 110+ symbols)
+```
+
+**使用场景**：
+- 调试配置问题时验证符号是否正确加载
+- 开发新模块时确认依赖的配置选项已启用
+- CI/CD 流程中记录构建配置
+
+**调用位置**：
+```cmake
+kconfig_load()
+kconfig_print_summary()  # 可选，仅在需要时调用
+```
+
+### 配置管理最佳实践
+
+#### 1. 创建新的 defconfig
+
+```bash
+# 方式一：基于现有配置修改
+python3 build.py config tests_x86_full_defconfig
+python3 build.py menuconfig  # 修改配置
+python3 build.py savedefconfig my_new_defconfig
+
+# 方式二：从头开始配置
+python3 build.py menuconfig  # 从默认配置开始
+python3 build.py savedefconfig my_new_defconfig
+
+# 方式三：手动编辑（高级用户）
+cp configs/tests_x86_full_defconfig configs/my_new_defconfig
+# 编辑 configs/my_new_defconfig，只保留非默认值
+python3 build.py config my_new_defconfig  # 验证配置可加载
+```
+
+**defconfig 文件格式**：
+- 只包含**用户显式设置的选项**（非默认值）
+- 不包含派生值（如 `CONFIG_PROJECT_NAME`）
+- 不包含依赖自动禁用的选项
+- 格式：`CONFIG_OPTION=y` 或 `# CONFIG_OPTION is not set`
+
+**示例 defconfig**：
+```kconfig
+CONFIG_OSAL=y
+CONFIG_HAL=y
+CONFIG_PDL=y
+CONFIG_PRL=y
+CONFIG_PRL_MCU=y
+CONFIG_PRL_CCM=y
+CONFIG_BUILD_TESTING=y
+CONFIG_ARCH_X86_64=y
+CONFIG_BUILD_TYPE="debug"
+```
+
+#### 2. 修改现有配置
+
+```bash
+# 加载配置
+python3 build.py config ccm_h200_100p_am625_debug_defconfig
+
+# 修改配置（图形界面）
+python3 build.py menuconfig
+
+# 保存配置（覆盖原 defconfig）
+python3 build.py savedefconfig ccm_h200_100p_am625_debug_defconfig
+
+# 或保存为新配置
+python3 build.py savedefconfig my_variant_defconfig
+```
+
+**注意事项**：
+- `savedefconfig` 会自动最小化配置（只保存非默认值）
+- 派生值和依赖关系会在加载时自动恢复
+- 提交前请验证配置可以成功构建
+
+#### 3. 查看配置差异
+
+```bash
+# 当前 .config 与原始 defconfig 的差异
+diff .config configs/tests_x86_full_defconfig
+
+# 查看哪些选项被修改
+python3 build.py config tests_x86_full_defconfig
+cp .config .config.original
+python3 build.py menuconfig  # 修改一些选项
+diff .config.original .config
+
+# 查看生成的 CMake 变量
+cat _build/kconfig.cmake | grep CONFIG_
+
+# 查看生成的 C 宏定义
+cat _build/autoconf.h | grep CONFIG_
+```
+
+#### 4. 调试配置问题
+
+```bash
+# 问题：某个选项无法启用
+python3 build.py menuconfig
+# 导航到该选项，按 '?' 查看帮助和依赖关系
+
+# 问题：配置加载后某些选项消失
+# 原因：依赖条件不满足
+# 解决：检查 Kconfig 文件中的 "depends on" 语句
+
+# 问题：CMake 变量不可用
+# 诊断步骤：
+cat .config | grep CONFIG_XXX              # 检查是否在 .config 中
+cat _build/kconfig.cmake | grep CONFIG_XXX # 检查是否生成 CMake 变量
+grep "kconfig_load" CMakeLists.txt         # 检查是否调用加载函数
+
+# 问题：C 宏定义不可用
+cat _build/autoconf.h | grep CONFIG_XXX    # 检查是否生成宏定义
+# 检查编译命令是否包含 -include
+python3 build.py build -- VERBOSE=1 | grep "include.*autoconf.h"
+
+# 清理并重新配置
+python3 build.py distclean
+python3 build.py config <defconfig>
+python3 build.py build
+```
+
+#### 5. 配置验证和测试
+
+```bash
+# 验证所有 defconfig 可以加载
+for cfg in configs/*_defconfig; do
+    echo "Testing $(basename $cfg)..."
+    python3 build.py distclean
+    python3 build.py config $(basename $cfg) || echo "FAILED: $cfg"
+done
+
+# 验证配置可以构建
+python3 build.py config tests_x86_full_defconfig
+python3 build.py build || echo "Build failed"
+
+# 验证 savedefconfig 幂等性（加载-保存-加载应该一致）
+python3 build.py config tests_x86_full_defconfig
+python3 build.py savedefconfig /tmp/test.defconfig
+python3 build.py distclean
+python3 build.py config /tmp/test.defconfig
+diff .config <original_config>  # 应该只有注释差异
+```
+
+#### 6. 高级配置技巧
+
+**查看所有可配置选项**：
+```bash
+python3 build.py menuconfig
+# 按 '/' 打开搜索，输入关键字
+# 按 '?' 查看选项的详细信息和依赖关系
+```
+
+**批量启用/禁用选项**：
+```bash
+# 手动编辑 .config
+python3 build.py config base_defconfig
+# 编辑 .config，添加或修改选项
+python3 build.py build  # CMake 会自动检测变化并重新配置
+```
+
+**使用环境变量覆盖**（不推荐，仅用于快速测试）：
+```bash
+# 在 CMakeLists.txt 中可以检查环境变量
+if(DEFINED ENV{FORCE_DEBUG})
+    set(CMAKE_BUILD_TYPE Debug)
+endif()
+```
+
+**配置模板继承**（手动实现）：
+```bash
+# 创建基础配置
+cat > configs/base_defconfig << EOF
+CONFIG_OSAL=y
+CONFIG_HAL=y
+EOF
+
+# 创建扩展配置
+cat configs/base_defconfig > configs/extended_defconfig
+cat >> configs/extended_defconfig << EOF
+CONFIG_PDL=y
+CONFIG_BUILD_TESTING=y
+EOF
 ```
 
 ## 编码规范
@@ -317,42 +668,507 @@ int ret = PRL_Decode(buffer, len, &dev_type, &msg_type,
 
 ## 常见开发任务
 
-### 添加新的库
+### 添加新的核心库模块
 
-1. 在 `core/mylib/Kconfig` 中添加配置选项
-2. 在 `core/Kconfig` 中引用
-3. 创建 `core/mylib/CMakeLists.txt`
-4. 在 `core/CMakeLists.txt` 中添加子目录
-5. 配置并编译
+完整流程示例：添加一个新的 `core/utils` 模块
 
-### 添加新的应用程序
+**1. 创建目录结构**
+```bash
+mkdir -p core/utils/include/utils
+mkdir -p core/utils/src
+```
 
-1. 创建 `products/ccm/apps/myapp/CMakeLists.txt`
-2. 在父目录 `CMakeLists.txt` 中添加
-3. 编译
+**2. 添加 Kconfig 配置**
+```bash
+# 创建 core/utils/Kconfig
+cat > core/utils/Kconfig << 'EOF'
+config UTILS
+    bool "Utility functions"
+    default y
+    help
+      Common utility functions for string manipulation,
+      data conversion, etc.
 
-### 功能裁剪
+if UTILS
+
+config UTILS_STRING
+    bool "String utilities"
+    default y
+    help
+      String manipulation functions.
+
+config UTILS_MATH
+    bool "Math utilities"
+    default y
+    help
+      Math helper functions.
+
+endif # UTILS
+EOF
+
+# 在 core/Kconfig 中引用
+# 编辑 core/Kconfig，在合适位置添加：
+source "core/utils/Kconfig"
+```
+
+**3. 创建 CMakeLists.txt**
+```cmake
+# core/utils/CMakeLists.txt
+if(NOT CONFIG_UTILS)
+    return()
+endif()
+
+# 定义库
+add_library(utils
+    src/utils_common.c
+)
+
+# 条件编译可选组件
+if(CONFIG_UTILS_STRING)
+    target_sources(utils PRIVATE src/utils_string.c)
+endif()
+
+if(CONFIG_UTILS_MATH)
+    target_sources(utils PRIVATE src/utils_math.c)
+endif()
+
+# 头文件路径
+target_include_directories(utils
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
+
+# 依赖其他库（如果需要）
+target_link_libraries(utils
+    PUBLIC osal  # 如果依赖 OSAL
+)
+
+# 安装规则（可选）
+install(TARGETS utils
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+)
+
+install(DIRECTORY include/
+    DESTINATION include
+)
+```
+
+**4. 在父 CMakeLists.txt 中添加**
+```cmake
+# 编辑 core/CMakeLists.txt，添加：
+add_subdirectory(utils)
+```
+
+**5. 创建头文件**
+```c
+/* core/utils/include/utils/utils.h */
+#ifndef UTILS_H
+#define UTILS_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* 公共 API */
+int UTILS_Init(void);
+void UTILS_Cleanup(void);
+
+#ifdef CONFIG_UTILS_STRING
+int UTILS_String_Copy(char *dst, const char *src, size_t size);
+#endif
+
+#ifdef CONFIG_UTILS_MATH
+int UTILS_Math_Clamp(int value, int min, int max);
+#endif
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* UTILS_H */
+```
+
+**6. 实现源文件**
+```c
+/* core/utils/src/utils_common.c */
+#include "utils/utils.h"
+#include "autoconf.h"  /* 自动包含，可以使用 CONFIG_* 宏 */
+
+int UTILS_Init(void)
+{
+#ifdef CONFIG_UTILS_STRING
+    /* 初始化字符串模块 */
+#endif
+    return 0;
+}
+```
+
+**7. 配置并构建**
+```bash
+# 启用新模块
+python3 build.py menuconfig
+# 导航到 "Core Components" -> "Utility functions"
+# 按 'Y' 启用
+
+# 或修改 defconfig
+echo "CONFIG_UTILS=y" >> configs/tests_x86_full_defconfig
+
+# 重新构建
+python3 build.py config tests_x86_full_defconfig
+python3 build.py build
+```
+
+**8. 在其他模块中使用**
+```cmake
+# 在 CMakeLists.txt 中声明依赖
+target_link_libraries(myapp PRIVATE utils)
+```
+
+```c
+/* 在 C 代码中使用 */
+#include "utils/utils.h"
+
+int main(void)
+{
+    UTILS_Init();
+    /* 使用工具函数 */
+    UTILS_Cleanup();
+    return 0;
+}
+```
+
+### 添加新的产品应用程序
+
+示例：在 CCM 产品下添加新的应用程序
+
+**1. 创建应用目录**
+```bash
+mkdir -p products/ccm/apps/myapp
+```
+
+**2. 添加 Kconfig 配置**
+```bash
+# 编辑 products/ccm/apps/Kconfig
+config CCM_APP_MYAPP
+    bool "MyApp application"
+    depends on CCM
+    default n
+    help
+      Description of MyApp.
+```
+
+**3. 创建 CMakeLists.txt**
+```cmake
+# products/ccm/apps/myapp/CMakeLists.txt
+if(NOT CONFIG_CCM_APP_MYAPP)
+    return()
+endif()
+
+add_executable(ccm_myapp
+    main.c
+    myapp_task.c
+)
+
+# 链接依赖库
+target_link_libraries(ccm_myapp PRIVATE
+    ccm          # CCM 产品库
+    aconfig      # 应用配置层
+    pconfig      # 平台配置层
+    pdl          # 外设驱动层
+    prl          # 协议层
+    hal          # 硬件抽象层
+    osal         # 操作系统抽象层
+)
+
+# 头文件路径
+target_include_directories(ccm_myapp PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+# 安装
+install(TARGETS ccm_myapp
+    RUNTIME DESTINATION bin
+)
+```
+
+**4. 在父 CMakeLists.txt 中添加**
+```cmake
+# 编辑 products/ccm/apps/CMakeLists.txt，添加：
+add_subdirectory(myapp)
+```
+
+**5. 实现应用程序**
+```c
+/* products/ccm/apps/myapp/main.c */
+#include "autoconf.h"
+#include "osal.h"
+#include "ccm.h"
+
+int main(int argc, char *argv[])
+{
+    /* 初始化 */
+    OSAL_Init();
+    CCM_Init();
+    
+    /* 应用逻辑 */
+    printf("MyApp running...\n");
+    
+    /* 清理 */
+    CCM_Cleanup();
+    OSAL_Cleanup();
+    
+    return 0;
+}
+```
+
+**6. 配置并构建**
+```bash
+python3 build.py menuconfig
+# 导航到 "Products" -> "CCM Applications" -> "MyApp"
+# 启用后保存
+
+python3 build.py build
+./_build/bin/ccm_myapp
+```
+
+### 添加单元测试
+
+示例：为新模块添加单元测试
+
+**1. 创建测试目录**
+```bash
+mkdir -p tests/core/utils
+```
+
+**2. 添加 Kconfig 配置**
+```bash
+# 编辑 tests/core/Kconfig
+config TEST_UTILS
+    bool "UTILS module tests"
+    depends on BUILD_TESTING && UTILS
+    default y if BUILD_TESTING
+    help
+      Unit tests for UTILS module.
+```
+
+**3. 创建测试代码**
+```c
+/* tests/core/utils/test_utils.c */
+#include "utils/utils.h"
+#include <assert.h>
+#include <stdio.h>
+
+void test_utils_string(void)
+{
+    char buf[32];
+    int ret;
+    
+    ret = UTILS_String_Copy(buf, "hello", sizeof(buf));
+    assert(ret == 0);
+    assert(strcmp(buf, "hello") == 0);
+    
+    printf("test_utils_string: PASSED\n");
+}
+
+void test_utils_math(void)
+{
+    assert(UTILS_Math_Clamp(5, 0, 10) == 5);
+    assert(UTILS_Math_Clamp(-5, 0, 10) == 0);
+    assert(UTILS_Math_Clamp(15, 0, 10) == 10);
+    
+    printf("test_utils_math: PASSED\n");
+}
+
+int main(void)
+{
+    printf("Running UTILS tests...\n");
+    
+    test_utils_string();
+    test_utils_math();
+    
+    printf("All UTILS tests passed!\n");
+    return 0;
+}
+```
+
+**4. 创建 CMakeLists.txt**
+```cmake
+# tests/core/utils/CMakeLists.txt
+if(NOT CONFIG_TEST_UTILS)
+    return()
+endif()
+
+add_executable(test_utils
+    test_utils.c
+)
+
+target_link_libraries(test_utils PRIVATE
+    utils
+    osal
+)
+
+# 注册 CTest
+add_test(NAME test_utils
+    COMMAND test_utils
+)
+```
+
+**5. 在父 CMakeLists.txt 中添加**
+```cmake
+# 编辑 tests/core/CMakeLists.txt，添加：
+add_subdirectory(utils)
+```
+
+**6. 运行测试**
+```bash
+# 配置测试
+python3 build.py config tests_x86_full_defconfig
+python3 build.py build
+
+# 运行所有测试
+cd _build
+ctest --output-on-failure
+
+# 或单独运行
+./_build/bin/test_utils
+```
+
+### 功能裁剪（减小二进制大小）
 
 通过 Kconfig 配置实现功能裁剪：
 
+**1. 创建最小化配置**
 ```bash
-python3 build.py menuconfig  # 关闭不需要的模块
-python3 build.py build       # 重新编译
+python3 build.py menuconfig
+
+# 禁用不需要的模块：
+# [ ] Build testing          # 禁用测试
+# [ ] PRL - PMC protocol     # 禁用不需要的设备协议
+# [ ] PRL - GSC protocol
+# [ ] Debug logging          # 禁用调试日志
+
+# 保存配置
+python3 build.py savedefconfig minimal_defconfig
+```
+
+**2. 优化编译选项**
+```cmake
+# 在 CMakeLists.txt 中添加
+if(CONFIG_BUILD_TYPE STREQUAL "release")
+    add_compile_options(-Os)           # 优化代码大小
+    add_compile_options(-ffunction-sections)
+    add_compile_options(-fdata-sections)
+    add_link_options(-Wl,--gc-sections) # 移除未使用的段
+    add_compile_definitions(NDEBUG)     # 禁用 assert
+endif()
+```
+
+**3. 条件编译功能**
+```c
+/* 在代码中根据配置裁剪功能 */
+#ifdef CONFIG_DEBUG_LOGGING
+    printf("Debug: %s\n", msg);
+#endif
+
+#ifdef CONFIG_PRL_PMC
+    prl_pmc_init();
+#endif
+```
+
+**4. 比较二进制大小**
+```bash
+# 完整配置
+python3 build.py config tests_x86_full_defconfig
+python3 build.py build
+ls -lh _build/bin/ccm_collector
+
+# 最小化配置
+python3 build.py config minimal_defconfig
+python3 build.py build
+ls -lh _build/bin/ccm_collector
+
+# 分析符号大小
+nm --size-sort --radix=d _build/bin/ccm_collector | tail -20
+```
+
+### 交叉编译（ARM64 目标）
+
+为嵌入式目标平台交叉编译：
+
+**1. 准备工具链**
+```bash
+# 安装交叉编译工具链
+sudo apt install gcc-aarch64-linux-gnu
+```
+
+**2. 创建工具链文件**
+```cmake
+# cmake/toolchain-arm64.cmake
+set(CMAKE_SYSTEM_NAME Linux)
+set(CMAKE_SYSTEM_PROCESSOR aarch64)
+
+set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
+set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
+
+set(CMAKE_FIND_ROOT_PATH /usr/aarch64-linux-gnu)
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+```
+
+**3. 配置交叉编译**
+```bash
+# 加载 ARM64 配置
+python3 build.py config ccm_h200_100p_am625_release_defconfig
+
+# 使用工具链文件构建
+cmake -B _build-arm64 \
+      -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain-arm64.cmake
+cmake --build _build-arm64 -j$(nproc)
+
+# 检查二进制架构
+file _build-arm64/bin/ccm_collector
+# 输出：ELF 64-bit LSB executable, ARM aarch64, ...
+```
+
+**4. 部署到目标**
+```bash
+# 通过 scp 传输
+scp _build-arm64/bin/ccm_collector root@target:/usr/bin/
+
+# 或打包为 tarball
+tar -czf ccm-arm64.tar.gz -C _build-arm64/bin .
 ```
 
 ### 调试构建问题
 
+**详细构建输出**：
 ```bash
-# 查看详细构建过程
-python3 build.py build --verbose
+python3 build.py build -- VERBOSE=1
+```
 
-# 清理并重新构建
-python3 build.py distclean
-python3 build.py config <config_name>
-python3 build.py build
+**检查链接顺序**：
+```bash
+python3 build.py build -- VERBOSE=1 2>&1 | grep "undefined reference"
+```
 
-# 查看配置
-cat .config | grep CONFIG_
+**检查头文件搜索路径**：
+```bash
+python3 build.py build -- VERBOSE=1 2>&1 | grep "\-I"
+```
+
+**检查库链接**：
+```bash
+python3 build.py build -- VERBOSE=1 2>&1 | grep "\-l"
+```
+
+**生成依赖关系图**：
+```bash
+cd _build
+cmake --graphviz=deps.dot ..
+dot -Tpng deps.dot -o deps.png
 ```
 
 ## 重要注意事项
@@ -393,16 +1209,347 @@ cat .config | grep CONFIG_
 
 ## 故障排除快速参考
 
-| 问题 | 解决方案 |
-|------|---------|
-| 找不到 CONFIG_XXX 变量 | 运行 `python3 build.py config <name>` |
-| 找不到头文件 | 检查 `target_include_directories` 设置 |
-| 链接错误 | 检查 `target_link_libraries` 依赖声明 |
-| 配置不生效 | 运行 `python3 build.py distclean` 重新配置 |
-| menuconfig 无法运行 | 安装依赖：`sudo apt install libncurses-dev flex bison` |
-| 编译错误 | 检查是否符合命名规范（模块前缀、枚举值等） |
+| 问题 | 原因 | 解决方案 |
+|------|------|---------|
+| 找不到 CONFIG_XXX CMake 变量 | `.config` 未加载或未生成 | 运行 `python3 build.py config <name>` |
+| CONFIG_XXX 在 C 代码中未定义 | `autoconf.h` 未生成 | 检查 `_build/autoconf.h` 是否存在，重新运行 CMake |
+| 配置修改后不生效 | CMake 缓存未更新 | 运行 `python3 build.py distclean && python3 build.py config <name>` |
+| kconfig.cmake 生成失败 | Python 脚本错误 | 检查 `tools/kconfig/genconfig.py` 输出，确认 `.config` 格式正确 |
+| menuconfig 无法运行 | 缺少 ncurses 依赖 | 安装依赖：`sudo apt install libncurses-dev flex bison` |
+| CMake 配置阶段报错 | Kconfig 集成失败 | 检查 CMake 输出，确认 `kconfig_load()` 成功执行 |
+| 找不到头文件 | `target_include_directories` 未设置 | 检查模块 CMakeLists.txt 的头文件路径配置 |
+| 链接错误 | 依赖库未链接 | 检查 `target_link_libraries` 依赖声明 |
+| 编译错误（命名冲突） | 未遵循命名规范 | 检查模块前缀、枚举值、头文件保护宏 |
+| defconfig 加载后符号丢失 | 依赖关系未满足 | 使用 menuconfig 查看符号依赖，启用必需的父选项 |
+
+### Kconfig + CMake 集成常见问题
+
+#### 问题：CMake 变量 CONFIG_XXX 不可用
+
+**症状**：CMakeLists.txt 中 `if(CONFIG_XXX)` 总是为假，或提示变量未定义
+
+**诊断步骤**：
+```bash
+# 1. 检查 .config 是否存在
+ls -la .config
+
+# 2. 检查符号是否在 .config 中
+cat .config | grep CONFIG_XXX
+
+# 3. 检查 kconfig.cmake 是否生成
+ls -la _build/kconfig.cmake
+cat _build/kconfig.cmake | grep CONFIG_XXX
+
+# 4. 检查 CMake 是否加载了 kconfig.cmake
+grep "kconfig_load" CMakeLists.txt
+```
+
+**可能原因和解决方案**：
+
+1. **未运行配置命令**
+   ```bash
+   python3 build.py config ccm_h200_100p_am625_debug_defconfig
+   ```
+
+2. **CMakeLists.txt 未调用 kconfig_load()**
+   ```cmake
+   # 确保顶层 CMakeLists.txt 包含
+   include(cmake/Kconfig.cmake)
+   kconfig_load()
+   ```
+
+3. **派生符号未生成**（如 `CONFIG_PROJECT_NAME`）
+   - 原因：defconfig 只包含用户选项，不包含派生值
+   - 解决：`build.py config` 已自动运行 `conf --olddefconfig` 规范化配置
+   - 验证：`cat .config | grep CONFIG_PROJECT_NAME` 应该有值
+
+4. **CMake 缓存问题**
+   ```bash
+   python3 build.py distclean
+   python3 build.py config <defconfig>
+   python3 build.py build
+   ```
+
+#### 问题：C 代码中 CONFIG_XXX 宏未定义
+
+**症状**：编译错误 `'CONFIG_XXX' undeclared` 或条件编译不生效
+
+**诊断步骤**：
+```bash
+# 1. 检查 autoconf.h 是否生成
+cat _build/autoconf.h | grep CONFIG_XXX
+
+# 2. 检查编译命令是否包含 -include
+python3 build.py build -- VERBOSE=1 2>&1 | grep "include.*autoconf.h"
+
+# 3. 手动预处理测试
+gcc -E -include _build/autoconf.h test.c | grep CONFIG_XXX
+```
+
+**可能原因和解决方案**：
+
+1. **autoconf.h 未生成**
+   ```bash
+   # 重新生成
+   python3 build.py distclean
+   python3 build.py config <defconfig>
+   python3 build.py build
+   ```
+
+2. **编译选项未配置**
+   - `kconfig_load()` 应该自动添加 `-include` 选项
+   - 手动检查：`add_compile_options(-include ${CMAKE_BINARY_DIR}/autoconf.h)`
+
+3. **符号在 .config 中不存在**
+   ```bash
+   # 检查符号是否启用
+   cat .config | grep CONFIG_XXX
+   # 如果没有，使用 menuconfig 启用
+   python3 build.py menuconfig
+   ```
+
+#### 问题：配置更改后编译结果不变
+
+**症状**：修改 .config 或 defconfig 后，编译产物没有变化
+
+**诊断步骤**：
+```bash
+# 1. 检查 .config 时间戳
+ls -l .config
+
+# 2. 检查 kconfig.cmake 时间戳
+ls -l _build/kconfig.cmake
+
+# 3. 检查 CMake 是否检测到变化
+python3 build.py build -- VERBOSE=1 2>&1 | grep "Re-run.*genconfig"
+```
+
+**解决方案**：
+
+1. **强制重新配置**
+   ```bash
+   # 删除 CMake 缓存
+   rm -rf _build/CMakeCache.txt _build/CMakeFiles
+   python3 build.py build
+   ```
+
+2. **完全清理重建**
+   ```bash
+   python3 build.py distclean
+   python3 build.py config <defconfig>
+   python3 build.py build
+   ```
+
+3. **确认配置已保存**
+   ```bash
+   # 修改后必须保存
+   python3 build.py menuconfig  # 修改后按 'S' 保存
+   # 或
+   python3 build.py savedefconfig <name>
+   ```
+
+**注意**：CMake 会自动检测 `.config` 的 mtime 变化。如果配置没有生效，说明 CMake 缓存了旧值。
+
+#### 问题：genconfig.py 生成失败
+
+**症状**：CMake 配置阶段报错 `genconfig.py failed with exit code X`
+
+**诊断步骤**：
+```bash
+# 1. 手动运行生成脚本
+python3 tools/kconfig/genconfig.py .config _build/kconfig.cmake _build/autoconf.h
+
+# 2. 检查 Python 环境
+python3 --version  # 应该 >= 3.6
+
+# 3. 检查 .config 格式
+file .config       # 应该是文本文件
+head -20 .config   # 检查是否有语法错误
+```
+
+**可能原因和解决方案**：
+
+1. **Python 版本过低**
+   ```bash
+   # 需要 Python 3.6+
+   python3 --version
+   # 如果版本太低，升级 Python
+   ```
+
+2. **.config 格式错误**
+   ```bash
+   # 重新生成配置
+   python3 build.py distclean
+   python3 build.py config <defconfig>
+   ```
+
+3. **genconfig.py 文件损坏**
+   ```bash
+   # 检查文件完整性
+   python3 -m py_compile tools/kconfig/genconfig.py
+   ```
+
+4. **权限问题**
+   ```bash
+   # 检查写权限
+   ls -l _build/
+   chmod -R u+w _build/
+   ```
+
+#### 问题：符号依赖关系不满足
+
+**症状**：menuconfig 中某个选项是灰色的，无法启用；或者 defconfig 加载后某些选项消失
+
+**诊断步骤**：
+```bash
+# 1. 使用 menuconfig 查看依赖
+python3 build.py menuconfig
+# 导航到符号，按 '?' 查看帮助
+
+# 示例输出：
+# Symbol: CONFIG_PRL_MCU [=n]
+# Type  : bool
+# Prompt: MCU device protocol support
+# Depends on: CONFIG_PRL [=n]
+#   -> PRL is not enabled, so PRL_MCU cannot be enabled
+
+# 2. 检查 Kconfig 定义
+grep -A 10 "config PRL_MCU" core/prl/Kconfig
+```
+
+**解决方案**：
+
+1. **启用依赖的父选项**
+   ```bash
+   python3 build.py menuconfig
+   # 启用 CONFIG_PRL，然后 CONFIG_PRL_MCU 就可以启用了
+   ```
+
+2. **修改 defconfig 包含依赖**
+   ```bash
+   # 编辑 configs/my_defconfig
+   CONFIG_PRL=y        # 父选项
+   CONFIG_PRL_MCU=y    # 子选项
+   ```
+
+3. **检查 select 语句**
+   - 有些选项会自动 `select` 其他选项
+   - 使用 menuconfig 的 '?' 查看 "Selected by" 信息
+
+**常见依赖关系**：
+```
+CONFIG_PRL_MCU  depends on  CONFIG_PRL
+CONFIG_PRL      depends on  CONFIG_HAL
+CONFIG_HAL      depends on  CONFIG_OSAL
+```
+
+#### 问题：构建失败但配置看起来正确
+
+**症状**：CMake 配置成功，但编译失败
+
+**诊断步骤**：
+```bash
+# 1. 查看详细编译输出
+python3 build.py build -- VERBOSE=1
+
+# 2. 检查链接错误
+python3 build.py build 2>&1 | grep "undefined reference"
+
+# 3. 检查是否缺少依赖库
+ldd _build/bin/ccm_collector
+```
+
+**可能原因和解决方案**：
+
+1. **依赖库未启用**
+   ```cmake
+   # 检查 CMakeLists.txt
+   if(CONFIG_PDL)
+       target_link_libraries(myapp PRIVATE pdl)
+   endif()
+   # 确保 CONFIG_PDL=y
+   ```
+
+2. **头文件路径未配置**
+   ```cmake
+   target_include_directories(mylib PUBLIC
+       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+   )
+   ```
+
+3. **循环依赖**
+   ```bash
+   # 检查链接顺序
+   python3 build.py build -- VERBOSE=1 2>&1 | grep "undefined reference"
+   # 调整 CMakeLists.txt 中的链接顺序
+   ```
+
+#### 问题：多配置切换问题
+
+**症状**：在不同配置之间切换后，构建出错
+
+**解决方案**：
+
+```bash
+# 推荐：切换配置前完全清理
+python3 build.py distclean
+python3 build.py config new_defconfig
+python3 build.py build
+
+# 或：使用不同的构建目录（高级用户）
+cmake -B build-debug -DCMAKE_BUILD_TYPE=Debug
+cmake -B build-release -DCMAKE_BUILD_TYPE=Release
+cmake --build build-debug
+cmake --build build-release
+```
+
+#### 问题：并行构建失败
+
+**症状**：`make -j8` 或 `cmake --build . -j8` 失败，但单线程构建成功
+
+**可能原因**：
+- 依赖关系未正确声明
+- 竞态条件（同时写入同一文件）
+
+**解决方案**：
+```cmake
+# 确保依赖声明完整
+add_library(mylib src1.c src2.c)
+target_link_libraries(myapp PRIVATE mylib)  # 声明依赖
+
+# 避免自定义命令的竞态
+add_custom_command(OUTPUT file.h
+    COMMAND generate_header.sh
+    DEPENDS input.txt
+)
+add_custom_target(gen_header DEPENDS file.h)
+add_dependencies(mylib gen_header)  # 确保顺序
+```
 
 ## 最近更新
+
+- **2026-06-11**: Kconfig + CMake 集成架构完成
+  - **重大升级**：从 Python 脚本生成配置文件迁移到 CMake 原生集成
+  - **新增功能**：
+    - `kconfig_load()` CMake 函数：自动加载配置、生成变量、配置编译选项
+    - `kconfig_print_summary()` CMake 函数：调试配置问题的辅助工具
+    - `genconfig.py` 工具：将 `.config` 转换为 `kconfig.cmake` 和 `autoconf.h`
+    - 配置规范化：自动运行 `conf --olddefconfig` 填充派生值
+  - **工作流改进**：
+    - 修复 `CONFIG_PROJECT_NAME` 等派生符号未生成的问题
+    - 配置变更自动触发 CMake 重新配置
+    - 110+ Kconfig 符号正确传递到 CMake 和 C 代码
+  - **验证测试**：
+    - 所有 12 个 defconfig 配置验证通过
+    - 28 个自动化测试全部通过
+    - 构建、保存、加载配置的完整流程验证
+  - **文档完善**：
+    - 详细的架构说明和工作流程图
+    - CMake 函数 API 参考
+    - 配置管理最佳实践
+    - 常见问题诊断和解决方案
+    - 开发任务示例（添加模块、应用、测试）
+  - **向后兼容**：保持 `python3 build.py` 命令接口不变，内部实现升级为 CMake 原生
 
 - **2026-06-05**: 头文件引用规范更新
   - 移除所有头文件 include 的命名空间前缀
@@ -429,6 +1576,6 @@ cat .config | grep CONFIG_
 
 ---
 
-**最后更新**: 2026-06-08  
+**最后更新**: 2026-06-11  
 **维护者**: wanguo  
 **分支**: master

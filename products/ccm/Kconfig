@@ -48,7 +48,7 @@ endmenu
 
 menu "Product Libraries"
 
-osource "$SDK_PATH/products/ccm/libs/libccm/Kconfig"
+source "products/ccm/libs/libccm/Kconfig"
 
 endmenu
 
@@ -58,11 +58,11 @@ endmenu
 
 menu "Applications"
 
-osource "$SDK_PATH/products/ccm/apps/app_collector/Kconfig"
-osource "$SDK_PATH/products/ccm/apps/app_comm/Kconfig"
-osource "$SDK_PATH/products/ccm/apps/app_health/Kconfig"
-osource "$SDK_PATH/products/ccm/apps/app_logger/Kconfig"
-osource "$SDK_PATH/products/ccm/apps/app_supervisor/Kconfig"
+source "products/ccm/apps/app_collector/Kconfig"
+source "products/ccm/apps/app_comm/Kconfig"
+source "products/ccm/apps/app_health/Kconfig"
+source "products/ccm/apps/app_logger/Kconfig"
+source "products/ccm/apps/app_supervisor/Kconfig"
 
 endmenu
 

@@ -9,15 +9,20 @@ cmake_minimum_required(VERSION 3.16)
 
 # Set SDK path (this is the root directory)
 set(SDK_PATH ${CMAKE_CURRENT_LIST_DIR})
-message("-- SDK_PATH: ${SDK_PATH}")
+message(STATUS "SDK_PATH: ${SDK_PATH}")
 
-# Load Kconfig configuration
-set(config_file "${CMAKE_CURRENT_BINARY_DIR}/config/global_config.cmake")
-if(EXISTS ${config_file})
-    include(${config_file})
-else()
-    message(FATAL_ERROR "Configuration file not found: ${config_file}\nPlease run: python3 project.py menuconfig")
-endif()
+# Load Kconfig integration (builds kconfig tools and processes configuration)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/KconfigTools.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/Kconfig.cmake)
+
+# Configure Kconfig
+kconfig_config(
+    KCONFIG_FILE "${CMAKE_CURRENT_LIST_DIR}/Kconfig"
+    CONFIG_FILE "${CMAKE_CURRENT_LIST_DIR}/.config"
+    AUTOCONF_H "${CMAKE_CURRENT_BINARY_DIR}/config/autoconf.h"
+    CMAKE_CONFIG "${CMAKE_CURRENT_BINARY_DIR}/config/kconfig.cmake"
+    USE_NATIVE_TOOLS TRUE
+)
 
 # Standard CMake project declaration
 project(es_middleware_sdk C CXX ASM)
@@ -36,14 +41,14 @@ if(NOT python)
     message(FATAL_ERROR "python not found, please install python firstly(python3 recommend)!")
 endif()
 
-# Use the existing global_config.h as kconfig.h (it already contains all CONFIG_* macros)
-# Globally include it for all compilation units
-set(KCONFIG_HEADER "${CMAKE_CURRENT_BINARY_DIR}/config/global_config.h")
+# Auto-include autoconf.h for all compilation units
+set(KCONFIG_HEADER "${CMAKE_CURRENT_BINARY_DIR}/config/autoconf.h")
 if(EXISTS ${KCONFIG_HEADER})
     add_compile_options(-include ${KCONFIG_HEADER})
-    message("-- Auto-including kconfig header: ${KCONFIG_HEADER}")
+    message(STATUS "Auto-including kconfig header: ${KCONFIG_HEADER}")
 else()
-    message(FATAL_ERROR "Configuration header not found: ${KCONFIG_HEADER}")
+    message(WARNING "Configuration header not found: ${KCONFIG_HEADER}")
+    message(STATUS "Configuration will be generated during build")
 endif()
 
 # Execute at configure time to generate build info headers

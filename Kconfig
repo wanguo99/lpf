@@ -217,12 +217,12 @@ endmenu
 
 menu "Core Components"
 
-osource "$SDK_PATH/core/osal/Kconfig"
-osource "$SDK_PATH/core/hal/Kconfig"
-osource "$SDK_PATH/core/pconfig/Kconfig"
-osource "$SDK_PATH/core/pdl/Kconfig"
-osource "$SDK_PATH/core/prl/Kconfig"
-osource "$SDK_PATH/core/aconfig/Kconfig"
+source "core/osal/Kconfig"
+source "core/hal/Kconfig"
+source "core/pconfig/Kconfig"
+source "core/pdl/Kconfig"
+source "core/prl/Kconfig"
+source "core/aconfig/Kconfig"
 
 endmenu
 
@@ -236,11 +236,11 @@ endmenu
 menu "Product Configuration"
 
 if PRODUCT_CCM
-	osource "$SDK_PATH/products/ccm/Kconfig"
+	source "products/ccm/Kconfig"
 endif
 
 if PRODUCT_SAMPLE
-	osource "$SDK_PATH/products/sample/Kconfig"
+	source "products/sample/Kconfig"
 endif
 
 endmenu
@@ -267,6 +267,6 @@ config BUILD_TESTING
 
 if BUILD_TESTING
 	menu "Test Configuration"
-		osource "$SDK_PATH/products/tests/Kconfig"
+		source "products/tests/Kconfig"
 	endmenu
 endif

@@ -61,7 +61,6 @@ def write_header(kconfig, filename, gui):
         with open(filename, "r") as f:
             old = f.read()
     new = kconfig._autoconf_contents(header)
-    os.environ["BUILD_TYPE"]
     build_type = os.environ.get("BUILD_TYPE", "debug").lower()
     if build_type in ["release", "minsizerel", "relwithdebinfo"]:
         print("-- build type:{}, write RELEASE definition to c header".format(build_type))
