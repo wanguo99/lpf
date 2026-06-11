@@ -2,19 +2,19 @@
 
 ## Overview
 
-ES-Middleware uses a unified build script (`build.py`) that integrates CMake and Kconfig configuration systems. This guide covers all build commands and workflows.
+ES-Middleware uses a Kernel/Buildroot-style Makefile that integrates CMake and Kconfig configuration systems. This guide covers all build commands and workflows.
 
 ## Quick Start
 
 ```bash
 # 1. List available configurations
-python3 build.py --list
+make list
 
 # 2. Load a configuration
-python3 build.py config tests_x86_minimal
+make tests_x86_minimal_defconfig
 
 # 3. Build
-python3 build.py build
+make
 
 # 4. Run tests
 ./_build/bin/es-middleware-test
@@ -30,10 +30,10 @@ Load a predefined configuration from `configs/` directory.
 
 ```bash
 # With short name (recommended)
-python3 build.py config tests_x86_minimal
+make tests_x86_minimal_defconfig
 
 # With full name
-python3 build.py config tests_x86_minimal_defconfig
+make tests_x86_minimal_defconfig_defconfig
 
 # Available configurations are listed with --list
 ```
@@ -49,7 +49,7 @@ python3 build.py config tests_x86_minimal_defconfig
 Open the graphical Kconfig configuration interface (ncurses-based).
 
 ```bash
-python3 build.py menuconfig
+make menuconfig
 ```
 
 **Features:**
@@ -71,7 +71,7 @@ python3 build.py menuconfig
 Open an alternative ncurses-based configuration interface.
 
 ```bash
-python3 build.py nconfig
+make nconfig
 ```
 
 Similar to `menuconfig` but with a different UI style.
@@ -82,10 +82,10 @@ Generate a minimal configuration file containing only non-default values.
 
 ```bash
 # Save to root directory as 'defconfig'
-python3 build.py savedefconfig
+make savedefconfig
 
 # Save to configs/ directory with a name
-python3 build.py savedefconfig my_custom_config
+make savedefconfig my_custom_config
 ```
 
 **Output:**
@@ -99,7 +99,7 @@ python3 build.py savedefconfig my_custom_config
 Update an existing `.config` with newly added Kconfig options.
 
 ```bash
-python3 build.py oldconfig
+make oldconfig
 ```
 
 **Use case:** After pulling new code that adds Kconfig options, update your existing configuration.
@@ -112,13 +112,13 @@ Build the project with the current or specified configuration.
 
 ```bash
 # Build with current configuration
-python3 build.py build
+make
 
 # Build with specific configuration (load + build)
-python3 build.py build --config tests_x86_full
+make --config tests_x86_full
 
 # Build with custom options
-python3 build.py build --jobs 8 --verbose
+make --jobs 8 --verbose
 ```
 
 **Options:**
@@ -132,7 +132,7 @@ python3 build.py build --jobs 8 --verbose
 Remove the build directory, preserving `.config`.
 
 ```bash
-python3 build.py clean
+make clean
 ```
 
 #### `distclean` - Complete Clean
@@ -140,7 +140,7 @@ python3 build.py clean
 Remove build directory and all configuration files (`.config`, `defconfig`).
 
 ```bash
-python3 build.py distclean
+make distclean
 ```
 
 **Warning:** This removes your current configuration. Save it first with `savedefconfig` if needed.
@@ -152,7 +152,7 @@ python3 build.py distclean
 Display all available configurations with details.
 
 ```bash
-python3 build.py --list
+make list
 ```
 
 **Output:**
@@ -165,7 +165,7 @@ python3 build.py --list
 Display command-line help.
 
 ```bash
-python3 build.py --help
+make help
 ```
 
 ## Configuration Workflow
@@ -174,10 +174,10 @@ python3 build.py --help
 
 ```bash
 # 1. Load a base configuration
-python3 build.py config ccm_h200_100p_am625_debug
+make ccm_h200_100p_am625_debug_defconfig
 
 # 2. Build
-python3 build.py build
+make
 
 # 3. Test
 ./_build/bin/collector --help
@@ -187,23 +187,23 @@ python3 build.py build
 
 ```bash
 # 1. Load a base configuration
-python3 build.py config tests_x86_minimal
+make tests_x86_minimal_defconfig
 
 # 2. Customize interactively
-python3 build.py menuconfig
+make menuconfig
 #   - Navigate to options
 #   - Enable/disable features
 #   - Save and exit
 
 # 3. Build with custom configuration
-python3 build.py build
+make
 
 # 4. Save custom configuration
-python3 build.py savedefconfig my_custom
+make savedefconfig my_custom
 #   - Saved to configs/my_custom_defconfig
 
 # 5. Use custom configuration later
-python3 build.py config my_custom
+make my_custom_defconfig
 ```
 
 ### One-Shot Build
@@ -211,7 +211,7 @@ python3 build.py config my_custom
 For quick builds without separate configuration step:
 
 ```bash
-python3 build.py build -c tests_x86_full -j8
+make -c tests_x86_full -j8
 ```
 
 ## Configuration Files
@@ -233,7 +233,7 @@ python3 build.py build -c tests_x86_full -j8
 The build system validates configurations automatically:
 
 ```bash
-python3 build.py config my_config
+make my_config_defconfig
 # Output:
 # Validation: Configuration file is valid (85 config lines)
 ```
@@ -338,14 +338,14 @@ _build/
 ### Custom Build Directory
 
 ```bash
-python3 build.py config tests_x86_full -b build-test
-python3 build.py build -b build-test
+make tests_x86_full_defconfig -b build-test
+make -b build-test
 ```
 
 ### Verbose Build Output
 
 ```bash
-python3 build.py build --verbose
+make --verbose
 ```
 
 Shows full compiler commands and flags.
@@ -354,10 +354,10 @@ Shows full compiler commands and flags.
 
 ```bash
 # Use 8 parallel jobs
-python3 build.py build -j8
+make -j8
 
 # Use all CPU cores (default)
-python3 build.py build
+make
 ```
 
 ### Check Current Configuration
@@ -376,7 +376,7 @@ Or use menuconfig to browse current settings.
 
 **Solution:**
 ```bash
-python3 build.py config <config_name>
+make <config_name>_defconfig
 ```
 
 ### "CMake configuration failed"
@@ -386,9 +386,9 @@ python3 build.py config <config_name>
 **Solution:**
 ```bash
 # Clean and retry
-python3 build.py distclean
-python3 build.py config <config_name>
-python3 build.py build
+make distclean
+make <config_name>_defconfig
+make
 ```
 
 ### "Build directory not configured" (for menuconfig)
@@ -397,8 +397,8 @@ python3 build.py build
 
 **Solution:**
 ```bash
-python3 build.py config <config_name>
-python3 build.py menuconfig
+make <config_name>_defconfig
+make menuconfig
 ```
 
 ### Invalid configuration file
@@ -416,8 +416,8 @@ python3 build.py menuconfig
 **Solution:**
 ```bash
 sudo apt-get install libncurses-dev flex bison
-python3 build.py distclean
-python3 build.py config <config_name>
+make distclean
+make <config_name>_defconfig
 ```
 
 ## Environment Variables
@@ -438,7 +438,7 @@ The build system generates `compile_commands.json` automatically for better C/C+
 
 CLion can use the generated CMake build system directly:
 1. Open project root in CLion
-2. Load `.config` with `python3 build.py config <name>`
+2. Load `.config` with `make <name>`_defconfig
 3. Reload CMake project
 
 ## Backward Compatibility
@@ -447,12 +447,12 @@ The enhanced build.py maintains full backward compatibility with previous workfl
 
 ```bash
 # Old workflow (still works)
-python3 build.py config ccm_h200_100p_am625_debug_defconfig
-python3 build.py build
+make ccm_h200_100p_am625_debug_defconfig_defconfig
+make
 
 # New workflow (recommended)
-python3 build.py config ccm_h200_100p_am625_debug
-python3 build.py build
+make ccm_h200_100p_am625_debug_defconfig
+make
 ```
 
 ## Summary of Changes (v2.1)

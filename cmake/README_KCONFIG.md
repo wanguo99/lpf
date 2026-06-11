@@ -66,16 +66,16 @@ Built in `_build/kconfig-tools-build/`:
 
 ```bash
 # 1. Load a predefined configuration
-python3 build.py config ccm_h200_100p_am625_debug_defconfig
+make ccm_h200_100p_am625_debug_defconfig_defconfig
 
 # 2. Customize configuration (optional)
-python3 build.py menuconfig
+make menuconfig
 
 # 3. Build the project
-python3 build.py build
+make
 
 # 4. Save changes to defconfig (optional)
-python3 build.py savedefconfig
+make savedefconfig
 ```
 
 ### CMake Integration
@@ -132,7 +132,7 @@ make list_defconfigs
 
 ### Loading a Configuration
 
-1. User runs `python3 build.py config <name>_defconfig`
+1. User runs `make <name>_defconfig`_defconfig
 2. Build script copies `configs/<name>_defconfig` to `.config`
 3. CMake runs and includes `Kconfig.cmake`
 4. `Kconfig.cmake` reads `.config` and generates:
@@ -284,7 +284,7 @@ sudo dnf install ncurses-devel
 
 # Reconfigure
 rm -rf _build
-python3 build.py config <defconfig>
+make <defconfig>_defconfig
 ```
 
 ### autoconf.h not generated
@@ -295,7 +295,7 @@ python3 build.py config <defconfig>
 
 **Solution**:
 ```bash
-python3 build.py config ccm_h200_100p_am625_debug_defconfig
+make ccm_h200_100p_am625_debug_defconfig_defconfig
 ```
 
 ### CONFIG_* variable not found in CMake
@@ -324,7 +324,7 @@ cmake -B _build
 ```bash
 # After menuconfig, reconfigure CMake
 make menuconfig
-cmake -B _build  # Or: python3 build.py build (it auto-reconfigures)
+cmake -B _build  # Or: make (it auto-reconfigures)
 ```
 
 ## Best Practices
@@ -377,7 +377,7 @@ config MY_FEATURE
 # Verify all defconfigs load successfully
 for cfg in configs/*_defconfig; do
     echo "Testing $cfg..."
-    python3 build.py config $(basename $cfg)
+    make $(basename_defconfig $cfg)
     if [ $? -ne 0 ]; then
         echo "Failed to load $cfg"
         exit 1

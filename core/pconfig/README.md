@@ -76,8 +76,8 @@ PCL支持三种配置选择方式（优先级从高到低）：
 
 ```bash
 # 在项目根目录使用统一构建脚本
-python3 build.py config ccm_h200_100p_am625_debug_defconfig
-python3 build.py build
+make ccm_h200_100p_am625_debug_defconfig_defconfig
+make
 ```
 
 PConfig 模块会作为核心模块的一部分自动编译。
@@ -98,10 +98,10 @@ CONFIG_PCONFIG_VERSION="v2"                     # 硬件版本
 # 方法1: 环境变量（最高优先级）
 export PCONFIG_PLATFORM=ti/am6254/H200_100P
 export PCONFIG_VERSION=v2
-python3 build.py build
+make
 
 # 方法2: 在 menuconfig 中配置
-python3 build.py menuconfig
+make menuconfig
 # 导航到 "Platform Configuration" → "Platform Path"
 ```
 

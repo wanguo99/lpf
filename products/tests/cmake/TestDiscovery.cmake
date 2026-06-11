@@ -149,7 +149,7 @@ function(test_discover_and_add)
                 "           Dependencies: CONFIG_${MODULE_UPPER}\n"
                 "\n"
                 "  2. Update the ${CONFIG_NAME}_ALL option to select ${CONFIG_NAME}\n"
-                "  3. Run: python3 build.py menuconfig\n"
+                "  3. Run: make menuconfig\n"
                 "  4. Or remove the test file if it's obsolete or incorrectly named."
             )
         endif()
@@ -190,7 +190,7 @@ function(test_discover_and_add)
             "${ARG_MODULE}: ${MISSING_CONFIG_COUNT} test file(s) lack corresponding Kconfig options.\n"
             "  This indicates a mismatch between test files and Kconfig definitions.\n"
             "  Review the warnings above for detailed instructions.\n"
-            "  Run 'python3 build.py menuconfig' to verify configuration after fixing."
+            "  Run 'make menuconfig' to verify configuration after fixing."
         )
     endif()
 

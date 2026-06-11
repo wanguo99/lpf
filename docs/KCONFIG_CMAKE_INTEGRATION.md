@@ -33,7 +33,7 @@ This document describes the Kconfig + CMake integration architecture in ES-Middl
 │  (menu structure)       (presets)              (active config)   │
 └─────────────────────────────────────────────────────────────────┘
                                   │
-                                  ├── python3 build.py config ──┐
+                                  ├── make ──┐_defconfig
                                   │                              │
                                   ▼                              ▼
 ┌─────────────────────────────────────────────────────────────────┐
@@ -82,10 +82,10 @@ This document describes the Kconfig + CMake integration architecture in ES-Middl
 
 ```bash
 # Load predefined configuration
-python3 build.py config ccm_h200_100p_am625_debug_defconfig
+make ccm_h200_100p_am625_debug_defconfig_defconfig
 
 # Or use menuconfig for interactive configuration
-python3 build.py menuconfig
+make menuconfig
 ```
 
 **What happens:**
@@ -95,7 +95,7 @@ python3 build.py menuconfig
 
 ### Step 2: Generate Build Files
 
-When you run CMake (via `python3 build.py build` or manually):
+When you run CMake (via `make` or manually):
 
 ```cmake
 # In CMakeLists.txt
@@ -159,7 +159,7 @@ endif()
 function(kconfig_load)
     # 1. Check for .config file
     if(NOT EXISTS "${CMAKE_SOURCE_DIR}/.config")
-        message(FATAL_ERROR "No .config found. Run: python3 build.py config <defconfig>")
+        message(FATAL_ERROR "No .config found. Run: make <defconfig>")_defconfig
     endif()
 
     # 2. Generate output files
@@ -509,14 +509,14 @@ void newmodule_init(void)
 
 ```bash
 # Update configuration to enable new module
-python3 build.py menuconfig
+make menuconfig
 # Navigate to "Core Modules" -> "Enable New Module" -> Y
 
 # Or create a new defconfig
-python3 build.py savedefconfig my_config_defconfig
+make savedefconfig my_config_defconfig
 
 # Build
-python3 build.py build
+make
 ```
 
 ### Scenario 2: Creating a Custom Configuration
@@ -525,21 +525,21 @@ python3 build.py build
 
 ```bash
 # 1. Start with closest existing config
-python3 build.py config tests_x86_minimal_defconfig
+make tests_x86_minimal_defconfig_defconfig
 
 # 2. Customize via menuconfig
-python3 build.py menuconfig
+make menuconfig
 # Disable unwanted modules
 # Adjust buffer sizes, thread counts, etc.
 
 # 3. Save as new defconfig
-python3 build.py savedefconfig my_minimal_defconfig
+make savedefconfig my_minimal_defconfig
 # This creates configs/my_minimal_defconfig
 
 # 4. Test the configuration
-python3 build.py distclean
-python3 build.py config my_minimal_defconfig
-python3 build.py build
+make distclean
+make my_minimal_defconfig_defconfig
+make
 
 # 5. Commit to repository
 git add configs/my_minimal_defconfig
@@ -567,9 +567,9 @@ cat _build/autoconf.h | grep CONFIG_MY_MODULE
 # Check if the if(CONFIG_MY_MODULE) block is correct
 
 # 5. Force CMake reconfiguration
-python3 build.py distclean
-python3 build.py config <defconfig>
-python3 build.py build --verbose
+make distclean
+make <defconfig>_defconfig
+make --verbose
 ```
 
 ---
@@ -714,12 +714,12 @@ cmake --fresh -B _build/
 
 **Error:**
 ```
-CMake Error: No .config found. Run: python3 build.py config <defconfig>
+CMake Error: No .config found. Run: make <defconfig>_defconfig
 ```
 
 **Solution:**
 ```bash
-python3 build.py config ccm_h200_100p_am625_debug_defconfig
+make ccm_h200_100p_am625_debug_defconfig_defconfig
 ```
 
 #### Issue 2: CONFIG_* Variable Not Defined in CMake
@@ -743,7 +743,7 @@ cmake -B _build/ -LA | grep CONFIG_XXX
 **Solution:**
 1. Ensure `kconfig_load()` is called in top-level CMakeLists.txt
 2. Clear CMake cache: `rm -rf _build/CMakeCache.txt _build/CMakeFiles`
-3. Reconfigure: `python3 build.py build`
+3. Reconfigure: `make`
 
 #### Issue 3: CONFIG_* Macro Not Defined in C Code
 
@@ -757,7 +757,7 @@ cmake -B _build/ -LA | grep CONFIG_XXX
 cat _build/autoconf.h | grep CONFIG_XXX
 
 # Check compile commands
-python3 build.py build -- VERBOSE=1 | grep "include.*autoconf.h"
+make -- VERBOSE=1 | grep "include.*autoconf.h"
 ```
 
 **Solution:**
@@ -783,9 +783,9 @@ stat _build/kconfig.cmake .config
 **Solution:**
 ```bash
 # Force full reconfiguration
-python3 build.py distclean
-python3 build.py config <defconfig>
-python3 build.py build
+make distclean
+make <defconfig>_defconfig
+make
 ```
 
 #### Issue 5: genconfig.py Fails
@@ -807,7 +807,7 @@ python3 --version
 **Solution:**
 1. Ensure Python 3.6+ is installed
 2. Check .config format (may be corrupted)
-3. Restore from defconfig: `python3 build.py config <defconfig>`
+3. Restore from defconfig: `make <defconfig>`_defconfig
 
 #### Issue 6: Symbol Dependencies Not Satisfied
 
@@ -818,7 +818,7 @@ python3 --version
 **Diagnosis:**
 ```bash
 # Use menuconfig to inspect dependencies
-python3 build.py menuconfig
+make menuconfig
 # Navigate to symbol, press '?'
 ```
 
@@ -845,7 +845,7 @@ If issues persist:
 
 1. Run with verbose output:
    ```bash
-   python3 build.py build --verbose 2>&1 | tee build.log
+   make --verbose 2>&1 | tee build.log
    ```
 
 2. Check generated files:
@@ -874,7 +874,7 @@ The Kconfig + CMake integration provides:
 
 **Key Takeaways:**
 
-1. Always load configuration before building: `python3 build.py config <defconfig>`
+1. Always load configuration before building: `make <defconfig>`_defconfig
 2. Use `kconfig_load()` in top-level CMakeLists.txt
 3. Configuration changes require CMake reconfiguration
 4. `autoconf.h` is automatically included in all C files

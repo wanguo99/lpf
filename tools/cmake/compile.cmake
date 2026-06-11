@@ -260,22 +260,7 @@ function(find_components componet_dirs kconfigs configs found_main found_apps fi
     set(${found_apps} ${_found_apps} PARENT_SCOPE)
 endfunction()
 
-function(get_python python version info_str)
-    set(res 1)
-    execute_process(COMMAND python3 --version RESULT_VARIABLE cmd_res OUTPUT_VARIABLE cmd_out)
-    if(${cmd_res} EQUAL 0)
-        set(${python} python3 PARENT_SCOPE)
-        set(${version} 3 PARENT_SCOPE)
-        set(${info_str} ${cmd_out} PARENT_SCOPE)
-    else()
-        execute_process(COMMAND python --version RESULT_VARIABLE cmd_res OUTPUT_VARIABLE cmd_out)
-        if(${cmd_res} EQUAL 0)
-            set(${python} python PARENT_SCOPE)
-            set(${version} 2 PARENT_SCOPE)
-            set(${info_str} ${cmd_out} PARENT_SCOPE)
-        endif()
-    endif()
-endfunction(get_python python)
+# Note: get_python function removed - no Python dependency required
 
 
 macro(project name)
@@ -324,42 +309,46 @@ macro(project name)
         endif()
     endif()
 
-    # Generate config file from Kconfig
-    get_python(python python_version python_info_str)
-    if(NOT python)
-        message(FATAL_ERROR "python not found, please install python firstly(python3 recommend)!")
-    endif()
-    message(STATUS "python command: ${python}, version: ${python_info_str}")
-    string(REPLACE ";" " " components_kconfig_files "${kconfig_defaults_files_args}")
-    string(REPLACE ";" " " components_kconfig_files "${components_kconfig_files}")
-    set(generate_config_cmd ${python} -u ${SDK_PATH}/tools/kconfig/genconfig.py
-                            --kconfig "${SDK_PATH}/Kconfig"
-                            ${kconfig_defaults_files_args}
-                            --menuconfig False
-                            --env "SDK_PATH=${SDK_PATH}"
-                            --env "PROJECT_PATH=${PROJECT_SOURCE_DIR}"
-                            --env "CUSTOM_COMPONENTS_PATH=${CUSTOM_COMPONENTS_PATH}"
-                            --env "BUILD_TYPE=${CMAKE_BUILD_TYPE}"
-                            --output makefile ${PROJECT_BINARY_DIR}/config/global_config.mk
-                            --output cmake  ${PROJECT_BINARY_DIR}/config/global_config.cmake
-                            --output header ${PROJECT_BINARY_DIR}/config/global_config.h
-                            )
-    set(generate_config_cmd2 ${python} -u ${SDK_PATH}/tools/kconfig/genconfig.py
-                            --kconfig "${SDK_PATH}/Kconfig"
-                            ${kconfig_defaults_files_args}
-                            --menuconfig True
-                            --env "SDK_PATH=${SDK_PATH}"
-                            --env "PROJECT_PATH=${PROJECT_SOURCE_DIR}"
-                            --env "CUSTOM_COMPONENTS_PATH=${CUSTOM_COMPONENTS_PATH}"
-                            --env "BUILD_TYPE=${CMAKE_BUILD_TYPE}"
-                            --output makefile ${PROJECT_BINARY_DIR}/config/global_config.mk
-                            --output cmake  ${PROJECT_BINARY_DIR}/config/global_config.cmake
-                            --output header ${PROJECT_BINARY_DIR}/config/global_config.h
-                            )
-    execute_process(COMMAND ${generate_config_cmd} RESULT_VARIABLE cmd_res)
-    if(NOT cmd_res EQUAL 0)
-        message(FATAL_ERROR "Check Kconfig content")
-    endif()
+    # NOTE: The following genconfig.py-based configuration generation is deprecated
+    # The project now uses native Kconfig tools (conf/mconf/nconf) via cmake/Kconfig.cmake
+    # This code is kept for reference but should not be used
+    #
+    # # Generate config file from Kconfig
+    # get_python(python python_version python_info_str)
+    # if(NOT python)
+    #     message(FATAL_ERROR "python not found, please install python firstly(python3 recommend)!")
+    # endif()
+    # message(STATUS "python command: ${python}, version: ${python_info_str}")
+    # string(REPLACE ";" " " components_kconfig_files "${kconfig_defaults_files_args}")
+    # string(REPLACE ";" " " components_kconfig_files "${components_kconfig_files}")
+    # set(generate_config_cmd ${python} -u ${SDK_PATH}/tools/kconfig/genconfig.py
+    #                         --kconfig "${SDK_PATH}/Kconfig"
+    #                         ${kconfig_defaults_files_args}
+    #                         --menuconfig False
+    #                         --env "SDK_PATH=${SDK_PATH}"
+    #                         --env "PROJECT_PATH=${PROJECT_SOURCE_DIR}"
+    #                         --env "CUSTOM_COMPONENTS_PATH=${CUSTOM_COMPONENTS_PATH}"
+    #                         --env "BUILD_TYPE=${CMAKE_BUILD_TYPE}"
+    #                         --output makefile ${PROJECT_BINARY_DIR}/config/global_config.mk
+    #                         --output cmake  ${PROJECT_BINARY_DIR}/config/global_config.cmake
+    #                         --output header ${PROJECT_BINARY_DIR}/config/global_config.h
+    #                         )
+    # set(generate_config_cmd2 ${python} -u ${SDK_PATH}/tools/kconfig/genconfig.py
+    #                         --kconfig "${SDK_PATH}/Kconfig"
+    #                         ${kconfig_defaults_files_args}
+    #                         --menuconfig True
+    #                         --env "SDK_PATH=${SDK_PATH}"
+    #                         --env "PROJECT_PATH=${PROJECT_SOURCE_DIR}"
+    #                         --env "CUSTOM_COMPONENTS_PATH=${CUSTOM_COMPONENTS_PATH}"
+    #                         --env "BUILD_TYPE=${CMAKE_BUILD_TYPE}"
+    #                         --output makefile ${PROJECT_BINARY_DIR}/config/global_config.mk
+    #                         --output cmake  ${PROJECT_BINARY_DIR}/config/global_config.cmake
+    #                         --output header ${PROJECT_BINARY_DIR}/config/global_config.h
+    #                         )
+    # execute_process(COMMAND ${generate_config_cmd} RESULT_VARIABLE cmd_res)
+    # if(NOT cmd_res EQUAL 0)
+    #     message(FATAL_ERROR "Check Kconfig content")
+    # endif()
 
     # Include confiurations
     set(global_config_dir "${PROJECT_BINARY_DIR}/config")
@@ -455,20 +444,24 @@ macro(project name)
                                   )
     add_custom_target(update_build_info COMMAND ${gen_build_info_config_cmd})
 
-    # Sort component according to priority.conf config file
-    set(component_priority_conf_file "${PROJECT_PATH}/compile/priority.conf")
-    set(sort_components ${python}  ${SDK_PATH}/tools/cmake/sort_components.py
-                                   ${component_priority_conf_file} ${components_dirs}
-                        )
-    execute_process(COMMAND ${sort_components} OUTPUT_VARIABLE component_dirs_sorted RESULT_VARIABLE cmd_res)
-    if(cmd_res EQUAL 2)
-        message(STATUS "No components priority config file")
-        set(component_dirs_sorted ${components_dirs})
-    elseif(cmd_res EQUAL 0)
-        message(STATUS "Config components priority success")
-    else()
-        message(STATUS "Components priority config fail ${component_dirs_sorted}, check config file:${component_priority_conf_file}")
-    endif()
+    # NOTE: Component sorting disabled - sort_components.py removed
+    # Components will be processed in default order
+    # set(component_priority_conf_file "${PROJECT_PATH}/compile/priority.conf")
+    # set(sort_components ${python}  ${SDK_PATH}/tools/cmake/sort_components.py
+    #                                ${component_priority_conf_file} ${components_dirs}
+    #                     )
+    # execute_process(COMMAND ${sort_components} OUTPUT_VARIABLE component_dirs_sorted RESULT_VARIABLE cmd_res)
+    # if(cmd_res EQUAL 2)
+    #     message(STATUS "No components priority config file")
+    #     set(component_dirs_sorted ${components_dirs})
+    # elseif(cmd_res EQUAL 0)
+    #     message(STATUS "Config components priority success")
+    # else()
+    #     message(STATUS "Components priority config fail ${component_dirs_sorted}, check config file:${component_priority_conf_file}")
+    # endif()
+
+    # Use components in default order (no Python sorting)
+    set(component_dirs_sorted ${components_dirs})
 
     # Call CMakeLists.txt
     foreach(component_dir ${component_dirs_sorted})
@@ -487,8 +480,8 @@ macro(project name)
         set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -L${abs_dir} -Wl,-rpath,${abs_dir}")
     endforeach()
 
-    # Add menuconfig target for makefile
-    add_custom_target(menuconfig COMMAND ${generate_config_cmd2})
+    # NOTE: Old menuconfig target removed - use cmake/Kconfig.cmake instead
+    # add_custom_target(menuconfig COMMAND ${generate_config_cmd2})
 
     # 生成可执行文件
     list(LENGTH found_apps apps_count)

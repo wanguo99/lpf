@@ -407,7 +407,7 @@ make nconfig  # Alternative ncurses interface
 
 Or use the Python-based menuconfig:
 ```bash
-python3 build.py menuconfig
+make menuconfig
 ```
 
 ### Configuration Not Applied
@@ -457,12 +457,12 @@ project(MyProject)
 
 ### With Python build.py
 
-The existing `build.py` script can coexist with CMake integration:
+The existing `make` script can coexist with CMake integration:
 
 ```bash
 # Python-based workflow (unchanged)
-python3 build.py config ccm_h200_100p_am625_debug_defconfig
-python3 build.py build
+make ccm_h200_100p_am625_debug_defconfig_defconfig
+make
 
 # Or CMake-based workflow (new)
 cd build
@@ -476,7 +476,7 @@ Both workflows use the same `.config` file and generate compatible outputs.
 ### Migration Path
 
 1. **Phase 1**: Both systems coexist (current)
-   - `build.py` uses Python genconfig.py
+   - `make` uses Python genconfig.py
    - CMake uses Buildroot kconfig tools
 
 2. **Phase 2**: Gradual transition
@@ -484,7 +484,7 @@ Both workflows use the same `.config` file and generate compatible outputs.
    - Existing scripts continue to work
 
 3. **Phase 3**: Full CMake (future)
-   - Deprecate `build.py` for configuration
+   - Deprecate `make` for configuration
    - Keep for backward compatibility
 
 ## Advanced Usage

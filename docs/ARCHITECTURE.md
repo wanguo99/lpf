@@ -319,7 +319,7 @@ ES-Middleware 使用 **Kconfig + CMake** 混合构建系统：
 
 ### Kconfig 配置
 
-- **图形化配置**：`python3 build.py menuconfig`
+- **图形化配置**：`make menuconfig`
 - **预定义配置**：`configs/*_defconfig`
 - **当前配置**：`.config` 文件
 

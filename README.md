@@ -143,20 +143,20 @@ ES-Middleware/
 ls configs/*_defconfig
 
 # 加载配置
-python3 build.py config <config_name>
+make <config_name>_defconfig
 
 # 图形化配置（高级）
-python3 build.py menuconfig
+make menuconfig
 
 # 编译
-python3 build.py build
+make
 
 # 清理
-python3 build.py clean       # 清理编译产物
-python3 build.py distclean   # 完全清理（包括配置）
+make clean       # 清理编译产物
+make distclean   # 完全清理（包括配置）
 
 # 查看帮助
-python3 build.py --help
+make help
 ```
 
 ## 🏗️ 核心模块
@@ -201,8 +201,8 @@ python3 build.py --help
 
 ### 第一步：运行示例
 ```bash
-python3 build.py config ccm_development
-python3 build.py build
+make ccm_development_defconfig
+make
 ./_build/bin/collector
 ```
 
@@ -214,8 +214,8 @@ python3 build.py build
 
 ### 第四步：修改配置
 ```bash
-python3 build.py menuconfig  # 图形化配置
-python3 build.py build       # 重新编译
+make menuconfig  # 图形化配置
+make       # 重新编译
 ```
 
 ### 第五步：添加新功能

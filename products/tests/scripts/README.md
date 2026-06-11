@@ -227,8 +227,8 @@ python3 products/tests/scripts/sync_kconfig.py --category unit --module osal --w
 python3 products/tests/scripts/validate_test_config.py --category unit --module osal
 
 # 5. Build
-python3 build.py menuconfig
-python3 build.py build
+make menuconfig
+make
 ```
 
 ---
@@ -398,8 +398,8 @@ python3 products/tests/scripts/validate_test_config.py \
     --category unit --verbose
 
 # 5. Build and test
-python3 build.py menuconfig  # Enable CONFIG_TEST_OSAL_NEW_FEATURE
-python3 build.py build
+make menuconfig  # Enable CONFIG_TEST_OSAL_NEW_FEATURE
+make
 ./_build/bin/es-middleware-test
 ```
 
@@ -419,8 +419,8 @@ python3 products/tests/scripts/sync_kconfig.py --write
 python3 products/tests/scripts/validate_test_config.py
 
 # 5. Update defconfig files if needed
-python3 build.py config tests_x86_full_defconfig
-python3 build.py build
+make tests_x86_full_defconfig_defconfig
+make
 ```
 
 ## Future Enhancements

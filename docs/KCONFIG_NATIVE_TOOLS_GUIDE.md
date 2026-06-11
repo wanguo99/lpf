@@ -159,7 +159,7 @@ Lists all available defconfig files.
 
 ```bash
 # Option 1: Use build.py (recommended)
-python3 build.py config tests_x86_full_defconfig
+make tests_x86_full_defconfig_defconfig
 
 # Option 2: CMake direct
 cmake -B _build
@@ -483,7 +483,7 @@ Verify integration is working:
 
 ```bash
 # Configure project
-python3 build.py config tests_x86_full_defconfig
+make tests_x86_full_defconfig_defconfig
 
 # Verify tools built
 ls -lh _build/kconfig-tools-build/

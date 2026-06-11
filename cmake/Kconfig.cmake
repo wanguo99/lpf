@@ -147,7 +147,7 @@ function(kconfig_config)
         endforeach()
         message(STATUS "")
         message(STATUS "To configure:")
-        message(STATUS "  1. Run: python3 build.py config <name>")
+        message(STATUS "  1. Run: make <name>")
         message(STATUS "  2. Or run: make menuconfig")
         message(STATUS "  3. Then re-run cmake")
     endif()
@@ -414,7 +414,7 @@ function(_kconfig_create_targets_native kconfig_file config_file autoconf_h cmak
     file(GLOB _defconfigs "${CMAKE_SOURCE_DIR}/configs/*_defconfig")
 
     add_custom_target(defconfig
-        COMMAND ${CMAKE_COMMAND} -E echo "Usage: python3 build.py config <name>"
+        COMMAND ${CMAKE_COMMAND} -E echo "Usage: make <name>"
         COMMAND ${CMAKE_COMMAND} -E echo ""
         COMMAND ${CMAKE_COMMAND} -E echo "Available defconfigs:"
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}

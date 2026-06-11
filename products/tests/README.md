@@ -571,10 +571,10 @@ config TEST_OSAL_TIMER
 
 ```bash
 # 配置
-python3 build.py config tests_x86_full_defconfig
+make tests_x86_full_defconfig_defconfig
 
 # 编译（CMake 自动发现新测试）
-python3 build.py build
+make
 
 # 运行测试
 ./_build/bin/es-middleware-test -m osal_timer

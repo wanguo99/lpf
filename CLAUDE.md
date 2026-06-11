@@ -20,48 +20,52 @@ ES-Middleware (Embedded Software - Middleware) 是一个采用 **Kconfig + CMake
 
 ```bash
 # 1. 编译 CCM 产品（调试版本）
-python3 build.py config ccm_h200_100p_am625_debug_defconfig
-python3 build.py build
+make ccm_h200_100p_am625_debug_defconfig
+make
 
 # 2. 运行应用
 ./_build/bin/ccm_collector
 
 # 3. 运行测试（统一测试程序）
-python3 build.py config tests_x86_full_defconfig  # 或其他 tests_* 配置
-python3 build.py build
+make tests_x86_full_defconfig  # 或其他 tests_* 配置
+make
 ./_build/bin/es-middleware-test                    # 运行所有启用的测试
 ```
 
 ### 构建流程
 
-项目使用 Python 构建脚本 `build.py` 统一管理配置和编译：
+项目使用内核风格的 Makefile 统一管理配置和编译：
 
 ```bash
-# 方式一：使用 Python 构建脚本（推荐）
 # 1. 加载预定义配置
-python3 build.py config <config_name>    # 例如：ccm_h200_100p_am625_debug_defconfig, tests_x86_full_defconfig
+make tests_x86_minimal_defconfig    # 或其他配置，例如：ccm_h200_100p_am625_debug_defconfig
 
-# 2. 编译项目
-python3 build.py build
+# 2. 编译项目（自动并行构建）
+make
+
+# 或显式指定并行度
+make -j$(nproc)
 
 # 3. 清理构建
-python3 build.py clean      # 清理编译产物
-python3 build.py distclean  # 完全清理（包括配置）
+make clean      # 清理编译产物
+make distclean  # 完全清理（包括配置）
 
 # 4. 运行测试
 ./_build/bin/es-middleware-test       # 运行统一测试程序（根据 Kconfig 配置运行相应测试）
 
-# 方式二：图形化配置（高级用户）
-python3 build.py menuconfig  # 打开 Kconfig 图形界面
+# 图形化配置
+make menuconfig  # 打开 Kconfig ncurses 界面
+make nconfig     # 替代界面
 
-# 方式三：直接使用 CMake（不推荐，需要先配置 Kconfig）
-cmake -B build-cmake
-cmake --build build-cmake -j$(nproc)
+# 其他命令
+make help        # 显示所有可用命令
+make list        # 列出所有可用配置
 ```
 
 **注意**：
-- 推荐使用 `python3 build.py` 命令，它会自动处理 Kconfig 配置和 CMake 构建
-- 构建输出目录为 `_build/`（不是 `build-cmake/`）
+- 推荐使用 `make` 命令，遵循 Linux 内核/Buildroot 风格
+- 构建输出目录为 `_build/`
+- 零 Python 依赖，仅需 Make + CMake + GCC + ncurses
 - 可执行文件位于 `_build/bin/`，库文件位于 `_build/lib/`
 
 ## 项目架构
@@ -120,7 +124,7 @@ products/ccm/apps/*  →  libccm  →  core/aconfig  →  core/pconfig  →  cor
 
 ```
 用户操作:
-  python3 build.py config <defconfig>  →  加载 defconfig
+  make <defconfig>  →  加载 defconfig
                   ↓
   Kconfig 工作流:
   1. conf --defconfig=<defconfig>      →  生成 .config
@@ -145,11 +149,11 @@ products/ccm/apps/*  →  libccm  →  core/aconfig  →  core/pconfig  →  cor
 - **派生值支持**: 自动填充 Kconfig 派生值（如 `CONFIG_PROJECT_NAME`）
 
 **工作流程**：
-1. `python3 build.py config <defconfig>` - 加载 defconfig，生成并规范化 `.config`
+1. `make <defconfig>` - 加载 defconfig，生成并规范化 `.config`
 2. `cmake -B _build` - CMake 调用 `kconfig_load()` 生成 `kconfig.cmake` 和 `autoconf.h`
 3. CMakeLists.txt 使用 `CONFIG_XXX` 变量控制库/应用的编译
 4. C 代码使用 `autoconf.h` 中的宏进行条件编译
-5. `python3 build.py savedefconfig` - 保存当前配置为新的 defconfig
+5. `make savedefconfig` - 保存当前配置为新的 defconfig
 
 ### 可用配置
 
@@ -351,18 +355,18 @@ kconfig_print_summary()  # 可选，仅在需要时调用
 
 ```bash
 # 方式一：基于现有配置修改
-python3 build.py config tests_x86_full_defconfig
-python3 build.py menuconfig  # 修改配置
-python3 build.py savedefconfig my_new_defconfig
+make tests_x86_full_defconfig
+make menuconfig  # 修改配置
+make savedefconfig my_new_defconfig
 
 # 方式二：从头开始配置
-python3 build.py menuconfig  # 从默认配置开始
-python3 build.py savedefconfig my_new_defconfig
+make menuconfig  # 从默认配置开始
+make savedefconfig my_new_defconfig
 
 # 方式三：手动编辑（高级用户）
 cp configs/tests_x86_full_defconfig configs/my_new_defconfig
 # 编辑 configs/my_new_defconfig，只保留非默认值
-python3 build.py config my_new_defconfig  # 验证配置可加载
+make my_new_defconfig  # 验证配置可加载
 ```
 
 **defconfig 文件格式**：
@@ -388,16 +392,16 @@ CONFIG_BUILD_TYPE="debug"
 
 ```bash
 # 加载配置
-python3 build.py config ccm_h200_100p_am625_debug_defconfig
+make ccm_h200_100p_am625_debug_defconfig
 
 # 修改配置（图形界面）
-python3 build.py menuconfig
+make menuconfig
 
 # 保存配置（覆盖原 defconfig）
-python3 build.py savedefconfig ccm_h200_100p_am625_debug_defconfig
+make savedefconfig ccm_h200_100p_am625_debug_defconfig
 
 # 或保存为新配置
-python3 build.py savedefconfig my_variant_defconfig
+make savedefconfig my_variant_defconfig
 ```
 
 **注意事项**：
@@ -412,9 +416,9 @@ python3 build.py savedefconfig my_variant_defconfig
 diff .config configs/tests_x86_full_defconfig
 
 # 查看哪些选项被修改
-python3 build.py config tests_x86_full_defconfig
+make tests_x86_full_defconfig
 cp .config .config.original
-python3 build.py menuconfig  # 修改一些选项
+make menuconfig  # 修改一些选项
 diff .config.original .config
 
 # 查看生成的 CMake 变量
@@ -428,7 +432,7 @@ cat _build/autoconf.h | grep CONFIG_
 
 ```bash
 # 问题：某个选项无法启用
-python3 build.py menuconfig
+make menuconfig
 # 导航到该选项，按 '?' 查看帮助和依赖关系
 
 # 问题：配置加载后某些选项消失
@@ -444,12 +448,12 @@ grep "kconfig_load" CMakeLists.txt         # 检查是否调用加载函数
 # 问题：C 宏定义不可用
 cat _build/autoconf.h | grep CONFIG_XXX    # 检查是否生成宏定义
 # 检查编译命令是否包含 -include
-python3 build.py build -- VERBOSE=1 | grep "include.*autoconf.h"
+make -- VERBOSE=1 | grep "include.*autoconf.h"
 
 # 清理并重新配置
-python3 build.py distclean
-python3 build.py config <defconfig>
-python3 build.py build
+make distclean
+make <defconfig>
+make
 ```
 
 #### 5. 配置验证和测试
@@ -458,19 +462,19 @@ python3 build.py build
 # 验证所有 defconfig 可以加载
 for cfg in configs/*_defconfig; do
     echo "Testing $(basename $cfg)..."
-    python3 build.py distclean
-    python3 build.py config $(basename $cfg) || echo "FAILED: $cfg"
+    make distclean
+    make $(basename $cfg) || echo "FAILED: $cfg"
 done
 
 # 验证配置可以构建
-python3 build.py config tests_x86_full_defconfig
-python3 build.py build || echo "Build failed"
+make tests_x86_full_defconfig
+make || echo "Build failed"
 
 # 验证 savedefconfig 幂等性（加载-保存-加载应该一致）
-python3 build.py config tests_x86_full_defconfig
-python3 build.py savedefconfig /tmp/test.defconfig
-python3 build.py distclean
-python3 build.py config /tmp/test.defconfig
+make tests_x86_full_defconfig
+make savedefconfig /tmp/test.defconfig
+make distclean
+make /tmp/test.defconfig
 diff .config <original_config>  # 应该只有注释差异
 ```
 
@@ -478,7 +482,7 @@ diff .config <original_config>  # 应该只有注释差异
 
 **查看所有可配置选项**：
 ```bash
-python3 build.py menuconfig
+make menuconfig
 # 按 '/' 打开搜索，输入关键字
 # 按 '?' 查看选项的详细信息和依赖关系
 ```
@@ -486,9 +490,9 @@ python3 build.py menuconfig
 **批量启用/禁用选项**：
 ```bash
 # 手动编辑 .config
-python3 build.py config base_defconfig
+make base_defconfig
 # 编辑 .config，添加或修改选项
-python3 build.py build  # CMake 会自动检测变化并重新配置
+make  # CMake 会自动检测变化并重新配置
 ```
 
 **使用环境变量覆盖**（不推荐，仅用于快速测试）：
@@ -808,7 +812,7 @@ int UTILS_Init(void)
 **7. 配置并构建**
 ```bash
 # 启用新模块
-python3 build.py menuconfig
+make menuconfig
 # 导航到 "Core Components" -> "Utility functions"
 # 按 'Y' 启用
 
@@ -816,8 +820,8 @@ python3 build.py menuconfig
 echo "CONFIG_UTILS=y" >> configs/tests_x86_full_defconfig
 
 # 重新构建
-python3 build.py config tests_x86_full_defconfig
-python3 build.py build
+make tests_x86_full_defconfig
+make
 ```
 
 **8. 在其他模块中使用**
@@ -925,11 +929,11 @@ int main(int argc, char *argv[])
 
 **6. 配置并构建**
 ```bash
-python3 build.py menuconfig
+make menuconfig
 # 导航到 "Products" -> "CCM Applications" -> "MyApp"
 # 启用后保存
 
-python3 build.py build
+make
 ./_build/bin/ccm_myapp
 ```
 
@@ -1024,8 +1028,8 @@ add_subdirectory(utils)
 **6. 运行测试**
 ```bash
 # 配置测试
-python3 build.py config tests_x86_full_defconfig
-python3 build.py build
+make tests_x86_full_defconfig
+make
 
 # 运行所有测试
 cd _build
@@ -1041,7 +1045,7 @@ ctest --output-on-failure
 
 **1. 创建最小化配置**
 ```bash
-python3 build.py menuconfig
+make menuconfig
 
 # 禁用不需要的模块：
 # [ ] Build testing          # 禁用测试
@@ -1050,7 +1054,7 @@ python3 build.py menuconfig
 # [ ] Debug logging          # 禁用调试日志
 
 # 保存配置
-python3 build.py savedefconfig minimal_defconfig
+make savedefconfig minimal_defconfig
 ```
 
 **2. 优化编译选项**
@@ -1080,13 +1084,13 @@ endif()
 **4. 比较二进制大小**
 ```bash
 # 完整配置
-python3 build.py config tests_x86_full_defconfig
-python3 build.py build
+make tests_x86_full_defconfig
+make
 ls -lh _build/bin/ccm_collector
 
 # 最小化配置
-python3 build.py config minimal_defconfig
-python3 build.py build
+make minimal_defconfig
+make
 ls -lh _build/bin/ccm_collector
 
 # 分析符号大小
@@ -1121,7 +1125,7 @@ set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 **3. 配置交叉编译**
 ```bash
 # 加载 ARM64 配置
-python3 build.py config ccm_h200_100p_am625_release_defconfig
+make ccm_h200_100p_am625_release_defconfig
 
 # 使用工具链文件构建
 cmake -B _build-arm64 \
@@ -1146,22 +1150,22 @@ tar -czf ccm-arm64.tar.gz -C _build-arm64/bin .
 
 **详细构建输出**：
 ```bash
-python3 build.py build -- VERBOSE=1
+make -- VERBOSE=1
 ```
 
 **检查链接顺序**：
 ```bash
-python3 build.py build -- VERBOSE=1 2>&1 | grep "undefined reference"
+make -- VERBOSE=1 2>&1 | grep "undefined reference"
 ```
 
 **检查头文件搜索路径**：
 ```bash
-python3 build.py build -- VERBOSE=1 2>&1 | grep "\-I"
+make -- VERBOSE=1 2>&1 | grep "\-I"
 ```
 
 **检查库链接**：
 ```bash
-python3 build.py build -- VERBOSE=1 2>&1 | grep "\-l"
+make -- VERBOSE=1 2>&1 | grep "\-l"
 ```
 
 **生成依赖关系图**：
@@ -1211,9 +1215,9 @@ dot -Tpng deps.dot -o deps.png
 
 | 问题 | 原因 | 解决方案 |
 |------|------|---------|
-| 找不到 CONFIG_XXX CMake 变量 | `.config` 未加载或未生成 | 运行 `python3 build.py config <name>` |
+| 找不到 CONFIG_XXX CMake 变量 | `.config` 未加载或未生成 | 运行 `make <name>` |
 | CONFIG_XXX 在 C 代码中未定义 | `autoconf.h` 未生成 | 检查 `_build/autoconf.h` 是否存在，重新运行 CMake |
-| 配置修改后不生效 | CMake 缓存未更新 | 运行 `python3 build.py distclean && python3 build.py config <name>` |
+| 配置修改后不生效 | CMake 缓存未更新 | 运行 `make distclean && make <name>` |
 | kconfig.cmake 生成失败 | Python 脚本错误 | 检查 `tools/kconfig/genconfig.py` 输出，确认 `.config` 格式正确 |
 | menuconfig 无法运行 | 缺少 ncurses 依赖 | 安装依赖：`sudo apt install libncurses-dev flex bison` |
 | CMake 配置阶段报错 | Kconfig 集成失败 | 检查 CMake 输出，确认 `kconfig_load()` 成功执行 |
@@ -1248,7 +1252,7 @@ grep "kconfig_load" CMakeLists.txt
 
 1. **未运行配置命令**
    ```bash
-   python3 build.py config ccm_h200_100p_am625_debug_defconfig
+   make ccm_h200_100p_am625_debug_defconfig
    ```
 
 2. **CMakeLists.txt 未调用 kconfig_load()**
@@ -1265,9 +1269,9 @@ grep "kconfig_load" CMakeLists.txt
 
 4. **CMake 缓存问题**
    ```bash
-   python3 build.py distclean
-   python3 build.py config <defconfig>
-   python3 build.py build
+   make distclean
+   make <defconfig>
+   make
    ```
 
 #### 问题：C 代码中 CONFIG_XXX 宏未定义
@@ -1280,7 +1284,7 @@ grep "kconfig_load" CMakeLists.txt
 cat _build/autoconf.h | grep CONFIG_XXX
 
 # 2. 检查编译命令是否包含 -include
-python3 build.py build -- VERBOSE=1 2>&1 | grep "include.*autoconf.h"
+make -- VERBOSE=1 2>&1 | grep "include.*autoconf.h"
 
 # 3. 手动预处理测试
 gcc -E -include _build/autoconf.h test.c | grep CONFIG_XXX
@@ -1291,9 +1295,9 @@ gcc -E -include _build/autoconf.h test.c | grep CONFIG_XXX
 1. **autoconf.h 未生成**
    ```bash
    # 重新生成
-   python3 build.py distclean
-   python3 build.py config <defconfig>
-   python3 build.py build
+   make distclean
+   make <defconfig>
+   make
    ```
 
 2. **编译选项未配置**
@@ -1305,7 +1309,7 @@ gcc -E -include _build/autoconf.h test.c | grep CONFIG_XXX
    # 检查符号是否启用
    cat .config | grep CONFIG_XXX
    # 如果没有，使用 menuconfig 启用
-   python3 build.py menuconfig
+   make menuconfig
    ```
 
 #### 问题：配置更改后编译结果不变
@@ -1321,7 +1325,7 @@ ls -l .config
 ls -l _build/kconfig.cmake
 
 # 3. 检查 CMake 是否检测到变化
-python3 build.py build -- VERBOSE=1 2>&1 | grep "Re-run.*genconfig"
+make -- VERBOSE=1 2>&1 | grep "Re-run.*genconfig"
 ```
 
 **解决方案**：
@@ -1330,22 +1334,22 @@ python3 build.py build -- VERBOSE=1 2>&1 | grep "Re-run.*genconfig"
    ```bash
    # 删除 CMake 缓存
    rm -rf _build/CMakeCache.txt _build/CMakeFiles
-   python3 build.py build
+   make
    ```
 
 2. **完全清理重建**
    ```bash
-   python3 build.py distclean
-   python3 build.py config <defconfig>
-   python3 build.py build
+   make distclean
+   make <defconfig>
+   make
    ```
 
 3. **确认配置已保存**
    ```bash
    # 修改后必须保存
-   python3 build.py menuconfig  # 修改后按 'S' 保存
+   make menuconfig  # 修改后按 'S' 保存
    # 或
-   python3 build.py savedefconfig <name>
+   make savedefconfig <name>
    ```
 
 **注意**：CMake 会自动检测 `.config` 的 mtime 变化。如果配置没有生效，说明 CMake 缓存了旧值。
@@ -1379,8 +1383,8 @@ head -20 .config   # 检查是否有语法错误
 2. **.config 格式错误**
    ```bash
    # 重新生成配置
-   python3 build.py distclean
-   python3 build.py config <defconfig>
+   make distclean
+   make <defconfig>
    ```
 
 3. **genconfig.py 文件损坏**
@@ -1403,7 +1407,7 @@ head -20 .config   # 检查是否有语法错误
 **诊断步骤**：
 ```bash
 # 1. 使用 menuconfig 查看依赖
-python3 build.py menuconfig
+make menuconfig
 # 导航到符号，按 '?' 查看帮助
 
 # 示例输出：
@@ -1421,7 +1425,7 @@ grep -A 10 "config PRL_MCU" core/prl/Kconfig
 
 1. **启用依赖的父选项**
    ```bash
-   python3 build.py menuconfig
+   make menuconfig
    # 启用 CONFIG_PRL，然后 CONFIG_PRL_MCU 就可以启用了
    ```
 
@@ -1450,10 +1454,10 @@ CONFIG_HAL      depends on  CONFIG_OSAL
 **诊断步骤**：
 ```bash
 # 1. 查看详细编译输出
-python3 build.py build -- VERBOSE=1
+make -- VERBOSE=1
 
 # 2. 检查链接错误
-python3 build.py build 2>&1 | grep "undefined reference"
+make 2>&1 | grep "undefined reference"
 
 # 3. 检查是否缺少依赖库
 ldd _build/bin/ccm_collector
@@ -1480,7 +1484,7 @@ ldd _build/bin/ccm_collector
 3. **循环依赖**
    ```bash
    # 检查链接顺序
-   python3 build.py build -- VERBOSE=1 2>&1 | grep "undefined reference"
+   make -- VERBOSE=1 2>&1 | grep "undefined reference"
    # 调整 CMakeLists.txt 中的链接顺序
    ```
 
@@ -1492,9 +1496,9 @@ ldd _build/bin/ccm_collector
 
 ```bash
 # 推荐：切换配置前完全清理
-python3 build.py distclean
-python3 build.py config new_defconfig
-python3 build.py build
+make distclean
+make new_defconfig
+make
 
 # 或：使用不同的构建目录（高级用户）
 cmake -B build-debug -DCMAKE_BUILD_TYPE=Debug

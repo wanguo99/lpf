@@ -202,11 +202,11 @@ ls -lh bin/
 
 | 操作 | 纯 CMake | build.py（可选） |
 |------|----------|------------------|
-| 加载配置 | `cp configs/<name>_defconfig .config` | `python3 build.py config <name>` |
-| 配置界面 | `make menuconfig` | `python3 build.py menuconfig` |
-| 构建 | `cmake .. && make -j$(nproc)` | `python3 build.py build` |
-| 清理 | `rm -rf build` | `python3 build.py distclean` |
-| 保存配置 | `make savedefconfig` | `python3 build.py savedefconfig` |
+| 加载配置 | `cp configs/<name>_defconfig .config` | `make <name>`_defconfig |
+| 配置界面 | `make menuconfig` | `make menuconfig` |
+| 构建 | `cmake .. && make -j$(nproc)` | `make` |
+| 清理 | `rm -rf build` | `make distclean` |
+| 保存配置 | `make savedefconfig` | `make savedefconfig` |
 
 **build.py 的优势**：
 - 一键式操作（自动处理目录切换）
