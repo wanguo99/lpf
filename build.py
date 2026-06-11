@@ -400,46 +400,52 @@ def run_cmake_target(target_name, build_dir="_build", capture_output=False):
 def menuconfig(build_dir="_build"):
     """打开 Kconfig menuconfig 界面"""
     root_dir = get_root_dir()
-    dotconfig = root_dir / ".config"
+    build_path = root_dir / build_dir
 
-    # Check current config
-    config_name, status = check_current_config()
-    if config_name:
-        print(f"Current configuration: {config_name}")
-        print(f"Status: {status}\n")
+    # Set environment and run menuconfig
+    env = os.environ.copy()
+    env['srctree'] = str(root_dir)
+
+    result = subprocess.run(
+        ["make", "menuconfig"],
+        cwd=build_path,
+        env=env,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL
+    )
+
+    if result.returncode == 0:
+        print("✓ Configuration updated")
     else:
-        print(f"Warning: {status}")
-        print(f"Starting with default configuration\n")
+        print(f"Error: menuconfig failed (code {result.returncode})")
+        print("Install ncurses: sudo apt install libncurses-dev")
 
-    success, _ = run_cmake_target("menuconfig", build_dir)
-
-    if success:
-        print(f"\n✓ Configuration updated")
-        print(f"\nNext steps:")
-        print(f"  Build:        python3 build.py build")
-        print(f"  Save changes: python3 build.py savedefconfig <name>")
-
-    return success
+    return result.returncode == 0
 
 def nconfig(build_dir="_build"):
     """打开 Kconfig nconfig 界面（ncurses 界面）"""
     root_dir = get_root_dir()
+    build_path = root_dir / build_dir
 
-    # Check current config
-    config_name, status = check_current_config()
-    if config_name:
-        print(f"Current configuration: {config_name}")
-        print(f"Status: {status}\n")
+    # Set environment and run nconfig
+    env = os.environ.copy()
+    env['srctree'] = str(root_dir)
 
-    success, _ = run_cmake_target("nconfig", build_dir)
+    result = subprocess.run(
+        ["make", "nconfig"],
+        cwd=build_path,
+        env=env,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL
+    )
 
-    if success:
-        print(f"\n✓ Configuration updated")
-        print(f"\nNext steps:")
-        print(f"  Build:        python3 build.py build")
-        print(f"  Save changes: python3 build.py savedefconfig <name>")
+    if result.returncode == 0:
+        print("✓ Configuration updated")
+    else:
+        print(f"Error: nconfig failed (code {result.returncode})")
+        print("Install ncurses: sudo apt install libncurses-dev")
 
-    return success
+    return result.returncode == 0
 
 def savedefconfig(output_name=None, build_dir="_build"):
     """保存最小化配置（只保存非默认值）"""
