@@ -1,180 +1,209 @@
 # ES-Middleware Makefile
-# Convenient wrapper for CMake-based build system
-# No Python dependency required
-
-.PHONY: help config menuconfig nconfig build clean distclean savedefconfig oldconfig list test
+# Kernel/Buildroot-style interface with CMake backend
+#
+# Usage:
+#   make <board>_defconfig            Load specific configuration
+#   make menuconfig                   Interactive configuration
+#   make                              Build (auto-detects cores)
+#   make -j$(nproc)                   Parallel build
+#   make all                          Build everything
+#   make clean                        Remove build artifacts
+#   make distclean                    Remove all generated files
+#   make savedefconfig                Save minimal configuration
+#   make help                         Show this help
 
 # Configuration
+KCONFIG_CONFIG ?= .config
 BUILD_DIR := _build
-CONFIG_FILE := .config
 CONFIGS_DIR := configs
+CMAKE ?= cmake
 
-# Default target
-.DEFAULT_GOAL := help
+# Don't check config for these targets
+NO_CONFIG_TARGETS := help list clean distclean mrproper %_defconfig defconfig
+ifneq ($(MAKECMDGOALS),)
+ifeq ($(filter-out $(NO_CONFIG_TARGETS),$(MAKECMDGOALS)),)
+SKIP_CONFIG_CHECK := y
+endif
+endif
 
-# Detect number of CPU cores
-NPROC := $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+# Auto-detect number of processors for parallel builds
+ifeq ($(filter -j%,$(MAKEFLAGS)),)
+NPROC := $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1)
+PARALLEL_BUILD := -j$(NPROC)
+else
+PARALLEL_BUILD :=
+endif
 
+# Phony targets
+.PHONY: all help menuconfig nconfig defconfig savedefconfig oldconfig
+.PHONY: clean distclean mrproper list _build_internal
+
+# Default goal
+.DEFAULT_GOAL := all
+
+# Check configuration exists (unless skipped)
+ifndef SKIP_CONFIG_CHECK
+ifeq ($(wildcard $(KCONFIG_CONFIG)),)
+$(error Configuration file '$(KCONFIG_CONFIG)' not found! Run 'make <board>_defconfig' first. Try 'make help' for options)
+endif
+endif
+
+# Default target - build
+all: _build_internal
+
+_build_internal:
+	@if [ ! -f "$(KCONFIG_CONFIG)" ]; then \
+		echo "***"; \
+		echo "*** Configuration file '$(KCONFIG_CONFIG)' not found!"; \
+		echo "***"; \
+		echo "*** Please run 'make <board>_defconfig' first."; \
+		echo "*** Try 'make help' for available defconfigs."; \
+		echo "***"; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(BUILD_DIR)/Makefile" ]; then \
+		echo "  CMAKE     $(BUILD_DIR)"; \
+		mkdir -p $(BUILD_DIR); \
+		cd $(BUILD_DIR) && $(CMAKE) .. >/dev/null; \
+	fi
+	@$(MAKE) -C $(BUILD_DIR) $(PARALLEL_BUILD)
+
+# Help target
 help:
-	@echo "ES-Middleware Build System"
-	@echo "=========================="
-	@echo ""
-	@echo "Configuration:"
-	@echo "  make config CONFIG=<name>  Load configuration (e.g., tests_x86_minimal)"
-	@echo "  make menuconfig            Open configuration UI (ncurses)"
-	@echo "  make nconfig               Open alternative configuration UI"
-	@echo "  make savedefconfig [NAME=] Save configuration as defconfig"
-	@echo "  make oldconfig             Update configuration with new options"
-	@echo "  make list                  List available configurations"
-	@echo ""
-	@echo "Building:"
-	@echo "  make build                 Build project (parallel)"
-	@echo "  make build JOBS=N          Build with N parallel jobs"
-	@echo "  make all                   Configure and build in one step"
-	@echo ""
-	@echo "Cleaning:"
-	@echo "  make clean                 Clean build directory"
-	@echo "  make distclean             Clean build + configuration"
-	@echo ""
-	@echo "Testing:"
-	@echo "  make test                  Run tests"
-	@echo ""
-	@echo "Examples:"
-	@echo "  make config CONFIG=tests_x86_minimal"
-	@echo "  make build"
-	@echo "  make all CONFIG=ccm_h200_100p_am625_debug"
-	@echo ""
+	@echo 'Cleaning targets:'
+	@echo '  clean              - Remove build artifacts (keep configuration)'
+	@echo '  distclean          - Remove all generated files'
+	@echo '  mrproper           - Same as distclean'
+	@echo ''
+	@echo 'Configuration targets:'
+	@echo '  defconfig          - Load default configuration'
+	@echo '  menuconfig         - Interactive ncurses-based configuration'
+	@echo '  nconfig            - Interactive ncurses-based alternative'
+	@echo '  oldconfig          - Update configuration with new options'
+	@echo '  savedefconfig      - Save minimal configuration to defconfig'
+	@echo '  list               - List available defconfigs'
+	@echo ''
+	@for config in $(sort $(notdir $(wildcard $(CONFIGS_DIR)/*_defconfig))); do \
+		printf "  %-30s- Build for %s\\n" $$config "$${config%_defconfig}"; \
+	done
+	@echo ''
+	@echo 'Build targets:'
+	@echo '  all                - Build all targets (default)'
+	@echo '  (no target)        - Same as all'
+	@echo ''
+	@echo 'Other targets:'
+	@echo '  help               - This help text'
+	@echo ''
+	@echo 'Execute "make" or "make all" to build.'
+	@echo 'Execute "make <board>_defconfig" first to configure.'
+	@echo ''
+	@echo 'Example:'
+	@echo '  make tests_x86_minimal_defconfig'
+	@echo '  make -j$$(nproc)'
 
 # List available configurations
 list:
-	@echo "Available configurations:"
-	@echo ""
-	@for config in $(wildcard $(CONFIGS_DIR)/*_defconfig); do \
-		name=$$(basename $$config _defconfig); \
-		echo "  $$name"; \
+	@echo 'Available defconfigs:'
+	@echo ''
+	@for config in $(sort $(notdir $(wildcard $(CONFIGS_DIR)/*_defconfig))); do \
+		echo "  $$config"; \
 	done
-	@echo ""
-	@echo "Usage: make config CONFIG=<name>"
 
-# Load configuration
-config:
-ifndef CONFIG
-	@echo "Error: CONFIG not specified"
-	@echo "Usage: make config CONFIG=<name>"
-	@echo ""
-	@echo "Available configurations:"
-	@$(MAKE) list
-	@exit 1
-endif
-	@config_file="$(CONFIGS_DIR)/$(CONFIG)_defconfig"; \
-	if [ ! -f "$$config_file" ]; then \
-		config_file="$(CONFIGS_DIR)/$(CONFIG).defconfig"; \
-	fi; \
-	if [ ! -f "$$config_file" ]; then \
-		config_file="$(CONFIGS_DIR)/$(CONFIG)"; \
-	fi; \
-	if [ ! -f "$$config_file" ]; then \
-		echo "Error: Configuration not found: $(CONFIG)"; \
-		echo ""; \
-		echo "Available configurations:"; \
-		$(MAKE) list; \
+# Default configuration (first one found)
+defconfig:
+	@config="$(firstword $(wildcard $(CONFIGS_DIR)/*_defconfig))"; \
+	if [ -z "$$config" ]; then \
+		echo "Error: No defconfig found in $(CONFIGS_DIR)"; \
 		exit 1; \
 	fi; \
-	echo "Loading configuration: $$config_file"; \
-	cp "$$config_file" $(CONFIG_FILE); \
-	echo "✓ Configuration loaded"
+	echo "  DEFCONFIG $$(basename $$config)"; \
+	cp "$$config" $(KCONFIG_CONFIG)
+
+# Load specific defconfig
+%_defconfig:
+	@config="$(CONFIGS_DIR)/$@"; \
+	if [ ! -f "$$config" ]; then \
+		echo "***"; \
+		echo "*** Error: Configuration file '$$config' not found!"; \
+		echo "***"; \
+		echo "*** Available defconfigs:"; \
+		for cfg in $(sort $(notdir $(wildcard $(CONFIGS_DIR)/*_defconfig))); do \
+			echo "***   $$cfg"; \
+		done; \
+		echo "***"; \
+		exit 1; \
+	fi; \
+	echo "  DEFCONFIG $@"; \
+	cp "$$config" $(KCONFIG_CONFIG)
 
 # Interactive configuration (menuconfig)
-menuconfig: _ensure_build_dir
-	@cd $(BUILD_DIR) && $(MAKE) menuconfig
-	@echo "✓ Configuration updated"
+menuconfig:
+	@if [ ! -f "$(BUILD_DIR)/Makefile" ]; then \
+		echo "  CMAKE     $(BUILD_DIR)"; \
+		mkdir -p $(BUILD_DIR); \
+		cd $(BUILD_DIR) && $(CMAKE) .. >/dev/null; \
+	fi
+	@$(MAKE) -C $(BUILD_DIR) menuconfig
+	@echo "  SYNC      $(KCONFIG_CONFIG)"
 
 # Interactive configuration (nconfig)
-nconfig: _ensure_build_dir
-	@cd $(BUILD_DIR) && $(MAKE) nconfig
-	@echo "✓ Configuration updated"
-
-# Save configuration as defconfig
-savedefconfig: _ensure_build_dir
-	@cd $(BUILD_DIR) && $(MAKE) savedefconfig
-	@if [ -n "$(NAME)" ]; then \
-		mkdir -p $(CONFIGS_DIR); \
-		cp $(BUILD_DIR)/defconfig $(CONFIGS_DIR)/$(NAME)_defconfig; \
-		echo "✓ Configuration saved to $(CONFIGS_DIR)/$(NAME)_defconfig"; \
-	else \
-		echo "✓ Configuration saved to $(BUILD_DIR)/defconfig"; \
-		echo ""; \
-		echo "To save as a named config:"; \
-		echo "  make savedefconfig NAME=<name>"; \
-	fi
-
-# Update configuration with new options
-oldconfig: _ensure_build_dir
-	@cd $(BUILD_DIR) && $(MAKE) oldconfig
-	@echo "✓ Configuration updated"
-
-# Build project
-build: _ensure_build_dir _ensure_config
-	@echo "Building ES-Middleware..."
-	@cd $(BUILD_DIR) && cmake .. >/dev/null && $(MAKE) -j$(JOBS)
-	@echo ""
-	@echo "✓ Build successful"
-	@echo ""
-	@echo "Binaries: $(BUILD_DIR)/bin/"
-	@ls -lh $(BUILD_DIR)/bin/ 2>/dev/null || true
-
-# Set default JOBS
-JOBS ?= $(NPROC)
-
-# Build all (configure + build)
-all: config build
-
-# Clean build directory (keep configuration)
-clean:
-	@if [ -d "$(BUILD_DIR)" ]; then \
-		echo "Cleaning $(BUILD_DIR)..."; \
-		rm -rf $(BUILD_DIR); \
-		echo "✓ Clean complete"; \
-	else \
-		echo "Nothing to clean"; \
-	fi
-
-# Complete clean (remove configuration too)
-distclean: clean
-	@if [ -f "$(CONFIG_FILE)" ]; then \
-		echo "Removing $(CONFIG_FILE)..."; \
-		rm -f $(CONFIG_FILE); \
-		echo "✓ Distclean complete"; \
-	fi
-
-# Run tests
-test: _ensure_build_dir
-	@if [ -f "$(BUILD_DIR)/bin/es-middleware-test" ]; then \
-		echo "Running tests..."; \
-		$(BUILD_DIR)/bin/es-middleware-test --all; \
-	else \
-		echo "Error: Test binary not found. Build first with 'make build'"; \
-		exit 1; \
-	fi
-
-# Internal: Ensure build directory exists
-_ensure_build_dir:
-	@if [ ! -d "$(BUILD_DIR)" ]; then \
-		echo "Creating build directory..."; \
+nconfig:
+	@if [ ! -f "$(BUILD_DIR)/Makefile" ]; then \
+		echo "  CMAKE     $(BUILD_DIR)"; \
 		mkdir -p $(BUILD_DIR); \
-		cd $(BUILD_DIR) && cmake .. >/dev/null 2>&1 || true; \
+		cd $(BUILD_DIR) && $(CMAKE) .. >/dev/null; \
 	fi
+	@$(MAKE) -C $(BUILD_DIR) nconfig
+	@echo "  SYNC      $(KCONFIG_CONFIG)"
 
-# Internal: Ensure configuration exists
-_ensure_config:
-	@if [ ! -f "$(CONFIG_FILE)" ]; then \
-		echo "Error: No configuration found"; \
-		echo ""; \
-		echo "Please configure first:"; \
-		echo "  make config CONFIG=<name>"; \
-		echo "  make menuconfig"; \
-		echo ""; \
-		echo "Or see available configurations:"; \
-		echo "  make list"; \
+# Update old configuration
+oldconfig:
+	@if [ ! -f "$(BUILD_DIR)/Makefile" ]; then \
+		echo "  CMAKE     $(BUILD_DIR)"; \
+		mkdir -p $(BUILD_DIR); \
+		cd $(BUILD_DIR) && $(CMAKE) .. >/dev/null; \
+	fi
+	@$(MAKE) -C $(BUILD_DIR) oldconfig
+	@echo "  SYNC      $(KCONFIG_CONFIG)"
+
+# Save minimal configuration
+savedefconfig:
+	@if [ ! -f "$(BUILD_DIR)/Makefile" ]; then \
+		echo "  CMAKE     $(BUILD_DIR)"; \
+		mkdir -p $(BUILD_DIR); \
+		cd $(BUILD_DIR) && $(CMAKE) .. >/dev/null; \
+	fi
+	@$(MAKE) -C $(BUILD_DIR) savedefconfig
+	@echo "  SAVE      $(BUILD_DIR)/defconfig"
+	@echo ''
+	@echo 'Minimal configuration saved to $(BUILD_DIR)/defconfig'
+	@echo 'To save as a board defconfig:'
+	@echo '  cp $(BUILD_DIR)/defconfig $(CONFIGS_DIR)/<board>_defconfig'
+
+# Clean build artifacts
+clean:
+	@echo "  CLEAN     $(BUILD_DIR)"
+	@rm -rf $(BUILD_DIR)
+
+# Complete clean
+distclean mrproper: clean
+	@echo "  CLEAN     $(KCONFIG_CONFIG)"
+	@rm -f $(KCONFIG_CONFIG)
+
+# Catch-all: forward to CMake build system
+%:
+	@if [ ! -f "$(KCONFIG_CONFIG)" ]; then \
+		echo "***"; \
+		echo "*** Configuration file '$(KCONFIG_CONFIG)' not found!"; \
+		echo "***"; \
+		echo "*** Please run 'make <board>_defconfig' first."; \
+		echo "*** Try 'make help' for available defconfigs."; \
+		echo "***"; \
 		exit 1; \
 	fi
+	@if [ ! -f "$(BUILD_DIR)/Makefile" ]; then \
+		echo "  CMAKE     $(BUILD_DIR)"; \
+		mkdir -p $(BUILD_DIR); \
+		cd $(BUILD_DIR) && $(CMAKE) .. >/dev/null; \
+	fi
+	@$(MAKE) -C $(BUILD_DIR) $@
