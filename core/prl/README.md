@@ -426,7 +426,7 @@ prl_pmc_ccm_heartbeat_t heartbeat = {
 
 /* 编码 */
 uint8_t buf[PRL_MAX_PACKET_SIZE];
-size_t len = OSAL_SIZEOF(buf);
+size_t len = OSAL_sizeof(buf);
 int ret = prl_pmc_ccm_encode_heartbeat(&heartbeat, buf, &len);
 
 /* 发送 */
@@ -469,7 +469,7 @@ uint8_t tm_data[128] = { /* 遥测数据 */ };
 size_t tm_data_len = 64;
 
 uint8_t buf[PRL_MAX_PACKET_SIZE];
-size_t len = OSAL_SIZEOF(buf);
+size_t len = OSAL_sizeof(buf);
 prl_pmc_ccm_encode_telemetry(&telemetry, tm_data, tm_data_len, buf, &len);
 
 /* 解码变长消息 */

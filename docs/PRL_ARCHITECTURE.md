@@ -547,7 +547,7 @@ void test_encode_decode(void)
     assert(ret == PRL_OK);
     assert(dev_type == PRL_DEV_TYPE_MCU);
     assert(msg_type == PRL_MCU_MSG_GET_VERSION);
-    assert(payload_len == OSAL_SIZEOF(prl_mcu_version_t));
+    assert(payload_len == OSAL_sizeof(prl_mcu_version_t));
     
     /* 验证数据 */
     const prl_mcu_version_t *version_out = (const prl_mcu_version_t *)payload;
@@ -569,8 +569,8 @@ void test_performance(void)
     
     for (int i = 0; i < 10000; i++) {
         PRL_Encode(PRL_DEV_TYPE_MCU, PRL_MCU_MSG_GET_VERSION,
-                   payload, OSAL_SIZEOF(payload),
-                   buffer, OSAL_SIZEOF(buffer), 0);
+                   payload, OSAL_sizeof(payload),
+                   buffer, OSAL_sizeof(buffer), 0);
     }
     
     uint64_t end = get_time_us();

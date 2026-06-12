@@ -725,7 +725,7 @@ static osal_id_t g_queue_id;  // 全局变量
 TEST_CASE(test_queue_send)
 {
     uint32 data = 123;
-    OSAL_QueuePut(g_queue_id, &data, OSAL_SIZEOF(data), 1000);  // 依赖外部状态
+    OSAL_QueuePut(g_queue_id, &data, OSAL_sizeof(data), 1000);  // 依赖外部状态
 }
 ```
 
@@ -778,7 +778,7 @@ TEST_CASE(test_queue_receive)
     OSAL_QueueCreate(&queue_id, "test_queue", 10, OSAL_sizeof(uint32), 0);
     
     uint32 data;
-    OSAL_QueueGet(queue_id, &data, OSAL_SIZEOF(data), OSAL_WAIT_FOREVER);  // 危险
+    OSAL_QueueGet(queue_id, &data, OSAL_sizeof(data), OSAL_WAIT_FOREVER);  // 危险
 }
 ```
 
