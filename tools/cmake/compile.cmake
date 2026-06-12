@@ -196,8 +196,8 @@ function(register_component)
         if(IS_DIRECTORY ${abs_dir})
             install(DIRECTORY ${abs_dir}/
                 DESTINATION ${INSTALL_INCLUDEDIR}/${component_name}
-                FILES_MATCHING PATTERN "*.h"
                 COMPONENT development
+                FILES_MATCHING PATTERN "*.h"
             )
         endif()
     endforeach()
