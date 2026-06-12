@@ -9,9 +9,6 @@
 #include <string.h>
 
 #include "lkc.h"
-/* Parser state from zconf.tab.c */
-extern struct menu *current_menu, *current_entry;
-
 
 static const char nohelp_text[] = "There is no help available for this option.";
 

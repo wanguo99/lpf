@@ -9,9 +9,6 @@
 #include <regex.h>
 #include <sys/utsname.h>
 
-/* Parser state from zconf.tab.c */
-extern struct menu *current_menu, *current_entry;
-
 #include "lkc.h"
 
 struct symbol symbol_yes = {

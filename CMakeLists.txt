@@ -1,33 +1,110 @@
-cmake_minimum_required(VERSION 3.16)
-
 # ============================================================================
 # ES-Middleware SDK Root CMakeLists.txt
 # ============================================================================
-# This is the unified build entry point for the entire ES-Middleware SDK.
-# It builds all enabled products based on Kconfig configuration.
+# This CMakeLists.txt handles ONLY compilation and installation.
+# All Kconfig configuration management is handled by the root Makefile.
+#
+# The Makefile:
+#   - Builds Kconfig tools (conf, mconf, nconf)
+#   - Handles all config targets (menuconfig, defconfig, etc.)
+#   - Generates autoconf.h from .config
+#   - Invokes CMake for compilation only
+#
+# This CMakeLists.txt:
+#   - Loads configuration from autoconf.h
+#   - Compiles enabled products/modules
+#   - Handles installation
 # ============================================================================
 
-# Set SDK path (this is the root directory)
+cmake_minimum_required(VERSION 3.16)
+
+# ============================================================================
+# Configuration Loading
+# ============================================================================
+
+# Expect CONFIG_FILE and AUTOCONF_H to be passed from Makefile
+# If not provided, use defaults (for standalone CMake usage)
+if(NOT DEFINED CONFIG_FILE)
+    set(CONFIG_FILE "${CMAKE_CURRENT_SOURCE_DIR}/.config")
+endif()
+
+if(NOT DEFINED AUTOCONF_H)
+    set(AUTOCONF_H "${CMAKE_CURRENT_BINARY_DIR}/include/generated/autoconf.h")
+endif()
+
+# Validate that configuration exists
+if(NOT EXISTS "${CONFIG_FILE}")
+    message(FATAL_ERROR
+        "Configuration file not found: ${CONFIG_FILE}\n"
+        "Please run 'make <board>_defconfig' first.\n"
+        "Run 'make list' to see available configurations.")
+endif()
+
+message(STATUS "Configuration file: ${CONFIG_FILE}")
+message(STATUS "autoconf.h: ${AUTOCONF_H}")
+
+# Set SDK path
 set(SDK_PATH ${CMAKE_CURRENT_LIST_DIR})
 message(STATUS "SDK_PATH: ${SDK_PATH}")
 
-# Load Kconfig integration (builds kconfig tools and processes configuration)
-include(${CMAKE_CURRENT_LIST_DIR}/cmake/KconfigTools.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/cmake/Kconfig.cmake)
+# ============================================================================
+# Load Kconfig Configuration into CMake Variables
+# ============================================================================
 
-# Configure Kconfig
-kconfig_config(
-    KCONFIG_FILE "${CMAKE_CURRENT_LIST_DIR}/Kconfig"
-    CONFIG_FILE "${CMAKE_CURRENT_LIST_DIR}/.config"
-    AUTOCONF_H "${CMAKE_CURRENT_BINARY_DIR}/config/autoconf.h"
-    CMAKE_CONFIG "${CMAKE_CURRENT_BINARY_DIR}/config/kconfig.cmake"
-    USE_NATIVE_TOOLS TRUE
-)
+# Parse .config and load CONFIG_* variables into CMake
+if(EXISTS "${CONFIG_FILE}")
+    file(STRINGS "${CONFIG_FILE}" config_lines)
+    set(config_count 0)
 
-# Standard CMake project declaration
+    foreach(line ${config_lines})
+        # Skip comments and empty lines
+        if(line MATCHES "^[ \t]*#" OR line STREQUAL "")
+            continue()
+        endif()
+
+        # Parse CONFIG_XXX=value
+        if(line MATCHES "^CONFIG_([A-Za-z0-9_]+)=(.*)$")
+            set(config_name ${CMAKE_MATCH_1})
+            set(config_value ${CMAKE_MATCH_2})
+
+            # Remove quotes from string values
+            string(REGEX REPLACE "^\"(.*)\"$" "\\1" config_value "${config_value}")
+
+            # Convert y/n to ON/OFF for CMake
+            if(config_value STREQUAL "y")
+                set(config_value ON)
+            elseif(config_value STREQUAL "n")
+                set(config_value OFF)
+            endif()
+
+            # Export to CMake cache
+            set(CONFIG_${config_name} ${config_value} CACHE INTERNAL "Kconfig: ${config_name}")
+            math(EXPR config_count "${config_count} + 1")
+
+        # Parse # CONFIG_XXX is not set
+        elseif(line MATCHES "^# CONFIG_([A-Za-z0-9_]+) is not set$")
+            set(config_name ${CMAKE_MATCH_1})
+            set(CONFIG_${config_name} OFF CACHE INTERNAL "Kconfig: ${config_name}")
+            math(EXPR config_count "${config_count} + 1")
+        endif()
+    endforeach()
+
+    message(STATUS "Loaded ${config_count} Kconfig symbols from .config")
+else()
+    message(FATAL_ERROR "Configuration file not found: ${CONFIG_FILE}")
+endif()
+
+# ============================================================================
+# Project Declaration
+# ============================================================================
+
 project(es_middleware_sdk C CXX ASM)
 
-# Set global output directories for all targets
+# ============================================================================
+# Global Build Settings
+# ============================================================================
+
+# Set global output directories
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -35,42 +112,54 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 # ============================================================================
 # Installation Configuration
 # ============================================================================
-# Support standard CMake installation workflow: make install DESTDIR=...
-# This enables proper Buildroot integration via staging directory
 
 # Installation prefix (overridable via -DCMAKE_INSTALL_PREFIX=...)
-set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Installation prefix")
+if(NOT CMAKE_INSTALL_PREFIX)
+    set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Installation prefix")
+endif()
 
 # Use GNUInstallDirs for standard directory variables
 include(GNUInstallDirs)
 
-# Define installation directories (relative to CMAKE_INSTALL_PREFIX)
-set(INSTALL_BINDIR ${CMAKE_INSTALL_BINDIR})              # /usr/bin
-set(INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR})              # /usr/lib or /usr/lib64
-set(INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR}/es-middleware)  # /usr/include/es-middleware
+# Define installation directories
+set(INSTALL_BINDIR ${CMAKE_INSTALL_BINDIR})
+set(INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR})
+set(INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR}/es-middleware)
 
 message(STATUS "Installation prefix: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "  Binaries: ${CMAKE_INSTALL_PREFIX}/${INSTALL_BINDIR}")
 message(STATUS "  Libraries: ${CMAKE_INSTALL_PREFIX}/${INSTALL_LIBDIR}")
 message(STATUS "  Headers: ${CMAKE_INSTALL_PREFIX}/${INSTALL_INCLUDEDIR}")
 
-# Include build system
-include(${SDK_PATH}/tools/cmake/compile.cmake)
+# ============================================================================
+# Include Build System
+# ============================================================================
 
-# Include high-level component API helpers
+include(${SDK_PATH}/tools/cmake/compile.cmake)
 include(${SDK_PATH}/cmake/ComponentAPI.cmake)
 
-# Auto-include autoconf.h for all compilation units
-set(KCONFIG_HEADER "${CMAKE_CURRENT_BINARY_DIR}/config/autoconf.h")
-if(EXISTS ${KCONFIG_HEADER})
-    add_compile_options(-include ${KCONFIG_HEADER})
-    message(STATUS "Auto-including kconfig header: ${KCONFIG_HEADER}")
+# ============================================================================
+# Auto-include Configuration Header
+# ============================================================================
+
+# Check if autoconf.h exists
+if(EXISTS ${AUTOCONF_H})
+    add_compile_options(-include ${AUTOCONF_H})
+    message(STATUS "Auto-including configuration header: ${AUTOCONF_H}")
 else()
-    message(WARNING "Configuration header not found: ${KCONFIG_HEADER}")
-    message(STATUS "Configuration will be generated during build")
+    message(WARNING "Configuration header not found: ${AUTOCONF_H}")
+    message(WARNING "This should have been generated by Makefile")
+    message(WARNING "Run 'make syncconfig' or re-run 'make <board>_defconfig'")
 endif()
 
-# Generate build info headers at configure time (pure CMake, no Python)
+# Add include directory for generated headers
+get_filename_component(AUTOCONF_DIR ${AUTOCONF_H} DIRECTORY)
+include_directories(${AUTOCONF_DIR}/..)
+
+# ============================================================================
+# Generate Build Info Headers
+# ============================================================================
+
 set(BUILD_TIME_HEADER "${CMAKE_CURRENT_BINARY_DIR}/config/global_build_info_time.h")
 set(BUILD_VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/config/global_build_info_version.h")
 
@@ -124,31 +213,64 @@ file(WRITE "${BUILD_VERSION_HEADER}"
 "#endif /* GLOBAL_BUILD_INFO_VERSION_H */\n"
 )
 
-message(STATUS "Generated build info headers (no Python required)")
-
-# Add build info directory to include path
+message(STATUS "Generated build info headers")
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/config)
 
 # ============================================================================
 # Build Products Based on Configuration
 # ============================================================================
-# Each product is built only if CONFIG_PRODUCT_XXX is enabled in .config
-# ============================================================================
 
 if(CONFIG_PRODUCT_CCM)
-    message("-- Building CCM product")
+    message(STATUS "Building CCM product (CONFIG_PRODUCT_CCM=ON)")
     add_subdirectory(products/ccm)
+else()
+    message(STATUS "Skipping CCM product (CONFIG_PRODUCT_CCM=OFF)")
 endif()
 
 if(CONFIG_PRODUCT_SAMPLE)
-    message("-- Building Sample product")
+    message(STATUS "Building Sample product (CONFIG_PRODUCT_SAMPLE=ON)")
     add_subdirectory(products/sample)
+else()
+    message(STATUS "Skipping Sample product (CONFIG_PRODUCT_SAMPLE not set)")
 endif()
 
 # ============================================================================
-# Build Tests as a Special Product
+# Build Tests
 # ============================================================================
+
 if(CONFIG_BUILD_TESTING)
-    message("-- Building test suite (as test product)")
+    message(STATUS "Building test suite (CONFIG_BUILD_TESTING=ON)")
     add_subdirectory(products/tests)
+else()
+    message(STATUS "Skipping tests (CONFIG_BUILD_TESTING=OFF)")
 endif()
+
+# ============================================================================
+# Configuration Summary
+# ============================================================================
+
+message(STATUS "")
+message(STATUS "========================================")
+message(STATUS "ES-Middleware Configuration Summary")
+message(STATUS "========================================")
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "")
+message(STATUS "Products:")
+if(CONFIG_PRODUCT_CCM)
+    message(STATUS "  CCM: YES")
+else()
+    message(STATUS "  CCM: NO")
+endif()
+if(CONFIG_PRODUCT_SAMPLE)
+    message(STATUS "  Sample: YES")
+else()
+    message(STATUS "  Sample: NO")
+endif()
+if(CONFIG_BUILD_TESTING)
+    message(STATUS "  Tests: YES")
+else()
+    message(STATUS "  Tests: NO")
+endif()
+message(STATUS "========================================")
+message(STATUS "")

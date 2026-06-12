@@ -14,7 +14,6 @@
 #include <time.h>
 #include <unistd.h>
 #include <libgen.h>
-#include <limits.h>
 
 #include "lkc.h"
 

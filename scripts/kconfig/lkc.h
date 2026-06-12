@@ -96,7 +96,6 @@ static inline void xfwrite(const void *str, size_t len, size_t count, FILE *out)
 }
 
 /* menu.c */
-
 void _menu_init(void);
 void menu_warn(struct menu *menu, const char *fmt, ...);
 struct menu *menu_add_menu(void);

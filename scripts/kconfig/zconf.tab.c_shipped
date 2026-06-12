@@ -93,7 +93,7 @@ static bool zconf_endtoken(const struct kconf_id *id, int starttoken, int endtok
 
 struct symbol *symbol_hash[SYMBOL_HASHSIZE];
 
-struct menu *current_menu, *current_entry;
+static struct menu *current_menu, *current_entry;
 
 
 

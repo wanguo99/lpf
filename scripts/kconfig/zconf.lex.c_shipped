@@ -790,7 +790,6 @@ char *yytext;
 #include <unistd.h>
 
 #include "lkc.h"
-#include "zconf.tab.h"
 
 #define START_STRSIZE	16
 
