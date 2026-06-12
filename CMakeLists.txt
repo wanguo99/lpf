@@ -57,6 +57,9 @@ message(STATUS "  Headers: ${CMAKE_INSTALL_PREFIX}/${INSTALL_INCLUDEDIR}")
 # Include build system
 include(${SDK_PATH}/tools/cmake/compile.cmake)
 
+# Include high-level component API helpers
+include(${SDK_PATH}/cmake/ComponentAPI.cmake)
+
 # Auto-include autoconf.h for all compilation units
 set(KCONFIG_HEADER "${CMAKE_CURRENT_BINARY_DIR}/config/autoconf.h")
 if(EXISTS ${KCONFIG_HEADER})

@@ -50,10 +50,13 @@ endif
 
 # Phony targets
 .PHONY: all help menuconfig nconfig defconfig savedefconfig oldconfig
-.PHONY: clean distclean mrproper list install _build_internal
+.PHONY: clean distclean mrproper list install _build_internal _ensure_build_dir
 
 # Default goal
 .DEFAULT_GOAL := all
+
+# Prevent Makefile itself from being considered a target
+Makefile: ;
 
 # Check configuration exists (unless skipped)
 ifndef SKIP_CONFIG_CHECK
@@ -177,43 +180,32 @@ defconfig:
 	echo "  DEFCONFIG $@"; \
 	cp "$$config" $(KCONFIG_CONFIG)
 
-# Interactive configuration (menuconfig)
-menuconfig:
+# Ensure build directory is initialized with CMake
+.PHONY: _ensure_build_dir
+_ensure_build_dir:
 	@if [ ! -f "$(BUILD_DIR)/Makefile" ]; then \
 		echo "  CMAKE     $(BUILD_DIR)"; \
 		mkdir -p $(BUILD_DIR); \
-		cd $(BUILD_DIR) && $(CMAKE) .. >/dev/null; \
+		cd $(BUILD_DIR) && $(CMAKE) -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE) -DCMAKE_INSTALL_PREFIX=$(CMAKE_INSTALL_PREFIX) .. >/dev/null; \
 	fi
+
+# Interactive configuration (menuconfig)
+menuconfig: _ensure_build_dir
 	@$(MAKE) -C $(BUILD_DIR) menuconfig
 	@echo "  SYNC      $(KCONFIG_CONFIG)"
 
 # Interactive configuration (nconfig)
-nconfig:
-	@if [ ! -f "$(BUILD_DIR)/Makefile" ]; then \
-		echo "  CMAKE     $(BUILD_DIR)"; \
-		mkdir -p $(BUILD_DIR); \
-		cd $(BUILD_DIR) && $(CMAKE) .. >/dev/null; \
-	fi
+nconfig: _ensure_build_dir
 	@$(MAKE) -C $(BUILD_DIR) nconfig
 	@echo "  SYNC      $(KCONFIG_CONFIG)"
 
 # Update old configuration
-oldconfig:
-	@if [ ! -f "$(BUILD_DIR)/Makefile" ]; then \
-		echo "  CMAKE     $(BUILD_DIR)"; \
-		mkdir -p $(BUILD_DIR); \
-		cd $(BUILD_DIR) && $(CMAKE) .. >/dev/null; \
-	fi
+oldconfig: _ensure_build_dir
 	@$(MAKE) -C $(BUILD_DIR) oldconfig
 	@echo "  SYNC      $(KCONFIG_CONFIG)"
 
 # Save minimal configuration
-savedefconfig:
-	@if [ ! -f "$(BUILD_DIR)/Makefile" ]; then \
-		echo "  CMAKE     $(BUILD_DIR)"; \
-		mkdir -p $(BUILD_DIR); \
-		cd $(BUILD_DIR) && $(CMAKE) .. >/dev/null; \
-	fi
+savedefconfig: _ensure_build_dir
 	@$(MAKE) -C $(BUILD_DIR) savedefconfig
 	@echo "  SAVE      $(BUILD_DIR)/defconfig"
 	@echo ''
@@ -253,7 +245,7 @@ install:
 	@$(MAKE) -C $(BUILD_DIR) install $(if $(DESTDIR),DESTDIR=$(DESTDIR))
 
 # Catch-all: forward to CMake build system
-%:
+%: _ensure_build_dir
 	@if [ ! -f "$(KCONFIG_CONFIG)" ]; then \
 		echo "***"; \
 		echo "*** Configuration file '$(KCONFIG_CONFIG)' not found!"; \
@@ -262,10 +254,5 @@ install:
 		echo "*** Try 'make help' for available defconfigs."; \
 		echo "***"; \
 		exit 1; \
-	fi
-	@if [ ! -f "$(BUILD_DIR)/Makefile" ]; then \
-		echo "  CMAKE     $(BUILD_DIR)"; \
-		mkdir -p $(BUILD_DIR); \
-		cd $(BUILD_DIR) && $(CMAKE) .. >/dev/null; \
 	fi
 	@$(MAKE) -C $(BUILD_DIR) $@
