@@ -72,7 +72,7 @@ endif()
 # Check if any source files were added
 list(LENGTH ADD_SRCS SRCS_COUNT)
 if(SRCS_COUNT EQUAL 0)
-    message(FATAL_ERROR "No HAL driver source files selected. Please check your Kconfig configuration.")
+    message(FATAL_ERROR "No HAL driver source files selected. Please check your Config.in configuration.")
 endif()
 
 message(STATUS "HAL: Selected ${SRCS_COUNT} driver source files for compilation")

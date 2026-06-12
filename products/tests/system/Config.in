@@ -4,13 +4,13 @@
 # Tests cross-layer functionality and end-to-end scenarios.
 #
 # Organization:
-#   - system/Kconfig (this file) - Entry point, sources layer configs
-#   - system/osal/Kconfig - OSAL system/integration tests
-#   - system/hal/Kconfig - HAL system/integration tests
-#   - system/pdl/Kconfig - PDL system/integration tests
-#   - system/pconfig/Kconfig - PCONFIG system/integration tests
-#   - system/aconfig/Kconfig - ACONFIG system/integration tests
-#   - system/integration/Kconfig - Full stack integration tests
+#   - system/Config.in (this file) - Entry point, sources layer configs
+#   - system/osal/Config.in - OSAL system/integration tests
+#   - system/hal/Config.in - HAL system/integration tests
+#   - system/pdl/Config.in - PDL system/integration tests
+#   - system/pconfig/Config.in - PCONFIG system/integration tests
+#   - system/aconfig/Config.in - ACONFIG system/integration tests
+#   - system/integration/Config.in - Full stack integration tests
 
 if TEST_SYSTEM
 
@@ -41,29 +41,29 @@ config TEST_SYSTEM_ALL
 	  Runtime: Varies by test (typically 5-30 seconds per test)
 	  Tags: slow, integration, system
 
-# Source layer-specific Kconfig files
+# Source layer-specific Config.in files
 if TEST_OSAL
-	source "products/tests/system/osal/Kconfig"
+	source "products/tests/system/osal/Config.in"
 endif
 
 if TEST_HAL
-	source "products/tests/system/hal/Kconfig"
+	source "products/tests/system/hal/Config.in"
 endif
 
 if TEST_PDL
-	source "products/tests/system/pdl/Kconfig"
+	source "products/tests/system/pdl/Config.in"
 endif
 
 if CONFIG_PCL
-	source "products/tests/system/pconfig/Kconfig"
+	source "products/tests/system/pconfig/Config.in"
 endif
 
 if CONFIG_ACL
-	source "products/tests/system/aconfig/Kconfig"
+	source "products/tests/system/aconfig/Config.in"
 endif
 
 # Integration tests (full stack)
-source "products/tests/system/integration/Kconfig"
+source "products/tests/system/integration/Config.in"
 
 endmenu
 

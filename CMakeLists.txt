@@ -2,10 +2,10 @@
 # ES-Middleware SDK Root CMakeLists.txt
 # ============================================================================
 # This CMakeLists.txt handles ONLY compilation and installation.
-# All Kconfig configuration management is handled by the root Makefile.
+# All Config.in configuration management is handled by the root Makefile.
 #
 # The Makefile:
-#   - Builds Kconfig tools (conf, mconf, nconf)
+#   - Builds Config.in tools (conf, mconf, nconf)
 #   - Handles all config targets (menuconfig, defconfig, etc.)
 #   - Generates autoconf.h from .config
 #   - Invokes CMake for compilation only
@@ -48,7 +48,7 @@ set(SDK_PATH ${CMAKE_CURRENT_LIST_DIR})
 message(STATUS "SDK_PATH: ${SDK_PATH}")
 
 # ============================================================================
-# Load Kconfig Configuration into CMake Variables
+# Load Config.in Configuration into CMake Variables
 # ============================================================================
 
 # Parse .config and load CONFIG_* variables into CMake
@@ -78,18 +78,18 @@ if(EXISTS "${CONFIG_FILE}")
             endif()
 
             # Export to CMake cache
-            set(CONFIG_${config_name} ${config_value} CACHE INTERNAL "Kconfig: ${config_name}")
+            set(CONFIG_${config_name} ${config_value} CACHE INTERNAL "Config.in: ${config_name}")
             math(EXPR config_count "${config_count} + 1")
 
         # Parse # CONFIG_XXX is not set
         elseif(line MATCHES "^# CONFIG_([A-Za-z0-9_]+) is not set$")
             set(config_name ${CMAKE_MATCH_1})
-            set(CONFIG_${config_name} OFF CACHE INTERNAL "Kconfig: ${config_name}")
+            set(CONFIG_${config_name} OFF CACHE INTERNAL "Config.in: ${config_name}")
             math(EXPR config_count "${config_count} + 1")
         endif()
     endforeach()
 
-    message(STATUS "Loaded ${config_count} Kconfig symbols from .config")
+    message(STATUS "Loaded ${config_count} Config.in symbols from .config")
 else()
     message(FATAL_ERROR "Configuration file not found: ${CONFIG_FILE}")
 endif()

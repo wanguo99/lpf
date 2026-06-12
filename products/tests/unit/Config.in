@@ -1,0 +1,16 @@
+# Unit Test Configuration
+#
+# This file provides fine-grained control over individual unit test files.
+# Each test file can be independently enabled/disabled through menuconfig.
+
+if TEST_UNIT
+
+# Source layer-specific Config.in files
+source "products/tests/unit/osal/Config.in"
+source "products/tests/unit/hal/Config.in"
+source "products/tests/unit/pdl/Config.in"
+source "products/tests/unit/prl/Config.in"
+source "products/tests/unit/pconfig/Config.in"
+source "products/tests/unit/aconfig/Config.in"
+
+endif # TEST_UNIT

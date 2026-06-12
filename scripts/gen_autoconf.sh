@@ -1,6 +1,6 @@
 #!/bin/bash
 # Generate autoconf.h from .config
-# This script is called by Makefile after Kconfig operations
+# This script is called by Makefile after Config.in operations
 
 set -e
 

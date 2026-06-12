@@ -106,7 +106,7 @@ endmenu
 # =============================================================================
 # Platform-specific OSAL Configuration
 # =============================================================================
-# Platform (OS and Architecture) is configured in root Kconfig.platform
+# Platform (OS and Architecture) is configured in root Config.in.platform
 # Here we only define OSAL-specific derived configurations
 # =============================================================================
 
@@ -305,7 +305,7 @@ menuconfig OSAL_SIGNAL
 	  Recommended: Enable for Standard/Full profiles, optional for Minimal
 
 # Platform-specific fine-grained configuration
-source "core/osal/src/Kconfig.posix"
+source "core/osal/src/Config.in.posix"
 
 endmenu
 

@@ -4,12 +4,12 @@
 # robustness, and resource exhaustion handling under extreme conditions.
 #
 # Organization:
-#   - stress/Kconfig (this file) - Entry point, sources layer configs
-#   - stress/osal/Kconfig - OSAL stress tests
-#   - stress/hal/Kconfig - HAL stress tests
-#   - stress/pdl/Kconfig - PDL stress tests
-#   - stress/pcl/Kconfig - PCL stress tests
-#   - stress/acl/Kconfig - ACL stress tests
+#   - stress/Config.in (this file) - Entry point, sources layer configs
+#   - stress/osal/Config.in - OSAL stress tests
+#   - stress/hal/Config.in - HAL stress tests
+#   - stress/pdl/Config.in - PDL stress tests
+#   - stress/pcl/Config.in - PCL stress tests
+#   - stress/acl/Config.in - ACL stress tests
 
 if TEST_STRESS
 
@@ -41,25 +41,25 @@ config TEST_STRESS_ALL
 	  Runtime: Varies by test (typically 10-60 seconds per test)
 	  Tags: slow, stress, heavy
 
-# Source layer-specific Kconfig files
+# Source layer-specific Config.in files
 if TEST_OSAL
-	source "products/tests/stress/osal/Kconfig"
+	source "products/tests/stress/osal/Config.in"
 endif
 
 if TEST_HAL
-	source "products/tests/stress/hal/Kconfig"
+	source "products/tests/stress/hal/Config.in"
 endif
 
 if TEST_PDL
-	source "products/tests/stress/pdl/Kconfig"
+	source "products/tests/stress/pdl/Config.in"
 endif
 
 if TEST_PCL
-	source "products/tests/stress/pcl/Kconfig"
+	source "products/tests/stress/pcl/Config.in"
 endif
 
 if TEST_ACL
-	source "products/tests/stress/acl/Kconfig"
+	source "products/tests/stress/acl/Config.in"
 endif
 
 endmenu

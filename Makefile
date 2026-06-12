@@ -228,7 +228,7 @@ scripts_basic: include/autoconf.h
 ifeq ($(dot-config),1)
 # In this section, we need .config
 
-# Read in dependencies to all Kconfig* files, make sure to run
+# Read in dependencies to all Config.in* files, make sure to run
 # oldconfig if changes are detected.
 -include .kconfig.d
 
@@ -242,7 +242,7 @@ ifeq ($(dot-config),1)
 # If .config is newer than include/autoconf.h, someone tinkered
 # with it and forgot to run make oldconfig.
 # If kconfig.d is missing then we are probably in a cleaned tree so
-# we execute the config step to be sure to catch updated Kconfig files
+# we execute the config step to be sure to catch updated Config.in files
 include/autoconf.h: .kconfig.d .config FORCE
 	$(Q)$(MAKE) -f $(srctree)/Makefile silentoldconfig
 

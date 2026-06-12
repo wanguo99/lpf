@@ -7,10 +7,10 @@
 
 menu "Products"
 
-# Source individual product Kconfig files
+# Source individual product Config.in files
 # Each product defines its own menuconfig entry for a collapsible submenu
 
-source "products/ccm/Kconfig"
-source "products/samples/Kconfig"
+source "products/ccm/Config.in"
+source "products/samples/Config.in"
 
 endmenu

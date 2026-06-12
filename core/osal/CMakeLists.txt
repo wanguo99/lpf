@@ -147,7 +147,7 @@ endif()
 # Check if any source files were added
 list(LENGTH ADD_SRCS SRCS_COUNT)
 if(SRCS_COUNT EQUAL 0)
-    message(FATAL_ERROR "No OSAL source files selected. Please check your Kconfig configuration.")
+    message(FATAL_ERROR "No OSAL source files selected. Please check your Config.in configuration.")
 endif()
 
 message(STATUS "OSAL: Selected ${SRCS_COUNT} source files for compilation")

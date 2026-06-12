@@ -48,7 +48,7 @@ endmenu
 
 menu "Product Libraries"
 
-source "products/ccm/libs/libccm/Kconfig"
+source "products/ccm/libs/libccm/Config.in"
 
 endmenu
 
@@ -58,11 +58,11 @@ endmenu
 
 menu "Applications"
 
-source "products/ccm/apps/app_collector/Kconfig"
-source "products/ccm/apps/app_comm/Kconfig"
-source "products/ccm/apps/app_health/Kconfig"
-source "products/ccm/apps/app_logger/Kconfig"
-source "products/ccm/apps/app_supervisor/Kconfig"
+source "products/ccm/apps/app_collector/Config.in"
+source "products/ccm/apps/app_comm/Config.in"
+source "products/ccm/apps/app_health/Config.in"
+source "products/ccm/apps/app_logger/Config.in"
+source "products/ccm/apps/app_supervisor/Config.in"
 
 endmenu
 

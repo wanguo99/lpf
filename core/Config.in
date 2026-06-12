@@ -5,11 +5,11 @@
 
 menu "Core Modules"
 
-source "core/osal/Kconfig"
-source "core/hal/Kconfig"
-source "core/pconfig/Kconfig"
-source "core/pdl/Kconfig"
-source "core/prl/Kconfig"
-source "core/aconfig/Kconfig"
+source "core/osal/Config.in"
+source "core/hal/Config.in"
+source "core/pconfig/Config.in"
+source "core/pdl/Config.in"
+source "core/prl/Config.in"
+source "core/aconfig/Config.in"
 
 endmenu

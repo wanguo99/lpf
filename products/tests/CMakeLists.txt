@@ -2,7 +2,7 @@
 # ES-Middleware Test Suite CMakeLists.txt
 # ============================================================================
 # This builds the test suite as a special "product".
-# Tests are conditionally compiled based on Kconfig configuration.
+# Tests are conditionally compiled based on Config.in configuration.
 #
 # Test Discovery System:
 # - Test files are automatically discovered and matched to Kconfig options
@@ -108,7 +108,7 @@ target_include_directories(es-middleware-test PRIVATE
 )
 
 # ============================================================================
-# Unit Tests - Auto-discovery based on Kconfig
+# Unit Tests - Auto-discovery based on Config.in
 # ============================================================================
 
 if(CONFIG_TEST_UNIT)
@@ -201,7 +201,7 @@ if(CONFIG_TEST_UNIT)
 endif() # CONFIG_TEST_UNIT
 
 # ============================================================================
-# Performance Tests - Auto-discovery based on Kconfig
+# Performance Tests - Auto-discovery based on Config.in
 # ============================================================================
 
 if(CONFIG_TEST_PERFORMANCE)
@@ -267,7 +267,7 @@ if(CONFIG_TEST_PERFORMANCE)
 endif() # CONFIG_TEST_PERFORMANCE
 
 # ============================================================================
-# Stress Tests - Auto-discovery based on Kconfig
+# Stress Tests - Auto-discovery based on Config.in
 # ============================================================================
 
 if(CONFIG_TEST_STRESS)
@@ -333,7 +333,7 @@ if(CONFIG_TEST_STRESS)
 endif() # CONFIG_TEST_STRESS
 
 # ============================================================================
-# System Tests - Auto-discovery based on Kconfig
+# System Tests - Auto-discovery based on Config.in
 # ============================================================================
 
 if(CONFIG_TEST_SYSTEM)

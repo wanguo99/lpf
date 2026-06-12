@@ -1,7 +1,7 @@
 # ============================================================================
 # ES-Middleware SDK Root Configuration
 # ============================================================================
-# This is the root Kconfig file for the entire ES-Middleware SDK.
+# This is the root Config.in file for the entire ES-Middleware SDK.
 # It provides a unified configuration interface for:
 #   - Product selection (which products to build)
 #   - Core components configuration (OSAL, HAL, PCL, PDL, ACL)
@@ -179,10 +179,10 @@ endmenu
 menu "Build System Configuration"
 
 # Include platform configuration (OS and Architecture)
-source "Kconfig.platform"
+source "Config.in.platform"
 
 # Include build and compiler configuration
-source "Kconfig.build"
+source "Config.in.build"
 
 menu "Toolchain"
 
@@ -221,12 +221,12 @@ endmenu
 
 menu "Core Components"
 
-source "core/osal/Kconfig"
-source "core/hal/Kconfig"
-source "core/pconfig/Kconfig"
-source "core/pdl/Kconfig"
-source "core/prl/Kconfig"
-source "core/aconfig/Kconfig"
+source "core/osal/Config.in"
+source "core/hal/Config.in"
+source "core/pconfig/Config.in"
+source "core/pdl/Config.in"
+source "core/prl/Config.in"
+source "core/aconfig/Config.in"
 
 endmenu
 
@@ -240,11 +240,11 @@ endmenu
 menu "Product Configuration"
 
 if PRODUCT_CCM
-	source "products/ccm/Kconfig"
+	source "products/ccm/Config.in"
 endif
 
 # if PRODUCT_SAMPLE
-# 	osource "products/sample/Kconfig"
+# 	osource "products/sample/Config.in"
 # endif
 
 endmenu
@@ -271,6 +271,6 @@ config BUILD_TESTING
 
 if BUILD_TESTING
 	menu "Test Configuration"
-		source "products/tests/Kconfig"
+		source "products/tests/Config.in"
 	endmenu
 endif

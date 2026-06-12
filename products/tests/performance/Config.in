@@ -4,12 +4,12 @@
 # under typical and high-load conditions.
 #
 # Organization:
-#   - performance/Kconfig (this file) - Entry point, sources layer configs
-#   - performance/osal/Kconfig - OSAL performance tests
-#   - performance/hal/Kconfig - HAL performance tests
-#   - performance/pdl/Kconfig - PDL performance tests
-#   - performance/pcl/Kconfig - PCL performance tests
-#   - performance/acl/Kconfig - ACL performance tests
+#   - performance/Config.in (this file) - Entry point, sources layer configs
+#   - performance/osal/Config.in - OSAL performance tests
+#   - performance/hal/Config.in - HAL performance tests
+#   - performance/pdl/Config.in - PDL performance tests
+#   - performance/pcl/Config.in - PCL performance tests
+#   - performance/acl/Config.in - ACL performance tests
 
 if TEST_PERFORMANCE
 
@@ -36,25 +36,25 @@ config TEST_PERFORMANCE_ALL
 	  Runtime: Varies by test (typically 1-10 seconds per test)
 	  Tags: slow, performance
 
-# Source layer-specific Kconfig files
+# Source layer-specific Config.in files
 if TEST_OSAL
-	source "products/tests/performance/osal/Kconfig"
+	source "products/tests/performance/osal/Config.in"
 endif
 
 if TEST_HAL
-	source "products/tests/performance/hal/Kconfig"
+	source "products/tests/performance/hal/Config.in"
 endif
 
 if TEST_PDL
-	source "products/tests/performance/pdl/Kconfig"
+	source "products/tests/performance/pdl/Config.in"
 endif
 
 if TEST_PCL
-	source "products/tests/performance/pcl/Kconfig"
+	source "products/tests/performance/pcl/Config.in"
 endif
 
 if TEST_ACL
-	source "products/tests/performance/acl/Kconfig"
+	source "products/tests/performance/acl/Config.in"
 endif
 
 endmenu

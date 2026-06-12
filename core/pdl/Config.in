@@ -97,7 +97,7 @@ menuconfig PDL_SATELLITE_SUPPORT
 
 	  If unsure, say Y.
 
-source "core/pdl/src/pdl_satellite/Kconfig"
+source "core/pdl/src/pdl_satellite/Config.in"
 
 menuconfig PDL_BMC_SUPPORT
 	bool "BMC peripheral support"
@@ -129,7 +129,7 @@ menuconfig PDL_BMC_SUPPORT
 
 	  If unsure, say Y.
 
-source "core/pdl/src/pdl_bmc/Kconfig"
+source "core/pdl/src/pdl_bmc/Config.in"
 
 menuconfig PDL_MCU_SUPPORT
 	bool "MCU peripheral support"
@@ -211,7 +211,7 @@ config PDL_MCU_UART_SUPPORT
 
 endif # PDL_MCU_SUPPORT
 
-source "core/pdl/src/pdl_mcu/Kconfig"
+source "core/pdl/src/pdl_mcu/Config.in"
 
 menuconfig PDL_CCM_SUPPORT
 	bool "CCM (Communication Control Module) support"
@@ -249,7 +249,7 @@ menuconfig PDL_CCM_SUPPORT
 
 	  If unsure, say N.
 
-source "core/pdl/src/pdl_ccm/Kconfig"
+source "core/pdl/src/pdl_ccm/Config.in"
 
 menuconfig PDL_WATCHDOG_SUPPORT
 	bool "Watchdog peripheral support"

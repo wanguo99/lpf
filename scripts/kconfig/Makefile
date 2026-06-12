@@ -5,17 +5,17 @@
 PHONY += oldconfig xconfig gconfig menuconfig config silentoldconfig update-po-config
 
 xconfig: $(obj)/qconf
-	$< Kconfig
+	$< Config.in
 
 gconfig: $(obj)/gconf
-	$< Kconfig
+	$< Config.in
 
 menuconfig: $(obj)/mconf
 	$(Q)$(MAKE) $(build)=scripts/kconfig/lxdialog
-	$< Kconfig
+	$< Config.in
 
 config: $(obj)/conf
-	$< Kconfig
+	$< Config.in
 
 # Mtime granularity problem.
 # It was observed that these commands:
@@ -33,11 +33,11 @@ config: $(obj)/conf
 MTIME_IS_COARSE:=@true
 
 oldconfig: $(obj)/conf
-	$< -o Kconfig
+	$< -o Config.in
 	$(MTIME_IS_COARSE) && sleep 1
 
 silentoldconfig: $(obj)/conf
-	$< -s Kconfig
+	$< -s Config.in
 	$(MTIME_IS_COARSE) && sleep 1
 
 update-po-config: $(obj)/kxgettext
@@ -45,10 +45,10 @@ update-po-config: $(obj)/kxgettext
           --add-comments --keyword=_ --keyword=N_ \
           --files-from=scripts/kconfig/POTFILES.in \
           --output scripts/kconfig/config.pot
-	$(Q)ln -fs Kconfig_i386 arch/um/Kconfig_arch
+	$(Q)ln -fs Config.in_i386 arch/um/Config.in_arch
 	$(Q)for i in `ls arch/`; \
 	do \
-	  scripts/kconfig/kxgettext arch/$$i/Kconfig \
+	  scripts/kconfig/kxgettext arch/$$i/Config.in \
 	    | msguniq -o scripts/kconfig/linux_$${i}.pot; \
 	done
 	$(Q)msgcat scripts/kconfig/config.pot \
@@ -56,38 +56,38 @@ update-po-config: $(obj)/kxgettext
 	  --output scripts/kconfig/linux_raw.pot
 	$(Q)msguniq --sort-by-file scripts/kconfig/linux_raw.pot \
 	    --output scripts/kconfig/linux.pot
-	$(Q)rm -f arch/um/Kconfig_arch
+	$(Q)rm -f arch/um/Config.in_arch
 	$(Q)rm -f scripts/kconfig/linux_*.pot scripts/kconfig/config.pot
 
 PHONY += randconfig allyesconfig allnoconfig allmodconfig defconfig
 
 randconfig: $(obj)/conf
-	$< -r Kconfig
+	$< -r Config.in
 	$(MTIME_IS_COARSE) && sleep 1
 
 allyesconfig: $(obj)/conf
-	$< -y Kconfig
+	$< -y Config.in
 	$(MTIME_IS_COARSE) && sleep 1
 
 allnoconfig: $(obj)/conf
-	$< -n Kconfig
+	$< -n Config.in
 	$(MTIME_IS_COARSE) && sleep 1
 
 allmodconfig: $(obj)/conf
-	$< -m Kconfig
+	$< -m Config.in
 	$(MTIME_IS_COARSE) && sleep 1
 
 defconfig: $(obj)/conf
 ifeq ($(KBUILD_DEFCONFIG),)
-	$< -d Kconfig
+	$< -d Config.in
 else
 	@echo *** Default configuration is based on '$(KBUILD_DEFCONFIG)'
-	$(Q)$< -D $(KBUILD_DEFCONFIG) Kconfig
+	$(Q)$< -D $(KBUILD_DEFCONFIG) Config.in
 endif
 	$(MTIME_IS_COARSE) && sleep 1
 
 %_defconfig: $(obj)/conf
-	$(Q)$< -D configs/$@ Kconfig
+	$(Q)$< -D configs/$@ Config.in
 	$(MTIME_IS_COARSE) && sleep 1
 
 # Help text used by make help
