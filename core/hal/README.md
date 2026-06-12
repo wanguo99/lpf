@@ -261,7 +261,7 @@ ip link show vcan0
 ```c
 /* ✅ 正确 */
 int32 sockfd = OSAL_socket(PF_CAN, SOCK_RAW, CAN_RAW);
-OSAL_bind(sockfd, (struct sockaddr *)&addr, sizeof(addr));
+OSAL_bind(sockfd, (struct sockaddr *)&addr, OSAL_SIZEOF(addr));
 LOG_INFO("HAL_CAN", "CAN initialized");
 
 /* ❌ 错误 */

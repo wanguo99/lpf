@@ -710,10 +710,10 @@ TEST_CASE(test_example)
 TEST_CASE(test_queue_send)
 {
     osal_id_t queue_id;
-    OSAL_QueueCreate(&queue_id, "test_queue", 10, sizeof(uint32), 0);
+    OSAL_QueueCreate(&queue_id, "test_queue", 10, OSAL_SIZEOF(uint32), 0);
     
     uint32 data = 123;
-    int32 ret = OSAL_QueuePut(queue_id, &data, sizeof(data), 1000);
+    int32 ret = OSAL_QueuePut(queue_id, &data, OSAL_SIZEOF(data), 1000);
     TEST_ASSERT_EQUAL(OS_SUCCESS, ret);
     
     OSAL_QueueDelete(queue_id);
@@ -725,7 +725,7 @@ static osal_id_t g_queue_id;  // 全局变量
 TEST_CASE(test_queue_send)
 {
     uint32 data = 123;
-    OSAL_QueuePut(g_queue_id, &data, sizeof(data), 1000);  // 依赖外部状态
+    OSAL_QueuePut(g_queue_id, &data, OSAL_SIZEOF(data), 1000);  // 依赖外部状态
 }
 ```
 
@@ -740,7 +740,7 @@ TEST_CASE(test_with_cleanup)
     
     /* 创建资源 */
     OSAL_TaskCreate(&task_id, "test", task_func, NULL, 8192, 100, 0);
-    OSAL_QueueCreate(&queue_id, "test_queue", 10, sizeof(uint32), 0);
+    OSAL_QueueCreate(&queue_id, "test_queue", 10, OSAL_SIZEOF(uint32), 0);
     OSAL_MutexCreate(&mutex_id, "test_mutex", 0);
     
     /* 测试逻辑 */
@@ -762,10 +762,10 @@ TEST_CASE(test_with_cleanup)
 TEST_CASE(test_queue_receive)
 {
     osal_id_t queue_id;
-    OSAL_QueueCreate(&queue_id, "test_queue", 10, sizeof(uint32), 0);
+    OSAL_QueueCreate(&queue_id, "test_queue", 10, OSAL_SIZEOF(uint32), 0);
     
     uint32 data;
-    int32 ret = OSAL_QueueGet(queue_id, &data, sizeof(data), 100);  // 100ms超时
+    int32 ret = OSAL_QueueGet(queue_id, &data, OSAL_SIZEOF(data), 100);  // 100ms超时
     TEST_ASSERT_EQUAL(OS_QUEUE_TIMEOUT, ret);
     
     OSAL_QueueDelete(queue_id);
@@ -775,7 +775,7 @@ TEST_CASE(test_queue_receive)
 TEST_CASE(test_queue_receive)
 {
     osal_id_t queue_id;
-    OSAL_QueueCreate(&queue_id, "test_queue", 10, sizeof(uint32), 0);
+    OSAL_QueueCreate(&queue_id, "test_queue", 10, OSAL_SIZEOF(uint32), 0);
     
     uint32 data;
     OSAL_QueueGet(queue_id, &data, sizeof(data), OSAL_WAIT_FOREVER);  // 危险

@@ -654,8 +654,8 @@ core/prl/
 uint8_t buffer[PRL_MAX_PACKET_SIZE];
 int len = PRL_Encode(PRL_DEV_TYPE_MCU,      /* 设备类型 */
                      PRL_MCU_MSG_GET_VERSION, /* 消息类型 */
-                     &payload, sizeof(payload),
-                     buffer, sizeof(buffer), 0);
+                     &payload, OSAL_SIZEOF(payload),
+                     buffer, OSAL_SIZEOF(buffer), 0);
 
 /* 解码消息 */
 uint8_t dev_type, msg_type;
@@ -964,7 +964,7 @@ void test_utils_string(void)
     char buf[32];
     int ret;
     
-    ret = UTILS_String_Copy(buf, "hello", sizeof(buf));
+    ret = UTILS_String_Copy(buf, "hello", OSAL_SIZEOF(buf));
     assert(ret == 0);
     assert(strcmp(buf, "hello") == 0);
     

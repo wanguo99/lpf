@@ -77,7 +77,7 @@ int32_t PDL_MCU_GetVersion(pdl_mcu_handle_t handle, pdl_mcu_version_t *version)
     // 1. 使用 PRL 编码请求
     uint8_t tx_buf[PRL_MAX_PACKET_SIZE];
     int len = PRL_Encode(PRL_DEV_TYPE_MCU, PRL_MCU_MSG_GET_VERSION,
-                         NULL, 0, tx_buf, sizeof(tx_buf), 0);
+                         NULL, 0, tx_buf, OSAL_SIZEOF(tx_buf), 0);
     
     // 2. 通过 HAL 发送
     HAL_CAN_Send(handle->can_handle, tx_buf, len);
@@ -94,7 +94,7 @@ int32_t PDL_MCU_GetVersion(pdl_mcu_handle_t handle, pdl_mcu_version_t *version)
     PRL_Decode(rx_buf, rx_len, &dev_type, &msg_type, &payload, &payload_len);
     
     // 5. 解析业务数据
-    memcpy(version, payload, sizeof(pdl_mcu_version_t));
+    memcpy(version, payload, OSAL_SIZEOF(pdl_mcu_version_t));
     
     return OSAL_SUCCESS;
 }

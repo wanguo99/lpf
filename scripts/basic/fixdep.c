@@ -391,7 +391,7 @@ void print_deps(void)
 void traps(void)
 {
 /* bbox: not needed
-	static char test[] __attribute__((aligned(sizeof(int)))) = "CONF";
+	static char test[] __attribute__((aligned(OSAL_SIZEOF(int)))) = "CONF";
 
 	if (*(int *)test != INT_CONF) {
 		fprintf(stderr, "fixdep: sizeof(int) != 4 or wrong endianess? %#x\n",

@@ -138,7 +138,7 @@ int main(void)
     
     /* 发送命令到MCU */
     uint8 cmd_data[] = {0x01, 0x02, 0x03};
-    PDL_MCU_SendCommand(&mcu_handle, 0x100, cmd_data, sizeof(cmd_data));
+    PDL_MCU_SendCommand(&mcu_handle, 0x100, cmd_data, OSAL_SIZEOF(cmd_data));
     
     /* 初始化主机接口 */
     pdl_satellite_config_t host_cfg = {

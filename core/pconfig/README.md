@@ -263,7 +263,7 @@ static const pconfig_mcu_t mcu_configs[] = {
 
 const pconfig_mcu_t* PCONFIG_GetMCUConfigs(uint32 *count)
 {
-    *count = sizeof(mcu_configs) / sizeof(mcu_configs[0]);
+    *count = OSAL_SIZEOF(mcu_configs) / OSAL_SIZEOF(mcu_configs[0]);
     return mcu_configs;
 }
 ```
@@ -316,7 +316,7 @@ static const pconfig_bmc_t bmc_configs[] = {
 
 const pconfig_bmc_t* PCONFIG_GetBMCConfigs(uint32 *count)
 {
-    *count = sizeof(bmc_configs) / sizeof(bmc_configs[0]);
+    *count = OSAL_SIZEOF(bmc_configs) / OSAL_SIZEOF(bmc_configs[0]);
     return bmc_configs;
 }
 ```
