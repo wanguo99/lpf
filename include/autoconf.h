@@ -2,7 +2,7 @@
  * Automatically generated C config: don't edit
  * ES-Middleware version: 1.0.0
  */
-#define AUTOCONF_TIMESTAMP "2026-06-13 01:16:49 CST"
+#define AUTOCONF_TIMESTAMP "2026-06-13 01:19:21 CST"
 
 #define CONFIG_ES_MIDDLEWARE_VERSION "1.0.0"
 #define ENABLE_ES_MIDDLEWARE_VERSION 1
