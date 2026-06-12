@@ -1,0 +1,1902 @@
+/*
+ * Automatically generated C config: don't edit
+ * ES-Middleware version: 1.0.0
+ */
+#define AUTOCONF_TIMESTAMP "2026-06-12 15:08:20 CST"
+
+#define CONFIG_ES_MIDDLEWARE_VERSION "1.0.0"
+#define ENABLE_ES_MIDDLEWARE_VERSION 1
+#ifdef MAKE_SUID
+# define IF_ES_MIDDLEWARE_VERSION(...) __VA_ARGS__ "CONFIG_ES_MIDDLEWARE_VERSION"
+#else
+# define IF_ES_MIDDLEWARE_VERSION(...) __VA_ARGS__
+#endif
+#define IF_NOT_ES_MIDDLEWARE_VERSION(...)
+
+/*
+ * Configuration Templates
+ */
+#define CONFIG_TEMPLATE_NONE 1
+#define ENABLE_TEMPLATE_NONE 1
+#ifdef MAKE_SUID
+# define IF_TEMPLATE_NONE(...) __VA_ARGS__ "CONFIG_TEMPLATE_NONE"
+#else
+# define IF_TEMPLATE_NONE(...) __VA_ARGS__
+#endif
+#define IF_NOT_TEMPLATE_NONE(...)
+#undef CONFIG_TEMPLATE_RTOS_MINIMAL
+#define ENABLE_TEMPLATE_RTOS_MINIMAL 0
+#define IF_TEMPLATE_RTOS_MINIMAL(...)
+#define IF_NOT_TEMPLATE_RTOS_MINIMAL(...) __VA_ARGS__
+#undef CONFIG_TEMPLATE_LINUX_MINIMAL
+#define ENABLE_TEMPLATE_LINUX_MINIMAL 0
+#define IF_TEMPLATE_LINUX_MINIMAL(...)
+#define IF_NOT_TEMPLATE_LINUX_MINIMAL(...) __VA_ARGS__
+#undef CONFIG_TEMPLATE_LINUX_STANDARD
+#define ENABLE_TEMPLATE_LINUX_STANDARD 0
+#define IF_TEMPLATE_LINUX_STANDARD(...)
+#define IF_NOT_TEMPLATE_LINUX_STANDARD(...) __VA_ARGS__
+#undef CONFIG_TEMPLATE_LINUX_FULL
+#define ENABLE_TEMPLATE_LINUX_FULL 0
+#define IF_TEMPLATE_LINUX_FULL(...)
+#define IF_NOT_TEMPLATE_LINUX_FULL(...) __VA_ARGS__
+#undef CONFIG_EXPERT
+#define ENABLE_EXPERT 0
+#define IF_EXPERT(...)
+#define IF_NOT_EXPERT(...) __VA_ARGS__
+
+/*
+ * Product Selection
+ */
+#define CONFIG_PRODUCT_CCM 1
+#define ENABLE_PRODUCT_CCM 1
+#ifdef MAKE_SUID
+# define IF_PRODUCT_CCM(...) __VA_ARGS__ "CONFIG_PRODUCT_CCM"
+#else
+# define IF_PRODUCT_CCM(...) __VA_ARGS__
+#endif
+#define IF_NOT_PRODUCT_CCM(...)
+
+/*
+ * Build System Configuration
+ */
+
+/*
+ * Platform Configuration
+ */
+#define CONFIG_OS_LINUX 1
+#define ENABLE_OS_LINUX 1
+#ifdef MAKE_SUID
+# define IF_OS_LINUX(...) __VA_ARGS__ "CONFIG_OS_LINUX"
+#else
+# define IF_OS_LINUX(...) __VA_ARGS__
+#endif
+#define IF_NOT_OS_LINUX(...)
+#undef CONFIG_OS_WINDOWS
+#define ENABLE_OS_WINDOWS 0
+#define IF_OS_WINDOWS(...)
+#define IF_NOT_OS_WINDOWS(...) __VA_ARGS__
+#undef CONFIG_OS_RTOS
+#define ENABLE_OS_RTOS 0
+#define IF_OS_RTOS(...)
+#define IF_NOT_OS_RTOS(...) __VA_ARGS__
+#undef CONFIG_OS_MACOS
+#define ENABLE_OS_MACOS 0
+#define IF_OS_MACOS(...)
+#define IF_NOT_OS_MACOS(...) __VA_ARGS__
+#undef CONFIG_OS_BARE
+#define ENABLE_OS_BARE 0
+#define IF_OS_BARE(...)
+#define IF_NOT_OS_BARE(...) __VA_ARGS__
+#define CONFIG_OS "linux"
+#define ENABLE_OS 1
+#ifdef MAKE_SUID
+# define IF_OS(...) __VA_ARGS__ "CONFIG_OS"
+#else
+# define IF_OS(...) __VA_ARGS__
+#endif
+#define IF_NOT_OS(...)
+#define CONFIG_ARCH_X86_64 1
+#define ENABLE_ARCH_X86_64 1
+#ifdef MAKE_SUID
+# define IF_ARCH_X86_64(...) __VA_ARGS__ "CONFIG_ARCH_X86_64"
+#else
+# define IF_ARCH_X86_64(...) __VA_ARGS__
+#endif
+#define IF_NOT_ARCH_X86_64(...)
+#undef CONFIG_ARCH_ARM32
+#define ENABLE_ARCH_ARM32 0
+#define IF_ARCH_ARM32(...)
+#define IF_NOT_ARCH_ARM32(...) __VA_ARGS__
+#undef CONFIG_ARCH_ARM64
+#define ENABLE_ARCH_ARM64 0
+#define IF_ARCH_ARM64(...)
+#define IF_NOT_ARCH_ARM64(...) __VA_ARGS__
+#undef CONFIG_ARCH_RISCV64
+#define ENABLE_ARCH_RISCV64 0
+#define IF_ARCH_RISCV64(...)
+#define IF_NOT_ARCH_RISCV64(...) __VA_ARGS__
+#define CONFIG_ARCH "x86_64"
+#define ENABLE_ARCH 1
+#ifdef MAKE_SUID
+# define IF_ARCH(...) __VA_ARGS__ "CONFIG_ARCH"
+#else
+# define IF_ARCH(...) __VA_ARGS__
+#endif
+#define IF_NOT_ARCH(...)
+
+/*
+ * Build Configuration
+ */
+#define CONFIG_BUILD_TYPE_DEBUG 1
+#define ENABLE_BUILD_TYPE_DEBUG 1
+#ifdef MAKE_SUID
+# define IF_BUILD_TYPE_DEBUG(...) __VA_ARGS__ "CONFIG_BUILD_TYPE_DEBUG"
+#else
+# define IF_BUILD_TYPE_DEBUG(...) __VA_ARGS__
+#endif
+#define IF_NOT_BUILD_TYPE_DEBUG(...)
+#undef CONFIG_BUILD_TYPE_RELEASE
+#define ENABLE_BUILD_TYPE_RELEASE 0
+#define IF_BUILD_TYPE_RELEASE(...)
+#define IF_NOT_BUILD_TYPE_RELEASE(...) __VA_ARGS__
+#undef CONFIG_BUILD_TYPE_RELWITHDEBINFO
+#define ENABLE_BUILD_TYPE_RELWITHDEBINFO 0
+#define IF_BUILD_TYPE_RELWITHDEBINFO(...)
+#define IF_NOT_BUILD_TYPE_RELWITHDEBINFO(...) __VA_ARGS__
+#undef CONFIG_BUILD_TYPE_MINSIZEREL
+#define ENABLE_BUILD_TYPE_MINSIZEREL 0
+#define IF_BUILD_TYPE_MINSIZEREL(...)
+#define IF_NOT_BUILD_TYPE_MINSIZEREL(...) __VA_ARGS__
+#define CONFIG_BUILD_TYPE "Debug"
+#define ENABLE_BUILD_TYPE 1
+#ifdef MAKE_SUID
+# define IF_BUILD_TYPE(...) __VA_ARGS__ "CONFIG_BUILD_TYPE"
+#else
+# define IF_BUILD_TYPE(...) __VA_ARGS__
+#endif
+#define IF_NOT_BUILD_TYPE(...)
+
+/*
+ * Compiler Flags
+ */
+#define CONFIG_COMPILER_WARNINGS_AS_ERRORS 1
+#define ENABLE_COMPILER_WARNINGS_AS_ERRORS 1
+#ifdef MAKE_SUID
+# define IF_COMPILER_WARNINGS_AS_ERRORS(...) __VA_ARGS__ "CONFIG_COMPILER_WARNINGS_AS_ERRORS"
+#else
+# define IF_COMPILER_WARNINGS_AS_ERRORS(...) __VA_ARGS__
+#endif
+#define IF_NOT_COMPILER_WARNINGS_AS_ERRORS(...)
+#define CONFIG_COMPILER_WALL 1
+#define ENABLE_COMPILER_WALL 1
+#ifdef MAKE_SUID
+# define IF_COMPILER_WALL(...) __VA_ARGS__ "CONFIG_COMPILER_WALL"
+#else
+# define IF_COMPILER_WALL(...) __VA_ARGS__
+#endif
+#define IF_NOT_COMPILER_WALL(...)
+#undef CONFIG_COMPILER_WEXTRA
+#define ENABLE_COMPILER_WEXTRA 0
+#define IF_COMPILER_WEXTRA(...)
+#define IF_NOT_COMPILER_WEXTRA(...) __VA_ARGS__
+#undef CONFIG_COMPILER_PEDANTIC
+#define ENABLE_COMPILER_PEDANTIC 0
+#define IF_COMPILER_PEDANTIC(...)
+#define IF_NOT_COMPILER_PEDANTIC(...) __VA_ARGS__
+#undef CONFIG_COMPILER_SANITIZER_ADDRESS
+#define ENABLE_COMPILER_SANITIZER_ADDRESS 0
+#define IF_COMPILER_SANITIZER_ADDRESS(...)
+#define IF_NOT_COMPILER_SANITIZER_ADDRESS(...) __VA_ARGS__
+#undef CONFIG_COMPILER_SANITIZER_THREAD
+#define ENABLE_COMPILER_SANITIZER_THREAD 0
+#define IF_COMPILER_SANITIZER_THREAD(...)
+#define IF_NOT_COMPILER_SANITIZER_THREAD(...) __VA_ARGS__
+#undef CONFIG_COMPILER_SANITIZER_UNDEFINED
+#define ENABLE_COMPILER_SANITIZER_UNDEFINED 0
+#define IF_COMPILER_SANITIZER_UNDEFINED(...)
+#define IF_NOT_COMPILER_SANITIZER_UNDEFINED(...) __VA_ARGS__
+#undef CONFIG_COMPILER_COVERAGE
+#define ENABLE_COMPILER_COVERAGE 0
+#define IF_COMPILER_COVERAGE(...)
+#define IF_NOT_COMPILER_COVERAGE(...) __VA_ARGS__
+#undef CONFIG_COMPILER_LTO
+#define ENABLE_COMPILER_LTO 0
+#define IF_COMPILER_LTO(...)
+#define IF_NOT_COMPILER_LTO(...) __VA_ARGS__
+#define CONFIG_COMPILER_OPTIMIZATION_LEVEL ""
+#define ENABLE_COMPILER_OPTIMIZATION_LEVEL 1
+#ifdef MAKE_SUID
+# define IF_COMPILER_OPTIMIZATION_LEVEL(...) __VA_ARGS__ "CONFIG_COMPILER_OPTIMIZATION_LEVEL"
+#else
+# define IF_COMPILER_OPTIMIZATION_LEVEL(...) __VA_ARGS__
+#endif
+#define IF_NOT_COMPILER_OPTIMIZATION_LEVEL(...)
+#define CONFIG_COMPILER_DEBUG_LEVEL "-g"
+#define ENABLE_COMPILER_DEBUG_LEVEL 1
+#ifdef MAKE_SUID
+# define IF_COMPILER_DEBUG_LEVEL(...) __VA_ARGS__ "CONFIG_COMPILER_DEBUG_LEVEL"
+#else
+# define IF_COMPILER_DEBUG_LEVEL(...) __VA_ARGS__
+#endif
+#define IF_NOT_COMPILER_DEBUG_LEVEL(...)
+#define CONFIG_COMPILER_CUSTOM_C_FLAGS ""
+#define ENABLE_COMPILER_CUSTOM_C_FLAGS 1
+#ifdef MAKE_SUID
+# define IF_COMPILER_CUSTOM_C_FLAGS(...) __VA_ARGS__ "CONFIG_COMPILER_CUSTOM_C_FLAGS"
+#else
+# define IF_COMPILER_CUSTOM_C_FLAGS(...) __VA_ARGS__
+#endif
+#define IF_NOT_COMPILER_CUSTOM_C_FLAGS(...)
+#define CONFIG_COMPILER_CUSTOM_CXX_FLAGS ""
+#define ENABLE_COMPILER_CUSTOM_CXX_FLAGS 1
+#ifdef MAKE_SUID
+# define IF_COMPILER_CUSTOM_CXX_FLAGS(...) __VA_ARGS__ "CONFIG_COMPILER_CUSTOM_CXX_FLAGS"
+#else
+# define IF_COMPILER_CUSTOM_CXX_FLAGS(...) __VA_ARGS__
+#endif
+#define IF_NOT_COMPILER_CUSTOM_CXX_FLAGS(...)
+#define CONFIG_COMPILER_CUSTOM_LINK_FLAGS ""
+#define ENABLE_COMPILER_CUSTOM_LINK_FLAGS 1
+#ifdef MAKE_SUID
+# define IF_COMPILER_CUSTOM_LINK_FLAGS(...) __VA_ARGS__ "CONFIG_COMPILER_CUSTOM_LINK_FLAGS"
+#else
+# define IF_COMPILER_CUSTOM_LINK_FLAGS(...) __VA_ARGS__
+#endif
+#define IF_NOT_COMPILER_CUSTOM_LINK_FLAGS(...)
+
+/*
+ * Runtime Configuration
+ */
+#define CONFIG_ENABLE_ASSERT 1
+#define ENABLE_ENABLE_ASSERT 1
+#ifdef MAKE_SUID
+# define IF_ENABLE_ASSERT(...) __VA_ARGS__ "CONFIG_ENABLE_ASSERT"
+#else
+# define IF_ENABLE_ASSERT(...) __VA_ARGS__
+#endif
+#define IF_NOT_ENABLE_ASSERT(...)
+#define CONFIG_STACK_PROTECTOR 1
+#define ENABLE_STACK_PROTECTOR 1
+#ifdef MAKE_SUID
+# define IF_STACK_PROTECTOR(...) __VA_ARGS__ "CONFIG_STACK_PROTECTOR"
+#else
+# define IF_STACK_PROTECTOR(...) __VA_ARGS__
+#endif
+#define IF_NOT_STACK_PROTECTOR(...)
+#define CONFIG_POSITION_INDEPENDENT_CODE 1
+#define ENABLE_POSITION_INDEPENDENT_CODE 1
+#ifdef MAKE_SUID
+# define IF_POSITION_INDEPENDENT_CODE(...) __VA_ARGS__ "CONFIG_POSITION_INDEPENDENT_CODE"
+#else
+# define IF_POSITION_INDEPENDENT_CODE(...) __VA_ARGS__
+#endif
+#define IF_NOT_POSITION_INDEPENDENT_CODE(...)
+#undef CONFIG_FORTIFY_SOURCE
+#define ENABLE_FORTIFY_SOURCE 0
+#define IF_FORTIFY_SOURCE(...)
+#define IF_NOT_FORTIFY_SOURCE(...) __VA_ARGS__
+
+/*
+ * Toolchain
+ */
+#define CONFIG_TOOLCHAIN_PATH ""
+#define ENABLE_TOOLCHAIN_PATH 1
+#ifdef MAKE_SUID
+# define IF_TOOLCHAIN_PATH(...) __VA_ARGS__ "CONFIG_TOOLCHAIN_PATH"
+#else
+# define IF_TOOLCHAIN_PATH(...) __VA_ARGS__
+#endif
+#define IF_NOT_TOOLCHAIN_PATH(...)
+#define CONFIG_TOOLCHAIN_PREFIX ""
+#define ENABLE_TOOLCHAIN_PREFIX 1
+#ifdef MAKE_SUID
+# define IF_TOOLCHAIN_PREFIX(...) __VA_ARGS__ "CONFIG_TOOLCHAIN_PREFIX"
+#else
+# define IF_TOOLCHAIN_PREFIX(...) __VA_ARGS__
+#endif
+#define IF_NOT_TOOLCHAIN_PREFIX(...)
+
+/*
+ * Core Components
+ */
+#define CONFIG_OSAL 1
+#define ENABLE_OSAL 1
+#ifdef MAKE_SUID
+# define IF_OSAL(...) __VA_ARGS__ "CONFIG_OSAL"
+#else
+# define IF_OSAL(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL(...)
+
+/*
+ * Configuration Profile
+ */
+#undef CONFIG_OSAL_PROFILE_MINIMAL
+#define ENABLE_OSAL_PROFILE_MINIMAL 0
+#define IF_OSAL_PROFILE_MINIMAL(...)
+#define IF_NOT_OSAL_PROFILE_MINIMAL(...) __VA_ARGS__
+#define CONFIG_OSAL_PROFILE_STANDARD 1
+#define ENABLE_OSAL_PROFILE_STANDARD 1
+#ifdef MAKE_SUID
+# define IF_OSAL_PROFILE_STANDARD(...) __VA_ARGS__ "CONFIG_OSAL_PROFILE_STANDARD"
+#else
+# define IF_OSAL_PROFILE_STANDARD(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_PROFILE_STANDARD(...)
+#undef CONFIG_OSAL_PROFILE_FULL
+#define ENABLE_OSAL_PROFILE_FULL 0
+#define IF_OSAL_PROFILE_FULL(...)
+#define IF_NOT_OSAL_PROFILE_FULL(...) __VA_ARGS__
+#undef CONFIG_OSAL_PROFILE_CUSTOM
+#define ENABLE_OSAL_PROFILE_CUSTOM 0
+#define IF_OSAL_PROFILE_CUSTOM(...)
+#define IF_NOT_OSAL_PROFILE_CUSTOM(...) __VA_ARGS__
+#define CONFIG_OSAL_OS_POSIX 1
+#define ENABLE_OSAL_OS_POSIX 1
+#ifdef MAKE_SUID
+# define IF_OSAL_OS_POSIX(...) __VA_ARGS__ "CONFIG_OSAL_OS_POSIX"
+#else
+# define IF_OSAL_OS_POSIX(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_OS_POSIX(...)
+#undef CONFIG_OSAL_OS_WIN32
+#define ENABLE_OSAL_OS_WIN32 0
+#define IF_OSAL_OS_WIN32(...)
+#define IF_NOT_OSAL_OS_WIN32(...) __VA_ARGS__
+#undef CONFIG_OSAL_OS_RTOS
+#define ENABLE_OSAL_OS_RTOS 0
+#define IF_OSAL_OS_RTOS(...)
+#define IF_NOT_OSAL_OS_RTOS(...) __VA_ARGS__
+#undef CONFIG_OSAL_OS_BARE
+#define ENABLE_OSAL_OS_BARE 0
+#define IF_OSAL_OS_BARE(...)
+#define IF_NOT_OSAL_OS_BARE(...) __VA_ARGS__
+#undef CONFIG_OSAL_ARCH_32BIT
+#define ENABLE_OSAL_ARCH_32BIT 0
+#define IF_OSAL_ARCH_32BIT(...)
+#define IF_NOT_OSAL_ARCH_32BIT(...) __VA_ARGS__
+#define CONFIG_OSAL_ARCH_64BIT 1
+#define ENABLE_OSAL_ARCH_64BIT 1
+#ifdef MAKE_SUID
+# define IF_OSAL_ARCH_64BIT(...) __VA_ARGS__ "CONFIG_OSAL_ARCH_64BIT"
+#else
+# define IF_OSAL_ARCH_64BIT(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_ARCH_64BIT(...)
+
+/*
+ * Build Configuration
+ */
+#define CONFIG_OSAL_BUILD_STATIC 1
+#define ENABLE_OSAL_BUILD_STATIC 1
+#ifdef MAKE_SUID
+# define IF_OSAL_BUILD_STATIC(...) __VA_ARGS__ "CONFIG_OSAL_BUILD_STATIC"
+#else
+# define IF_OSAL_BUILD_STATIC(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_BUILD_STATIC(...)
+#define CONFIG_OSAL_BUILD_SHARED 1
+#define ENABLE_OSAL_BUILD_SHARED 1
+#ifdef MAKE_SUID
+# define IF_OSAL_BUILD_SHARED(...) __VA_ARGS__ "CONFIG_OSAL_BUILD_SHARED"
+#else
+# define IF_OSAL_BUILD_SHARED(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_BUILD_SHARED(...)
+
+/*
+ * Feature Configuration
+ */
+#define CONFIG_OSAL_IPC 1
+#define ENABLE_OSAL_IPC 1
+#ifdef MAKE_SUID
+# define IF_OSAL_IPC(...) __VA_ARGS__ "CONFIG_OSAL_IPC"
+#else
+# define IF_OSAL_IPC(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_IPC(...)
+#define CONFIG_OSAL_FILE 1
+#define ENABLE_OSAL_FILE 1
+#ifdef MAKE_SUID
+# define IF_OSAL_FILE(...) __VA_ARGS__ "CONFIG_OSAL_FILE"
+#else
+# define IF_OSAL_FILE(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_FILE(...)
+#define CONFIG_OSAL_THREAD 1
+#define ENABLE_OSAL_THREAD 1
+#ifdef MAKE_SUID
+# define IF_OSAL_THREAD(...) __VA_ARGS__ "CONFIG_OSAL_THREAD"
+#else
+# define IF_OSAL_THREAD(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_THREAD(...)
+#define CONFIG_OSAL_NETWORK 1
+#define ENABLE_OSAL_NETWORK 1
+#ifdef MAKE_SUID
+# define IF_OSAL_NETWORK(...) __VA_ARGS__ "CONFIG_OSAL_NETWORK"
+#else
+# define IF_OSAL_NETWORK(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_NETWORK(...)
+#define CONFIG_OSAL_SIGNAL 1
+#define ENABLE_OSAL_SIGNAL 1
+#ifdef MAKE_SUID
+# define IF_OSAL_SIGNAL(...) __VA_ARGS__ "CONFIG_OSAL_SIGNAL"
+#else
+# define IF_OSAL_SIGNAL(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_SIGNAL(...)
+#define CONFIG_OSAL_IPC_ATOMIC 1
+#define ENABLE_OSAL_IPC_ATOMIC 1
+#ifdef MAKE_SUID
+# define IF_OSAL_IPC_ATOMIC(...) __VA_ARGS__ "CONFIG_OSAL_IPC_ATOMIC"
+#else
+# define IF_OSAL_IPC_ATOMIC(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_IPC_ATOMIC(...)
+#define CONFIG_OSAL_IPC_MUTEX 1
+#define ENABLE_OSAL_IPC_MUTEX 1
+#ifdef MAKE_SUID
+# define IF_OSAL_IPC_MUTEX(...) __VA_ARGS__ "CONFIG_OSAL_IPC_MUTEX"
+#else
+# define IF_OSAL_IPC_MUTEX(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_IPC_MUTEX(...)
+#define CONFIG_OSAL_IPC_RWLOCK 1
+#define ENABLE_OSAL_IPC_RWLOCK 1
+#ifdef MAKE_SUID
+# define IF_OSAL_IPC_RWLOCK(...) __VA_ARGS__ "CONFIG_OSAL_IPC_RWLOCK"
+#else
+# define IF_OSAL_IPC_RWLOCK(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_IPC_RWLOCK(...)
+#define CONFIG_OSAL_IPC_SEMAPHORE 1
+#define ENABLE_OSAL_IPC_SEMAPHORE 1
+#ifdef MAKE_SUID
+# define IF_OSAL_IPC_SEMAPHORE(...) __VA_ARGS__ "CONFIG_OSAL_IPC_SEMAPHORE"
+#else
+# define IF_OSAL_IPC_SEMAPHORE(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_IPC_SEMAPHORE(...)
+#define CONFIG_OSAL_IPC_COND 1
+#define ENABLE_OSAL_IPC_COND 1
+#ifdef MAKE_SUID
+# define IF_OSAL_IPC_COND(...) __VA_ARGS__ "CONFIG_OSAL_IPC_COND"
+#else
+# define IF_OSAL_IPC_COND(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_IPC_COND(...)
+#define CONFIG_OSAL_IPC_SHM 1
+#define ENABLE_OSAL_IPC_SHM 1
+#ifdef MAKE_SUID
+# define IF_OSAL_IPC_SHM(...) __VA_ARGS__ "CONFIG_OSAL_IPC_SHM"
+#else
+# define IF_OSAL_IPC_SHM(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_IPC_SHM(...)
+#define CONFIG_OSAL_IPC_SHM_CACHE 1
+#define ENABLE_OSAL_IPC_SHM_CACHE 1
+#ifdef MAKE_SUID
+# define IF_OSAL_IPC_SHM_CACHE(...) __VA_ARGS__ "CONFIG_OSAL_IPC_SHM_CACHE"
+#else
+# define IF_OSAL_IPC_SHM_CACHE(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_IPC_SHM_CACHE(...)
+
+/*
+ * Library Functions
+ */
+#define CONFIG_OSAL_LIB_ERRNO 1
+#define ENABLE_OSAL_LIB_ERRNO 1
+#ifdef MAKE_SUID
+# define IF_OSAL_LIB_ERRNO(...) __VA_ARGS__ "CONFIG_OSAL_LIB_ERRNO"
+#else
+# define IF_OSAL_LIB_ERRNO(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_LIB_ERRNO(...)
+#define CONFIG_OSAL_LIB_HEAP 1
+#define ENABLE_OSAL_LIB_HEAP 1
+#ifdef MAKE_SUID
+# define IF_OSAL_LIB_HEAP(...) __VA_ARGS__ "CONFIG_OSAL_LIB_HEAP"
+#else
+# define IF_OSAL_LIB_HEAP(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_LIB_HEAP(...)
+#define CONFIG_OSAL_LIB_STDIO 1
+#define ENABLE_OSAL_LIB_STDIO 1
+#ifdef MAKE_SUID
+# define IF_OSAL_LIB_STDIO(...) __VA_ARGS__ "CONFIG_OSAL_LIB_STDIO"
+#else
+# define IF_OSAL_LIB_STDIO(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_LIB_STDIO(...)
+#define CONFIG_OSAL_LIB_STRING 1
+#define ENABLE_OSAL_LIB_STRING 1
+#ifdef MAKE_SUID
+# define IF_OSAL_LIB_STRING(...) __VA_ARGS__ "CONFIG_OSAL_LIB_STRING"
+#else
+# define IF_OSAL_LIB_STRING(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_LIB_STRING(...)
+#define CONFIG_OSAL_SYS_CLOCK 1
+#define ENABLE_OSAL_SYS_CLOCK 1
+#ifdef MAKE_SUID
+# define IF_OSAL_SYS_CLOCK(...) __VA_ARGS__ "CONFIG_OSAL_SYS_CLOCK"
+#else
+# define IF_OSAL_SYS_CLOCK(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_SYS_CLOCK(...)
+#define CONFIG_OSAL_SYS_ENV 1
+#define ENABLE_OSAL_SYS_ENV 1
+#ifdef MAKE_SUID
+# define IF_OSAL_SYS_ENV(...) __VA_ARGS__ "CONFIG_OSAL_SYS_ENV"
+#else
+# define IF_OSAL_SYS_ENV(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_SYS_ENV(...)
+#define CONFIG_OSAL_SYS_FILE 1
+#define ENABLE_OSAL_SYS_FILE 1
+#ifdef MAKE_SUID
+# define IF_OSAL_SYS_FILE(...) __VA_ARGS__ "CONFIG_OSAL_SYS_FILE"
+#else
+# define IF_OSAL_SYS_FILE(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_SYS_FILE(...)
+#define CONFIG_OSAL_SYS_PROCESS 1
+#define ENABLE_OSAL_SYS_PROCESS 1
+#ifdef MAKE_SUID
+# define IF_OSAL_SYS_PROCESS(...) __VA_ARGS__ "CONFIG_OSAL_SYS_PROCESS"
+#else
+# define IF_OSAL_SYS_PROCESS(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_SYS_PROCESS(...)
+#define CONFIG_OSAL_SYS_SCHED 1
+#define ENABLE_OSAL_SYS_SCHED 1
+#ifdef MAKE_SUID
+# define IF_OSAL_SYS_SCHED(...) __VA_ARGS__ "CONFIG_OSAL_SYS_SCHED"
+#else
+# define IF_OSAL_SYS_SCHED(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_SYS_SCHED(...)
+#define CONFIG_OSAL_SYS_SELECT 1
+#define ENABLE_OSAL_SYS_SELECT 1
+#ifdef MAKE_SUID
+# define IF_OSAL_SYS_SELECT(...) __VA_ARGS__ "CONFIG_OSAL_SYS_SELECT"
+#else
+# define IF_OSAL_SYS_SELECT(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_SYS_SELECT(...)
+#define CONFIG_OSAL_SYS_THREAD 1
+#define ENABLE_OSAL_SYS_THREAD 1
+#ifdef MAKE_SUID
+# define IF_OSAL_SYS_THREAD(...) __VA_ARGS__ "CONFIG_OSAL_SYS_THREAD"
+#else
+# define IF_OSAL_SYS_THREAD(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_SYS_THREAD(...)
+#define CONFIG_OSAL_SYS_TIME 1
+#define ENABLE_OSAL_SYS_TIME 1
+#ifdef MAKE_SUID
+# define IF_OSAL_SYS_TIME(...) __VA_ARGS__ "CONFIG_OSAL_SYS_TIME"
+#else
+# define IF_OSAL_SYS_TIME(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_SYS_TIME(...)
+#define CONFIG_OSAL_SYS_SIGNAL 1
+#define ENABLE_OSAL_SYS_SIGNAL 1
+#ifdef MAKE_SUID
+# define IF_OSAL_SYS_SIGNAL(...) __VA_ARGS__ "CONFIG_OSAL_SYS_SIGNAL"
+#else
+# define IF_OSAL_SYS_SIGNAL(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_SYS_SIGNAL(...)
+#define CONFIG_OSAL_NET_SOCKET 1
+#define ENABLE_OSAL_NET_SOCKET 1
+#ifdef MAKE_SUID
+# define IF_OSAL_NET_SOCKET(...) __VA_ARGS__ "CONFIG_OSAL_NET_SOCKET"
+#else
+# define IF_OSAL_NET_SOCKET(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_NET_SOCKET(...)
+#define CONFIG_OSAL_NET_TERMIOS 1
+#define ENABLE_OSAL_NET_TERMIOS 1
+#ifdef MAKE_SUID
+# define IF_OSAL_NET_TERMIOS(...) __VA_ARGS__ "CONFIG_OSAL_NET_TERMIOS"
+#else
+# define IF_OSAL_NET_TERMIOS(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_NET_TERMIOS(...)
+
+/*
+ * Utility Functions
+ */
+#define CONFIG_OSAL_UTIL_LOG 1
+#define ENABLE_OSAL_UTIL_LOG 1
+#ifdef MAKE_SUID
+# define IF_OSAL_UTIL_LOG(...) __VA_ARGS__ "CONFIG_OSAL_UTIL_LOG"
+#else
+# define IF_OSAL_UTIL_LOG(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_UTIL_LOG(...)
+#define CONFIG_OSAL_UTIL_VERSION 1
+#define ENABLE_OSAL_UTIL_VERSION 1
+#ifdef MAKE_SUID
+# define IF_OSAL_UTIL_VERSION(...) __VA_ARGS__ "CONFIG_OSAL_UTIL_VERSION"
+#else
+# define IF_OSAL_UTIL_VERSION(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_UTIL_VERSION(...)
+
+/*
+ * Resource Limits
+ */
+#define CONFIG_OSAL_MAX_TASKS 256
+#define ENABLE_OSAL_MAX_TASKS 1
+#ifdef MAKE_SUID
+# define IF_OSAL_MAX_TASKS(...) __VA_ARGS__ "CONFIG_OSAL_MAX_TASKS"
+#else
+# define IF_OSAL_MAX_TASKS(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_MAX_TASKS(...)
+#define CONFIG_OSAL_MAX_QUEUES 128
+#define ENABLE_OSAL_MAX_QUEUES 1
+#ifdef MAKE_SUID
+# define IF_OSAL_MAX_QUEUES(...) __VA_ARGS__ "CONFIG_OSAL_MAX_QUEUES"
+#else
+# define IF_OSAL_MAX_QUEUES(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_MAX_QUEUES(...)
+#define CONFIG_OSAL_MAX_MUTEXES 128
+#define ENABLE_OSAL_MAX_MUTEXES 1
+#ifdef MAKE_SUID
+# define IF_OSAL_MAX_MUTEXES(...) __VA_ARGS__ "CONFIG_OSAL_MAX_MUTEXES"
+#else
+# define IF_OSAL_MAX_MUTEXES(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_MAX_MUTEXES(...)
+
+/*
+ * Utility Functions
+ */
+#define CONFIG_OSAL_UTIL_LOG 1
+#define ENABLE_OSAL_UTIL_LOG 1
+#ifdef MAKE_SUID
+# define IF_OSAL_UTIL_LOG(...) __VA_ARGS__ "CONFIG_OSAL_UTIL_LOG"
+#else
+# define IF_OSAL_UTIL_LOG(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_UTIL_LOG(...)
+#define CONFIG_OSAL_UTIL_VERSION 1
+#define ENABLE_OSAL_UTIL_VERSION 1
+#ifdef MAKE_SUID
+# define IF_OSAL_UTIL_VERSION(...) __VA_ARGS__ "CONFIG_OSAL_UTIL_VERSION"
+#else
+# define IF_OSAL_UTIL_VERSION(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_UTIL_VERSION(...)
+#define CONFIG_OSAL_UTIL_CRC 1
+#define ENABLE_OSAL_UTIL_CRC 1
+#ifdef MAKE_SUID
+# define IF_OSAL_UTIL_CRC(...) __VA_ARGS__ "CONFIG_OSAL_UTIL_CRC"
+#else
+# define IF_OSAL_UTIL_CRC(...) __VA_ARGS__
+#endif
+#define IF_NOT_OSAL_UTIL_CRC(...)
+
+/*
+ * Debug Options
+ */
+#undef CONFIG_OSAL_DEBUG_LOGGING
+#define ENABLE_OSAL_DEBUG_LOGGING 0
+#define IF_OSAL_DEBUG_LOGGING(...)
+#define IF_NOT_OSAL_DEBUG_LOGGING(...) __VA_ARGS__
+#define CONFIG_HAL 1
+#define ENABLE_HAL 1
+#ifdef MAKE_SUID
+# define IF_HAL(...) __VA_ARGS__ "CONFIG_HAL"
+#else
+# define IF_HAL(...) __VA_ARGS__
+#endif
+#define IF_NOT_HAL(...)
+
+/*
+ * Platform Configuration
+ */
+#define CONFIG_PLATFORM_LINUX 1
+#define ENABLE_PLATFORM_LINUX 1
+#ifdef MAKE_SUID
+# define IF_PLATFORM_LINUX(...) __VA_ARGS__ "CONFIG_PLATFORM_LINUX"
+#else
+# define IF_PLATFORM_LINUX(...) __VA_ARGS__
+#endif
+#define IF_NOT_PLATFORM_LINUX(...)
+
+/*
+ * Build Configuration
+ */
+#undef CONFIG_HAL_BUILD_STATIC
+#define ENABLE_HAL_BUILD_STATIC 0
+#define IF_HAL_BUILD_STATIC(...)
+#define IF_NOT_HAL_BUILD_STATIC(...) __VA_ARGS__
+#define CONFIG_HAL_BUILD_SHARED 1
+#define ENABLE_HAL_BUILD_SHARED 1
+#ifdef MAKE_SUID
+# define IF_HAL_BUILD_SHARED(...) __VA_ARGS__ "CONFIG_HAL_BUILD_SHARED"
+#else
+# define IF_HAL_BUILD_SHARED(...) __VA_ARGS__
+#endif
+#define IF_NOT_HAL_BUILD_SHARED(...)
+
+/*
+ * Driver Configuration
+ */
+#define CONFIG_HAL_CAN 1
+#define ENABLE_HAL_CAN 1
+#ifdef MAKE_SUID
+# define IF_HAL_CAN(...) __VA_ARGS__ "CONFIG_HAL_CAN"
+#else
+# define IF_HAL_CAN(...) __VA_ARGS__
+#endif
+#define IF_NOT_HAL_CAN(...)
+#define CONFIG_HAL_UART 1
+#define ENABLE_HAL_UART 1
+#ifdef MAKE_SUID
+# define IF_HAL_UART(...) __VA_ARGS__ "CONFIG_HAL_UART"
+#else
+# define IF_HAL_UART(...) __VA_ARGS__
+#endif
+#define IF_NOT_HAL_UART(...)
+#define CONFIG_HAL_I2C 1
+#define ENABLE_HAL_I2C 1
+#ifdef MAKE_SUID
+# define IF_HAL_I2C(...) __VA_ARGS__ "CONFIG_HAL_I2C"
+#else
+# define IF_HAL_I2C(...) __VA_ARGS__
+#endif
+#define IF_NOT_HAL_I2C(...)
+#define CONFIG_HAL_SPI 1
+#define ENABLE_HAL_SPI 1
+#ifdef MAKE_SUID
+# define IF_HAL_SPI(...) __VA_ARGS__ "CONFIG_HAL_SPI"
+#else
+# define IF_HAL_SPI(...) __VA_ARGS__
+#endif
+#define IF_NOT_HAL_SPI(...)
+#define CONFIG_HAL_GPIO 1
+#define ENABLE_HAL_GPIO 1
+#ifdef MAKE_SUID
+# define IF_HAL_GPIO(...) __VA_ARGS__ "CONFIG_HAL_GPIO"
+#else
+# define IF_HAL_GPIO(...) __VA_ARGS__
+#endif
+#define IF_NOT_HAL_GPIO(...)
+#define CONFIG_HAL_WATCHDOG 1
+#define ENABLE_HAL_WATCHDOG 1
+#ifdef MAKE_SUID
+# define IF_HAL_WATCHDOG(...) __VA_ARGS__ "CONFIG_HAL_WATCHDOG"
+#else
+# define IF_HAL_WATCHDOG(...) __VA_ARGS__
+#endif
+#define IF_NOT_HAL_WATCHDOG(...)
+#define CONFIG_HAL_CAN_LINUX 1
+#define ENABLE_HAL_CAN_LINUX 1
+#ifdef MAKE_SUID
+# define IF_HAL_CAN_LINUX(...) __VA_ARGS__ "CONFIG_HAL_CAN_LINUX"
+#else
+# define IF_HAL_CAN_LINUX(...) __VA_ARGS__
+#endif
+#define IF_NOT_HAL_CAN_LINUX(...)
+#define CONFIG_HAL_GPIO_LINUX 1
+#define ENABLE_HAL_GPIO_LINUX 1
+#ifdef MAKE_SUID
+# define IF_HAL_GPIO_LINUX(...) __VA_ARGS__ "CONFIG_HAL_GPIO_LINUX"
+#else
+# define IF_HAL_GPIO_LINUX(...) __VA_ARGS__
+#endif
+#define IF_NOT_HAL_GPIO_LINUX(...)
+#define CONFIG_HAL_I2C_LINUX 1
+#define ENABLE_HAL_I2C_LINUX 1
+#ifdef MAKE_SUID
+# define IF_HAL_I2C_LINUX(...) __VA_ARGS__ "CONFIG_HAL_I2C_LINUX"
+#else
+# define IF_HAL_I2C_LINUX(...) __VA_ARGS__
+#endif
+#define IF_NOT_HAL_I2C_LINUX(...)
+#define CONFIG_HAL_SPI_LINUX 1
+#define ENABLE_HAL_SPI_LINUX 1
+#ifdef MAKE_SUID
+# define IF_HAL_SPI_LINUX(...) __VA_ARGS__ "CONFIG_HAL_SPI_LINUX"
+#else
+# define IF_HAL_SPI_LINUX(...) __VA_ARGS__
+#endif
+#define IF_NOT_HAL_SPI_LINUX(...)
+#define CONFIG_HAL_UART_LINUX 1
+#define ENABLE_HAL_UART_LINUX 1
+#ifdef MAKE_SUID
+# define IF_HAL_UART_LINUX(...) __VA_ARGS__ "CONFIG_HAL_UART_LINUX"
+#else
+# define IF_HAL_UART_LINUX(...) __VA_ARGS__
+#endif
+#define IF_NOT_HAL_UART_LINUX(...)
+#define CONFIG_HAL_WATCHDOG_LINUX 1
+#define ENABLE_HAL_WATCHDOG_LINUX 1
+#ifdef MAKE_SUID
+# define IF_HAL_WATCHDOG_LINUX(...) __VA_ARGS__ "CONFIG_HAL_WATCHDOG_LINUX"
+#else
+# define IF_HAL_WATCHDOG_LINUX(...) __VA_ARGS__
+#endif
+#define IF_NOT_HAL_WATCHDOG_LINUX(...)
+#undef CONFIG_HAL_CAN_MACOS
+#define ENABLE_HAL_CAN_MACOS 0
+#define IF_HAL_CAN_MACOS(...)
+#define IF_NOT_HAL_CAN_MACOS(...) __VA_ARGS__
+#undef CONFIG_HAL_GPIO_MACOS
+#define ENABLE_HAL_GPIO_MACOS 0
+#define IF_HAL_GPIO_MACOS(...)
+#define IF_NOT_HAL_GPIO_MACOS(...) __VA_ARGS__
+#undef CONFIG_HAL_I2C_MACOS
+#define ENABLE_HAL_I2C_MACOS 0
+#define IF_HAL_I2C_MACOS(...)
+#define IF_NOT_HAL_I2C_MACOS(...) __VA_ARGS__
+#undef CONFIG_HAL_SPI_MACOS
+#define ENABLE_HAL_SPI_MACOS 0
+#define IF_HAL_SPI_MACOS(...)
+#define IF_NOT_HAL_SPI_MACOS(...) __VA_ARGS__
+#undef CONFIG_HAL_UART_MACOS
+#define ENABLE_HAL_UART_MACOS 0
+#define IF_HAL_UART_MACOS(...)
+#define IF_NOT_HAL_UART_MACOS(...) __VA_ARGS__
+#undef CONFIG_HAL_WATCHDOG_MACOS
+#define ENABLE_HAL_WATCHDOG_MACOS 0
+#define IF_HAL_WATCHDOG_MACOS(...)
+#define IF_NOT_HAL_WATCHDOG_MACOS(...) __VA_ARGS__
+
+/*
+ * Advanced Features
+ */
+#undef CONFIG_HAL_DEBUG
+#define ENABLE_HAL_DEBUG 0
+#define IF_HAL_DEBUG(...)
+#define IF_NOT_HAL_DEBUG(...) __VA_ARGS__
+#undef CONFIG_HAL_STATISTICS
+#define ENABLE_HAL_STATISTICS 0
+#define IF_HAL_STATISTICS(...)
+#define IF_NOT_HAL_STATISTICS(...) __VA_ARGS__
+#undef CONFIG_HAL_POWER_MANAGEMENT
+#define ENABLE_HAL_POWER_MANAGEMENT 0
+#define IF_HAL_POWER_MANAGEMENT(...)
+#define IF_NOT_HAL_POWER_MANAGEMENT(...) __VA_ARGS__
+#define CONFIG_PCL 1
+#define ENABLE_PCL 1
+#ifdef MAKE_SUID
+# define IF_PCL(...) __VA_ARGS__ "CONFIG_PCL"
+#else
+# define IF_PCL(...) __VA_ARGS__
+#endif
+#define IF_NOT_PCL(...)
+
+/*
+ * PCL Build Configuration
+ */
+#undef CONFIG_PCONFIG_BUILD_STATIC
+#define ENABLE_PCONFIG_BUILD_STATIC 0
+#define IF_PCONFIG_BUILD_STATIC(...)
+#define IF_NOT_PCONFIG_BUILD_STATIC(...) __VA_ARGS__
+#define CONFIG_PCONFIG_BUILD_SHARED 1
+#define ENABLE_PCONFIG_BUILD_SHARED 1
+#ifdef MAKE_SUID
+# define IF_PCONFIG_BUILD_SHARED(...) __VA_ARGS__ "CONFIG_PCONFIG_BUILD_SHARED"
+#else
+# define IF_PCONFIG_BUILD_SHARED(...) __VA_ARGS__
+#endif
+#define IF_NOT_PCONFIG_BUILD_SHARED(...)
+#define CONFIG_PDL 1
+#define ENABLE_PDL 1
+#ifdef MAKE_SUID
+# define IF_PDL(...) __VA_ARGS__ "CONFIG_PDL"
+#else
+# define IF_PDL(...) __VA_ARGS__
+#endif
+#define IF_NOT_PDL(...)
+
+/*
+ * PDL Build Configuration
+ */
+#define CONFIG_PDL_BUILD_STATIC 1
+#define ENABLE_PDL_BUILD_STATIC 1
+#ifdef MAKE_SUID
+# define IF_PDL_BUILD_STATIC(...) __VA_ARGS__ "CONFIG_PDL_BUILD_STATIC"
+#else
+# define IF_PDL_BUILD_STATIC(...) __VA_ARGS__
+#endif
+#define IF_NOT_PDL_BUILD_STATIC(...)
+#define CONFIG_PDL_BUILD_SHARED 1
+#define ENABLE_PDL_BUILD_SHARED 1
+#ifdef MAKE_SUID
+# define IF_PDL_BUILD_SHARED(...) __VA_ARGS__ "CONFIG_PDL_BUILD_SHARED"
+#else
+# define IF_PDL_BUILD_SHARED(...) __VA_ARGS__
+#endif
+#define IF_NOT_PDL_BUILD_SHARED(...)
+#undef CONFIG_PDL_SATELLITE_SUPPORT
+#define ENABLE_PDL_SATELLITE_SUPPORT 0
+#define IF_PDL_SATELLITE_SUPPORT(...)
+#define IF_NOT_PDL_SATELLITE_SUPPORT(...) __VA_ARGS__
+#undef CONFIG_PDL_SATELLITE
+#define ENABLE_PDL_SATELLITE 0
+#define IF_PDL_SATELLITE(...)
+#define IF_NOT_PDL_SATELLITE(...) __VA_ARGS__
+#undef CONFIG_PDL_SATELLITE_CAN
+#define ENABLE_PDL_SATELLITE_CAN 0
+#define IF_PDL_SATELLITE_CAN(...)
+#define IF_NOT_PDL_SATELLITE_CAN(...) __VA_ARGS__
+#undef CONFIG_PDL_BMC_SUPPORT
+#define ENABLE_PDL_BMC_SUPPORT 0
+#define IF_PDL_BMC_SUPPORT(...)
+#define IF_NOT_PDL_BMC_SUPPORT(...) __VA_ARGS__
+#undef CONFIG_PDL_BMC
+#define ENABLE_PDL_BMC 0
+#define IF_PDL_BMC(...)
+#define IF_NOT_PDL_BMC(...) __VA_ARGS__
+#undef CONFIG_PDL_BMC_IPMI
+#define ENABLE_PDL_BMC_IPMI 0
+#define IF_PDL_BMC_IPMI(...)
+#define IF_NOT_PDL_BMC_IPMI(...) __VA_ARGS__
+#undef CONFIG_PDL_BMC_REDFISH
+#define ENABLE_PDL_BMC_REDFISH 0
+#define IF_PDL_BMC_REDFISH(...)
+#define IF_NOT_PDL_BMC_REDFISH(...) __VA_ARGS__
+#undef CONFIG_PDL_BMC_TRANSPORT
+#define ENABLE_PDL_BMC_TRANSPORT 0
+#define IF_PDL_BMC_TRANSPORT(...)
+#define IF_NOT_PDL_BMC_TRANSPORT(...) __VA_ARGS__
+#define CONFIG_PDL_MCU_SUPPORT 1
+#define ENABLE_PDL_MCU_SUPPORT 1
+#ifdef MAKE_SUID
+# define IF_PDL_MCU_SUPPORT(...) __VA_ARGS__ "CONFIG_PDL_MCU_SUPPORT"
+#else
+# define IF_PDL_MCU_SUPPORT(...) __VA_ARGS__
+#endif
+#define IF_NOT_PDL_MCU_SUPPORT(...)
+#define CONFIG_PDL_MCU_CAN_SUPPORT 1
+#define ENABLE_PDL_MCU_CAN_SUPPORT 1
+#ifdef MAKE_SUID
+# define IF_PDL_MCU_CAN_SUPPORT(...) __VA_ARGS__ "CONFIG_PDL_MCU_CAN_SUPPORT"
+#else
+# define IF_PDL_MCU_CAN_SUPPORT(...) __VA_ARGS__
+#endif
+#define IF_NOT_PDL_MCU_CAN_SUPPORT(...)
+#define CONFIG_PDL_MCU_UART_SUPPORT 1
+#define ENABLE_PDL_MCU_UART_SUPPORT 1
+#ifdef MAKE_SUID
+# define IF_PDL_MCU_UART_SUPPORT(...) __VA_ARGS__ "CONFIG_PDL_MCU_UART_SUPPORT"
+#else
+# define IF_PDL_MCU_UART_SUPPORT(...) __VA_ARGS__
+#endif
+#define IF_NOT_PDL_MCU_UART_SUPPORT(...)
+
+/*
+ * MCU Driver Configuration
+ */
+#define CONFIG_PDL_MCU 1
+#define ENABLE_PDL_MCU 1
+#ifdef MAKE_SUID
+# define IF_PDL_MCU(...) __VA_ARGS__ "CONFIG_PDL_MCU"
+#else
+# define IF_PDL_MCU(...) __VA_ARGS__
+#endif
+#define IF_NOT_PDL_MCU(...)
+#define CONFIG_PDL_MCU_CAN 1
+#define ENABLE_PDL_MCU_CAN 1
+#ifdef MAKE_SUID
+# define IF_PDL_MCU_CAN(...) __VA_ARGS__ "CONFIG_PDL_MCU_CAN"
+#else
+# define IF_PDL_MCU_CAN(...) __VA_ARGS__
+#endif
+#define IF_NOT_PDL_MCU_CAN(...)
+#define CONFIG_PDL_MCU_SERIAL 1
+#define ENABLE_PDL_MCU_SERIAL 1
+#ifdef MAKE_SUID
+# define IF_PDL_MCU_SERIAL(...) __VA_ARGS__ "CONFIG_PDL_MCU_SERIAL"
+#else
+# define IF_PDL_MCU_SERIAL(...) __VA_ARGS__
+#endif
+#define IF_NOT_PDL_MCU_SERIAL(...)
+#define CONFIG_PDL_MCU_PROTOCOL 1
+#define ENABLE_PDL_MCU_PROTOCOL 1
+#ifdef MAKE_SUID
+# define IF_PDL_MCU_PROTOCOL(...) __VA_ARGS__ "CONFIG_PDL_MCU_PROTOCOL"
+#else
+# define IF_PDL_MCU_PROTOCOL(...) __VA_ARGS__
+#endif
+#define IF_NOT_PDL_MCU_PROTOCOL(...)
+#undef CONFIG_PDL_CCM_SUPPORT
+#define ENABLE_PDL_CCM_SUPPORT 0
+#define IF_PDL_CCM_SUPPORT(...)
+#define IF_NOT_PDL_CCM_SUPPORT(...) __VA_ARGS__
+#define CONFIG_PDL_CCM_MAX_MSG_SIZE 0
+#define ENABLE_PDL_CCM_MAX_MSG_SIZE 1
+#ifdef MAKE_SUID
+# define IF_PDL_CCM_MAX_MSG_SIZE(...) __VA_ARGS__ "CONFIG_PDL_CCM_MAX_MSG_SIZE"
+#else
+# define IF_PDL_CCM_MAX_MSG_SIZE(...) __VA_ARGS__
+#endif
+#define IF_NOT_PDL_CCM_MAX_MSG_SIZE(...)
+#define CONFIG_PDL_CCM_DEFAULT_TIMEOUT_MS 0
+#define ENABLE_PDL_CCM_DEFAULT_TIMEOUT_MS 1
+#ifdef MAKE_SUID
+# define IF_PDL_CCM_DEFAULT_TIMEOUT_MS(...) __VA_ARGS__ "CONFIG_PDL_CCM_DEFAULT_TIMEOUT_MS"
+#else
+# define IF_PDL_CCM_DEFAULT_TIMEOUT_MS(...) __VA_ARGS__
+#endif
+#define IF_NOT_PDL_CCM_DEFAULT_TIMEOUT_MS(...)
+#undef CONFIG_PDL_CCM_AUTO_RECONNECT
+#define ENABLE_PDL_CCM_AUTO_RECONNECT 0
+#define IF_PDL_CCM_AUTO_RECONNECT(...)
+#define IF_NOT_PDL_CCM_AUTO_RECONNECT(...) __VA_ARGS__
+#undef CONFIG_PDL_CCM_DEBUG
+#define ENABLE_PDL_CCM_DEBUG 0
+#define IF_PDL_CCM_DEBUG(...)
+#define IF_NOT_PDL_CCM_DEBUG(...) __VA_ARGS__
+#define CONFIG_PDL_WATCHDOG_SUPPORT 1
+#define ENABLE_PDL_WATCHDOG_SUPPORT 1
+#ifdef MAKE_SUID
+# define IF_PDL_WATCHDOG_SUPPORT(...) __VA_ARGS__ "CONFIG_PDL_WATCHDOG_SUPPORT"
+#else
+# define IF_PDL_WATCHDOG_SUPPORT(...) __VA_ARGS__
+#endif
+#define IF_NOT_PDL_WATCHDOG_SUPPORT(...)
+#undef CONFIG_PDL_MISC_SUPPORT
+#define ENABLE_PDL_MISC_SUPPORT 0
+#define IF_PDL_MISC_SUPPORT(...)
+#define IF_NOT_PDL_MISC_SUPPORT(...) __VA_ARGS__
+#define CONFIG_PRL 1
+#define ENABLE_PRL 1
+#ifdef MAKE_SUID
+# define IF_PRL(...) __VA_ARGS__ "CONFIG_PRL"
+#else
+# define IF_PRL(...) __VA_ARGS__
+#endif
+#define IF_NOT_PRL(...)
+#define CONFIG_PRL_BUILD_SHARED 1
+#define ENABLE_PRL_BUILD_SHARED 1
+#ifdef MAKE_SUID
+# define IF_PRL_BUILD_SHARED(...) __VA_ARGS__ "CONFIG_PRL_BUILD_SHARED"
+#else
+# define IF_PRL_BUILD_SHARED(...) __VA_ARGS__
+#endif
+#define IF_NOT_PRL_BUILD_SHARED(...)
+
+/*
+ * Device Protocol Selection
+ */
+#define CONFIG_PRL_MCU 1
+#define ENABLE_PRL_MCU 1
+#ifdef MAKE_SUID
+# define IF_PRL_MCU(...) __VA_ARGS__ "CONFIG_PRL_MCU"
+#else
+# define IF_PRL_MCU(...) __VA_ARGS__
+#endif
+#define IF_NOT_PRL_MCU(...)
+#define CONFIG_PRL_CCM 1
+#define ENABLE_PRL_CCM 1
+#ifdef MAKE_SUID
+# define IF_PRL_CCM(...) __VA_ARGS__ "CONFIG_PRL_CCM"
+#else
+# define IF_PRL_CCM(...) __VA_ARGS__
+#endif
+#define IF_NOT_PRL_CCM(...)
+#define CONFIG_PRL_PMC 1
+#define ENABLE_PRL_PMC 1
+#ifdef MAKE_SUID
+# define IF_PRL_PMC(...) __VA_ARGS__ "CONFIG_PRL_PMC"
+#else
+# define IF_PRL_PMC(...) __VA_ARGS__
+#endif
+#define IF_NOT_PRL_PMC(...)
+#define CONFIG_PRL_GSC 1
+#define ENABLE_PRL_GSC 1
+#ifdef MAKE_SUID
+# define IF_PRL_GSC(...) __VA_ARGS__ "CONFIG_PRL_GSC"
+#else
+# define IF_PRL_GSC(...) __VA_ARGS__
+#endif
+#define IF_NOT_PRL_GSC(...)
+#define CONFIG_PRL_POWER 1
+#define ENABLE_PRL_POWER 1
+#ifdef MAKE_SUID
+# define IF_PRL_POWER(...) __VA_ARGS__ "CONFIG_PRL_POWER"
+#else
+# define IF_PRL_POWER(...) __VA_ARGS__
+#endif
+#define IF_NOT_PRL_POWER(...)
+
+/*
+ * Protocol Features
+ */
+#define CONFIG_PRL_CRC_CHECK 1
+#define ENABLE_PRL_CRC_CHECK 1
+#ifdef MAKE_SUID
+# define IF_PRL_CRC_CHECK(...) __VA_ARGS__ "CONFIG_PRL_CRC_CHECK"
+#else
+# define IF_PRL_CRC_CHECK(...) __VA_ARGS__
+#endif
+#define IF_NOT_PRL_CRC_CHECK(...)
+#define CONFIG_PRL_SEQUENCE_CHECK 1
+#define ENABLE_PRL_SEQUENCE_CHECK 1
+#ifdef MAKE_SUID
+# define IF_PRL_SEQUENCE_CHECK(...) __VA_ARGS__ "CONFIG_PRL_SEQUENCE_CHECK"
+#else
+# define IF_PRL_SEQUENCE_CHECK(...) __VA_ARGS__
+#endif
+#define IF_NOT_PRL_SEQUENCE_CHECK(...)
+#define CONFIG_PRL_TIMESTAMP_CHECK 1
+#define ENABLE_PRL_TIMESTAMP_CHECK 1
+#ifdef MAKE_SUID
+# define IF_PRL_TIMESTAMP_CHECK(...) __VA_ARGS__ "CONFIG_PRL_TIMESTAMP_CHECK"
+#else
+# define IF_PRL_TIMESTAMP_CHECK(...) __VA_ARGS__
+#endif
+#define IF_NOT_PRL_TIMESTAMP_CHECK(...)
+#define CONFIG_PRL_MAX_PAYLOAD_SIZE 4096
+#define ENABLE_PRL_MAX_PAYLOAD_SIZE 1
+#ifdef MAKE_SUID
+# define IF_PRL_MAX_PAYLOAD_SIZE(...) __VA_ARGS__ "CONFIG_PRL_MAX_PAYLOAD_SIZE"
+#else
+# define IF_PRL_MAX_PAYLOAD_SIZE(...) __VA_ARGS__
+#endif
+#define IF_NOT_PRL_MAX_PAYLOAD_SIZE(...)
+#define CONFIG_ACL 1
+#define ENABLE_ACL 1
+#ifdef MAKE_SUID
+# define IF_ACL(...) __VA_ARGS__ "CONFIG_ACL"
+#else
+# define IF_ACL(...) __VA_ARGS__
+#endif
+#define IF_NOT_ACL(...)
+
+/*
+ * ACL Build Configuration
+ */
+#undef CONFIG_ACONFIG_BUILD_STATIC
+#define ENABLE_ACONFIG_BUILD_STATIC 0
+#define IF_ACONFIG_BUILD_STATIC(...)
+#define IF_NOT_ACONFIG_BUILD_STATIC(...) __VA_ARGS__
+#define CONFIG_ACONFIG_BUILD_SHARED 1
+#define ENABLE_ACONFIG_BUILD_SHARED 1
+#ifdef MAKE_SUID
+# define IF_ACONFIG_BUILD_SHARED(...) __VA_ARGS__ "CONFIG_ACONFIG_BUILD_SHARED"
+#else
+# define IF_ACONFIG_BUILD_SHARED(...) __VA_ARGS__
+#endif
+#define IF_NOT_ACONFIG_BUILD_SHARED(...)
+
+/*
+ * ACL Configuration
+ */
+#define CONFIG_ACONFIG_MAX_DEVICES 64
+#define ENABLE_ACONFIG_MAX_DEVICES 1
+#ifdef MAKE_SUID
+# define IF_ACONFIG_MAX_DEVICES(...) __VA_ARGS__ "CONFIG_ACONFIG_MAX_DEVICES"
+#else
+# define IF_ACONFIG_MAX_DEVICES(...) __VA_ARGS__
+#endif
+#define IF_NOT_ACONFIG_MAX_DEVICES(...)
+
+/*
+ * Product Configuration
+ */
+
+/*
+ * CCM Product
+ */
+
+/*
+ * Platform Configuration
+ */
+#define CONFIG_PROJECT_H200_100P_AM625 1
+#define ENABLE_PROJECT_H200_100P_AM625 1
+#ifdef MAKE_SUID
+# define IF_PROJECT_H200_100P_AM625(...) __VA_ARGS__ "CONFIG_PROJECT_H200_100P_AM625"
+#else
+# define IF_PROJECT_H200_100P_AM625(...) __VA_ARGS__
+#endif
+#define IF_NOT_PROJECT_H200_100P_AM625(...)
+#undef CONFIG_PROJECT_H200_200P
+#define ENABLE_PROJECT_H200_200P 0
+#define IF_PROJECT_H200_200P(...)
+#define IF_NOT_PROJECT_H200_200P(...) __VA_ARGS__
+#define CONFIG_PROJECT_NAME "h200_100p_am625"
+#define ENABLE_PROJECT_NAME 1
+#ifdef MAKE_SUID
+# define IF_PROJECT_NAME(...) __VA_ARGS__ "CONFIG_PROJECT_NAME"
+#else
+# define IF_PROJECT_NAME(...) __VA_ARGS__
+#endif
+#define IF_NOT_PROJECT_NAME(...)
+
+/*
+ * Product Libraries
+ */
+#define CONFIG_LIBCCM 1
+#define ENABLE_LIBCCM 1
+#ifdef MAKE_SUID
+# define IF_LIBCCM(...) __VA_ARGS__ "CONFIG_LIBCCM"
+#else
+# define IF_LIBCCM(...) __VA_ARGS__
+#endif
+#define IF_NOT_LIBCCM(...)
+#undef CONFIG_LIBCCM_BUILD_SHARED
+#define ENABLE_LIBCCM_BUILD_SHARED 0
+#define IF_LIBCCM_BUILD_SHARED(...)
+#define IF_NOT_LIBCCM_BUILD_SHARED(...) __VA_ARGS__
+
+/*
+ * Applications
+ */
+#define CONFIG_APP_COLLECTOR 1
+#define ENABLE_APP_COLLECTOR 1
+#ifdef MAKE_SUID
+# define IF_APP_COLLECTOR(...) __VA_ARGS__ "CONFIG_APP_COLLECTOR"
+#else
+# define IF_APP_COLLECTOR(...) __VA_ARGS__
+#endif
+#define IF_NOT_APP_COLLECTOR(...)
+#define CONFIG_APP_COMM 1
+#define ENABLE_APP_COMM 1
+#ifdef MAKE_SUID
+# define IF_APP_COMM(...) __VA_ARGS__ "CONFIG_APP_COMM"
+#else
+# define IF_APP_COMM(...) __VA_ARGS__
+#endif
+#define IF_NOT_APP_COMM(...)
+#define CONFIG_APP_HEALTH 1
+#define ENABLE_APP_HEALTH 1
+#ifdef MAKE_SUID
+# define IF_APP_HEALTH(...) __VA_ARGS__ "CONFIG_APP_HEALTH"
+#else
+# define IF_APP_HEALTH(...) __VA_ARGS__
+#endif
+#define IF_NOT_APP_HEALTH(...)
+#define CONFIG_APP_LOGGER 1
+#define ENABLE_APP_LOGGER 1
+#ifdef MAKE_SUID
+# define IF_APP_LOGGER(...) __VA_ARGS__ "CONFIG_APP_LOGGER"
+#else
+# define IF_APP_LOGGER(...) __VA_ARGS__
+#endif
+#define IF_NOT_APP_LOGGER(...)
+#define CONFIG_APP_SUPERVISOR 1
+#define ENABLE_APP_SUPERVISOR 1
+#ifdef MAKE_SUID
+# define IF_APP_SUPERVISOR(...) __VA_ARGS__ "CONFIG_APP_SUPERVISOR"
+#else
+# define IF_APP_SUPERVISOR(...) __VA_ARGS__
+#endif
+#define IF_NOT_APP_SUPERVISOR(...)
+#define CONFIG_BUILD_TESTING 1
+#define ENABLE_BUILD_TESTING 1
+#ifdef MAKE_SUID
+# define IF_BUILD_TESTING(...) __VA_ARGS__ "CONFIG_BUILD_TESTING"
+#else
+# define IF_BUILD_TESTING(...) __VA_ARGS__
+#endif
+#define IF_NOT_BUILD_TESTING(...)
+
+/*
+ * Test Configuration
+ */
+#undef CONFIG_TEST_UNIT
+#define ENABLE_TEST_UNIT 0
+#define IF_TEST_UNIT(...)
+#define IF_NOT_TEST_UNIT(...) __VA_ARGS__
+#undef CONFIG_TEST_OSAL
+#define ENABLE_TEST_OSAL 0
+#define IF_TEST_OSAL(...)
+#define IF_NOT_TEST_OSAL(...) __VA_ARGS__
+#undef CONFIG_TEST_HAL
+#define ENABLE_TEST_HAL 0
+#define IF_TEST_HAL(...)
+#define IF_NOT_TEST_HAL(...) __VA_ARGS__
+#undef CONFIG_TEST_PCL
+#define ENABLE_TEST_PCL 0
+#define IF_TEST_PCL(...)
+#define IF_NOT_TEST_PCL(...) __VA_ARGS__
+#undef CONFIG_TEST_PDL
+#define ENABLE_TEST_PDL 0
+#define IF_TEST_PDL(...)
+#define IF_NOT_TEST_PDL(...) __VA_ARGS__
+#undef CONFIG_TEST_ACL
+#define ENABLE_TEST_ACL 0
+#define IF_TEST_ACL(...)
+#define IF_NOT_TEST_ACL(...) __VA_ARGS__
+#undef CONFIG_TEST_PRL
+#define ENABLE_TEST_PRL 0
+#define IF_TEST_PRL(...)
+#define IF_NOT_TEST_PRL(...) __VA_ARGS__
+#undef CONFIG_TEST_ACONFIG
+#define ENABLE_TEST_ACONFIG 0
+#define IF_TEST_ACONFIG(...)
+#define IF_NOT_TEST_ACONFIG(...) __VA_ARGS__
+#undef CONFIG_TEST_PCONFIG
+#define ENABLE_TEST_PCONFIG 0
+#define IF_TEST_PCONFIG(...)
+#define IF_NOT_TEST_PCONFIG(...) __VA_ARGS__
+#undef CONFIG_TEST_OSAL_ALL
+#define ENABLE_TEST_OSAL_ALL 0
+#define IF_TEST_OSAL_ALL(...)
+#define IF_NOT_TEST_OSAL_ALL(...) __VA_ARGS__
+#undef CONFIG_TEST_OSAL_ATOMIC
+#define ENABLE_TEST_OSAL_ATOMIC 0
+#define IF_TEST_OSAL_ATOMIC(...)
+#define IF_NOT_TEST_OSAL_ATOMIC(...) __VA_ARGS__
+#undef CONFIG_TEST_OSAL_CLOCK
+#define ENABLE_TEST_OSAL_CLOCK 0
+#define IF_TEST_OSAL_CLOCK(...)
+#define IF_NOT_TEST_OSAL_CLOCK(...) __VA_ARGS__
+#undef CONFIG_TEST_OSAL_COND
+#define ENABLE_TEST_OSAL_COND 0
+#define IF_TEST_OSAL_COND(...)
+#define IF_NOT_TEST_OSAL_COND(...) __VA_ARGS__
+#undef CONFIG_TEST_OSAL_ENV
+#define ENABLE_TEST_OSAL_ENV 0
+#define IF_TEST_OSAL_ENV(...)
+#define IF_NOT_TEST_OSAL_ENV(...) __VA_ARGS__
+#undef CONFIG_TEST_OSAL_ERRNO
+#define ENABLE_TEST_OSAL_ERRNO 0
+#define IF_TEST_OSAL_ERRNO(...)
+#define IF_NOT_TEST_OSAL_ERRNO(...) __VA_ARGS__
+#undef CONFIG_TEST_OSAL_FILE
+#define ENABLE_TEST_OSAL_FILE 0
+#define IF_TEST_OSAL_FILE(...)
+#define IF_NOT_TEST_OSAL_FILE(...) __VA_ARGS__
+#undef CONFIG_TEST_OSAL_HEAP
+#define ENABLE_TEST_OSAL_HEAP 0
+#define IF_TEST_OSAL_HEAP(...)
+#define IF_NOT_TEST_OSAL_HEAP(...) __VA_ARGS__
+#undef CONFIG_TEST_OSAL_LOG
+#define ENABLE_TEST_OSAL_LOG 0
+#define IF_TEST_OSAL_LOG(...)
+#define IF_NOT_TEST_OSAL_LOG(...) __VA_ARGS__
+#undef CONFIG_TEST_OSAL_MUTEX
+#define ENABLE_TEST_OSAL_MUTEX 0
+#define IF_TEST_OSAL_MUTEX(...)
+#define IF_NOT_TEST_OSAL_MUTEX(...) __VA_ARGS__
+#undef CONFIG_TEST_OSAL_PROCESS
+#define ENABLE_TEST_OSAL_PROCESS 0
+#define IF_TEST_OSAL_PROCESS(...)
+#define IF_NOT_TEST_OSAL_PROCESS(...) __VA_ARGS__
+#undef CONFIG_TEST_OSAL_SCHED
+#define ENABLE_TEST_OSAL_SCHED 0
+#define IF_TEST_OSAL_SCHED(...)
+#define IF_NOT_TEST_OSAL_SCHED(...) __VA_ARGS__
+#undef CONFIG_TEST_OSAL_SEMAPHORE
+#define ENABLE_TEST_OSAL_SEMAPHORE 0
+#define IF_TEST_OSAL_SEMAPHORE(...)
+#define IF_NOT_TEST_OSAL_SEMAPHORE(...) __VA_ARGS__
+#undef CONFIG_TEST_OSAL_SHM
+#define ENABLE_TEST_OSAL_SHM 0
+#define IF_TEST_OSAL_SHM(...)
+#define IF_NOT_TEST_OSAL_SHM(...) __VA_ARGS__
+#undef CONFIG_TEST_OSAL_SIGNAL
+#define ENABLE_TEST_OSAL_SIGNAL 0
+#define IF_TEST_OSAL_SIGNAL(...)
+#define IF_NOT_TEST_OSAL_SIGNAL(...) __VA_ARGS__
+#undef CONFIG_TEST_OSAL_STRESS
+#define ENABLE_TEST_OSAL_STRESS 0
+#define IF_TEST_OSAL_STRESS(...)
+#define IF_NOT_TEST_OSAL_STRESS(...) __VA_ARGS__
+#undef CONFIG_TEST_OSAL_STRING
+#define ENABLE_TEST_OSAL_STRING 0
+#define IF_TEST_OSAL_STRING(...)
+#define IF_NOT_TEST_OSAL_STRING(...) __VA_ARGS__
+#undef CONFIG_TEST_OSAL_THREAD
+#define ENABLE_TEST_OSAL_THREAD 0
+#define IF_TEST_OSAL_THREAD(...)
+#define IF_NOT_TEST_OSAL_THREAD(...) __VA_ARGS__
+#undef CONFIG_TEST_OSAL_TIME
+#define ENABLE_TEST_OSAL_TIME 0
+#define IF_TEST_OSAL_TIME(...)
+#define IF_NOT_TEST_OSAL_TIME(...) __VA_ARGS__
+#undef CONFIG_TEST_OSAL_VERSION
+#define ENABLE_TEST_OSAL_VERSION 0
+#define IF_TEST_OSAL_VERSION(...)
+#define IF_NOT_TEST_OSAL_VERSION(...) __VA_ARGS__
+#undef CONFIG_TEST_HAL_ALL
+#define ENABLE_TEST_HAL_ALL 0
+#define IF_TEST_HAL_ALL(...)
+#define IF_NOT_TEST_HAL_ALL(...) __VA_ARGS__
+#undef CONFIG_TEST_HAL_CAN
+#define ENABLE_TEST_HAL_CAN 0
+#define IF_TEST_HAL_CAN(...)
+#define IF_NOT_TEST_HAL_CAN(...) __VA_ARGS__
+#undef CONFIG_TEST_HAL_GPIO
+#define ENABLE_TEST_HAL_GPIO 0
+#define IF_TEST_HAL_GPIO(...)
+#define IF_NOT_TEST_HAL_GPIO(...) __VA_ARGS__
+#undef CONFIG_TEST_HAL_I2C
+#define ENABLE_TEST_HAL_I2C 0
+#define IF_TEST_HAL_I2C(...)
+#define IF_NOT_TEST_HAL_I2C(...) __VA_ARGS__
+#undef CONFIG_TEST_HAL_SERIAL
+#define ENABLE_TEST_HAL_SERIAL 0
+#define IF_TEST_HAL_SERIAL(...)
+#define IF_NOT_TEST_HAL_SERIAL(...) __VA_ARGS__
+#undef CONFIG_TEST_HAL_SPI
+#define ENABLE_TEST_HAL_SPI 0
+#define IF_TEST_HAL_SPI(...)
+#define IF_NOT_TEST_HAL_SPI(...) __VA_ARGS__
+#undef CONFIG_TEST_HAL_WATCHDOG
+#define ENABLE_TEST_HAL_WATCHDOG 0
+#define IF_TEST_HAL_WATCHDOG(...)
+#define IF_NOT_TEST_HAL_WATCHDOG(...) __VA_ARGS__
+#undef CONFIG_TEST_PDL_ALL
+#define ENABLE_TEST_PDL_ALL 0
+#define IF_TEST_PDL_ALL(...)
+#define IF_NOT_TEST_PDL_ALL(...) __VA_ARGS__
+#undef CONFIG_TEST_PDL_BMC
+#define ENABLE_TEST_PDL_BMC 0
+#define IF_TEST_PDL_BMC(...)
+#define IF_NOT_TEST_PDL_BMC(...) __VA_ARGS__
+#undef CONFIG_TEST_PDL_BMC_PROTOCOL
+#define ENABLE_TEST_PDL_BMC_PROTOCOL 0
+#define IF_TEST_PDL_BMC_PROTOCOL(...)
+#define IF_NOT_TEST_PDL_BMC_PROTOCOL(...) __VA_ARGS__
+#undef CONFIG_TEST_PDL_MCU
+#define ENABLE_TEST_PDL_MCU 0
+#define IF_TEST_PDL_MCU(...)
+#define IF_NOT_TEST_PDL_MCU(...) __VA_ARGS__
+#undef CONFIG_TEST_PDL_SATELLITE
+#define ENABLE_TEST_PDL_SATELLITE 0
+#define IF_TEST_PDL_SATELLITE(...)
+#define IF_NOT_TEST_PDL_SATELLITE(...) __VA_ARGS__
+#undef CONFIG_TEST_PDL_WATCHDOG
+#define ENABLE_TEST_PDL_WATCHDOG 0
+#define IF_TEST_PDL_WATCHDOG(...)
+#define IF_NOT_TEST_PDL_WATCHDOG(...) __VA_ARGS__
+#undef CONFIG_TEST_PRL_ALL
+#define ENABLE_TEST_PRL_ALL 0
+#define IF_TEST_PRL_ALL(...)
+#define IF_NOT_TEST_PRL_ALL(...) __VA_ARGS__
+#undef CONFIG_TEST_PRL_COMMON
+#define ENABLE_TEST_PRL_COMMON 0
+#define IF_TEST_PRL_COMMON(...)
+#define IF_NOT_TEST_PRL_COMMON(...) __VA_ARGS__
+#undef CONFIG_TEST_PRL_DEVICE
+#define ENABLE_TEST_PRL_DEVICE 0
+#define IF_TEST_PRL_DEVICE(...)
+#define IF_NOT_TEST_PRL_DEVICE(...) __VA_ARGS__
+#undef CONFIG_TEST_PCONFIG_ALL
+#define ENABLE_TEST_PCONFIG_ALL 0
+#define IF_TEST_PCONFIG_ALL(...)
+#define IF_NOT_TEST_PCONFIG_ALL(...) __VA_ARGS__
+#undef CONFIG_TEST_PCONFIG_API
+#define ENABLE_TEST_PCONFIG_API 0
+#define IF_TEST_PCONFIG_API(...)
+#define IF_NOT_TEST_PCONFIG_API(...) __VA_ARGS__
+#undef CONFIG_TEST_ACONFIG_ALL
+#define ENABLE_TEST_ACONFIG_ALL 0
+#define IF_TEST_ACONFIG_ALL(...)
+#define IF_NOT_TEST_ACONFIG_ALL(...) __VA_ARGS__
+#undef CONFIG_TEST_ACONFIG_API
+#define ENABLE_TEST_ACONFIG_API 0
+#define IF_TEST_ACONFIG_API(...)
+#define IF_NOT_TEST_ACONFIG_API(...) __VA_ARGS__
+#undef CONFIG_TEST_PERFORMANCE
+#define ENABLE_TEST_PERFORMANCE 0
+#define IF_TEST_PERFORMANCE(...)
+#define IF_NOT_TEST_PERFORMANCE(...) __VA_ARGS__
+#undef CONFIG_TEST_PERFORMANCE_OSAL
+#define ENABLE_TEST_PERFORMANCE_OSAL 0
+#define IF_TEST_PERFORMANCE_OSAL(...)
+#define IF_NOT_TEST_PERFORMANCE_OSAL(...) __VA_ARGS__
+#undef CONFIG_TEST_PERFORMANCE_HAL
+#define ENABLE_TEST_PERFORMANCE_HAL 0
+#define IF_TEST_PERFORMANCE_HAL(...)
+#define IF_NOT_TEST_PERFORMANCE_HAL(...) __VA_ARGS__
+#undef CONFIG_TEST_PERFORMANCE_PCL
+#define ENABLE_TEST_PERFORMANCE_PCL 0
+#define IF_TEST_PERFORMANCE_PCL(...)
+#define IF_NOT_TEST_PERFORMANCE_PCL(...) __VA_ARGS__
+#undef CONFIG_TEST_PERFORMANCE_PDL
+#define ENABLE_TEST_PERFORMANCE_PDL 0
+#define IF_TEST_PERFORMANCE_PDL(...)
+#define IF_NOT_TEST_PERFORMANCE_PDL(...) __VA_ARGS__
+#undef CONFIG_TEST_PERFORMANCE_ACL
+#define ENABLE_TEST_PERFORMANCE_ACL 0
+#define IF_TEST_PERFORMANCE_ACL(...)
+#define IF_NOT_TEST_PERFORMANCE_ACL(...) __VA_ARGS__
+#undef CONFIG_TEST_PERFORMANCE_ALL
+#define ENABLE_TEST_PERFORMANCE_ALL 0
+#define IF_TEST_PERFORMANCE_ALL(...)
+#define IF_NOT_TEST_PERFORMANCE_ALL(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_OSAL
+#define ENABLE_TEST_PERF_OSAL 0
+#define IF_TEST_PERF_OSAL(...)
+#define IF_NOT_TEST_PERF_OSAL(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_OSAL_MUTEX
+#define ENABLE_TEST_PERF_OSAL_MUTEX 0
+#define IF_TEST_PERF_OSAL_MUTEX(...)
+#define IF_NOT_TEST_PERF_OSAL_MUTEX(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_OSAL_THREAD
+#define ENABLE_TEST_PERF_OSAL_THREAD 0
+#define IF_TEST_PERF_OSAL_THREAD(...)
+#define IF_NOT_TEST_PERF_OSAL_THREAD(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_OSAL_SEMAPHORE
+#define ENABLE_TEST_PERF_OSAL_SEMAPHORE 0
+#define IF_TEST_PERF_OSAL_SEMAPHORE(...)
+#define IF_NOT_TEST_PERF_OSAL_SEMAPHORE(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_OSAL_COND
+#define ENABLE_TEST_PERF_OSAL_COND 0
+#define IF_TEST_PERF_OSAL_COND(...)
+#define IF_NOT_TEST_PERF_OSAL_COND(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_OSAL_HEAP
+#define ENABLE_TEST_PERF_OSAL_HEAP 0
+#define IF_TEST_PERF_OSAL_HEAP(...)
+#define IF_NOT_TEST_PERF_OSAL_HEAP(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_OSAL_FILE
+#define ENABLE_TEST_PERF_OSAL_FILE 0
+#define IF_TEST_PERF_OSAL_FILE(...)
+#define IF_NOT_TEST_PERF_OSAL_FILE(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_OSAL_ATOMIC
+#define ENABLE_TEST_PERF_OSAL_ATOMIC 0
+#define IF_TEST_PERF_OSAL_ATOMIC(...)
+#define IF_NOT_TEST_PERF_OSAL_ATOMIC(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_OSAL_TIME
+#define ENABLE_TEST_PERF_OSAL_TIME 0
+#define IF_TEST_PERF_OSAL_TIME(...)
+#define IF_NOT_TEST_PERF_OSAL_TIME(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_HAL
+#define ENABLE_TEST_PERF_HAL 0
+#define IF_TEST_PERF_HAL(...)
+#define IF_NOT_TEST_PERF_HAL(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_HAL_CAN
+#define ENABLE_TEST_PERF_HAL_CAN 0
+#define IF_TEST_PERF_HAL_CAN(...)
+#define IF_NOT_TEST_PERF_HAL_CAN(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_HAL_SERIAL
+#define ENABLE_TEST_PERF_HAL_SERIAL 0
+#define IF_TEST_PERF_HAL_SERIAL(...)
+#define IF_NOT_TEST_PERF_HAL_SERIAL(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_HAL_SPI
+#define ENABLE_TEST_PERF_HAL_SPI 0
+#define IF_TEST_PERF_HAL_SPI(...)
+#define IF_NOT_TEST_PERF_HAL_SPI(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_HAL_I2C
+#define ENABLE_TEST_PERF_HAL_I2C 0
+#define IF_TEST_PERF_HAL_I2C(...)
+#define IF_NOT_TEST_PERF_HAL_I2C(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_HAL_GPIO
+#define ENABLE_TEST_PERF_HAL_GPIO 0
+#define IF_TEST_PERF_HAL_GPIO(...)
+#define IF_NOT_TEST_PERF_HAL_GPIO(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_HAL_WATCHDOG
+#define ENABLE_TEST_PERF_HAL_WATCHDOG 0
+#define IF_TEST_PERF_HAL_WATCHDOG(...)
+#define IF_NOT_TEST_PERF_HAL_WATCHDOG(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_PDL
+#define ENABLE_TEST_PERF_PDL 0
+#define IF_TEST_PERF_PDL(...)
+#define IF_NOT_TEST_PERF_PDL(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_PDL_MCU
+#define ENABLE_TEST_PERF_PDL_MCU 0
+#define IF_TEST_PERF_PDL_MCU(...)
+#define IF_NOT_TEST_PERF_PDL_MCU(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_PDL_BMC
+#define ENABLE_TEST_PERF_PDL_BMC 0
+#define IF_TEST_PERF_PDL_BMC(...)
+#define IF_NOT_TEST_PERF_PDL_BMC(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_PDL_SATELLITE
+#define ENABLE_TEST_PERF_PDL_SATELLITE 0
+#define IF_TEST_PERF_PDL_SATELLITE(...)
+#define IF_NOT_TEST_PERF_PDL_SATELLITE(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_PDL_WATCHDOG
+#define ENABLE_TEST_PERF_PDL_WATCHDOG 0
+#define IF_TEST_PERF_PDL_WATCHDOG(...)
+#define IF_NOT_TEST_PERF_PDL_WATCHDOG(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_PDL_PROTOCOL
+#define ENABLE_TEST_PERF_PDL_PROTOCOL 0
+#define IF_TEST_PERF_PDL_PROTOCOL(...)
+#define IF_NOT_TEST_PERF_PDL_PROTOCOL(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_PCL_PARSE
+#define ENABLE_TEST_PERF_PCL_PARSE 0
+#define IF_TEST_PERF_PCL_PARSE(...)
+#define IF_NOT_TEST_PERF_PCL_PARSE(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_PCL_LOOKUP
+#define ENABLE_TEST_PERF_PCL_LOOKUP 0
+#define IF_TEST_PERF_PCL_LOOKUP(...)
+#define IF_NOT_TEST_PERF_PCL_LOOKUP(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_ACL_TC
+#define ENABLE_TEST_PERF_ACL_TC 0
+#define IF_TEST_PERF_ACL_TC(...)
+#define IF_NOT_TEST_PERF_ACL_TC(...) __VA_ARGS__
+#undef CONFIG_TEST_PERF_ACL_TM
+#define ENABLE_TEST_PERF_ACL_TM 0
+#define IF_TEST_PERF_ACL_TM(...)
+#define IF_NOT_TEST_PERF_ACL_TM(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS
+#define ENABLE_TEST_STRESS 0
+#define IF_TEST_STRESS(...)
+#define IF_NOT_TEST_STRESS(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_OSAL
+#define ENABLE_TEST_STRESS_OSAL 0
+#define IF_TEST_STRESS_OSAL(...)
+#define IF_NOT_TEST_STRESS_OSAL(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_HAL
+#define ENABLE_TEST_STRESS_HAL 0
+#define IF_TEST_STRESS_HAL(...)
+#define IF_NOT_TEST_STRESS_HAL(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_PCL
+#define ENABLE_TEST_STRESS_PCL 0
+#define IF_TEST_STRESS_PCL(...)
+#define IF_NOT_TEST_STRESS_PCL(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_PDL
+#define ENABLE_TEST_STRESS_PDL 0
+#define IF_TEST_STRESS_PDL(...)
+#define IF_NOT_TEST_STRESS_PDL(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_ACL
+#define ENABLE_TEST_STRESS_ACL 0
+#define IF_TEST_STRESS_ACL(...)
+#define IF_NOT_TEST_STRESS_ACL(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_ALL
+#define ENABLE_TEST_STRESS_ALL 0
+#define IF_TEST_STRESS_ALL(...)
+#define IF_NOT_TEST_STRESS_ALL(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_OSAL_THREAD
+#define ENABLE_TEST_STRESS_OSAL_THREAD 0
+#define IF_TEST_STRESS_OSAL_THREAD(...)
+#define IF_NOT_TEST_STRESS_OSAL_THREAD(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_OSAL_MUTEX
+#define ENABLE_TEST_STRESS_OSAL_MUTEX 0
+#define IF_TEST_STRESS_OSAL_MUTEX(...)
+#define IF_NOT_TEST_STRESS_OSAL_MUTEX(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_OSAL_MEMORY
+#define ENABLE_TEST_STRESS_OSAL_MEMORY 0
+#define IF_TEST_STRESS_OSAL_MEMORY(...)
+#define IF_NOT_TEST_STRESS_OSAL_MEMORY(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_OSAL_FILE
+#define ENABLE_TEST_STRESS_OSAL_FILE 0
+#define IF_TEST_STRESS_OSAL_FILE(...)
+#define IF_NOT_TEST_STRESS_OSAL_FILE(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_OSAL_IPC
+#define ENABLE_TEST_STRESS_OSAL_IPC 0
+#define IF_TEST_STRESS_OSAL_IPC(...)
+#define IF_NOT_TEST_STRESS_OSAL_IPC(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_OSAL_SIGNAL
+#define ENABLE_TEST_STRESS_OSAL_SIGNAL 0
+#define IF_TEST_STRESS_OSAL_SIGNAL(...)
+#define IF_NOT_TEST_STRESS_OSAL_SIGNAL(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_OSAL_PROCESS
+#define ENABLE_TEST_STRESS_OSAL_PROCESS 0
+#define IF_TEST_STRESS_OSAL_PROCESS(...)
+#define IF_NOT_TEST_STRESS_OSAL_PROCESS(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_HAL_CAN
+#define ENABLE_TEST_STRESS_HAL_CAN 0
+#define IF_TEST_STRESS_HAL_CAN(...)
+#define IF_NOT_TEST_STRESS_HAL_CAN(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_HAL_SERIAL
+#define ENABLE_TEST_STRESS_HAL_SERIAL 0
+#define IF_TEST_STRESS_HAL_SERIAL(...)
+#define IF_NOT_TEST_STRESS_HAL_SERIAL(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_HAL_SPI
+#define ENABLE_TEST_STRESS_HAL_SPI 0
+#define IF_TEST_STRESS_HAL_SPI(...)
+#define IF_NOT_TEST_STRESS_HAL_SPI(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_HAL_I2C
+#define ENABLE_TEST_STRESS_HAL_I2C 0
+#define IF_TEST_STRESS_HAL_I2C(...)
+#define IF_NOT_TEST_STRESS_HAL_I2C(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_HAL_GPIO
+#define ENABLE_TEST_STRESS_HAL_GPIO 0
+#define IF_TEST_STRESS_HAL_GPIO(...)
+#define IF_NOT_TEST_STRESS_HAL_GPIO(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_HAL_WATCHDOG
+#define ENABLE_TEST_STRESS_HAL_WATCHDOG 0
+#define IF_TEST_STRESS_HAL_WATCHDOG(...)
+#define IF_NOT_TEST_STRESS_HAL_WATCHDOG(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_HAL_CONCURRENT
+#define ENABLE_TEST_STRESS_HAL_CONCURRENT 0
+#define IF_TEST_STRESS_HAL_CONCURRENT(...)
+#define IF_NOT_TEST_STRESS_HAL_CONCURRENT(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_PDL_MCU
+#define ENABLE_TEST_STRESS_PDL_MCU 0
+#define IF_TEST_STRESS_PDL_MCU(...)
+#define IF_NOT_TEST_STRESS_PDL_MCU(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_PDL_BMC
+#define ENABLE_TEST_STRESS_PDL_BMC 0
+#define IF_TEST_STRESS_PDL_BMC(...)
+#define IF_NOT_TEST_STRESS_PDL_BMC(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_PDL_SATELLITE
+#define ENABLE_TEST_STRESS_PDL_SATELLITE 0
+#define IF_TEST_STRESS_PDL_SATELLITE(...)
+#define IF_NOT_TEST_STRESS_PDL_SATELLITE(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_PDL_WATCHDOG
+#define ENABLE_TEST_STRESS_PDL_WATCHDOG 0
+#define IF_TEST_STRESS_PDL_WATCHDOG(...)
+#define IF_NOT_TEST_STRESS_PDL_WATCHDOG(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_PDL_PROTOCOL
+#define ENABLE_TEST_STRESS_PDL_PROTOCOL 0
+#define IF_TEST_STRESS_PDL_PROTOCOL(...)
+#define IF_NOT_TEST_STRESS_PDL_PROTOCOL(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_PDL_MULTIDEVICE
+#define ENABLE_TEST_STRESS_PDL_MULTIDEVICE 0
+#define IF_TEST_STRESS_PDL_MULTIDEVICE(...)
+#define IF_NOT_TEST_STRESS_PDL_MULTIDEVICE(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_PCL_LARGE_CONFIG
+#define ENABLE_TEST_STRESS_PCL_LARGE_CONFIG 0
+#define IF_TEST_STRESS_PCL_LARGE_CONFIG(...)
+#define IF_NOT_TEST_STRESS_PCL_LARGE_CONFIG(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_PCL_RELOAD
+#define ENABLE_TEST_STRESS_PCL_RELOAD 0
+#define IF_TEST_STRESS_PCL_RELOAD(...)
+#define IF_NOT_TEST_STRESS_PCL_RELOAD(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_PCL_MALFORMED
+#define ENABLE_TEST_STRESS_PCL_MALFORMED 0
+#define IF_TEST_STRESS_PCL_MALFORMED(...)
+#define IF_NOT_TEST_STRESS_PCL_MALFORMED(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_ACL_TC
+#define ENABLE_TEST_STRESS_ACL_TC 0
+#define IF_TEST_STRESS_ACL_TC(...)
+#define IF_NOT_TEST_STRESS_ACL_TC(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_ACL_TM
+#define ENABLE_TEST_STRESS_ACL_TM 0
+#define IF_TEST_STRESS_ACL_TM(...)
+#define IF_NOT_TEST_STRESS_ACL_TM(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_ACL_MAPPING
+#define ENABLE_TEST_STRESS_ACL_MAPPING 0
+#define IF_TEST_STRESS_ACL_MAPPING(...)
+#define IF_NOT_TEST_STRESS_ACL_MAPPING(...) __VA_ARGS__
+#undef CONFIG_TEST_STRESS_ACL_INVALID
+#define ENABLE_TEST_STRESS_ACL_INVALID 0
+#define IF_TEST_STRESS_ACL_INVALID(...)
+#define IF_NOT_TEST_STRESS_ACL_INVALID(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM
+#define ENABLE_TEST_SYSTEM 0
+#define IF_TEST_SYSTEM(...)
+#define IF_NOT_TEST_SYSTEM(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_OSAL
+#define ENABLE_TEST_SYSTEM_OSAL 0
+#define IF_TEST_SYSTEM_OSAL(...)
+#define IF_NOT_TEST_SYSTEM_OSAL(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_HAL
+#define ENABLE_TEST_SYSTEM_HAL 0
+#define IF_TEST_SYSTEM_HAL(...)
+#define IF_NOT_TEST_SYSTEM_HAL(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_PCL
+#define ENABLE_TEST_SYSTEM_PCL 0
+#define IF_TEST_SYSTEM_PCL(...)
+#define IF_NOT_TEST_SYSTEM_PCL(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_PDL
+#define ENABLE_TEST_SYSTEM_PDL 0
+#define IF_TEST_SYSTEM_PDL(...)
+#define IF_NOT_TEST_SYSTEM_PDL(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_ACL
+#define ENABLE_TEST_SYSTEM_ACL 0
+#define IF_TEST_SYSTEM_ACL(...)
+#define IF_NOT_TEST_SYSTEM_ACL(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_ACONFIG
+#define ENABLE_TEST_SYSTEM_ACONFIG 0
+#define IF_TEST_SYSTEM_ACONFIG(...)
+#define IF_NOT_TEST_SYSTEM_ACONFIG(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_PCONFIG
+#define ENABLE_TEST_SYSTEM_PCONFIG 0
+#define IF_TEST_SYSTEM_PCONFIG(...)
+#define IF_NOT_TEST_SYSTEM_PCONFIG(...) __VA_ARGS__
+#undef CONFIG_TEST_INTEGRATION
+#define ENABLE_TEST_INTEGRATION 0
+#define IF_TEST_INTEGRATION(...)
+#define IF_NOT_TEST_INTEGRATION(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_ALL
+#define ENABLE_TEST_SYSTEM_ALL 0
+#define IF_TEST_SYSTEM_ALL(...)
+#define IF_NOT_TEST_SYSTEM_ALL(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_OSAL_THREADING_IPC
+#define ENABLE_TEST_SYSTEM_OSAL_THREADING_IPC 0
+#define IF_TEST_SYSTEM_OSAL_THREADING_IPC(...)
+#define IF_NOT_TEST_SYSTEM_OSAL_THREADING_IPC(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_OSAL_FILE_THREAD
+#define ENABLE_TEST_SYSTEM_OSAL_FILE_THREAD 0
+#define IF_TEST_SYSTEM_OSAL_FILE_THREAD(...)
+#define IF_NOT_TEST_SYSTEM_OSAL_FILE_THREAD(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_OSAL_PROCESS_IPC
+#define ENABLE_TEST_SYSTEM_OSAL_PROCESS_IPC 0
+#define IF_TEST_SYSTEM_OSAL_PROCESS_IPC(...)
+#define IF_NOT_TEST_SYSTEM_OSAL_PROCESS_IPC(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_OSAL_REALTIME
+#define ENABLE_TEST_SYSTEM_OSAL_REALTIME 0
+#define IF_TEST_SYSTEM_OSAL_REALTIME(...)
+#define IF_NOT_TEST_SYSTEM_OSAL_REALTIME(...) __VA_ARGS__
+#undef CONFIG_TEST_HAL_CONCURRENT_ACCESS
+#define ENABLE_TEST_HAL_CONCURRENT_ACCESS 0
+#define IF_TEST_HAL_CONCURRENT_ACCESS(...)
+#define IF_NOT_TEST_HAL_CONCURRENT_ACCESS(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_HAL_CAN_SERIAL
+#define ENABLE_TEST_SYSTEM_HAL_CAN_SERIAL 0
+#define IF_TEST_SYSTEM_HAL_CAN_SERIAL(...)
+#define IF_NOT_TEST_SYSTEM_HAL_CAN_SERIAL(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_HAL_SPI_I2C
+#define ENABLE_TEST_SYSTEM_HAL_SPI_I2C 0
+#define IF_TEST_SYSTEM_HAL_SPI_I2C(...)
+#define IF_NOT_TEST_SYSTEM_HAL_SPI_I2C(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_HAL_GPIO_INTERRUPT
+#define ENABLE_TEST_SYSTEM_HAL_GPIO_INTERRUPT 0
+#define IF_TEST_SYSTEM_HAL_GPIO_INTERRUPT(...)
+#define IF_NOT_TEST_SYSTEM_HAL_GPIO_INTERRUPT(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_HAL_DMA_SHARING
+#define ENABLE_TEST_SYSTEM_HAL_DMA_SHARING 0
+#define IF_TEST_SYSTEM_HAL_DMA_SHARING(...)
+#define IF_NOT_TEST_SYSTEM_HAL_DMA_SHARING(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_PDL_MULTIDEVICE
+#define ENABLE_TEST_SYSTEM_PDL_MULTIDEVICE 0
+#define IF_TEST_SYSTEM_PDL_MULTIDEVICE(...)
+#define IF_NOT_TEST_SYSTEM_PDL_MULTIDEVICE(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_PDL_PROTOCOL_STACK
+#define ENABLE_TEST_SYSTEM_PDL_PROTOCOL_STACK 0
+#define IF_TEST_SYSTEM_PDL_PROTOCOL_STACK(...)
+#define IF_NOT_TEST_SYSTEM_PDL_PROTOCOL_STACK(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_PDL_BUS_SHARING
+#define ENABLE_TEST_SYSTEM_PDL_BUS_SHARING 0
+#define IF_TEST_SYSTEM_PDL_BUS_SHARING(...)
+#define IF_NOT_TEST_SYSTEM_PDL_BUS_SHARING(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_PDL_ERROR_PROPAGATION
+#define ENABLE_TEST_SYSTEM_PDL_ERROR_PROPAGATION 0
+#define IF_TEST_SYSTEM_PDL_ERROR_PROPAGATION(...)
+#define IF_NOT_TEST_SYSTEM_PDL_ERROR_PROPAGATION(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_PDL_TELEMETRY
+#define ENABLE_TEST_SYSTEM_PDL_TELEMETRY 0
+#define IF_TEST_SYSTEM_PDL_TELEMETRY(...)
+#define IF_NOT_TEST_SYSTEM_PDL_TELEMETRY(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_PCONFIG_HAL
+#define ENABLE_TEST_SYSTEM_PCONFIG_HAL 0
+#define IF_TEST_SYSTEM_PCONFIG_HAL(...)
+#define IF_NOT_TEST_SYSTEM_PCONFIG_HAL(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_PCONFIG_PDL
+#define ENABLE_TEST_SYSTEM_PCONFIG_PDL 0
+#define IF_TEST_SYSTEM_PCONFIG_PDL(...)
+#define IF_NOT_TEST_SYSTEM_PCONFIG_PDL(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_PCONFIG_RUNTIME
+#define ENABLE_TEST_SYSTEM_PCONFIG_RUNTIME 0
+#define IF_TEST_SYSTEM_PCONFIG_RUNTIME(...)
+#define IF_NOT_TEST_SYSTEM_PCONFIG_RUNTIME(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_ACONFIG_TELECOMMAND
+#define ENABLE_TEST_SYSTEM_ACONFIG_TELECOMMAND 0
+#define IF_TEST_SYSTEM_ACONFIG_TELECOMMAND(...)
+#define IF_NOT_TEST_SYSTEM_ACONFIG_TELECOMMAND(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_ACONFIG_TELEMETRY
+#define ENABLE_TEST_SYSTEM_ACONFIG_TELEMETRY 0
+#define IF_TEST_SYSTEM_ACONFIG_TELEMETRY(...)
+#define IF_NOT_TEST_SYSTEM_ACONFIG_TELEMETRY(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_ACONFIG_SCENARIO
+#define ENABLE_TEST_SYSTEM_ACONFIG_SCENARIO 0
+#define IF_TEST_SYSTEM_ACONFIG_SCENARIO(...)
+#define IF_NOT_TEST_SYSTEM_ACONFIG_SCENARIO(...) __VA_ARGS__
+#undef CONFIG_TEST_INTEGRATION_ALL
+#define ENABLE_TEST_INTEGRATION_ALL 0
+#define IF_TEST_INTEGRATION_ALL(...)
+#define IF_NOT_TEST_INTEGRATION_ALL(...) __VA_ARGS__
+#undef CONFIG_TEST_SYSTEM_INTEGRATION
+#define ENABLE_TEST_SYSTEM_INTEGRATION 0
+#define IF_TEST_SYSTEM_INTEGRATION(...)
+#define IF_NOT_TEST_SYSTEM_INTEGRATION(...) __VA_ARGS__
+#undef CONFIG_TEST_INTEGRATION_E2E
+#define ENABLE_TEST_INTEGRATION_E2E 0
+#define IF_TEST_INTEGRATION_E2E(...)
+#define IF_NOT_TEST_INTEGRATION_E2E(...) __VA_ARGS__
+#undef CONFIG_TEST_INTEGRATION_STACK
+#define ENABLE_TEST_INTEGRATION_STACK 0
+#define IF_TEST_INTEGRATION_STACK(...)
+#define IF_NOT_TEST_INTEGRATION_STACK(...) __VA_ARGS__
+#undef CONFIG_TEST_INTEGRATION_MISSION
+#define ENABLE_TEST_INTEGRATION_MISSION 0
+#define IF_TEST_INTEGRATION_MISSION(...)
+#define IF_NOT_TEST_INTEGRATION_MISSION(...) __VA_ARGS__
+#undef CONFIG_TEST_INTEGRATION_PERFORMANCE
+#define ENABLE_TEST_INTEGRATION_PERFORMANCE 0
+#define IF_TEST_INTEGRATION_PERFORMANCE(...)
+#define IF_NOT_TEST_INTEGRATION_PERFORMANCE(...) __VA_ARGS__
+#undef CONFIG_TEST_INTEGRATION_ROBUSTNESS
+#define ENABLE_TEST_INTEGRATION_ROBUSTNESS 0
+#define IF_TEST_INTEGRATION_ROBUSTNESS(...)
+#define IF_NOT_TEST_INTEGRATION_ROBUSTNESS(...) __VA_ARGS__

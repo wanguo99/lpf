@@ -1,5 +1,4 @@
 #!/bin/sh
-# SPDX-License-Identifier: GPL-2.0
 # Check ncurses compatibility
 
 # What library to link
@@ -41,22 +40,21 @@ ccflags()
 }
 
 # Temp file, try to clean up after us
-tmp=$(mktemp)
+tmp=.lxdialog.tmp
 trap "rm -f $tmp" 0 1 2 3 15
 
 # Check if we can link to ncurses
 check() {
         $cc -x c - -o $tmp 2>/dev/null <<'EOF'
 #include CURSES_LOC
-int main() {}
+main() {}
 EOF
 	if [ $? != 0 ]; then
 	    echo " *** Unable to find the ncurses libraries or the"       1>&2
 	    echo " *** required header files."                            1>&2
 	    echo " *** 'make menuconfig' requires the ncurses libraries." 1>&2
 	    echo " *** "                                                  1>&2
-	    echo " *** Install ncurses (ncurses-devel or libncurses-dev " 1>&2
-	    echo " *** depending on your distribution) and try again."    1>&2
+	    echo " *** Install ncurses (ncurses-devel) and try again."    1>&2
 	    echo " *** "                                                  1>&2
 	    exit 1
 	fi

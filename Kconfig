@@ -10,6 +10,10 @@
 
 mainmenu "ES-Middleware SDK Configuration"
 
+config ES_MIDDLEWARE_VERSION
+	string
+	default "1.0.0"
+
 # ============================================================================
 # Configuration Templates (Quick Start)
 # ============================================================================
