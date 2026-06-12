@@ -56,7 +56,7 @@ PDL 模块会作为核心模块的一部分自动编译。
 
 ### 构建配置
 
-PDL 模块通过 Kconfig 配置启用：
+PDL 模块通过 Config.in 配置启用：
 
 ```kconfig
 CONFIG_PDL=y              # 启用 PDL 层

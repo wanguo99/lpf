@@ -80,8 +80,8 @@ make distclean         # 完全清理
 
 ### 构建系统
 - 🔨 [构建指南](docs/CMAKE_BUILD_GUIDE.md) - CMake 构建详解
-- ⚙️ [配置指南](docs/CONFIGURATION.md) - Kconfig 配置说明
-- 🔗 [Kconfig 集成](docs/CMAKE_KCONFIG_INTEGRATION.md) - 构建系统原理
+- ⚙️ [配置指南](docs/CONFIGURATION.md) - Config.in 配置说明
+- 🔗 [Config.in 集成](docs/CMAKE_KCONFIG_INTEGRATION.md) - 构建系统原理
 
 ### 协议层文档
 - 🔌 [PRL 架构设计](docs/PRL_ARCHITECTURE.md) - 协议层架构详解

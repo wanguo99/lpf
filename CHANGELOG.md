@@ -72,7 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Demo 应用（示例演示）
 
 #### 构建系统
-- Kconfig 配置系统（menuconfig 图形化配置）
+- Config.in 配置系统（menuconfig 图形化配置）
 - CMake 构建系统（3.16+）
 - Python 构建脚本（build.py）
 - 6 个预定义配置文件
@@ -132,7 +132,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 删除 5 个软连接（`core/{hal,osal,acl,pdl,pcl}/include/{模块名}`）
 - 删除 AConfig API v2 版本（未使用的测试版本）
-- 删除 14 个未使用的 Kconfig 文件
+- 删除 14 个未使用的 Config.in 文件
 - 删除冗余的备份文件
 
 ### Performance - 性能

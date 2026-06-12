@@ -51,7 +51,7 @@ make clean      # 清理编译产物
 make distclean  # 完全清理（包括配置）
 
 # 4. 运行测试
-./_build/bin/es-middleware-test       # 运行统一测试程序（根据 Kconfig 配置运行相应测试）
+./_build/bin/es-middleware-test       # 运行统一测试程序（根据 Config.in 配置运行相应测试）
 
 # 图形化配置
 make menuconfig  # 打开 Kconfig ncurses 界面
@@ -93,11 +93,11 @@ ES-Middleware/
 │       └── configs/      # 平台配置（H200 AM625）
 ├── tests/                 # 测试代码
 │   └── core/             # 核心模块测试
-├── configs/               # Kconfig 配置文件（defconfig）
+├── configs/               # Config.in 配置文件（defconfig）
 ├── scripts/               # 构建脚本
-│   └── kconfig/          # Kconfig 配置工具
+│   └── config/          # Config.in 配置工具
 ├── cmake/                 # CMake 模块
-│   └── Kconfig.cmake     # Kconfig 集成模块
+│   └── Kconfig.cmake     # Config.in 集成模块
 ├── include/               # 公共头文件目录
 ├── _build/                # 构建输出目录（不提交到 git）
 │   ├── bin/              # 可执行文件
@@ -120,7 +120,7 @@ products/ccm/apps/*  →  libccm  →  core/aconfig  →  core/pconfig  →  cor
 
 ### 架构概述
 
-项目采用 **Kconfig + CMake 混合构建系统**，实现配置驱动的条件编译。这是一个完全原生的 CMake 集成方案，使用 Linux 内核标准的 Kconfig 工具链。
+项目采用 **Kconfig + CMake 混合构建系统**，实现配置驱动的条件编译。这是一个完全原生的 CMake 集成方案，使用 Linux 内核标准的 Config.in 工具链。
 
 ```
 用户操作:
@@ -142,7 +142,7 @@ products/ccm/apps/*  →  libccm  →  core/aconfig  →  core/pconfig  →  cor
 ```
 
 **核心特性**：
-- **标准工具链**: 使用 Linux 内核 Kconfig 工具（conf、mconf）
+- **标准工具链**: 使用 Linux 内核 Config.in 工具（conf、mconf）
 - **CMake 原生**: 配置管理完全在 CMake 中完成，无需外部脚本
 - **双重接口**: CMake 变量（条件编译）+ C 宏定义（代码内条件编译）
 - **自动同步**: 配置变更自动触发 CMake 重新配置
@@ -173,7 +173,7 @@ products/ccm/apps/*  →  libccm  →  core/aconfig  →  core/pconfig  →  cor
 
 ### 配置文件
 
-- **`.config`**: 当前 Kconfig 配置（由 menuconfig 或 defconfig 生成）
+- **`.config`**: 当前 Config.in 配置（由 menuconfig 或 defconfig 生成）
 - **`configs/*_defconfig`**: 预定义配置模板
 - **`Kconfig`**: 配置选项定义文件（menu 结构）
 - **`_build/kconfig.cmake`**: CMake 变量文件（自动生成）
@@ -181,10 +181,10 @@ products/ccm/apps/*  →  libccm  →  core/aconfig  →  core/pconfig  →  cor
 
 ### CMake 中使用配置变量
 
-在 CMakeLists.txt 中使用 Kconfig 配置：
+在 CMakeLists.txt 中使用 Config.in 配置：
 
 ```cmake
-# 加载 Kconfig 配置（在顶层 CMakeLists.txt）
+# 加载 Config.in 配置（在顶层 CMakeLists.txt）
 include(cmake/Kconfig.cmake)
 
 # 条件编译库
@@ -262,11 +262,11 @@ CONFIG_BUILD_SHARED=y      # 构建共享库
 
 ### CMake 函数参考
 
-项目提供的 Kconfig 集成函数（`cmake/Kconfig.cmake`）：
+项目提供的 Config.in 集成函数（`cmake/Kconfig.cmake`）：
 
 #### `kconfig_load()`
 
-加载 Kconfig 配置并生成 CMake 变量和 C 头文件。
+加载 Config.in 配置并生成 CMake 变量和 C 头文件。
 
 ```cmake
 # 在顶层 CMakeLists.txt 中调用
@@ -300,7 +300,7 @@ kconfig_load()
 cmake_minimum_required(VERSION 3.16)
 project(ES-Middleware C)
 
-# 加载 Kconfig 配置（必须在 project() 之后）
+# 加载 Config.in 配置（必须在 project() 之后）
 include(cmake/Kconfig.cmake)
 kconfig_load()
 
@@ -437,7 +437,7 @@ make menuconfig
 
 # 问题：配置加载后某些选项消失
 # 原因：依赖条件不满足
-# 解决：检查 Kconfig 文件中的 "depends on" 语句
+# 解决：检查 Config.in 文件中的 "depends on" 语句
 
 # 问题：CMake 变量不可用
 # 诊断步骤：
@@ -682,7 +682,7 @@ mkdir -p core/utils/include/utils
 mkdir -p core/utils/src
 ```
 
-**2. 添加 Kconfig 配置**
+**2. 添加 Config.in 配置**
 ```bash
 # 创建 core/utils/Kconfig
 cat > core/utils/Kconfig << 'EOF'
@@ -852,7 +852,7 @@ int main(void)
 mkdir -p products/ccm/apps/myapp
 ```
 
-**2. 添加 Kconfig 配置**
+**2. 添加 Config.in 配置**
 ```bash
 # 编辑 products/ccm/apps/Kconfig
 config CCM_APP_MYAPP
@@ -946,7 +946,7 @@ make
 mkdir -p tests/core/utils
 ```
 
-**2. 添加 Kconfig 配置**
+**2. 添加 Config.in 配置**
 ```bash
 # 编辑 tests/core/Kconfig
 config TEST_UTILS
@@ -1041,7 +1041,7 @@ ctest --output-on-failure
 
 ### 功能裁剪（减小二进制大小）
 
-通过 Kconfig 配置实现功能裁剪：
+通过 Config.in 配置实现功能裁剪：
 
 **1. 创建最小化配置**
 ```bash
@@ -1218,9 +1218,9 @@ dot -Tpng deps.dot -o deps.png
 | 找不到 CONFIG_XXX CMake 变量 | `.config` 未加载或未生成 | 运行 `make <name>` |
 | CONFIG_XXX 在 C 代码中未定义 | `autoconf.h` 未生成 | 检查 `_build/autoconf.h` 是否存在，重新运行 CMake |
 | 配置修改后不生效 | CMake 缓存未更新 | 运行 `make distclean && make <name>` |
-| kconfig.cmake 生成失败 | Python 脚本错误 | 检查 `tools/kconfig/genconfig.py` 输出，确认 `.config` 格式正确 |
+| kconfig.cmake 生成失败 | Python 脚本错误 | 检查 `tools/config/genconfig.py` 输出，确认 `.config` 格式正确 |
 | menuconfig 无法运行 | 缺少 ncurses 依赖 | 安装依赖：`sudo apt install libncurses-dev flex bison` |
-| CMake 配置阶段报错 | Kconfig 集成失败 | 检查 CMake 输出，确认 `kconfig_load()` 成功执行 |
+| CMake 配置阶段报错 | Config.in 集成失败 | 检查 CMake 输出，确认 `kconfig_load()` 成功执行 |
 | 找不到头文件 | `target_include_directories` 未设置 | 检查模块 CMakeLists.txt 的头文件路径配置 |
 | 链接错误 | 依赖库未链接 | 检查 `target_link_libraries` 依赖声明 |
 | 编译错误（命名冲突） | 未遵循命名规范 | 检查模块前缀、枚举值、头文件保护宏 |
@@ -1361,7 +1361,7 @@ make -- VERBOSE=1 2>&1 | grep "Re-run.*genconfig"
 **诊断步骤**：
 ```bash
 # 1. 手动运行生成脚本
-python3 tools/kconfig/genconfig.py .config _build/kconfig.cmake _build/autoconf.h
+python3 tools/config/genconfig.py .config _build/kconfig.cmake _build/autoconf.h
 
 # 2. 检查 Python 环境
 python3 --version  # 应该 >= 3.6
@@ -1390,7 +1390,7 @@ head -20 .config   # 检查是否有语法错误
 3. **genconfig.py 文件损坏**
    ```bash
    # 检查文件完整性
-   python3 -m py_compile tools/kconfig/genconfig.py
+   python3 -m py_compile tools/config/genconfig.py
    ```
 
 4. **权限问题**

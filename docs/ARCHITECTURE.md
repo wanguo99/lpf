@@ -317,7 +317,7 @@ ES-Middleware 支持两种遥测数据类型：
 
 ES-Middleware 使用 **Kconfig + CMake** 混合构建系统：
 
-### Kconfig 配置
+### Config.in 配置
 
 - **图形化配置**：`make menuconfig`
 - **预定义配置**：`configs/*_defconfig`

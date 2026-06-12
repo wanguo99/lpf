@@ -548,7 +548,7 @@ TEST_SUITE_REGISTER(osal_timer, "OSAL", osal_timer_cases,
                     "OSAL timer operations");
 ```
 
-#### 2. 添加 Kconfig 配置
+#### 2. 添加 Config.in 配置
 
 在 `products/tests/unit/osal/Kconfig` 中添加：
 

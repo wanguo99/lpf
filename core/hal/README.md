@@ -61,7 +61,7 @@ HAL 模块会作为核心模块的一部分自动编译。
 
 ### 构建配置
 
-HAL 模块通过 Kconfig 配置启用：
+HAL 模块通过 Config.in 配置启用：
 
 ```kconfig
 CONFIG_HAL=y              # 启用 HAL 层

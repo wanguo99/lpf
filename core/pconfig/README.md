@@ -84,7 +84,7 @@ PConfig 模块会作为核心模块的一部分自动编译。
 
 ### 构建配置
 
-PConfig 模块通过 Kconfig 配置启用：
+PConfig 模块通过 Config.in 配置启用：
 
 ```kconfig
 CONFIG_PCONFIG=y          # 启用平台配置层

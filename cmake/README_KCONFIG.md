@@ -20,7 +20,7 @@ ES-Middleware uses **Kconfig** (from Buildroot/Linux kernel) for feature configu
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
 │  1. KconfigTools.cmake                                       │
-│     ├─ Builds conf, mconf, nconf from scripts/kconfig/      │
+│     ├─ Builds conf, mconf, nconf from scripts/config/      │
 │     └─ Exports KCONFIG_*_EXECUTABLE variables               │
 │                                                              │
 │  2. Kconfig.cmake                                            │
@@ -172,7 +172,7 @@ set(CONFIG_MAX_THREADS "32" CACHE INTERNAL "Kconfig: MAX_THREADS")
 
 ## Kconfig Value Types
 
-| Kconfig Type | .config Format | autoconf.h | kconfig.cmake |
+| Config Type | .config Format | autoconf.h | kconfig.cmake |
 |--------------|----------------|------------|---------------|
 | bool (yes)   | `CONFIG_FOO=y` | `#define CONFIG_FOO 1` | `set(CONFIG_FOO "ON")` |
 | bool (no)    | `# CONFIG_FOO is not set` | (not defined) | `set(CONFIG_FOO OFF)` |
@@ -251,7 +251,7 @@ The Kconfig tools use pre-generated parser files (`zconf.tab.c_shipped`, `zconf.
 
 If you want to regenerate parsers (advanced use):
 ```bash
-cd scripts/kconfig/build
+cd scripts/config/build
 cmake -DKCONFIG_REGENERATE_PARSERS=ON ..
 make
 ```

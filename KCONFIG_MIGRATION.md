@@ -2,18 +2,18 @@
 
 ## 概述
 
-已成功使用 busybox-1.37.0 的 kconfig 工具替换 ES-Middleware 原有的 kconfig 系统，完全参考 busybox 的实现方式，确保配置管理系统的稳定性和兼容性。
+已成功使用 busybox-1.37.0 的 config.in 工具替换 ES-Middleware 原有的 config.in 系统，完全参考 busybox 的实现方式，确保配置管理系统的稳定性和兼容性。
 
 ## 完成的工作
 
-### 1. Kconfig 工具替换
+### 1. Config.in 工具替换
 
 - **源目录**: `busybox-1.37.0/scripts/kconfig`
 - **目标目录**: `ES-Middleware/scripts/kconfig`
-- **备份位置**: `ES-Middleware/scripts/kconfig.backup` (旧版本已备份)
+- **备份位置**: `ES-Middleware/scripts/config.backup` (旧版本已备份)
 
 替换的文件包括：
-- kconfig 核心工具：`conf`, `mconf`, `nconf`, `gconf`, `qconf`
+- config.in 核心工具：`conf`, `mconf`, `nconf`, `gconf`, `qconf`
 - 解析器：`zconf.tab.c`, `zconf.lex.c`, `zconf.y`, `zconf.l`
 - 核心逻辑：`confdata.c`, `expr.c`, `menu.c`, `symbol.c`
 - 对话框支持：`lxdialog/` 目录
@@ -61,14 +61,14 @@ make help                 # 显示帮助
 make list                 # 列出所有 defconfig
 ```
 
-### 4. Kconfig 文件适配
+### 4. Config.in 文件适配
 
-**修改 `scripts/kconfig/Makefile`**：
+**修改 `scripts/config/Makefile`**：
 - 将所有 `Config.in` 替换为 `Kconfig`
 - 保持 busybox 的参数风格：`-d`, `-D`, `-o`, `-s` 等
 - 保留 `MTIME_IS_COARSE` 机制防止时间戳问题
 
-**修改 `scripts/kconfig/confdata.c`**：
+**修改 `scripts/config/confdata.c`**：
 - 将 "Busybox version" 替换为 "ES-Middleware version"
 - 版本信息从 `ES_MIDDLEWARE_VERSION` 配置项获取
 
@@ -131,17 +131,17 @@ CONFIG_ES_MIDDLEWARE_VERSION="1.0.0"
 ### 已知限制
 
 1. **Kconfig 语法警告**：
-   - "Overlong line" 警告：某些 Kconfig 行超过 busybox kconfig 的长度限制（仅警告，不影响功能）
+   - "Overlong line" 警告：某些 Kconfig 行超过 busybox config.in 的长度限制（仅警告，不影响功能）
    - 未定义符号引用：某些 `select` 语句引用的符号不存在（需要在相应 Kconfig 中添加定义）
 
 2. **savedefconfig 功能**：
-   - busybox 的 kconfig 不支持 `savedefconfig`
+   - busybox 的 config.in 不支持 `savedefconfig`
    - 这是 Linux kernel 的扩展功能
    - 可以通过 `cp .config configs/xxx_defconfig` 手动保存
 
 ## Buildroot 兼容性
 
-由于系统完全按照 busybox 的 kconfig 实现，与 Buildroot 的集成应该没有问题：
+由于系统完全按照 busybox 的 config.in 实现，与 Buildroot 的集成应该没有问题：
 
 ### Buildroot 集成方式
 
@@ -200,8 +200,8 @@ ES-Middleware/
 ├── include/
 │   └── autoconf.h             # 生成的 C 配置头文件
 └── scripts/
-    ├── kconfig/               # busybox-1.37.0 的 kconfig (新)
-    ├── kconfig.backup/        # 旧 kconfig 备份
+    ├── config/               # busybox-1.37.0 的 config.in (新)
+    ├── config.backup/        # 旧 config.in 备份
     ├── basic/                 # 基础构建工具
     ├── Kbuild.include         # Kbuild 核心定义
     ├── Makefile.build         # 构建规则
@@ -250,7 +250,7 @@ make -j$(nproc)
 
 2. **实现 savedefconfig**：
    - 可以编写简单的脚本实现
-   - 或者升级到支持该功能的 kconfig 版本
+   - 或者升级到支持该功能的 config.in 版本
 
 3. **版本管理**：
    - 考虑从 git 标签自动获取版本号
@@ -263,7 +263,7 @@ make -j$(nproc)
 ## 总结
 
 ✅ **已完成**：
-- 使用 busybox-1.37.0 kconfig 完全替换旧系统
+- 使用 busybox-1.37.0 config.in 完全替换旧系统
 - 实现完整的 defconfig 配置管理
 - 支持 `.config` 生成和 `include/autoconf.h` 生成
 - 版本信息正确显示
@@ -277,6 +277,6 @@ make -j$(nproc)
 - 适合集成到 Buildroot 中
 
 ✅ **稳定性**：
-- 基于成熟的 busybox kconfig 实现
+- 基于成熟的 busybox config.in 实现
 - 经过充分测试和验证
 - 与主流构建系统兼容
