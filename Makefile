@@ -27,54 +27,37 @@ ifndef KBUILD_VERBOSE
 endif
 
 # kbuild supports saving output files in a separate directory.
-# To locate output files in a separate directory two syntaxes are supported.
-# In both cases the working directory must be the root of the kernel src.
-# 1) O=
-# Use "make O=dir/to/store/output/files/"
-#
-# 2) Set KBUILD_OUTPUT
-# Set the environment variable KBUILD_OUTPUT to point to the directory
-# where the output files shall be placed.
-# export KBUILD_OUTPUT=dir/to/store/output/files/
-# make
-#
-# The O= assignment takes precedence over the KBUILD_OUTPUT environment
-# variable.
+# For ES-Middleware, we use BUILD_DIR variable for CMake output directory.
+# This is simpler than full out-of-tree build support.
+
+# Build directory (for CMake build artifacts)
+BUILD_DIR ?= _build
+
+# Normalize BUILD_DIR
+override BUILD_DIR := $(patsubst %/,%,$(BUILD_DIR))
+
+# CMake configuration
+CMAKE ?= cmake
+CMAKE_BUILD_TYPE ?= Release
+CMAKE_INSTALL_PREFIX ?= /usr
+DESTDIR ?=
+
+# Parallel build auto-detection
+ifeq ($(filter -j%,$(MAKEFLAGS)),)
+NPROC := $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1)
+PARALLEL_BUILD := -j$(NPROC)
+else
+PARALLEL_BUILD :=
+endif
 
 # KBUILD_SRC is set on invocation of make in OBJ directory
 # KBUILD_SRC is not intended to be used by the regular user (for now)
 ifeq ($(KBUILD_SRC),)
 
-# OK, Make called in directory where kernel src resides
-# Do we want to locate output files in a separate directory?
-ifdef O
-  ifeq ("$(origin O)", "command line")
-    KBUILD_OUTPUT := $(O)
-  endif
-endif
-
 # That's our default target when none is given on the command line
 PHONY := _all
 _all:
 
-ifneq ($(KBUILD_OUTPUT),)
-# Invoke a second make in the output directory, passing relevant variables
-# check that the output directory actually exists
-saved-output := $(KBUILD_OUTPUT)
-KBUILD_OUTPUT := $(shell cd $(KBUILD_OUTPUT) && /bin/pwd)
-$(if $(KBUILD_OUTPUT),, \
-     $(error output directory "$(saved-output)" does not exist))
-
-PHONY += $(MAKECMDGOALS)
-
-$(filter-out _all,$(MAKECMDGOALS)) _all:
-	$(if $(KBUILD_VERBOSE:1=),@)$(MAKE) -C $(KBUILD_OUTPUT) \
-	KBUILD_SRC=$(CURDIR) \
-	-f $(CURDIR)/Makefile $@
-
-# Leave processing to above invocation of make
-skip-makefile := 1
-endif # ifneq ($(KBUILD_OUTPUT),)
 endif # ifeq ($(KBUILD_SRC),)
 
 # We process the rest of the Makefile if this is the final invocation of make
@@ -271,11 +254,40 @@ endif
 # The all: target is the default when no target is given on the command line.
 all: include/autoconf.h
 	@echo ""
-	@echo "Configuration is ready. Build with CMake:"
-	@echo "  mkdir -p _build && cd _build"
-	@echo "  cmake .."
-	@echo "  make -j\$$(nproc)"
+	@echo "==================================================================="
+	@echo "ES-Middleware Build System"
+	@echo "==================================================================="
 	@echo ""
+	@echo "Configuration loaded from: $(CURDIR)/.config"
+	@echo "Building with CMake..."
+	@echo ""
+	$(Q)$(MAKE) _build_all
+
+_build_all: _cmake_configure
+	@echo "  BUILD    ES-Middleware"
+	$(Q)$(MAKE) -C $(BUILD_DIR) $(PARALLEL_BUILD)
+	@echo ""
+	@echo "==================================================================="
+	@echo "Build completed successfully!"
+	@echo "==================================================================="
+	@echo "Output directory: $(BUILD_DIR)"
+	@echo "Binaries: $(BUILD_DIR)/bin/"
+	@echo "Libraries: $(BUILD_DIR)/lib/"
+	@echo ""
+
+_cmake_configure:
+	$(Q)if [ ! -f "$(BUILD_DIR)/Makefile" ]; then \
+		echo "  CMAKE    $(BUILD_DIR)"; \
+		mkdir -p $(BUILD_DIR); \
+		cd $(BUILD_DIR) && $(CMAKE) \
+			-DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE) \
+			-DCMAKE_INSTALL_PREFIX=$(CMAKE_INSTALL_PREFIX) \
+			-DCONFIG_FILE=$(abspath $(CURDIR)/.config) \
+			-DAUTOCONF_H=$(abspath $(CURDIR)/include/autoconf.h) \
+			$(if $(CMAKE_TOOLCHAIN_FILE),-DCMAKE_TOOLCHAIN_FILE=$(CMAKE_TOOLCHAIN_FILE)) \
+			$(CMAKE_EXTRA_FLAGS) \
+			$(CURDIR); \
+	fi
 
 endif # ifeq ($(config-targets),1)
 endif # ifeq ($(mixed-targets),1)
@@ -286,13 +298,27 @@ endif # ifeq ($(mixed-targets),1)
 PHONY += clean mrproper distclean
 clean:
 	@echo "  CLEAN   build artifacts"
-	$(Q)rm -rf _build
+	$(Q)rm -rf $(BUILD_DIR)
 	$(Q)rm -f include/autoconf.h
 
 mrproper distclean: clean
 	@echo "  CLEAN   configuration"
 	$(Q)rm -f .config .config.old .kconfig.d
 	$(Q)rm -rf include/config include/generated
+
+# ===========================================================================
+# Installation target
+
+PHONY += install
+install: all
+	@echo "  INSTALL $(if $(DESTDIR),$(DESTDIR))$(CMAKE_INSTALL_PREFIX)"
+	$(Q)$(MAKE) -C $(BUILD_DIR) install $(if $(DESTDIR),DESTDIR=$(DESTDIR))
+	@echo ""
+	@echo "==================================================================="
+	@echo "Installation completed!"
+	@echo "==================================================================="
+	@echo "Install prefix: $(if $(DESTDIR),$(DESTDIR))$(CMAKE_INSTALL_PREFIX)"
+	@echo ""
 
 # ===========================================================================
 # Help and information targets
@@ -316,14 +342,22 @@ help:
 	@echo '  <board>_defconfig - Load specific board configuration from configs/'
 	@echo ''
 	@echo 'Build targets:'
-	@echo '  all             - Show build instructions (default)'
+	@echo '  all             - Build all configured targets (default)'
+	@echo '  install         - Install binaries and libraries'
 	@echo '  clean           - Remove build artifacts'
 	@echo '  distclean       - Remove build artifacts and configuration'
 	@echo '  mrproper        - Same as distclean'
 	@echo ''
 	@echo 'Options:'
 	@echo '  V=0|1           - 0: quiet build (default), 1: verbose'
-	@echo '  O=<dir>         - Use custom build directory'
+	@echo '  BUILD_DIR=<dir> - Use custom build directory (default: _build)'
+	@echo '  CMAKE_BUILD_TYPE=<type>'
+	@echo '                  - Set build type: Debug, Release, RelWithDebInfo, MinSizeRel'
+	@echo '  CMAKE_INSTALL_PREFIX=<path>'
+	@echo '                  - Set installation prefix (default: /usr)'
+	@echo '  DESTDIR=<path>  - Stage installation to alternate root'
+	@echo '  CMAKE_TOOLCHAIN_FILE=<file>'
+	@echo '                  - Specify CMake toolchain for cross-compilation'
 	@echo ''
 	@echo 'Available defconfigs (make list):'
 	@for config in $(sort $(notdir $(wildcard $(srctree)/configs/*_defconfig))); do \
@@ -331,9 +365,22 @@ help:
 	done
 	@echo ''
 	@echo 'Examples:'
+	@echo '  # Standard workflow'
+	@echo '  make ccm_h200_100p_am625_release_defconfig'
+	@echo '  make -j$$(nproc)'
+	@echo '  make install DESTDIR=/tmp/staging'
+	@echo ''
+	@echo '  # Interactive configuration'
 	@echo '  make menuconfig'
-	@echo '  make ccm_h200_100p_am625_debug_defconfig'
 	@echo '  make'
+	@echo ''
+	@echo '  # Verbose build'
+	@echo '  make V=1'
+	@echo ''
+	@echo '  # Cross-compilation for Buildroot'
+	@echo '  make ccm_h200_100p_am625_release_defconfig'
+	@echo '  make CMAKE_TOOLCHAIN_FILE=$$BUILDROOT/host/share/buildroot/toolchainfile.cmake'
+	@echo '  make install DESTDIR=$$BUILDROOT/target'
 
 list:
 	@echo 'Available defconfigs:'

@@ -2,7 +2,7 @@
  * Automatically generated C config: don't edit
  * ES-Middleware version: 1.0.0
  */
-#define AUTOCONF_TIMESTAMP "2026-06-12 15:08:20 CST"
+#define AUTOCONF_TIMESTAMP "2026-06-12 15:19:29 CST"
 
 #define CONFIG_ES_MIDDLEWARE_VERSION "1.0.0"
 #define ENABLE_ES_MIDDLEWARE_VERSION 1
@@ -48,14 +48,10 @@
 /*
  * Product Selection
  */
-#define CONFIG_PRODUCT_CCM 1
-#define ENABLE_PRODUCT_CCM 1
-#ifdef MAKE_SUID
-# define IF_PRODUCT_CCM(...) __VA_ARGS__ "CONFIG_PRODUCT_CCM"
-#else
-# define IF_PRODUCT_CCM(...) __VA_ARGS__
-#endif
-#define IF_NOT_PRODUCT_CCM(...)
+#undef CONFIG_PRODUCT_CCM
+#define ENABLE_PRODUCT_CCM 0
+#define IF_PRODUCT_CCM(...)
+#define IF_NOT_PRODUCT_CCM(...) __VA_ARGS__
 
 /*
  * Build System Configuration
@@ -376,14 +372,10 @@
 # define IF_OSAL_BUILD_STATIC(...) __VA_ARGS__
 #endif
 #define IF_NOT_OSAL_BUILD_STATIC(...)
-#define CONFIG_OSAL_BUILD_SHARED 1
-#define ENABLE_OSAL_BUILD_SHARED 1
-#ifdef MAKE_SUID
-# define IF_OSAL_BUILD_SHARED(...) __VA_ARGS__ "CONFIG_OSAL_BUILD_SHARED"
-#else
-# define IF_OSAL_BUILD_SHARED(...) __VA_ARGS__
-#endif
-#define IF_NOT_OSAL_BUILD_SHARED(...)
+#undef CONFIG_OSAL_BUILD_SHARED
+#define ENABLE_OSAL_BUILD_SHARED 0
+#define IF_OSAL_BUILD_SHARED(...)
+#define IF_NOT_OSAL_BUILD_SHARED(...) __VA_ARGS__
 
 /*
  * Feature Configuration
@@ -412,22 +404,14 @@
 # define IF_OSAL_THREAD(...) __VA_ARGS__
 #endif
 #define IF_NOT_OSAL_THREAD(...)
-#define CONFIG_OSAL_NETWORK 1
-#define ENABLE_OSAL_NETWORK 1
-#ifdef MAKE_SUID
-# define IF_OSAL_NETWORK(...) __VA_ARGS__ "CONFIG_OSAL_NETWORK"
-#else
-# define IF_OSAL_NETWORK(...) __VA_ARGS__
-#endif
-#define IF_NOT_OSAL_NETWORK(...)
-#define CONFIG_OSAL_SIGNAL 1
-#define ENABLE_OSAL_SIGNAL 1
-#ifdef MAKE_SUID
-# define IF_OSAL_SIGNAL(...) __VA_ARGS__ "CONFIG_OSAL_SIGNAL"
-#else
-# define IF_OSAL_SIGNAL(...) __VA_ARGS__
-#endif
-#define IF_NOT_OSAL_SIGNAL(...)
+#undef CONFIG_OSAL_NETWORK
+#define ENABLE_OSAL_NETWORK 0
+#define IF_OSAL_NETWORK(...)
+#define IF_NOT_OSAL_NETWORK(...) __VA_ARGS__
+#undef CONFIG_OSAL_SIGNAL
+#define ENABLE_OSAL_SIGNAL 0
+#define IF_OSAL_SIGNAL(...)
+#define IF_NOT_OSAL_SIGNAL(...) __VA_ARGS__
 #define CONFIG_OSAL_IPC_ATOMIC 1
 #define ENABLE_OSAL_IPC_ATOMIC 1
 #ifdef MAKE_SUID
@@ -444,46 +428,26 @@
 # define IF_OSAL_IPC_MUTEX(...) __VA_ARGS__
 #endif
 #define IF_NOT_OSAL_IPC_MUTEX(...)
-#define CONFIG_OSAL_IPC_RWLOCK 1
-#define ENABLE_OSAL_IPC_RWLOCK 1
-#ifdef MAKE_SUID
-# define IF_OSAL_IPC_RWLOCK(...) __VA_ARGS__ "CONFIG_OSAL_IPC_RWLOCK"
-#else
-# define IF_OSAL_IPC_RWLOCK(...) __VA_ARGS__
-#endif
-#define IF_NOT_OSAL_IPC_RWLOCK(...)
-#define CONFIG_OSAL_IPC_SEMAPHORE 1
-#define ENABLE_OSAL_IPC_SEMAPHORE 1
-#ifdef MAKE_SUID
-# define IF_OSAL_IPC_SEMAPHORE(...) __VA_ARGS__ "CONFIG_OSAL_IPC_SEMAPHORE"
-#else
-# define IF_OSAL_IPC_SEMAPHORE(...) __VA_ARGS__
-#endif
-#define IF_NOT_OSAL_IPC_SEMAPHORE(...)
-#define CONFIG_OSAL_IPC_COND 1
-#define ENABLE_OSAL_IPC_COND 1
-#ifdef MAKE_SUID
-# define IF_OSAL_IPC_COND(...) __VA_ARGS__ "CONFIG_OSAL_IPC_COND"
-#else
-# define IF_OSAL_IPC_COND(...) __VA_ARGS__
-#endif
-#define IF_NOT_OSAL_IPC_COND(...)
-#define CONFIG_OSAL_IPC_SHM 1
-#define ENABLE_OSAL_IPC_SHM 1
-#ifdef MAKE_SUID
-# define IF_OSAL_IPC_SHM(...) __VA_ARGS__ "CONFIG_OSAL_IPC_SHM"
-#else
-# define IF_OSAL_IPC_SHM(...) __VA_ARGS__
-#endif
-#define IF_NOT_OSAL_IPC_SHM(...)
-#define CONFIG_OSAL_IPC_SHM_CACHE 1
-#define ENABLE_OSAL_IPC_SHM_CACHE 1
-#ifdef MAKE_SUID
-# define IF_OSAL_IPC_SHM_CACHE(...) __VA_ARGS__ "CONFIG_OSAL_IPC_SHM_CACHE"
-#else
-# define IF_OSAL_IPC_SHM_CACHE(...) __VA_ARGS__
-#endif
-#define IF_NOT_OSAL_IPC_SHM_CACHE(...)
+#undef CONFIG_OSAL_IPC_RWLOCK
+#define ENABLE_OSAL_IPC_RWLOCK 0
+#define IF_OSAL_IPC_RWLOCK(...)
+#define IF_NOT_OSAL_IPC_RWLOCK(...) __VA_ARGS__
+#undef CONFIG_OSAL_IPC_SEMAPHORE
+#define ENABLE_OSAL_IPC_SEMAPHORE 0
+#define IF_OSAL_IPC_SEMAPHORE(...)
+#define IF_NOT_OSAL_IPC_SEMAPHORE(...) __VA_ARGS__
+#undef CONFIG_OSAL_IPC_COND
+#define ENABLE_OSAL_IPC_COND 0
+#define IF_OSAL_IPC_COND(...)
+#define IF_NOT_OSAL_IPC_COND(...) __VA_ARGS__
+#undef CONFIG_OSAL_IPC_SHM
+#define ENABLE_OSAL_IPC_SHM 0
+#define IF_OSAL_IPC_SHM(...)
+#define IF_NOT_OSAL_IPC_SHM(...) __VA_ARGS__
+#undef CONFIG_OSAL_IPC_SHM_CACHE
+#define ENABLE_OSAL_IPC_SHM_CACHE 0
+#define IF_OSAL_IPC_SHM_CACHE(...)
+#define IF_NOT_OSAL_IPC_SHM_CACHE(...) __VA_ARGS__
 
 /*
  * Library Functions
@@ -528,14 +492,10 @@
 # define IF_OSAL_SYS_CLOCK(...) __VA_ARGS__
 #endif
 #define IF_NOT_OSAL_SYS_CLOCK(...)
-#define CONFIG_OSAL_SYS_ENV 1
-#define ENABLE_OSAL_SYS_ENV 1
-#ifdef MAKE_SUID
-# define IF_OSAL_SYS_ENV(...) __VA_ARGS__ "CONFIG_OSAL_SYS_ENV"
-#else
-# define IF_OSAL_SYS_ENV(...) __VA_ARGS__
-#endif
-#define IF_NOT_OSAL_SYS_ENV(...)
+#undef CONFIG_OSAL_SYS_ENV
+#define ENABLE_OSAL_SYS_ENV 0
+#define IF_OSAL_SYS_ENV(...)
+#define IF_NOT_OSAL_SYS_ENV(...) __VA_ARGS__
 #define CONFIG_OSAL_SYS_FILE 1
 #define ENABLE_OSAL_SYS_FILE 1
 #ifdef MAKE_SUID
@@ -552,22 +512,14 @@
 # define IF_OSAL_SYS_PROCESS(...) __VA_ARGS__
 #endif
 #define IF_NOT_OSAL_SYS_PROCESS(...)
-#define CONFIG_OSAL_SYS_SCHED 1
-#define ENABLE_OSAL_SYS_SCHED 1
-#ifdef MAKE_SUID
-# define IF_OSAL_SYS_SCHED(...) __VA_ARGS__ "CONFIG_OSAL_SYS_SCHED"
-#else
-# define IF_OSAL_SYS_SCHED(...) __VA_ARGS__
-#endif
-#define IF_NOT_OSAL_SYS_SCHED(...)
-#define CONFIG_OSAL_SYS_SELECT 1
-#define ENABLE_OSAL_SYS_SELECT 1
-#ifdef MAKE_SUID
-# define IF_OSAL_SYS_SELECT(...) __VA_ARGS__ "CONFIG_OSAL_SYS_SELECT"
-#else
-# define IF_OSAL_SYS_SELECT(...) __VA_ARGS__
-#endif
-#define IF_NOT_OSAL_SYS_SELECT(...)
+#undef CONFIG_OSAL_SYS_SCHED
+#define ENABLE_OSAL_SYS_SCHED 0
+#define IF_OSAL_SYS_SCHED(...)
+#define IF_NOT_OSAL_SYS_SCHED(...) __VA_ARGS__
+#undef CONFIG_OSAL_SYS_SELECT
+#define ENABLE_OSAL_SYS_SELECT 0
+#define IF_OSAL_SYS_SELECT(...)
+#define IF_NOT_OSAL_SYS_SELECT(...) __VA_ARGS__
 #define CONFIG_OSAL_SYS_THREAD 1
 #define ENABLE_OSAL_SYS_THREAD 1
 #ifdef MAKE_SUID
@@ -584,30 +536,18 @@
 # define IF_OSAL_SYS_TIME(...) __VA_ARGS__
 #endif
 #define IF_NOT_OSAL_SYS_TIME(...)
-#define CONFIG_OSAL_SYS_SIGNAL 1
-#define ENABLE_OSAL_SYS_SIGNAL 1
-#ifdef MAKE_SUID
-# define IF_OSAL_SYS_SIGNAL(...) __VA_ARGS__ "CONFIG_OSAL_SYS_SIGNAL"
-#else
-# define IF_OSAL_SYS_SIGNAL(...) __VA_ARGS__
-#endif
-#define IF_NOT_OSAL_SYS_SIGNAL(...)
-#define CONFIG_OSAL_NET_SOCKET 1
-#define ENABLE_OSAL_NET_SOCKET 1
-#ifdef MAKE_SUID
-# define IF_OSAL_NET_SOCKET(...) __VA_ARGS__ "CONFIG_OSAL_NET_SOCKET"
-#else
-# define IF_OSAL_NET_SOCKET(...) __VA_ARGS__
-#endif
-#define IF_NOT_OSAL_NET_SOCKET(...)
-#define CONFIG_OSAL_NET_TERMIOS 1
-#define ENABLE_OSAL_NET_TERMIOS 1
-#ifdef MAKE_SUID
-# define IF_OSAL_NET_TERMIOS(...) __VA_ARGS__ "CONFIG_OSAL_NET_TERMIOS"
-#else
-# define IF_OSAL_NET_TERMIOS(...) __VA_ARGS__
-#endif
-#define IF_NOT_OSAL_NET_TERMIOS(...)
+#undef CONFIG_OSAL_SYS_SIGNAL
+#define ENABLE_OSAL_SYS_SIGNAL 0
+#define IF_OSAL_SYS_SIGNAL(...)
+#define IF_NOT_OSAL_SYS_SIGNAL(...) __VA_ARGS__
+#undef CONFIG_OSAL_NET_SOCKET
+#define ENABLE_OSAL_NET_SOCKET 0
+#define IF_OSAL_NET_SOCKET(...)
+#define IF_NOT_OSAL_NET_SOCKET(...) __VA_ARGS__
+#undef CONFIG_OSAL_NET_TERMIOS
+#define ENABLE_OSAL_NET_TERMIOS 0
+#define IF_OSAL_NET_TERMIOS(...)
+#define IF_NOT_OSAL_NET_TERMIOS(...) __VA_ARGS__
 
 /*
  * Utility Functions
@@ -692,142 +632,70 @@
 #define ENABLE_OSAL_DEBUG_LOGGING 0
 #define IF_OSAL_DEBUG_LOGGING(...)
 #define IF_NOT_OSAL_DEBUG_LOGGING(...) __VA_ARGS__
-#define CONFIG_HAL 1
-#define ENABLE_HAL 1
-#ifdef MAKE_SUID
-# define IF_HAL(...) __VA_ARGS__ "CONFIG_HAL"
-#else
-# define IF_HAL(...) __VA_ARGS__
-#endif
-#define IF_NOT_HAL(...)
-
-/*
- * Platform Configuration
- */
-#define CONFIG_PLATFORM_LINUX 1
-#define ENABLE_PLATFORM_LINUX 1
-#ifdef MAKE_SUID
-# define IF_PLATFORM_LINUX(...) __VA_ARGS__ "CONFIG_PLATFORM_LINUX"
-#else
-# define IF_PLATFORM_LINUX(...) __VA_ARGS__
-#endif
-#define IF_NOT_PLATFORM_LINUX(...)
-
-/*
- * Build Configuration
- */
+#undef CONFIG_HAL
+#define ENABLE_HAL 0
+#define IF_HAL(...)
+#define IF_NOT_HAL(...) __VA_ARGS__
+#undef CONFIG_PLATFORM_LINUX
+#define ENABLE_PLATFORM_LINUX 0
+#define IF_PLATFORM_LINUX(...)
+#define IF_NOT_PLATFORM_LINUX(...) __VA_ARGS__
 #undef CONFIG_HAL_BUILD_STATIC
 #define ENABLE_HAL_BUILD_STATIC 0
 #define IF_HAL_BUILD_STATIC(...)
 #define IF_NOT_HAL_BUILD_STATIC(...) __VA_ARGS__
-#define CONFIG_HAL_BUILD_SHARED 1
-#define ENABLE_HAL_BUILD_SHARED 1
-#ifdef MAKE_SUID
-# define IF_HAL_BUILD_SHARED(...) __VA_ARGS__ "CONFIG_HAL_BUILD_SHARED"
-#else
-# define IF_HAL_BUILD_SHARED(...) __VA_ARGS__
-#endif
-#define IF_NOT_HAL_BUILD_SHARED(...)
-
-/*
- * Driver Configuration
- */
-#define CONFIG_HAL_CAN 1
-#define ENABLE_HAL_CAN 1
-#ifdef MAKE_SUID
-# define IF_HAL_CAN(...) __VA_ARGS__ "CONFIG_HAL_CAN"
-#else
-# define IF_HAL_CAN(...) __VA_ARGS__
-#endif
-#define IF_NOT_HAL_CAN(...)
-#define CONFIG_HAL_UART 1
-#define ENABLE_HAL_UART 1
-#ifdef MAKE_SUID
-# define IF_HAL_UART(...) __VA_ARGS__ "CONFIG_HAL_UART"
-#else
-# define IF_HAL_UART(...) __VA_ARGS__
-#endif
-#define IF_NOT_HAL_UART(...)
-#define CONFIG_HAL_I2C 1
-#define ENABLE_HAL_I2C 1
-#ifdef MAKE_SUID
-# define IF_HAL_I2C(...) __VA_ARGS__ "CONFIG_HAL_I2C"
-#else
-# define IF_HAL_I2C(...) __VA_ARGS__
-#endif
-#define IF_NOT_HAL_I2C(...)
-#define CONFIG_HAL_SPI 1
-#define ENABLE_HAL_SPI 1
-#ifdef MAKE_SUID
-# define IF_HAL_SPI(...) __VA_ARGS__ "CONFIG_HAL_SPI"
-#else
-# define IF_HAL_SPI(...) __VA_ARGS__
-#endif
-#define IF_NOT_HAL_SPI(...)
-#define CONFIG_HAL_GPIO 1
-#define ENABLE_HAL_GPIO 1
-#ifdef MAKE_SUID
-# define IF_HAL_GPIO(...) __VA_ARGS__ "CONFIG_HAL_GPIO"
-#else
-# define IF_HAL_GPIO(...) __VA_ARGS__
-#endif
-#define IF_NOT_HAL_GPIO(...)
-#define CONFIG_HAL_WATCHDOG 1
-#define ENABLE_HAL_WATCHDOG 1
-#ifdef MAKE_SUID
-# define IF_HAL_WATCHDOG(...) __VA_ARGS__ "CONFIG_HAL_WATCHDOG"
-#else
-# define IF_HAL_WATCHDOG(...) __VA_ARGS__
-#endif
-#define IF_NOT_HAL_WATCHDOG(...)
-#define CONFIG_HAL_CAN_LINUX 1
-#define ENABLE_HAL_CAN_LINUX 1
-#ifdef MAKE_SUID
-# define IF_HAL_CAN_LINUX(...) __VA_ARGS__ "CONFIG_HAL_CAN_LINUX"
-#else
-# define IF_HAL_CAN_LINUX(...) __VA_ARGS__
-#endif
-#define IF_NOT_HAL_CAN_LINUX(...)
-#define CONFIG_HAL_GPIO_LINUX 1
-#define ENABLE_HAL_GPIO_LINUX 1
-#ifdef MAKE_SUID
-# define IF_HAL_GPIO_LINUX(...) __VA_ARGS__ "CONFIG_HAL_GPIO_LINUX"
-#else
-# define IF_HAL_GPIO_LINUX(...) __VA_ARGS__
-#endif
-#define IF_NOT_HAL_GPIO_LINUX(...)
-#define CONFIG_HAL_I2C_LINUX 1
-#define ENABLE_HAL_I2C_LINUX 1
-#ifdef MAKE_SUID
-# define IF_HAL_I2C_LINUX(...) __VA_ARGS__ "CONFIG_HAL_I2C_LINUX"
-#else
-# define IF_HAL_I2C_LINUX(...) __VA_ARGS__
-#endif
-#define IF_NOT_HAL_I2C_LINUX(...)
-#define CONFIG_HAL_SPI_LINUX 1
-#define ENABLE_HAL_SPI_LINUX 1
-#ifdef MAKE_SUID
-# define IF_HAL_SPI_LINUX(...) __VA_ARGS__ "CONFIG_HAL_SPI_LINUX"
-#else
-# define IF_HAL_SPI_LINUX(...) __VA_ARGS__
-#endif
-#define IF_NOT_HAL_SPI_LINUX(...)
-#define CONFIG_HAL_UART_LINUX 1
-#define ENABLE_HAL_UART_LINUX 1
-#ifdef MAKE_SUID
-# define IF_HAL_UART_LINUX(...) __VA_ARGS__ "CONFIG_HAL_UART_LINUX"
-#else
-# define IF_HAL_UART_LINUX(...) __VA_ARGS__
-#endif
-#define IF_NOT_HAL_UART_LINUX(...)
-#define CONFIG_HAL_WATCHDOG_LINUX 1
-#define ENABLE_HAL_WATCHDOG_LINUX 1
-#ifdef MAKE_SUID
-# define IF_HAL_WATCHDOG_LINUX(...) __VA_ARGS__ "CONFIG_HAL_WATCHDOG_LINUX"
-#else
-# define IF_HAL_WATCHDOG_LINUX(...) __VA_ARGS__
-#endif
-#define IF_NOT_HAL_WATCHDOG_LINUX(...)
+#undef CONFIG_HAL_BUILD_SHARED
+#define ENABLE_HAL_BUILD_SHARED 0
+#define IF_HAL_BUILD_SHARED(...)
+#define IF_NOT_HAL_BUILD_SHARED(...) __VA_ARGS__
+#undef CONFIG_HAL_CAN
+#define ENABLE_HAL_CAN 0
+#define IF_HAL_CAN(...)
+#define IF_NOT_HAL_CAN(...) __VA_ARGS__
+#undef CONFIG_HAL_UART
+#define ENABLE_HAL_UART 0
+#define IF_HAL_UART(...)
+#define IF_NOT_HAL_UART(...) __VA_ARGS__
+#undef CONFIG_HAL_I2C
+#define ENABLE_HAL_I2C 0
+#define IF_HAL_I2C(...)
+#define IF_NOT_HAL_I2C(...) __VA_ARGS__
+#undef CONFIG_HAL_SPI
+#define ENABLE_HAL_SPI 0
+#define IF_HAL_SPI(...)
+#define IF_NOT_HAL_SPI(...) __VA_ARGS__
+#undef CONFIG_HAL_GPIO
+#define ENABLE_HAL_GPIO 0
+#define IF_HAL_GPIO(...)
+#define IF_NOT_HAL_GPIO(...) __VA_ARGS__
+#undef CONFIG_HAL_WATCHDOG
+#define ENABLE_HAL_WATCHDOG 0
+#define IF_HAL_WATCHDOG(...)
+#define IF_NOT_HAL_WATCHDOG(...) __VA_ARGS__
+#undef CONFIG_HAL_CAN_LINUX
+#define ENABLE_HAL_CAN_LINUX 0
+#define IF_HAL_CAN_LINUX(...)
+#define IF_NOT_HAL_CAN_LINUX(...) __VA_ARGS__
+#undef CONFIG_HAL_GPIO_LINUX
+#define ENABLE_HAL_GPIO_LINUX 0
+#define IF_HAL_GPIO_LINUX(...)
+#define IF_NOT_HAL_GPIO_LINUX(...) __VA_ARGS__
+#undef CONFIG_HAL_I2C_LINUX
+#define ENABLE_HAL_I2C_LINUX 0
+#define IF_HAL_I2C_LINUX(...)
+#define IF_NOT_HAL_I2C_LINUX(...) __VA_ARGS__
+#undef CONFIG_HAL_SPI_LINUX
+#define ENABLE_HAL_SPI_LINUX 0
+#define IF_HAL_SPI_LINUX(...)
+#define IF_NOT_HAL_SPI_LINUX(...) __VA_ARGS__
+#undef CONFIG_HAL_UART_LINUX
+#define ENABLE_HAL_UART_LINUX 0
+#define IF_HAL_UART_LINUX(...)
+#define IF_NOT_HAL_UART_LINUX(...) __VA_ARGS__
+#undef CONFIG_HAL_WATCHDOG_LINUX
+#define ENABLE_HAL_WATCHDOG_LINUX 0
+#define IF_HAL_WATCHDOG_LINUX(...)
+#define IF_NOT_HAL_WATCHDOG_LINUX(...) __VA_ARGS__
 #undef CONFIG_HAL_CAN_MACOS
 #define ENABLE_HAL_CAN_MACOS 0
 #define IF_HAL_CAN_MACOS(...)
@@ -852,10 +720,6 @@
 #define ENABLE_HAL_WATCHDOG_MACOS 0
 #define IF_HAL_WATCHDOG_MACOS(...)
 #define IF_NOT_HAL_WATCHDOG_MACOS(...) __VA_ARGS__
-
-/*
- * Advanced Features
- */
 #undef CONFIG_HAL_DEBUG
 #define ENABLE_HAL_DEBUG 0
 #define IF_HAL_DEBUG(...)
@@ -868,58 +732,30 @@
 #define ENABLE_HAL_POWER_MANAGEMENT 0
 #define IF_HAL_POWER_MANAGEMENT(...)
 #define IF_NOT_HAL_POWER_MANAGEMENT(...) __VA_ARGS__
-#define CONFIG_PCL 1
-#define ENABLE_PCL 1
-#ifdef MAKE_SUID
-# define IF_PCL(...) __VA_ARGS__ "CONFIG_PCL"
-#else
-# define IF_PCL(...) __VA_ARGS__
-#endif
-#define IF_NOT_PCL(...)
-
-/*
- * PCL Build Configuration
- */
+#undef CONFIG_PCL
+#define ENABLE_PCL 0
+#define IF_PCL(...)
+#define IF_NOT_PCL(...) __VA_ARGS__
 #undef CONFIG_PCONFIG_BUILD_STATIC
 #define ENABLE_PCONFIG_BUILD_STATIC 0
 #define IF_PCONFIG_BUILD_STATIC(...)
 #define IF_NOT_PCONFIG_BUILD_STATIC(...) __VA_ARGS__
-#define CONFIG_PCONFIG_BUILD_SHARED 1
-#define ENABLE_PCONFIG_BUILD_SHARED 1
-#ifdef MAKE_SUID
-# define IF_PCONFIG_BUILD_SHARED(...) __VA_ARGS__ "CONFIG_PCONFIG_BUILD_SHARED"
-#else
-# define IF_PCONFIG_BUILD_SHARED(...) __VA_ARGS__
-#endif
-#define IF_NOT_PCONFIG_BUILD_SHARED(...)
-#define CONFIG_PDL 1
-#define ENABLE_PDL 1
-#ifdef MAKE_SUID
-# define IF_PDL(...) __VA_ARGS__ "CONFIG_PDL"
-#else
-# define IF_PDL(...) __VA_ARGS__
-#endif
-#define IF_NOT_PDL(...)
-
-/*
- * PDL Build Configuration
- */
-#define CONFIG_PDL_BUILD_STATIC 1
-#define ENABLE_PDL_BUILD_STATIC 1
-#ifdef MAKE_SUID
-# define IF_PDL_BUILD_STATIC(...) __VA_ARGS__ "CONFIG_PDL_BUILD_STATIC"
-#else
-# define IF_PDL_BUILD_STATIC(...) __VA_ARGS__
-#endif
-#define IF_NOT_PDL_BUILD_STATIC(...)
-#define CONFIG_PDL_BUILD_SHARED 1
-#define ENABLE_PDL_BUILD_SHARED 1
-#ifdef MAKE_SUID
-# define IF_PDL_BUILD_SHARED(...) __VA_ARGS__ "CONFIG_PDL_BUILD_SHARED"
-#else
-# define IF_PDL_BUILD_SHARED(...) __VA_ARGS__
-#endif
-#define IF_NOT_PDL_BUILD_SHARED(...)
+#undef CONFIG_PCONFIG_BUILD_SHARED
+#define ENABLE_PCONFIG_BUILD_SHARED 0
+#define IF_PCONFIG_BUILD_SHARED(...)
+#define IF_NOT_PCONFIG_BUILD_SHARED(...) __VA_ARGS__
+#undef CONFIG_PDL
+#define ENABLE_PDL 0
+#define IF_PDL(...)
+#define IF_NOT_PDL(...) __VA_ARGS__
+#undef CONFIG_PDL_BUILD_STATIC
+#define ENABLE_PDL_BUILD_STATIC 0
+#define IF_PDL_BUILD_STATIC(...)
+#define IF_NOT_PDL_BUILD_STATIC(...) __VA_ARGS__
+#undef CONFIG_PDL_BUILD_SHARED
+#define ENABLE_PDL_BUILD_SHARED 0
+#define IF_PDL_BUILD_SHARED(...)
+#define IF_NOT_PDL_BUILD_SHARED(...) __VA_ARGS__
 #undef CONFIG_PDL_SATELLITE_SUPPORT
 #define ENABLE_PDL_SATELLITE_SUPPORT 0
 #define IF_PDL_SATELLITE_SUPPORT(...)
@@ -952,66 +788,34 @@
 #define ENABLE_PDL_BMC_TRANSPORT 0
 #define IF_PDL_BMC_TRANSPORT(...)
 #define IF_NOT_PDL_BMC_TRANSPORT(...) __VA_ARGS__
-#define CONFIG_PDL_MCU_SUPPORT 1
-#define ENABLE_PDL_MCU_SUPPORT 1
-#ifdef MAKE_SUID
-# define IF_PDL_MCU_SUPPORT(...) __VA_ARGS__ "CONFIG_PDL_MCU_SUPPORT"
-#else
-# define IF_PDL_MCU_SUPPORT(...) __VA_ARGS__
-#endif
-#define IF_NOT_PDL_MCU_SUPPORT(...)
-#define CONFIG_PDL_MCU_CAN_SUPPORT 1
-#define ENABLE_PDL_MCU_CAN_SUPPORT 1
-#ifdef MAKE_SUID
-# define IF_PDL_MCU_CAN_SUPPORT(...) __VA_ARGS__ "CONFIG_PDL_MCU_CAN_SUPPORT"
-#else
-# define IF_PDL_MCU_CAN_SUPPORT(...) __VA_ARGS__
-#endif
-#define IF_NOT_PDL_MCU_CAN_SUPPORT(...)
-#define CONFIG_PDL_MCU_UART_SUPPORT 1
-#define ENABLE_PDL_MCU_UART_SUPPORT 1
-#ifdef MAKE_SUID
-# define IF_PDL_MCU_UART_SUPPORT(...) __VA_ARGS__ "CONFIG_PDL_MCU_UART_SUPPORT"
-#else
-# define IF_PDL_MCU_UART_SUPPORT(...) __VA_ARGS__
-#endif
-#define IF_NOT_PDL_MCU_UART_SUPPORT(...)
-
-/*
- * MCU Driver Configuration
- */
-#define CONFIG_PDL_MCU 1
-#define ENABLE_PDL_MCU 1
-#ifdef MAKE_SUID
-# define IF_PDL_MCU(...) __VA_ARGS__ "CONFIG_PDL_MCU"
-#else
-# define IF_PDL_MCU(...) __VA_ARGS__
-#endif
-#define IF_NOT_PDL_MCU(...)
-#define CONFIG_PDL_MCU_CAN 1
-#define ENABLE_PDL_MCU_CAN 1
-#ifdef MAKE_SUID
-# define IF_PDL_MCU_CAN(...) __VA_ARGS__ "CONFIG_PDL_MCU_CAN"
-#else
-# define IF_PDL_MCU_CAN(...) __VA_ARGS__
-#endif
-#define IF_NOT_PDL_MCU_CAN(...)
-#define CONFIG_PDL_MCU_SERIAL 1
-#define ENABLE_PDL_MCU_SERIAL 1
-#ifdef MAKE_SUID
-# define IF_PDL_MCU_SERIAL(...) __VA_ARGS__ "CONFIG_PDL_MCU_SERIAL"
-#else
-# define IF_PDL_MCU_SERIAL(...) __VA_ARGS__
-#endif
-#define IF_NOT_PDL_MCU_SERIAL(...)
-#define CONFIG_PDL_MCU_PROTOCOL 1
-#define ENABLE_PDL_MCU_PROTOCOL 1
-#ifdef MAKE_SUID
-# define IF_PDL_MCU_PROTOCOL(...) __VA_ARGS__ "CONFIG_PDL_MCU_PROTOCOL"
-#else
-# define IF_PDL_MCU_PROTOCOL(...) __VA_ARGS__
-#endif
-#define IF_NOT_PDL_MCU_PROTOCOL(...)
+#undef CONFIG_PDL_MCU_SUPPORT
+#define ENABLE_PDL_MCU_SUPPORT 0
+#define IF_PDL_MCU_SUPPORT(...)
+#define IF_NOT_PDL_MCU_SUPPORT(...) __VA_ARGS__
+#undef CONFIG_PDL_MCU_CAN_SUPPORT
+#define ENABLE_PDL_MCU_CAN_SUPPORT 0
+#define IF_PDL_MCU_CAN_SUPPORT(...)
+#define IF_NOT_PDL_MCU_CAN_SUPPORT(...) __VA_ARGS__
+#undef CONFIG_PDL_MCU_UART_SUPPORT
+#define ENABLE_PDL_MCU_UART_SUPPORT 0
+#define IF_PDL_MCU_UART_SUPPORT(...)
+#define IF_NOT_PDL_MCU_UART_SUPPORT(...) __VA_ARGS__
+#undef CONFIG_PDL_MCU
+#define ENABLE_PDL_MCU 0
+#define IF_PDL_MCU(...)
+#define IF_NOT_PDL_MCU(...) __VA_ARGS__
+#undef CONFIG_PDL_MCU_CAN
+#define ENABLE_PDL_MCU_CAN 0
+#define IF_PDL_MCU_CAN(...)
+#define IF_NOT_PDL_MCU_CAN(...) __VA_ARGS__
+#undef CONFIG_PDL_MCU_SERIAL
+#define ENABLE_PDL_MCU_SERIAL 0
+#define IF_PDL_MCU_SERIAL(...)
+#define IF_NOT_PDL_MCU_SERIAL(...) __VA_ARGS__
+#undef CONFIG_PDL_MCU_PROTOCOL
+#define ENABLE_PDL_MCU_PROTOCOL 0
+#define IF_PDL_MCU_PROTOCOL(...)
+#define IF_NOT_PDL_MCU_PROTOCOL(...) __VA_ARGS__
 #undef CONFIG_PDL_CCM_SUPPORT
 #define ENABLE_PDL_CCM_SUPPORT 0
 #define IF_PDL_CCM_SUPPORT(...)
@@ -1040,107 +844,55 @@
 #define ENABLE_PDL_CCM_DEBUG 0
 #define IF_PDL_CCM_DEBUG(...)
 #define IF_NOT_PDL_CCM_DEBUG(...) __VA_ARGS__
-#define CONFIG_PDL_WATCHDOG_SUPPORT 1
-#define ENABLE_PDL_WATCHDOG_SUPPORT 1
-#ifdef MAKE_SUID
-# define IF_PDL_WATCHDOG_SUPPORT(...) __VA_ARGS__ "CONFIG_PDL_WATCHDOG_SUPPORT"
-#else
-# define IF_PDL_WATCHDOG_SUPPORT(...) __VA_ARGS__
-#endif
-#define IF_NOT_PDL_WATCHDOG_SUPPORT(...)
+#undef CONFIG_PDL_WATCHDOG_SUPPORT
+#define ENABLE_PDL_WATCHDOG_SUPPORT 0
+#define IF_PDL_WATCHDOG_SUPPORT(...)
+#define IF_NOT_PDL_WATCHDOG_SUPPORT(...) __VA_ARGS__
 #undef CONFIG_PDL_MISC_SUPPORT
 #define ENABLE_PDL_MISC_SUPPORT 0
 #define IF_PDL_MISC_SUPPORT(...)
 #define IF_NOT_PDL_MISC_SUPPORT(...) __VA_ARGS__
-#define CONFIG_PRL 1
-#define ENABLE_PRL 1
-#ifdef MAKE_SUID
-# define IF_PRL(...) __VA_ARGS__ "CONFIG_PRL"
-#else
-# define IF_PRL(...) __VA_ARGS__
-#endif
-#define IF_NOT_PRL(...)
-#define CONFIG_PRL_BUILD_SHARED 1
-#define ENABLE_PRL_BUILD_SHARED 1
-#ifdef MAKE_SUID
-# define IF_PRL_BUILD_SHARED(...) __VA_ARGS__ "CONFIG_PRL_BUILD_SHARED"
-#else
-# define IF_PRL_BUILD_SHARED(...) __VA_ARGS__
-#endif
-#define IF_NOT_PRL_BUILD_SHARED(...)
-
-/*
- * Device Protocol Selection
- */
-#define CONFIG_PRL_MCU 1
-#define ENABLE_PRL_MCU 1
-#ifdef MAKE_SUID
-# define IF_PRL_MCU(...) __VA_ARGS__ "CONFIG_PRL_MCU"
-#else
-# define IF_PRL_MCU(...) __VA_ARGS__
-#endif
-#define IF_NOT_PRL_MCU(...)
-#define CONFIG_PRL_CCM 1
-#define ENABLE_PRL_CCM 1
-#ifdef MAKE_SUID
-# define IF_PRL_CCM(...) __VA_ARGS__ "CONFIG_PRL_CCM"
-#else
-# define IF_PRL_CCM(...) __VA_ARGS__
-#endif
-#define IF_NOT_PRL_CCM(...)
-#define CONFIG_PRL_PMC 1
-#define ENABLE_PRL_PMC 1
-#ifdef MAKE_SUID
-# define IF_PRL_PMC(...) __VA_ARGS__ "CONFIG_PRL_PMC"
-#else
-# define IF_PRL_PMC(...) __VA_ARGS__
-#endif
-#define IF_NOT_PRL_PMC(...)
-#define CONFIG_PRL_GSC 1
-#define ENABLE_PRL_GSC 1
-#ifdef MAKE_SUID
-# define IF_PRL_GSC(...) __VA_ARGS__ "CONFIG_PRL_GSC"
-#else
-# define IF_PRL_GSC(...) __VA_ARGS__
-#endif
-#define IF_NOT_PRL_GSC(...)
-#define CONFIG_PRL_POWER 1
-#define ENABLE_PRL_POWER 1
-#ifdef MAKE_SUID
-# define IF_PRL_POWER(...) __VA_ARGS__ "CONFIG_PRL_POWER"
-#else
-# define IF_PRL_POWER(...) __VA_ARGS__
-#endif
-#define IF_NOT_PRL_POWER(...)
-
-/*
- * Protocol Features
- */
-#define CONFIG_PRL_CRC_CHECK 1
-#define ENABLE_PRL_CRC_CHECK 1
-#ifdef MAKE_SUID
-# define IF_PRL_CRC_CHECK(...) __VA_ARGS__ "CONFIG_PRL_CRC_CHECK"
-#else
-# define IF_PRL_CRC_CHECK(...) __VA_ARGS__
-#endif
-#define IF_NOT_PRL_CRC_CHECK(...)
-#define CONFIG_PRL_SEQUENCE_CHECK 1
-#define ENABLE_PRL_SEQUENCE_CHECK 1
-#ifdef MAKE_SUID
-# define IF_PRL_SEQUENCE_CHECK(...) __VA_ARGS__ "CONFIG_PRL_SEQUENCE_CHECK"
-#else
-# define IF_PRL_SEQUENCE_CHECK(...) __VA_ARGS__
-#endif
-#define IF_NOT_PRL_SEQUENCE_CHECK(...)
-#define CONFIG_PRL_TIMESTAMP_CHECK 1
-#define ENABLE_PRL_TIMESTAMP_CHECK 1
-#ifdef MAKE_SUID
-# define IF_PRL_TIMESTAMP_CHECK(...) __VA_ARGS__ "CONFIG_PRL_TIMESTAMP_CHECK"
-#else
-# define IF_PRL_TIMESTAMP_CHECK(...) __VA_ARGS__
-#endif
-#define IF_NOT_PRL_TIMESTAMP_CHECK(...)
-#define CONFIG_PRL_MAX_PAYLOAD_SIZE 4096
+#undef CONFIG_PRL
+#define ENABLE_PRL 0
+#define IF_PRL(...)
+#define IF_NOT_PRL(...) __VA_ARGS__
+#undef CONFIG_PRL_BUILD_SHARED
+#define ENABLE_PRL_BUILD_SHARED 0
+#define IF_PRL_BUILD_SHARED(...)
+#define IF_NOT_PRL_BUILD_SHARED(...) __VA_ARGS__
+#undef CONFIG_PRL_MCU
+#define ENABLE_PRL_MCU 0
+#define IF_PRL_MCU(...)
+#define IF_NOT_PRL_MCU(...) __VA_ARGS__
+#undef CONFIG_PRL_CCM
+#define ENABLE_PRL_CCM 0
+#define IF_PRL_CCM(...)
+#define IF_NOT_PRL_CCM(...) __VA_ARGS__
+#undef CONFIG_PRL_PMC
+#define ENABLE_PRL_PMC 0
+#define IF_PRL_PMC(...)
+#define IF_NOT_PRL_PMC(...) __VA_ARGS__
+#undef CONFIG_PRL_GSC
+#define ENABLE_PRL_GSC 0
+#define IF_PRL_GSC(...)
+#define IF_NOT_PRL_GSC(...) __VA_ARGS__
+#undef CONFIG_PRL_POWER
+#define ENABLE_PRL_POWER 0
+#define IF_PRL_POWER(...)
+#define IF_NOT_PRL_POWER(...) __VA_ARGS__
+#undef CONFIG_PRL_CRC_CHECK
+#define ENABLE_PRL_CRC_CHECK 0
+#define IF_PRL_CRC_CHECK(...)
+#define IF_NOT_PRL_CRC_CHECK(...) __VA_ARGS__
+#undef CONFIG_PRL_SEQUENCE_CHECK
+#define ENABLE_PRL_SEQUENCE_CHECK 0
+#define IF_PRL_SEQUENCE_CHECK(...)
+#define IF_NOT_PRL_SEQUENCE_CHECK(...) __VA_ARGS__
+#undef CONFIG_PRL_TIMESTAMP_CHECK
+#define ENABLE_PRL_TIMESTAMP_CHECK 0
+#define IF_PRL_TIMESTAMP_CHECK(...)
+#define IF_NOT_PRL_TIMESTAMP_CHECK(...) __VA_ARGS__
+#define CONFIG_PRL_MAX_PAYLOAD_SIZE 0
 #define ENABLE_PRL_MAX_PAYLOAD_SIZE 1
 #ifdef MAKE_SUID
 # define IF_PRL_MAX_PAYLOAD_SIZE(...) __VA_ARGS__ "CONFIG_PRL_MAX_PAYLOAD_SIZE"
@@ -1148,35 +900,19 @@
 # define IF_PRL_MAX_PAYLOAD_SIZE(...) __VA_ARGS__
 #endif
 #define IF_NOT_PRL_MAX_PAYLOAD_SIZE(...)
-#define CONFIG_ACL 1
-#define ENABLE_ACL 1
-#ifdef MAKE_SUID
-# define IF_ACL(...) __VA_ARGS__ "CONFIG_ACL"
-#else
-# define IF_ACL(...) __VA_ARGS__
-#endif
-#define IF_NOT_ACL(...)
-
-/*
- * ACL Build Configuration
- */
+#undef CONFIG_ACL
+#define ENABLE_ACL 0
+#define IF_ACL(...)
+#define IF_NOT_ACL(...) __VA_ARGS__
 #undef CONFIG_ACONFIG_BUILD_STATIC
 #define ENABLE_ACONFIG_BUILD_STATIC 0
 #define IF_ACONFIG_BUILD_STATIC(...)
 #define IF_NOT_ACONFIG_BUILD_STATIC(...) __VA_ARGS__
-#define CONFIG_ACONFIG_BUILD_SHARED 1
-#define ENABLE_ACONFIG_BUILD_SHARED 1
-#ifdef MAKE_SUID
-# define IF_ACONFIG_BUILD_SHARED(...) __VA_ARGS__ "CONFIG_ACONFIG_BUILD_SHARED"
-#else
-# define IF_ACONFIG_BUILD_SHARED(...) __VA_ARGS__
-#endif
-#define IF_NOT_ACONFIG_BUILD_SHARED(...)
-
-/*
- * ACL Configuration
- */
-#define CONFIG_ACONFIG_MAX_DEVICES 64
+#undef CONFIG_ACONFIG_BUILD_SHARED
+#define ENABLE_ACONFIG_BUILD_SHARED 0
+#define IF_ACONFIG_BUILD_SHARED(...)
+#define IF_NOT_ACONFIG_BUILD_SHARED(...) __VA_ARGS__
+#define CONFIG_ACONFIG_MAX_DEVICES 0
 #define ENABLE_ACONFIG_MAX_DEVICES 1
 #ifdef MAKE_SUID
 # define IF_ACONFIG_MAX_DEVICES(...) __VA_ARGS__ "CONFIG_ACONFIG_MAX_DEVICES"
@@ -1188,27 +924,15 @@
 /*
  * Product Configuration
  */
-
-/*
- * CCM Product
- */
-
-/*
- * Platform Configuration
- */
-#define CONFIG_PROJECT_H200_100P_AM625 1
-#define ENABLE_PROJECT_H200_100P_AM625 1
-#ifdef MAKE_SUID
-# define IF_PROJECT_H200_100P_AM625(...) __VA_ARGS__ "CONFIG_PROJECT_H200_100P_AM625"
-#else
-# define IF_PROJECT_H200_100P_AM625(...) __VA_ARGS__
-#endif
-#define IF_NOT_PROJECT_H200_100P_AM625(...)
+#undef CONFIG_PROJECT_H200_100P_AM625
+#define ENABLE_PROJECT_H200_100P_AM625 0
+#define IF_PROJECT_H200_100P_AM625(...)
+#define IF_NOT_PROJECT_H200_100P_AM625(...) __VA_ARGS__
 #undef CONFIG_PROJECT_H200_200P
 #define ENABLE_PROJECT_H200_200P 0
 #define IF_PROJECT_H200_200P(...)
 #define IF_NOT_PROJECT_H200_200P(...) __VA_ARGS__
-#define CONFIG_PROJECT_NAME "h200_100p_am625"
+#define CONFIG_PROJECT_NAME ""
 #define ENABLE_PROJECT_NAME 1
 #ifdef MAKE_SUID
 # define IF_PROJECT_NAME(...) __VA_ARGS__ "CONFIG_PROJECT_NAME"
@@ -1216,66 +940,34 @@
 # define IF_PROJECT_NAME(...) __VA_ARGS__
 #endif
 #define IF_NOT_PROJECT_NAME(...)
-
-/*
- * Product Libraries
- */
-#define CONFIG_LIBCCM 1
-#define ENABLE_LIBCCM 1
-#ifdef MAKE_SUID
-# define IF_LIBCCM(...) __VA_ARGS__ "CONFIG_LIBCCM"
-#else
-# define IF_LIBCCM(...) __VA_ARGS__
-#endif
-#define IF_NOT_LIBCCM(...)
+#undef CONFIG_LIBCCM
+#define ENABLE_LIBCCM 0
+#define IF_LIBCCM(...)
+#define IF_NOT_LIBCCM(...) __VA_ARGS__
 #undef CONFIG_LIBCCM_BUILD_SHARED
 #define ENABLE_LIBCCM_BUILD_SHARED 0
 #define IF_LIBCCM_BUILD_SHARED(...)
 #define IF_NOT_LIBCCM_BUILD_SHARED(...) __VA_ARGS__
-
-/*
- * Applications
- */
-#define CONFIG_APP_COLLECTOR 1
-#define ENABLE_APP_COLLECTOR 1
-#ifdef MAKE_SUID
-# define IF_APP_COLLECTOR(...) __VA_ARGS__ "CONFIG_APP_COLLECTOR"
-#else
-# define IF_APP_COLLECTOR(...) __VA_ARGS__
-#endif
-#define IF_NOT_APP_COLLECTOR(...)
-#define CONFIG_APP_COMM 1
-#define ENABLE_APP_COMM 1
-#ifdef MAKE_SUID
-# define IF_APP_COMM(...) __VA_ARGS__ "CONFIG_APP_COMM"
-#else
-# define IF_APP_COMM(...) __VA_ARGS__
-#endif
-#define IF_NOT_APP_COMM(...)
-#define CONFIG_APP_HEALTH 1
-#define ENABLE_APP_HEALTH 1
-#ifdef MAKE_SUID
-# define IF_APP_HEALTH(...) __VA_ARGS__ "CONFIG_APP_HEALTH"
-#else
-# define IF_APP_HEALTH(...) __VA_ARGS__
-#endif
-#define IF_NOT_APP_HEALTH(...)
-#define CONFIG_APP_LOGGER 1
-#define ENABLE_APP_LOGGER 1
-#ifdef MAKE_SUID
-# define IF_APP_LOGGER(...) __VA_ARGS__ "CONFIG_APP_LOGGER"
-#else
-# define IF_APP_LOGGER(...) __VA_ARGS__
-#endif
-#define IF_NOT_APP_LOGGER(...)
-#define CONFIG_APP_SUPERVISOR 1
-#define ENABLE_APP_SUPERVISOR 1
-#ifdef MAKE_SUID
-# define IF_APP_SUPERVISOR(...) __VA_ARGS__ "CONFIG_APP_SUPERVISOR"
-#else
-# define IF_APP_SUPERVISOR(...) __VA_ARGS__
-#endif
-#define IF_NOT_APP_SUPERVISOR(...)
+#undef CONFIG_APP_COLLECTOR
+#define ENABLE_APP_COLLECTOR 0
+#define IF_APP_COLLECTOR(...)
+#define IF_NOT_APP_COLLECTOR(...) __VA_ARGS__
+#undef CONFIG_APP_COMM
+#define ENABLE_APP_COMM 0
+#define IF_APP_COMM(...)
+#define IF_NOT_APP_COMM(...) __VA_ARGS__
+#undef CONFIG_APP_HEALTH
+#define ENABLE_APP_HEALTH 0
+#define IF_APP_HEALTH(...)
+#define IF_NOT_APP_HEALTH(...) __VA_ARGS__
+#undef CONFIG_APP_LOGGER
+#define ENABLE_APP_LOGGER 0
+#define IF_APP_LOGGER(...)
+#define IF_NOT_APP_LOGGER(...) __VA_ARGS__
+#undef CONFIG_APP_SUPERVISOR
+#define ENABLE_APP_SUPERVISOR 0
+#define IF_APP_SUPERVISOR(...)
+#define IF_NOT_APP_SUPERVISOR(...) __VA_ARGS__
 #define CONFIG_BUILD_TESTING 1
 #define ENABLE_BUILD_TESTING 1
 #ifdef MAKE_SUID
@@ -1288,14 +980,22 @@
 /*
  * Test Configuration
  */
-#undef CONFIG_TEST_UNIT
-#define ENABLE_TEST_UNIT 0
-#define IF_TEST_UNIT(...)
-#define IF_NOT_TEST_UNIT(...) __VA_ARGS__
-#undef CONFIG_TEST_OSAL
-#define ENABLE_TEST_OSAL 0
-#define IF_TEST_OSAL(...)
-#define IF_NOT_TEST_OSAL(...) __VA_ARGS__
+#define CONFIG_TEST_UNIT 1
+#define ENABLE_TEST_UNIT 1
+#ifdef MAKE_SUID
+# define IF_TEST_UNIT(...) __VA_ARGS__ "CONFIG_TEST_UNIT"
+#else
+# define IF_TEST_UNIT(...) __VA_ARGS__
+#endif
+#define IF_NOT_TEST_UNIT(...)
+#define CONFIG_TEST_OSAL 1
+#define ENABLE_TEST_OSAL 1
+#ifdef MAKE_SUID
+# define IF_TEST_OSAL(...) __VA_ARGS__ "CONFIG_TEST_OSAL"
+#else
+# define IF_TEST_OSAL(...) __VA_ARGS__
+#endif
+#define IF_NOT_TEST_OSAL(...)
 #undef CONFIG_TEST_HAL
 #define ENABLE_TEST_HAL 0
 #define IF_TEST_HAL(...)
@@ -1324,18 +1024,30 @@
 #define ENABLE_TEST_PCONFIG 0
 #define IF_TEST_PCONFIG(...)
 #define IF_NOT_TEST_PCONFIG(...) __VA_ARGS__
+
+/*
+ * OSAL Unit Tests
+ */
 #undef CONFIG_TEST_OSAL_ALL
 #define ENABLE_TEST_OSAL_ALL 0
 #define IF_TEST_OSAL_ALL(...)
 #define IF_NOT_TEST_OSAL_ALL(...) __VA_ARGS__
-#undef CONFIG_TEST_OSAL_ATOMIC
-#define ENABLE_TEST_OSAL_ATOMIC 0
-#define IF_TEST_OSAL_ATOMIC(...)
-#define IF_NOT_TEST_OSAL_ATOMIC(...) __VA_ARGS__
-#undef CONFIG_TEST_OSAL_CLOCK
-#define ENABLE_TEST_OSAL_CLOCK 0
-#define IF_TEST_OSAL_CLOCK(...)
-#define IF_NOT_TEST_OSAL_CLOCK(...) __VA_ARGS__
+#define CONFIG_TEST_OSAL_ATOMIC 1
+#define ENABLE_TEST_OSAL_ATOMIC 1
+#ifdef MAKE_SUID
+# define IF_TEST_OSAL_ATOMIC(...) __VA_ARGS__ "CONFIG_TEST_OSAL_ATOMIC"
+#else
+# define IF_TEST_OSAL_ATOMIC(...) __VA_ARGS__
+#endif
+#define IF_NOT_TEST_OSAL_ATOMIC(...)
+#define CONFIG_TEST_OSAL_CLOCK 1
+#define ENABLE_TEST_OSAL_CLOCK 1
+#ifdef MAKE_SUID
+# define IF_TEST_OSAL_CLOCK(...) __VA_ARGS__ "CONFIG_TEST_OSAL_CLOCK"
+#else
+# define IF_TEST_OSAL_CLOCK(...) __VA_ARGS__
+#endif
+#define IF_NOT_TEST_OSAL_CLOCK(...)
 #undef CONFIG_TEST_OSAL_COND
 #define ENABLE_TEST_OSAL_COND 0
 #define IF_TEST_OSAL_COND(...)
@@ -1344,10 +1056,14 @@
 #define ENABLE_TEST_OSAL_ENV 0
 #define IF_TEST_OSAL_ENV(...)
 #define IF_NOT_TEST_OSAL_ENV(...) __VA_ARGS__
-#undef CONFIG_TEST_OSAL_ERRNO
-#define ENABLE_TEST_OSAL_ERRNO 0
-#define IF_TEST_OSAL_ERRNO(...)
-#define IF_NOT_TEST_OSAL_ERRNO(...) __VA_ARGS__
+#define CONFIG_TEST_OSAL_ERRNO 1
+#define ENABLE_TEST_OSAL_ERRNO 1
+#ifdef MAKE_SUID
+# define IF_TEST_OSAL_ERRNO(...) __VA_ARGS__ "CONFIG_TEST_OSAL_ERRNO"
+#else
+# define IF_TEST_OSAL_ERRNO(...) __VA_ARGS__
+#endif
+#define IF_NOT_TEST_OSAL_ERRNO(...)
 #undef CONFIG_TEST_OSAL_FILE
 #define ENABLE_TEST_OSAL_FILE 0
 #define IF_TEST_OSAL_FILE(...)
@@ -1356,14 +1072,22 @@
 #define ENABLE_TEST_OSAL_HEAP 0
 #define IF_TEST_OSAL_HEAP(...)
 #define IF_NOT_TEST_OSAL_HEAP(...) __VA_ARGS__
-#undef CONFIG_TEST_OSAL_LOG
-#define ENABLE_TEST_OSAL_LOG 0
-#define IF_TEST_OSAL_LOG(...)
-#define IF_NOT_TEST_OSAL_LOG(...) __VA_ARGS__
-#undef CONFIG_TEST_OSAL_MUTEX
-#define ENABLE_TEST_OSAL_MUTEX 0
-#define IF_TEST_OSAL_MUTEX(...)
-#define IF_NOT_TEST_OSAL_MUTEX(...) __VA_ARGS__
+#define CONFIG_TEST_OSAL_LOG 1
+#define ENABLE_TEST_OSAL_LOG 1
+#ifdef MAKE_SUID
+# define IF_TEST_OSAL_LOG(...) __VA_ARGS__ "CONFIG_TEST_OSAL_LOG"
+#else
+# define IF_TEST_OSAL_LOG(...) __VA_ARGS__
+#endif
+#define IF_NOT_TEST_OSAL_LOG(...)
+#define CONFIG_TEST_OSAL_MUTEX 1
+#define ENABLE_TEST_OSAL_MUTEX 1
+#ifdef MAKE_SUID
+# define IF_TEST_OSAL_MUTEX(...) __VA_ARGS__ "CONFIG_TEST_OSAL_MUTEX"
+#else
+# define IF_TEST_OSAL_MUTEX(...) __VA_ARGS__
+#endif
+#define IF_NOT_TEST_OSAL_MUTEX(...)
 #undef CONFIG_TEST_OSAL_PROCESS
 #define ENABLE_TEST_OSAL_PROCESS 0
 #define IF_TEST_OSAL_PROCESS(...)
@@ -1388,22 +1112,34 @@
 #define ENABLE_TEST_OSAL_STRESS 0
 #define IF_TEST_OSAL_STRESS(...)
 #define IF_NOT_TEST_OSAL_STRESS(...) __VA_ARGS__
-#undef CONFIG_TEST_OSAL_STRING
-#define ENABLE_TEST_OSAL_STRING 0
-#define IF_TEST_OSAL_STRING(...)
-#define IF_NOT_TEST_OSAL_STRING(...) __VA_ARGS__
+#define CONFIG_TEST_OSAL_STRING 1
+#define ENABLE_TEST_OSAL_STRING 1
+#ifdef MAKE_SUID
+# define IF_TEST_OSAL_STRING(...) __VA_ARGS__ "CONFIG_TEST_OSAL_STRING"
+#else
+# define IF_TEST_OSAL_STRING(...) __VA_ARGS__
+#endif
+#define IF_NOT_TEST_OSAL_STRING(...)
 #undef CONFIG_TEST_OSAL_THREAD
 #define ENABLE_TEST_OSAL_THREAD 0
 #define IF_TEST_OSAL_THREAD(...)
 #define IF_NOT_TEST_OSAL_THREAD(...) __VA_ARGS__
-#undef CONFIG_TEST_OSAL_TIME
-#define ENABLE_TEST_OSAL_TIME 0
-#define IF_TEST_OSAL_TIME(...)
-#define IF_NOT_TEST_OSAL_TIME(...) __VA_ARGS__
-#undef CONFIG_TEST_OSAL_VERSION
-#define ENABLE_TEST_OSAL_VERSION 0
-#define IF_TEST_OSAL_VERSION(...)
-#define IF_NOT_TEST_OSAL_VERSION(...) __VA_ARGS__
+#define CONFIG_TEST_OSAL_TIME 1
+#define ENABLE_TEST_OSAL_TIME 1
+#ifdef MAKE_SUID
+# define IF_TEST_OSAL_TIME(...) __VA_ARGS__ "CONFIG_TEST_OSAL_TIME"
+#else
+# define IF_TEST_OSAL_TIME(...) __VA_ARGS__
+#endif
+#define IF_NOT_TEST_OSAL_TIME(...)
+#define CONFIG_TEST_OSAL_VERSION 1
+#define ENABLE_TEST_OSAL_VERSION 1
+#ifdef MAKE_SUID
+# define IF_TEST_OSAL_VERSION(...) __VA_ARGS__ "CONFIG_TEST_OSAL_VERSION"
+#else
+# define IF_TEST_OSAL_VERSION(...) __VA_ARGS__
+#endif
+#define IF_NOT_TEST_OSAL_VERSION(...)
 #undef CONFIG_TEST_HAL_ALL
 #define ENABLE_TEST_HAL_ALL 0
 #define IF_TEST_HAL_ALL(...)
