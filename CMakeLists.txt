@@ -32,6 +32,28 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
+# ============================================================================
+# Installation Configuration
+# ============================================================================
+# Support standard CMake installation workflow: make install DESTDIR=...
+# This enables proper Buildroot integration via staging directory
+
+# Installation prefix (overridable via -DCMAKE_INSTALL_PREFIX=...)
+set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Installation prefix")
+
+# Use GNUInstallDirs for standard directory variables
+include(GNUInstallDirs)
+
+# Define installation directories (relative to CMAKE_INSTALL_PREFIX)
+set(INSTALL_BINDIR ${CMAKE_INSTALL_BINDIR})              # /usr/bin
+set(INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR})              # /usr/lib or /usr/lib64
+set(INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR}/es-middleware)  # /usr/include/es-middleware
+
+message(STATUS "Installation prefix: ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "  Binaries: ${CMAKE_INSTALL_PREFIX}/${INSTALL_BINDIR}")
+message(STATUS "  Libraries: ${CMAKE_INSTALL_PREFIX}/${INSTALL_LIBDIR}")
+message(STATUS "  Headers: ${CMAKE_INSTALL_PREFIX}/${INSTALL_INCLUDEDIR}")
+
 # Include build system
 include(${SDK_PATH}/tools/cmake/compile.cmake)
 

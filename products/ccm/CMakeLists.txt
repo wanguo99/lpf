@@ -154,3 +154,45 @@ if(CONFIG_APP_SUPERVISOR)
                        VERBATIM)
     target_link_libraries(supervisor PRIVATE app_supervisor)
 endif()
+
+# ============================================================================
+# Installation Rules
+# ============================================================================
+# Install CCM product executables to ${CMAKE_INSTALL_PREFIX}/bin
+# Supports DESTDIR for staged installation (Buildroot compatibility)
+# Usage: make install DESTDIR=/path/to/staging
+
+if(CONFIG_APP_COLLECTOR)
+    install(TARGETS collector
+        RUNTIME DESTINATION ${INSTALL_BINDIR}
+        COMPONENT applications
+    )
+endif()
+
+if(CONFIG_APP_COMM)
+    install(TARGETS comm
+        RUNTIME DESTINATION ${INSTALL_BINDIR}
+        COMPONENT applications
+    )
+endif()
+
+if(CONFIG_APP_HEALTH)
+    install(TARGETS health
+        RUNTIME DESTINATION ${INSTALL_BINDIR}
+        COMPONENT applications
+    )
+endif()
+
+if(CONFIG_APP_LOGGER)
+    install(TARGETS logger
+        RUNTIME DESTINATION ${INSTALL_BINDIR}
+        COMPONENT applications
+    )
+endif()
+
+if(CONFIG_APP_SUPERVISOR)
+    install(TARGETS supervisor
+        RUNTIME DESTINATION ${INSTALL_BINDIR}
+        COMPONENT applications
+    )
+endif()

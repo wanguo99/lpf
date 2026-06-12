@@ -175,6 +175,32 @@ function(register_component)
         add_custom_target(${component_name}_file_depends DEPENDS ${ADD_FILE_DEPENDS})
         add_dependencies(${component_name} ${component_name}_file_depends)
     endif()
+
+    # ========================================================================
+    # Install rules for Buildroot integration
+    # ========================================================================
+    # Install libraries to staging directory for linking
+    # Install headers to staging directory for development
+    if(ADD_SRCS OR to_dynamic_lib)
+        install(TARGETS ${component_name}
+            ARCHIVE DESTINATION ${INSTALL_LIBDIR}
+            LIBRARY DESTINATION ${INSTALL_LIBDIR}
+            RUNTIME DESTINATION ${INSTALL_BINDIR}
+            COMPONENT libraries
+        )
+    endif()
+
+    # Install public headers
+    foreach(include_dir ${ADD_INCLUDE})
+        get_filename_component(abs_dir ${include_dir} ABSOLUTE BASE_DIR ${component_dir})
+        if(IS_DIRECTORY ${abs_dir})
+            install(DIRECTORY ${abs_dir}/
+                DESTINATION ${INSTALL_INCLUDEDIR}/${component_name}
+                FILES_MATCHING PATTERN "*.h"
+                COMPONENT development
+            )
+        endif()
+    endforeach()
 endfunction()
 
 function(is_path_component ret param_path)

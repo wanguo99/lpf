@@ -14,9 +14,23 @@
 
 # Configuration
 KCONFIG_CONFIG ?= .config
-BUILD_DIR := _build
 CONFIGS_DIR := configs
 CMAKE ?= cmake
+
+# Support O= for custom build directory (kernel/Buildroot style)
+# Usage: make O=build-arm64 <target>
+# This enables parallel builds for different configurations
+ifdef O
+BUILD_DIR := $(O)
+else
+BUILD_DIR := _build
+endif
+
+# Build type configuration (can be overridden)
+CMAKE_BUILD_TYPE ?= Debug
+
+# Installation prefix (can be overridden for Buildroot)
+CMAKE_INSTALL_PREFIX ?= /usr
 
 # Don't check config for these targets
 NO_CONFIG_TARGETS := help list clean distclean mrproper %_defconfig defconfig
@@ -36,7 +50,7 @@ endif
 
 # Phony targets
 .PHONY: all help menuconfig nconfig defconfig savedefconfig oldconfig
-.PHONY: clean distclean mrproper list _build_internal
+.PHONY: clean distclean mrproper list install _build_internal
 
 # Default goal
 .DEFAULT_GOAL := all
@@ -61,7 +75,7 @@ _build_internal:
 		echo "***"; \
 		exit 1; \
 	fi
-	@CMAKE_ARGS=""; \
+	@CMAKE_ARGS="-DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE) -DCMAKE_INSTALL_PREFIX=$(CMAKE_INSTALL_PREFIX)"; \
 	if [ -n "$(CMAKE_TOOLCHAIN_FILE)" ]; then \
 		CMAKE_ARGS="$$CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=$(CMAKE_TOOLCHAIN_FILE)"; \
 		if [ -f "$(BUILD_DIR)/CMakeCache.txt" ]; then \
@@ -80,36 +94,53 @@ _build_internal:
 
 # Help target
 help:
+	@echo 'ES-Middleware Build System'
+	@echo '==========================='
+	@echo ''
 	@echo 'Cleaning targets:'
-	@echo '  clean              - Remove build artifacts (keep configuration)'
-	@echo '  distclean          - Remove all generated files'
+	@echo '  clean              - Remove build artifacts (keep CMake cache)'
+	@echo '  distclean          - Remove entire build directory and configuration'
 	@echo '  mrproper           - Same as distclean'
 	@echo ''
 	@echo 'Configuration targets:'
-	@echo '  defconfig          - Load default configuration'
 	@echo '  menuconfig         - Interactive ncurses-based configuration'
 	@echo '  nconfig            - Interactive ncurses-based alternative'
 	@echo '  oldconfig          - Update configuration with new options'
 	@echo '  savedefconfig      - Save minimal configuration to defconfig'
 	@echo '  list               - List available defconfigs'
 	@echo ''
+	@echo 'Available defconfigs:'
 	@for config in $(sort $(notdir $(wildcard $(CONFIGS_DIR)/*_defconfig))); do \
-		printf "  %-30s- Build for %s\\n" $$config "$${config%_defconfig}"; \
+		printf "  %-30s- %s\\n" $$config "$${config%_defconfig}"; \
 	done
 	@echo ''
 	@echo 'Build targets:'
-	@echo '  all                - Build all targets (default)'
-	@echo '  (no target)        - Same as all'
+	@echo '  all                - Build all configured targets (default)'
+	@echo '  install            - Install binaries and libraries'
 	@echo ''
-	@echo 'Other targets:'
-	@echo '  help               - This help text'
+	@echo 'Build options:'
+	@echo '  O=<dir>            - Use custom build directory (default: _build)'
+	@echo '  CMAKE_BUILD_TYPE=<type> - Set build type: Debug, Release, RelWithDebInfo'
+	@echo '  CMAKE_INSTALL_PREFIX=<path> - Set installation prefix (default: /usr)'
+	@echo '  DESTDIR=<path>     - Stage installation to alternate root (for install target)'
 	@echo ''
-	@echo 'Execute "make" or "make all" to build.'
-	@echo 'Execute "make <board>_defconfig" first to configure.'
-	@echo ''
-	@echo 'Example:'
+	@echo 'Examples:'
+	@echo '  # Standard workflow'
 	@echo '  make tests_x86_minimal_defconfig'
 	@echo '  make -j$$(nproc)'
+	@echo '  make install DESTDIR=/tmp/staging'
+	@echo ''
+	@echo '  # Multiple parallel configurations using O='
+	@echo '  make O=build-debug tests_x86_full_defconfig'
+	@echo '  make O=build-debug CMAKE_BUILD_TYPE=Debug'
+	@echo ''
+	@echo '  make O=build-arm64 ccm_h200_100p_am625_release_defconfig'
+	@echo '  make O=build-arm64 CMAKE_BUILD_TYPE=Release CMAKE_TOOLCHAIN_FILE=toolchain.cmake'
+	@echo ''
+	@echo '  # Cross-compilation for Buildroot'
+	@echo '  make ccm_h200_100p_am625_release_defconfig'
+	@echo '  make CMAKE_TOOLCHAIN_FILE=$$(BUILDROOT)/host/share/buildroot/toolchainfile.cmake'
+	@echo '  make install DESTDIR=$$(BUILDROOT)/target'
 
 # List available configurations
 list:
@@ -190,15 +221,36 @@ savedefconfig:
 	@echo 'To save as a board defconfig:'
 	@echo '  cp $(BUILD_DIR)/defconfig $(CONFIGS_DIR)/<board>_defconfig'
 
-# Clean build artifacts
+# Clean build artifacts (keep CMake cache for faster reconfiguration)
 clean:
-	@echo "  CLEAN     $(BUILD_DIR)"
-	@rm -rf $(BUILD_DIR)
+	@if [ -f "$(BUILD_DIR)/Makefile" ]; then \
+		echo "  CLEAN     $(BUILD_DIR) (objects only)"; \
+		$(MAKE) -C $(BUILD_DIR) clean; \
+	else \
+		echo "  CLEAN     $(BUILD_DIR) (no build directory)"; \
+	fi
 
-# Complete clean
-distclean mrproper: clean
+# Complete clean (remove entire build directory)
+distclean mrproper:
+	@echo "  CLEAN     $(BUILD_DIR) (complete)"
+	@rm -rf $(BUILD_DIR)
 	@echo "  CLEAN     $(KCONFIG_CONFIG)"
 	@rm -f $(KCONFIG_CONFIG)
+
+# Install target (supports DESTDIR for Buildroot staging)
+# Usage:
+#   make install                          Install to /usr
+#   make install DESTDIR=/tmp/staging     Install to /tmp/staging/usr
+install:
+	@if [ ! -f "$(BUILD_DIR)/Makefile" ]; then \
+		echo "***"; \
+		echo "*** Build directory '$(BUILD_DIR)' not found!"; \
+		echo "*** Please run 'make' first to build the project."; \
+		echo "***"; \
+		exit 1; \
+	fi
+	@echo "  INSTALL   to $(if $(DESTDIR),$(DESTDIR))$(CMAKE_INSTALL_PREFIX)"
+	@$(MAKE) -C $(BUILD_DIR) install $(if $(DESTDIR),DESTDIR=$(DESTDIR))
 
 # Catch-all: forward to CMake build system
 %:
