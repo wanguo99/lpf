@@ -116,12 +116,12 @@ export KBUILD_VERBOSE
 
 # Centralized environment for all Kconfig operations
 COMMON_CONFIG_ENV = \
-	KCONFIG_CONFIG=$(TOPDIR)/$(KCONFIG_CONFIG) \
+	KCONFIG_CONFIG=$(abspath $(BUILD_DIR)/$(KCONFIG_CONFIG)) \
 	KCONFIG_AUTOCONFIG=$(KCONFIG_AUTOCONFIG) \
 	KCONFIG_AUTOHEADER=$(KCONFIG_AUTOHEADER) \
 	KCONFIG_TRISTATE=$(KCONFIG_TRISTATE) \
 	CONFIG_=CONFIG_ \
-	srctree=$(TOPDIR) \
+	srctree=$(CURDIR) \
 	KCONFIG_SEED=$(KCONFIG_SEED)
 
 #--------------------------------------------------------------
@@ -176,8 +176,8 @@ Makefile: ;
 #--------------------------------------------------------------
 
 ifndef SKIP_CONFIG_CHECK
-ifeq ($(wildcard $(KCONFIG_CONFIG)),)
-$(error Configuration file '$(KCONFIG_CONFIG)' not found! Run 'make <board>_defconfig' first. Try 'make list' for available configs)
+ifeq ($(wildcard $(BUILD_DIR)/$(KCONFIG_CONFIG)),)
+$(error Configuration file '$(BUILD_DIR)/$(KCONFIG_CONFIG)' not found! Run 'make <board>_defconfig' first. Try 'make list' for available configs)
 endif
 endif
 
@@ -202,19 +202,19 @@ _ensure_kconfig_tools: $(KCONFIG_CONF)
 menuconfig: $(KCONFIG_MCONF)
 	@$(COMMON_CONFIG_ENV) $(KCONFIG_MCONF) $(CONFIG_CONFIG_IN)
 	@echo "  GEN       $(KCONFIG_AUTOCONF_H)"
-	@$(TOPDIR)/scripts/gen_autoconf.sh $(KCONFIG_CONFIG) $(KCONFIG_AUTOCONF_H)
+	@$(CURDIR)/scripts/gen_autoconf.sh $(BUILD_DIR)/$(KCONFIG_CONFIG) $(KCONFIG_AUTOCONF_H)
 
 # Alternative interactive configuration (nconfig)
 nconfig: $(KCONFIG_NCONF)
 	@$(COMMON_CONFIG_ENV) $(KCONFIG_NCONF) $(CONFIG_CONFIG_IN)
 	@echo "  GEN       $(KCONFIG_AUTOCONF_H)"
-	@$(TOPDIR)/scripts/gen_autoconf.sh $(KCONFIG_CONFIG) $(KCONFIG_AUTOCONF_H)
+	@$(CURDIR)/scripts/gen_autoconf.sh $(BUILD_DIR)/$(KCONFIG_CONFIG) $(KCONFIG_AUTOCONF_H)
 
 # Update configuration with prompts for new symbols
 oldconfig: $(KCONFIG_CONF)
 	$(Q)$(COMMON_CONFIG_ENV) $(KCONFIG_CONF) $(KCONFIG_VERBOSE) --oldconfig $(CONFIG_CONFIG_IN)
 	@echo "  GEN       $(KCONFIG_AUTOCONF_H)"
-	$(Q)$(TOPDIR)/scripts/gen_autoconf.sh $(KCONFIG_CONFIG) $(KCONFIG_AUTOCONF_H)
+	$(Q)$(CURDIR)/scripts/gen_autoconf.sh $(BUILD_DIR)/$(KCONFIG_CONFIG) $(KCONFIG_AUTOCONF_H)
 
 # Synchronize configuration (Buildroot/kernel standard)
 syncconfig: $(KCONFIG_CONF)
@@ -275,9 +275,13 @@ defconfig: $(KCONFIG_CONF)
 		exit 1; \
 	fi; \
 	echo "  DEFCONFIG $@"; \
-	$(COMMON_CONFIG_ENV) $(KCONFIG_CONF) --defconfig="$$config" $(CONFIG_CONFIG_IN)
+	$(COMMON_CONFIG_ENV) $(KCONFIG_CONF) --defconfig="$$config" $(CONFIG_CONFIG_IN); \
+	if [ -f "$(KCONFIG_CONFIG)" ] && [ "$(abspath $(KCONFIG_CONFIG))" != "$(abspath $(BUILD_DIR)/$(KCONFIG_CONFIG))" ]; then \
+		mkdir -p $(BUILD_DIR); \
+		mv -f $(KCONFIG_CONFIG) $(BUILD_DIR)/$(KCONFIG_CONFIG); \
+	fi
 	@echo "  GEN       $(KCONFIG_AUTOCONF_H)"
-	$(Q)$(TOPDIR)/scripts/gen_autoconf.sh $(KCONFIG_CONFIG) $(KCONFIG_AUTOCONF_H)
+	$(Q)$(CURDIR)/scripts/gen_autoconf.sh $(BUILD_DIR)/$(KCONFIG_CONFIG) $(KCONFIG_AUTOCONF_H)
 
 # Save minimal configuration
 savedefconfig: $(KCONFIG_CONF)
@@ -299,9 +303,9 @@ update-defconfig: savedefconfig
 all: _build_cmake
 
 _build_cmake:
-	$(Q)if [ ! -f "$(KCONFIG_CONFIG)" ]; then \
+	$(Q)if [ ! -f "$(BUILD_DIR)/$(KCONFIG_CONFIG)" ]; then \
 		echo "***"; \
-		echo "*** Configuration file '$(KCONFIG_CONFIG)' not found!"; \
+		echo "*** Configuration file '$(BUILD_DIR)/$(KCONFIG_CONFIG)' not found!"; \
 		echo "***"; \
 		echo "*** Please run 'make <board>_defconfig' first."; \
 		echo "*** Available configs: run 'make list'"; \
@@ -309,8 +313,8 @@ _build_cmake:
 		exit 1; \
 	fi
 	$(Q)CMAKE_ARGS="-DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE) -DCMAKE_INSTALL_PREFIX=$(CMAKE_INSTALL_PREFIX)"; \
-	CMAKE_ARGS="$$CMAKE_ARGS -DCONFIG_FILE=$(TOPDIR)/$(KCONFIG_CONFIG)"; \
-	CMAKE_ARGS="$$CMAKE_ARGS -DAUTOCONF_H=$(TOPDIR)/$(KCONFIG_AUTOCONF_H)"; \
+	CMAKE_ARGS="$$CMAKE_ARGS -DCONFIG_FILE=$(abspath $(BUILD_DIR)/$(KCONFIG_CONFIG))"; \
+	CMAKE_ARGS="$$CMAKE_ARGS -DAUTOCONF_H=$(abspath $(KCONFIG_AUTOCONF_H))"; \
 	if [ -n "$(CMAKE_TOOLCHAIN_FILE)" ]; then \
 		CMAKE_ARGS="$$CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=$(CMAKE_TOOLCHAIN_FILE)"; \
 		if [ -f "$(BUILD_DIR)/CMakeCache.txt" ]; then \
