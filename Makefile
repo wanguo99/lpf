@@ -231,16 +231,31 @@ config: scripts_basic FORCE
 
 %config: scripts_basic FORCE
 	$(Q)mkdir -p include
-	@if [ "$(KBUILD_VERBOSE)" = "1" ]; then \
-		$(MAKE) $(build)=scripts/kconfig $@; \
+	@target=$@; \
+	if [ "$(KBUILD_VERBOSE)" = "1" ]; then \
+		$(MAKE) $(build)=scripts/kconfig $$target; \
 	else \
-		$(MAKE) $(build)=scripts/kconfig $@ > /tmp/kconfig.$$$$.log 2>&1; \
-		if [ $$? -ne 0 ]; then \
-			cat /tmp/kconfig.$$$$.log; \
-			rm -f /tmp/kconfig.$$$$.log; \
-			exit 1; \
+		logfile=/tmp/kconfig.$$$$.log; \
+		$(MAKE) --no-print-directory $(build)=scripts/kconfig $$target 2>&1 | \
+		while IFS= read -r line; do \
+			case "$$line" in \
+				"  HOSTCC  "*|"  HOSTLD  "*|"  SHIPPED "*) \
+					echo "$$line" ;; \
+				*"error:"*|*"Error:"*|*"ERROR:"*) \
+					echo "$$line" >&2 ;; \
+				*) \
+					echo "$$line" >> $$logfile ;; \
+			esac; \
+		done; \
+		status=$$?; \
+		if [ $$status -ne 0 ]; then \
+			if [ -f $$logfile ]; then \
+				cat $$logfile >&2; \
+				rm -f $$logfile; \
+			fi; \
+			exit $$status; \
 		fi; \
-		rm -f /tmp/kconfig.$$$$.log; \
+		rm -f $$logfile; \
 	fi
 	@if [ -f .config ]; then \
 		echo ""; \
