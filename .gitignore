@@ -18,6 +18,7 @@ build*/
 .config
 .config.old
 .config.mk
+.kconfig.d
 include/config/
 include/generated/
 include/autoconf.h
