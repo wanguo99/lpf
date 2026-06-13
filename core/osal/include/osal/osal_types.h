@@ -386,7 +386,7 @@ OSAL_STATIC_ASSERT(sizeof(uint64_t) == 0x8, "uint64_must_be_8_bytes");
 /*
  * 通过成员指针获取结构体指针
  */
-#define OSAL_CONTAINER_OF(ptr, type, member) \
+#define OSAL_container_of(ptr, type, member) \
     ((type *)((char *)(ptr) - OSAL_offsetof(type, member)))
 
 /*
