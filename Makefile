@@ -255,7 +255,9 @@ include/autoconf.h: ;
 endif
 
 # The all: target is the default when no target is given on the command line.
-all: include/autoconf.h
+# It requires .config to exist, otherwise it will fail with an error message.
+PHONY += all
+all: _check_config include/autoconf.h _cmake_configure
 	@echo ""
 	@echo "==================================================================="
 	@echo "ES-Middleware Build System"
@@ -264,9 +266,6 @@ all: include/autoconf.h
 	@echo "Configuration loaded from: $(CURDIR)/.config"
 	@echo "Building with CMake..."
 	@echo ""
-	$(Q)$(MAKE) _build_all
-
-_build_all: _cmake_configure
 	@echo "  BUILD    ES-Middleware"
 	$(Q)$(MAKE) -C $(BUILD_DIR) $(PARALLEL_BUILD)
 	@echo ""
@@ -278,6 +277,26 @@ _build_all: _cmake_configure
 	@echo "Libraries: $(BUILD_DIR)/lib/"
 	@echo ""
 
+PHONY += _check_config
+_check_config:
+	@if [ ! -f .config ]; then \
+		echo ""; \
+		echo "==================================================================="; \
+		echo "ERROR: No configuration found!"; \
+		echo "==================================================================="; \
+		echo ""; \
+		echo "Please run a configuration command first:"; \
+		echo "  make menuconfig          - Interactive menu-based configuration"; \
+		echo "  make <name>_defconfig    - Load a predefined configuration"; \
+		echo ""; \
+		echo "Available configurations:"; \
+		echo "  make list                - List all available defconfigs"; \
+		echo "==================================================================="; \
+		echo ""; \
+		exit 1; \
+	fi
+
+PHONY += _cmake_configure
 _cmake_configure:
 	$(Q)if [ ! -f "$(BUILD_DIR)/Makefile" ]; then \
 		echo "  CMAKE    $(BUILD_DIR)"; \
@@ -298,16 +317,22 @@ endif # ifeq ($(mixed-targets),1)
 # ===========================================================================
 # Cleaning targets
 
-PHONY += clean mrproper distclean
+PHONY += clean distclean mrproper
+
+# clean: Remove build artifacts
 clean:
 	@echo "  CLEAN   build artifacts"
 	$(Q)rm -rf $(BUILD_DIR)
 	$(Q)rm -f include/autoconf.h
 
-mrproper distclean: clean
+# distclean: Remove build artifacts and configuration
+distclean: clean
 	@echo "  CLEAN   configuration"
 	$(Q)rm -f .config .config.old .kconfig.d
 	$(Q)rm -rf include/config include/generated
+
+# mrproper: Remove everything including kconfig tools
+mrproper: distclean
 	@echo "  CLEAN   kconfig tools"
 	$(Q)$(MAKE) -C $(KCONFIG_DIR) clean
 
