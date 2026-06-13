@@ -381,13 +381,13 @@ OSAL_STATIC_ASSERT(sizeof(uint64_t) == 0x8, "uint64_must_be_8_bytes");
 /*
  * 结构体成员偏移量
  */
-#define OSAL_OFFSETOF(type, member)  ((osal_size_t)&(((type *)0)->member))
+#define OSAL_offsetof(type, member)  ((osal_size_t)&(((type *)0)->member))
 
 /*
  * 通过成员指针获取结构体指针
  */
 #define OSAL_CONTAINER_OF(ptr, type, member) \
-    ((type *)((char *)(ptr) - OSAL_OFFSETOF(type, member)))
+    ((type *)((char *)(ptr) - OSAL_offsetof(type, member)))
 
 /*
  * 最小值/最大值宏（类型安全）
