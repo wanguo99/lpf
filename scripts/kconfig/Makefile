@@ -90,7 +90,7 @@ endif
 	@config_name=$@; \
 	subdir=$${config_name%%_*}; \
 	if [ -f configs/$$subdir/$$config_name ]; then \
-		$(Q)$< -D configs/$$subdir/$$config_name Config.in; \
+		$(Q)yes "" | $< -D configs/$$subdir/$$config_name Config.in; \
 	else \
 		echo "Error: Configuration file configs/$$subdir/$$config_name not found"; \
 		exit 1; \
