@@ -217,6 +217,7 @@ config: scripts_basic FORCE
 	$(Q)mkdir -p include
 	$(Q)$(MAKE) $(build)=scripts/kconfig $@
 	@if [ -f .config ]; then \
+		$(srctree)/scripts/gen_version.sh; \
 		echo ""; \
 		echo "==================================================================="; \
 		echo "Configuration file generated: $(CURDIR)/.config"; \
@@ -258,6 +259,7 @@ config: scripts_basic FORCE
 		rm -f $$logfile; \
 	fi
 	@if [ -f .config ]; then \
+		$(srctree)/scripts/gen_version.sh; \
 		echo ""; \
 		echo "==================================================================="; \
 		echo "Configuration file generated: $(CURDIR)/.config"; \
@@ -275,7 +277,7 @@ else
 # Build targets only - this includes all build targets
 # targets and others. In general all targets except *config targets.
 
-scripts_basic: include/autoconf.h
+scripts_basic: include/autoconf.h include/version.h
 
 ifeq ($(dot-config),1)
 # In this section, we need .config
@@ -298,15 +300,20 @@ ifeq ($(dot-config),1)
 include/autoconf.h: .config $(wildcard .kconfig.d)
 	$(Q)$(MAKE) -f $(srctree)/Makefile silentoldconfig
 
+# Generate version.h with build information
+include/version.h: .config FORCE
+	$(Q)$(srctree)/scripts/gen_version.sh
+
 else
 # Dummy target needed, because used as prerequisite
 include/autoconf.h: ;
+include/version.h: ;
 endif
 
 # The all: target is the default when no target is given on the command line.
 # It requires .config to exist, otherwise it will fail with an error message.
 PHONY += all
-all: _check_config include/autoconf.h _cmake_configure
+all: _check_config include/autoconf.h include/version.h _cmake_configure
 	@echo ""
 	@echo "==================================================================="
 	@echo "ES-Middleware Build System"
@@ -379,6 +386,7 @@ distclean: clean
 	@echo "  CLEAN   configuration"
 	$(Q)rm -f .config .config.old .kconfig.d
 	$(Q)rm -rf include/config include/generated
+	$(Q)rm -f include/autoconf.h include/version.h
 
 # mrproper: Remove everything including kconfig tools
 mrproper: distclean

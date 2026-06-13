@@ -22,6 +22,7 @@ build*/
 include/config/
 include/generated/
 include/autoconf.h
+include/version.h
 
 # Kconfig 工具（编译产物）
 scripts/kconfig/conf
