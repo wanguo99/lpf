@@ -136,7 +136,7 @@ message(STATUS "  Headers: ${CMAKE_INSTALL_PREFIX}/${INSTALL_INCLUDEDIR}")
 # ============================================================================
 
 include(${SDK_PATH}/scripts/cmake/compile.cmake)
-include(${SDK_PATH}/cmake/ComponentAPI.cmake)
+include(${SDK_PATH}/scripts/cmake/ComponentAPI.cmake)
 
 # ============================================================================
 # Auto-include Configuration Header
