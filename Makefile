@@ -231,7 +231,17 @@ config: scripts_basic FORCE
 
 %config: scripts_basic FORCE
 	$(Q)mkdir -p include
-	$(Q)$(MAKE) $(build)=scripts/kconfig $@
+	@if [ "$(KBUILD_VERBOSE)" = "1" ]; then \
+		$(MAKE) $(build)=scripts/kconfig $@; \
+	else \
+		$(MAKE) $(build)=scripts/kconfig $@ > /tmp/kconfig.$$$$.log 2>&1; \
+		if [ $$? -ne 0 ]; then \
+			cat /tmp/kconfig.$$$$.log; \
+			rm -f /tmp/kconfig.$$$$.log; \
+			exit 1; \
+		fi; \
+		rm -f /tmp/kconfig.$$$$.log; \
+	fi
 	@if [ -f .config ]; then \
 		echo ""; \
 		echo "==================================================================="; \
