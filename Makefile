@@ -488,8 +488,14 @@ help:
 list:
 	@echo 'Available defconfigs:'
 	@echo ''
-	@for config in $(sort $(notdir $(wildcard $(srctree)/configs/*_defconfig))); do \
-		echo "  $$config"; \
+	@cd $(srctree)/configs && for subdir in */; do \
+		subdir=$${subdir%/}; \
+		echo "$$subdir configurations:"; \
+		for config in $$subdir/*_defconfig; do \
+			config=$$(basename $$config); \
+			printf "  %-35s\n" $$config; \
+		done; \
+		echo ""; \
 	done
 
 # ===========================================================================
