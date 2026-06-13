@@ -305,6 +305,10 @@ mrproper distclean: clean
 	@echo "  CLEAN   configuration"
 	$(Q)rm -f .config .config.old .kconfig.d
 	$(Q)rm -rf include/config include/generated
+	@echo "  CLEAN   kconfig tools"
+	$(Q)rm -f scripts/kconfig/conf scripts/kconfig/mconf scripts/kconfig/nconf scripts/kconfig/qconf
+	$(Q)rm -f scripts/kconfig/*.o scripts/kconfig/.*.cmd
+	$(Q)rm -f scripts/kconfig/lxdialog/*.o scripts/kconfig/lxdialog/.*.cmd
 
 # ===========================================================================
 # Installation target
