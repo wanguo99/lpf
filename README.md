@@ -153,9 +153,32 @@ make
 # 图形化配置（高级）
 make menuconfig
 
+# 安装
+make install                    # 安装二进制和库
+make install_headers            # 仅安装开发头文件（类似 kernel 的 headers_install）
+
+# 安装选项
+make install DESTDIR=/tmp/root CMAKE_INSTALL_PREFIX=/usr
+make install_headers DESTDIR=/tmp/root CMAKE_INSTALL_PREFIX=/usr
+
 # 清理
 make clean       # 清理编译产物
 make distclean   # 完全清理（包括配置）
+```
+
+### install_headers 说明
+
+`make install_headers` 命令仅安装开发头文件，不需要先编译项目：
+
+- **无需编译**：只需要加载配置（`make <config>_defconfig`）
+- **按需安装**：仅安装已启用模块的头文件
+- **支持 DESTDIR**：可以安装到临时目录进行打包
+- **类似内核**：设计类似 Linux 内核的 `make headers_install`
+
+**使用场景**：
+- 为其他项目提供开发头文件
+- 制作 SDK 开发包
+- Buildroot/Yocto 集成时单独安装头文件
 
 # 查看帮助
 make help

@@ -435,6 +435,32 @@ install:
 	@echo "Install prefix: $(if $(DESTDIR),$(DESTDIR))$(CMAKE_INSTALL_PREFIX)"
 	@echo ""
 
+# Install headers only (similar to kernel's make headers_install)
+PHONY += install_headers
+install_headers:
+	@if [ ! -f ".config" ]; then \
+		echo ""; \
+		echo "===================================================================";\
+		echo "ERROR: Configuration file not found!";\
+		echo "===================================================================";\
+		echo "";\
+		echo "Please run 'make <config>_defconfig' first to configure the project.";\
+		echo "===================================================================";\
+		echo "";\
+		exit 1;\
+	fi
+	@echo "  INSTALL_HEADERS $(if $(DESTDIR),$(DESTDIR))$(CMAKE_INSTALL_PREFIX)/include"
+	$(Q)$(CMAKE) -DSDK_PATH=$(CURDIR) \
+		$(if $(DESTDIR),-DDESTDIR=$(DESTDIR)) \
+		$(if $(CMAKE_INSTALL_PREFIX),-DCMAKE_INSTALL_PREFIX=$(CMAKE_INSTALL_PREFIX)) \
+		-P scripts/cmake/install_headers.cmake
+	@echo ""
+	@echo "==================================================================="
+	@echo "Headers installed successfully!"
+	@echo "==================================================================="
+	@echo "Install prefix: $(if $(DESTDIR),$(DESTDIR))$(CMAKE_INSTALL_PREFIX)/include"
+	@echo ""
+
 # ===========================================================================
 # Help and information targets
 
@@ -459,6 +485,7 @@ help:
 	@echo 'Build targets:'
 	@echo '  all             - Build all configured targets (default)'
 	@echo '  install         - Install binaries and libraries'
+	@echo '  install_headers - Install development headers only'
 	@echo '  clean           - Remove build artifacts'
 	@echo '  distclean       - Remove build artifacts and configuration'
 	@echo '  mrproper        - Same as distclean'
