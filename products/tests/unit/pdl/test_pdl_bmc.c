@@ -75,7 +75,7 @@ static void test_pdl_bmc_init_serial_success(void)
 {
     pdl_bmc_handle_t handle = NULL;
     pdl_bmc_config_t config;
-    create_network_config(&config);
+    create_serial_config(&config);
 
     int32_t ret = PDL_BMC_Init(&config, &handle);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);

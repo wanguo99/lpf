@@ -294,42 +294,6 @@ void ACONFIG_PrintConfig(void)
  * HWID 相关接口
  *===========================================================================*/
 
-/**
- * @brief 检查配置表是否支持指定的HWID
- * @param table 配置表指针
- * @param hwid  硬件ID结构体指针
- * @return true=支持，false=不支持
- */
-static bool aconfig_is_hwid_supported(const aconfig_config_table_t *table, const pdl_hwid_t *hwid)
-{
-    uint32_t i;
-
-    if (table == NULL || hwid == NULL) {
-        return false;
-    }
-
-    /* hwid_count == 0 或 hwid_list == NULL 表示支持所有HWID */
-    if (table->hwid_count == 0 || table->hwid_list == NULL) {
-        return true;
-    }
-
-    /* 在HWID列表中查找匹配项 */
-    for (i = 0; i < table->hwid_count; i++) {
-        const pdl_hwid_t *pattern = &table->hwid_list[i];
-
-        /* 匹配规则：比较关键字段，忽略序列号和生产日期 */
-        if (pattern->magic == hwid->magic &&
-            pattern->product_id == hwid->product_id &&
-            pattern->project_id == hwid->project_id &&
-            pattern->board_type == hwid->board_type &&
-            pattern->hw_revision == hwid->hw_revision) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 const aconfig_config_table_t* ACONFIG_FindTableByHWID(const pdl_hwid_t *hwid)
 {
     /* TODO: 需要维护一个全局的配置表注册列表 */

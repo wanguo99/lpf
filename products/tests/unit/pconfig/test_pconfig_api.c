@@ -116,18 +116,6 @@ static pconfig_platform_config_t test_platform_config = {
     .switch_arr = NULL
 };
 
-/* 测试夹具 */
-static void pconfig_test_setup(void)
-{
-    PCONFIG_Init();
-    PCONFIG_Register(&test_platform_config);
-}
-
-static void pconfig_test_teardown(void)
-{
-    PCONFIG_Cleanup();
-}
-
 /*===========================================================================
  * 初始化和注册测试
  *===========================================================================*/

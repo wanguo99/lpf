@@ -237,7 +237,6 @@ int main(int argc, char *argv[])
     /* Output format configuration */
     const char *output_format = "text";  /* Default: text */
     const char *output_file = NULL;
-    bool enable_stats = true;  /* Default: show statistics */
 
     /* Parse filtering options first */
     int i;
@@ -274,8 +273,6 @@ int main(int argc, char *argv[])
         } else if (0 == OSAL_strcmp(argv[i], "--output") && i + 1 < argc) {
             output_file = argv[i + 1];
             i++;  /* Skip output file value */
-        } else if (0 == OSAL_strcmp(argv[i], "--no-stats")) {
-            enable_stats = false;
         }
     }
 

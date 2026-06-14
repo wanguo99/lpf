@@ -180,7 +180,6 @@ function(register_component)
     # Install rules for Buildroot integration
     # ========================================================================
     # Install libraries to staging directory for linking
-    # Install headers to staging directory for development
     if(ADD_SRCS OR to_dynamic_lib)
         install(TARGETS ${component_name}
             ARCHIVE DESTINATION ${INSTALL_LIBDIR}
@@ -190,17 +189,21 @@ function(register_component)
         )
     endif()
 
-    # Install public headers
-    foreach(include_dir ${ADD_INCLUDE})
-        get_filename_component(abs_dir ${include_dir} ABSOLUTE BASE_DIR ${component_dir})
-        if(IS_DIRECTORY ${abs_dir})
-            install(DIRECTORY ${abs_dir}/
-                DESTINATION ${INSTALL_INCLUDEDIR}/${component_name}
-                COMPONENT development
-                FILES_MATCHING PATTERN "*.h"
-            )
-        endif()
-    endforeach()
+    # Install public headers (only when explicitly requested)
+    # Controlled by INSTALL_DEVELOPMENT_HEADERS CMake variable
+    # Set by Buildroot package or by make install_headers
+    if(INSTALL_DEVELOPMENT_HEADERS)
+        foreach(include_dir ${ADD_INCLUDE})
+            get_filename_component(abs_dir ${include_dir} ABSOLUTE BASE_DIR ${component_dir})
+            if(IS_DIRECTORY ${abs_dir})
+                install(DIRECTORY ${abs_dir}/
+                    DESTINATION ${INSTALL_INCLUDEDIR}/${component_name}
+                    COMPONENT development
+                    FILES_MATCHING PATTERN "*.h"
+                )
+            endif()
+        endforeach()
+    endif()
 endfunction()
 
 function(is_path_component ret param_path)

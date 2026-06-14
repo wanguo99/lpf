@@ -10,45 +10,6 @@
 #include "pdl.h"
 
 /*===========================================================================
- * 内部辅助函数
- *===========================================================================*/
-
-/**
- * @brief 验证 HWID 有效性
- *
- * @param hwid HWID 指针
- * @return true=有效，false=无效
- */
-static bool pdl_misc_validate_hwid(const pdl_hwid_t *hwid)
-{
-    uint16_t calculated_crc;
-
-    if (hwid == NULL) {
-        return false;
-    }
-
-    /* 检查魔数 */
-    if (hwid->magic != PDL_HWID_MAGIC) {
-        return false;
-    }
-
-    /* 检查格式版本 */
-    if (hwid->format_version != PDL_HWID_FORMAT_V1) {
-        return false;
-    }
-
-    /* 验证 CRC（使用 OSAL CRC16-CCITT） */
-    /* CRC 字段在结构体末尾，计算时将其视为 0 */
-    calculated_crc = OSAL_CRC16_CCITT((const uint8_t *)hwid,
-                                       OSAL_sizeof(pdl_hwid_t) - OSAL_sizeof(uint16_t));
-    if (calculated_crc != hwid->crc16) {
-        return false;
-    }
-
-    return true;
-}
-
-/*===========================================================================
  * 硬件ID (HWID) 实现
  *===========================================================================*/
 

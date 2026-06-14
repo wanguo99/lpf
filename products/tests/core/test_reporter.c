@@ -405,7 +405,7 @@ void libutest_print_suite_stats(void)
     suite_stats_t *suite_stats;
     uint32_t suite_count = 0;
     uint32_t max_suites = 64;
-    uint32_t i, j;
+    uint32_t i;
     bool found;
 
     if (stats->total == 0) return;

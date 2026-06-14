@@ -82,18 +82,6 @@ static const aconfig_config_table_t test_config_table = {
     .inv_count = OSAL_sizeof(test_inv_map) / OSAL_sizeof(test_inv_map[0])
 };
 
-/* 测试夹具 */
-static void aconfig_test_setup(void)
-{
-    ACONFIG_Init();
-    ACONFIG_RegisterTable(&test_config_table);
-}
-
-static void aconfig_test_teardown(void)
-{
-    /* ACONFIG 没有清理函数，下次 Init 会重置 */
-}
-
 /*===========================================================================
  * 初始化和注册测试
  *===========================================================================*/
