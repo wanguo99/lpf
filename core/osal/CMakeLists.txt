@@ -8,7 +8,7 @@
 # ============================================================================
 # Common source files (always included)
 # ============================================================================
-list(APPEND ADD_SRCS "src/common/osal_version.c")
+# (Removed osal_version.c - now implemented in platform-specific directories)
 
 # ============================================================================
 # Platform-specific source files
