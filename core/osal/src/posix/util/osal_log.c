@@ -681,7 +681,7 @@ static void log_internal_ex(log_level_t level, const char *module,
                                    color_reset,
                                    message);
         if (console_len > 0) {
-            ssize_t ret = write(STDOUT_FILENO, console_buf, (size_t)console_len);
+            osal_ssize_t ret = write(STDOUT_FILENO, console_buf, (osal_size_t)console_len);
             if (ret < 0) {
                 /* Write failed, but we can't log it (would cause recursion) */
             }
@@ -746,7 +746,7 @@ static void log_internal(log_level_t level, const char *module,
                                    color_reset,
                                    message);
         if (console_len > 0) {
-            ssize_t ret = write(STDOUT_FILENO, console_buf, (size_t)console_len);
+            osal_ssize_t ret = write(STDOUT_FILENO, console_buf, (osal_size_t)console_len);
             if (ret < 0) {
                 /* Write failed, but we can't log it (would cause recursion) */
             }
@@ -763,7 +763,7 @@ static void log_internal(log_level_t level, const char *module,
                                    color_reset,
                                    message);
         if (console_len > 0) {
-            ssize_t ret = write(STDOUT_FILENO, console_buf, (size_t)console_len);
+            osal_ssize_t ret = write(STDOUT_FILENO, console_buf, (osal_size_t)console_len);
             if (ret < 0) {
                 /* Write failed, but we can't log it (would cause recursion) */
             }
@@ -858,7 +858,7 @@ void OSAL_printf(const char *format, ...)
     va_end(args);
 
     if (len > 0) {
-        ssize_t ret = write(STDOUT_FILENO, buffer, (size_t)len);
+        osal_ssize_t ret = write(STDOUT_FILENO, buffer, (osal_size_t)len);
         if (ret < 0) {
             /* Write failed, but we can't log it (would cause recursion) */
         }
@@ -876,7 +876,7 @@ void OSAL_log_structured(int32_t level, log_module_t module, const char *message
     char kv_buffer[512];
     char remote_log[OSAL_LOG_MESSAGE_SIZE + 256];
     uint32_t i;
-    size_t offset = 0;
+    osal_size_t offset = 0;
     log_level_t current_level;
     log_level_t module_level;
     bool module_level_set;
@@ -920,9 +920,9 @@ void OSAL_log_structured(int32_t level, log_module_t module, const char *message
             {
                 int written = snprintf(kv_buffer + offset, OSAL_sizeof(kv_buffer) - offset,
                                       " %s=%s", kv_pairs[i].key, kv_pairs[i].value);
-                if (written > 0 && (offset + (size_t)written) < OSAL_sizeof(kv_buffer))
+                if (written > 0 && (offset + (osal_size_t)written) < OSAL_sizeof(kv_buffer))
                 {
-                    offset += (size_t)written;
+                    offset += (osal_size_t)written;
                 }
             }
         }
@@ -956,7 +956,7 @@ void OSAL_log_structured(int32_t level, log_module_t module, const char *message
                                    color_reset,
                                    full_message);
         if (console_len > 0) {
-            ssize_t ret = write(STDOUT_FILENO, console_buf, (size_t)console_len);
+            osal_ssize_t ret = write(STDOUT_FILENO, console_buf, (osal_size_t)console_len);
             if (ret < 0) {
                 /* Write failed, but we can't log it (would cause recursion) */
             }

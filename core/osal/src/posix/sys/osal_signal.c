@@ -14,7 +14,7 @@ int32_t OSAL_signal(int32_t signum, osal_sighandler_t handler)
     return 0;
 }
 
-int32_t OSAL_kill(pid_t pid, int32_t sig)
+int32_t OSAL_kill(osal_pid_t pid, int32_t sig)
 {
     return kill(pid, sig);
 }

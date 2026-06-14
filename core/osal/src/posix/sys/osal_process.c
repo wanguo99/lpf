@@ -36,7 +36,7 @@ void OSAL_abort(void)
 
 int32_t OSAL_fork(void)
 {
-    pid_t pid = fork();
+    osal_pid_t pid = fork();
     return (pid < 0) ? -1 : (int32_t)pid;
 }
 
@@ -49,14 +49,14 @@ int32_t OSAL_waitpid(int32_t pid, int32_t *status, int32_t options)
 {
     int wait_status;
     int posix_options = 0;
-    pid_t result;
+    osal_pid_t result;
 
     /* 转换选项 */
     if (options & OSAL_WNOHANG) {
         posix_options |= WNOHANG;
     }
 
-    result = waitpid((pid_t)pid, &wait_status, posix_options);
+    result = waitpid((osal_pid_t)pid, &wait_status, posix_options);
 
     if (result > 0) {
         /* 子进程退出 */

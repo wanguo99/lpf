@@ -104,10 +104,10 @@ int32_t OSAL_close(int32_t fd)
 
 int32_t OSAL_read(int32_t fd, void *buf, uint32_t count)
 {
-    ssize_t result;
+    osal_ssize_t result;
     int32_t safe_result;
 
-    result = read(fd, buf, (size_t)count);
+    result = read(fd, buf, (osal_size_t)count);
 
     /* 错误情况直接返回 */
     if (result < 0) {
@@ -127,10 +127,10 @@ int32_t OSAL_read(int32_t fd, void *buf, uint32_t count)
 
 int32_t OSAL_write(int32_t fd, const void *buf, uint32_t count)
 {
-    ssize_t result;
+    osal_ssize_t result;
     int32_t safe_result;
 
-    result = write(fd, buf, (size_t)count);
+    result = write(fd, buf, (osal_size_t)count);
 
     /* 错误情况直接返回 */
     if (result < 0) {
@@ -150,14 +150,14 @@ int32_t OSAL_write(int32_t fd, const void *buf, uint32_t count)
 
 int64_t OSAL_lseek(int32_t fd, int64_t offset, int32_t whence)
 {
-    off_t result = lseek(fd, (off_t)offset, whence);
+    osal_off_t result = lseek(fd, (osal_off_t)offset, whence);
 
     /* 错误情况直接返回 */
-    if (result == (off_t)-1) {
+    if (result == (osal_off_t)-1) {
         return -1;
     }
 
-    /* off_t 在 64 位系统上是 int64_t，直接返回 */
+    /* osal_off_t 在 64 位系统上是 int64_t，直接返回 */
     return (int64_t)result;
 }
 

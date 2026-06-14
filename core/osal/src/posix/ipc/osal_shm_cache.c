@@ -34,7 +34,7 @@ typedef struct {
     char name[64];
     int shm_fd;
     void *shm_ptr;
-    size_t shm_size;
+    osal_size_t shm_size;
     shm_cache_header_t *header;
 } cache_descriptor_t;
 
@@ -95,7 +95,7 @@ int32_t OSAL_CacheCreate(const char *name, uint32_t max_entries, osal_id_t *cach
 {
     int32_t slot;
     cache_descriptor_t *cache;
-    size_t shm_size;
+    osal_size_t shm_size;
     int shm_fd;
     void *shm_ptr;
     shm_cache_header_t *header;

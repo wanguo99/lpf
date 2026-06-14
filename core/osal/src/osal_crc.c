@@ -50,9 +50,9 @@ static const uint16_t crc16_ccitt_table[256] = {
     0x6E17, 0x7E36, 0x4E55, 0x5E74, 0x2E93, 0x3EB2, 0x0ED1, 0x1EF0,
 };
 
-uint16_t OSAL_CRC16_CCITT_Update(uint16_t crc, const uint8_t *data, size_t len)
+uint16_t OSAL_CRC16_CCITT_Update(uint16_t crc, const uint8_t *data, osal_size_t len)
 {
-    size_t i;
+    osal_size_t i;
 
     if (data == NULL || len == 0) {
         return crc;
@@ -65,7 +65,7 @@ uint16_t OSAL_CRC16_CCITT_Update(uint16_t crc, const uint8_t *data, size_t len)
     return crc;
 }
 
-uint16_t OSAL_CRC16_CCITT(const uint8_t *data, size_t len)
+uint16_t OSAL_CRC16_CCITT(const uint8_t *data, osal_size_t len)
 {
     /* CRC16-CCITT 初始值为 0xFFFF */
     return OSAL_CRC16_CCITT_Update(0xFFFF, data, len);
@@ -75,7 +75,7 @@ uint16_t OSAL_CRC16_CCITT(const uint8_t *data, size_t len)
  * CRC32 实现（预留）
  *===========================================================================*/
 
-uint32_t OSAL_CRC32(const uint8_t *data, size_t len)
+uint32_t OSAL_CRC32(const uint8_t *data, osal_size_t len)
 {
     /* TODO: 实现 CRC32 算法 */
     (void)data;
@@ -83,7 +83,7 @@ uint32_t OSAL_CRC32(const uint8_t *data, size_t len)
     return 0;
 }
 
-uint32_t OSAL_CRC32_Update(uint32_t crc, const uint8_t *data, size_t len)
+uint32_t OSAL_CRC32_Update(uint32_t crc, const uint8_t *data, osal_size_t len)
 {
     /* TODO: 实现 CRC32 增量算法 */
     (void)data;

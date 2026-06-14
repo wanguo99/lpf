@@ -52,14 +52,14 @@
         #endif
     #endif
 
-    /* osal_size_t和NULL */
+    /* size_t和NULL */
     #ifndef NULL
         #define NULL ((void *)0)
     #endif
 
     #ifndef _SIZE_T_DEFINED
         #define _SIZE_T_DEFINED
-        typedef unsigned long osal_size_t;
+        typedef unsigned long size_t;
     #endif
 
     /* va_list 类型（编译器内建支持） */

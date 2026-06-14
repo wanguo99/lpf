@@ -13,7 +13,7 @@
 
 int32_t OSAL_pthread_setschedparam(osal_thread_t thread, int32_t policy, int32_t priority)
 {
-    struct sched_param param;
+    osal_sched_param_t param;
     param.sched_priority = priority;
 
     return pthread_setschedparam(thread, policy, &param);
@@ -21,7 +21,7 @@ int32_t OSAL_pthread_setschedparam(osal_thread_t thread, int32_t policy, int32_t
 
 int32_t OSAL_pthread_getschedparam(osal_thread_t thread, int32_t *policy, int32_t *priority)
 {
-    struct sched_param param;
+    osal_sched_param_t param;
     int pol;
     int ret;
 

@@ -68,7 +68,7 @@ int32_t OSAL_pthread_attr_destroy(osal_threadattr_t *attr)
     return pthread_attr_destroy(attr);
 }
 
-int32_t OSAL_pthread_attr_setstacksize(osal_threadattr_t *attr, size_t stacksize)
+int32_t OSAL_pthread_attr_setstacksize(osal_threadattr_t *attr, osal_size_t stacksize)
 {
     if (attr == NULL) {
         errno = EINVAL;
@@ -78,7 +78,7 @@ int32_t OSAL_pthread_attr_setstacksize(osal_threadattr_t *attr, size_t stacksize
     return pthread_attr_setstacksize(attr, stacksize);
 }
 
-int32_t OSAL_pthread_attr_getstacksize(const osal_threadattr_t *attr, size_t *stacksize)
+int32_t OSAL_pthread_attr_getstacksize(const osal_threadattr_t *attr, osal_size_t *stacksize)
 {
     if (attr == NULL || stacksize == NULL) {
         errno = EINVAL;
@@ -118,7 +118,7 @@ int32_t OSAL_pthread_attr_setschedpolicy(osal_threadattr_t *attr, int32_t policy
     return pthread_attr_setschedpolicy(attr, policy);
 }
 
-int32_t OSAL_pthread_attr_setschedparam(osal_threadattr_t *attr, const struct sched_param *param)
+int32_t OSAL_pthread_attr_setschedparam(osal_threadattr_t *attr, const osal_sched_param_t *param)
 {
     if (attr == NULL || param == NULL) {
         errno = EINVAL;

@@ -104,7 +104,7 @@ int32_t OSAL_pthread_attr_destroy(osal_threadattr_t *attr);
  * @return 0 成功
  * @return -1 失败
  */
-int32_t OSAL_pthread_attr_setstacksize(osal_threadattr_t *attr, osal_size_t stacksize);
+int32_t OSAL_pthread_attr_setstacksize(osal_threadattr_t *attr, size_t stacksize);
 
 /**
  * @brief 获取线程栈大小
@@ -114,7 +114,7 @@ int32_t OSAL_pthread_attr_setstacksize(osal_threadattr_t *attr, osal_size_t stac
  * @return 0 成功
  * @return -1 失败
  */
-int32_t OSAL_pthread_attr_getstacksize(const osal_threadattr_t *attr, osal_size_t *stacksize);
+int32_t OSAL_pthread_attr_getstacksize(const osal_threadattr_t *attr, size_t *stacksize);
 
 /**
  * @brief 设置线程分离状态
@@ -154,7 +154,7 @@ int32_t OSAL_pthread_attr_setschedpolicy(osal_threadattr_t *attr, int32_t policy
  * @return 0 成功
  * @return -1 失败
  */
-int32_t OSAL_pthread_attr_setschedparam(osal_threadattr_t *attr, const osal_sched_param_t *param);
+int32_t OSAL_pthread_attr_setschedparam(osal_threadattr_t *attr, const struct sched_param *param);
 
 #ifdef __cplusplus
 }

@@ -38,7 +38,7 @@ extern "C" {
  * @note 使用查找表优化，速度快
  * @note 线程安全（无状态函数）
  */
-uint16_t OSAL_CRC16_CCITT(const uint8_t *data, osal_size_t len);
+uint16_t OSAL_CRC16_CCITT(const uint8_t *data, size_t len);
 
 /**
  * @brief 增量计算 CRC16-CCITT
@@ -67,7 +67,7 @@ uint16_t OSAL_CRC16_CCITT(const uint8_t *data, osal_size_t len);
  * crc = OSAL_CRC16_CCITT_Update(crc, data+offset+2, len); // 计算后半部分
  * @endcode
  */
-uint16_t OSAL_CRC16_CCITT_Update(uint16_t crc, const uint8_t *data, osal_size_t len);
+uint16_t OSAL_CRC16_CCITT_Update(uint16_t crc, const uint8_t *data, size_t len);
 
 /*===========================================================================
  * CRC32 算法（预留）
@@ -90,7 +90,7 @@ uint16_t OSAL_CRC16_CCITT_Update(uint16_t crc, const uint8_t *data, osal_size_t 
  *
  * @note 暂未实现，返回 0
  */
-uint32_t OSAL_CRC32(const uint8_t *data, osal_size_t len);
+uint32_t OSAL_CRC32(const uint8_t *data, size_t len);
 
 /**
  * @brief 增量计算 CRC32（预留）
@@ -103,7 +103,7 @@ uint32_t OSAL_CRC32(const uint8_t *data, osal_size_t len);
  *
  * @note 暂未实现，返回输入的 crc
  */
-uint32_t OSAL_CRC32_Update(uint32_t crc, const uint8_t *data, osal_size_t len);
+uint32_t OSAL_CRC32_Update(uint32_t crc, const uint8_t *data, size_t len);
 
 #ifdef __cplusplus
 }

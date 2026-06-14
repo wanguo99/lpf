@@ -146,7 +146,7 @@ int32_t OSAL_heap_get_stats(uint32_t *current, uint32_t *peak)
 
 void *OSAL_malloc(uint32_t size)
 {
-    size_t total_size;
+    osal_size_t total_size;
     void *raw_ptr;
     union {
         void *raw;
@@ -161,7 +161,7 @@ void *OSAL_malloc(uint32_t size)
     }
 
     /* 分配额外空间存储块头 */
-    total_size = (size_t)size + OSAL_sizeof(mem_block_header_t);
+    total_size = (osal_size_t)size + OSAL_sizeof(mem_block_header_t);
     raw_ptr = malloc(total_size);
 
     if (NULL == raw_ptr) {

@@ -77,10 +77,10 @@ int32_t OSAL_connect(int32_t sockfd, const osal_sockaddr_t *addr, uint32_t addrl
 
 int32_t OSAL_send(int32_t sockfd, const void *buf, uint32_t len, int32_t flags)
 {
-    ssize_t result;
+    osal_ssize_t result;
     int32_t safe_result;
 
-    result = send(sockfd, buf, (size_t)len, flags);
+    result = send(sockfd, buf, (osal_size_t)len, flags);
 
     /* 错误情况直接返回 */
     if (result < 0) {
@@ -100,10 +100,10 @@ int32_t OSAL_send(int32_t sockfd, const void *buf, uint32_t len, int32_t flags)
 
 int32_t OSAL_recv(int32_t sockfd, void *buf, uint32_t len, int32_t flags)
 {
-    ssize_t result;
+    osal_ssize_t result;
     int32_t safe_result;
 
-    result = recv(sockfd, buf, (size_t)len, flags);
+    result = recv(sockfd, buf, (osal_size_t)len, flags);
 
     /* 错误情况直接返回 */
     if (result < 0) {
@@ -129,12 +129,12 @@ int32_t OSAL_sendto(int32_t sockfd, const void *buf, uint32_t len, int32_t flags
         const struct sockaddr *posix_addr;
     } addr_union;
     socklen_t addr_len;
-    ssize_t result;
+    osal_ssize_t result;
     int32_t safe_result;
 
     addr_union.osal_addr = dest_addr;
     addr_len = (socklen_t)addrlen;
-    result = sendto(sockfd, buf, (size_t)len, flags, addr_union.posix_addr, addr_len);
+    result = sendto(sockfd, buf, (osal_size_t)len, flags, addr_union.posix_addr, addr_len);
 
     /* 错误情况直接返回 */
     if (result < 0) {
@@ -160,12 +160,12 @@ int32_t OSAL_recvfrom(int32_t sockfd, void *buf, uint32_t len, int32_t flags,
         osal_sockaddr_t *osal_addr;
         struct sockaddr *posix_addr;
     } addr_union;
-    ssize_t result;
+    osal_ssize_t result;
     int32_t safe_result;
 
     slen = addrlen ? (socklen_t)(*addrlen) : 0;
     addr_union.osal_addr = src_addr;
-    result = recvfrom(sockfd, buf, (size_t)len, flags,
+    result = recvfrom(sockfd, buf, (osal_size_t)len, flags,
                              addr_union.posix_addr, addrlen ? &slen : NULL);
     if (addrlen) {
         *addrlen = (uint32_t)slen;
