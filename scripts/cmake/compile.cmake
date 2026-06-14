@@ -21,8 +21,6 @@ set(PROJECT_SOURCE_DIR ${parent_dir})
 set(PROJECT_PATH       ${PROJECT_SOURCE_DIR})
 set(PROJECT_BINARY_DIR "${parent_dir}/build")
 set(PROJECT_DIST_DIR   "${parent_dir}/dist")
-message(STATUS "SDK_PATH:${SDK_PATH}")
-message(STATUS "PROJECT_PATH:${PROJECT_SOURCE_DIR}")
 
 include(${SDK_PATH}/scripts/cmake/tools.cmake)
 include(${SDK_PATH}/scripts/cmake/component_utils.cmake)
@@ -30,7 +28,6 @@ include(${SDK_PATH}/scripts/cmake/component_utils.cmake)
 function(register_component)
     get_filename_component(component_dir ${CMAKE_CURRENT_LIST_FILE} DIRECTORY)
     get_filename_component(component_name ${component_dir} NAME)
-    message(STATUS "[register component: ${component_name} ], path:${component_dir}")
 
     # Get params: DYNAMIC/SHARED
     foreach(name ${ARGN})
@@ -40,13 +37,10 @@ function(register_component)
         endif()
     endforeach()
     if(to_dynamic_lib)
-        message("-- component ${component_name} will compiled to dynamic lib")
         # Add dynamic file path to g_dynamic_libs variable
         set(dynamic_libs ${g_dynamic_libs})
         list(APPEND dynamic_libs "${PROJECT_BINARY_DIR}/${component_name}/lib${component_name}${DL_EXT}")
         set(g_dynamic_libs ${dynamic_libs}  CACHE INTERNAL "g_dynamic_libs")
-    else()
-        message("-- component ${component_name} will compiled to static lib")
     endif()
 
     # Add src to lib
