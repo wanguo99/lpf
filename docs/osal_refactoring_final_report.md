@@ -3,8 +3,9 @@
 ## 项目概述
 
 **目标**：将 OSAL 从复杂的抽象层简化为 POSIX 薄封装  
-**状态**：✅ 100% 完成  
-**日期**：2026-06-14
+**状态**：✅ 100% 完成 + 优化完成  
+**日期**：2026-06-14  
+**最终更新**：2026-06-14 (兼容层清理 + Atomic 优化)
 
 ## 重构完成模块
 
@@ -16,7 +17,7 @@
 | Cond | `osal_cond_t *` | `pthread_cond_t` | 42 处 | ~150 行 | ✅ 完成 |
 | Rwlock | `osal_rwlock_t *` | `pthread_rwlock_t` | 32 处 | ~180 行 | ✅ 完成 |
 | Mutex | `osal_mutex_t *` | `pthread_mutex_t` | 366 处 | ~250 行 | ✅ 完成 |
-| Atomic | `osal_atomic_*` | C11 `_Atomic` | 142 处 | 0 行 | ✅ 已优化 |
+| Atomic | `osal_atomic_*` | C11 `_Atomic` (inline) | 175 处 | ~193 行 | ✅ 优化完成 |
 | Shm | `osal_shm_t` | `int32_t` (fd) | 24 处 | ~150 行 | ✅ 完成 |
 
 ### SYS 模块（系统调用）
@@ -36,18 +37,19 @@
 ## 代码统计
 
 ### 总体减少
-- **删除抽象层**：~2,000 行
-- **新增薄封装**：~520 行
-- **净减少**：~1,480 行（约 40% 减少）
+- **阶段 1 - API 重构**：~1,480 行（40% 减少）
+- **阶段 2 - 兼容层清理**：~358 行
+- **阶段 3 - Atomic 优化**：~193 行
+- **总计净减少**：~2,031 行（约 50% 减少）
 
 ### 迁移工具
 - `scripts/migrate_mutex_struct.sh` - 结构体成员迁移
 - `scripts/migrate_global_mutex.sh` - 全局变量迁移
 
-### 兼容层
-- `osal_mutex_compat.h` - Mutex 兼容
-- `osal_thread_compat.h` - Thread 兼容
-- `osal_shm_compat.h` - Shm 兼容
+### 兼容层（已全部删除）
+- ~~`osal_mutex_compat.h`~~ - 已删除
+- ~~`osal_thread_compat.h`~~ - 已删除
+- ~~`osal_shm_compat.h`~~ - 已删除
 
 ## 设计改进
 
