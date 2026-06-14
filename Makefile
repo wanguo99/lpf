@@ -42,7 +42,8 @@ override BUILD_DIR := $(patsubst %/,%,$(BUILD_DIR))
 # CMake configuration
 CMAKE ?= cmake
 CMAKE_BUILD_TYPE ?= Release
-CMAKE_INSTALL_PREFIX ?= /usr
+# Installation prefix - use /usr for Buildroot, /usr/local for standalone
+CMAKE_INSTALL_PREFIX ?= $(if $(BR2_EXTERNAL),/usr,/usr/local)
 DESTDIR ?=
 
 # Parallel build auto-detection
@@ -82,9 +83,9 @@ VPATH		:= $(srctree)
 export srctree objtree VPATH TOPDIR
 
 # SHELL used by kbuild
+# Prefer BASH env var, then search PATH, finally fallback to sh
 CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
-	  else if [ -x /bin/bash ]; then echo /bin/bash; \
-	  else echo sh; fi ; fi)
+	  else command -v bash 2>/dev/null || echo sh; fi)
 
 # Make variables (CC, etc...)
 AS		= $(CROSS_COMPILE)as

@@ -108,8 +108,15 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 # ============================================================================
 
 # Installation prefix (overridable via -DCMAKE_INSTALL_PREFIX=...)
-if(NOT CMAKE_INSTALL_PREFIX)
-    set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Installation prefix")
+# Buildroot will override this via toolchainfile.cmake or command line
+# Standalone builds default to /usr/local
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    # Detect Buildroot environment
+    if(DEFINED ENV{BR2_EXTERNAL} OR DEFINED ENV{BR_BUILDING})
+        set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Installation prefix" FORCE)
+    else()
+        set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Installation prefix" FORCE)
+    endif()
 endif()
 
 # Use GNUInstallDirs for standard directory variables

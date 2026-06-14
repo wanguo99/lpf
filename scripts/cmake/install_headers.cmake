@@ -9,11 +9,16 @@ else()
     set(DESTDIR "")
 endif()
 
-# Get CMAKE_INSTALL_PREFIX from environment or use /usr
+# Get CMAKE_INSTALL_PREFIX from environment or use default
+# Buildroot sets this via environment or toolchainfile.cmake
 if(DEFINED ENV{CMAKE_INSTALL_PREFIX})
     set(CMAKE_INSTALL_PREFIX "$ENV{CMAKE_INSTALL_PREFIX}")
-else()
+elseif(DEFINED ENV{BR2_EXTERNAL} OR DEFINED ENV{BR_BUILDING})
+    # Buildroot environment detected
     set(CMAKE_INSTALL_PREFIX "/usr")
+else()
+    # Standalone build
+    set(CMAKE_INSTALL_PREFIX "/usr/local")
 endif()
 
 # Full installation path
