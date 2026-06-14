@@ -1,148 +1,161 @@
 #include "test_framework.h"
 /**
  * @file test_osal_semaphore.c
- * @brief OSAL信号量单元测试
+ * @brief OSAL信号量单元测试 - 使用新的 POSIX 薄封装 API
  *
  * 使用新的libtest框架，测试自动注册
  */
 
 #include "osal.h"
+#include <errno.h>
 
 static int32_t shared_counter = 0;
 
-/* 测试用例1: 信号量创建成功 */
-static void test_semaphore_create_success(void)
+/* 测试用例1: 信号量初始化成功 */
+static void test_semaphore_init_success(void)
 {
-    osal_semaphore_t *sem = NULL;
+    sem_t sem;
 
-    int32_t ret = OSAL_SemaphoreCreate(&sem, 1);
+    int32_t ret = OSAL_sem_init(&sem, 0, 1);
 
-    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
-    TEST_ASSERT_NOT_EQUAL(NULL, sem);
+    TEST_ASSERT_EQUAL(0, ret);
 
-    OSAL_SemaphoreDelete(sem);
+    OSAL_sem_destroy(&sem);
 }
 
-/* 测试用例2: 信号量创建失败 - 空指针 */
-static void test_semaphore_create_nullpointer(void)
+/* 测试用例2: 信号量初始化失败 - 空指针 */
+static void test_semaphore_init_nullpointer(void)
 {
-    int32_t ret = OSAL_SemaphoreCreate(NULL, 1);
-    TEST_ASSERT_EQUAL(OSAL_ERR_INVALID_POINTER, ret);
+    int32_t ret = OSAL_sem_init(NULL, 0, 1);
+    TEST_ASSERT_EQUAL(-1, ret);
+    TEST_ASSERT_EQUAL(EINVAL, errno);
 }
 
-/* 测试用例3: 信号量创建失败 - 初始值过大 */
-static void test_semaphore_create_invalid_value(void)
-{
-    osal_semaphore_t *sem = NULL;
-    int32_t ret = OSAL_SemaphoreCreate(&sem, (uint32_t)INT32_MAX + 1);
-    TEST_ASSERT_EQUAL(OSAL_ERR_INVALID_SEM_VALUE, ret);
-}
-
-/* 测试用例4: 信号量等待和释放 */
+/* 测试用例3: 信号量等待和释放 */
 static void test_semaphore_wait_post_success(void)
 {
-    osal_semaphore_t *sem = NULL;
-    OSAL_SemaphoreCreate(&sem, 1);
+    sem_t sem;
+    OSAL_sem_init(&sem, 0, 1);
 
-    int32_t ret = OSAL_SemaphoreWait(sem);
-    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
+    int32_t ret = OSAL_sem_wait(&sem);
+    TEST_ASSERT_EQUAL(0, ret);
 
-    ret = OSAL_SemaphorePost(sem);
-    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
+    ret = OSAL_sem_post(&sem);
+    TEST_ASSERT_EQUAL(0, ret);
 
-    OSAL_SemaphoreDelete(sem);
+    OSAL_sem_destroy(&sem);
 }
 
-/* 测试用例5: 信号量等待失败 - 空指针 */
+/* 测试用例4: 信号量等待失败 - 空指针 */
 static void test_semaphore_wait_nullpointer(void)
 {
-    int32_t ret = OSAL_SemaphoreWait(NULL);
-    TEST_ASSERT_EQUAL(OSAL_ERR_INVALID_POINTER, ret);
+    int32_t ret = OSAL_sem_wait(NULL);
+    TEST_ASSERT_EQUAL(-1, ret);
+    TEST_ASSERT_EQUAL(EINVAL, errno);
 }
 
-/* 测试用例6: 信号量释放失败 - 空指针 */
+/* 测试用例5: 信号量释放失败 - 空指针 */
 static void test_semaphore_post_nullpointer(void)
 {
-    int32_t ret = OSAL_SemaphorePost(NULL);
-    TEST_ASSERT_EQUAL(OSAL_ERR_INVALID_POINTER, ret);
+    int32_t ret = OSAL_sem_post(NULL);
+    TEST_ASSERT_EQUAL(-1, ret);
+    TEST_ASSERT_EQUAL(EINVAL, errno);
 }
 
-/* 测试用例7: 信号量超时等待 - 超时 */
+/* 测试用例6: 信号量超时等待 - 超时 */
 static void test_semaphore_timedwait_timeout(void)
 {
-    osal_semaphore_t *sem = NULL;
-    OSAL_SemaphoreCreate(&sem, 0);
+    sem_t sem;
+    OSAL_sem_init(&sem, 0, 0);
 
-    int32_t ret = OSAL_SemaphoreTimedWait(sem, 100);
-    TEST_ASSERT_EQUAL(OSAL_ERR_TIMEOUT, ret);
+    int32_t ret = OSAL_sem_timedwait(&sem, 100);
+    TEST_ASSERT_EQUAL(-1, ret);
+    TEST_ASSERT_EQUAL(ETIMEDOUT, errno);
 
-    OSAL_SemaphoreDelete(sem);
+    OSAL_sem_destroy(&sem);
 }
 
-/* 测试用例8: 信号量超时等待 - 成功 */
+/* 测试用例7: 信号量超时等待 - 成功 */
 static void test_semaphore_timedwait_success(void)
 {
-    osal_semaphore_t *sem = NULL;
-    OSAL_SemaphoreCreate(&sem, 1);
+    sem_t sem;
+    OSAL_sem_init(&sem, 0, 1);
 
-    int32_t ret = OSAL_SemaphoreTimedWait(sem, 100);
-    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
+    int32_t ret = OSAL_sem_timedwait(&sem, 100);
+    TEST_ASSERT_EQUAL(0, ret);
 
-    OSAL_SemaphoreDelete(sem);
+    OSAL_sem_destroy(&sem);
 }
 
-/* 测试用例9: 信号量非阻塞等待 - 超时 */
-static void test_semaphore_trywait_timeout(void)
+/* 测试用例8: 信号量非阻塞等待 - 失败（信号量为0）*/
+static void test_semaphore_trywait_fail(void)
 {
-    osal_semaphore_t *sem = NULL;
-    OSAL_SemaphoreCreate(&sem, 0);
+    sem_t sem;
+    OSAL_sem_init(&sem, 0, 0);
 
-    int32_t ret = OSAL_SemaphoreTimedWait(sem, 0);
-    TEST_ASSERT_EQUAL(OSAL_ERR_TIMEOUT, ret);
+    int32_t ret = OSAL_sem_trywait(&sem);
+    TEST_ASSERT_EQUAL(-1, ret);
+    TEST_ASSERT_TRUE(errno == EAGAIN || errno == EWOULDBLOCK);
 
-    OSAL_SemaphoreDelete(sem);
+    OSAL_sem_destroy(&sem);
 }
 
-/* 测试用例10: 信号量非阻塞等待 - 成功 */
+/* 测试用例9: 信号量非阻塞等待 - 成功 */
 static void test_semaphore_trywait_success(void)
 {
-    osal_semaphore_t *sem = NULL;
-    OSAL_SemaphoreCreate(&sem, 1);
+    sem_t sem;
+    OSAL_sem_init(&sem, 0, 1);
 
-    int32_t ret = OSAL_SemaphoreTimedWait(sem, 0);
-    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
+    int32_t ret = OSAL_sem_trywait(&sem);
+    TEST_ASSERT_EQUAL(0, ret);
 
-    OSAL_SemaphoreDelete(sem);
+    OSAL_sem_destroy(&sem);
 }
 
-/* 测试用例11: 信号量删除 */
-static void test_semaphore_delete_success(void)
+/* 测试用例10: 信号量获取值 */
+static void test_semaphore_getvalue(void)
 {
-    osal_semaphore_t *sem = NULL;
-    OSAL_SemaphoreCreate(&sem, 1);
+    sem_t sem;
+    int32_t value;
 
-    int32_t ret = OSAL_SemaphoreDelete(sem);
-    TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
+    OSAL_sem_init(&sem, 0, 5);
+
+    int32_t ret = OSAL_sem_getvalue(&sem, &value);
+    TEST_ASSERT_EQUAL(0, ret);
+    TEST_ASSERT_EQUAL(5, value);
+
+    OSAL_sem_destroy(&sem);
 }
 
-/* 测试用例12: 信号量删除失败 - 空指针 */
-static void test_semaphore_delete_nullpointer(void)
+/* 测试用例11: 信号量销毁 */
+static void test_semaphore_destroy_success(void)
 {
-    int32_t ret = OSAL_SemaphoreDelete(NULL);
-    TEST_ASSERT_EQUAL(OSAL_ERR_INVALID_POINTER, ret);
+    sem_t sem;
+    OSAL_sem_init(&sem, 0, 1);
+
+    int32_t ret = OSAL_sem_destroy(&sem);
+    TEST_ASSERT_EQUAL(0, ret);
+}
+
+/* 测试用例12: 信号量销毁失败 - 空指针 */
+static void test_semaphore_destroy_nullpointer(void)
+{
+    int32_t ret = OSAL_sem_destroy(NULL);
+    TEST_ASSERT_EQUAL(-1, ret);
+    TEST_ASSERT_EQUAL(EINVAL, errno);
 }
 
 /* 生产者线程 */
 static void* producer_thread(void *arg)
 {
-    osal_semaphore_t *sem = (osal_semaphore_t *)arg;
+    sem_t *sem = (sem_t *)arg;
 
     int32_t i;
 
     for (i = 0; i < 10; i++) {
         OSAL_msleep(10);
         shared_counter++;
-        OSAL_SemaphorePost(sem);
+        OSAL_sem_post(sem);
     }
 
     return NULL;
@@ -151,12 +164,12 @@ static void* producer_thread(void *arg)
 /* 消费者线程 */
 static void* consumer_thread(void *arg)
 {
-    osal_semaphore_t *sem = (osal_semaphore_t *)arg;
+    sem_t *sem = (sem_t *)arg;
 
     int32_t i;
 
     for (i = 0; i < 10; i++) {
-        OSAL_SemaphoreWait(sem);
+        OSAL_sem_wait(sem);
         shared_counter--;
     }
 
@@ -167,14 +180,14 @@ static void* consumer_thread(void *arg)
 static void test_semaphore_producer_consumer(void)
 {
     shared_counter = 0;
-    osal_semaphore_t *sem = NULL;
-    OSAL_SemaphoreCreate(&sem, 0);
+    sem_t sem;
+    OSAL_sem_init(&sem, 0, 0);
 
     osal_thread_t producer, consumer;
 
     /* 创建生产者和消费者线程 */
-    OSAL_ThreadCreate(&producer, producer_thread, sem);
-    OSAL_ThreadCreate(&consumer, consumer_thread, sem);
+    OSAL_ThreadCreate(&producer, producer_thread, &sem);
+    OSAL_ThreadCreate(&consumer, consumer_thread, &sem);
 
     /* 等待线程完成 */
     OSAL_ThreadJoin(producer);
@@ -183,7 +196,7 @@ static void test_semaphore_producer_consumer(void)
     /* 验证计数器归零 */
     TEST_ASSERT_EQUAL(0, shared_counter);
 
-    OSAL_SemaphoreDelete(sem);
+    OSAL_sem_destroy(&sem);
 }
 
 /* 注册测试套件 - 自动注册 */
@@ -191,20 +204,14 @@ static void test_semaphore_producer_consumer(void)
 /* 测试用例数组 - 使用函数指针数组 */
 static const test_case_t test_cases[] = {
 	{
-		.name = "test_semaphore_create_success",
-		.func = test_semaphore_create_success,
+		.name = "test_semaphore_init_success",
+		.func = test_semaphore_init_success,
 		.setup = NULL,
 		.teardown = NULL
 	},
 	{
-		.name = "test_semaphore_create_nullpointer",
-		.func = test_semaphore_create_nullpointer,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_semaphore_create_invalid_value",
-		.func = test_semaphore_create_invalid_value,
+		.name = "test_semaphore_init_nullpointer",
+		.func = test_semaphore_init_nullpointer,
 		.setup = NULL,
 		.teardown = NULL
 	},
@@ -239,8 +246,8 @@ static const test_case_t test_cases[] = {
 		.teardown = NULL
 	},
 	{
-		.name = "test_semaphore_trywait_timeout",
-		.func = test_semaphore_trywait_timeout,
+		.name = "test_semaphore_trywait_fail",
+		.func = test_semaphore_trywait_fail,
 		.setup = NULL,
 		.teardown = NULL
 	},
@@ -251,14 +258,20 @@ static const test_case_t test_cases[] = {
 		.teardown = NULL
 	},
 	{
-		.name = "test_semaphore_delete_success",
-		.func = test_semaphore_delete_success,
+		.name = "test_semaphore_getvalue",
+		.func = test_semaphore_getvalue,
 		.setup = NULL,
 		.teardown = NULL
 	},
 	{
-		.name = "test_semaphore_delete_nullpointer",
-		.func = test_semaphore_delete_nullpointer,
+		.name = "test_semaphore_destroy_success",
+		.func = test_semaphore_destroy_success,
+		.setup = NULL,
+		.teardown = NULL
+	},
+	{
+		.name = "test_semaphore_destroy_nullpointer",
+		.func = test_semaphore_destroy_nullpointer,
 		.setup = NULL,
 		.teardown = NULL
 	},
@@ -283,7 +296,7 @@ static const test_suite_t test_suite = {
 		.category = TEST_CATEGORY_UNIT,
 		.tags = TEST_TAG_FAST,
 		.timeout_ms = 100,
-		.description = "OSAL osal_semaphore tests"
+		.description = "OSAL semaphore tests (POSIX thin wrapper)"
 	}
 };
 

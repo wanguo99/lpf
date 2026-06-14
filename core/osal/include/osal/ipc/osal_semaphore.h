@@ -1,84 +1,88 @@
 /************************************************************************
- * OSAL Semaphore API
+ * OSAL Semaphore API - POSIX 薄封装
  *
- * Semaphore operations for resource counting and signaling
+ * 直接暴露 POSIX sem_t 类型，提供标准 POSIX 信号量接口的薄封装
  ************************************************************************/
 
 #ifndef OSAL_SEMAPHORE_H
 #define OSAL_SEMAPHORE_H
+
+#include <semaphore.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /*===========================================================================
- * 信号量类型定义
+ * POSIX 信号量薄封装
  *===========================================================================*/
 
 /**
- * @brief 信号量句柄类型
+ * @brief 初始化信号量
  *
- * 不透明句柄，内部实现为 sem_t*
+ * @param[in] sem 信号量指针
+ * @param[in] pshared 是否进程间共享（0=否，非0=是）
+ * @param[in] value 初始值
+ * @return 0 成功
+ * @return -1 失败
  */
-typedef struct osal_semaphore_s osal_semaphore_t;
-
-/*===========================================================================
- * 信号量管理 API
- *===========================================================================*/
-
-/**
- * @brief 创建信号量
- *
- * @param[out] sem 信号量句柄指针
- * @param[in] initial_value 初始值（0-INT32_MAX）
- * @return OSAL_SUCCESS 成功
- * @return OSAL_ERR_INVALID_POINTER sem 为 NULL
- * @return OSAL_ERR_INVALID_PARAM initial_value 超出范围
- * @return OSAL_ERR_GENERIC 系统调用失败
- */
-int32_t OSAL_SemaphoreCreate(osal_semaphore_t **sem, uint32_t initial_value);
+int32_t OSAL_sem_init(sem_t *sem, int32_t pshared, uint32_t value);
 
 /**
  * @brief 销毁信号量
  *
- * @param[in] sem 信号量句柄
- * @return OSAL_SUCCESS 成功
- * @return OSAL_ERR_INVALID_POINTER sem 为 NULL
- * @return OSAL_ERR_GENERIC 系统调用失败
+ * @param[in] sem 信号量指针
+ * @return 0 成功
+ * @return -1 失败
  */
-int32_t OSAL_SemaphoreDelete(osal_semaphore_t *sem);
+int32_t OSAL_sem_destroy(sem_t *sem);
 
 /**
  * @brief 等待信号量（阻塞）
  *
- * @param[in] sem 信号量句柄
- * @return OSAL_SUCCESS 成功
- * @return OSAL_ERR_INVALID_POINTER sem 为 NULL
- * @return OSAL_ERR_GENERIC 系统调用失败
+ * @param[in] sem 信号量指针
+ * @return 0 成功
+ * @return -1 失败
  */
-int32_t OSAL_SemaphoreWait(osal_semaphore_t *sem);
+int32_t OSAL_sem_wait(sem_t *sem);
 
 /**
- * @brief 等待信号量（超时）
+ * @brief 尝试等待信号量（非阻塞）
  *
- * @param[in] sem 信号量句柄
- * @param[in] timeout_ms 超时时间（毫秒），0 表示非阻塞
- * @return OSAL_SUCCESS 成功
- * @return OSAL_ERR_INVALID_POINTER sem 为 NULL
- * @return OSAL_ERR_TIMEOUT 超时
- * @return OSAL_ERR_GENERIC 系统调用失败
+ * @param[in] sem 信号量指针
+ * @return 0 成功
+ * @return -1 失败（EAGAIN 表示信号量不可用）
  */
-int32_t OSAL_SemaphoreTimedWait(osal_semaphore_t *sem, uint32_t timeout_ms);
+int32_t OSAL_sem_trywait(sem_t *sem);
+
+/**
+ * @brief 超时等待信号量
+ *
+ * @param[in] sem 信号量指针
+ * @param[in] timeout_ms 超时时间（毫秒），0 表示非阻塞
+ * @return 0 成功
+ * @return -1 失败（ETIMEDOUT 表示超时）
+ */
+int32_t OSAL_sem_timedwait(sem_t *sem, uint32_t timeout_ms);
 
 /**
  * @brief 释放信号量
  *
- * @param[in] sem 信号量句柄
- * @return OSAL_SUCCESS 成功
- * @return OSAL_ERR_INVALID_POINTER sem 为 NULL
- * @return OSAL_ERR_GENERIC 系统调用失败
+ * @param[in] sem 信号量指针
+ * @return 0 成功
+ * @return -1 失败
  */
-int32_t OSAL_SemaphorePost(osal_semaphore_t *sem);
+int32_t OSAL_sem_post(sem_t *sem);
+
+/**
+ * @brief 获取信号量当前值
+ *
+ * @param[in] sem 信号量指针
+ * @param[out] value 当前值
+ * @return 0 成功
+ * @return -1 失败
+ */
+int32_t OSAL_sem_getvalue(sem_t *sem, int32_t *value);
 
 #ifdef __cplusplus
 }
