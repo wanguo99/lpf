@@ -19,9 +19,7 @@ if(CONFIG_OSAL_OS_POSIX)
     # POSIX platform (Linux/macOS)
 
     # IPC module
-    if(CONFIG_OSAL_IPC_ATOMIC)
-        list(APPEND ADD_SRCS "src/posix/ipc/osal_atomic.c")
-    endif()
+    # CONFIG_OSAL_IPC_ATOMIC: static inline implementation in header
 
     if(CONFIG_OSAL_IPC_MUTEX)
         list(APPEND ADD_SRCS "src/posix/ipc/osal_mutex.c")
