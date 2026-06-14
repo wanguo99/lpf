@@ -50,9 +50,9 @@ int32_t HAL_WATCHDOG_Init(const hal_watchdog_config_t *config, hal_watchdog_hand
     ctx->fd = OSAL_open(config->device, OSAL_O_WRONLY, 0);
     if (ctx->fd < 0)
     {
-        int32_t err = OSAL_GetErrno();
+        int32_t err = OSAL_get_errno();
         LOG_ERROR("HAL_WDT", "Failed to open %s: %s (%d)",
-                  config->device, OSAL_StrError(err), err);
+                  config->device, OSAL_strerror(err), err);
         OSAL_free(ctx);
         return err;
     }
@@ -65,9 +65,9 @@ int32_t HAL_WATCHDOG_Init(const hal_watchdog_config_t *config, hal_watchdog_hand
         timeout = (int32_t)config->timeout_sec;
         if (OSAL_ioctl(ctx->fd, WDIOC_SETTIMEOUT, &timeout) < 0)
         {
-            int32_t err = OSAL_GetErrno();
+            int32_t err = OSAL_get_errno();
             LOG_ERROR("HAL_WDT", "Failed to set timeout: %s (%d)",
-                      OSAL_StrError(err), err);
+                      OSAL_strerror(err), err);
             OSAL_close(ctx->fd);
             OSAL_free(ctx);
             return err;
@@ -157,9 +157,9 @@ int32_t HAL_WATCHDOG_Kick(hal_watchdog_handle_t handle)
     /* 使用ioctl喂狗 */
     if (OSAL_ioctl(ctx->fd, WDIOC_KEEPALIVE, 0) < 0)
     {
-        int32_t err = OSAL_GetErrno();
+        int32_t err = OSAL_get_errno();
         LOG_ERROR("HAL_WDT", "Failed to kick watchdog: %s (%d)",
-                  OSAL_StrError(err), err);
+                  OSAL_strerror(err), err);
         return err;
     }
 
@@ -192,9 +192,9 @@ int32_t HAL_WATCHDOG_Enable(hal_watchdog_handle_t handle)
     options = WDIOS_ENABLECARD;
     if (OSAL_ioctl(ctx->fd, WDIOC_SETOPTIONS, &options) < 0)
     {
-        int32_t err = OSAL_GetErrno();
+        int32_t err = OSAL_get_errno();
         LOG_ERROR("HAL_WDT", "Failed to enable watchdog: %s (%d)",
-                  OSAL_StrError(err), err);
+                  OSAL_strerror(err), err);
         return err;
     }
 
@@ -228,9 +228,9 @@ int32_t HAL_WATCHDOG_Disable(hal_watchdog_handle_t handle)
     options = WDIOS_DISABLECARD;
     if (OSAL_ioctl(ctx->fd, WDIOC_SETOPTIONS, &options) < 0)
     {
-        int32_t err = OSAL_GetErrno();
+        int32_t err = OSAL_get_errno();
         LOG_WARN("HAL_WDT", "Failed to disable watchdog (may not be supported): %s (%d)",
-                 OSAL_StrError(err), err);
+                 OSAL_strerror(err), err);
         return err;
     }
 
@@ -264,9 +264,9 @@ int32_t HAL_WATCHDOG_SetTimeout(hal_watchdog_handle_t handle, uint32_t timeout_s
     timeout = (int32_t)timeout_sec;
     if (OSAL_ioctl(ctx->fd, WDIOC_SETTIMEOUT, &timeout) < 0)
     {
-        int32_t err = OSAL_GetErrno();
+        int32_t err = OSAL_get_errno();
         LOG_ERROR("HAL_WDT", "Failed to set timeout: %s (%d)",
-                  OSAL_StrError(err), err);
+                  OSAL_strerror(err), err);
         return err;
     }
 
@@ -300,9 +300,9 @@ int32_t HAL_WATCHDOG_GetTimeout(hal_watchdog_handle_t handle, uint32_t *timeout_
     timeout = 0;
     if (OSAL_ioctl(ctx->fd, WDIOC_GETTIMEOUT, &timeout) < 0)
     {
-        int32_t err = OSAL_GetErrno();
+        int32_t err = OSAL_get_errno();
         LOG_ERROR("HAL_WDT", "Failed to get timeout: %s (%d)",
-                  OSAL_StrError(err), err);
+                  OSAL_strerror(err), err);
         return err;
     }
 
@@ -335,9 +335,9 @@ int32_t HAL_WATCHDOG_GetTimeleft(hal_watchdog_handle_t handle, uint32_t *timelef
     timeleft = 0;
     if (OSAL_ioctl(ctx->fd, WDIOC_GETTIMELEFT, &timeleft) < 0)
     {
-        int32_t err = OSAL_GetErrno();
+        int32_t err = OSAL_get_errno();
         LOG_WARN("HAL_WDT", "Failed to get timeleft (may not be supported): %s (%d)",
-                 OSAL_StrError(err), err);
+                 OSAL_strerror(err), err);
         return err;
     }
 

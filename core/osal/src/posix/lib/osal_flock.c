@@ -79,7 +79,7 @@ static int32_t flock_do_unlock(int fd)
 /**
  * @brief 创建文件锁
  */
-int32_t OSAL_FlockCreate(const char *lock_file, osal_flock_t **flock)
+int32_t OSAL_flock_create(const char *lock_file, osal_flock_t **flock)
 {
     if (!lock_file || !flock) {
         return OSAL_ERR_INVALID_POINTER;
@@ -112,7 +112,7 @@ int32_t OSAL_FlockCreate(const char *lock_file, osal_flock_t **flock)
 /**
  * @brief 销毁文件锁
  */
-int32_t OSAL_FlockDestroy(osal_flock_t *flock)
+int32_t OSAL_flock_destroy(osal_flock_t *flock)
 {
     if (!flock) {
         return OSAL_ERR_INVALID_POINTER;
@@ -120,7 +120,7 @@ int32_t OSAL_FlockDestroy(osal_flock_t *flock)
 
     /* 如果还持有锁，先释放 */
     if (flock->is_locked) {
-        OSAL_FlockUnlock(flock);
+        OSAL_flock_unlock(flock);
     }
 
     /* 关闭文件描述符 */
@@ -137,7 +137,7 @@ int32_t OSAL_FlockDestroy(osal_flock_t *flock)
 /**
  * @brief 加锁（阻塞模式）
  */
-int32_t OSAL_FlockLock(osal_flock_t *flock, osal_flock_type_t type)
+int32_t OSAL_flock_lock(osal_flock_t *flock, osal_flock_type_t type)
 {
     if (!flock) {
         return OSAL_ERR_INVALID_POINTER;
@@ -156,7 +156,7 @@ int32_t OSAL_FlockLock(osal_flock_t *flock, osal_flock_type_t type)
 /**
  * @brief 尝试加锁（非阻塞模式）
  */
-int32_t OSAL_FlockTryLock(osal_flock_t *flock, osal_flock_type_t type)
+int32_t OSAL_flock_try_lock(osal_flock_t *flock, osal_flock_type_t type)
 {
     if (!flock) {
         return OSAL_ERR_INVALID_POINTER;
@@ -175,7 +175,7 @@ int32_t OSAL_FlockTryLock(osal_flock_t *flock, osal_flock_type_t type)
 /**
  * @brief 带超时的加锁
  */
-int32_t OSAL_FlockTimedLock(osal_flock_t *flock, osal_flock_type_t type,
+int32_t OSAL_flock_timed_lock(osal_flock_t *flock, osal_flock_type_t type,
                             uint32_t timeout_ms)
 {
     if (!flock) {
@@ -184,7 +184,7 @@ int32_t OSAL_FlockTimedLock(osal_flock_t *flock, osal_flock_type_t type,
 
     /* 如果超时为 0，使用非阻塞模式 */
     if (timeout_ms == 0) {
-        return OSAL_FlockTryLock(flock, type);
+        return OSAL_flock_try_lock(flock, type);
     }
 
     /* 记录开始时间 */
@@ -193,7 +193,7 @@ int32_t OSAL_FlockTimedLock(osal_flock_t *flock, osal_flock_type_t type,
 
     /* 轮询尝试加锁 */
     while (1) {
-        int32_t ret = OSAL_FlockTryLock(flock, type);
+        int32_t ret = OSAL_flock_try_lock(flock, type);
 
         if (ret == OSAL_SUCCESS) {
             return OSAL_SUCCESS;
@@ -224,7 +224,7 @@ int32_t OSAL_FlockTimedLock(osal_flock_t *flock, osal_flock_type_t type,
 /**
  * @brief 解锁
  */
-int32_t OSAL_FlockUnlock(osal_flock_t *flock)
+int32_t OSAL_flock_unlock(osal_flock_t *flock)
 {
     if (!flock) {
         return OSAL_ERR_INVALID_POINTER;

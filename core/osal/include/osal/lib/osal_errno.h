@@ -237,20 +237,20 @@ typedef int32_t osal_status_t;
  * @brief 获取当前errno值
  * @return errno值
  */
-int32_t OSAL_GetErrno(void);
+int32_t OSAL_get_errno(void);
 
 /**
  * @brief 设置errno值
  * @param err 错误码
  */
-void OSAL_SetErrno(int32_t err);
+void OSAL_set_errno(int32_t err);
 
 /**
  * @brief 获取错误码对应的错误描述字符串
  * @param errnum 错误码
  * @return 错误描述字符串
  */
-const char *OSAL_StrError(int32_t errnum);
+const char *OSAL_strerror(int32_t errnum);
 
 /*===========================================================================
  * OSAL状态码转字符串
@@ -261,14 +261,14 @@ const char *OSAL_StrError(int32_t errnum);
  * @param status_code OSAL状态码（OSAL_SUCCESS、OSAL_ERR_*等）
  * @return 状态码名称字符串
  */
-const char *OSAL_GetStatusName(int32_t status_code);
+const char *OSAL_get_status_name(int32_t status_code);
 
 /**
  * @brief 获取OSAL状态码对应的描述字符串
  * @param status OSAL状态码
  * @return 状态码描述字符串
  */
-const char *OSAL_StatusToString(osal_status_t status);
+const char *OSAL_status_to_string(osal_status_t status);
 
 #ifdef __cplusplus
 }

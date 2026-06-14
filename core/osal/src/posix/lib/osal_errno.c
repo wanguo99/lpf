@@ -10,17 +10,17 @@
  * errno访问函数实现
  *===========================================================================*/
 
-int32_t OSAL_GetErrno(void)
+int32_t OSAL_get_errno(void)
 {
     return errno;
 }
 
-void OSAL_SetErrno(int32_t err)
+void OSAL_set_errno(int32_t err)
 {
     errno = err;
 }
 
-const char *OSAL_StrError(int32_t errnum)
+const char *OSAL_strerror(int32_t errnum)
 {
     return strerror(errnum);
 }
@@ -30,7 +30,7 @@ const char *OSAL_StrError(int32_t errnum)
  * 注意：多个OSAL错误码可能映射到同一个errno值，只保留第一个
  *===========================================================================*/
 
-const char *OSAL_GetStatusName(int32_t status_code)
+const char *OSAL_get_status_name(int32_t status_code)
 {
     switch (status_code)
     {
@@ -74,7 +74,7 @@ const char *OSAL_GetStatusName(int32_t status_code)
     }
 }
 
-const char *OSAL_StatusToString(osal_status_t status)
+const char *OSAL_status_to_string(osal_status_t status)
 {
     if (status == OSAL_SUCCESS) {
         return "Success";

@@ -22,7 +22,7 @@ void test_flock_basic(void)
     int32_t ret;
 
     /* 创建文件锁 */
-    ret = OSAL_FlockCreate("/tmp/test_hal.lock", &flock);
+    ret = OSAL_flock_create("/tmp/test_hal.lock", &flock);
     if (ret != OSAL_SUCCESS) {
         LOG_INFO("TEST", "❌ 创建文件锁失败: %d\n", ret);
         return;
@@ -30,16 +30,16 @@ void test_flock_basic(void)
     LOG_INFO("TEST", "✅ 创建文件锁成功\n");
 
     /* 加独占锁 */
-    ret = OSAL_FlockLock(flock, OSAL_FLOCK_EXCLUSIVE);
+    ret = OSAL_flock_lock(flock, OSAL_FLOCK_EXCLUSIVE);
     if (ret != OSAL_SUCCESS) {
         LOG_INFO("TEST", "❌ 加锁失败: %d\n", ret);
-        OSAL_FlockDestroy(flock);
+        OSAL_flock_destroy(flock);
         return;
     }
     LOG_INFO("TEST", "✅ 加独占锁成功\n");
 
     /* 解锁 */
-    ret = OSAL_FlockUnlock(flock);
+    ret = OSAL_flock_unlock(flock);
     if (ret != OSAL_SUCCESS) {
         LOG_INFO("TEST", "❌ 解锁失败: %d\n", ret);
     } else {
@@ -47,7 +47,7 @@ void test_flock_basic(void)
     }
 
     /* 销毁文件锁 */
-    ret = OSAL_FlockDestroy(flock);
+    ret = OSAL_flock_destroy(flock);
     if (ret != OSAL_SUCCESS) {
         LOG_INFO("TEST", "❌ 销毁文件锁失败: %d\n", ret);
     } else {
@@ -80,14 +80,14 @@ void test_multiprocess_concurrent(void)
             /* 子进程 */
             osal_flock_t *flock = NULL;
 
-            if (OSAL_FlockCreate(lock_file, &flock) != OSAL_SUCCESS) {
+            if (OSAL_flock_create(lock_file, &flock) != OSAL_SUCCESS) {
                 LOG_INFO("TEST", "进程 %d: 创建文件锁失败\n", OSAL_Getpid());
                 OSAL_Exit(1);
             }
 
             for (int j = 0; j < iterations; j++) {
                 /* 获取锁 */
-                if (OSAL_FlockTimedLock(flock, OSAL_FLOCK_EXCLUSIVE, 5000) != OSAL_SUCCESS) {
+                if (OSAL_flock_timed_lock(flock, OSAL_FLOCK_EXCLUSIVE, 5000) != OSAL_SUCCESS) {
                     LOG_INFO("TEST", "进程 %d: 加锁超时\n", OSAL_Getpid());
                     continue;
                 }
@@ -97,10 +97,10 @@ void test_multiprocess_concurrent(void)
                 OSAL_usleep(100000);  /* 100ms */
 
                 /* 释放锁 */
-                OSAL_FlockUnlock(flock);
+                OSAL_flock_unlock(flock);
             }
 
-            OSAL_FlockDestroy(flock);
+            OSAL_flock_destroy(flock);
             OSAL_Exit(0);
         }
     }
@@ -131,7 +131,7 @@ void* thread_worker(void *arg)
 
     for (int i = 0; i < iterations; i++) {
         /* 双重锁保护 */
-        if (OSAL_FlockTimedLock(data->flock, OSAL_FLOCK_EXCLUSIVE, 5000) != OSAL_SUCCESS) {
+        if (OSAL_flock_timed_lock(data->flock, OSAL_FLOCK_EXCLUSIVE, 5000) != OSAL_SUCCESS) {
             LOG_INFO("TEST", "线程 %d: 文件锁超时\n", data->thread_id);
             continue;
         }
@@ -144,7 +144,7 @@ void* thread_worker(void *arg)
 
         /* 释放锁（逆序） */
         OSAL_MutexUnlock(data->mutex);
-        OSAL_FlockUnlock(data->flock);
+        OSAL_flock_unlock(data->flock);
     }
 
     return NULL;
@@ -162,14 +162,14 @@ void test_multithread_concurrent(void)
     osal_flock_t *flock = NULL;
     osal_mutex_t *mutex = NULL;
 
-    if (OSAL_FlockCreate("/tmp/test_multithread.lock", &flock) != OSAL_SUCCESS) {
+    if (OSAL_flock_create("/tmp/test_multithread.lock", &flock) != OSAL_SUCCESS) {
         LOG_INFO("TEST", "❌ 创建文件锁失败\n");
         return;
     }
 
     if (OSAL_MutexCreate(&mutex) != OSAL_SUCCESS) {
         LOG_INFO("TEST", "❌ 创建互斥锁失败\n");
-        OSAL_FlockDestroy(flock);
+        OSAL_flock_destroy(flock);
         return;
     }
 
@@ -191,7 +191,7 @@ void test_multithread_concurrent(void)
 
     /* 清理 */
     OSAL_MutexDelete(mutex);
-    OSAL_FlockDestroy(flock);
+    OSAL_flock_destroy(flock);
 
     LOG_INFO("TEST", "✅ 多线程并发测试完成\n");
 }
@@ -206,7 +206,7 @@ void test_timeout_mechanism(void)
 
     osal_flock_t *flock = NULL;
 
-    if (OSAL_FlockCreate("/tmp/test_timeout.lock", &flock) != OSAL_SUCCESS) {
+    if (OSAL_flock_create("/tmp/test_timeout.lock", &flock) != OSAL_SUCCESS) {
         LOG_INFO("TEST", "❌ 创建文件锁失败\n");
         return;
     }
@@ -217,16 +217,16 @@ void test_timeout_mechanism(void)
 
     if (ret != OSAL_SUCCESS) {
         LOG_INFO("TEST", "❌ fork 失败\n");
-        OSAL_FlockDestroy(flock);
+        OSAL_flock_destroy(flock);
         return;
     }
 
     if (pid == 0) {
         /* 子进程：持有锁 3 秒 */
-        OSAL_FlockLock(flock, OSAL_FLOCK_EXCLUSIVE);
+        OSAL_flock_lock(flock, OSAL_FLOCK_EXCLUSIVE);
         LOG_INFO("TEST", "子进程: 持有锁 3 秒...\n");
         OSAL_sleep(3);
-        OSAL_FlockUnlock(flock);
+        OSAL_flock_unlock(flock);
         LOG_INFO("TEST", "子进程: 释放锁\n");
         OSAL_Exit(0);
     } else {
@@ -234,7 +234,7 @@ void test_timeout_mechanism(void)
         OSAL_sleep(1);
         LOG_INFO("TEST", "父进程: 尝试获取锁 (超时 1 秒)...\n");
 
-        ret = OSAL_FlockTimedLock(flock, OSAL_FLOCK_EXCLUSIVE, 1000);
+        ret = OSAL_flock_timed_lock(flock, OSAL_FLOCK_EXCLUSIVE, 1000);
         if (ret == OSAL_ERR_TIMEOUT) {
             LOG_INFO("TEST", "✅ 超时机制工作正常\n");
         } else {
@@ -246,7 +246,7 @@ void test_timeout_mechanism(void)
         OSAL_Waitpid(pid, &status, 0);
     }
 
-    OSAL_FlockDestroy(flock);
+    OSAL_flock_destroy(flock);
     LOG_INFO("TEST", "✅ 超时测试完成\n");
 }
 

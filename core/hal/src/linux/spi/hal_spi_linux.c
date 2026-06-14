@@ -58,7 +58,7 @@ int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
     }
 
     OSAL_snprintf(lock_file, OSAL_sizeof(lock_file), HAL_SPI_LOCK_PATH_FMT, dev_name);
-    ret = OSAL_FlockCreate(lock_file, &impl->flock);
+    ret = OSAL_flock_create(lock_file, &impl->flock);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_SPI", "Failed to create file lock: %s", lock_file);
@@ -71,7 +71,7 @@ int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_SPI", "Failed to create mutex");
-        OSAL_FlockDestroy(impl->flock);
+        OSAL_flock_destroy(impl->flock);
         OSAL_free(impl);
         return ret;
     }
@@ -80,11 +80,11 @@ int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
     impl->fd = OSAL_open(config->device, OSAL_O_RDWR, 0);
     if (impl->fd < 0)
     {
-        int32_t err = OSAL_GetErrno();
+        int32_t err = OSAL_get_errno();
         LOG_ERROR("HAL_SPI", "Failed to open device %s: %s (%d)",
-                  config->device, OSAL_StrError(err), err);
+                  config->device, OSAL_strerror(err), err);
         OSAL_MutexDelete(impl->mutex);
-        OSAL_FlockDestroy(impl->flock);
+        OSAL_flock_destroy(impl->flock);
         OSAL_free(impl);
         return err;
     }
@@ -93,12 +93,12 @@ int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
     ret = OSAL_ioctl(impl->fd, SPI_IOC_WR_MODE, &impl->mode);
     if (ret < 0)
     {
-        int32_t err = OSAL_GetErrno();
+        int32_t err = OSAL_get_errno();
         LOG_ERROR("HAL_SPI", "Failed to set SPI mode: %s (%d)",
-                  OSAL_StrError(err), err);
+                  OSAL_strerror(err), err);
         OSAL_close(impl->fd);
         OSAL_MutexDelete(impl->mutex);
-        OSAL_FlockDestroy(impl->flock);
+        OSAL_flock_destroy(impl->flock);
         OSAL_free(impl);
         return err;
     }
@@ -107,12 +107,12 @@ int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
     ret = OSAL_ioctl(impl->fd, SPI_IOC_WR_BITS_PER_WORD, &impl->bits_per_word);
     if (ret < 0)
     {
-        int32_t err = OSAL_GetErrno();
+        int32_t err = OSAL_get_errno();
         LOG_ERROR("HAL_SPI", "Failed to set bits per word: %s (%d)",
-                  OSAL_StrError(err), err);
+                  OSAL_strerror(err), err);
         OSAL_close(impl->fd);
         OSAL_MutexDelete(impl->mutex);
-        OSAL_FlockDestroy(impl->flock);
+        OSAL_flock_destroy(impl->flock);
         OSAL_free(impl);
         return err;
     }
@@ -121,12 +121,12 @@ int32_t HAL_SPI_Open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
     ret = OSAL_ioctl(impl->fd, SPI_IOC_WR_MAX_SPEED_HZ, &impl->max_speed_hz);
     if (ret < 0)
     {
-        int32_t err = OSAL_GetErrno();
+        int32_t err = OSAL_get_errno();
         LOG_ERROR("HAL_SPI", "Failed to set max speed: %s (%d)",
-                  OSAL_StrError(err), err);
+                  OSAL_strerror(err), err);
         OSAL_close(impl->fd);
         OSAL_MutexDelete(impl->mutex);
-        OSAL_FlockDestroy(impl->flock);
+        OSAL_flock_destroy(impl->flock);
         OSAL_free(impl);
         return err;
     }
@@ -166,7 +166,7 @@ int32_t HAL_SPI_Close(hal_spi_handle_t handle)
 
     if (impl->flock)
     {
-        OSAL_FlockDestroy(impl->flock);
+        OSAL_flock_destroy(impl->flock);
     }
 
     impl->initialized = false;
@@ -192,7 +192,7 @@ int32_t HAL_SPI_Write(hal_spi_handle_t handle, const uint8_t *buffer, uint32_t s
         return OSAL_ERR_GENERIC;
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_SPI_LOCK_TIMEOUT_MS);
+    ret = OSAL_flock_timed_lock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_SPI_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_SPI", "Failed to acquire file lock (timeout or error)");
@@ -204,7 +204,7 @@ int32_t HAL_SPI_Write(hal_spi_handle_t handle, const uint8_t *buffer, uint32_t s
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_SPI", "Failed to acquire mutex");
-        OSAL_FlockUnlock(impl->flock);
+        OSAL_flock_unlock(impl->flock);
         return ret;
     }
 
@@ -212,9 +212,9 @@ int32_t HAL_SPI_Write(hal_spi_handle_t handle, const uint8_t *buffer, uint32_t s
     ret = OSAL_write(impl->fd, buffer, size);
     if (ret < 0)
     {
-        int32_t err = OSAL_GetErrno();
+        int32_t err = OSAL_get_errno();
         LOG_ERROR("HAL_SPI", "Write failed: %s (%d)",
-                  OSAL_StrError(err), err);
+                  OSAL_strerror(err), err);
         result = err;
     }
     else if ((uint32_t)ret != size)
@@ -225,7 +225,7 @@ int32_t HAL_SPI_Write(hal_spi_handle_t handle, const uint8_t *buffer, uint32_t s
 
     /* 释放锁（逆序） */
     OSAL_MutexUnlock(impl->mutex);
-    OSAL_FlockUnlock(impl->flock);
+    OSAL_flock_unlock(impl->flock);
 
     return result;
 }
@@ -246,7 +246,7 @@ int32_t HAL_SPI_Read(hal_spi_handle_t handle, uint8_t *buffer, uint32_t size)
         return OSAL_ERR_GENERIC;
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_SPI_LOCK_TIMEOUT_MS);
+    ret = OSAL_flock_timed_lock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_SPI_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_SPI", "Failed to acquire file lock (timeout or error)");
@@ -258,7 +258,7 @@ int32_t HAL_SPI_Read(hal_spi_handle_t handle, uint8_t *buffer, uint32_t size)
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_SPI", "Failed to acquire mutex");
-        OSAL_FlockUnlock(impl->flock);
+        OSAL_flock_unlock(impl->flock);
         return ret;
     }
 
@@ -266,9 +266,9 @@ int32_t HAL_SPI_Read(hal_spi_handle_t handle, uint8_t *buffer, uint32_t size)
     ret = OSAL_read(impl->fd, buffer, size);
     if (ret < 0)
     {
-        int32_t err = OSAL_GetErrno();
+        int32_t err = OSAL_get_errno();
         LOG_ERROR("HAL_SPI", "Read failed: %s (%d)",
-                  OSAL_StrError(err), err);
+                  OSAL_strerror(err), err);
         result = err;
     }
     else if ((uint32_t)ret != size)
@@ -279,7 +279,7 @@ int32_t HAL_SPI_Read(hal_spi_handle_t handle, uint8_t *buffer, uint32_t size)
 
     /* 释放锁（逆序） */
     OSAL_MutexUnlock(impl->mutex);
-    OSAL_FlockUnlock(impl->flock);
+    OSAL_flock_unlock(impl->flock);
 
     return result;
 }
@@ -302,7 +302,7 @@ int32_t HAL_SPI_Transfer(hal_spi_handle_t handle, const uint8_t *tx_buffer,
         return OSAL_ERR_GENERIC;
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_SPI_LOCK_TIMEOUT_MS);
+    ret = OSAL_flock_timed_lock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_SPI_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_SPI", "Failed to acquire file lock (timeout or error)");
@@ -314,7 +314,7 @@ int32_t HAL_SPI_Transfer(hal_spi_handle_t handle, const uint8_t *tx_buffer,
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_SPI", "Failed to acquire mutex");
-        OSAL_FlockUnlock(impl->flock);
+        OSAL_flock_unlock(impl->flock);
         return ret;
     }
 
@@ -332,9 +332,9 @@ int32_t HAL_SPI_Transfer(hal_spi_handle_t handle, const uint8_t *tx_buffer,
     ret = OSAL_ioctl(impl->fd, SPI_IOC_MESSAGE(1), &xfer);
     if (ret < 0)
     {
-        int32_t err = OSAL_GetErrno();
+        int32_t err = OSAL_get_errno();
         LOG_ERROR("HAL_SPI", "Transfer failed: %s (%d)",
-                  OSAL_StrError(err), err);
+                  OSAL_strerror(err), err);
         result = err;
     }
     else if ((uint32_t)ret != size)
@@ -345,7 +345,7 @@ int32_t HAL_SPI_Transfer(hal_spi_handle_t handle, const uint8_t *tx_buffer,
 
     /* 释放锁（逆序） */
     OSAL_MutexUnlock(impl->mutex);
-    OSAL_FlockUnlock(impl->flock);
+    OSAL_flock_unlock(impl->flock);
 
     return result;
 }
@@ -389,7 +389,7 @@ int32_t HAL_SPI_TransferMulti(hal_spi_handle_t handle, hal_spi_transfer_t *trans
     }
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_SPI_LOCK_TIMEOUT_MS);
+    ret = OSAL_flock_timed_lock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_SPI_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_SPI", "Failed to acquire file lock (timeout or error)");
@@ -402,7 +402,7 @@ int32_t HAL_SPI_TransferMulti(hal_spi_handle_t handle, hal_spi_transfer_t *trans
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_SPI", "Failed to acquire mutex");
-        OSAL_FlockUnlock(impl->flock);
+        OSAL_flock_unlock(impl->flock);
         OSAL_free(xfers);
         return ret;
     }
@@ -411,15 +411,15 @@ int32_t HAL_SPI_TransferMulti(hal_spi_handle_t handle, hal_spi_transfer_t *trans
     ret = OSAL_ioctl(impl->fd, SPI_IOC_MESSAGE(num), xfers);
     if (ret < 0)
     {
-        int32_t err = OSAL_GetErrno();
+        int32_t err = OSAL_get_errno();
         LOG_ERROR("HAL_SPI", "Multi-transfer failed: %s (%d)",
-                  OSAL_StrError(err), err);
+                  OSAL_strerror(err), err);
         result = err;
     }
 
     /* 释放锁（逆序） */
     OSAL_MutexUnlock(impl->mutex);
-    OSAL_FlockUnlock(impl->flock);
+    OSAL_flock_unlock(impl->flock);
 
     OSAL_free(xfers);
     return result;
@@ -441,7 +441,7 @@ int32_t HAL_SPI_SetConfig(hal_spi_handle_t handle, const hal_spi_config_t *confi
         return OSAL_ERR_GENERIC;
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_SPI_LOCK_TIMEOUT_MS);
+    ret = OSAL_flock_timed_lock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_SPI_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_SPI", "Failed to acquire file lock (timeout or error)");
@@ -453,7 +453,7 @@ int32_t HAL_SPI_SetConfig(hal_spi_handle_t handle, const hal_spi_config_t *confi
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_SPI", "Failed to acquire mutex");
-        OSAL_FlockUnlock(impl->flock);
+        OSAL_flock_unlock(impl->flock);
         return ret;
     }
 
@@ -465,9 +465,9 @@ int32_t HAL_SPI_SetConfig(hal_spi_handle_t handle, const hal_spi_config_t *confi
         ret = OSAL_ioctl(impl->fd, SPI_IOC_WR_MODE, &mode);
         if (ret < 0)
         {
-            int32_t err = OSAL_GetErrno();
+            int32_t err = OSAL_get_errno();
             LOG_ERROR("HAL_SPI", "Failed to update mode: %s (%d)",
-                      OSAL_StrError(err), err);
+                      OSAL_strerror(err), err);
             result = err;
             goto unlock;
         }
@@ -481,9 +481,9 @@ int32_t HAL_SPI_SetConfig(hal_spi_handle_t handle, const hal_spi_config_t *confi
         ret = OSAL_ioctl(impl->fd, SPI_IOC_WR_BITS_PER_WORD, &bits);
         if (ret < 0)
         {
-            int32_t err = OSAL_GetErrno();
+            int32_t err = OSAL_get_errno();
             LOG_ERROR("HAL_SPI", "Failed to update bits per word: %s (%d)",
-                      OSAL_StrError(err), err);
+                      OSAL_strerror(err), err);
             result = err;
             goto unlock;
         }
@@ -497,9 +497,9 @@ int32_t HAL_SPI_SetConfig(hal_spi_handle_t handle, const hal_spi_config_t *confi
         ret = OSAL_ioctl(impl->fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed);
         if (ret < 0)
         {
-            int32_t err = OSAL_GetErrno();
+            int32_t err = OSAL_get_errno();
             LOG_ERROR("HAL_SPI", "Failed to update max speed: %s (%d)",
-                      OSAL_StrError(err), err);
+                      OSAL_strerror(err), err);
             result = err;
             goto unlock;
         }
@@ -516,7 +516,7 @@ int32_t HAL_SPI_SetConfig(hal_spi_handle_t handle, const hal_spi_config_t *confi
 unlock:
     /* 释放锁（逆序） */
     OSAL_MutexUnlock(impl->mutex);
-    OSAL_FlockUnlock(impl->flock);
+    OSAL_flock_unlock(impl->flock);
 
     return result;
 }

@@ -66,7 +66,7 @@ int32_t HAL_I2C_Open(const hal_i2c_config_t *config, hal_i2c_handle_t *handle)
         OSAL_snprintf(lock_file, OSAL_sizeof(lock_file), OSAL_LOCK_DIR "/hal_i2c_%s.lock", dev_name);
     }
 
-    ret = OSAL_FlockCreate(lock_file, &impl->flock);
+    ret = OSAL_flock_create(lock_file, &impl->flock);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_I2C", "Failed to create file lock: %s", lock_file);
@@ -79,7 +79,7 @@ int32_t HAL_I2C_Open(const hal_i2c_config_t *config, hal_i2c_handle_t *handle)
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_I2C", "Failed to create mutex");
-        OSAL_FlockDestroy(impl->flock);
+        OSAL_flock_destroy(impl->flock);
         OSAL_free(impl);
         return ret;
     }
@@ -88,11 +88,11 @@ int32_t HAL_I2C_Open(const hal_i2c_config_t *config, hal_i2c_handle_t *handle)
     impl->fd = OSAL_open(config->device, OSAL_O_RDWR, 0);
     if (impl->fd < 0)
     {
-        int32_t err = OSAL_GetErrno();
+        int32_t err = OSAL_get_errno();
         LOG_ERROR("HAL_I2C", "Failed to open device %s: %s (%d)",
-                  config->device, OSAL_StrError(err), err);
+                  config->device, OSAL_strerror(err), err);
         OSAL_MutexDelete(impl->mutex);
-        OSAL_FlockDestroy(impl->flock);
+        OSAL_flock_destroy(impl->flock);
         OSAL_free(impl);
         return err;
     }
@@ -133,7 +133,7 @@ int32_t HAL_I2C_Close(hal_i2c_handle_t handle)
 
     if (impl->flock)
     {
-        OSAL_FlockDestroy(impl->flock);
+        OSAL_flock_destroy(impl->flock);
     }
 
     OSAL_free(impl);
@@ -159,7 +159,7 @@ int32_t HAL_I2C_Write(hal_i2c_handle_t handle, uint16_t slave_addr,
         return OSAL_ERR_GENERIC;
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_I2C_LOCK_TIMEOUT_MS);
+    ret = OSAL_flock_timed_lock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_I2C_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_I2C", "Failed to acquire file lock (timeout or error)");
@@ -171,7 +171,7 @@ int32_t HAL_I2C_Write(hal_i2c_handle_t handle, uint16_t slave_addr,
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_I2C", "Failed to acquire mutex");
-        OSAL_FlockUnlock(impl->flock);
+        OSAL_flock_unlock(impl->flock);
         return ret;
     }
 
@@ -180,9 +180,9 @@ int32_t HAL_I2C_Write(hal_i2c_handle_t handle, uint16_t slave_addr,
     ret = OSAL_ioctl(impl->fd, I2C_SLAVE, (void *)(uintptr_t)slave_addr);
     if (ret < 0)
     {
-        int32_t err = OSAL_GetErrno();
+        int32_t err = OSAL_get_errno();
         LOG_ERROR("HAL_I2C", "Failed to set slave address 0x%02X: %s (%d)",
-                  slave_addr, OSAL_StrError(err), err);
+                  slave_addr, OSAL_strerror(err), err);
         result = err;
         goto unlock;
     }
@@ -191,9 +191,9 @@ int32_t HAL_I2C_Write(hal_i2c_handle_t handle, uint16_t slave_addr,
     ret = OSAL_write(impl->fd, buffer, size);
     if (ret < 0)
     {
-        int32_t err = OSAL_GetErrno();
+        int32_t err = OSAL_get_errno();
         LOG_ERROR("HAL_I2C", "Write failed: %s (%d)",
-                  OSAL_StrError(err), err);
+                  OSAL_strerror(err), err);
         result = err;
         goto unlock;
     }
@@ -207,7 +207,7 @@ int32_t HAL_I2C_Write(hal_i2c_handle_t handle, uint16_t slave_addr,
 unlock:
     /* 释放锁（逆序） */
     OSAL_MutexUnlock(impl->mutex);
-    OSAL_FlockUnlock(impl->flock);
+    OSAL_flock_unlock(impl->flock);
 
     return result;
 }
@@ -229,7 +229,7 @@ int32_t HAL_I2C_Read(hal_i2c_handle_t handle, uint16_t slave_addr,
         return OSAL_ERR_GENERIC;
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_I2C_LOCK_TIMEOUT_MS);
+    ret = OSAL_flock_timed_lock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_I2C_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_I2C", "Failed to acquire file lock (timeout or error)");
@@ -241,7 +241,7 @@ int32_t HAL_I2C_Read(hal_i2c_handle_t handle, uint16_t slave_addr,
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_I2C", "Failed to acquire mutex");
-        OSAL_FlockUnlock(impl->flock);
+        OSAL_flock_unlock(impl->flock);
         return ret;
     }
 
@@ -250,9 +250,9 @@ int32_t HAL_I2C_Read(hal_i2c_handle_t handle, uint16_t slave_addr,
     ret = OSAL_ioctl(impl->fd, I2C_SLAVE, (void *)(uintptr_t)slave_addr);
     if (ret < 0)
     {
-        int32_t err = OSAL_GetErrno();
+        int32_t err = OSAL_get_errno();
         LOG_ERROR("HAL_I2C", "Failed to set slave address 0x%02X: %s (%d)",
-                  slave_addr, OSAL_StrError(err), err);
+                  slave_addr, OSAL_strerror(err), err);
         result = err;
         goto unlock;
     }
@@ -261,9 +261,9 @@ int32_t HAL_I2C_Read(hal_i2c_handle_t handle, uint16_t slave_addr,
     ret = OSAL_read(impl->fd, buffer, size);
     if (ret < 0)
     {
-        int32_t err = OSAL_GetErrno();
+        int32_t err = OSAL_get_errno();
         LOG_ERROR("HAL_I2C", "Read failed: %s (%d)",
-                  OSAL_StrError(err), err);
+                  OSAL_strerror(err), err);
         result = err;
         goto unlock;
     }
@@ -277,7 +277,7 @@ int32_t HAL_I2C_Read(hal_i2c_handle_t handle, uint16_t slave_addr,
 unlock:
     /* 释放锁（逆序） */
     OSAL_MutexUnlock(impl->mutex);
-    OSAL_FlockUnlock(impl->flock);
+    OSAL_flock_unlock(impl->flock);
 
     return result;
 }
@@ -335,7 +335,7 @@ int32_t HAL_I2C_ReadReg(hal_i2c_handle_t handle, uint16_t slave_addr,
         return OSAL_ERR_GENERIC;
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_I2C_LOCK_TIMEOUT_MS);
+    ret = OSAL_flock_timed_lock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_I2C_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_I2C", "Failed to acquire file lock (timeout or error)");
@@ -347,7 +347,7 @@ int32_t HAL_I2C_ReadReg(hal_i2c_handle_t handle, uint16_t slave_addr,
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_I2C", "Failed to acquire mutex");
-        OSAL_FlockUnlock(impl->flock);
+        OSAL_flock_unlock(impl->flock);
         return ret;
     }
 
@@ -369,15 +369,15 @@ int32_t HAL_I2C_ReadReg(hal_i2c_handle_t handle, uint16_t slave_addr,
     ret = OSAL_ioctl(impl->fd, I2C_RDWR, &msgset);
     if (ret < 0)
     {
-        int32_t err = OSAL_GetErrno();
+        int32_t err = OSAL_get_errno();
         LOG_ERROR("HAL_I2C", "Read register failed: %s (%d)",
-                  OSAL_StrError(err), err);
+                  OSAL_strerror(err), err);
         result = err;
     }
 
     /* 释放锁（逆序） */
     OSAL_MutexUnlock(impl->mutex);
-    OSAL_FlockUnlock(impl->flock);
+    OSAL_flock_unlock(impl->flock);
 
     return result;
 }
@@ -418,7 +418,7 @@ int32_t HAL_I2C_Transfer(hal_i2c_handle_t handle, hal_i2c_msg_t *msgs, uint32_t 
     }
 
     /* 第一层：文件锁（进程间保护） */
-    ret = OSAL_FlockTimedLock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_I2C_LOCK_TIMEOUT_MS);
+    ret = OSAL_flock_timed_lock(impl->flock, OSAL_FLOCK_EXCLUSIVE, HAL_I2C_LOCK_TIMEOUT_MS);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_I2C", "Failed to acquire file lock (timeout or error)");
@@ -431,7 +431,7 @@ int32_t HAL_I2C_Transfer(hal_i2c_handle_t handle, hal_i2c_msg_t *msgs, uint32_t 
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("HAL_I2C", "Failed to acquire mutex");
-        OSAL_FlockUnlock(impl->flock);
+        OSAL_flock_unlock(impl->flock);
         OSAL_free(kernel_msgs);
         return ret;
     }
@@ -444,15 +444,15 @@ int32_t HAL_I2C_Transfer(hal_i2c_handle_t handle, hal_i2c_msg_t *msgs, uint32_t 
     ret = OSAL_ioctl(impl->fd, I2C_RDWR, &msgset);
     if (ret < 0)
     {
-        int32_t err = OSAL_GetErrno();
+        int32_t err = OSAL_get_errno();
         LOG_ERROR("HAL_I2C", "Transfer failed: %s (%d)",
-                  OSAL_StrError(err), err);
+                  OSAL_strerror(err), err);
         result = err;
     }
 
     /* 释放锁（逆序） */
     OSAL_MutexUnlock(impl->mutex);
-    OSAL_FlockUnlock(impl->flock);
+    OSAL_flock_unlock(impl->flock);
 
     OSAL_free(kernel_msgs);
     return result;

@@ -77,13 +77,13 @@ void *OSAL_realloc(void *ptr, uint32_t new_size);
  *
  * @note Thread-safe
  */
-int32_t OSAL_HeapGetInfo(uint32_t *free_bytes, uint32_t *total_bytes);
+int32_t OSAL_heap_get_info(uint32_t *free_bytes, uint32_t *total_bytes);
 
 /**
  * @brief Set heap usage threshold
  *
  * Sets the memory usage threshold as a percentage. When usage exceeds
- * this threshold, OSAL_HeapCheckThreshold() will report it.
+ * this threshold, OSAL_heap_check_threshold() will report it.
  *
  * @param percent Threshold percentage (0-100)
  * @return OSAL_SUCCESS on success, OSAL_ERR_INVALID_SIZE if percent > 100
@@ -91,7 +91,7 @@ int32_t OSAL_HeapGetInfo(uint32_t *free_bytes, uint32_t *total_bytes);
  * @note Default threshold is OSAL_HEAP_THRESHOLD_DEFAULT
  * @note Thread-safe
  */
-int32_t OSAL_HeapSetThreshold(uint32_t percent);
+int32_t OSAL_heap_set_threshold(uint32_t percent);
 
 /**
  * @brief Check if heap usage exceeds threshold
@@ -105,7 +105,7 @@ int32_t OSAL_HeapSetThreshold(uint32_t percent);
  * @note Thread-safe
  * @note Only logs warning once until usage drops below threshold
  */
-int32_t OSAL_HeapCheckThreshold(bool *exceeded);
+int32_t OSAL_heap_check_threshold(bool *exceeded);
 
 /**
  * @brief Get heap usage statistics
@@ -118,7 +118,7 @@ int32_t OSAL_HeapCheckThreshold(bool *exceeded);
  *
  * @note Thread-safe
  */
-int32_t OSAL_HeapGetStats(uint32_t *current, uint32_t *peak);
+int32_t OSAL_heap_get_stats(uint32_t *current, uint32_t *peak);
 
 #ifdef __cplusplus
 }

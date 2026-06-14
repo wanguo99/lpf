@@ -57,7 +57,7 @@ static uint32_t read_memory_from_proc(const char *field)
     return value * OSAL_BYTES_PER_KB;
 }
 
-int32_t OSAL_HeapGetInfo(uint32_t *free_bytes, uint32_t *total_bytes)
+int32_t OSAL_heap_get_info(uint32_t *free_bytes, uint32_t *total_bytes)
 {
     uint32_t vm_rss;
     uint32_t vm_peak;
@@ -88,7 +88,7 @@ int32_t OSAL_HeapGetInfo(uint32_t *free_bytes, uint32_t *total_bytes)
     return OSAL_SUCCESS;
 }
 
-int32_t OSAL_HeapSetThreshold(uint32_t percent)
+int32_t OSAL_heap_set_threshold(uint32_t percent)
 {
     if (percent > OSAL_HEAP_PERCENT_MAX)
         return OSAL_ERR_INVALID_SIZE;
@@ -100,7 +100,7 @@ int32_t OSAL_HeapSetThreshold(uint32_t percent)
     return OSAL_SUCCESS;
 }
 
-int32_t OSAL_HeapCheckThreshold(bool *exceeded)
+int32_t OSAL_heap_check_threshold(bool *exceeded)
 {
     uint32_t free_bytes, total_bytes;
     uint32_t usage_percent;
@@ -108,7 +108,7 @@ int32_t OSAL_HeapCheckThreshold(bool *exceeded)
     if (NULL == exceeded)
         return OSAL_ERR_INVALID_POINTER;
 
-    OSAL_HeapGetInfo(&free_bytes, &total_bytes);
+    OSAL_heap_get_info(&free_bytes, &total_bytes);
 
     if (0 == total_bytes) {
         *exceeded = false;
@@ -131,7 +131,7 @@ int32_t OSAL_HeapCheckThreshold(bool *exceeded)
     return OSAL_SUCCESS;
 }
 
-int32_t OSAL_HeapGetStats(uint32_t *current, uint32_t *peak)
+int32_t OSAL_heap_get_stats(uint32_t *current, uint32_t *peak)
 {
     if (NULL == current || NULL == peak)
         return OSAL_ERR_INVALID_POINTER;

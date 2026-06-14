@@ -30,7 +30,7 @@ extern uint32_t test_get_filtered_suites(const test_filter_t *filter, const test
 static int32_t read_choice(void)
 {
     char buffer[16];
-    if (OSAL_Fgets(buffer, OSAL_sizeof(buffer), OSAL_stdin) == NULL) {
+    if (OSAL_fgets(buffer, OSAL_sizeof(buffer), OSAL_stdin) == NULL) {
         return -1;
     }
 
@@ -588,7 +588,7 @@ int32_t libutest_interactive_menu_filtered(const test_filter_t *filter)
                 char confirm;
                 OSAL_printf("Are you sure you want to run all tests? (y/n): ");
                 char buffer[16];
-                if (OSAL_Fgets(buffer, OSAL_sizeof(buffer), OSAL_stdin) != NULL) {
+                if (OSAL_fgets(buffer, OSAL_sizeof(buffer), OSAL_stdin) != NULL) {
                     if (OSAL_sscanf(buffer, " %c", &confirm) == 1) {
                         if (confirm == 'y' || confirm == 'Y') {
                             if (filter && filter->enabled) {

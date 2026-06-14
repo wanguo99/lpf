@@ -74,7 +74,7 @@ typedef enum {
  * @return OSAL_ERR_NO_MEMORY 内存不足
  * @return OSAL_ERR_GENERIC 创建失败
  */
-int32_t OSAL_FlockCreate(const char *lock_file, osal_flock_t **flock);
+int32_t OSAL_flock_create(const char *lock_file, osal_flock_t **flock);
 
 /**
  * @brief 销毁文件锁
@@ -84,7 +84,7 @@ int32_t OSAL_FlockCreate(const char *lock_file, osal_flock_t **flock);
  * @return OSAL_SUCCESS 成功
  * @return OSAL_ERR_INVALID_POINTER 参数为空
  */
-int32_t OSAL_FlockDestroy(osal_flock_t *flock);
+int32_t OSAL_flock_destroy(osal_flock_t *flock);
 
 /**
  * @brief 加锁（阻塞模式）
@@ -96,7 +96,7 @@ int32_t OSAL_FlockDestroy(osal_flock_t *flock);
  * @return OSAL_ERR_INVALID_POINTER 参数为空
  * @return OSAL_ERR_GENERIC 加锁失败
  */
-int32_t OSAL_FlockLock(osal_flock_t *flock, osal_flock_type_t type);
+int32_t OSAL_flock_lock(osal_flock_t *flock, osal_flock_type_t type);
 
 /**
  * @brief 尝试加锁（非阻塞模式）
@@ -109,7 +109,7 @@ int32_t OSAL_FlockLock(osal_flock_t *flock, osal_flock_type_t type);
  * @return OSAL_ERR_INVALID_POINTER 参数为空
  * @return OSAL_ERR_GENERIC 加锁失败
  */
-int32_t OSAL_FlockTryLock(osal_flock_t *flock, osal_flock_type_t type);
+int32_t OSAL_flock_try_lock(osal_flock_t *flock, osal_flock_type_t type);
 
 /**
  * @brief 带超时的加锁
@@ -123,7 +123,7 @@ int32_t OSAL_FlockTryLock(osal_flock_t *flock, osal_flock_type_t type);
  * @return OSAL_ERR_INVALID_POINTER 参数为空
  * @return OSAL_ERR_GENERIC 加锁失败
  */
-int32_t OSAL_FlockTimedLock(osal_flock_t *flock, osal_flock_type_t type,
+int32_t OSAL_flock_timed_lock(osal_flock_t *flock, osal_flock_type_t type,
                             uint32_t timeout_ms);
 
 /**
@@ -135,6 +135,6 @@ int32_t OSAL_FlockTimedLock(osal_flock_t *flock, osal_flock_type_t type,
  * @return OSAL_ERR_INVALID_POINTER 参数为空
  * @return OSAL_ERR_GENERIC 解锁失败
  */
-int32_t OSAL_FlockUnlock(osal_flock_t *flock);
+int32_t OSAL_flock_unlock(osal_flock_t *flock);
 
 #endif /* OSAL_FLOCK_H */

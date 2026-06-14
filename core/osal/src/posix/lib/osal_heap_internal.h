@@ -28,7 +28,7 @@
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t OSAL_HeapGetInfo(uint32_t *free_bytes, uint32_t *total_bytes);
+int32_t OSAL_heap_get_info(uint32_t *free_bytes, uint32_t *total_bytes);
 
 /**
  * @brief 设置内存使用阈值
@@ -38,7 +38,7 @@ int32_t OSAL_HeapGetInfo(uint32_t *free_bytes, uint32_t *total_bytes);
  * @return OSAL_SUCCESS 成功
  * @return OSAL_ERR_INVALID_PARAM 参数无效
  */
-int32_t OSAL_HeapSetThreshold(uint32_t percent);
+int32_t OSAL_heap_set_threshold(uint32_t percent);
 
 /**
  * @brief 检查内存使用是否超过阈值
@@ -48,7 +48,7 @@ int32_t OSAL_HeapSetThreshold(uint32_t percent);
  * @return OSAL_SUCCESS 成功
  * @return OSAL_ERR_INVALID_PARAM 参数无效
  */
-int32_t OSAL_HeapCheckThreshold(bool *exceeded);
+int32_t OSAL_heap_check_threshold(bool *exceeded);
 
 /**
  * @brief 获取内存统计信息
@@ -59,7 +59,7 @@ int32_t OSAL_HeapCheckThreshold(bool *exceeded);
  * @return OSAL_SUCCESS 成功
  * @return OSAL_ERR_INVALID_PARAM 参数无效
  */
-int32_t OSAL_HeapGetStats(uint32_t *current, uint32_t *peak);
+int32_t OSAL_heap_get_stats(uint32_t *current, uint32_t *peak);
 
 /**
  * @brief 分配内存

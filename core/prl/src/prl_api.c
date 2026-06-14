@@ -67,7 +67,7 @@ const char *PRL_GetDeviceTypeName(uint8_t dev_type)
 const char *PRL_GetErrorString(int error_code)
 {
     /* 现在使用 OSAL 错误码，直接返回 OSAL 错误描述 */
-    return OSAL_GetStatusName(error_code);
+    return OSAL_get_status_name(error_code);
 }
 
 void PRL_GetVersion(uint8_t *major, uint8_t *minor)

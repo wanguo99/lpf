@@ -27,12 +27,12 @@ static void init_stdio_streams(void)
  * 标准输入输出
  */
 
-int32_t OSAL_Getchar(void)
+int32_t OSAL_getchar(void)
 {
     return getchar();
 }
 
-char* OSAL_Fgets(char *str, int32_t size, void *stream)
+char* OSAL_fgets(char *str, int32_t size, void *stream)
 {
     union {
         void *osal_stream;
@@ -43,7 +43,7 @@ char* OSAL_Fgets(char *str, int32_t size, void *stream)
     return fgets(str, size, stream_union.posix_stream);
 }
 
-int32_t OSAL_Fflush(void *stream)
+int32_t OSAL_fflush(void *stream)
 {
     union {
         void *osal_stream;
