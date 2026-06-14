@@ -233,49 +233,56 @@ config: scripts_basic FORCE
 %config: scripts_basic FORCE
 	$(Q)mkdir -p include
 	@target=$@; \
-	if [ "$(KBUILD_VERBOSE)" = "1" ]; then \
-		if echo "$$target" | grep -q "_defconfig$$"; then \
-			yes "" | $(MAKE) $(build)=scripts/kconfig $$target; \
-		else \
+	case "$$target" in \
+		menuconfig|nconfig|xconfig|gconfig) \
 			$(MAKE) $(build)=scripts/kconfig $$target; \
-		fi; \
-	else \
-		logfile=/tmp/kconfig.$$$$.log; \
-		if echo "$$target" | grep -q "_defconfig$$"; then \
-			yes "" | $(MAKE) --no-print-directory $(build)=scripts/kconfig $$target 2>&1 | \
-			while IFS= read -r line; do \
-				case "$$line" in \
-					"  HOSTCC  "*|"  HOSTLD  "*|"  SHIPPED "*) \
-						echo "$$line" ;; \
-					*"error:"*|*"Error:"*|*"ERROR:"*) \
-						echo "$$line" >&2 ;; \
-					*) \
-						echo "$$line" >> $$logfile ;; \
-				esac; \
-			done; \
-		else \
-			$(MAKE) --no-print-directory $(build)=scripts/kconfig $$target 2>&1 | \
-			while IFS= read -r line; do \
-				case "$$line" in \
-					"  HOSTCC  "*|"  HOSTLD  "*|"  SHIPPED "*) \
-						echo "$$line" ;; \
-					*"error:"*|*"Error:"*|*"ERROR:"*) \
-						echo "$$line" >&2 ;; \
-					*) \
-						echo "$$line" >> $$logfile ;; \
-				esac; \
-			done; \
-		fi; \
-		status=$$?; \
-		if [ $$status -ne 0 ]; then \
-			if [ -f $$logfile ]; then \
-				cat $$logfile >&2; \
+			;; \
+		*) \
+			if [ "$(KBUILD_VERBOSE)" = "1" ]; then \
+				if echo "$$target" | grep -q "_defconfig$$"; then \
+					yes "" | $(MAKE) $(build)=scripts/kconfig $$target; \
+				else \
+					$(MAKE) $(build)=scripts/kconfig $$target; \
+				fi; \
+			else \
+				logfile=/tmp/kconfig.$$$$.log; \
+				if echo "$$target" | grep -q "_defconfig$$"; then \
+					yes "" | $(MAKE) --no-print-directory $(build)=scripts/kconfig $$target 2>&1 | \
+					while IFS= read -r line; do \
+						case "$$line" in \
+							"  HOSTCC  "*|"  HOSTLD  "*|"  SHIPPED "*) \
+								echo "$$line" ;; \
+							*"error:"*|*"Error:"*|*"ERROR:"*) \
+								echo "$$line" >&2 ;; \
+							*) \
+								echo "$$line" >> $$logfile ;; \
+						esac; \
+					done; \
+				else \
+					$(MAKE) --no-print-directory $(build)=scripts/kconfig $$target 2>&1 | \
+					while IFS= read -r line; do \
+						case "$$line" in \
+							"  HOSTCC  "*|"  HOSTLD  "*|"  SHIPPED "*) \
+								echo "$$line" ;; \
+							*"error:"*|*"Error:"*|*"ERROR:"*) \
+								echo "$$line" >&2 ;; \
+							*) \
+								echo "$$line" >> $$logfile ;; \
+						esac; \
+					done; \
+				fi; \
+				status=$$?; \
+				if [ $$status -ne 0 ]; then \
+					if [ -f $$logfile ]; then \
+						cat $$logfile >&2; \
+						rm -f $$logfile; \
+					fi; \
+					exit $$status; \
+				fi; \
 				rm -f $$logfile; \
 			fi; \
-			exit $$status; \
-		fi; \
-		rm -f $$logfile; \
-	fi
+			;; \
+	esac
 	@if [ -f .config ]; then \
 		$(srctree)/scripts/gen_version.sh; \
 		echo ""; \
