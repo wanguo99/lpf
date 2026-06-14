@@ -24,6 +24,11 @@ int32_t OSAL_getpid(void)
     return getpid();
 }
 
+int32_t OSAL_getppid(void)
+{
+    return getppid();
+}
+
 int32_t OSAL_kill(int32_t pid, int32_t sig)
 {
     return kill(pid, sig);
@@ -34,154 +39,22 @@ void OSAL_abort(void)
     abort();
 }
 
-/*
- * 进程管理接口（新增）
- */
-
-int32_t OSAL_ProcessCreate(osal_id_t *proc_id, const char *path,
-                         char *const argv[], char *const envp[])
+int32_t OSAL_fork(void)
 {
-    pid_t pid;
-
-    if (proc_id == NULL || path == NULL || argv == NULL) {
-        return OSAL_ERR_INVALID_POINTER;
-    }
-
-    pid = fork();
-
-    if (pid < 0) {
-        /* fork失败 */
-        return OSAL_ERR_NO_FREE_IDS;
-    }
-
-    if (pid == 0) {
-        /* 子进程 */
-        if (envp != NULL) {
-            execve(path, argv, envp);
-        } else {
-            execv(path, argv);
-        }
-
-        /* 如果exec失败，退出子进程 */
-        exit(1);
-    }
-
-    /* 父进程 */
-    *proc_id = (osal_id_t)pid;
-    return OSAL_SUCCESS;
+    pid_t pid = fork();
+    return (pid < 0) ? -1 : (int32_t)pid;
 }
 
-int32_t OSAL_ProcessWait(osal_id_t proc_id, int32_t *status, int32_t timeout_ms)
+int32_t OSAL_execvp(const char *file, char *const argv[])
 {
-    pid_t pid;
-    int wait_status;
-    int options;
-    pid_t result;
-
-    if (proc_id == 0) {
-        return OSAL_ERR_INVALID_ID;
-    }
-
-    pid = (pid_t)proc_id;
-    options = (timeout_ms == 0) ? WNOHANG : 0;
-
-    result = waitpid(pid, &wait_status, options);
-
-    if (result > 0) {
-        if (status != NULL) {
-            *status = WIFEXITED(wait_status) ? WEXITSTATUS(wait_status) : -1;
-        }
-        return OSAL_SUCCESS;
-    }
-
-    if (result < 0) {
-        if (errno == ECHILD) {
-            return OSAL_ERR_INVALID_ID;
-        }
-        return OSAL_ERR_GENERIC;
-    }
-
-    /* result == 0: 进程还在运行（仅WNOHANG时） */
-    return OSAL_ERR_TIMEOUT;
+    return execvp(file, argv);
 }
 
-int32_t OSAL_ProcessKill(osal_id_t proc_id, int32_t signal)
-{
-    pid_t pid;
-
-    if (proc_id == 0) {
-        return OSAL_ERR_INVALID_ID;
-    }
-
-    pid = (pid_t)proc_id;
-
-    if (kill(pid, signal) == 0) {
-        return OSAL_SUCCESS;
-    }
-
-    if (errno == ESRCH) {
-        /* 进程不存在 */
-        return OSAL_ERR_INVALID_ID;
-    }
-
-    return OSAL_ERR_GENERIC;
-}
-
-bool OSAL_ProcessExists(osal_id_t proc_id)
-{
-    pid_t pid;
-
-    if (proc_id == 0) {
-        return false;
-    }
-
-    pid = (pid_t)proc_id;
-
-    /* 发送信号0检查进程是否存在 */
-    if (kill(pid, 0) == 0) {
-        return true;
-    }
-
-    return (errno != ESRCH);
-}
-
-osal_id_t OSAL_ProcessGetId(void)
-{
-    return (osal_id_t)getpid();
-}
-
-osal_id_t OSAL_ProcessGetParentId(void)
-{
-    return (osal_id_t)getppid();
-}
-
-int32_t OSAL_fork(osal_id_t *child_pid)
-{
-    pid_t pid;
-
-    if (child_pid == NULL) {
-        return OSAL_ERR_INVALID_POINTER;
-    }
-
-    pid = fork();
-
-    if (pid < 0) {
-        /* fork失败 */
-        return OSAL_ERR_NO_FREE_IDS;
-    }
-
-    /* 父进程中pid > 0，子进程中pid == 0 */
-    *child_pid = (osal_id_t)pid;
-    return OSAL_SUCCESS;
-}
-
-int32_t OSAL_waitpid(osal_id_t pid, int32_t *status, int32_t options)
+int32_t OSAL_waitpid(int32_t pid, int32_t *status, int32_t options)
 {
     int wait_status;
-    int posix_options;
+    int posix_options = 0;
     pid_t result;
-
-    posix_options = 0;
 
     /* 转换选项 */
     if (options & OSAL_WNOHANG) {
@@ -204,9 +77,9 @@ int32_t OSAL_waitpid(osal_id_t pid, int32_t *status, int32_t options)
     }
 
     /* result < 0: 错误 */
-    if (errno == ECHILD) {
-        return OSAL_ERR_INVALID_ID;
-    }
-
-    return OSAL_ERR_GENERIC;
+    return -1;
 }
+
+/*
+ * 以下为过时的高层封装，将在后续版本中移除
+ */

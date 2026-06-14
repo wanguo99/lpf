@@ -19,103 +19,12 @@
 /* 基础进程控制函数（保持兼容） */
 void OSAL_exit(int32_t status);
 int32_t OSAL_getpid(void);
+int32_t OSAL_getppid(void);
 int32_t OSAL_kill(int32_t pid, int32_t sig);
 void OSAL_abort(void);
-
-/* 进程管理接口（新增，支持多进程架构） */
-
-/**
- * @brief 创建子进程
- *
- * @param[out] proc_id  进程ID
- * @param[in]  path     可执行文件路径
- * @param[in]  argv     参数列表（NULL结尾）
- * @param[in]  envp     环境变量（NULL结尾，NULL表示继承父进程）
- *
- * @return OSAL_SUCCESS 成功
- * @return OSAL_ERR_INVALID_PARAM 参数无效
- * @return OSAL_ERR_NO_FREE_IDS 无法创建进程
- */
-int32_t OSAL_ProcessCreate(osal_id_t *proc_id, const char *path,
-                           char *const argv[], char *const envp[]);
-
-/**
- * @brief 等待子进程退出
- *
- * @param[in]  proc_id     进程ID
- * @param[out] status      退出状态码（可选，NULL表示不关心）
- * @param[in]  timeout_ms  超时时间（0表示不等待，其他值表示阻塞等待）
- *
- * @return OSAL_SUCCESS 成功
- * @return OSAL_ERR_TIMEOUT 进程未退出（仅timeout_ms=0时）
- * @return OSAL_ERR_INVALID_ID 进程不存在
- * @return OSAL_ERR_GENERIC 系统调用失败
- *
- * @note 不支持带超时的等待，如需超时功能请在上层实现轮询
- */
-int32_t OSAL_ProcessWait(osal_id_t proc_id, int32_t *status, int32_t timeout_ms);
-
-/**
- * @brief 发送信号给进程
- *
- * @param[in] proc_id  进程ID
- * @param[in] signal   信号编号（SIGTERM/SIGKILL等）
- *
- * @return OSAL_SUCCESS 成功
- * @return OSAL_ERR_INVALID_PARAM 参数无效
- */
-int32_t OSAL_ProcessKill(osal_id_t proc_id, int32_t signal);
-
-/**
- * @brief 检查进程是否存在
- *
- * @param[in] proc_id  进程ID
- *
- * @return true 进程存在
- * @return false 进程不存在
- */
-bool OSAL_ProcessExists(osal_id_t proc_id);
-
-/**
- * @brief 获取当前进程ID
- *
- * @return 进程ID
- */
-osal_id_t OSAL_ProcessGetId(void);
-
-/**
- * @brief 获取父进程ID
- *
- * @return 父进程ID
- */
-osal_id_t OSAL_ProcessGetParentId(void);
-
-/**
- * @brief 创建子进程（fork）
- *
- * @param[out] child_pid  子进程ID（父进程中返回子进程ID，子进程中返回0）
- *
- * @return OSAL_SUCCESS 成功（父进程和子进程都返回此值）
- * @return OSAL_ERR_INVALID_POINTER 参数无效
- * @return OSAL_ERR_NO_FREE_IDS fork失败
- *
- * @note 父进程中 *child_pid > 0，子进程中 *child_pid == 0
- */
-int32_t OSAL_fork(osal_id_t *child_pid);
-
-/**
- * @brief 等待指定子进程退出
- *
- * @param[in]  pid     子进程ID（-1表示等待任意子进程）
- * @param[out] status  退出状态（可选，NULL表示不关心）
- * @param[in]  options 等待选项（0=阻塞等待，WNOHANG=非阻塞）
- *
- * @return 成功返回退出的子进程ID
- * @return 0 非阻塞模式下子进程未退出
- * @return OSAL_ERR_INVALID_ID 无子进程
- * @return OSAL_ERR_GENERIC 系统调用失败
- */
-int32_t OSAL_waitpid(osal_id_t pid, int32_t *status, int32_t options);
+int32_t OSAL_fork(void);
+int32_t OSAL_execvp(const char *file, char *const argv[]);
+int32_t OSAL_waitpid(int32_t pid, int32_t *status, int32_t options);
 
 /* 等待选项 */
 #define OSAL_WNOHANG  0x01  /* 非阻塞等待 */

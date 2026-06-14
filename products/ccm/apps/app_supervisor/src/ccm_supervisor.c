@@ -40,13 +40,23 @@ static void signal_handler(int32_t sig)
 static int32_t start_process(process_info_t *proc)
 {
     char *argv[] = {(char *)proc->name, NULL};
-    int32_t ret = OSAL_ProcessCreate(&proc->pid, proc->path, argv, NULL);
+    int32_t pid = OSAL_fork();
 
-    if (ret != OSAL_SUCCESS) {
-        LOG_ERROR("SUPERVISOR", "启动进程失败: %s, ret=%d", proc->name, ret);
-        return ret;
+    if (pid < 0) {
+        LOG_ERROR("SUPERVISOR", "fork失败: %s", proc->name);
+        return OSAL_ERR_GENERIC;
     }
 
+    if (pid == 0) {
+        /* 子进程：执行目标程序 */
+        OSAL_execvp(proc->path, argv);
+        /* execvp失败才会到这里 */
+        LOG_ERROR("SUPERVISOR", "execvp失败: %s", proc->path);
+        OSAL_exit(1);
+    }
+
+    /* 父进程 */
+    proc->pid = pid;
     LOG_INFO("SUPERVISOR", "启动进程: %s (pid=%u)", proc->name, (uint32_t)proc->pid);
     return OSAL_SUCCESS;
 }
@@ -61,15 +71,15 @@ static int32_t stop_process(process_info_t *proc)
     LOG_INFO("SUPERVISOR", "停止进程: %s (pid=%u)", proc->name, (uint32_t)proc->pid);
 
     /* 发送SIGTERM */
-    OSAL_ProcessKill(proc->pid, SIGTERM);
+    OSAL_kill(proc->pid, SIGTERM);
 
     /* 等待进程退出（最多5秒） */
     {
         int32_t i;
         for (i = 0; i < 50; i++) {
             int32_t status;
-            int32_t ret = OSAL_ProcessWait(proc->pid, &status, 0);
-            if (ret == OSAL_SUCCESS) {
+            int32_t ret = OSAL_waitpid(proc->pid, &status, OSAL_WNOHANG);
+            if (ret > 0) {
                 LOG_INFO("SUPERVISOR", "进程已退出: %s", proc->name);
                 proc->pid = 0;
                 return OSAL_SUCCESS;
@@ -80,8 +90,8 @@ static int32_t stop_process(process_info_t *proc)
 
     /* 强制杀死 */
     LOG_WARN("SUPERVISOR", "强制杀死进程: %s", proc->name);
-    OSAL_ProcessKill(proc->pid, SIGKILL);
-    OSAL_ProcessWait(proc->pid, NULL, -1);  /* 阻塞等待 */
+    OSAL_kill(proc->pid, SIGKILL);
+    OSAL_waitpid(proc->pid, NULL, 0);  /* 阻塞等待 */
     proc->pid = 0;
 
     return OSAL_SUCCESS;
