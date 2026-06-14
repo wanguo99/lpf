@@ -37,6 +37,7 @@
 #include "ipc/osal_rwlock.h"
 #include "ipc/osal_semaphore.h"
 #include "ipc/osal_shm.h"
+#include "ipc/osal_shm_compat.h"  /* 临时兼容层 */
 #include "ipc/osal_shm_cache.h"
 
 /* LIB - 标准库封装 */
