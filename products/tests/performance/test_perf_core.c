@@ -227,7 +227,7 @@ void perf_print_stats(perf_context_t *ctx) {
 
     perf_stats_t stats;
     if (perf_calculate_stats(ctx, &stats) != 0) {
-        OSAL_Printf("[ PERF ERROR ] Failed to calculate statistics\n");
+        OSAL_printf("[ PERF ERROR ] Failed to calculate statistics\n");
         return;
     }
 
@@ -250,18 +250,18 @@ void perf_print_stats(perf_context_t *ctx) {
             break;
     }
 
-    OSAL_Printf("\n");
-    OSAL_Printf("=== Performance Statistics: %s ===\n", ctx->name);
-    OSAL_Printf("Samples:     %lu\n", (unsigned long)stats.count);
-    OSAL_Printf("Mean:        %.2f %s\n", stats.mean, unit);
-    OSAL_Printf("Std Dev:     %.2f %s\n", stats.stddev, unit);
-    OSAL_Printf("Min:         %.2f %s\n", stats.min, unit);
-    OSAL_Printf("Max:         %.2f %s\n", stats.max, unit);
-    OSAL_Printf("Median(p50): %.2f %s\n", stats.p50, unit);
-    OSAL_Printf("p95:         %.2f %s\n", stats.p95, unit);
-    OSAL_Printf("p99:         %.2f %s\n", stats.p99, unit);
-    OSAL_Printf("p99.9:       %.2f %s\n", stats.p999, unit);
-    OSAL_Printf("=====================================\n\n");
+    OSAL_printf("\n");
+    OSAL_printf("=== Performance Statistics: %s ===\n", ctx->name);
+    OSAL_printf("Samples:     %lu\n", (unsigned long)stats.count);
+    OSAL_printf("Mean:        %.2f %s\n", stats.mean, unit);
+    OSAL_printf("Std Dev:     %.2f %s\n", stats.stddev, unit);
+    OSAL_printf("Min:         %.2f %s\n", stats.min, unit);
+    OSAL_printf("Max:         %.2f %s\n", stats.max, unit);
+    OSAL_printf("Median(p50): %.2f %s\n", stats.p50, unit);
+    OSAL_printf("p95:         %.2f %s\n", stats.p95, unit);
+    OSAL_printf("p99:         %.2f %s\n", stats.p99, unit);
+    OSAL_printf("p99.9:       %.2f %s\n", stats.p999, unit);
+    OSAL_printf("=====================================\n\n");
 }
 
 void perf_print_result(const perf_result_t *result) {
@@ -270,13 +270,13 @@ void perf_print_result(const perf_result_t *result) {
     const char *status = result->baseline_passed ? "PASS" : "FAIL";
     const char *symbol = result->baseline_passed ? "+" : "X";
 
-    OSAL_Printf("\n");
-    OSAL_Printf("=== Performance Test Result ===\n");
-    OSAL_Printf("Test:        %s\n", result->test_name);
-    OSAL_Printf("Status:      [%s] %s\n", symbol, status);
-    OSAL_Printf("Mean:        %.2f\n", result->stats.mean);
-    OSAL_Printf("Baseline:    %.2f%%\n", result->baseline_diff_percent);
-    OSAL_Printf("===============================\n\n");
+    OSAL_printf("\n");
+    OSAL_printf("=== Performance Test Result ===\n");
+    OSAL_printf("Test:        %s\n", result->test_name);
+    OSAL_printf("Status:      [%s] %s\n", symbol, status);
+    OSAL_printf("Mean:        %.2f\n", result->stats.mean);
+    OSAL_printf("Baseline:    %.2f%%\n", result->baseline_diff_percent);
+    OSAL_printf("===============================\n\n");
 }
 
 int32_t perf_export_csv(perf_context_t *ctx, const char *filename) {
@@ -285,7 +285,7 @@ int32_t perf_export_csv(perf_context_t *ctx, const char *filename) {
     }
 
     /* CSV导出功能需要文件操作，暂不实现 */
-    OSAL_Printf("[ INFO ] CSV export not implemented (requires file I/O)\n");
+    OSAL_printf("[ INFO ] CSV export not implemented (requires file I/O)\n");
     return -1;
 }
 
@@ -295,7 +295,7 @@ int32_t perf_export_json(perf_context_t *ctx, const char *filename) {
     }
 
     /* JSON导出功能需要文件操作，暂不实现 */
-    OSAL_Printf("[ INFO ] JSON export not implemented (requires file I/O)\n");
+    OSAL_printf("[ INFO ] JSON export not implemented (requires file I/O)\n");
     return -1;
 }
 

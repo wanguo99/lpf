@@ -79,7 +79,7 @@ const char *OSAL_GetBanner(void);
 
 /**
  * @brief 打印详细的版本信息到控制台
- * 使用OSAL_Printf输出所有版本和构建信息
+ * 使用OSAL_printf输出所有版本和构建信息
  */
 void OSAL_PrintVersionInfo(void);
 

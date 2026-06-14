@@ -12,7 +12,7 @@
  */
 static void test_system_peripheral_end_to_end_init(void) {
     // TODO: 实现外设系统端到端初始化系统测试
-    OSAL_Printf("[ INFO ] Peripheral end-to-end init system test - not implemented yet\n");
+    OSAL_printf("[ INFO ] Peripheral end-to-end init system test - not implemented yet\n");
 }
 
 /**
@@ -20,7 +20,7 @@ static void test_system_peripheral_end_to_end_init(void) {
  */
 static void test_system_bmc_mcu_coordination(void) {
     // TODO: 实现BMC与MCU协同工作系统测试
-    OSAL_Printf("[ INFO ] BMC-MCU coordination system test - not implemented yet\n");
+    OSAL_printf("[ INFO ] BMC-MCU coordination system test - not implemented yet\n");
 }
 
 /**
@@ -28,7 +28,7 @@ static void test_system_bmc_mcu_coordination(void) {
  */
 static void test_system_satellite_telemetry_full_flow(void) {
     // TODO: 实现卫星遥测完整流程系统测试
-    OSAL_Printf("[ INFO ] Satellite telemetry full flow system test - not implemented yet\n");
+    OSAL_printf("[ INFO ] Satellite telemetry full flow system test - not implemented yet\n");
 }
 
 /**
@@ -36,7 +36,7 @@ static void test_system_satellite_telemetry_full_flow(void) {
  */
 static void test_system_watchdog_fault_recovery(void) {
     // TODO: 实现Watchdog故障恢复机制系统测试
-    OSAL_Printf("[ INFO ] Watchdog fault recovery system test - not implemented yet\n");
+    OSAL_printf("[ INFO ] Watchdog fault recovery system test - not implemented yet\n");
 }
 
 /* 注册系统测试模块 */

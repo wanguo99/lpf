@@ -28,7 +28,7 @@ static void init_registry(void)
         g_registered_suites = (const test_suite_t **)OSAL_malloc(
             g_suite_capacity * OSAL_sizeof(test_suite_t *));
         if (g_registered_suites == NULL) {
-            OSAL_Printf("FATAL: Failed to allocate test suite registry\n");
+            OSAL_printf("FATAL: Failed to allocate test suite registry\n");
             g_suite_capacity = 0;
         }
     }
@@ -44,7 +44,7 @@ static bool expand_registry(void)
         new_capacity * OSAL_sizeof(test_suite_t *));
 
     if (new_suites == NULL) {
-        OSAL_Printf("ERROR: Failed to expand test suite registry\n");
+        OSAL_printf("ERROR: Failed to expand test suite registry\n");
         return false;
     }
 
@@ -73,7 +73,7 @@ void libutest_register_suite(const test_suite_t *suite)
 
     if (g_suite_count >= g_suite_capacity) {
         if (!expand_registry()) {
-            OSAL_Printf("ERROR: Cannot register test suite '%s' - registry full\n",
+            OSAL_printf("ERROR: Cannot register test suite '%s' - registry full\n",
                         suite->suite_name);
             return;
         }

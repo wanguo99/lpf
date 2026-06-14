@@ -83,24 +83,24 @@ int32_t system_test_run(system_test_context_t *ctx,
 
     /* 环境初始化 */
     if (ctx->setup_func) {
-        OSAL_Printf("[ SETUP    ] Initializing test environment...\n");
+        OSAL_printf("[ SETUP    ] Initializing test environment...\n");
         int32_t result = ctx->setup_func(&ctx->env);
         if (result != 0) {
-            OSAL_Printf("[ SETUP FAIL ] Environment setup failed: %d\n", result);
+            OSAL_printf("[ SETUP FAIL ] Environment setup failed: %d\n", result);
             return result;
         }
-        OSAL_Printf("[ SETUP OK ] Environment initialized\n");
+        OSAL_printf("[ SETUP OK ] Environment initialized\n");
     }
 
     /* 运行测试 */
-    OSAL_Printf("[ RUN      ] %s\n", ctx->name);
+    OSAL_printf("[ RUN      ] %s\n", ctx->name);
     int32_t test_result = test_func(&ctx->env);
 
     /* 环境清理 */
     if (ctx->teardown_func) {
-        OSAL_Printf("[ TEARDOWN ] Cleaning up test environment...\n");
+        OSAL_printf("[ TEARDOWN ] Cleaning up test environment...\n");
         ctx->teardown_func(&ctx->env);
-        OSAL_Printf("[ TEARDOWN OK ] Environment cleaned up\n");
+        OSAL_printf("[ TEARDOWN OK ] Environment cleaned up\n");
     }
 
     ctx->end_time_ms = OSAL_GetTickCount();
@@ -108,11 +108,11 @@ int32_t system_test_run(system_test_context_t *ctx,
 
     /* 打印结果 */
     if (ctx->test_passed) {
-        OSAL_Printf("[ PASS     ] %s (%lu ms)\n",
+        OSAL_printf("[ PASS     ] %s (%lu ms)\n",
                    ctx->name,
                    (unsigned long)(ctx->end_time_ms - ctx->start_time_ms));
     } else {
-        OSAL_Printf("[ FAIL     ] %s (%lu ms)\n",
+        OSAL_printf("[ FAIL     ] %s (%lu ms)\n",
                    ctx->name,
                    (unsigned long)(ctx->end_time_ms - ctx->start_time_ms));
     }
@@ -139,10 +139,10 @@ void system_test_checkpoint(system_test_context_t *ctx,
 
     if (passed) {
         ctx->checkpoints_passed++;
-        OSAL_Printf("[ CHECKPOINT OK ] %s\n", checkpoint_name);
+        OSAL_printf("[ CHECKPOINT OK ] %s\n", checkpoint_name);
     } else {
         ctx->checkpoints_failed++;
-        OSAL_Printf("[ CHECKPOINT FAIL ] %s\n", checkpoint_name);
+        OSAL_printf("[ CHECKPOINT FAIL ] %s\n", checkpoint_name);
     }
 }
 
@@ -168,29 +168,29 @@ void system_test_print_report(system_test_context_t *ctx) {
             break;
     }
 
-    OSAL_Printf("\n");
-    OSAL_Printf("=== System Test Report: %s ===\n", ctx->name);
-    OSAL_Printf("Type:        %s\n", type_str);
-    OSAL_Printf("Status:      %s\n", ctx->test_passed ? "PASSED" : "FAILED");
-    OSAL_Printf("Duration:    %lu ms\n",
+    OSAL_printf("\n");
+    OSAL_printf("=== System Test Report: %s ===\n", ctx->name);
+    OSAL_printf("Type:        %s\n", type_str);
+    OSAL_printf("Status:      %s\n", ctx->test_passed ? "PASSED" : "FAILED");
+    OSAL_printf("Duration:    %lu ms\n",
                (unsigned long)(ctx->end_time_ms - ctx->start_time_ms));
-    OSAL_Printf("\n");
-    OSAL_Printf("Checkpoints:\n");
-    OSAL_Printf("  Total:     %u\n", ctx->checkpoint_count);
-    OSAL_Printf("  Passed:    %u\n", ctx->checkpoints_passed);
-    OSAL_Printf("  Failed:    %u\n", ctx->checkpoints_failed);
-    OSAL_Printf("\n");
+    OSAL_printf("\n");
+    OSAL_printf("Checkpoints:\n");
+    OSAL_printf("  Total:     %u\n", ctx->checkpoint_count);
+    OSAL_printf("  Passed:    %u\n", ctx->checkpoints_passed);
+    OSAL_printf("  Failed:    %u\n", ctx->checkpoints_failed);
+    OSAL_printf("\n");
 
     if (ctx->checkpoint_count > 0) {
-        OSAL_Printf("Checkpoint Details:\n");
+        OSAL_printf("Checkpoint Details:\n");
         uint32_t i;
 
         for (i = 0; i < ctx->checkpoint_count; i++) {
             checkpoint_record_t *cp = &ctx->checkpoints[i];
             const char *status = cp->passed ? "+" : "X";
-            OSAL_Printf("  [%s] %s\n", status, cp->name);
+            OSAL_printf("  [%s] %s\n", status, cp->name);
         }
     }
 
-    OSAL_Printf("=====================================\n\n");
+    OSAL_printf("=====================================\n\n");
 }

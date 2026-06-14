@@ -12,7 +12,7 @@
  */
 static void test_system_can_end_to_end(void) {
     // TODO: 实现CAN总线端到端通信系统测试
-    OSAL_Printf("[ INFO ] CAN end-to-end system test - not implemented yet\n");
+    OSAL_printf("[ INFO ] CAN end-to-end system test - not implemented yet\n");
 }
 
 /**
@@ -20,7 +20,7 @@ static void test_system_can_end_to_end(void) {
  */
 static void test_system_uart_end_to_end(void) {
     // TODO: 实现UART串口端到端通信系统测试
-    OSAL_Printf("[ INFO ] UART end-to-end system test - not implemented yet\n");
+    OSAL_printf("[ INFO ] UART end-to-end system test - not implemented yet\n");
 }
 
 /**
@@ -28,7 +28,7 @@ static void test_system_uart_end_to_end(void) {
  */
 static void test_system_multi_peripheral_coordination(void) {
     // TODO: 实现多外设协同工作系统测试
-    OSAL_Printf("[ INFO ] Multi-peripheral coordination system test - not implemented yet\n");
+    OSAL_printf("[ INFO ] Multi-peripheral coordination system test - not implemented yet\n");
 }
 
 /**
@@ -36,7 +36,7 @@ static void test_system_multi_peripheral_coordination(void) {
  */
 static void test_system_hardware_fault_recovery(void) {
     // TODO: 实现硬件故障恢复系统测试
-    OSAL_Printf("[ INFO ] Hardware fault recovery system test - not implemented yet\n");
+    OSAL_printf("[ INFO ] Hardware fault recovery system test - not implemented yet\n");
 }
 
 /* 注册系统测试模块 */

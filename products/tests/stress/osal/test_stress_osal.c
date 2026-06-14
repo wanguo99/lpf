@@ -54,7 +54,7 @@ static void test_stress_mutex_concurrency(void) {
     TEST_ASSERT_NOT_NULL(ctx);
 
     /* 运行压力测试 */
-    OSAL_Printf("[ INFO     ] Running mutex concurrency test: %u threads, %u seconds\n",
+    OSAL_printf("[ INFO     ] Running mutex concurrency test: %u threads, %u seconds\n",
                thread_count, duration_sec);
     TEST_ASSERT_EQUAL(stress_run(ctx, mutex_stress_worker, &data), 0);
 
@@ -107,7 +107,7 @@ static void test_stress_atomic_operations(void) {
     TEST_ASSERT_NOT_NULL(ctx);
 
     /* 运行压力测试 */
-    OSAL_Printf("[ INFO     ] Running atomic operations test: %u threads, %u iterations\n",
+    OSAL_printf("[ INFO     ] Running atomic operations test: %u threads, %u iterations\n",
                thread_count, iterations);
     TEST_ASSERT_EQUAL(stress_run(ctx, atomic_stress_worker, &counter), 0);
 

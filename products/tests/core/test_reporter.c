@@ -91,7 +91,7 @@ int32_t libutest_export_junit_xml(const char *output_path)
     /* Open output file */
     fd = OSAL_open(output_path, OSAL_O_WRONLY | OSAL_O_CREAT | OSAL_O_TRUNC, 0644);
     if (fd < 0) {
-        OSAL_Printf("Error: Failed to create JUnit XML file: %s\n", output_path);
+        OSAL_printf("Error: Failed to create JUnit XML file: %s\n", output_path);
         return OSAL_ERR_GENERIC;
     }
 
@@ -190,7 +190,7 @@ int32_t libutest_export_junit_xml(const char *output_path)
     OSAL_write(fd, buf, len);
 
     OSAL_close(fd);
-    OSAL_Printf("JUnit XML report: %s\n", output_path);
+    OSAL_printf("JUnit XML report: %s\n", output_path);
 
     return OSAL_SUCCESS;
 }
@@ -217,7 +217,7 @@ int32_t libutest_export_json(const char *output_path)
     /* Open output file */
     fd = OSAL_open(output_path, OSAL_O_WRONLY | OSAL_O_CREAT | OSAL_O_TRUNC, 0644);
     if (fd < 0) {
-        OSAL_Printf("Error: Failed to create JSON file: %s\n", output_path);
+        OSAL_printf("Error: Failed to create JSON file: %s\n", output_path);
         return OSAL_ERR_GENERIC;
     }
 
@@ -288,7 +288,7 @@ int32_t libutest_export_json(const char *output_path)
     OSAL_write(fd, buf, len);
 
     OSAL_close(fd);
-    OSAL_Printf("JSON report: %s\n", output_path);
+    OSAL_printf("JSON report: %s\n", output_path);
 
     return OSAL_SUCCESS;
 }
@@ -347,7 +347,7 @@ void libutest_print_slowest_tests(uint32_t top_n)
     /* Allocate array for all test pointers */
     all_tests = (test_result_node_t **)OSAL_malloc(stats->total * OSAL_sizeof(test_result_node_t *));
     if (!all_tests) {
-        OSAL_Printf("Error: Failed to allocate memory for slowest tests report\n");
+        OSAL_printf("Error: Failed to allocate memory for slowest tests report\n");
         return;
     }
 
@@ -365,13 +365,13 @@ void libutest_print_slowest_tests(uint32_t top_n)
     /* Print top N */
     if (top_n > count) top_n = count;
 
-    OSAL_Printf("\n[==========]\n");
-    OSAL_Printf(" Top %u Slowest Tests\n", top_n);
-    OSAL_Printf("[==========]\n");
+    OSAL_printf("\n[==========]\n");
+    OSAL_printf(" Top %u Slowest Tests\n", top_n);
+    OSAL_printf("[==========]\n");
 
     for (i = 0; i < top_n; i++) {
         node = all_tests[i];
-        OSAL_Printf("  %4u ms  [%s] %s\n",
+        OSAL_printf("  %4u ms  [%s] %s\n",
                     node->elapsed_ms,
                     node->suite_name,
                     node->test_name);
@@ -413,7 +413,7 @@ void libutest_print_suite_stats(void)
     /* Allocate suite statistics array */
     suite_stats = (suite_stats_t *)OSAL_malloc(max_suites * OSAL_sizeof(suite_stats_t));
     if (!suite_stats) {
-        OSAL_Printf("Error: Failed to allocate memory for suite statistics\n");
+        OSAL_printf("Error: Failed to allocate memory for suite statistics\n");
         return;
     }
     OSAL_memset(suite_stats, 0, max_suites * OSAL_sizeof(suite_stats_t));
@@ -463,15 +463,15 @@ void libutest_print_suite_stats(void)
     }
 
     /* Print per-suite statistics */
-    OSAL_Printf("\n[==========]\n");
-    OSAL_Printf(" Per-Suite Statistics\n");
-    OSAL_Printf("[==========]\n");
-    OSAL_Printf("  %-30s %6s %6s %6s %10s\n",
+    OSAL_printf("\n[==========]\n");
+    OSAL_printf(" Per-Suite Statistics\n");
+    OSAL_printf("[==========]\n");
+    OSAL_printf("  %-30s %6s %6s %6s %10s\n",
                 "Suite", "Total", "Pass", "Fail", "Time(ms)");
-    OSAL_Printf("  %s\n", "-----------------------------------------------------------------------");
+    OSAL_printf("  %s\n", "-----------------------------------------------------------------------");
 
     for (i = 0; i < suite_count; i++) {
-        OSAL_Printf("  %-30s %6u %6u %6u %10llu\n",
+        OSAL_printf("  %-30s %6u %6u %6u %10llu\n",
                     suite_stats[i].suite_name,
                     suite_stats[i].total,
                     suite_stats[i].passed,

@@ -73,18 +73,18 @@ const char *OSAL_GetBanner(void)
 
 void OSAL_PrintVersionInfo(void)
 {
-    OSAL_Printf("=================================================================\n");
-    OSAL_Printf("ES-Middleware Version Information\n");
-    OSAL_Printf("=================================================================\n");
-    OSAL_Printf("Version:      %s\n", OSAL_GetVersion());
-    OSAL_Printf("Full Version: %s\n", OSAL_GetVersionFull());
-    OSAL_Printf("Git Commit:   %s\n", OSAL_GetGitCommit());
-    OSAL_Printf("Build Time:   %s\n", OSAL_GetBuildTime());
-    OSAL_Printf("Built by:     %s\n", OSAL_GetBuildBy());
-    OSAL_Printf("Compiler:     %s\n", OSAL_GetCompiler());
-    OSAL_Printf("Architecture: %s\n", OSAL_GetArch());
-    OSAL_Printf("Kernel:       %s\n", OSAL_GetKernel());
-    OSAL_Printf("=================================================================\n");
-    OSAL_Printf("\nBanner:\n%s\n", OSAL_GetBanner());
-    OSAL_Printf("=================================================================\n");
+    OSAL_printf("=================================================================\n");
+    OSAL_printf("ES-Middleware Version Information\n");
+    OSAL_printf("=================================================================\n");
+    OSAL_printf("Version:      %s\n", OSAL_GetVersion());
+    OSAL_printf("Full Version: %s\n", OSAL_GetVersionFull());
+    OSAL_printf("Git Commit:   %s\n", OSAL_GetGitCommit());
+    OSAL_printf("Build Time:   %s\n", OSAL_GetBuildTime());
+    OSAL_printf("Built by:     %s\n", OSAL_GetBuildBy());
+    OSAL_printf("Compiler:     %s\n", OSAL_GetCompiler());
+    OSAL_printf("Architecture: %s\n", OSAL_GetArch());
+    OSAL_printf("Kernel:       %s\n", OSAL_GetKernel());
+    OSAL_printf("=================================================================\n");
+    OSAL_printf("\nBanner:\n%s\n", OSAL_GetBanner());
+    OSAL_printf("=================================================================\n");
 }

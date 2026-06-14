@@ -182,9 +182,9 @@ test_mock_state_t* test_mock_get(const char *func_name);
     do { \
         test_mock_state_t *_mock = test_mock_get(#func_name); \
         if (!_mock || _mock->call_count == 0) { \
-            OSAL_Printf("[  FAILED  ] %s:%d\n", __FILE__, __LINE__); \
-            OSAL_Printf("            Expected function '%s' to be called\n", #func_name); \
-            OSAL_Printf("            Actual call count: %u\n", _mock ? _mock->call_count : 0); \
+            OSAL_printf("[  FAILED  ] %s:%d\n", __FILE__, __LINE__); \
+            OSAL_printf("            Expected function '%s' to be called\n", #func_name); \
+            OSAL_printf("            Actual call count: %u\n", _mock ? _mock->call_count : 0); \
             g_test_failed = true; \
             return; \
         } \
@@ -201,10 +201,10 @@ test_mock_state_t* test_mock_get(const char *func_name);
         test_mock_state_t *_mock = test_mock_get(#func_name); \
         uint32_t _actual = _mock ? _mock->call_count : 0; \
         if (_actual != (expected_count)) { \
-            OSAL_Printf("[  FAILED  ] %s:%d\n", __FILE__, __LINE__); \
-            OSAL_Printf("            Function: %s\n", #func_name); \
-            OSAL_Printf("            Expected call count: %u\n", (uint32_t)(expected_count)); \
-            OSAL_Printf("            Actual call count:   %u\n", _actual); \
+            OSAL_printf("[  FAILED  ] %s:%d\n", __FILE__, __LINE__); \
+            OSAL_printf("            Function: %s\n", #func_name); \
+            OSAL_printf("            Expected call count: %u\n", (uint32_t)(expected_count)); \
+            OSAL_printf("            Actual call count:   %u\n", _actual); \
             g_test_failed = true; \
             return; \
         } \
@@ -272,7 +272,7 @@ test_mock_state_t* test_mock_get(const char *func_name);
     do { \
         test_mock_register(#mock_func); \
         /* 实际的函数替换需要编译时支持 */ \
-        OSAL_Printf("[   INFO   ] Mock registered: %s -> %s\n", #original_func, #mock_func); \
+        OSAL_printf("[   INFO   ] Mock registered: %s -> %s\n", #original_func, #mock_func); \
     } while(0)
 
 #ifdef __cplusplus

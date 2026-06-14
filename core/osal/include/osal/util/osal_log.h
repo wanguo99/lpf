@@ -165,7 +165,7 @@ void OSAL_LogStructured(int32_t level, log_module_t module, const char *message,
 /**
  * @brief 简单打印（不带日志级别和模块名）
  */
-void OSAL_Printf(const char *format, ...);
+void OSAL_printf(const char *format, ...);
 
 /**
  * @brief 获取日志统计信息

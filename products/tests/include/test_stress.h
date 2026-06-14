@@ -177,7 +177,7 @@ bool stress_should_stop(stress_context_t *ctx);
         double success_rate = (stats.total_operations > 0) ? \
             (100.0 * stats.successful_ops / stats.total_operations) : 0.0; \
         if (success_rate < (threshold_percent)) { \
-            OSAL_Printf("[ STRESS FAIL ] Success rate %.2f%% < threshold %.2f%%\n", \
+            OSAL_printf("[ STRESS FAIL ] Success rate %.2f%% < threshold %.2f%%\n", \
                        success_rate, (double)(threshold_percent)); \
             TEST_FAIL(); \
         } \
@@ -192,7 +192,7 @@ bool stress_should_stop(stress_context_t *ctx);
         stress_stats_t stats; \
         stress_get_stats(ctx, &stats); \
         if (stats.error_count > 0) { \
-            OSAL_Printf("[ STRESS FAIL ] Found %u errors\n", stats.error_count); \
+            OSAL_printf("[ STRESS FAIL ] Found %u errors\n", stats.error_count); \
             TEST_FAIL(); \
         } \
     } while (0)

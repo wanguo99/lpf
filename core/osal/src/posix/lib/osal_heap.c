@@ -121,7 +121,7 @@ int32_t OSAL_HeapCheckThreshold(bool *exceeded)
     *exceeded = (usage_percent >= g_heap_monitor.threshold_percent);
     if (*exceeded && !g_heap_monitor.alert_triggered) {
         g_heap_monitor.alert_triggered = true;
-        OSAL_Printf("[HEAP] Memory threshold exceeded: %u%% (threshold: %u%%)\n",
+        OSAL_printf("[HEAP] Memory threshold exceeded: %u%% (threshold: %u%%)\n",
                   usage_percent, g_heap_monitor.threshold_percent);
     } else if (!*exceeded) {
         g_heap_monitor.alert_triggered = false;
@@ -207,9 +207,9 @@ void OSAL_free(void *ptr)
 
     /* 验证魔数，检测内存损坏 */
     if (MEM_BLOCK_MAGIC != header->magic) {
-        OSAL_Printf("[HEAP] CRITICAL: Memory corruption detected at %p (invalid magic: 0x%X, expected: 0x%X)\n",
+        OSAL_printf("[HEAP] CRITICAL: Memory corruption detected at %p (invalid magic: 0x%X, expected: 0x%X)\n",
                     ptr, header->magic, MEM_BLOCK_MAGIC);
-        OSAL_Printf("[HEAP] This indicates buffer overflow, use-after-free, or double-free\n");
+        OSAL_printf("[HEAP] This indicates buffer overflow, use-after-free, or double-free\n");
 
         /* 航天级代码要求：检测到内存损坏必须终止程序
          * 继续运行可能导致更严重的数据损坏或不可预测的行为
@@ -228,7 +228,7 @@ void OSAL_free(void *ptr)
     pthread_mutex_lock(&g_heap_monitor.lock);
     if (header->size > g_heap_monitor.current_usage) {
         /* 统计下溢：记录详细错误信息 */
-        OSAL_Printf("[HEAP] ERROR: Heap usage underflow - freeing %u bytes but current usage is %u\n",
+        OSAL_printf("[HEAP] ERROR: Heap usage underflow - freeing %u bytes but current usage is %u\n",
                     header->size, g_heap_monitor.current_usage);
         g_heap_monitor.current_usage = 0;
     } else {
@@ -273,7 +273,7 @@ void *OSAL_realloc(void *ptr, uint32_t new_size)
 
     /* 验证魔数，检测内存损坏 */
     if (MEM_BLOCK_MAGIC != old_header->magic) {
-        OSAL_Printf("[HEAP] Memory corruption detected at %p (invalid magic: 0x%X)\n",
+        OSAL_printf("[HEAP] Memory corruption detected at %p (invalid magic: 0x%X)\n",
                     ptr, old_header->magic);
         return NULL;
     }

@@ -12,7 +12,7 @@
  */
 static void test_system_config_end_to_end_load(void) {
     // TODO: 实现配置系统端到端加载系统测试
-    OSAL_Printf("[ INFO ] Config end-to-end load system test - not implemented yet\n");
+    OSAL_printf("[ INFO ] Config end-to-end load system test - not implemented yet\n");
 }
 
 /**
@@ -20,7 +20,7 @@ static void test_system_config_end_to_end_load(void) {
  */
 static void test_system_multi_platform_switch(void) {
     // TODO: 实现多平台配置切换系统测试
-    OSAL_Printf("[ INFO ] Multi-platform switch system test - not implemented yet\n");
+    OSAL_printf("[ INFO ] Multi-platform switch system test - not implemented yet\n");
 }
 
 /**
@@ -28,7 +28,7 @@ static void test_system_multi_platform_switch(void) {
  */
 static void test_system_config_hot_reload(void) {
     // TODO: 实现配置热更新系统测试
-    OSAL_Printf("[ INFO ] Config hot reload system test - not implemented yet\n");
+    OSAL_printf("[ INFO ] Config hot reload system test - not implemented yet\n");
 }
 
 /* 注册系统测试模块 */

@@ -213,8 +213,8 @@ static void test_osal_printf(void)
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     /* 使用Printf（不带日志级别） */
-    OSAL_Printf("Simple message\n");
-    OSAL_Printf("Formatted: %d, %s\n", 42, "test");
+    OSAL_printf("Simple message\n");
+    OSAL_printf("Formatted: %d, %s\n", 42, "test");
 
     /* 清理 */
     OSAL_LogShutdown();

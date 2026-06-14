@@ -13,7 +13,7 @@
  */
 static void test_stress_validation_concurrent(void) {
     // TODO: 实现配置验证并发压力测试
-    OSAL_Printf("[ INFO ] Validation concurrent stress test - not implemented yet\n");
+    OSAL_printf("[ INFO ] Validation concurrent stress test - not implemented yet\n");
 }
 
 /**
@@ -21,7 +21,7 @@ static void test_stress_validation_concurrent(void) {
  */
 static void test_stress_massive_validation(void) {
     // TODO: 实现大量配置验证压力测试
-    OSAL_Printf("[ INFO ] Massive validation stress test - not implemented yet\n");
+    OSAL_printf("[ INFO ] Massive validation stress test - not implemented yet\n");
 }
 
 /**
@@ -29,7 +29,7 @@ static void test_stress_massive_validation(void) {
  */
 static void test_stress_tc_tm_concurrent_access(void) {
     // TODO: 实现遥控遥测配置并发访问压力测试
-    OSAL_Printf("[ INFO ] TC/TM concurrent access stress test - not implemented yet\n");
+    OSAL_printf("[ INFO ] TC/TM concurrent access stress test - not implemented yet\n");
 }
 
 /* 注册压力测试模块 */

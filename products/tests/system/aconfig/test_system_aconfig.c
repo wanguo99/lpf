@@ -13,7 +13,7 @@
  */
 static void test_system_app_config_end_to_end_validation(void) {
     // TODO: 实现应用配置端到端验证系统测试
-    OSAL_Printf("[ INFO ] App config end-to-end validation system test - not implemented yet\n");
+    OSAL_printf("[ INFO ] App config end-to-end validation system test - not implemented yet\n");
 }
 
 /**
@@ -21,7 +21,7 @@ static void test_system_app_config_end_to_end_validation(void) {
  */
 static void test_system_tc_tm_config_integration(void) {
     // TODO: 实现遥控遥测配置集成系统测试
-    OSAL_Printf("[ INFO ] TC/TM config integration system test - not implemented yet\n");
+    OSAL_printf("[ INFO ] TC/TM config integration system test - not implemented yet\n");
 }
 
 /**
@@ -29,7 +29,7 @@ static void test_system_tc_tm_config_integration(void) {
  */
 static void test_system_config_error_handling(void) {
     // TODO: 实现配置错误处理流程系统测试
-    OSAL_Printf("[ INFO ] Config error handling system test - not implemented yet\n");
+    OSAL_printf("[ INFO ] Config error handling system test - not implemented yet\n");
 }
 
 /* 注册系统测试模块 */

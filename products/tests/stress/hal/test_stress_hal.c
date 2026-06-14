@@ -12,7 +12,7 @@
  */
 static void test_stress_can_concurrent_send(void) {
     // TODO: 实现CAN并发发送压力测试
-    OSAL_Printf("[ INFO ] CAN concurrent send stress test - not implemented yet\n");
+    OSAL_printf("[ INFO ] CAN concurrent send stress test - not implemented yet\n");
 }
 
 /**
@@ -20,7 +20,7 @@ static void test_stress_can_concurrent_send(void) {
  */
 static void test_stress_uart_long_running(void) {
     // TODO: 实现UART长时间传输压力测试
-    OSAL_Printf("[ INFO ] UART long running stress test - not implemented yet\n");
+    OSAL_printf("[ INFO ] UART long running stress test - not implemented yet\n");
 }
 
 /**
@@ -28,7 +28,7 @@ static void test_stress_uart_long_running(void) {
  */
 static void test_stress_gpio_high_frequency(void) {
     // TODO: 实现GPIO高频读写压力测试
-    OSAL_Printf("[ INFO ] GPIO high frequency stress test - not implemented yet\n");
+    OSAL_printf("[ INFO ] GPIO high frequency stress test - not implemented yet\n");
 }
 
 /**
@@ -36,7 +36,7 @@ static void test_stress_gpio_high_frequency(void) {
  */
 static void test_stress_i2c_resource_exhaustion(void) {
     // TODO: 实现I2C资源耗尽压力测试
-    OSAL_Printf("[ INFO ] I2C resource exhaustion stress test - not implemented yet\n");
+    OSAL_printf("[ INFO ] I2C resource exhaustion stress test - not implemented yet\n");
 }
 
 /**
@@ -44,7 +44,7 @@ static void test_stress_i2c_resource_exhaustion(void) {
  */
 static void test_stress_spi_concurrent_transfer(void) {
     // TODO: 实现SPI并发传输压力测试
-    OSAL_Printf("[ INFO ] SPI concurrent transfer stress test - not implemented yet\n");
+    OSAL_printf("[ INFO ] SPI concurrent transfer stress test - not implemented yet\n");
 }
 
 /* 注册压力测试模块 */

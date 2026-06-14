@@ -23,35 +23,35 @@ static test_env_t g_test_env = {0};
  * 环境初始化：OSAL + HAL + PDL
  */
 static void setup_full_stack(void) {
-    OSAL_Printf("[ SETUP    ] Initializing full stack environment\n");
+    OSAL_printf("[ SETUP    ] Initializing full stack environment\n");
 
     /* 注意：OSAL_Init/HAL_Init/PDL_Init不存在，简化初始化 */
     g_test_env.osal_initialized = 1;
     g_test_env.hal_initialized = 1;
     g_test_env.pdl_initialized = 1;
 
-    OSAL_Printf("[ SETUP OK ] Full stack initialized\n");
+    OSAL_printf("[ SETUP OK ] Full stack initialized\n");
 }
 
 /**
  * 环境清理
  */
 static void teardown_full_stack(void) {
-    OSAL_Printf("[ TEARDOWN ] Cleaning up full stack environment\n");
+    OSAL_printf("[ TEARDOWN ] Cleaning up full stack environment\n");
 
     /* 注意：PDL_Deinit/HAL_Deinit/OSAL_Deinit不存在，简化清理 */
     g_test_env.pdl_initialized = 0;
     g_test_env.hal_initialized = 0;
     g_test_env.osal_initialized = 0;
 
-    OSAL_Printf("[ TEARDOWN OK ] Full stack cleaned up\n");
+    OSAL_printf("[ TEARDOWN OK ] Full stack cleaned up\n");
 }
 
 /**
  * 系统测试：OSAL + HAL 集成
  */
 static void test_osal_hal_integration(void) {
-    OSAL_Printf("[ TEST     ] Testing OSAL + HAL integration\n");
+    OSAL_printf("[ TEST     ] Testing OSAL + HAL integration\n");
 
     /* 检查点1：OSAL初始化 */
     TEST_ASSERT_TRUE(g_test_env.osal_initialized);
@@ -67,14 +67,14 @@ static void test_osal_hal_integration(void) {
     /* 注意：线程测试已简化，避免使用lambda */
     TEST_ASSERT_TRUE(1);
 
-    OSAL_Printf("[ PASS     ] OSAL + HAL integration test passed\n");
+    OSAL_printf("[ PASS     ] OSAL + HAL integration test passed\n");
 }
 
 /**
  * 系统测试：HAL + PDL 集成
  */
 static void test_hal_pdl_integration(void) {
-    OSAL_Printf("[ TEST     ] Testing HAL + PDL integration\n");
+    OSAL_printf("[ TEST     ] Testing HAL + PDL integration\n");
 
     /* 检查点1：HAL初始化 */
     TEST_ASSERT_TRUE(g_test_env.hal_initialized);
@@ -110,14 +110,14 @@ static void test_hal_pdl_integration(void) {
         PDL_WATCHDOG_Deinit(wdt_handle);
     }
 
-    OSAL_Printf("[ PASS     ] HAL + PDL integration test passed\n");
+    OSAL_printf("[ PASS     ] HAL + PDL integration test passed\n");
 }
 
 /**
  * 系统测试：完整栈端到端测试
  */
 static void test_full_stack_e2e(void) {
-    OSAL_Printf("[ TEST     ] Testing full stack end-to-end\n");
+    OSAL_printf("[ TEST     ] Testing full stack end-to-end\n");
 
     /* 检查点1：所有层初始化 */
     TEST_ASSERT_TRUE(g_test_env.osal_initialized);
@@ -137,7 +137,7 @@ static void test_full_stack_e2e(void) {
         OSAL_MutexDelete(mutex);
     }
 
-    OSAL_Printf("[ PASS     ] Full stack E2E test passed\n");
+    OSAL_printf("[ PASS     ] Full stack E2E test passed\n");
 }
 
 /* 线程数据结构 */
@@ -164,7 +164,7 @@ static void* concurrent_thread_func(void *arg) {
  * 系统测试：并发场景测试
  */
 static void test_concurrent_scenario(void) {
-    OSAL_Printf("[ TEST     ] Testing concurrent scenario\n");
+    OSAL_printf("[ TEST     ] Testing concurrent scenario\n");
 
     const uint32_t num_threads = 5;
     osal_thread_t threads[5];
@@ -204,13 +204,13 @@ static void test_concurrent_scenario(void) {
     uint32_t expected_count = num_threads * 1000;
     TEST_ASSERT_EQUAL(expected_count, final_count);
 
-    OSAL_Printf("[ INFO     ] Final count: %u (expected: %u)\n",
+    OSAL_printf("[ INFO     ] Final count: %u (expected: %u)\n",
                final_count, expected_count);
 
     /* 清理 */
     OSAL_MutexDelete(mutex);
 
-    OSAL_Printf("[ PASS     ] Concurrent scenario test passed\n");
+    OSAL_printf("[ PASS     ] Concurrent scenario test passed\n");
 }
 
 /* 测试用例数组 - 使用函数指针数组 */

@@ -265,34 +265,34 @@ void stress_print_report(stress_context_t *ctx) {
 
     stress_stats_t stats;
     if (stress_get_stats(ctx, &stats) != 0) {
-        OSAL_Printf("[ STRESS ERROR ] Failed to get statistics\n");
+        OSAL_printf("[ STRESS ERROR ] Failed to get statistics\n");
         return;
     }
 
     double success_rate = (stats.total_operations > 0) ?
         (100.0 * stats.successful_ops / stats.total_operations) : 0.0;
 
-    OSAL_Printf("\n");
-    OSAL_Printf("=== Stress Test Report: %s ===\n", ctx->name);
-    OSAL_Printf("Configuration:\n");
-    OSAL_Printf("  Threads:      %u\n", ctx->config.thread_count);
-    OSAL_Printf("  Duration:     %u sec\n", ctx->config.duration_sec);
-    OSAL_Printf("  Iterations:   %u\n", ctx->config.iterations);
-    OSAL_Printf("\n");
-    OSAL_Printf("Results:\n");
-    OSAL_Printf("  Total Ops:    %lu\n", (unsigned long)stats.total_operations);
-    OSAL_Printf("  Successful:   %lu (%.2f%%)\n",
+    OSAL_printf("\n");
+    OSAL_printf("=== Stress Test Report: %s ===\n", ctx->name);
+    OSAL_printf("Configuration:\n");
+    OSAL_printf("  Threads:      %u\n", ctx->config.thread_count);
+    OSAL_printf("  Duration:     %u sec\n", ctx->config.duration_sec);
+    OSAL_printf("  Iterations:   %u\n", ctx->config.iterations);
+    OSAL_printf("\n");
+    OSAL_printf("Results:\n");
+    OSAL_printf("  Total Ops:    %lu\n", (unsigned long)stats.total_operations);
+    OSAL_printf("  Successful:   %lu (%.2f%%)\n",
                (unsigned long)stats.successful_ops, success_rate);
-    OSAL_Printf("  Failed:       %lu\n", (unsigned long)stats.failed_ops);
-    OSAL_Printf("  Timeout:      %lu\n", (unsigned long)stats.timeout_ops);
-    OSAL_Printf("  Errors:       %u\n", stats.error_count);
-    OSAL_Printf("\n");
-    OSAL_Printf("Performance:\n");
-    OSAL_Printf("  Throughput:   %.2f ops/s\n", stats.ops_per_sec);
-    OSAL_Printf("  Avg Latency:  %.2f us\n", stats.avg_latency_us);
-    OSAL_Printf("  Max Latency:  %.2f us\n", stats.max_latency_us);
-    OSAL_Printf("  Elapsed Time: %lu ms\n", (unsigned long)stats.elapsed_time_ms);
-    OSAL_Printf("=====================================\n\n");
+    OSAL_printf("  Failed:       %lu\n", (unsigned long)stats.failed_ops);
+    OSAL_printf("  Timeout:      %lu\n", (unsigned long)stats.timeout_ops);
+    OSAL_printf("  Errors:       %u\n", stats.error_count);
+    OSAL_printf("\n");
+    OSAL_printf("Performance:\n");
+    OSAL_printf("  Throughput:   %.2f ops/s\n", stats.ops_per_sec);
+    OSAL_printf("  Avg Latency:  %.2f us\n", stats.avg_latency_us);
+    OSAL_printf("  Max Latency:  %.2f us\n", stats.max_latency_us);
+    OSAL_printf("  Elapsed Time: %lu ms\n", (unsigned long)stats.elapsed_time_ms);
+    OSAL_printf("=====================================\n\n");
 }
 
 void stress_record_error(stress_context_t *ctx, const char *error_msg) {

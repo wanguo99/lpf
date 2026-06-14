@@ -847,7 +847,7 @@ void OSAL_LogEmit(int32_t level, const char *module,
 /**
  * @brief 简单打印（不带日志级别和模块名）
  */
-void OSAL_Printf(const char *format, ...)
+void OSAL_printf(const char *format, ...)
 {
     char buffer[OSAL_LOG_MESSAGE_SIZE];
     va_list args;

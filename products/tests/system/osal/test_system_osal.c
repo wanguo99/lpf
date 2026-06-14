@@ -12,7 +12,7 @@
  */
 static void test_system_multi_thread_coordination(void) {
     // TODO: 实现多线程协同工作系统测试
-    OSAL_Printf("[ INFO ] Multi-thread coordination system test - not implemented yet\n");
+    OSAL_printf("[ INFO ] Multi-thread coordination system test - not implemented yet\n");
 }
 
 /**
@@ -20,7 +20,7 @@ static void test_system_multi_thread_coordination(void) {
  */
 static void test_system_ipc_end_to_end(void) {
     // TODO: 实现进程间通信端到端系统测试
-    OSAL_Printf("[ INFO ] IPC end-to-end system test - not implemented yet\n");
+    OSAL_printf("[ INFO ] IPC end-to-end system test - not implemented yet\n");
 }
 
 /**
@@ -28,7 +28,7 @@ static void test_system_ipc_end_to_end(void) {
  */
 static void test_system_resource_management_full_flow(void) {
     // TODO: 实现资源管理完整流程系统测试
-    OSAL_Printf("[ INFO ] Resource management full flow system test - not implemented yet\n");
+    OSAL_printf("[ INFO ] Resource management full flow system test - not implemented yet\n");
 }
 
 /**
@@ -36,7 +36,7 @@ static void test_system_resource_management_full_flow(void) {
  */
 static void test_system_startup_shutdown_flow(void) {
     // TODO: 实现系统启动关闭流程系统测试
-    OSAL_Printf("[ INFO ] Startup/shutdown flow system test - not implemented yet\n");
+    OSAL_printf("[ INFO ] Startup/shutdown flow system test - not implemented yet\n");
 }
 
 /* 注册系统测试模块 */

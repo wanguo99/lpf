@@ -12,7 +12,7 @@
  */
 static void test_stress_config_concurrent_query(void) {
     // TODO: 实现配置查询并发压力测试
-    OSAL_Printf("[ INFO ] Config concurrent query stress test - not implemented yet\n");
+    OSAL_printf("[ INFO ] Config concurrent query stress test - not implemented yet\n");
 }
 
 /**
@@ -20,7 +20,7 @@ static void test_stress_config_concurrent_query(void) {
  */
 static void test_stress_massive_config_load(void) {
     // TODO: 实现大量配置加载压力测试
-    OSAL_Printf("[ INFO ] Massive config load stress test - not implemented yet\n");
+    OSAL_printf("[ INFO ] Massive config load stress test - not implemented yet\n");
 }
 
 /**
@@ -28,7 +28,7 @@ static void test_stress_massive_config_load(void) {
  */
 static void test_stress_config_long_running(void) {
     // TODO: 实现配置系统长时间运行压力测试
-    OSAL_Printf("[ INFO ] Config long running stress test - not implemented yet\n");
+    OSAL_printf("[ INFO ] Config long running stress test - not implemented yet\n");
 }
 
 /* 注册压力测试模块 */
