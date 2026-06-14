@@ -63,14 +63,14 @@ static void* worker_thread_func(void *arg) {
         double latency_us = (double)(end_us - start_us);
 
         /* 更新统计 */
-        OSAL_AtomicIncrement64(&ctx->total_operations);
+        OSAL_atomic_inc_u64(&ctx->total_operations);
 
         if (result == 0) {
-            OSAL_AtomicIncrement64(&ctx->successful_ops);
+            OSAL_atomic_inc_u64(&ctx->successful_ops);
         } else if (result == -OSAL_ERR_TIMEOUT) {
-            OSAL_AtomicIncrement64(&ctx->timeout_ops);
+            OSAL_atomic_inc_u64(&ctx->timeout_ops);
         } else {
-            OSAL_AtomicIncrement64(&ctx->failed_ops);
+            OSAL_atomic_inc_u64(&ctx->failed_ops);
             if (ctx->config.stop_on_error) {
                 ctx->should_stop = true;
             }
@@ -112,11 +112,11 @@ stress_context_t* stress_context_create(const char *name,
     ctx->config = *config;
 
     /* 初始化原子变量 */
-    OSAL_AtomicInit64(&ctx->total_operations, 0);
-    OSAL_AtomicInit64(&ctx->successful_ops, 0);
-    OSAL_AtomicInit64(&ctx->failed_ops, 0);
-    OSAL_AtomicInit64(&ctx->timeout_ops, 0);
-    OSAL_AtomicInit(&ctx->error_count, 0);
+    OSAL_atomic_init_u64(&ctx->total_operations, 0);
+    OSAL_atomic_init_u64(&ctx->successful_ops, 0);
+    OSAL_atomic_init_u64(&ctx->failed_ops, 0);
+    OSAL_atomic_init_u64(&ctx->timeout_ops, 0);
+    OSAL_atomic_init(&ctx->error_count, 0);
 
     /* 创建互斥锁 */
     if (OSAL_pthread_mutex_init(&ctx->stats_mutex, NULL) != 0) {
@@ -237,11 +237,11 @@ int32_t stress_get_stats(stress_context_t *ctx, stress_stats_t *stats) {
 
     OSAL_memset(stats, 0, OSAL_sizeof(stress_stats_t));
 
-    stats->total_operations = OSAL_AtomicLoad64(&ctx->total_operations);
-    stats->successful_ops = OSAL_AtomicLoad64(&ctx->successful_ops);
-    stats->failed_ops = OSAL_AtomicLoad64(&ctx->failed_ops);
-    stats->timeout_ops = OSAL_AtomicLoad64(&ctx->timeout_ops);
-    stats->error_count = OSAL_AtomicLoad(&ctx->error_count);
+    stats->total_operations = OSAL_atomic_load_u64(&ctx->total_operations);
+    stats->successful_ops = OSAL_atomic_load_u64(&ctx->successful_ops);
+    stats->failed_ops = OSAL_atomic_load_u64(&ctx->failed_ops);
+    stats->timeout_ops = OSAL_atomic_load_u64(&ctx->timeout_ops);
+    stats->error_count = OSAL_atomic_load(&ctx->error_count);
 
     uint64_t elapsed_ms = (OSAL_get_monotonic_time() / 1000) - ctx->start_time_ms;
     stats->elapsed_time_ms = elapsed_ms;
@@ -298,7 +298,7 @@ void stress_print_report(stress_context_t *ctx) {
 void stress_record_error(stress_context_t *ctx, const char *error_msg) {
     if (!ctx || !error_msg) return;
 
-    OSAL_AtomicIncrement(&ctx->error_count);
+    OSAL_atomic_inc(&ctx->error_count);
 
     OSAL_pthread_mutex_lock(&ctx->error_mutex);
     if (ctx->error_msg_count < MAX_ERROR_MESSAGES) {

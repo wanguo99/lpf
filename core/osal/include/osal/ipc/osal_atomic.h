@@ -44,42 +44,42 @@ typedef struct {
  * 32位原子操作 API（静态内联）
  *===========================================================================*/
 
-static inline void OSAL_AtomicInit(osal_atomic_uint32_t *atomic, uint32_t value)
+static inline void OSAL_atomic_init(osal_atomic_uint32_t *atomic, uint32_t value)
 {
 	atomic_init(&atomic->value, value);
 }
 
-static inline uint32_t OSAL_AtomicLoad(const osal_atomic_uint32_t *atomic)
+static inline uint32_t OSAL_atomic_load(const osal_atomic_uint32_t *atomic)
 {
 	return atomic_load(&atomic->value);
 }
 
-static inline void OSAL_AtomicStore(osal_atomic_uint32_t *atomic, uint32_t value)
+static inline void OSAL_atomic_store(osal_atomic_uint32_t *atomic, uint32_t value)
 {
 	atomic_store(&atomic->value, value);
 }
 
-static inline uint32_t OSAL_AtomicFetchAdd(osal_atomic_uint32_t *atomic, uint32_t value)
+static inline uint32_t OSAL_atomic_fetch_add(osal_atomic_uint32_t *atomic, uint32_t value)
 {
 	return atomic_fetch_add(&atomic->value, value);
 }
 
-static inline uint32_t OSAL_AtomicFetchSub(osal_atomic_uint32_t *atomic, uint32_t value)
+static inline uint32_t OSAL_atomic_fetch_sub(osal_atomic_uint32_t *atomic, uint32_t value)
 {
 	return atomic_fetch_sub(&atomic->value, value);
 }
 
-static inline uint32_t OSAL_AtomicIncrement(osal_atomic_uint32_t *atomic)
+static inline uint32_t OSAL_atomic_inc(osal_atomic_uint32_t *atomic)
 {
 	return atomic_fetch_add(&atomic->value, 1) + 1;
 }
 
-static inline uint32_t OSAL_AtomicDecrement(osal_atomic_uint32_t *atomic)
+static inline uint32_t OSAL_atomic_dec(osal_atomic_uint32_t *atomic)
 {
 	return atomic_fetch_sub(&atomic->value, 1) - 1;
 }
 
-static inline bool OSAL_AtomicCompareExchange(osal_atomic_uint32_t *atomic,
+static inline bool OSAL_atomic_compare_exchange_strong(osal_atomic_uint32_t *atomic,
                                                uint32_t *expected,
                                                uint32_t desired)
 {
@@ -90,42 +90,42 @@ static inline bool OSAL_AtomicCompareExchange(osal_atomic_uint32_t *atomic,
  * 64位原子操作 API（静态内联）
  *===========================================================================*/
 
-static inline void OSAL_AtomicInit64(osal_atomic_uint64_t *atomic, uint64_t value)
+static inline void OSAL_atomic_init_u64(osal_atomic_uint64_t *atomic, uint64_t value)
 {
 	atomic_init(&atomic->value, value);
 }
 
-static inline uint64_t OSAL_AtomicLoad64(const osal_atomic_uint64_t *atomic)
+static inline uint64_t OSAL_atomic_load_u64(const osal_atomic_uint64_t *atomic)
 {
 	return atomic_load(&atomic->value);
 }
 
-static inline void OSAL_AtomicStore64(osal_atomic_uint64_t *atomic, uint64_t value)
+static inline void OSAL_atomic_store_u64(osal_atomic_uint64_t *atomic, uint64_t value)
 {
 	atomic_store(&atomic->value, value);
 }
 
-static inline uint64_t OSAL_AtomicFetchAdd64(osal_atomic_uint64_t *atomic, uint64_t value)
+static inline uint64_t OSAL_atomic_fetch_add_u64(osal_atomic_uint64_t *atomic, uint64_t value)
 {
 	return atomic_fetch_add(&atomic->value, value);
 }
 
-static inline uint64_t OSAL_AtomicFetchSub64(osal_atomic_uint64_t *atomic, uint64_t value)
+static inline uint64_t OSAL_atomic_fetch_sub_u64(osal_atomic_uint64_t *atomic, uint64_t value)
 {
 	return atomic_fetch_sub(&atomic->value, value);
 }
 
-static inline uint64_t OSAL_AtomicIncrement64(osal_atomic_uint64_t *atomic)
+static inline uint64_t OSAL_atomic_inc_u64(osal_atomic_uint64_t *atomic)
 {
 	return atomic_fetch_add(&atomic->value, 1) + 1;
 }
 
-static inline uint64_t OSAL_AtomicDecrement64(osal_atomic_uint64_t *atomic)
+static inline uint64_t OSAL_atomic_dec_u64(osal_atomic_uint64_t *atomic)
 {
 	return atomic_fetch_sub(&atomic->value, 1) - 1;
 }
 
-static inline bool OSAL_AtomicCompareExchange64(osal_atomic_uint64_t *atomic,
+static inline bool OSAL_atomic_compare_exchange_strong_u64(osal_atomic_uint64_t *atomic,
                                                  uint64_t *expected,
                                                  uint64_t desired)
 {
@@ -136,22 +136,22 @@ static inline bool OSAL_AtomicCompareExchange64(osal_atomic_uint64_t *atomic,
  * 布尔原子操作（静态内联）
  *===========================================================================*/
 
-static inline void OSAL_AtomicInitBool(osal_atomic_bool_t *atomic, bool value)
+static inline void OSAL_atomic_init_bool(osal_atomic_bool_t *atomic, bool value)
 {
 	atomic_init(&atomic->value, value ? 1 : 0);
 }
 
-static inline bool OSAL_AtomicLoadBool(const osal_atomic_bool_t *atomic)
+static inline bool OSAL_atomic_load_bool(const osal_atomic_bool_t *atomic)
 {
 	return atomic_load(&atomic->value) != 0;
 }
 
-static inline void OSAL_AtomicStoreBool(osal_atomic_bool_t *atomic, bool value)
+static inline void OSAL_atomic_store_bool(osal_atomic_bool_t *atomic, bool value)
 {
 	atomic_store(&atomic->value, value ? 1 : 0);
 }
 
-static inline bool OSAL_AtomicCompareExchangeBool(osal_atomic_bool_t *atomic,
+static inline bool OSAL_atomic_compare_exchange_strong_bool(osal_atomic_bool_t *atomic,
                                                    bool *expected,
                                                    bool desired)
 {

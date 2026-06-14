@@ -53,7 +53,7 @@ static void *heartbeat_task(void *arg)
 
     LOG_INFO("PDL_CCM", "Heartbeat task started");
 
-    while (OSAL_AtomicLoadBool(\&ctx->running))
+    while (OSAL_atomic_load_bool(\&ctx->running))
     {
         /* 检查连接状态 */
         if (!ccm_eth_is_connected(ctx->eth_handle))
@@ -125,7 +125,7 @@ static void *eth_rx_task(void *arg)
 
     LOG_INFO("PDL_CCM", "Ethernet RX task started");
 
-    while (OSAL_AtomicLoadBool(\&ctx->running))
+    while (OSAL_atomic_load_bool(\&ctx->running))
     {
         /* 接收以太网消息 */
         ret = ccm_eth_recv(ctx->eth_handle, &msg, ctx->config.recv_timeout_ms);
@@ -239,7 +239,7 @@ int32_t PDL_CCM_Init(const pdl_ccm_config_t *config,
     OSAL_memset(ctx, 0, OSAL_sizeof(ccm_driver_context_t));
     OSAL_memcpy(&ctx->config, config, OSAL_sizeof(pdl_ccm_config_t));
     ctx->link_quality = 100;  /* 初始链路质量 */
-    OSAL_AtomicInitBool(&ctx->running, false);
+    OSAL_atomic_init_bool(&ctx->running, false);
 
     /* 创建互斥锁 */
     ret = OSAL_pthread_mutex_init(&ctx->mutex, NULL);
@@ -261,7 +261,7 @@ int32_t PDL_CCM_Init(const pdl_ccm_config_t *config,
     }
 
     /* 启动接收线程 */
-    OSAL_AtomicStoreBool(\&ctx->running, true);
+    OSAL_atomic_store_bool(\&ctx->running, true);
     ret = OSAL_pthread_create(&ctx->rx_thread, NULL, eth_rx_task, ctx);
     if (ret != OSAL_SUCCESS)
     {
@@ -277,7 +277,7 @@ int32_t PDL_CCM_Init(const pdl_ccm_config_t *config,
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("PDL_CCM", "Failed to create heartbeat thread");
-        OSAL_AtomicStoreBool(\&ctx->running, false);
+        OSAL_atomic_store_bool(\&ctx->running, false);
         OSAL_pthread_join(ctx->rx_thread, NULL);
         ccm_eth_deinit(ctx->eth_handle);
         OSAL_pthread_mutex_destroy(&ctx->mutex);
@@ -303,7 +303,7 @@ int32_t PDL_CCM_Deinit(pdl_ccm_handle_t handle)
     }
 
     /* 停止线程 */
-    OSAL_AtomicStoreBool(\&ctx->running, false);
+    OSAL_atomic_store_bool(\&ctx->running, false);
     OSAL_pthread_join(ctx->rx_thread, NULL);
     OSAL_pthread_join(ctx->heartbeat_thread, NULL);
 

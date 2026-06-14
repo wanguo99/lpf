@@ -62,7 +62,7 @@ static void test_perf_atomic_operations(void) {
     const uint32_t iterations = 100000;
     osal_atomic_uint32_t counter;
 
-    OSAL_AtomicInit(&counter, 0);
+    OSAL_atomic_init(&counter, 0);
 
     /* 创建性能测量上下文 */
     perf_context_t *ctx = perf_context_create("OSAL_AtomicIncrement",
@@ -75,7 +75,7 @@ static void test_perf_atomic_operations(void) {
 
     for (i = 0; i < iterations; i++) {
         perf_begin(ctx);
-        OSAL_AtomicIncrement(&counter);
+        OSAL_atomic_inc(&counter);
         perf_end(ctx);
     }
 
@@ -83,7 +83,7 @@ static void test_perf_atomic_operations(void) {
     perf_print_stats(ctx);
 
     /* 验证结果 */
-    TEST_ASSERT_EQUAL(OSAL_AtomicLoad(&counter), iterations);
+    TEST_ASSERT_EQUAL(OSAL_atomic_load(&counter), iterations);
 
     /* 清理 */
     perf_context_destroy(ctx);

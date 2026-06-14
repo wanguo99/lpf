@@ -154,7 +154,7 @@ static void* concurrent_thread_func(void *arg) {
 
     for (i = 0; i < 1000; i++) {
         OSAL_pthread_mutex_lock(&data->mutex);
-        OSAL_AtomicIncrement(data->counter);
+        OSAL_atomic_inc(data->counter);
         OSAL_pthread_mutex_unlock(&data->mutex);
     }
     return NULL;
@@ -171,7 +171,7 @@ static void test_concurrent_scenario(void) {
     osal_mutex_t *mutex = NULL;
     osal_atomic_uint32_t counter;
 
-    OSAL_AtomicStore(&counter, 0);
+    OSAL_atomic_store(&counter, 0);
 
     /* 检查点1：创建互斥锁 */
     int32_t ret = OSAL_pthread_mutex_init(&mutex, NULL);
@@ -200,7 +200,7 @@ static void test_concurrent_scenario(void) {
     TEST_ASSERT_TRUE(1);
 
     /* 检查点4：验证计数器 */
-    uint32_t final_count = OSAL_AtomicLoad(&counter);
+    uint32_t final_count = OSAL_atomic_load(&counter);
     uint32_t expected_count = num_threads * 1000;
     TEST_ASSERT_EQUAL(expected_count, final_count);
 

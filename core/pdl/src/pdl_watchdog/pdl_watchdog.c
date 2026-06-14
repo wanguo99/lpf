@@ -30,16 +30,16 @@ static void *watchdog_kick_thread(void *arg)
 
     LOG_INFO("PDL_WDT", "Auto-kick thread started for %s", ctx->name);
 
-    while (OSAL_AtomicLoadBool(&ctx->running))
+    while (OSAL_atomic_load_bool(&ctx->running))
     {
         /* 喂狗 */
         int32_t ret = HAL_WATCHDOG_Kick(ctx->hal_handle);
         if (ret == OSAL_SUCCESS)
         {
-            OSAL_AtomicFetchAdd(&ctx->kick_count, 1);
-            OSAL_AtomicStore64(&ctx->last_kick_time, OSAL_get_monotonic_time());
+            OSAL_atomic_fetch_add(&ctx->kick_count, 1);
+            OSAL_atomic_store_u64(&ctx->last_kick_time, OSAL_get_monotonic_time());
             LOG_DEBUG("PDL_WDT", "[%s] Kicked (count=%u)",
-                     ctx->name, OSAL_AtomicLoad(&ctx->kick_count));
+                     ctx->name, OSAL_atomic_load(&ctx->kick_count));
         }
         else
         {
@@ -82,9 +82,9 @@ int32_t PDL_WATCHDOG_Init(const pdl_watchdog_config_t *config, pdl_watchdog_hand
     ctx->mode = config->mode;
     ctx->kick_interval_ms = config->kick_interval_ms;
     ctx->enabled = false;
-    OSAL_AtomicInitBool(&ctx->running, false);
-    OSAL_AtomicInit(&ctx->kick_count, 0);
-    OSAL_AtomicInit64(&ctx->last_kick_time, 0);
+    OSAL_atomic_init_bool(&ctx->running, false);
+    OSAL_atomic_init(&ctx->kick_count, 0);
+    OSAL_atomic_init_u64(&ctx->last_kick_time, 0);
 
     /* 初始化HAL层 */
     hal_config.device = config->device;
@@ -126,7 +126,7 @@ int32_t PDL_WATCHDOG_Deinit(pdl_watchdog_handle_t handle)
     ctx = (watchdog_context_t *)handle;
 
     /* 停止自动喂狗线程 */
-    if (OSAL_AtomicLoadBool(&ctx->running))
+    if (OSAL_atomic_load_bool(&ctx->running))
     {
         PDL_WATCHDOG_Stop(handle);
     }
@@ -135,7 +135,7 @@ int32_t PDL_WATCHDOG_Deinit(pdl_watchdog_handle_t handle)
     HAL_WATCHDOG_Deinit(ctx->hal_handle);
 
     LOG_INFO("PDL_WDT", "Watchdog service deinitialized: %s (kicked %u times)",
-             ctx->name, OSAL_AtomicLoad(&ctx->kick_count));
+             ctx->name, OSAL_atomic_load(&ctx->kick_count));
 
     OSAL_free(ctx);
     return OSAL_SUCCESS;
@@ -163,19 +163,19 @@ int32_t PDL_WATCHDOG_Start(pdl_watchdog_handle_t handle)
         return OSAL_ERR_GENERIC;
     }
 
-    if (OSAL_AtomicLoadBool(&ctx->running))
+    if (OSAL_atomic_load_bool(&ctx->running))
     {
         LOG_WARN("PDL_WDT", "[%s] Already running", ctx->name);
         return OSAL_SUCCESS;
     }
 
     /* 启动喂狗线程 */
-    OSAL_AtomicStoreBool(&ctx->running, true);
+    OSAL_atomic_store_bool(&ctx->running, true);
     ret = OSAL_pthread_create(&ctx->kick_thread, NULL, watchdog_kick_thread, ctx);
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("PDL_WDT", "[%s] Failed to create kick thread", ctx->name);
-        OSAL_AtomicStoreBool(&ctx->running, false);
+        OSAL_atomic_store_bool(&ctx->running, false);
         return ret;
     }
 
@@ -198,13 +198,13 @@ int32_t PDL_WATCHDOG_Stop(pdl_watchdog_handle_t handle)
 
     ctx = (watchdog_context_t *)handle;
 
-    if (!OSAL_AtomicLoadBool(&ctx->running))
+    if (!OSAL_atomic_load_bool(&ctx->running))
     {
         return OSAL_SUCCESS;
     }
 
     /* 停止线程 */
-    OSAL_AtomicStoreBool(&ctx->running, false);
+    OSAL_atomic_store_bool(&ctx->running, false);
     OSAL_pthread_join(ctx->kick_thread, NULL);
 
     LOG_INFO("PDL_WDT", "[%s] Auto-kick service stopped", ctx->name);
@@ -230,8 +230,8 @@ int32_t PDL_WATCHDOG_Kick(pdl_watchdog_handle_t handle)
     ret = HAL_WATCHDOG_Kick(ctx->hal_handle);
     if (ret == OSAL_SUCCESS)
     {
-        OSAL_AtomicFetchAdd(&ctx->kick_count, 1);
-        OSAL_AtomicStore64(&ctx->last_kick_time, OSAL_get_monotonic_time());
+        OSAL_atomic_fetch_add(&ctx->kick_count, 1);
+        OSAL_atomic_store_u64(&ctx->last_kick_time, OSAL_get_monotonic_time());
     }
 
     return ret;
@@ -255,11 +255,11 @@ int32_t PDL_WATCHDOG_GetStatus(pdl_watchdog_handle_t handle, pdl_watchdog_status
 
     OSAL_memset(status, 0, OSAL_sizeof(pdl_watchdog_status_t));
     status->enabled = ctx->enabled;
-    status->running = OSAL_AtomicLoadBool(&ctx->running);
+    status->running = OSAL_atomic_load_bool(&ctx->running);
     status->kick_interval_ms = ctx->kick_interval_ms;
     status->mode = ctx->mode;
-    status->kick_count = OSAL_AtomicLoad(&ctx->kick_count);
-    status->last_kick_time_us = OSAL_AtomicLoad64(&ctx->last_kick_time);
+    status->kick_count = OSAL_atomic_load(&ctx->kick_count);
+    status->last_kick_time_us = OSAL_atomic_load_u64(&ctx->last_kick_time);
 
     /* 获取HAL层超时时间 */
     timeout = 0;

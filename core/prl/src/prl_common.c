@@ -14,7 +14,7 @@ osal_atomic_uint32_t g_seq_number;
 /* 初始化序列号（需要在模块加载时调用） */
 __attribute__((constructor)) static void prl_init_seq(void)
 {
-	OSAL_AtomicInit(&g_seq_number, 0);
+	OSAL_atomic_init(&g_seq_number, 0);
 }
 
 /*===========================================================================
@@ -23,7 +23,7 @@ __attribute__((constructor)) static void prl_init_seq(void)
 
 uint32_t prl_get_next_seq(void)
 {
-    return OSAL_AtomicFetchAdd(&g_seq_number, 1);
+    return OSAL_atomic_fetch_add(&g_seq_number, 1);
 }
 
 uint32_t prl_get_timestamp(void)

@@ -83,13 +83,13 @@ void PRL_GetVersion(uint8_t *major, uint8_t *minor)
 void PRL_ResetSequence(uint32_t seq)
 {
     extern osal_atomic_uint32_t g_seq_number;  /* 定义在 prl_common.c */
-    OSAL_AtomicStore(&g_seq_number, seq);
+    OSAL_atomic_store(&g_seq_number, seq);
 }
 
 uint32_t PRL_GetCurrentSequence(void)
 {
     extern osal_atomic_uint32_t g_seq_number;  /* 定义在 prl_common.c */
-    return OSAL_AtomicLoad(&g_seq_number);
+    return OSAL_atomic_load(&g_seq_number);
 }
 
 int PRL_ValidatePacket(const uint8_t *packet, size_t packet_len)

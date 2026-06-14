@@ -28,7 +28,7 @@ static int32_t mutex_stress_worker(void *user_data, uint32_t iteration) {
     }
 
     /* 临界区操作 */
-    OSAL_AtomicIncrement(&data->counter);
+    OSAL_atomic_inc(&data->counter);
 
     /* 解锁 */
     OSAL_pthread_mutex_unlock(&data->mutex);
@@ -46,7 +46,7 @@ static void test_stress_mutex_concurrency(void) {
 
     /* 初始化测试数据 */
     TEST_ASSERT_EQUAL(OSAL_pthread_mutex_init(&data.mutex, NULL), 0);
-    OSAL_AtomicInit(&data.counter, 0);
+    OSAL_atomic_init(&data.counter, 0);
 
     /* 创建压力测试上下文 */
     stress_config_t config = STRESS_CONFIG_CONCURRENCY(thread_count, duration_sec);
@@ -78,7 +78,7 @@ static int32_t atomic_stress_worker(void *user_data, uint32_t iteration) {
     (void)iteration;  /* 未使用的参数 */
 
     /* 原子自增 */
-    OSAL_AtomicIncrement(counter);
+    OSAL_atomic_inc(counter);
 
     return 0;
 }
@@ -92,7 +92,7 @@ static void test_stress_atomic_operations(void) {
     const uint32_t iterations = 10000;
 
     /* 初始化 */
-    OSAL_AtomicInit(&counter, 0);
+    OSAL_atomic_init(&counter, 0);
 
     /* 创建压力测试上下文 */
     stress_config_t config = {
@@ -115,7 +115,7 @@ static void test_stress_atomic_operations(void) {
     stress_print_report(ctx);
 
     /* 验证结果：所有线程的所有迭代都应该成功 */
-    uint32_t final_count = OSAL_AtomicLoad(&counter);
+    uint32_t final_count = OSAL_atomic_load(&counter);
     uint32_t expected_count = thread_count * iterations;
     TEST_ASSERT_EQUAL(final_count, expected_count);
 

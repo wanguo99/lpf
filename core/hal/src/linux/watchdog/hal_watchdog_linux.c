@@ -44,7 +44,7 @@ int32_t HAL_WATCHDOG_Init(const hal_watchdog_config_t *config, hal_watchdog_hand
     OSAL_memset(ctx, 0, OSAL_sizeof(hal_watchdog_context_t));
     OSAL_strncpy(ctx->device, config->device, OSAL_sizeof(ctx->device) - 1);
     ctx->timeout_sec = config->timeout_sec;
-    OSAL_AtomicInit(&ctx->kick_count, 0);
+    OSAL_atomic_init(&ctx->kick_count, 0);
 
     /* 打开看门狗设备 */
     ctx->fd = OSAL_open(config->device, OSAL_O_WRONLY, 0);
@@ -126,7 +126,7 @@ int32_t HAL_WATCHDOG_Deinit(hal_watchdog_handle_t handle)
 
         OSAL_close(ctx->fd);
         LOG_INFO("HAL_WDT", "Closed watchdog device (kicked %u times)",
-                 OSAL_AtomicLoad(&ctx->kick_count));
+                 OSAL_atomic_load(&ctx->kick_count));
     }
 
     OSAL_free(ctx);
@@ -163,7 +163,7 @@ int32_t HAL_WATCHDOG_Kick(hal_watchdog_handle_t handle)
         return err;
     }
 
-    OSAL_AtomicFetchAdd(&ctx->kick_count, 1);
+    OSAL_atomic_fetch_add(&ctx->kick_count, 1);
     return OSAL_SUCCESS;
 }
 
@@ -359,6 +359,6 @@ int32_t HAL_WATCHDOG_GetStats(hal_watchdog_handle_t handle, uint32_t *kick_count
     }
 
     ctx = (hal_watchdog_context_t *)handle;
-    *kick_count = OSAL_AtomicLoad(&ctx->kick_count);
+    *kick_count = OSAL_atomic_load(&ctx->kick_count);
     return OSAL_SUCCESS;
 }
