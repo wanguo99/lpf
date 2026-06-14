@@ -26,6 +26,7 @@ typedef struct {
 
 static gpio_isr_context_t gpio_isr_table[MAX_GPIO_PINS];
 static pthread_mutex_t gpio_isr_mutex = PTHREAD_MUTEX_INITIALIZER;
+static bool gpio_module_initialized = false;
 static osal_flock_t *g_gpio_flock = NULL;
 
 /*===========================================================================
@@ -40,7 +41,7 @@ static int32_t gpio_module_init(void)
     int32_t ret;
     uint32_t i;
 
-    if (gpio_isr_mutex != NULL) {
+    if (gpio_module_initialized) {
         return OSAL_SUCCESS;  /* 已初始化 */
     }
 
@@ -60,13 +61,7 @@ static int32_t gpio_module_init(void)
         return ret;
     }
 
-    ret = OSAL_pthread_mutex_init(&gpio_isr_mutex, NULL);
-    if (ret != OSAL_SUCCESS) {
-        OSAL_flock_destroy(g_gpio_flock);
-        g_gpio_flock = NULL;
-        return ret;
-    }
-
+    gpio_module_initialized = true;
     return OSAL_SUCCESS;
 }
 
@@ -75,9 +70,9 @@ static int32_t gpio_module_init(void)
  */
 static void gpio_module_cleanup(void)
 {
-    if (gpio_isr_mutex != NULL) {
+    if (gpio_module_initialized) {
         OSAL_pthread_mutex_destroy(&gpio_isr_mutex);
-        gpio_isr_mutex = NULL;
+        gpio_module_initialized = false;
     }
 
     if (g_gpio_flock != NULL) {

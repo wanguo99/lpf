@@ -221,10 +221,7 @@ int32_t HAL_Serial_Close(hal_serial_handle_t handle)
     }
 
     /* 销毁锁 */
-    if (ctx->mutex)
-    {
-        OSAL_pthread_mutex_destroy(&ctx->mutex);
-    }
+    OSAL_pthread_mutex_destroy(&ctx->mutex);
 
     if (ctx->flock)
     {

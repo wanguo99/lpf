@@ -159,10 +159,7 @@ int32_t HAL_SPI_Close(hal_spi_handle_t handle)
     }
 
     /* 销毁锁 */
-    if (impl->mutex)
-    {
-        OSAL_pthread_mutex_destroy(&impl->mutex);
-    }
+    OSAL_pthread_mutex_destroy(&impl->mutex);
 
     if (impl->flock)
     {

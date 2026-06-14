@@ -126,10 +126,7 @@ int32_t HAL_I2C_Close(hal_i2c_handle_t handle)
     impl->initialized = false;
 
     /* 销毁锁 */
-    if (impl->mutex)
-    {
-        OSAL_pthread_mutex_destroy(&impl->mutex);
-    }
+    OSAL_pthread_mutex_destroy(&impl->mutex);
 
     if (impl->flock)
     {

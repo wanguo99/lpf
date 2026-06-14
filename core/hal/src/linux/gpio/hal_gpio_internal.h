@@ -60,7 +60,7 @@ typedef struct
 	hal_gpio_edge_t edge;                /* 中断触发模式 */
 	hal_gpio_isr_callback_t callback;    /* 中断回调函数 */
 	void *user_data;                     /* 用户数据 */
-	osal_thread_t *thread;               /* 中断监听线程 */
+	pthread_t thread;                    /* 中断监听线程 */
 	bool running;                        /* 运行标志 */
 	int32_t value_fd;                    /* value文件描述符 */
 } hal_gpio_isr_context_t;

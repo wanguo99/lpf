@@ -150,10 +150,7 @@ int32_t HAL_CAN_Deinit(hal_can_handle_t handle)
     }
 
     /* 销毁锁 */
-    if (impl->mutex)
-    {
-        OSAL_pthread_mutex_destroy(&impl->mutex);
-    }
+    OSAL_pthread_mutex_destroy(&impl->mutex);
 
     if (impl->flock)
     {
