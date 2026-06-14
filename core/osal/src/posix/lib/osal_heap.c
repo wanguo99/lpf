@@ -288,7 +288,7 @@ void *OSAL_realloc(void *ptr, uint32_t new_size)
 
     /* 复制数据（取旧大小和新大小的最小值） */
     copy_size = (old_size < new_size) ? old_size : new_size;
-    OSAL_MemCpy(new_ptr, ptr, copy_size);
+    OSAL_memcpy(new_ptr, ptr, copy_size);
 
     /* 释放旧内存 */
     OSAL_free(ptr);

@@ -376,7 +376,7 @@ int32_t ESIPC_Publish(esipc_msg_t *msg);
 ```c
 int32_t ESIPC_Send(uint16_t topic_id, const void *payload, uint16_t size);
 ```
-**描述**：组合 Alloc + OSAL_MemCpy + Publish 的便利包装器。
+**描述**：组合 Alloc + OSAL_memcpy + Publish 的便利包装器。
 
 **参数**：
 - `topic_id`: 主题标识符

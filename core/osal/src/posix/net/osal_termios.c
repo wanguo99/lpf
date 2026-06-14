@@ -25,7 +25,7 @@ int32_t OSAL_tcgetattr(int32_t fd, osal_termios_t *termios_p)
     termios_p->c_oflag = native_termios.c_oflag;
     termios_p->c_cflag = native_termios.c_cflag;
     termios_p->c_lflag = native_termios.c_lflag;
-    OSAL_MemCpy(termios_p->c_cc, native_termios.c_cc, OSAL_sizeof(termios_p->c_cc));
+    OSAL_memcpy(termios_p->c_cc, native_termios.c_cc, OSAL_sizeof(termios_p->c_cc));
     termios_p->c_ispeed = cfgetispeed(&native_termios);
     termios_p->c_ospeed = cfgetospeed(&native_termios);
 
@@ -41,7 +41,7 @@ int32_t OSAL_tcsetattr(int32_t fd, int32_t optional_actions, const osal_termios_
     native_termios.c_oflag = termios_p->c_oflag;
     native_termios.c_cflag = termios_p->c_cflag;
     native_termios.c_lflag = termios_p->c_lflag;
-    OSAL_MemCpy(native_termios.c_cc, termios_p->c_cc, OSAL_sizeof(native_termios.c_cc));
+    OSAL_memcpy(native_termios.c_cc, termios_p->c_cc, OSAL_sizeof(native_termios.c_cc));
     cfsetispeed(&native_termios, termios_p->c_ispeed);
     cfsetospeed(&native_termios, termios_p->c_ospeed);
 

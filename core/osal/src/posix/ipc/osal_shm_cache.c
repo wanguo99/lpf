@@ -322,7 +322,7 @@ int32_t OSAL_CacheWrite(osal_id_t cache_id, uint32_t entry_id,
     pthread_mutex_lock(&cache->header->mutex);
 
     /* 复制数据 */
-    OSAL_MemCpy(entry->data, data, data_len);
+    OSAL_memcpy(entry->data, data, data_len);
     entry->data_len = data_len;
 
     /* 更新元数据 */
@@ -392,7 +392,7 @@ int32_t OSAL_CacheRead(osal_id_t cache_id, uint32_t entry_id,
 
     /* 封装结果 */
     result->entry_id = entry_id;
-    OSAL_MemCpy(result->data, entry->data, entry->data_len);
+    OSAL_memcpy(result->data, entry->data, entry->data_len);
     result->data_len = entry->data_len;
     result->timestamp_us = entry->timestamp_us;
     result->age_ms = age_ms;

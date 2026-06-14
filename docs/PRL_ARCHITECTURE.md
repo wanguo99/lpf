@@ -94,7 +94,7 @@ int32_t PDL_MCU_GetVersion(pdl_mcu_handle_t handle, pdl_mcu_version_t *version)
     PRL_Decode(rx_buf, rx_len, &dev_type, &msg_type, &payload, &payload_len);
     
     // 5. 解析业务数据
-    OSAL_MemCpy(version, payload, OSAL_sizeof(pdl_mcu_version_t));
+    OSAL_memcpy(version, payload, OSAL_sizeof(pdl_mcu_version_t));
     
     return OSAL_SUCCESS;
 }
@@ -375,7 +375,7 @@ int32_t PDL_MCU_GetVersion(pdl_mcu_handle_t handle, pdl_mcu_version_t *version)
     }
     
     /* 6. 复制数据 */
-    OSAL_MemCpy(version, payload, OSAL_sizeof(prl_mcu_version_t));
+    OSAL_memcpy(version, payload, OSAL_sizeof(prl_mcu_version_t));
     
     return OSAL_SUCCESS;
 }
