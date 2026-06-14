@@ -29,11 +29,6 @@ int32_t OSAL_getppid(void)
     return getppid();
 }
 
-int32_t OSAL_kill(int32_t pid, int32_t sig)
-{
-    return kill(pid, sig);
-}
-
 void OSAL_abort(void)
 {
     abort();

@@ -58,8 +58,3 @@ int32_t OSAL_msync(void *addr, size_t length, int32_t flags)
 
     return msync(addr, length, flags);
 }
-
-int32_t OSAL_close(int32_t fd)
-{
-    return close(fd);
-}
