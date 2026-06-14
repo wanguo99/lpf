@@ -57,6 +57,7 @@
 #include "sys/osal_poll.h"
 #include "sys/osal_process.h"
 #include "sys/osal_thread.h"
+#include "sys/osal_thread_compat.h"  /* 临时兼容层 */
 #include "sys/osal_sched.h"
 #include "sys/osal_select.h"
 #include "sys/osal_signal.h"
