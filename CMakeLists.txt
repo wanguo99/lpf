@@ -139,6 +139,34 @@ include(${SDK_PATH}/scripts/cmake/compile.cmake)
 include(${SDK_PATH}/scripts/cmake/ComponentAPI.cmake)
 
 # ============================================================================
+# Apply Compiler Flags from Kconfig
+# ============================================================================
+
+# Include compile flags configured via Kconfig
+include(${SDK_PATH}/scripts/cmake/compile_flags.cmake)
+
+message(STATUS "Compiler flags applied:")
+message(STATUS "  CMAKE_C_FLAGS: ${CMAKE_C_FLAGS}")
+message(STATUS "  CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
+
+# Add build type definitions
+if(CONFIG_BUILD_TYPE_DEBUG)
+    add_definitions(-DDEBUG=1 -DRELEASE=0)
+else()
+    add_definitions(-DRELEASE=1 -DDEBUG=0)
+endif()
+
+# Add NDEBUG if assertions are disabled
+if(NOT CONFIG_ENABLE_ASSERT)
+    add_definitions(-DNDEBUG)
+endif()
+
+# Add FORTIFY_SOURCE if enabled
+if(CONFIG_FORTIFY_SOURCE)
+    add_definitions(-D_FORTIFY_SOURCE=2)
+endif()
+
+# ============================================================================
 # Auto-include Configuration Header
 # ============================================================================
 
