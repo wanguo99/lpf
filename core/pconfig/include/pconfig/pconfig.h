@@ -9,12 +9,22 @@
  * 命名规范：
  * - PCONFIG_*      - 通用接口
  * - PCONFIG_HW_*   - 硬件配置相关接口
+ *
+ * 设计原则：
+ * - 参考 PDL 模式，直接包含各模块类型头文件
+ * - 避免中间层，保持结构简洁
  ************************************************************************/
 
 #ifndef PCONFIG_H
 #define PCONFIG_H
 
-#include "pconfig_types.h"
+/* 类型定义 - 按模块组织 */
+#include "pconfig_common.h"    /* 通用基础类型 */
+#include "pconfig_mcu.h"       /* MCU 配置类型 */
+#include "pconfig_bmc.h"       /* BMC 配置类型 */
+#include "pconfig_fpga.h"      /* FPGA 配置类型 */
+#include "pconfig_switch.h"    /* Switch 配置类型 */
+#include "pconfig_platform.h"  /* 板级配置类型 */
 
 /*===========================================================================
  * 配置库初始化
