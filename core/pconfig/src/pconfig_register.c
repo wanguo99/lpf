@@ -8,7 +8,7 @@
 
 #include "osal.h"
 #include "pdl.h"
-#include "pconfig.h"
+#include "pconfig/pconfig.h"
 
 /*===========================================================================
  * 外部配置声明

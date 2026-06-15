@@ -8,7 +8,7 @@
 
 #include "osal.h"
 #include "pdl.h"
-#include "pconfig.h"
+#include "pconfig/pconfig.h"
 
 /*===========================================================================
  * 内部数据结构

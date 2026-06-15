@@ -4,7 +4,7 @@
  * @brief PDL MCU外设驱动单元测试
  */
 
-#include "pconfig.h"
+#include "pconfig/pconfig.h"
 #include "hal.h"
 #include "osal.h"
 #include "pdl.h"

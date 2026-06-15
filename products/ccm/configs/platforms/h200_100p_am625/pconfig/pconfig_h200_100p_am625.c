@@ -12,7 +12,7 @@
 #include "osal.h"
 #include "hal.h"
 #include "pdl.h"
-#include "pconfig.h"
+#include "pconfig/pconfig.h"
 
 /*===========================================================================
  * MCU外设配置数组 - 展示多种通信接口
