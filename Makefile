@@ -486,7 +486,9 @@ distclean: clean
 # mrproper: Remove everything including kconfig tools
 mrproper: distclean
 	@echo "  CLEAN   kconfig tools"
-	$(Q)$(MAKE) -C $(KCONFIG_DIR) clean
+	$(Q)rm -f $(KCONFIG_DIR)/conf $(KCONFIG_DIR)/mconf $(KCONFIG_DIR)/nconf $(KCONFIG_DIR)/gconf $(KCONFIG_DIR)/qconf
+	$(Q)find $(KCONFIG_DIR) -name '*.o' -delete 2>/dev/null || true
+	$(Q)find $(KCONFIG_DIR) -name '*.d' -delete 2>/dev/null || true
 
 # ===========================================================================
 # Installation target
