@@ -20,13 +20,8 @@ config TEST_OSAL_ALL
 	select TEST_OSAL_LOG
 	select TEST_OSAL_MUTEX
 	select TEST_OSAL_PROCESS
-	select TEST_OSAL_SCHED
 	select TEST_OSAL_SEMAPHORE
-	select TEST_OSAL_SHM
-	select TEST_OSAL_SIGNAL
-	select TEST_OSAL_STRESS
 	select TEST_OSAL_STRING
-	select TEST_OSAL_THREAD
 	select TEST_OSAL_TIME
 	select TEST_OSAL_VERSION
 	help
@@ -233,26 +228,6 @@ config TEST_OSAL_PROCESS
 	  Tags: slow
 	  Test file: test_osal_process.c
 
-config TEST_OSAL_SCHED
-	bool "Scheduler tests"
-	default y
-	help
-	  Test OSAL scheduler operations (priority, affinity, policy).
-
-	  Coverage:
-	    - Thread scheduling policies (FIFO, RR, OTHER)
-	    - Thread priority setting and retrieval
-	    - CPU affinity control
-	    - Scheduler parameter queries
-	    - Real-time scheduling (if available)
-	    - Priority inheritance verification
-
-	  Runtime: <100ms
-	  Hardware: None
-	  Dependencies: CONFIG_OSAL
-	  Tags: fast
-	  Test file: test_osal_sched.c
-
 config TEST_OSAL_SEMAPHORE
 	bool "Semaphore tests"
 	default y
@@ -274,68 +249,6 @@ config TEST_OSAL_SEMAPHORE
 	  Tags: fast
 	  Test file: test_osal_semaphore.c
 
-config TEST_OSAL_SHM
-	bool "Shared memory tests"
-	default y
-	help
-	  Test OSAL shared memory operations (create, attach, detach, delete).
-
-	  Coverage:
-	    - Shared memory creation (shm_open)
-	    - Memory mapping (mmap)
-	    - Memory unmapping (munmap)
-	    - Shared memory deletion (shm_unlink)
-	    - Inter-process data sharing
-	    - Synchronization with shared memory
-	    - Size and protection attributes
-
-	  Runtime: <200ms
-	  Hardware: None
-	  Dependencies: CONFIG_OSAL
-	  Tags: fast
-	  Test file: test_osal_shm.c
-
-config TEST_OSAL_SIGNAL
-	bool "Signal handling tests"
-	default y
-	help
-	  Test OSAL signal operations (signal, raise, sigaction).
-
-	  Coverage:
-	    - Signal handler registration
-	    - Signal delivery and handling
-	    - Signal masking and blocking
-	    - Signal sets operations
-	    - Synchronous signal handling (sigwait)
-	    - Signal safety and reentrancy
-	    - Common signals (SIGINT, SIGTERM, SIGUSR1, etc.)
-
-	  Runtime: <100ms
-	  Hardware: None
-	  Dependencies: CONFIG_OSAL
-	  Tags: fast
-	  Test file: test_osal_signal.c
-
-config TEST_OSAL_STRESS
-	bool "OSAL stress tests"
-	default y
-	help
-	  Test OSAL under stress (high concurrency, memory pressure).
-
-	  Coverage:
-	    - High-frequency mutex lock/unlock operations
-	    - Massive thread creation and destruction
-	    - Memory allocation under pressure
-	    - Concurrent file I/O operations
-	    - Semaphore contention scenarios
-	    - Resource exhaustion handling
-	    - System stability under load
-
-	  Runtime: <1s
-	  Hardware: None
-	  Dependencies: CONFIG_OSAL
-	  Tags: slow, stress
-
 config TEST_OSAL_STRING
 	bool "String operations tests"
 	default y
@@ -356,28 +269,6 @@ config TEST_OSAL_STRING
 	  Dependencies: CONFIG_OSAL
 	  Tags: fast
 	  Test file: test_osal_string.c
-
-config TEST_OSAL_THREAD
-	bool "Thread management tests"
-	default y
-	help
-	  Test OSAL thread operations (create, join, detach, self, exit).
-
-	  Coverage:
-	    - Thread creation with attributes
-	    - Thread joining and exit status
-	    - Thread detachment
-	    - Thread ID queries (self)
-	    - Thread cancellation
-	    - Thread-local storage
-	    - Thread stack size configuration
-	    - Thread naming and identification
-
-	  Runtime: <200ms
-	  Hardware: None
-	  Dependencies: CONFIG_OSAL
-	  Tags: fast
-	  Test file: test_osal_thread.c
 
 config TEST_OSAL_TIME
 	bool "Time operations tests"

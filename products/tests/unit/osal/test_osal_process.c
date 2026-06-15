@@ -12,8 +12,8 @@
 
 static void test_process_getpid(void)
 {
-    int32_t pid1 = OSAL_getpid();
-    int32_t pid2 = OSAL_getpid();
+    osal_pid_t pid1 = OSAL_getpid();
+    osal_pid_t pid2 = OSAL_getpid();
 
     /* 同一进程的PID应该相同 */
     TEST_ASSERT_EQUAL(pid1, pid2);
@@ -32,7 +32,7 @@ static void test_process_kill_invalid_pid(void)
 static void test_process_kill_signal_zero(void)
 {
     /* 信号0用于检查进程是否存在，不会实际发送信号 */
-    int32_t pid = OSAL_getpid();
+    osal_pid_t pid = OSAL_getpid();
     int32_t ret = OSAL_kill(pid, 0);
 
     /* 向自己发送信号0应该成功 */

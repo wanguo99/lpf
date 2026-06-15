@@ -107,7 +107,7 @@ static void test_osal_file_write_read_success(void)
     TEST_ASSERT_EQUAL((osal_ssize_t)OSAL_strlen(write_data), ret);
 
     /* 移动到文件开头 */
-    osal_ssize_t pos = OSAL_lseek(fd, 0, OSAL_SEEK_SET);
+    osal_off_t pos = OSAL_lseek(fd, 0, OSAL_SEEK_SET);
     TEST_ASSERT_EQUAL(0, pos);
 
     /* 读取数据 */
