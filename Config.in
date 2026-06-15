@@ -784,16 +784,7 @@ endmenu
 # These components provide fundamental abstractions and services.
 # ============================================================================
 
-menu "Core Components"
-
-source "core/osal/Config.in"
-source "core/hal/Config.in"
-source "core/pconfig/Config.in"
-source "core/pdl/Config.in"
-source "core/prl/Config.in"
-source "core/aconfig/Config.in"
-
-endmenu
+source "core/Config.in"
 
 # ============================================================================
 # Product-Specific Configuration

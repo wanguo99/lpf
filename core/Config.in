@@ -11,5 +11,6 @@ source "core/pconfig/Config.in"
 source "core/pdl/Config.in"
 source "core/prl/Config.in"
 source "core/aconfig/Config.in"
+source "core/utest/Config.in"
 
 endmenu

@@ -45,38 +45,13 @@ if(CONFIG_ACL AND NOT TARGET aconfig)
 endif()
 
 # ============================================================================
-# Test Framework Library (libutest)
+# Test Framework Library (UTEST)
 # ============================================================================
-# Core test framework - always compiled when BUILD_TESTING is enabled
+# Core test framework - now a shared core module
+# Register UTEST module from core (same pattern as other core modules)
 
-add_library(libutest STATIC)
-
-# Framework core source files
-target_sources(libutest PRIVATE
-    core/test_registry.c
-    core/test_runner.c
-    core/test_menu.c
-    core/test_mock.c
-    core/test_metadata.c
-    core/test_reporter.c
-    core/test_stress.c
-)
-
-# Framework include directories
-target_include_directories(libutest PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-
-# Add OSAL headers (required by test framework)
-target_include_directories(libutest PRIVATE
-    ${SDK_PATH}/core/osal/include/osal
-)
-
-# Framework dependencies - only OSAL
-if(CONFIG_OSAL)
-    target_link_libraries(libutest PUBLIC
-        osal
-    )
+if(CONFIG_UTEST AND NOT TARGET utest)
+    add_subdirectory(${SDK_PATH}/core/utest ${CMAKE_CURRENT_BINARY_DIR}/utest)
 endif()
 
 # ============================================================================
@@ -90,7 +65,7 @@ add_executable(es-middleware-test
 
 # Link test framework
 target_link_libraries(es-middleware-test PRIVATE
-    libutest
+    utest
 )
 
 # Link OSAL (required by test framework)
@@ -100,6 +75,7 @@ endif()
 
 # Add include directories for test cases
 target_include_directories(es-middleware-test PRIVATE
+    ${SDK_PATH}/core/utest/include/utest   # UTEST framework headers
     ${SDK_PATH}/core/osal/include/osal
     ${SDK_PATH}/core/hal/include/hal
     ${SDK_PATH}/core/pconfig/include/pconfig

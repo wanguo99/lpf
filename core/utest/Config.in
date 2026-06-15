@@ -1,0 +1,59 @@
+# UTEST (Unit Test Framework) Configuration
+
+menuconfig UTEST
+	bool "UTEST (Unit Test Framework)"
+	default n
+	select OSAL
+	help
+	  Lightweight unit test framework for ES-Middleware.
+	  Provides test registration, assertions, mocking, and reporting.
+
+	  This is a core testing infrastructure that can be used by
+	  all products (CCM, etc.) for writing unit tests, integration
+	  tests, performance tests, and stress tests.
+
+	  Features:
+	  - Test discovery and registration
+	  - Rich assertion macros
+	  - Mock functions support
+	  - Performance measurement
+	  - Stress testing utilities
+	  - Parameterized tests
+	  - Test metadata and filtering
+
+	  Required for CONFIG_BUILD_TESTING=y.
+
+	  If unsure, say Y when building tests.
+
+if UTEST
+
+config UTEST_VERBOSE
+	bool "Verbose test output"
+	default n
+	help
+	  Enable detailed test execution output.
+	  Shows test setup/teardown and timing information.
+
+config UTEST_COLOR
+	bool "Colorized test output"
+	default y
+	help
+	  Enable colored terminal output for test results.
+	  Makes PASS/FAIL results easier to read.
+
+config UTEST_MAX_TESTS
+	int "Maximum number of tests"
+	default 1024
+	range 64 4096
+	help
+	  Maximum number of test cases that can be registered.
+	  Increase this if you have many test cases.
+
+config UTEST_MAX_NAME_LEN
+	int "Maximum test name length"
+	default 128
+	range 32 256
+	help
+	  Maximum length of test case names.
+
+endif # UTEST
