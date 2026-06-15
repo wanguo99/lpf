@@ -1,4 +1,4 @@
-#include "test_framework.h"
+#include <test/test_framework.h>
 /**
  * @file test_pdl_bmc_protocol.c
  * @brief PDL BMC协议层单元测试（IPMI和Redfish）

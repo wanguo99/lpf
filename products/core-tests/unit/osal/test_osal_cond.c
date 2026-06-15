@@ -1,4 +1,4 @@
-#include "test_framework.h"
+#include <test/test_framework.h>
 /**
  * @file test_osal_cond.c
  * @brief OSAL条件变量单元测试 - Updated for osal_cond_t thin wrapper

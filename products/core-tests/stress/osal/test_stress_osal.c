@@ -3,8 +3,8 @@
  * @brief OSAL层压力测试示例
  */
 
-#include "test_framework.h"
-#include "test_stress.h"
+#include <test/test_framework.h>
+#include <test/test_stress.h>
 #include "osal.h"
 
 /* 共享测试数据 */

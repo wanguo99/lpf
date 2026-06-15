@@ -3,8 +3,8 @@
  * @brief 性能测试框架核心实现（仅使用OSAL接口）
  */
 
-#include "test_performance.h"
-#include "test_assert.h"
+#include <test/test_performance.h>
+#include <test/test_assert.h>
 #include "osal.h"
 
 /* 性能测量上下文结构 */

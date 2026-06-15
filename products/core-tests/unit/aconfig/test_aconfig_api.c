@@ -3,7 +3,7 @@
  * @brief AConfig API 单元测试（只测试核心功能，不依赖具体产品）
  */
 
-#include "test_framework.h"
+#include <test/test_framework.h>
 #include "aconfig.h"
 #include "test_aconfig_definitions.h"
 

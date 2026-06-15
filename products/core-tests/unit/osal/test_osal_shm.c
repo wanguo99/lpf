@@ -3,7 +3,7 @@
  ************************************************************************/
 
 #include "osal.h"
-#include "test_framework.h"
+#include <test/test_framework.h>
 
 #include <sys/mman.h>
 #include <fcntl.h>

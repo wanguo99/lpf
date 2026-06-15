@@ -1,4 +1,4 @@
-#include "test_framework.h"
+#include <test/test_framework.h>
 /**
  * @file test_hal_can.c
  * @brief HAL CAN驱动单元测试

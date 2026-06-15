@@ -15,7 +15,7 @@ CONFIG_PLATFORM_LINUX=y
 
 # Core Components - OSAL + PRL
 CONFIG_OSAL=y
-CONFIG_UTEST=y
+CONFIG_TEST_FRAMEWORK=y
 CONFIG_PRL=y
 
 # Build Configuration

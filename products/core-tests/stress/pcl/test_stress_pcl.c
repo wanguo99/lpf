@@ -3,8 +3,8 @@
  * @brief PCL层压力测试
  */
 
-#include "test_framework.h"
-#include "test_stress.h"
+#include <test/test_framework.h>
+#include <test/test_stress.h>
 #include "pconfig/pconfig.h"
 
 /**

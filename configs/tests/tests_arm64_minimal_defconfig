@@ -15,7 +15,7 @@ CONFIG_PLATFORM_LINUX=y
 
 # Core Components - Minimal
 CONFIG_OSAL=y
-CONFIG_UTEST=y
+CONFIG_TEST_FRAMEWORK=y
 
 # Build Configuration - Static Libraries for Minimal Size
 # CONFIG_OSAL_BUILD_SHARED is not set

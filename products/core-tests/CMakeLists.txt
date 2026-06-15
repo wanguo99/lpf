@@ -58,8 +58,8 @@ endif()
 # Core test framework - now a shared core module
 # Register UTEST module from core (same pattern as other core modules)
 
-if(CONFIG_UTEST AND NOT TARGET utest)
-    add_subdirectory(${SDK_PATH}/core/utest ${CMAKE_CURRENT_BINARY_DIR}/utest)
+if(CONFIG_TEST_FRAMEWORK AND NOT TARGET test)
+    add_subdirectory(${SDK_PATH}/core/test ${CMAKE_CURRENT_BINARY_DIR}/test)
 endif()
 
 # ============================================================================
@@ -72,8 +72,8 @@ add_executable(es-middleware-test
 )
 
 # Link test framework
-if(CONFIG_UTEST)
-    target_link_libraries(es-middleware-test PRIVATE utest)
+if(CONFIG_TEST_FRAMEWORK)
+    target_link_libraries(es-middleware-test PRIVATE test)
 endif()
 
 # Link OSAL (required by test framework)
@@ -93,10 +93,10 @@ target_include_directories(es-middleware-test PRIVATE
     ${SDK_PATH}/products/ccm/include/ccm
 )
 
-# Add UTEST framework headers if enabled
-if(CONFIG_UTEST)
+# Add test framework headers if enabled
+if(CONFIG_TEST_FRAMEWORK)
     target_include_directories(es-middleware-test PRIVATE
-        ${SDK_PATH}/core/utest/include/utest
+        ${SDK_PATH}/core/test/include/test
     )
 endif()
 

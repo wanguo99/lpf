@@ -13,7 +13,7 @@
 #include "prl_pmc.h"
 #include "prl_gsc.h"
 #include "prl_power.h"
-#include "test_framework.h"
+#include <test/test_framework.h>
 
 /*===========================================================================
  * CRC16 计算测试

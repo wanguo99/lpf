@@ -1,9 +1,10 @@
 # ============================================================================
-# UTEST (Unit Test Framework) CMakeLists.txt
+# Test Framework CMakeLists.txt
 # ============================================================================
-# Lightweight test framework for ES-Middleware unit/integration testing
+# Comprehensive test framework for ES-Middleware testing
+# Supports: unit, performance, stress, system, and integration tests
 
-if(NOT CONFIG_UTEST)
+if(NOT CONFIG_TEST_FRAMEWORK)
     return()
 endif()
 
@@ -11,10 +12,10 @@ endif()
 # Library Definition
 # ============================================================================
 
-add_library(utest STATIC)
+add_library(test STATIC)
 
 # Source files
-target_sources(utest PRIVATE
+target_sources(test PRIVATE
     src/test_registry.c
     src/test_runner.c
     src/test_menu.c
@@ -29,27 +30,27 @@ target_sources(utest PRIVATE
 # ============================================================================
 
 # Public headers (accessible to test users)
-target_include_directories(utest PUBLIC
+target_include_directories(test PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
 
 # Private headers (for building utest itself)
-target_include_directories(utest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/utest
+target_include_directories(test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/test
 )
 
 # ============================================================================
 # Dependencies
 # ============================================================================
 
-# UTEST requires OSAL for basic OS abstractions
+# TEST requires OSAL for basic OS abstractions
 if(CONFIG_OSAL)
-    target_link_libraries(utest PUBLIC osal)
+    target_link_libraries(test PUBLIC osal)
 endif()
 
 # Link standard libraries
-target_link_libraries(utest PUBLIC
+target_link_libraries(test PUBLIC
     pthread
     rt
     m
@@ -60,7 +61,7 @@ target_link_libraries(utest PUBLIC
 # ============================================================================
 
 # Enable warnings for test framework code
-target_compile_options(utest PRIVATE
+target_compile_options(test PRIVATE
     -Wall
     -Wextra
     -Wno-unused-parameter
@@ -72,7 +73,7 @@ target_compile_options(utest PRIVATE
 
 # Install library and headers (optional, mainly for development)
 if(FALSE)  # Disabled by default - utest is primarily for internal testing
-install(TARGETS utest
+install(TARGETS test
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     RUNTIME DESTINATION bin
@@ -89,12 +90,12 @@ endif()
 # Summary
 # ============================================================================
 
-message(STATUS "UTEST: Test framework enabled")
-if(CONFIG_UTEST_VERBOSE)
+message(STATUS "TEST: Test framework enabled")
+if(CONFIG_TEST_FRAMEWORK_VERBOSE)
     message(STATUS "  Verbose output: enabled")
 endif()
-if(CONFIG_UTEST_COLOR)
+if(CONFIG_TEST_FRAMEWORK_COLOR)
     message(STATUS "  Colorized output: enabled")
 endif()
-message(STATUS "  Max tests: ${CONFIG_UTEST_MAX_TESTS}")
-message(STATUS "  Max name length: ${CONFIG_UTEST_MAX_NAME_LEN}")
+message(STATUS "  Max tests: ${CONFIG_TEST_FRAMEWORK_MAX_TESTS}")
+message(STATUS "  Max name length: ${CONFIG_TEST_FRAMEWORK_MAX_NAME_LEN}")

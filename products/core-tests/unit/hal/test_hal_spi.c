@@ -1,4 +1,4 @@
-#include "test_framework.h"
+#include <test/test_framework.h>
 /**
  * @file test_hal_spi.c
  * @brief HAL SPI驱动单元测试

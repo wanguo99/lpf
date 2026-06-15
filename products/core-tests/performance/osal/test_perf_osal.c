@@ -3,8 +3,8 @@
  * @brief OSAL层性能测试示例
  */
 
-#include "test_framework.h"
-#include "test_performance.h"
+#include <test/test_framework.h>
+#include <test/test_performance.h>
 #include "osal.h"
 
 /* 性能基准定义 */

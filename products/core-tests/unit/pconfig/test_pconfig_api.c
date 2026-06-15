@@ -3,7 +3,7 @@
  * @brief PCONFIG API单元测试
  */
 
-#include "test_framework.h"
+#include <test/test_framework.h>
 #include "pconfig/pconfig.h"
 
 /* 测试用的MCU配置 */

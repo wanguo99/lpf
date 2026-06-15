@@ -9,7 +9,7 @@
 #include "prl_pmc.h"
 #include "prl_gsc.h"
 #include "prl_power.h"
-#include "test_framework.h"
+#include <test/test_framework.h>
 
 /*===========================================================================
  * 基础编解码测试

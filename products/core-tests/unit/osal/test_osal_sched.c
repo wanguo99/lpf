@@ -3,7 +3,7 @@
  ************************************************************************/
 
 #include "osal.h"
-#include "test_framework.h"
+#include <test/test_framework.h>
 
 #include <pthread.h>
 #include <sched.h>

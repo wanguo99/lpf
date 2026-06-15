@@ -1,4 +1,4 @@
-#include "test_framework.h"
+#include <test/test_framework.h>
 /**
  * @file test_osal_log.c
  * @brief OSAL日志系统单元测试

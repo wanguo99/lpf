@@ -4,7 +4,7 @@
 
 #include "osal.h"
 
-#include "test_framework.h"
+#include <test/test_framework.h>
 
 /*===========================================================================
  * 测试用例

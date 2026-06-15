@@ -3,8 +3,8 @@
  * @brief PCL层性能测试
  */
 
-#include "test_framework.h"
-#include "test_performance.h"
+#include <test/test_framework.h>
+#include <test/test_performance.h>
 #include "pconfig/pconfig.h"
 
 /**

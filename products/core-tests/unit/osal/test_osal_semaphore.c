@@ -1,4 +1,4 @@
-#include "test_framework.h"
+#include <test/test_framework.h>
 /**
  * @file test_osal_semaphore.c
  * @brief OSAL信号量单元测试 - 使用新的 POSIX 薄封装 API

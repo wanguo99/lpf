@@ -3,7 +3,7 @@
  ************************************************************************/
 
 #include "test_core.h"
-#include "test_assert.h"
+#include <test/test_assert.h>
 #include "test_registry.h"
 #include "hal.h"
 #include "osal.h"
