@@ -8,9 +8,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "hash.h"
-#include "hashtable.h"
-#include "xalloc.h"
+#include <hash.h>
+#include <hashtable.h>
+#include <xalloc.h>
 #include "lkc.h"
 
 /* hash table of all parsed Kconfig files */

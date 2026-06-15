@@ -9,8 +9,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "hash.h"
-#include "xalloc.h"
+#include <hash.h>
+#include <xalloc.h>
 #include "internal.h"
 #include "lkc.h"
 

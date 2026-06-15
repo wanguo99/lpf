@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
-#include "list.h"
+#include <list.h>
 #include "expr.h"
 #include "mnconf-common.h"
 

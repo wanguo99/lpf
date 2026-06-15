@@ -35,11 +35,11 @@
    especially those whose name start with YY_ or yy_.  They are
    private implementation details that can be changed or removed.  */
 
-#ifndef YY_YY_PARSER_TAB_H_INCLUDED
-# define YY_YY_PARSER_TAB_H_INCLUDED
+#ifndef YY_YY_SCRIPTS_KCONFIG_PARSER_TAB_H_INCLUDED
+# define YY_YY_SCRIPTS_KCONFIG_PARSER_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
-# define YYDEBUG 0
+# define YYDEBUG 1
 #endif
 #if YYDEBUG
 extern int yydebug;
@@ -109,7 +109,6 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 36 "parser.y"
 
 	char *string;
 	struct symbol *symbol;
@@ -118,7 +117,6 @@ union YYSTYPE
 	enum symbol_type type;
 	enum variable_flavor flavor;
 
-#line 122 "parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -133,4 +131,4 @@ extern YYSTYPE yylval;
 int yyparse (void);
 
 
-#endif /* !YY_YY_PARSER_TAB_H_INCLUDED  */
+#endif /* !YY_YY_SCRIPTS_KCONFIG_PARSER_TAB_H_INCLUDED  */

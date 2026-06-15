@@ -67,7 +67,6 @@
 
 
 /* First part of user prologue.  */
-#line 5 "parser.y"
 
 
 #include <ctype.h>
@@ -77,7 +76,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "xalloc.h"
+#include <xalloc.h>
 #include "lkc.h"
 #include "internal.h"
 #include "preprocess.h"
@@ -97,7 +96,6 @@ static bool zconf_endtoken(const char *tokenname,
 struct menu *current_menu, *current_entry, *current_choice;
 
 
-#line 101 "parser.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -1050,36 +1048,30 @@ yydestruct (const char *yymsg,
   switch (yykind)
     {
     case YYSYMBOL_choice_entry: /* choice_entry  */
-#line 100 "parser.y"
             {
 	fprintf(stderr, "%s:%d: missing end statement for this entry\n",
 		((*yyvaluep).menu)->filename, ((*yyvaluep).menu)->lineno);
 	if (current_menu == ((*yyvaluep).menu))
 		menu_end_menu();
 }
-#line 1061 "parser.tab.c"
         break;
 
     case YYSYMBOL_if_entry: /* if_entry  */
-#line 100 "parser.y"
             {
 	fprintf(stderr, "%s:%d: missing end statement for this entry\n",
 		((*yyvaluep).menu)->filename, ((*yyvaluep).menu)->lineno);
 	if (current_menu == ((*yyvaluep).menu))
 		menu_end_menu();
 }
-#line 1072 "parser.tab.c"
         break;
 
     case YYSYMBOL_menu_entry: /* menu_entry  */
-#line 100 "parser.y"
             {
 	fprintf(stderr, "%s:%d: missing end statement for this entry\n",
 		((*yyvaluep).menu)->filename, ((*yyvaluep).menu)->lineno);
 	if (current_menu == ((*yyvaluep).menu))
 		menu_end_menu();
 }
-#line 1083 "parser.tab.c"
         break;
 
       default:
@@ -1347,42 +1339,31 @@ yyreduce:
   switch (yyn)
     {
   case 4: /* mainmenu_stmt: T_MAINMENU T_WORD_QUOTE T_EOL  */
-#line 113 "parser.y"
 {
 	menu_add_prompt(P_MENU, (yyvsp[-1].string), NULL);
 }
-#line 1355 "parser.tab.c"
     break;
 
   case 14: /* stmt_list: stmt_list T_WORD error T_EOL  */
-#line 127 "parser.y"
                                         { zconf_error("unknown statement \"%s\"", (yyvsp[-2].string)); }
-#line 1361 "parser.tab.c"
     break;
 
   case 15: /* stmt_list: stmt_list error T_EOL  */
-#line 128 "parser.y"
                                         { zconf_error("invalid statement"); }
-#line 1367 "parser.tab.c"
     break;
 
   case 20: /* stmt_list_in_choice: stmt_list_in_choice error T_EOL  */
-#line 136 "parser.y"
                                                 { zconf_error("invalid statement"); }
-#line 1373 "parser.tab.c"
     break;
 
   case 21: /* config_entry_start: T_CONFIG nonconst_symbol T_EOL  */
-#line 142 "parser.y"
 {
 	menu_add_entry((yyvsp[-1].symbol), M_NORMAL);
 	printd(DEBUG_PARSE, "%s:%d:config %s\n", cur_filename, cur_lineno, (yyvsp[-1].symbol)->name);
 }
-#line 1382 "parser.tab.c"
     break;
 
   case 22: /* config_stmt: config_entry_start config_option_list  */
-#line 148 "parser.y"
 {
 	if (current_choice) {
 		if (!current_entry->prompt) {
@@ -1409,20 +1390,16 @@ yyreduce:
 
 	printd(DEBUG_PARSE, "%s:%d:endconfig\n", cur_filename, cur_lineno);
 }
-#line 1413 "parser.tab.c"
     break;
 
   case 23: /* menuconfig_entry_start: T_MENUCONFIG nonconst_symbol T_EOL  */
-#line 176 "parser.y"
 {
 	menu_add_entry((yyvsp[-1].symbol), M_MENU);
 	printd(DEBUG_PARSE, "%s:%d:menuconfig %s\n", cur_filename, cur_lineno, (yyvsp[-1].symbol)->name);
 }
-#line 1422 "parser.tab.c"
     break;
 
   case 24: /* menuconfig_stmt: menuconfig_entry_start config_option_list  */
-#line 182 "parser.y"
 {
 	if (current_entry->prompt)
 		current_entry->prompt->type = P_MENU;
@@ -1430,38 +1407,30 @@ yyreduce:
 		zconf_error("menuconfig statement without prompt");
 	printd(DEBUG_PARSE, "%s:%d:endconfig\n", cur_filename, cur_lineno);
 }
-#line 1434 "parser.tab.c"
     break;
 
   case 29: /* config_option: type prompt_stmt_opt T_EOL  */
-#line 198 "parser.y"
 {
 	menu_set_type((yyvsp[-2].type));
 	printd(DEBUG_PARSE, "%s:%d:type(%u)\n", cur_filename, cur_lineno, (yyvsp[-2].type));
 }
-#line 1443 "parser.tab.c"
     break;
 
   case 30: /* config_option: T_PROMPT T_WORD_QUOTE if_expr T_EOL  */
-#line 204 "parser.y"
 {
 	menu_add_prompt(P_PROMPT, (yyvsp[-2].string), (yyvsp[-1].expr));
 	printd(DEBUG_PARSE, "%s:%d:prompt\n", cur_filename, cur_lineno);
 }
-#line 1452 "parser.tab.c"
     break;
 
   case 31: /* config_option: T_TRANSITIONAL T_EOL  */
-#line 210 "parser.y"
 {
 	current_entry->sym->flags |= SYMBOL_TRANS;
 	printd(DEBUG_PARSE, "%s:%d:transitional\n", cur_filename, cur_lineno);
 }
-#line 1461 "parser.tab.c"
     break;
 
   case 32: /* config_option: default expr if_expr T_EOL  */
-#line 216 "parser.y"
 {
 	menu_add_expr(P_DEFAULT, (yyvsp[-2].expr), (yyvsp[-1].expr));
 	if ((yyvsp[-3].type) != S_UNKNOWN)
@@ -1469,49 +1438,39 @@ yyreduce:
 	printd(DEBUG_PARSE, "%s:%d:default(%u)\n", cur_filename, cur_lineno,
 		(yyvsp[-3].type));
 }
-#line 1473 "parser.tab.c"
     break;
 
   case 33: /* config_option: T_SELECT nonconst_symbol if_expr T_EOL  */
-#line 225 "parser.y"
 {
 	menu_add_symbol(P_SELECT, (yyvsp[-2].symbol), (yyvsp[-1].expr));
 	printd(DEBUG_PARSE, "%s:%d:select\n", cur_filename, cur_lineno);
 }
-#line 1482 "parser.tab.c"
     break;
 
   case 34: /* config_option: T_IMPLY nonconst_symbol if_expr T_EOL  */
-#line 231 "parser.y"
 {
 	menu_add_symbol(P_IMPLY, (yyvsp[-2].symbol), (yyvsp[-1].expr));
 	printd(DEBUG_PARSE, "%s:%d:imply\n", cur_filename, cur_lineno);
 }
-#line 1491 "parser.tab.c"
     break;
 
   case 35: /* config_option: T_RANGE symbol symbol if_expr T_EOL  */
-#line 237 "parser.y"
 {
 	menu_add_expr(P_RANGE, expr_alloc_comp(E_RANGE,(yyvsp[-3].symbol), (yyvsp[-2].symbol)), (yyvsp[-1].expr));
 	printd(DEBUG_PARSE, "%s:%d:range\n", cur_filename, cur_lineno);
 }
-#line 1500 "parser.tab.c"
     break;
 
   case 36: /* config_option: T_MODULES T_EOL  */
-#line 243 "parser.y"
 {
 	if (modules_sym)
 		zconf_error("symbol '%s' redefines option 'modules' already defined by symbol '%s'",
 			    current_entry->sym->name, modules_sym->name);
 	modules_sym = current_entry->sym;
 }
-#line 1511 "parser.tab.c"
     break;
 
   case 37: /* choice: T_CHOICE T_EOL  */
-#line 253 "parser.y"
 {
 	struct symbol *sym = sym_lookup(NULL, 0);
 
@@ -1521,11 +1480,9 @@ yyreduce:
 
 	printd(DEBUG_PARSE, "%s:%d:choice\n", cur_filename, cur_lineno);
 }
-#line 1525 "parser.tab.c"
     break;
 
   case 38: /* choice_entry: choice choice_option_list  */
-#line 264 "parser.y"
 {
 	if (!current_entry->prompt) {
 		fprintf(stderr, "%s:%d: error: choice must have a prompt\n",
@@ -1537,11 +1494,9 @@ yyreduce:
 
 	current_choice = current_entry;
 }
-#line 1541 "parser.tab.c"
     break;
 
   case 39: /* choice_end: end  */
-#line 277 "parser.y"
 {
 	current_choice = NULL;
 
@@ -1550,157 +1505,119 @@ yyreduce:
 		printd(DEBUG_PARSE, "%s:%d:endchoice\n", cur_filename, cur_lineno);
 	}
 }
-#line 1554 "parser.tab.c"
     break;
 
   case 45: /* choice_option: T_PROMPT T_WORD_QUOTE if_expr T_EOL  */
-#line 297 "parser.y"
 {
 	menu_add_prompt(P_PROMPT, (yyvsp[-2].string), (yyvsp[-1].expr));
 	printd(DEBUG_PARSE, "%s:%d:prompt\n", cur_filename, cur_lineno);
 }
-#line 1563 "parser.tab.c"
     break;
 
   case 46: /* choice_option: T_DEFAULT nonconst_symbol if_expr T_EOL  */
-#line 303 "parser.y"
 {
 	menu_add_symbol(P_DEFAULT, (yyvsp[-2].symbol), (yyvsp[-1].expr));
 	printd(DEBUG_PARSE, "%s:%d:default\n", cur_filename, cur_lineno);
 }
-#line 1572 "parser.tab.c"
     break;
 
   case 47: /* type: T_BOOL  */
-#line 309 "parser.y"
                                 { (yyval.type) = S_BOOLEAN; }
-#line 1578 "parser.tab.c"
     break;
 
   case 48: /* type: T_TRISTATE  */
-#line 310 "parser.y"
                                 { (yyval.type) = S_TRISTATE; }
-#line 1584 "parser.tab.c"
     break;
 
   case 49: /* type: T_INT  */
-#line 311 "parser.y"
                                 { (yyval.type) = S_INT; }
-#line 1590 "parser.tab.c"
     break;
 
   case 50: /* type: T_HEX  */
-#line 312 "parser.y"
                                 { (yyval.type) = S_HEX; }
-#line 1596 "parser.tab.c"
     break;
 
   case 51: /* type: T_STRING  */
-#line 313 "parser.y"
                                 { (yyval.type) = S_STRING; }
-#line 1602 "parser.tab.c"
     break;
 
   case 52: /* default: T_DEFAULT  */
-#line 316 "parser.y"
                                 { (yyval.type) = S_UNKNOWN; }
-#line 1608 "parser.tab.c"
     break;
 
   case 53: /* default: T_DEF_BOOL  */
-#line 317 "parser.y"
                                 { (yyval.type) = S_BOOLEAN; }
-#line 1614 "parser.tab.c"
     break;
 
   case 54: /* default: T_DEF_TRISTATE  */
-#line 318 "parser.y"
                                 { (yyval.type) = S_TRISTATE; }
-#line 1620 "parser.tab.c"
     break;
 
   case 55: /* if_entry: T_IF expr T_EOL  */
-#line 323 "parser.y"
 {
 	printd(DEBUG_PARSE, "%s:%d:if\n", cur_filename, cur_lineno);
 	menu_add_entry(NULL, M_IF);
 	menu_add_dep((yyvsp[-1].expr), NULL);
 	(yyval.menu) = menu_add_menu();
 }
-#line 1631 "parser.tab.c"
     break;
 
   case 56: /* if_end: end  */
-#line 331 "parser.y"
 {
 	if (zconf_endtoken((yyvsp[0].string), "if")) {
 		menu_end_menu();
 		printd(DEBUG_PARSE, "%s:%d:endif\n", cur_filename, cur_lineno);
 	}
 }
-#line 1642 "parser.tab.c"
     break;
 
   case 59: /* menu: T_MENU T_WORD_QUOTE T_EOL  */
-#line 347 "parser.y"
 {
 	menu_add_entry(NULL, M_MENU);
 	menu_add_prompt(P_MENU, (yyvsp[-1].string), NULL);
 	printd(DEBUG_PARSE, "%s:%d:menu\n", cur_filename, cur_lineno);
 }
-#line 1652 "parser.tab.c"
     break;
 
   case 60: /* menu_entry: menu menu_option_list  */
-#line 354 "parser.y"
 {
 	(yyval.menu) = menu_add_menu();
 }
-#line 1660 "parser.tab.c"
     break;
 
   case 61: /* menu_end: end  */
-#line 359 "parser.y"
 {
 	if (zconf_endtoken((yyvsp[0].string), "menu")) {
 		menu_end_menu();
 		printd(DEBUG_PARSE, "%s:%d:endmenu\n", cur_filename, cur_lineno);
 	}
 }
-#line 1671 "parser.tab.c"
     break;
 
   case 66: /* source_stmt: T_SOURCE T_WORD_QUOTE T_EOL  */
-#line 376 "parser.y"
 {
 	printd(DEBUG_PARSE, "%s:%d:source %s\n", cur_filename, cur_lineno, (yyvsp[-1].string));
 	zconf_nextfile((yyvsp[-1].string));
 	free((yyvsp[-1].string));
 }
-#line 1681 "parser.tab.c"
     break;
 
   case 67: /* comment: T_COMMENT T_WORD_QUOTE T_EOL  */
-#line 385 "parser.y"
 {
 	menu_add_entry(NULL, M_COMMENT);
 	menu_add_prompt(P_COMMENT, (yyvsp[-1].string), NULL);
 	printd(DEBUG_PARSE, "%s:%d:comment\n", cur_filename, cur_lineno);
 }
-#line 1691 "parser.tab.c"
     break;
 
   case 71: /* help_start: T_HELP T_EOL  */
-#line 402 "parser.y"
 {
 	printd(DEBUG_PARSE, "%s:%d:help\n", cur_filename, cur_lineno);
 	zconf_starthelp();
 }
-#line 1700 "parser.tab.c"
     break;
 
   case 72: /* help: help_start T_HELPTEXT  */
-#line 408 "parser.y"
 {
 	if (current_entry->help) {
 		free(current_entry->help);
@@ -1715,174 +1632,120 @@ yyreduce:
 
 	current_entry->help = (yyvsp[0].string);
 }
-#line 1719 "parser.tab.c"
     break;
 
   case 73: /* depends: T_DEPENDS T_ON expr if_expr T_EOL  */
-#line 426 "parser.y"
 {
 	menu_add_dep((yyvsp[-2].expr), (yyvsp[-1].expr));
 	printd(DEBUG_PARSE, "%s:%d:depends on\n", cur_filename, cur_lineno);
 }
-#line 1728 "parser.tab.c"
     break;
 
   case 74: /* visible: T_VISIBLE if_expr T_EOL  */
-#line 433 "parser.y"
 {
 	menu_add_visibility((yyvsp[-1].expr));
 }
-#line 1736 "parser.tab.c"
     break;
 
   case 76: /* prompt_stmt_opt: T_WORD_QUOTE if_expr  */
-#line 442 "parser.y"
 {
 	menu_add_prompt(P_PROMPT, (yyvsp[-1].string), (yyvsp[0].expr));
 }
-#line 1744 "parser.tab.c"
     break;
 
   case 77: /* end: T_ENDMENU T_EOL  */
-#line 446 "parser.y"
                                 { (yyval.string) = "menu"; }
-#line 1750 "parser.tab.c"
     break;
 
   case 78: /* end: T_ENDCHOICE T_EOL  */
-#line 447 "parser.y"
                                 { (yyval.string) = "choice"; }
-#line 1756 "parser.tab.c"
     break;
 
   case 79: /* end: T_ENDIF T_EOL  */
-#line 448 "parser.y"
                                 { (yyval.string) = "if"; }
-#line 1762 "parser.tab.c"
     break;
 
   case 80: /* if_expr: %empty  */
-#line 451 "parser.y"
                                         { (yyval.expr) = NULL; }
-#line 1768 "parser.tab.c"
     break;
 
   case 81: /* if_expr: T_IF expr  */
-#line 452 "parser.y"
                                         { (yyval.expr) = (yyvsp[0].expr); }
-#line 1774 "parser.tab.c"
     break;
 
   case 82: /* expr: symbol  */
-#line 455 "parser.y"
                                                 { (yyval.expr) = expr_alloc_symbol((yyvsp[0].symbol)); }
-#line 1780 "parser.tab.c"
     break;
 
   case 83: /* expr: symbol T_LESS symbol  */
-#line 456 "parser.y"
                                                 { (yyval.expr) = expr_alloc_comp(E_LTH, (yyvsp[-2].symbol), (yyvsp[0].symbol)); }
-#line 1786 "parser.tab.c"
     break;
 
   case 84: /* expr: symbol T_LESS_EQUAL symbol  */
-#line 457 "parser.y"
                                                 { (yyval.expr) = expr_alloc_comp(E_LEQ, (yyvsp[-2].symbol), (yyvsp[0].symbol)); }
-#line 1792 "parser.tab.c"
     break;
 
   case 85: /* expr: symbol T_GREATER symbol  */
-#line 458 "parser.y"
                                                 { (yyval.expr) = expr_alloc_comp(E_GTH, (yyvsp[-2].symbol), (yyvsp[0].symbol)); }
-#line 1798 "parser.tab.c"
     break;
 
   case 86: /* expr: symbol T_GREATER_EQUAL symbol  */
-#line 459 "parser.y"
                                                 { (yyval.expr) = expr_alloc_comp(E_GEQ, (yyvsp[-2].symbol), (yyvsp[0].symbol)); }
-#line 1804 "parser.tab.c"
     break;
 
   case 87: /* expr: symbol T_EQUAL symbol  */
-#line 460 "parser.y"
                                                 { (yyval.expr) = expr_alloc_comp(E_EQUAL, (yyvsp[-2].symbol), (yyvsp[0].symbol)); }
-#line 1810 "parser.tab.c"
     break;
 
   case 88: /* expr: symbol T_UNEQUAL symbol  */
-#line 461 "parser.y"
                                                 { (yyval.expr) = expr_alloc_comp(E_UNEQUAL, (yyvsp[-2].symbol), (yyvsp[0].symbol)); }
-#line 1816 "parser.tab.c"
     break;
 
   case 89: /* expr: T_OPEN_PAREN expr T_CLOSE_PAREN  */
-#line 462 "parser.y"
                                                 { (yyval.expr) = (yyvsp[-1].expr); }
-#line 1822 "parser.tab.c"
     break;
 
   case 90: /* expr: T_NOT expr  */
-#line 463 "parser.y"
                                                 { (yyval.expr) = expr_alloc_one(E_NOT, (yyvsp[0].expr)); }
-#line 1828 "parser.tab.c"
     break;
 
   case 91: /* expr: expr T_OR expr  */
-#line 464 "parser.y"
                                                 { (yyval.expr) = expr_alloc_two(E_OR, (yyvsp[-2].expr), (yyvsp[0].expr)); }
-#line 1834 "parser.tab.c"
     break;
 
   case 92: /* expr: expr T_AND expr  */
-#line 465 "parser.y"
                                                 { (yyval.expr) = expr_alloc_two(E_AND, (yyvsp[-2].expr), (yyvsp[0].expr)); }
-#line 1840 "parser.tab.c"
     break;
 
   case 93: /* nonconst_symbol: T_WORD  */
-#line 469 "parser.y"
                         { (yyval.symbol) = sym_lookup((yyvsp[0].string), 0); free((yyvsp[0].string)); }
-#line 1846 "parser.tab.c"
     break;
 
   case 95: /* symbol: T_WORD_QUOTE  */
-#line 472 "parser.y"
                         { (yyval.symbol) = sym_lookup((yyvsp[0].string), SYMBOL_CONST); free((yyvsp[0].string)); }
-#line 1852 "parser.tab.c"
     break;
 
   case 96: /* assignment_stmt: T_WORD assign_op assign_val T_EOL  */
-#line 477 "parser.y"
                                                         { variable_add((yyvsp[-3].string), (yyvsp[-1].string), (yyvsp[-2].flavor)); free((yyvsp[-3].string)); free((yyvsp[-1].string)); }
-#line 1858 "parser.tab.c"
     break;
 
   case 97: /* assign_op: T_EQUAL  */
-#line 480 "parser.y"
                         { (yyval.flavor) = VAR_RECURSIVE; }
-#line 1864 "parser.tab.c"
     break;
 
   case 98: /* assign_op: T_COLON_EQUAL  */
-#line 481 "parser.y"
                         { (yyval.flavor) = VAR_SIMPLE; }
-#line 1870 "parser.tab.c"
     break;
 
   case 99: /* assign_op: T_PLUS_EQUAL  */
-#line 482 "parser.y"
                         { (yyval.flavor) = VAR_APPEND; }
-#line 1876 "parser.tab.c"
     break;
 
   case 100: /* assign_val: %empty  */
-#line 486 "parser.y"
                                 { (yyval.string) = xstrdup(""); }
-#line 1882 "parser.tab.c"
     break;
 
 
-#line 1886 "parser.tab.c"
 
       default: break;
     }
@@ -2075,7 +1938,6 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 490 "parser.y"
 
 
 /**
@@ -2160,7 +2022,7 @@ void conf_parse(const char *name)
 	_menu_init();
 
 	if (getenv("ZCONF_DEBUG"))
-		// yydebug = 1;
+		yydebug = 1;
 	yyparse();
 
 	str_printf(&autoconf_cmd,

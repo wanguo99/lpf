@@ -9,8 +9,8 @@
 #include <string.h>
 #include <regex.h>
 
-#include "hash.h"
-#include "xalloc.h"
+#include <hash.h>
+#include <xalloc.h>
 #include "internal.h"
 #include "lkc.h"
 

@@ -97,12 +97,19 @@ obj		:= $(objtree)
 
 VPATH		:= $(srctree)
 
-export srctree objtree VPATH TOPDIR
+# srcroot is used by Linux 7.0 Kbuild - it's the relative source root
+srcroot		:= $(srctree)
+
+export srctree objtree srcroot VPATH TOPDIR
 
 # SHELL used by kbuild
 # Prefer BASH env var, then search PATH, finally fallback to sh
 CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 	  else command -v bash 2>/dev/null || echo sh; fi)
+
+# Host compilation flags for building tools (like kconfig)
+KBUILD_HOSTCFLAGS := -I$(srctree)/scripts/include
+export KBUILD_HOSTCFLAGS
 
 # Make variables (CC, etc...)
 AS		= $(CROSS_COMPILE)as
@@ -115,11 +122,15 @@ STRIP		= $(CROSS_COMPILE)strip
 OBJCOPY		= $(CROSS_COMPILE)objcopy
 OBJDUMP		= $(CROSS_COMPILE)objdump
 AWK		= awk
+LEX		= flex
+YACC		= bison
 
 HOSTCC  	= gcc
 HOSTCXX  	= g++
 HOSTCFLAGS	:=
 HOSTCXXFLAGS	:=
+
+export HOSTCC HOSTCXX HOSTCFLAGS HOSTCXXFLAGS LEX YACC
 
 # We need some generic definitions
 include $(srctree)/scripts/Kbuild.include
@@ -155,8 +166,7 @@ endif
 
 # Basic helpers built in scripts/
 PHONY += scripts_basic
-scripts_basic:
-	$(Q)$(MAKE) $(build)=scripts/basic
+# scripts_basic is defined later after config-targets logic
 
 # To avoid any implicit rule to kick in, define an empty command.
 scripts/basic/%: scripts_basic ;
@@ -230,6 +240,9 @@ ifeq ($(config-targets),1)
 # KBUILD_DEFCONFIG may point out an alternative default configuration
 # used for 'make defconfig'
 export KBUILD_DEFCONFIG
+
+# Use Config.in instead of Kconfig
+export KBUILD_KCONFIG := Config.in
 
 config: scripts_basic FORCE
 	$(Q)mkdir -p include
@@ -320,7 +333,10 @@ else
 # Build targets only - this includes all build targets
 # targets and others. In general all targets except *config targets.
 
-scripts_basic: include/autoconf.h include/version.h
+scripts_basic:
+	$(Q)$(MAKE) $(build)=scripts/basic
+
+prepare: scripts_basic include/autoconf.h include/version.h
 
 ifeq ($(dot-config),1)
 # In this section, we need .config
@@ -341,7 +357,7 @@ ifeq ($(dot-config),1)
 # If kconfig.d is missing then we are probably in a cleaned tree so
 # we execute the config step to be sure to catch updated Config.in files
 include/autoconf.h: .config $(wildcard .kconfig.d)
-	$(Q)$(MAKE) -f $(srctree)/Makefile silentoldconfig
+	$(Q)$(MAKE) -f $(srctree)/Makefile syncconfig
 
 # Generate version.h with build information
 include/version.h: .config FORCE
@@ -411,7 +427,7 @@ _validate_config:
 		echo "This may indicate the configuration was not properly generated."; \
 		echo ""; \
 		echo "Try running:"; \
-		echo "  make silentoldconfig     - Regenerate configuration"; \
+		echo "  make syncconfig          - Regenerate configuration"; \
 		echo "  make <name>_defconfig    - Load a fresh configuration"; \
 		echo "==================================================================="; \
 		echo ""; \
@@ -541,7 +557,7 @@ help:
 	@echo '  config          - Update current config utilising a line-oriented program'
 	@echo '  menuconfig      - Update current config utilising a menu based program'
 	@echo '  oldconfig       - Update current config utilising a provided .config as base'
-	@echo '  silentoldconfig - Same as oldconfig, but quietly'
+	@echo '  syncconfig      - Same as oldconfig, but quietly (internal use)'
 	@echo '  randconfig      - New config with random answer to all options'
 	@echo '  defconfig       - New config with default answer to all options'
 	@echo '  allnoconfig     - New config where all options are answered with no'

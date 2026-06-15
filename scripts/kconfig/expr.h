@@ -16,7 +16,7 @@ extern "C" {
 #include <stdbool.h>
 #endif
 
-#include "list_types.h"
+#include <list_types.h>
 
 typedef enum tristate {
 	no, mod, yes

@@ -11,7 +11,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "xalloc.h"
+#include <xalloc.h>
 #include "lkc.h"
 #include "internal.h"
 #include "preprocess.h"
@@ -571,7 +571,7 @@ void conf_parse(const char *name)
 	_menu_init();
 
 	if (getenv("ZCONF_DEBUG"))
-		// yydebug = 1;
+		yydebug = 1;
 	yyparse();
 
 	str_printf(&autoconf_cmd,

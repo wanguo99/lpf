@@ -4,7 +4,7 @@
  *
  * Derived from menuconfig.
  */
-#include "xalloc.h"
+#include <xalloc.h>
 #include "nconf.h"
 #include "lkc.h"
 
