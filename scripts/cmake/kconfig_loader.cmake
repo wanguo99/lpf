@@ -67,21 +67,27 @@ function(_kconfig_validate)
 
     # Check critical configuration symbols
     if(NOT DEFINED CONFIG_PROJECT_NAME)
-        message(WARNING "CONFIG_PROJECT_NAME not defined in .config")
+        if(NOT BUILD_QUIET_MODE)
+            message(WARNING "CONFIG_PROJECT_NAME not defined in .config")
+        endif()
         set(validation_failed TRUE)
     endif()
 
     if(NOT DEFINED CONFIG_PROJECT_VERSION)
-        message(WARNING "CONFIG_PROJECT_VERSION not defined in .config")
+        if(NOT BUILD_QUIET_MODE)
+            message(WARNING "CONFIG_PROJECT_VERSION not defined in .config")
+        endif()
     endif()
 
     # Validate architecture is set
     if(NOT CONFIG_ARCH_X86_64 AND NOT CONFIG_ARCH_ARM64 AND NOT CONFIG_ARCH_ARM)
-        message(WARNING "No architecture selected (CONFIG_ARCH_*)")
+        if(NOT BUILD_QUIET_MODE)
+            message(WARNING "No architecture selected (CONFIG_ARCH_*)")
+        endif()
         set(validation_failed TRUE)
     endif()
 
-    if(validation_failed)
+    if(validation_failed AND NOT BUILD_QUIET_MODE)
         message(WARNING "Configuration validation found issues - proceeding with caution")
     endif()
 endfunction()
@@ -101,7 +107,10 @@ function(_kconfig_setup_autoinclude autoconf_h)
     get_filename_component(autoconf_dir "${autoconf_h}" DIRECTORY)
     include_directories("${autoconf_dir}/..")
 
-    message(STATUS "Kconfig: Auto-including ${autoconf_h}")
+    # Only print in verbose mode
+    if(NOT BUILD_QUIET_MODE)
+        message(STATUS "Kconfig: Auto-including ${autoconf_h}")
+    endif()
 endfunction()
 
 # ==============================================================================
@@ -143,6 +152,9 @@ function(kconfig_load)
     message(STATUS "Kconfig: Loading configuration from ${config_file}")
 
     # -------------------------------------------------------------------
+    # Step 2: Parse configuration file
+    # -------------------------------------------------------------------
+    # -------------------------------------------------------------------
     # Step 2: Parse .config file
     # -------------------------------------------------------------------
     file(STRINGS "${config_file}" config_lines)
@@ -165,7 +177,10 @@ function(kconfig_load)
         endif()
     endforeach()
 
-    message(STATUS "Kconfig: Loaded ${config_count} configuration symbols")
+    # Only print in verbose mode
+    if(NOT BUILD_QUIET_MODE)
+        message(STATUS "Kconfig: Loaded ${config_count} configuration symbols")
+    endif()
 
     # -------------------------------------------------------------------
     # Step 3: Validate configuration
@@ -191,7 +206,10 @@ function(kconfig_load)
     set(KCONFIG_AUTOCONF_H "${autoconf_h}" PARENT_SCOPE)
     set(KCONFIG_SYMBOL_COUNT ${config_count} PARENT_SCOPE)
 
-    message(STATUS "Kconfig: Configuration loaded successfully")
+    # Only print success message in verbose mode
+    if(NOT BUILD_QUIET_MODE)
+        message(STATUS "Kconfig: Configuration loaded successfully")
+    endif()
 endfunction()
 
 # Print configuration summary for debugging

@@ -34,15 +34,16 @@ function(_detect_build_environment)
     # Detect if building inside Buildroot
     if(DEFINED ENV{BR2_EXTERNAL} OR DEFINED ENV{BR_BUILDING})
         set(BUILD_IN_BUILDROOT TRUE PARENT_SCOPE)
-        message(STATUS "Build Wrapper: Detected Buildroot environment")
+        set(BUILD_QUIET_MODE TRUE PARENT_SCOPE)
     else()
         set(BUILD_IN_BUILDROOT FALSE PARENT_SCOPE)
+        set(BUILD_QUIET_MODE FALSE PARENT_SCOPE)
     endif()
 
     # Detect if building inside Yocto/OpenEmbedded
     if(DEFINED ENV{OECORE_NATIVE_SYSROOT})
         set(BUILD_IN_YOCTO TRUE PARENT_SCOPE)
-        message(STATUS "Build Wrapper: Detected Yocto environment")
+        set(BUILD_QUIET_MODE TRUE PARENT_SCOPE)
     else()
         set(BUILD_IN_YOCTO FALSE PARENT_SCOPE)
     endif()
@@ -66,30 +67,48 @@ function(_generate_version_info)
     set(SDK_VERSION_MINOR 0)
     set(SDK_VERSION_PATCH 0)
 
-    # Get Git information
+    # Get Git information - handle Buildroot override case
+    set(GIT_WORK_DIR "${CMAKE_SOURCE_DIR}")
+
+    # Check if source is overridden (local development)
+    if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
+        set(GIT_WORK_DIR "${CMAKE_SOURCE_DIR}")
+    elseif(DEFINED ENV{ES_MIDDLEWARE_OVERRIDE_SRCDIR} AND EXISTS "$ENV{ES_MIDDLEWARE_OVERRIDE_SRCDIR}/.git")
+        set(GIT_WORK_DIR "$ENV{ES_MIDDLEWARE_OVERRIDE_SRCDIR}")
+    endif()
+
     find_package(Git QUIET)
-    if(GIT_FOUND)
+    if(GIT_FOUND AND EXISTS "${GIT_WORK_DIR}/.git")
         execute_process(
             COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            WORKING_DIRECTORY ${GIT_WORK_DIR}
             OUTPUT_VARIABLE GIT_COMMIT_HASH
             OUTPUT_STRIP_TRAILING_WHITESPACE
             ERROR_QUIET
+            RESULT_VARIABLE GIT_RESULT
         )
+        if(NOT GIT_RESULT EQUAL 0)
+            set(GIT_COMMIT_HASH "unknown")
+        endif()
+
         execute_process(
             COMMAND ${GIT_EXECUTABLE} describe --tags --dirty --always
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            WORKING_DIRECTORY ${GIT_WORK_DIR}
             OUTPUT_VARIABLE GIT_DESCRIBE
             OUTPUT_STRIP_TRAILING_WHITESPACE
             ERROR_QUIET
         )
         execute_process(
             COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            WORKING_DIRECTORY ${GIT_WORK_DIR}
             OUTPUT_VARIABLE GIT_BRANCH
             OUTPUT_STRIP_TRAILING_WHITESPACE
             ERROR_QUIET
         )
+    else()
+        set(GIT_COMMIT_HASH "unknown")
+        set(GIT_DESCRIBE "unknown")
+        set(GIT_BRANCH "unknown")
     endif()
 
     if(NOT GIT_COMMIT_HASH)
@@ -185,7 +204,10 @@ function(_configure_install_paths)
     set(INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR} PARENT_SCOPE)
     set(INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR}/es-middleware PARENT_SCOPE)
 
-    message(STATUS "Build Wrapper: Install prefix set to ${CMAKE_INSTALL_PREFIX}")
+    # Only print in verbose mode
+    if(NOT BUILD_QUIET_MODE)
+        message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
+    endif()
 endfunction()
 
 # ==============================================================================
@@ -211,7 +233,10 @@ function(_configure_build_type)
     set(CMAKE_BUILD_TYPE ${computed_build_type} CACHE STRING "Build type" FORCE)
     set(CMAKE_BUILD_TYPE ${computed_build_type} PARENT_SCOPE)
 
-    message(STATUS "Build Wrapper: Build type set to ${computed_build_type}")
+    # Only print in verbose mode
+    if(NOT BUILD_QUIET_MODE)
+        message(STATUS "Build type: ${computed_build_type}")
+    endif()
 endfunction()
 
 # ==============================================================================
@@ -224,8 +249,10 @@ function(_configure_output_directories)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib PARENT_SCOPE)
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib PARENT_SCOPE)
 
-    message(STATUS "Build Wrapper: Binaries -> ${CMAKE_BINARY_DIR}/bin")
-    message(STATUS "Build Wrapper: Libraries -> ${CMAKE_BINARY_DIR}/lib")
+    # Only print in verbose mode
+    if(NOT BUILD_QUIET_MODE)
+        message(STATUS "Output: ${CMAKE_BINARY_DIR}")
+    endif()
 endfunction()
 
 # ==============================================================================
@@ -242,7 +269,10 @@ function(_validate_toolchain)
 
     # Validate cross-compilation setup if applicable
     if(CMAKE_CROSSCOMPILING)
-        message(STATUS "Build Wrapper: Cross-compiling for ${CMAKE_SYSTEM_PROCESSOR}")
+        # Only print in verbose mode
+        if(NOT BUILD_QUIET_MODE)
+            message(STATUS "Cross-compiling for ${CMAKE_SYSTEM_PROCESSOR}")
+        endif()
         if(NOT CMAKE_FIND_ROOT_PATH)
             message(WARNING "CMAKE_FIND_ROOT_PATH not set - cross-compilation may fail")
         endif()
@@ -262,17 +292,19 @@ endfunction()
 # Initialize build wrapper
 function(build_wrapper_init)
     if(BUILD_WRAPPER_INITIALIZED)
-        message(STATUS "Build Wrapper: Already initialized")
         return()
     endif()
 
-    message(STATUS "")
-    message(STATUS "========================================================================")
-    message(STATUS "ES-Middleware Build Wrapper")
-    message(STATUS "========================================================================")
-
-    # Step 1: Detect build environment
+    # Step 1: Detect build environment (must be first to set BUILD_QUIET_MODE)
     _detect_build_environment()
+
+    # Only show header in verbose mode
+    if(NOT BUILD_QUIET_MODE)
+        message(STATUS "")
+        message(STATUS "========================================================================")
+        message(STATUS "ES-Middleware Build Wrapper")
+        message(STATUS "========================================================================")
+    endif()
 
     # Step 2: Generate version information
     _generate_version_info()
@@ -294,6 +326,7 @@ function(build_wrapper_init)
     set(BUILD_WRAPPER_INITIALIZED TRUE PARENT_SCOPE)
     set(BUILD_IN_BUILDROOT ${BUILD_IN_BUILDROOT} PARENT_SCOPE)
     set(BUILD_IN_YOCTO ${BUILD_IN_YOCTO} PARENT_SCOPE)
+    set(BUILD_QUIET_MODE ${BUILD_QUIET_MODE} PARENT_SCOPE)
 
     # Export version info to parent
     set(SDK_VERSION ${SDK_VERSION} PARENT_SCOPE)
@@ -314,9 +347,12 @@ function(build_wrapper_init)
     # Export build type to parent
     set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} PARENT_SCOPE)
 
-    message(STATUS "Build Wrapper: Initialization complete")
-    message(STATUS "========================================================================")
-    message(STATUS "")
+    # Only show completion message in verbose mode
+    if(NOT BUILD_QUIET_MODE)
+        message(STATUS "Build Wrapper: Initialization complete")
+        message(STATUS "========================================================================")
+        message(STATUS "")
+    endif()
 endfunction()
 
 # Validate build environment (called before actual build)
