@@ -79,6 +79,26 @@ int32_t OSAL_pthread_setaffinity_np(osal_thread_t thread, int32_t cpu_id);
 int32_t OSAL_pthread_getaffinity_np(osal_thread_t thread, int32_t *cpu_id);
 
 /**
+ * @brief 设置进程 CPU 亲和性
+ *
+ * @param[in] pid 进程 ID（0 表示当前进程）
+ * @param[in] cpu_id CPU 编号（0-based）
+ * @return 0 成功
+ * @return -1 失败
+ */
+int32_t OSAL_sched_setaffinity(osal_pid_t pid, int32_t cpu_id);
+
+/**
+ * @brief 获取进程 CPU 亲和性
+ *
+ * @param[in] pid 进程 ID（0 表示当前进程）
+ * @param[out] cpu_id CPU 编号指针
+ * @return 0 成功
+ * @return -1 失败
+ */
+int32_t OSAL_sched_getaffinity(osal_pid_t pid, int32_t *cpu_id);
+
+/**
  * @brief 让出 CPU 时间片
  *
  * @return 0 成功

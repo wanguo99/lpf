@@ -99,6 +99,47 @@ static void test_sched_cpu_affinity(void)
     }
 }
 
+static void test_sched_process_cpu_affinity(void)
+{
+    int32_t cpu_id = 0;
+
+    /* 设置当前进程的CPU亲和性到CPU 0 */
+    int32_t ret = OSAL_sched_setaffinity(0, cpu_id);
+
+    /* 如果系统支持亲和性设置，应该成功 */
+    if (ret == 0) {
+        int32_t get_cpu_id;
+
+        /* 获取CPU亲和性 */
+        ret = OSAL_sched_getaffinity(0, &get_cpu_id);
+        TEST_ASSERT_EQUAL(0, ret);
+
+        /* 验证CPU 0被设置 */
+        TEST_ASSERT_EQUAL(cpu_id, get_cpu_id);
+    }
+}
+
+static void test_sched_process_affinity_with_pid(void)
+{
+    int32_t cpu_id = 0;
+    osal_pid_t pid = OSAL_getpid();
+
+    /* 使用显式PID设置进程的CPU亲和性 */
+    int32_t ret = OSAL_sched_setaffinity(pid, cpu_id);
+
+    /* 如果系统支持亲和性设置，应该成功 */
+    if (ret == 0) {
+        int32_t get_cpu_id;
+
+        /* 获取CPU亲和性 */
+        ret = OSAL_sched_getaffinity(pid, &get_cpu_id);
+        TEST_ASSERT_EQUAL(0, ret);
+
+        /* 验证CPU 0被设置 */
+        TEST_ASSERT_EQUAL(cpu_id, get_cpu_id);
+    }
+}
+
 /*===========================================================================
  * 线程属性调度测试
  *===========================================================================*/
@@ -180,6 +221,18 @@ static const test_case_t test_cases[] = {
     {
         .name = "test_sched_cpu_affinity",
         .func = test_sched_cpu_affinity,
+        .setup = NULL,
+        .teardown = NULL
+    },
+    {
+        .name = "test_sched_process_cpu_affinity",
+        .func = test_sched_process_cpu_affinity,
+        .setup = NULL,
+        .teardown = NULL
+    },
+    {
+        .name = "test_sched_process_affinity_with_pid",
+        .func = test_sched_process_affinity_with_pid,
         .setup = NULL,
         .teardown = NULL
     },
