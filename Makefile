@@ -634,3 +634,20 @@ FORCE:
 .PHONY: FORCE
 
 endif # ifeq ($(skip-makefile),)
+
+.PHONY: savedefconfig
+savedefconfig:
+	@if [ ! -f .config ]; then \
+		echo "Error: No .config found. Run a defconfig first."; \
+		exit 1; \
+	fi
+	@if [ -z "$(DEFCONFIG)" ]; then \
+		echo "Usage: make savedefconfig DEFCONFIG=configs/xxx_defconfig"; \
+		exit 1; \
+	fi
+	@mkdir -p $$(dirname $(DEFCONFIG))
+	$(Q)$(KCONFIG_DIR)/conf --savedefconfig=$(DEFCONFIG) Config.in
+	@echo ""
+	@echo "==================================================================="
+	@echo "Configuration saved to $(DEFCONFIG)"
+	@echo "==================================================================="
