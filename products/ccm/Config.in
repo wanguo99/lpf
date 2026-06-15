@@ -32,13 +32,8 @@ config PROJECT_H200_200P
 
 endchoice
 
-config PROJECT_NAME
-    string
-    default "h200_100p_am625" if PROJECT_H200_100P_AM625
-    default "h200_200p" if PROJECT_H200_200P
-    help
-      Project configuration directory name.
-      Used by CMake to locate platform config files.
+# Note: PROJECT_NAME is defined globally in the root Config.in
+# It automatically derives the correct value based on the platform choice above.
 
 endmenu
 

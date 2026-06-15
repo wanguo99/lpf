@@ -195,6 +195,44 @@ config PRODUCT_CCM
 endchoice
 
 # ============================================================================
+# Project Identification (Global)
+# ============================================================================
+# These symbols are required by the build system and must be defined for all
+# configurations, regardless of product selection.
+#
+# For product builds: PROJECT_NAME is derived from platform choice
+# For test builds: PROJECT_NAME defaults to "tests"
+# ============================================================================
+
+config PROJECT_NAME
+	string "Project name"
+	default "h200_100p_am625" if PRODUCT_CCM && PROJECT_H200_100P_AM625
+	default "h200_200p" if PRODUCT_CCM && PROJECT_H200_200P
+	default "tests" if PRODUCT_NONE
+	default "unknown"
+	help
+	  Project name derived from product and platform selection.
+
+	  This is used to:
+	  - Locate platform-specific configuration files
+	  - Generate build artifacts with appropriate names
+	  - Identify the target platform in logs and version info
+
+	  Value is automatically set based on product and platform choices:
+	  - CCM + H200 100P AM625 → "h200_100p_am625"
+	  - CCM + H200 200P → "h200_200p"
+	  - Testing (PRODUCT_NONE) → "tests"
+
+config PROJECT_VERSION
+	string "Project version"
+	default ES_MIDDLEWARE_VERSION
+	help
+	  Project version string.
+
+	  Defaults to the ES-Middleware SDK version (1.0.0), but can be
+	  overridden for product-specific versioning.
+
+# ============================================================================
 # Build System Configuration
 # ============================================================================
 # Platform and toolchain configuration
