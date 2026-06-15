@@ -32,6 +32,31 @@ typedef enum
 } pdl_mcu_interface_t;
 
 /**
+ * @brief 串口校验位类型（PDL抽象枚举）
+ *
+ * 说明：
+ * - PDL 层定义自己的抽象枚举，不直接使用 HAL 宏
+ * - PDL 内部负责转换到 HAL 层枚举
+ * - 配置文件使用 PDL 枚举，不依赖 HAL 实现
+ */
+typedef enum
+{
+	PDL_MCU_PARITY_NONE = 0,  /* 无校验 */
+	PDL_MCU_PARITY_ODD,       /* 奇校验 */
+	PDL_MCU_PARITY_EVEN       /* 偶校验 */
+} pdl_mcu_parity_t;
+
+/**
+ * @brief 串口流控类型（PDL抽象枚举）
+ */
+typedef enum
+{
+	PDL_MCU_FLOW_NONE = 0,    /* 无流控 */
+	PDL_MCU_FLOW_HW,          /* 硬件流控（RTS/CTS） */
+	PDL_MCU_FLOW_SW           /* 软件流控（XON/XOFF） */
+} pdl_mcu_flow_control_t;
+
+/**
  * @brief MCU配置
  *
  * 说明：
@@ -57,14 +82,14 @@ typedef struct
 			uint32_t rx_id;               /* 接收CAN ID（PDL层使用） */
 		} can;
 
-		/* 串口配置 - 嵌入 HAL 配置 */
+		/* 串口配置 - 使用 PDL 抽象类型 */
 		struct {
-			const char *device;           /* 串口设备（如/dev/ttyS1，传递给 HAL） */
-			uint32_t baudrate;            /* 波特率（传递给 HAL） */
-			uint8_t data_bits;            /* 数据位（5-8，传递给 HAL） */
-			uint8_t stop_bits;            /* 停止位（1-2，传递给 HAL） */
-			uint8_t parity;               /* 校验位（传递给 HAL） */
-			uint8_t flow_control;         /* 流控（传递给 HAL） */
+			const char *device;                   /* 串口设备（如/dev/ttyS1） */
+			uint32_t baudrate;                    /* 波特率 */
+			uint8_t data_bits;                    /* 数据位（5-8） */
+			uint8_t stop_bits;                    /* 停止位（1-2） */
+			pdl_mcu_parity_t parity;              /* 校验位（PDL抽象枚举） */
+			pdl_mcu_flow_control_t flow_control;  /* 流控（PDL抽象枚举） */
 		} serial;
 	} hw;
 

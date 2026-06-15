@@ -2,12 +2,11 @@
  * PCONFIG 通用类型定义
  *
  * 功能：
- * - GPIO配置
- * - 电源域配置
- * - 硬件接口类型枚举
+ * - GPIO配置（PCONFIG 层扩展功能）
  *
  * 说明：
- * - 本文件包含所有外设共用的基础类型定义
+ * - 本文件包含 PCONFIG 层特有的扩展配置类型
+ * - 硬件接口类型由 PDL 层定义（pdl_mcu_interface_t）
  ************************************************************************/
 
 #ifndef PCONFIG_COMMON_H
@@ -17,11 +16,15 @@
 #include <stdbool.h>
 
 /*===========================================================================
- * GPIO配置
+ * GPIO配置（PCONFIG 层扩展）
  *===========================================================================*/
 
 /**
  * @brief GPIO配置
+ *
+ * 说明：
+ * - 用于 PCONFIG 层的设备扩展（复位 GPIO、中断 GPIO 等）
+ * - 实际 GPIO 操作通过 HAL 层实现
  */
 typedef struct {
 	uint32_t gpio_num;		/* GPIO编号 */
@@ -30,40 +33,5 @@ typedef struct {
 	bool	pull_up;		/* 上拉使能 */
 	bool	pull_down;		/* 下拉使能 */
 } pconfig_gpio_config_t;
-
-/*===========================================================================
- * 电源域配置
- *===========================================================================*/
-
-/**
- * @brief 电源域配置
- */
-typedef struct {
-	const char *name;		/* 电源域名称 */
-	pconfig_gpio_config_t *enable_gpio; /* 使能GPIO */
-	uint32_t	voltage_mv;	/* 电压（mV） */
-	uint32_t	current_ma;	/* 电流限制（mA） */
-	uint32_t	startup_delay_ms; /* 启动延时（ms） */
-} pconfig_power_domain_t;
-
-/*===========================================================================
- * 硬件接口类型枚举
- *===========================================================================*/
-
-/**
- * @brief 硬件接口类型枚举
- */
-typedef enum {
-	PCONFIG_HW_INTERFACE_NONE = 0,
-	PCONFIG_HW_INTERFACE_CAN,
-	PCONFIG_HW_INTERFACE_UART,
-	PCONFIG_HW_INTERFACE_I2C,
-	PCONFIG_HW_INTERFACE_SPI,
-	PCONFIG_HW_INTERFACE_ETHERNET,
-	PCONFIG_HW_INTERFACE_USB,
-	PCONFIG_HW_INTERFACE_SPACEWIRE,
-	PCONFIG_HW_INTERFACE_1553B,
-	PCONFIG_HW_INTERFACE_MAX
-} pconfig_hw_interface_type_t;
 
 #endif /* PCONFIG_COMMON_H */

@@ -10,9 +10,7 @@
  ************************************************************************/
 
 #include "osal.h"
-#include "hal.h"
-#include "pdl.h"
-#include "pconfig/pconfig.h"
+#include "pconfig.h"
 
 /*===========================================================================
  * MCU外设配置数组 - 展示多种通信接口
@@ -33,8 +31,8 @@ static pconfig_mcu_entry_t mcu_stm32_uart = {
             .baudrate = 115200,
             .data_bits = 8,
             .stop_bits = 1,
-            .parity = HAL_SERIAL_PARITY_NONE,
-            .flow_control = HAL_SERIAL_FLOW_NONE
+            .parity = PDL_MCU_PARITY_NONE,
+            .flow_control = PDL_MCU_FLOW_NONE
         },
 
         .cmd_timeout_ms = 500,
@@ -151,8 +149,8 @@ static pconfig_mcu_entry_t mcu_pmc_ethernet = {
             .baudrate = 921600,         /* 高速串口 */
             .data_bits = 8,
             .stop_bits = 1,
-            .parity = HAL_SERIAL_PARITY_NONE,
-            .flow_control = HAL_SERIAL_FLOW_NONE
+            .parity = PDL_MCU_PARITY_NONE,
+            .flow_control = PDL_MCU_FLOW_NONE
         },
 
         .cmd_timeout_ms = 1000,
@@ -204,7 +202,7 @@ static pconfig_bmc_entry_t bmc_payload_ipmi = {
                 .baudrate = 115200,
                 .data_bits = 8,
                 .stop_bits = 1,
-                .parity = HAL_SERIAL_PARITY_NONE,
+                .parity = PDL_MCU_PARITY_NONE,
                 .timeout_ms = 2000
             }
         },
@@ -246,7 +244,7 @@ static pconfig_bmc_entry_t bmc_platform_redfish = {
                 .baudrate = 115200,
                 .data_bits = 8,
                 .stop_bits = 1,
-                .parity = HAL_SERIAL_PARITY_NONE,
+                .parity = PDL_MCU_PARITY_NONE,
                 .timeout_ms = 2000
             }
         },
@@ -275,7 +273,7 @@ static pconfig_bmc_entry_t bmc_storage_serial = {
                 .baudrate = 57600,
                 .data_bits = 8,
                 .stop_bits = 1,
-                .parity = HAL_SERIAL_PARITY_NONE,
+                .parity = PDL_MCU_PARITY_NONE,
                 .timeout_ms = 1500
             }
         },

@@ -12,6 +12,48 @@
 #include "pdl.h"
 #include "pdl_mcu_internal.h"
 
+/*===========================================================================
+ * PDL → HAL 类型转换（内部函数，不对外暴露）
+ *===========================================================================*/
+
+/**
+ * @brief 转换 PDL 校验位类型到 HAL 校验位类型
+ */
+static uint8_t pdl_to_hal_parity(pdl_mcu_parity_t pdl_parity)
+{
+	switch (pdl_parity) {
+	case PDL_MCU_PARITY_NONE:
+		return HAL_SERIAL_PARITY_NONE;
+	case PDL_MCU_PARITY_ODD:
+		return HAL_SERIAL_PARITY_ODD;
+	case PDL_MCU_PARITY_EVEN:
+		return HAL_SERIAL_PARITY_EVEN;
+	default:
+		return HAL_SERIAL_PARITY_NONE;
+	}
+}
+
+/**
+ * @brief 转换 PDL 流控类型到 HAL 流控类型
+ */
+static uint8_t pdl_to_hal_flow_control(pdl_mcu_flow_control_t pdl_flow)
+{
+	switch (pdl_flow) {
+	case PDL_MCU_FLOW_NONE:
+		return HAL_SERIAL_FLOW_NONE;
+	case PDL_MCU_FLOW_HW:
+		return HAL_SERIAL_FLOW_HW;
+	case PDL_MCU_FLOW_SW:
+		return HAL_SERIAL_FLOW_SW;
+	default:
+		return HAL_SERIAL_FLOW_NONE;
+	}
+}
+
+/*===========================================================================
+ * 串口协议实现
+ *===========================================================================*/
+
 /*
  * 串口协议帧格式：
  * [0xAA][0x55][cmd][len][data...][crc16_h][crc16_l]
@@ -56,12 +98,12 @@ int32_t mcu_serial_init(const void *config, void **handle)
     OSAL_memset(ctx, 0, OSAL_sizeof(mcu_serial_context_t));
     /* CRC 强制启用 */
 
-    /* 打开串口设备 */
+    /* 配置串口参数 - 使用转换函数将 PDL 枚举转换为 HAL 枚举 */
     serial_config.baud_rate = mcu_cfg->hw.serial.baudrate;
     serial_config.data_bits = mcu_cfg->hw.serial.data_bits;
     serial_config.stop_bits = mcu_cfg->hw.serial.stop_bits;
-    serial_config.parity = mcu_cfg->hw.serial.parity;
-    serial_config.flow_control = 0;  /* NONE */
+    serial_config.parity = pdl_to_hal_parity(mcu_cfg->hw.serial.parity);
+    serial_config.flow_control = pdl_to_hal_flow_control(mcu_cfg->hw.serial.flow_control);
 
     if (OSAL_SUCCESS != HAL_Serial_Open(mcu_cfg->hw.serial.device, &serial_config, &ctx->serial_handle))
     {
