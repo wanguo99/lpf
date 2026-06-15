@@ -80,7 +80,7 @@ static pconfig_mcu_entry_t mcu_sensor_i2c = {
     .config = {
         .name = "sensor_mcu",
         .interface = PDL_MCU_INTERFACE_I2C,
-        .hw = {0},      /* I2C 配置待实现 */
+        .hw = {{0}},      /* I2C 配置待实现 */
         .cmd_timeout_ms = 200,
         .retry_count = 3
     },
@@ -98,7 +98,7 @@ static pconfig_mcu_entry_t mcu_fpga_spi = {
     .config = {
         .name = "fpga_ctrl_mcu",
         .interface = PDL_MCU_INTERFACE_SPI,
-        .hw = {0},      /* SPI 配置待实现 */
+        .hw = {{0}},      /* SPI 配置待实现 */
         .cmd_timeout_ms = 100,
         .retry_count = 3
     },
@@ -280,7 +280,7 @@ static pconfig_bmc_entry_t bmc_storage_serial = {
 
         /* 无备用通道 */
         .backup_channel = PDL_BMC_CHANNEL_NETWORK,
-        .backup_config = {0},
+        .backup_config = {{0}},
 
         .auto_switch = false,
         .retry_count = 5,

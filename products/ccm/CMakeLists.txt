@@ -30,13 +30,8 @@ if(PLATFORM_PCL_SRCS OR PLATFORM_ACL_SRCS)
         ${SDK_PATH}/core/osal/include/osal
     )
 
-    # Add configuration macros from Kconfig
-    get_cmake_property(all_vars VARIABLES)
-    foreach(var ${all_vars})
-        if(var MATCHES "^CONFIG_" AND ${var})
-            target_compile_definitions(platform_config_obj PRIVATE ${var}=${${var}})
-        endif()
-    endforeach()
+    # 注意：不需要通过 -D 添加 CONFIG_* 宏，因为 autoconf.h 已经通过 -include 自动包含
+    # 重复定义会导致编译错误（-Werror）
 
     if(PLATFORM_PCL_SRCS)
         target_sources(platform_config_obj PRIVATE ${PLATFORM_PCL_SRCS})
