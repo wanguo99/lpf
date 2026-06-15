@@ -336,7 +336,7 @@ else
 scripts_basic:
 	$(Q)$(MAKE) $(build)=scripts/basic
 
-prepare: scripts_basic include/generated/autoconf.h include/version.h
+prepare: scripts_basic include/generated/autoconf.h include/generated/version.h
 
 ifeq ($(dot-config),1)
 # In this section, we need .config
@@ -360,19 +360,19 @@ include/generated/autoconf.h: .config $(wildcard .kconfig.d)
 	$(Q)$(MAKE) -f $(srctree)/Makefile syncconfig
 
 # Generate version.h with build information
-include/version.h: .config FORCE
+include/generated/version.h: .config FORCE
 	$(Q)$(srctree)/scripts/gen_version.sh
 
 else
 # Dummy target needed, because used as prerequisite
 include/generated/autoconf.h: ;
-include/version.h: ;
+include/generated/version.h: ;
 endif
 
 # The all: target is the default when no target is given on the command line.
 # It requires .config to exist, otherwise it will fail with an error message.
 PHONY += all
-all: _check_config _validate_config include/generated/autoconf.h include/version.h _cmake_configure
+all: _check_config _validate_config include/generated/autoconf.h include/generated/version.h _cmake_configure
 	@echo ""
 	@echo "==================================================================="
 	@echo "ES-Middleware Build System"

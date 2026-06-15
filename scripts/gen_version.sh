@@ -1,16 +1,16 @@
 #!/bin/bash
 #
-# Generate include/version.h with build information
+# Generate include/generated/version.h with build information
 # Similar to Linux kernel version information
 #
 
 set -e
 
-OUTPUT_FILE="include/version.h"
+OUTPUT_FILE="include/generated/version.h"
 TEMP_FILE="${OUTPUT_FILE}.tmp"
 
-# Ensure include directory exists
-mkdir -p include
+# Ensure include/generated directory exists
+mkdir -p include/generated
 
 # Extract version from .config or use default
 if [ -f .config ]; then
