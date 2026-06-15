@@ -180,28 +180,10 @@ config PRODUCT_CCM
 	  - CCM applications (collector, comm, health, logger, supervisor)
 	  - Platform-specific configurations for AM625
 
-# config PRODUCT_SAMPLE
-# 	bool "Sample Product"
-# 	help
-# 	  Build Sample product (demonstration and template).
-#
-# 	  Sample product provides a minimal working example showing
-# 	  how to structure a product using the ES-Middleware SDK framework.
-#
-# 	  Useful for learning and as a starting point for new products.
-#
-# 	  Note: Not yet implemented.
-
 endchoice
 
 # ============================================================================
 # Project Identification (Global)
-# ============================================================================
-# These symbols are required by the build system and must be defined for all
-# configurations, regardless of product selection.
-#
-# For product builds: PROJECT_NAME is derived from platform choice
-# For test builds: PROJECT_NAME defaults to "tests"
 # ============================================================================
 
 config PROJECT_NAME
@@ -213,35 +195,22 @@ config PROJECT_NAME
 	help
 	  Project name derived from product and platform selection.
 
-	  This is used to:
-	  - Locate platform-specific configuration files
-	  - Generate build artifacts with appropriate names
-	  - Identify the target platform in logs and version info
-
-	  Value is automatically set based on product and platform choices:
-	  - CCM + H200 100P AM625 → "h200_100p_am625"
-	  - CCM + H200 200P → "h200_200p"
-	  - Testing (PRODUCT_NONE) → "tests"
-
 config PROJECT_VERSION
 	string "Project version"
 	default ES_MIDDLEWARE_VERSION
 	help
 	  Project version string.
 
-	  Defaults to the ES-Middleware SDK version (1.0.0), but can be
-	  overridden for product-specific versioning.
-
 # ============================================================================
 # Build System Configuration
-# ============================================================================
-# Platform and toolchain configuration
 # ============================================================================
 
 menu "Build System Configuration"
 
 # ============================================================================
-# Platform Configuration (OS and Architecture)
+# Platform Configuration
+# ============================================================================
+# Platform and architecture configuration
 # ============================================================================
 
 menu "Platform Configuration"
@@ -410,9 +379,10 @@ config ARCH
 	default "riscv64" if ARCH_RISCV64
 
 endmenu
-
 # ============================================================================
-# Build and Compiler Configuration
+# Build Configuration
+# ============================================================================
+# Build type and runtime configuration
 # ============================================================================
 
 menu "Build Configuration"
@@ -482,9 +452,83 @@ config BUILD_TYPE
 	default "RelWithDebInfo" if BUILD_TYPE_RELWITHDEBINFO
 	default "MinSizeRel" if BUILD_TYPE_MINSIZEREL
 
+menu "Runtime Configuration"
+
+config ENABLE_ASSERT
+	bool "Enable assertions"
+	default y if BUILD_TYPE_DEBUG
+	default n
+	help
+	  Enable runtime assertions.
+
+	  When disabled, defines NDEBUG macro to remove assert() checks.
+
+config STACK_PROTECTOR
+	bool "Enable stack protector"
+	default y if BUILD_TYPE_DEBUG || BUILD_TYPE_RELEASE
+	default n
+	help
+	  Enable stack overflow protection.
+
+	  Adds -fstack-protector-strong flag.
+
+config POSITION_INDEPENDENT_CODE
+	bool "Generate position independent code (PIC)"
+	default y
+	help
+	  Generate position independent code for shared libraries.
+
+	  Adds -fPIC flag.
+
+config FORTIFY_SOURCE
+	bool "Enable FORTIFY_SOURCE"
+	default y if BUILD_TYPE_RELEASE
+	default n
+	help
+	  Enable compile-time and runtime buffer overflow protection.
+
+	  Defines _FORTIFY_SOURCE=2.
+
+	  Only effective with optimization level >= -O1.
+
 endmenu
 
-menu "Compiler Flags"
+menu "Toolchain"
+
+config TOOLCHAIN_PATH
+	string "Toolchain path"
+	default ""
+	help
+	  Absolute path to the cross-compilation toolchain.
+	  Leave empty to use system default compiler.
+
+	  Example: /opt/toolchains/gcc-arm-11.2/bin
+
+config TOOLCHAIN_PREFIX
+	string "Toolchain prefix"
+	default "aarch64-linux-gnu-" if ARCH_ARM64
+	default "arm-linux-gnueabihf-" if ARCH_ARM32
+	default ""
+	help
+	  Toolchain prefix for cross-compilation.
+
+	  Examples:
+	    ARM64: aarch64-linux-gnu- or aarch64-none-linux-gnu-
+	    ARM32: arm-linux-gnueabihf-
+	    x86_64: Leave empty for native compilation
+
+endmenu
+
+endmenu
+# ============================================================================
+# Compiler Configuration
+# ============================================================================
+# Compiler flags, optimization, and instrumentation options
+# ============================================================================
+
+menu "Compiler Configuration"
+
+menu "Compiler Warnings"
 
 config COMPILER_WARNINGS_AS_ERRORS
 	bool "Treat warnings as errors (-Werror)"
@@ -514,6 +558,10 @@ config COMPILER_PEDANTIC
 	default n
 	help
 	  Enable -Wpedantic flag for strict ISO C compliance warnings.
+
+endmenu
+
+menu "Compiler Instrumentation"
 
 config COMPILER_SANITIZER_ADDRESS
 	bool "Enable AddressSanitizer"
@@ -555,6 +603,10 @@ config COMPILER_COVERAGE
 	  Enable code coverage instrumentation for gcov/lcov.
 
 	  Adds -fprofile-arcs -ftest-coverage flags.
+
+endmenu
+
+menu "Compiler Optimization"
 
 config COMPILER_LTO
 	bool "Enable Link Time Optimization (LTO)"
@@ -680,6 +732,10 @@ config COMPILER_DISABLE_FORTIFY_WITH_O0
 	  Disable only if you're sure your toolchain doesn't add
 	  _FORTIFY_SOURCE automatically.
 
+endmenu
+
+menu "Custom Flags"
+
 config COMPILER_CUSTOM_C_FLAGS
 	string "Custom C flags"
 	default ""
@@ -708,70 +764,874 @@ config COMPILER_CUSTOM_LINK_FLAGS
 
 endmenu
 
-menu "Runtime Configuration"
+endmenu
+# ============================================================================
+# Security Configuration
+# ============================================================================
+# Security hardening options for production systems
+# ============================================================================
 
-config ENABLE_ASSERT
-	bool "Enable assertions"
-	default y if BUILD_TYPE_DEBUG
-	default n
-	help
-	  Enable runtime assertions.
+menu "Security Configuration"
 
-	  When disabled, defines NDEBUG macro to remove assert() checks.
-
-config STACK_PROTECTOR
-	bool "Enable stack protector"
-	default y if BUILD_TYPE_DEBUG || BUILD_TYPE_RELEASE
-	default n
-	help
-	  Enable stack overflow protection.
-
-	  Adds -fstack-protector-strong flag.
-
-config POSITION_INDEPENDENT_CODE
-	bool "Generate position independent code (PIC)"
-	default y
-	help
-	  Generate position independent code for shared libraries.
-
-	  Adds -fPIC flag.
-
-config FORTIFY_SOURCE
-	bool "Enable FORTIFY_SOURCE"
+config SECURITY_HARDENING
+	bool "Enable security hardening"
 	default y if BUILD_TYPE_RELEASE
 	default n
 	help
-	  Enable compile-time and runtime buffer overflow protection.
+	  Enable security hardening features.
 
-	  Defines _FORTIFY_SOURCE=2.
+	  This is a meta-option that enables recommended security features
+	  for production systems. Individual features can be configured below.
 
-	  Only effective with optimization level >= -O1.
+	  Recommended: Enable for production deployments.
+
+config SECURITY_STACK_CANARY
+	bool "Enable stack canary protection"
+	default y if SECURITY_HARDENING
+	default n
+	help
+	  Enable stack canary protection to detect stack buffer overflows.
+
+	  Adds compiler flags: -fstack-protector-strong
+
+	  The canary is a random value placed before the return address on
+	  the stack. If a buffer overflow occurs, the canary is corrupted,
+	  and the program aborts before returning to a potentially malicious
+	  address.
+
+	  Performance impact: <1%
+	  Memory impact: 4-8 bytes per function with buffers
+
+	  Recommended: Enable for all production builds.
+
+config SECURITY_FORTIFY_SOURCE
+	bool "Enable FORTIFY_SOURCE buffer checks"
+	default y if SECURITY_HARDENING && !BUILD_TYPE_DEBUG
+	default n
+	depends on !COMPILER_OPT_O0
+	help
+	  Enable compile-time and runtime buffer overflow detection.
+
+	  Defines _FORTIFY_SOURCE=2 to enable glibc buffer overflow checks.
+
+	  This feature adds compile-time warnings for obvious buffer overflows
+	  and runtime checks for functions like strcpy, memcpy, sprintf, etc.
+
+	  Performance impact: <1%
+	  Memory impact: Minimal
+
+	  Note: Only effective with optimization level >= -O1.
+	  Automatically disabled for -O0 (debug) builds.
+
+	  Recommended: Enable for release builds.
+
+config SECURITY_RELRO
+	bool "Enable RELRO (Relocation Read-Only)"
+	default y if SECURITY_HARDENING
+	default n
+	help
+	  Enable RELRO to mark relocation sections as read-only after loading.
+
+	  Adds linker flags: -Wl,-z,relro
+
+	  This prevents attackers from overwriting GOT (Global Offset Table)
+	  entries to hijack function calls.
+
+	  Recommended: Enable for production builds.
+
+choice
+	prompt "RELRO mode"
+	depends on SECURITY_RELRO
+	default SECURITY_RELRO_FULL if SECURITY_HARDENING
+	default SECURITY_RELRO_PARTIAL
+
+config SECURITY_RELRO_PARTIAL
+	bool "Partial RELRO"
+	help
+	  Mark non-PLT GOT entries as read-only after loading.
+
+	  Faster startup time, but PLT GOT entries remain writable.
+
+config SECURITY_RELRO_FULL
+	bool "Full RELRO"
+	help
+	  Mark all GOT entries as read-only after loading.
+
+	  Adds linker flags: -Wl,-z,relro,-z,now
+
+	  Resolves all symbols at load time (no lazy binding), making the
+	  entire GOT read-only. Provides stronger security at the cost of
+	  slower startup.
+
+	  Recommended: Use for security-critical applications.
+
+endchoice
+
+config SECURITY_NX_STACK
+	bool "Enable NX (No-Execute) stack"
+	default y
+	help
+	  Mark stack as non-executable to prevent code injection attacks.
+
+	  Adds linker flags: -Wl,-z,noexecstack
+
+	  This is a fundamental security feature supported by modern CPUs
+	  and operating systems. Should always be enabled unless working
+	  with legacy code that requires executable stack.
+
+	  Performance impact: None
+	  Compatibility: May break very old code with trampolines
+
+	  Recommended: Always enable (default).
+
+config SECURITY_PIE
+	bool "Build position-independent executables (PIE)"
+	default y if SECURITY_HARDENING
+	default n
+	depends on POSITION_INDEPENDENT_CODE
+	help
+	  Build executables as position-independent code.
+
+	  Adds compiler/linker flags: -fPIE -pie
+
+	  PIE enables full ASLR (Address Space Layout Randomization),
+	  randomizing the executable's base address at load time.
+	  This makes exploitation significantly harder.
+
+	  Performance impact: <1%
+	  Memory impact: Slightly larger code size
+
+	  Note: Requires CONFIG_POSITION_INDEPENDENT_CODE=y
+
+	  Recommended: Enable for security-critical applications.
+
+config SECURITY_ASLR_REQUIRE
+	bool "Require kernel ASLR support"
+	default n
+	depends on OS_LINUX
+	help
+	  Verify at runtime that kernel ASLR is enabled.
+
+	  Checks /proc/sys/kernel/randomize_va_space >= 2
+
+	  If ASLR is disabled in the kernel, the application will
+	  print a warning or refuse to start (depending on
+	  SECURITY_ASLR_ENFORCE).
+
+config SECURITY_ASLR_ENFORCE
+	bool "Enforce ASLR requirement"
+	default n
+	depends on SECURITY_ASLR_REQUIRE
+	help
+	  Abort application startup if kernel ASLR is disabled.
+
+	  When enabled, the application will exit with an error if
+	  /proc/sys/kernel/randomize_va_space < 2.
+
+	  Use this for security-critical applications that require ASLR.
+
+	  Warning: Application will not run on systems with ASLR disabled.
 
 endmenu
 
-menu "Toolchain"
+endmenu
 
-config TOOLCHAIN_PATH
-	string "Toolchain path"
-	default ""
+# ============================================================================
+# Logging and Debug Configuration
+# ============================================================================
+
+# ============================================================================
+# Logging Configuration
+# ============================================================================
+# Global logging settings for all modules
+# ============================================================================
+
+menu "Logging Configuration"
+
+config LOGGING_ENABLE
+	bool "Enable logging system"
+	default y
 	help
-	  Absolute path to the cross-compilation toolchain.
-	  Leave empty to use system default compiler.
+	  Enable global logging system.
 
-	  Example: /opt/toolchains/gcc-arm-11.2/bin
+	  When disabled, all logging calls become no-ops (compiled out).
+	  This minimizes code size and runtime overhead.
 
-config TOOLCHAIN_PREFIX
-	string "Toolchain prefix"
-	default "aarch64-linux-gnu-" if ARCH_ARM64
-	default "arm-linux-gnueabihf-" if ARCH_ARM32
-	default ""
+	  Recommended: Enable for all builds except ultra-minimal RTOS.
+
+if LOGGING_ENABLE
+
+choice
+	prompt "Default log level"
+	default LOG_LEVEL_INFO if BUILD_TYPE_DEBUG
+	default LOG_LEVEL_WARN if BUILD_TYPE_RELEASE
 	help
-	  Toolchain prefix for cross-compilation.
+	  Select the default log level for all modules.
 
-	  Examples:
-	    ARM64: aarch64-linux-gnu- or aarch64-none-linux-gnu-
-	    ARM32: arm-linux-gnueabihf-
-	    x86_64: Leave empty for native compilation
+	  Log levels (from least to most verbose):
+	  - FATAL: Only fatal errors that cause program termination
+	  - ERROR: Errors that affect functionality
+	  - WARN:  Warnings about potential issues
+	  - INFO:  Informational messages about normal operation
+	  - DEBUG: Detailed debugging information
+	  - TRACE: Very verbose trace information
+
+	  Messages below the selected level are compiled out.
+
+config LOG_LEVEL_FATAL
+	bool "FATAL - Fatal errors only"
+	help
+	  Only log fatal errors that cause program termination.
+
+	  Memory impact: Minimal (~2KB)
+	  Use case: Production systems with strict size constraints
+
+config LOG_LEVEL_ERROR
+	bool "ERROR - Errors and above"
+	help
+	  Log errors and fatal messages.
+
+	  Memory impact: ~5KB
+	  Use case: Production systems, minimal logging
+
+config LOG_LEVEL_WARN
+	bool "WARN - Warnings and above"
+	help
+	  Log warnings, errors, and fatal messages.
+
+	  Memory impact: ~8KB
+	  Use case: Production systems, standard logging
+
+	  This is the recommended level for production.
+
+config LOG_LEVEL_INFO
+	bool "INFO - Informational and above"
+	help
+	  Log informational messages, warnings, errors, and fatal.
+
+	  Memory impact: ~15KB
+	  Use case: Development, testing, verbose production logging
+
+	  This is the recommended level for development.
+
+config LOG_LEVEL_DEBUG
+	bool "DEBUG - Debug and above"
+	help
+	  Log debug information and all higher priority messages.
+
+	  Memory impact: ~30KB
+	  Performance impact: 5-10%
+	  Use case: Active debugging, troubleshooting
+
+config LOG_LEVEL_TRACE
+	bool "TRACE - All messages"
+	help
+	  Log all messages including very verbose trace information.
+
+	  Memory impact: ~50KB
+	  Performance impact: 10-20%
+	  Use case: Deep debugging, performance analysis
+
+	  Warning: Very high overhead, use only for debugging.
+
+endchoice
+
+config LOG_LEVEL
+	int
+	default 0 if LOG_LEVEL_FATAL
+	default 1 if LOG_LEVEL_ERROR
+	default 2 if LOG_LEVEL_WARN
+	default 3 if LOG_LEVEL_INFO
+	default 4 if LOG_LEVEL_DEBUG
+	default 5 if LOG_LEVEL_TRACE
+
+menu "Log Output Configuration"
+
+config LOG_OUTPUT_CONSOLE
+	bool "Log to console (stdout/stderr)"
+	default y
+	help
+	  Output log messages to console (stdout for INFO/DEBUG, stderr for WARN/ERROR).
+
+	  This is the most common logging output method.
+
+config LOG_OUTPUT_FILE
+	bool "Log to file"
+	default n
+	help
+	  Output log messages to a file.
+
+	  Requires filesystem support (CONFIG_OSAL_FILE).
+
+if LOG_OUTPUT_FILE
+
+config LOG_FILE_PATH
+	string "Log file path"
+	default "/var/log/es-middleware.log"
+	help
+	  Path to the log file.
+
+	  The directory must exist and be writable.
+
+config LOG_FILE_MAX_SIZE
+	int "Maximum log file size (KB)"
+	default 1024
+	range 64 102400
+	help
+	  Maximum log file size in kilobytes.
+
+	  When the log file exceeds this size, it is rotated
+	  (renamed to .log.1, .log.2, etc.).
+
+config LOG_FILE_MAX_BACKUPS
+	int "Maximum number of log file backups"
+	default 3
+	range 0 10
+	help
+	  Maximum number of rotated log files to keep.
+
+	  Set to 0 to disable log rotation (file grows indefinitely).
+
+endif # LOG_OUTPUT_FILE
+
+config LOG_OUTPUT_SYSLOG
+	bool "Log to syslog"
+	default n
+	depends on OS_LINUX
+	help
+	  Output log messages to system syslog daemon.
+
+	  Requires syslog support in the operating system.
+
+	  Use cases:
+	  - Centralized logging
+	  - Integration with system monitoring
+	  - Remote logging
+
+if LOG_OUTPUT_SYSLOG
+
+config LOG_SYSLOG_IDENT
+	string "Syslog identifier"
+	default "es-middleware"
+	help
+	  Identifier string for syslog messages.
+
+	  This appears as the program name in syslog output.
+
+config LOG_SYSLOG_FACILITY
+	string "Syslog facility"
+	default "LOG_USER"
+	help
+	  Syslog facility for log messages.
+
+	  Common values:
+	  - LOG_USER (default)
+	  - LOG_DAEMON
+	  - LOG_LOCAL0 through LOG_LOCAL7
+
+endif # LOG_OUTPUT_SYSLOG
+
+endmenu
+
+menu "Log Format Configuration"
+
+config LOG_TIMESTAMP
+	bool "Include timestamp in log messages"
+	default y
+	help
+	  Prefix log messages with timestamp.
+
+	  Format: [YYYY-MM-DD HH:MM:SS.mmm]
+
+config LOG_LEVEL_PREFIX
+	bool "Include log level in messages"
+	default y
+	help
+	  Prefix log messages with level indicator.
+
+	  Examples: [ERROR], [WARN], [INFO], [DEBUG]
+
+config LOG_MODULE_NAME
+	bool "Include module name in messages"
+	default y
+	help
+	  Include the source module name in log messages.
+
+	  Examples: [OSAL], [HAL], [PDL], [PRL]
+
+config LOG_FUNCTION_NAME
+	bool "Include function name in messages"
+	default n
+	help
+	  Include the function name in log messages.
+
+	  Useful for debugging, but increases log verbosity.
+
+config LOG_FILE_LINE
+	bool "Include file and line number in messages"
+	default n
+	help
+	  Include source file name and line number in log messages.
+
+	  Useful for debugging, but increases log verbosity significantly.
+
+	  Example: [osal_mutex.c:123]
+
+config LOG_THREAD_ID
+	bool "Include thread ID in messages"
+	default n
+	help
+	  Include thread ID in log messages.
+
+	  Useful for debugging multi-threaded applications.
+
+config LOG_COLORIZED
+	bool "Colorize console output"
+	default y if BUILD_TYPE_DEBUG
+	default n
+	depends on LOG_OUTPUT_CONSOLE
+	help
+	  Use ANSI color codes to colorize log output on console.
+
+	  - ERROR/FATAL: Red
+	  - WARN: Yellow
+	  - INFO: Green
+	  - DEBUG: Cyan
+	  - TRACE: Blue
+
+	  Improves readability on terminals that support ANSI colors.
+
+	  Disable for log files or systems without color terminal support.
+
+endmenu
+
+menu "Advanced Logging Options"
+
+config LOG_BUFFER_SIZE
+	int "Log message buffer size (bytes)"
+	default 256
+	range 64 4096
+	help
+	  Maximum size of a single log message.
+
+	  Messages longer than this will be truncated.
+
+	  Recommended values:
+	  - Minimal: 128 bytes
+	  - Standard: 256 bytes
+	  - Verbose: 512-1024 bytes
+
+config LOG_ASYNC
+	bool "Enable asynchronous logging"
+	default n
+	depends on OSAL_THREAD
+	help
+	  Enable asynchronous logging using a background thread.
+
+	  Log messages are queued and written by a dedicated thread,
+	  reducing the impact on application performance.
+
+	  Benefits:
+	  - Lower latency for logging calls
+	  - Non-blocking I/O
+	  - Better performance under high load
+
+	  Drawbacks:
+	  - Additional thread overhead
+	  - Log messages may be lost on crash
+	  - Requires thread support
+
+	  Recommended: Enable for performance-critical applications.
+
+if LOG_ASYNC
+
+config LOG_ASYNC_QUEUE_SIZE
+	int "Asynchronous log queue size"
+	default 1024
+	range 64 16384
+	help
+	  Number of log messages that can be queued.
+
+	  If the queue fills up, logging calls will block until
+	  space becomes available.
+
+endif # LOG_ASYNC
+
+config LOG_RATE_LIMIT
+	bool "Enable rate limiting"
+	default n
+	help
+	  Enable rate limiting to prevent log flooding.
+
+	  Limits the number of identical log messages per time period.
+
+if LOG_RATE_LIMIT
+
+config LOG_RATE_LIMIT_PERIOD
+	int "Rate limit period (seconds)"
+	default 60
+	range 1 3600
+	help
+	  Time period for rate limiting, in seconds.
+
+config LOG_RATE_LIMIT_COUNT
+	int "Maximum messages per period"
+	default 100
+	range 1 10000
+	help
+	  Maximum number of identical messages allowed per period.
+
+endif # LOG_RATE_LIMIT
+
+endmenu
+
+endif # LOGGING_ENABLE
+
+endmenu
+# ============================================================================
+# Debug Configuration
+# ============================================================================
+# Debugging and diagnostic features
+# ============================================================================
+
+menu "Debug Configuration"
+
+config DEBUG_FEATURES
+	bool "Enable debugging features"
+	default y if BUILD_TYPE_DEBUG
+	default n
+	help
+	  Enable debugging and diagnostic features.
+
+	  This is a meta-option that enables common debugging features.
+	  Individual features can be configured below.
+
+	  When disabled, most debug code is compiled out to reduce
+	  code size and improve performance.
+
+	  Recommended: Enable for development, disable for production.
+
+menu "Memory Debugging"
+
+config DEBUG_MEMORY_TRACKING
+	bool "Enable memory allocation tracking"
+	default n
+	depends on DEBUG_FEATURES
+	help
+	  Track all memory allocations and deallocations.
+
+	  Provides:
+	  - Total memory allocated/freed counters
+	  - Peak memory usage tracking
+	  - Per-allocation metadata (file, line, size)
+	  - Memory usage statistics
+
+	  Memory overhead: ~32 bytes per allocation
+	  Performance impact: 5-10%
+
+	  Use cases:
+	  - Detect memory leaks
+	  - Analyze memory usage patterns
+	  - Optimize memory consumption
+
+config DEBUG_MEMORY_LEAK_DETECTION
+	bool "Enable memory leak detection"
+	default n
+	depends on DEBUG_MEMORY_TRACKING
+	help
+	  Detect memory leaks on program exit.
+
+	  Reports:
+	  - Number of leaked allocations
+	  - Total leaked bytes
+	  - Location of each leak (file:line)
+
+	  This checks for memory that was allocated but never freed.
+
+	  Use cases:
+	  - Find memory leaks during development
+	  - Verify proper cleanup in tests
+
+config DEBUG_BUFFER_OVERFLOW
+	bool "Enable buffer overflow detection"
+	default n
+	depends on DEBUG_FEATURES
+	help
+	  Detect buffer overflows in heap allocations.
+
+	  Adds canary values before and after each allocation to
+	  detect buffer overruns. Checks canaries on free().
+
+	  Memory overhead: ~16 bytes per allocation
+	  Performance impact: <5%
+
+	  Detects:
+	  - Heap buffer overflows (write past end)
+	  - Heap buffer underflows (write before start)
+
+	  Use cases:
+	  - Find buffer overflow bugs
+	  - Validate memory safety
+
+config DEBUG_USE_AFTER_FREE
+	bool "Enable use-after-free detection"
+	default n
+	depends on DEBUG_FEATURES
+	help
+	  Detect use-after-free errors.
+
+	  Fills freed memory with a pattern (0xDEADBEEF) and
+	  delays reuse to increase chances of catching errors.
+
+	  Memory overhead: Holds freed blocks longer
+	  Performance impact: 5-10%
+
+	  Detects:
+	  - Access to freed memory
+	  - Double-free errors
+
+	  Use cases:
+	  - Find use-after-free bugs
+	  - Debug memory corruption
+
+config DEBUG_DOUBLE_FREE
+	bool "Enable double-free detection"
+	default n
+	depends on DEBUG_FEATURES
+	help
+	  Detect double-free errors.
+
+	  Maintains a list of freed pointers and checks for
+	  duplicate free() calls.
+
+	  Memory overhead: ~8 bytes per free
+	  Performance impact: <5%
+
+	  Use cases:
+	  - Find double-free bugs
+	  - Debug memory corruption
+
+config DEBUG_UNINITIALIZED_MEMORY
+	bool "Fill allocated memory with pattern"
+	default n
+	depends on DEBUG_FEATURES
+	help
+	  Fill newly allocated memory with a pattern (0xABABABAB).
+
+	  This helps detect use of uninitialized memory by making
+	  bugs more reproducible and obvious.
+
+	  Performance impact: <5%
+
+	  Use cases:
+	  - Detect uninitialized variable bugs
+	  - Make memory bugs reproducible
+
+endmenu
+
+menu "Runtime Assertions"
+
+config DEBUG_ASSERT_VERBOSE
+	bool "Verbose assertion messages"
+	default y if DEBUG_FEATURES
+	default n
+	depends on ENABLE_ASSERT
+	help
+	  Include detailed information in assertion failures.
+
+	  Provides:
+	  - File name and line number
+	  - Function name
+	  - Assertion expression
+	  - Stack trace (if available)
+
+	  Code size impact: ~5KB
+
+config DEBUG_ASSERT_ABORT
+	bool "Abort on assertion failure"
+	default y
+	depends on ENABLE_ASSERT
+	help
+	  Call abort() on assertion failure instead of just logging.
+
+	  When disabled, assertion failures only log an error and
+	  continue execution. This can lead to cascading failures.
+
+	  Recommended: Keep enabled to catch bugs early.
+
+config DEBUG_PRECONDITION_CHECKS
+	bool "Enable precondition checks"
+	default y if DEBUG_FEATURES
+	default n
+	help
+	  Enable runtime precondition validation in functions.
+
+	  Checks:
+	  - NULL pointer arguments
+	  - Parameter ranges and validity
+	  - Object state consistency
+
+	  Performance impact: 5-10%
+
+	  Use cases:
+	  - Validate API usage
+	  - Catch programming errors early
+	  - Improve code robustness
+
+config DEBUG_POSTCONDITION_CHECKS
+	bool "Enable postcondition checks"
+	default n
+	depends on DEBUG_FEATURES
+	help
+	  Enable runtime postcondition validation in functions.
+
+	  Validates:
+	  - Return value consistency
+	  - Output parameter validity
+	  - Object state after operations
+
+	  Performance impact: 5-10%
+
+	  Use cases:
+	  - Detect implementation bugs
+	  - Ensure function contracts
+	  - Improve code correctness
+
+config DEBUG_INVARIANT_CHECKS
+	bool "Enable invariant checks"
+	default n
+	depends on DEBUG_FEATURES
+	help
+	  Enable runtime invariant validation for data structures.
+
+	  Checks internal consistency of data structures at key
+	  points (e.g., after modifications).
+
+	  Performance impact: 10-20%
+
+	  Use cases:
+	  - Detect data structure corruption
+	  - Validate algorithm correctness
+	  - Debug complex state machines
+
+endmenu
+
+menu "Performance Profiling"
+
+config DEBUG_PERFORMANCE_COUNTERS
+	bool "Enable performance counters"
+	default n
+	help
+	  Collect performance statistics for key operations.
+
+	  Tracks:
+	  - Function call counts
+	  - Execution time (min/max/avg)
+	  - Resource usage (memory, handles, etc.)
+
+	  Memory overhead: ~128 bytes per instrumented function
+	  Performance impact: <5%
+
+	  Use cases:
+	  - Identify performance bottlenecks
+	  - Measure optimization impact
+	  - Monitor system health
+
+config DEBUG_CALL_TRACING
+	bool "Enable function call tracing"
+	default n
+	depends on DEBUG_FEATURES
+	help
+	  Log entry and exit of instrumented functions.
+
+	  Output format:
+	  -> function_name(args)
+	  <- function_name = return_value
+
+	  Performance impact: 20-50%
+
+	  Warning: Very verbose output. Use selectively.
+
+	  Use cases:
+	  - Understand execution flow
+	  - Debug complex interactions
+	  - Reproduce timing-dependent bugs
+
+config DEBUG_RESOURCE_TRACKING
+	bool "Enable resource tracking"
+	default n
+	depends on DEBUG_FEATURES
+	help
+	  Track resource allocation and usage.
+
+	  Resources tracked:
+	  - File descriptors
+	  - Mutexes and semaphores
+	  - Threads
+	  - Sockets
+	  - Timers
+
+	  Reports:
+	  - Currently allocated resources
+	  - Resource leaks on shutdown
+	  - Peak resource usage
+
+	  Memory overhead: ~64 bytes per resource
+	  Performance impact: <5%
+
+	  Use cases:
+	  - Detect resource leaks
+	  - Monitor resource usage
+	  - Optimize resource consumption
+
+endmenu
+
+menu "Diagnostic Output"
+
+config DEBUG_DUMP_STACK_ON_ERROR
+	bool "Dump stack trace on errors"
+	default n
+	depends on DEBUG_FEATURES && OS_LINUX
+	help
+	  Print stack trace when errors occur.
+
+	  Requires:
+	  - Linux with backtrace() support
+	  - Debug symbols (-g)
+
+	  Helps identify the call chain leading to errors.
+
+config DEBUG_CORE_DUMP_ON_FATAL
+	bool "Generate core dump on fatal errors"
+	default n
+	depends on DEBUG_FEATURES
+	help
+	  Generate core dump file on fatal errors.
+
+	  Enables analysis with debugger (gdb) post-mortem.
+
+	  Note: Requires core dumps to be enabled in the system:
+	  ulimit -c unlimited
+
+config DEBUG_DUMP_ON_SIGNAL
+	bool "Dump state on signal (SIGUSR1)"
+	default n
+	depends on DEBUG_FEATURES && OS_LINUX
+	help
+	  Dump internal state when receiving SIGUSR1 signal.
+
+	  Dumps:
+	  - Memory usage statistics
+	  - Resource allocation status
+	  - Performance counters
+	  - Module-specific state
+
+	  Use: kill -SIGUSR1 <pid>
+
+	  Use cases:
+	  - Inspect running system without stopping it
+	  - Debug intermittent issues
+	  - Collect diagnostic information
 
 endmenu
 
@@ -780,17 +1640,11 @@ endmenu
 # ============================================================================
 # Core Components Configuration
 # ============================================================================
-# Configure SDK core components that are shared across all products.
-# These components provide fundamental abstractions and services.
-# ============================================================================
 
 source "core/Config.in"
 
 # ============================================================================
 # Product-Specific Configuration
-# ============================================================================
-# Each enabled product's configuration menu appears here.
-# Product configurations are only shown if the product is enabled above.
 # ============================================================================
 
 menu "Product Configuration"
@@ -799,17 +1653,10 @@ if PRODUCT_CCM
 	source "products/ccm/Config.in"
 endif
 
-# if PRODUCT_SAMPLE
-# 	osource "products/sample/Config.in"
-# endif
-
 endmenu
 
 # ============================================================================
 # Testing Configuration
-# ============================================================================
-# Configure test suite and test modules.
-# Tests are only available when BUILD_TESTING is enabled.
 # ============================================================================
 
 config BUILD_TESTING
@@ -830,3 +1677,297 @@ if BUILD_TESTING
 		source "products/core-tests/Config.in"
 	endmenu
 endif
+
+# ============================================================================
+# Configuration Validation
+# ============================================================================
+
+# ============================================================================
+# Configuration Sanity Checks
+# ============================================================================
+# These hidden configs detect invalid configurations and show error messages.
+# They prevent build failures by catching configuration conflicts early.
+# ============================================================================
+
+menu "Configuration Validation"
+	visible if EXPERT
+
+# ============================================================================
+# Dependency Checks
+# ============================================================================
+
+config SANITY_ERROR_HAL_NO_OSAL
+	def_bool y
+	depends on HAL && !OSAL
+	prompt "ERROR: HAL requires OSAL to be enabled"
+
+config SANITY_ERROR_PCL_NO_DEPS
+	def_bool y
+	depends on PCL && (!OSAL || !HAL || !TYPES)
+	prompt "ERROR: PCL requires OSAL, HAL, and TYPES to be enabled"
+
+config SANITY_ERROR_PDL_NO_DEPS
+	def_bool y
+	depends on PDL && (!OSAL || !HAL || !PCL || !TYPES)
+	prompt "ERROR: PDL requires OSAL, HAL, PCL, and TYPES to be enabled"
+
+config SANITY_ERROR_ACL_NO_OSAL
+	def_bool y
+	depends on ACL && !OSAL
+	prompt "ERROR: ACL requires OSAL to be enabled"
+
+config SANITY_ERROR_TEST_FRAMEWORK_NO_OSAL
+	def_bool y
+	depends on TEST_FRAMEWORK && !OSAL
+	prompt "ERROR: TEST_FRAMEWORK requires OSAL to be enabled"
+
+# ============================================================================
+# Test Dependency Checks
+# ============================================================================
+
+config SANITY_ERROR_TEST_OSAL_NO_MODULE
+	def_bool y
+	depends on TEST_OSAL && !OSAL
+	prompt "ERROR: OSAL tests require OSAL module to be enabled"
+
+config SANITY_ERROR_TEST_HAL_NO_MODULE
+	def_bool y
+	depends on TEST_HAL && !HAL
+	prompt "ERROR: HAL tests require HAL module to be enabled"
+
+config SANITY_ERROR_TEST_PCL_NO_MODULE
+	def_bool y
+	depends on TEST_PCL && !PCL
+	prompt "ERROR: PCL tests require PCL module to be enabled"
+
+config SANITY_ERROR_TEST_PDL_NO_MODULE
+	def_bool y
+	depends on TEST_PDL && !PDL
+	prompt "ERROR: PDL tests require PDL module to be enabled"
+
+config SANITY_ERROR_TEST_PRL_NO_MODULE
+	def_bool y
+	depends on TEST_PRL && !PRL
+	prompt "ERROR: PRL tests require PRL module to be enabled"
+
+config SANITY_ERROR_TEST_ACL_NO_MODULE
+	def_bool y
+	depends on TEST_ACONFIG && !ACL
+	prompt "ERROR: ACL tests require ACL module to be enabled"
+
+# ============================================================================
+# HAL Driver Dependency Checks
+# ============================================================================
+
+config SANITY_ERROR_HAL_CAN_NO_PLATFORM
+	def_bool y
+	depends on HAL_CAN && !PLATFORM_LINUX && !OS_RTOS
+	prompt "ERROR: HAL_CAN requires platform support (PLATFORM_LINUX or OS_RTOS)"
+
+config SANITY_ERROR_HAL_UART_NO_PLATFORM
+	def_bool y
+	depends on HAL_UART && !PLATFORM_LINUX && !OS_RTOS
+	prompt "ERROR: HAL_UART requires platform support (PLATFORM_LINUX or OS_RTOS)"
+
+config SANITY_ERROR_HAL_GPIO_NO_PLATFORM
+	def_bool y
+	depends on HAL_GPIO && !PLATFORM_LINUX && !OS_RTOS
+	prompt "ERROR: HAL_GPIO requires platform support (PLATFORM_LINUX or OS_RTOS)"
+
+# ============================================================================
+# PDL Subsystem Dependency Checks
+# ============================================================================
+
+config SANITY_ERROR_PDL_SATELLITE_NO_HAL_CAN
+	def_bool y
+	depends on PDL_SATELLITE_SUPPORT && !HAL_CAN
+	prompt "ERROR: PDL_SATELLITE_SUPPORT requires HAL_CAN to be enabled"
+
+config SANITY_ERROR_PDL_BMC_NO_HAL_UART
+	def_bool y
+	depends on PDL_BMC_SUPPORT && !HAL_UART
+	prompt "ERROR: PDL_BMC_SUPPORT requires HAL_UART to be enabled"
+
+config SANITY_ERROR_PDL_MCU_CAN_NO_HAL_CAN
+	def_bool y
+	depends on PDL_MCU_CAN_SUPPORT && !HAL_CAN
+	prompt "ERROR: PDL_MCU_CAN_SUPPORT requires HAL_CAN to be enabled"
+
+config SANITY_ERROR_PDL_MCU_UART_NO_HAL_UART
+	def_bool y
+	depends on PDL_MCU_UART_SUPPORT && !HAL_UART
+	prompt "ERROR: PDL_MCU_UART_SUPPORT requires HAL_UART to be enabled"
+
+config SANITY_ERROR_PDL_WATCHDOG_NO_HAL
+	def_bool y
+	depends on PDL_WATCHDOG_SUPPORT && !HAL_WATCHDOG
+	prompt "ERROR: PDL_WATCHDOG_SUPPORT requires HAL_WATCHDOG to be enabled"
+
+# ============================================================================
+# PRL Protocol Dependency Checks
+# ============================================================================
+
+config SANITY_ERROR_PRL_NO_OSAL
+	def_bool y
+	depends on PRL && !OSAL
+	prompt "ERROR: PRL requires OSAL to be enabled"
+
+# ============================================================================
+# Security Configuration Checks
+# ============================================================================
+
+config SANITY_ERROR_FORTIFY_WITH_O0
+	def_bool y
+	depends on SECURITY_FORTIFY_SOURCE && COMPILER_OPT_O0
+	prompt "ERROR: FORTIFY_SOURCE requires optimization level >= -O1"
+
+config SANITY_ERROR_PIE_NO_PIC
+	def_bool y
+	depends on SECURITY_PIE && !POSITION_INDEPENDENT_CODE
+	prompt "ERROR: PIE requires POSITION_INDEPENDENT_CODE to be enabled"
+
+config SANITY_ERROR_ASLR_ENFORCE_NO_REQUIRE
+	def_bool y
+	depends on SECURITY_ASLR_ENFORCE && !SECURITY_ASLR_REQUIRE
+	prompt "ERROR: ASLR_ENFORCE requires ASLR_REQUIRE to be enabled"
+
+# ============================================================================
+# Logging Configuration Checks
+# ============================================================================
+
+config SANITY_ERROR_LOG_FILE_NO_OSAL_FILE
+	def_bool y
+	depends on LOG_OUTPUT_FILE && !OSAL_FILE
+	prompt "ERROR: LOG_OUTPUT_FILE requires OSAL_FILE to be enabled"
+
+config SANITY_ERROR_LOG_SYSLOG_NOT_LINUX
+	def_bool y
+	depends on LOG_OUTPUT_SYSLOG && !OS_LINUX
+	prompt "ERROR: LOG_OUTPUT_SYSLOG requires Linux OS"
+
+config SANITY_ERROR_LOG_ASYNC_NO_THREAD
+	def_bool y
+	depends on LOG_ASYNC && !OSAL_THREAD
+	prompt "ERROR: LOG_ASYNC requires OSAL_THREAD to be enabled"
+
+# ============================================================================
+# Debug Configuration Checks
+# ============================================================================
+
+config SANITY_ERROR_DEBUG_MEMORY_LEAK_NO_TRACKING
+	def_bool y
+	depends on DEBUG_MEMORY_LEAK_DETECTION && !DEBUG_MEMORY_TRACKING
+	prompt "ERROR: Memory leak detection requires memory tracking to be enabled"
+
+config SANITY_ERROR_DEBUG_VERBOSE_ASSERT_NO_ASSERT
+	def_bool y
+	depends on DEBUG_ASSERT_VERBOSE && !ENABLE_ASSERT
+	prompt "ERROR: Verbose assertions require assertions to be enabled"
+
+config SANITY_ERROR_DEBUG_ASSERT_ABORT_NO_ASSERT
+	def_bool y
+	depends on DEBUG_ASSERT_ABORT && !ENABLE_ASSERT
+	prompt "ERROR: Abort on assert requires assertions to be enabled"
+
+# ============================================================================
+# Warnings (Non-fatal but recommended)
+# ============================================================================
+
+config SANITY_WARN_DEBUG_WITHOUT_ASSERT
+	def_bool y
+	depends on BUILD_TYPE_DEBUG && !ENABLE_ASSERT
+	prompt "WARNING: Debug build without assertions may hide bugs"
+
+config SANITY_WARN_RELEASE_WITH_DEBUG_FEATURES
+	def_bool y
+	depends on BUILD_TYPE_RELEASE && DEBUG_FEATURES
+	prompt "WARNING: Release build with debug features enabled (larger binary, slower)"
+
+config SANITY_WARN_PRODUCTION_WITHOUT_SECURITY
+	def_bool y
+	depends on BUILD_TYPE_RELEASE && !SECURITY_HARDENING
+	prompt "WARNING: Production build without security hardening"
+
+config SANITY_WARN_NO_LOGGING
+	def_bool y
+	depends on !LOGGING_ENABLE
+	prompt "WARNING: Logging is disabled - debugging will be difficult"
+
+config SANITY_WARN_O0_PERFORMANCE
+	def_bool y
+	depends on COMPILER_OPT_O0 && BUILD_TYPE_RELEASE
+	prompt "WARNING: Release build with -O0 optimization (very slow)"
+
+config SANITY_WARN_OFAST_STANDARDS
+	def_bool y
+	depends on COMPILER_OPT_OFAST
+	prompt "WARNING: -Ofast may violate standards (IEEE 754, etc.)"
+
+config SANITY_WARN_LTO_BUILD_TIME
+	def_bool y
+	depends on COMPILER_LTO
+	prompt "WARNING: LTO significantly increases build time"
+
+config SANITY_WARN_SANITIZER_OVERHEAD
+	def_bool y
+	depends on COMPILER_SANITIZER_ADDRESS || COMPILER_SANITIZER_THREAD || COMPILER_SANITIZER_UNDEFINED
+	prompt "WARNING: Sanitizers add significant runtime overhead"
+
+config SANITY_WARN_COVERAGE_OVERHEAD
+	def_bool y
+	depends on COMPILER_COVERAGE
+	prompt "WARNING: Code coverage instrumentation adds overhead"
+
+# ============================================================================
+# Compatibility Checks
+# ============================================================================
+
+config SANITY_ERROR_SANITIZER_CONFLICT
+	def_bool y
+	depends on COMPILER_SANITIZER_ADDRESS && COMPILER_SANITIZER_THREAD
+	prompt "ERROR: AddressSanitizer and ThreadSanitizer cannot be used together"
+
+config SANITY_ERROR_BARE_METAL_WITH_OS_FEATURES
+	def_bool y
+	depends on OS_BARE && (OSAL_THREAD || OSAL_IPC || OSAL_NETWORK)
+	prompt "ERROR: Bare metal does not support threads, IPC, or networking"
+
+config SANITY_ERROR_RTOS_WITH_UNSUPPORTED_FEATURES
+	def_bool y
+	depends on OS_RTOS && (LOG_OUTPUT_SYSLOG || DEBUG_DUMP_STACK_ON_ERROR)
+	prompt "ERROR: Selected features not available on RTOS"
+
+# ============================================================================
+# Product Configuration Checks
+# ============================================================================
+
+config SANITY_ERROR_CCM_NO_DEPS
+	def_bool y
+	depends on PRODUCT_CCM && (!OSAL || !HAL || !PCL || !PDL || !ACL)
+	prompt "ERROR: CCM product requires OSAL, HAL, PCL, PDL, and ACL"
+
+config SANITY_WARN_TEST_PRODUCT_CONFLICT
+	def_bool y
+	depends on PRODUCT_CCM && BUILD_TESTING
+	prompt "WARNING: Building product and tests together (use separate configs)"
+
+# ============================================================================
+# Configuration Summary
+# ============================================================================
+
+config SANITY_CHECK_PASSED
+	def_bool y
+	depends on !SANITY_ERROR_HAL_NO_OSAL && \
+	           !SANITY_ERROR_PCL_NO_DEPS && \
+	           !SANITY_ERROR_PDL_NO_DEPS && \
+	           !SANITY_ERROR_ACL_NO_OSAL && \
+	           !SANITY_ERROR_FORTIFY_WITH_O0 && \
+	           !SANITY_ERROR_PIE_NO_PIC && \
+	           !SANITY_ERROR_SANITIZER_CONFLICT && \
+	           !SANITY_ERROR_BARE_METAL_WITH_OS_FEATURES && \
+	           !SANITY_ERROR_CCM_NO_DEPS
+	help
+	  This symbol is set when all sanity checks pass.
+	  If this is not set, review error messages above.
+
+endmenu

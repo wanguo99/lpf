@@ -3,7 +3,7 @@
 menuconfig HAL
 	bool "HAL (Hardware Abstraction Layer)"
 	default n
-	select OSAL
+	depends on OSAL
 	help
 	  Hardware Abstraction Layer provides unified hardware interfaces.
 
@@ -22,7 +22,9 @@ menuconfig HAL
 	  Memory footprint: ~5KB (minimal) ~ 50KB (all drivers)
 
 	  Required by: Applications that access hardware peripherals
-	  Depends on: OSAL (for OS abstraction)
+	  Dependencies: OSAL (for OS abstraction)
+
+	  Note: Enable OSAL first in "Core Modules" menu.
 
 	  If unsure, say Y.
 

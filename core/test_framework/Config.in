@@ -3,7 +3,7 @@
 menuconfig TEST_FRAMEWORK
 	bool "Test Framework"
 	default n
-	select OSAL
+	depends on OSAL
 	help
 	  Comprehensive test framework for ES-Middleware.
 	  Provides test registration, assertions, mocking, and reporting.
@@ -24,6 +24,10 @@ menuconfig TEST_FRAMEWORK
 	  - Stress testing utilities
 	  - Parameterized tests
 	  - Test metadata and filtering
+
+	  Dependencies: OSAL
+
+	  Note: Enable OSAL first in "Core Modules" menu.
 
 	  Required for CONFIG_BUILD_TESTING=y.
 

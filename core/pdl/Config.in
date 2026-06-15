@@ -3,10 +3,7 @@
 menuconfig PDL
 	bool "PDL (Peripheral Driver Layer)"
 	default n
-	select OSAL
-	select HAL
-	select PCL
-	select TYPES
+	depends on OSAL && HAL && PCL && TYPES
 	help
 	  Peripheral Driver Layer provides high-level peripheral management
 	  and protocol handling.
@@ -31,6 +28,8 @@ menuconfig PDL
 	  - Watchdog management
 
 	  Dependencies: OSAL, HAL, PCL, TYPES
+
+	  Note: Enable OSAL, HAL, PCL, and TYPES first in "Core Modules" menu.
 
 	  Recommended: Enable for systems with complex peripheral management
 
@@ -153,63 +152,9 @@ menuconfig PDL_MCU_SUPPORT
 
 	  Memory footprint: ~8KB base + protocol overhead
 
-	  You can enable CAN-based or UART-based MCU support below.
+	  You can enable CAN-based or UART-based MCU support in the submenu.
 
 	  If unsure, say Y.
-
-if PDL_MCU_SUPPORT
-
-config PDL_MCU_CAN_SUPPORT
-	bool "MCU peripheral via CAN"
-	default y
-	select HAL_CAN
-	select OSAL_NETWORK
-	help
-	  Enable MCU peripheral support via CAN bus.
-
-	  CAN-based MCU communication provides:
-	  - Multi-drop network (multiple MCUs on one bus)
-	  - Robust error detection (CRC, bit stuffing)
-	  - Priority-based arbitration
-	  - Up to 1 Mbps data rate
-
-	  Memory footprint: ~6KB
-
-	  Use cases:
-	  - Automotive-style distributed control
-	  - Industrial automation networks
-	  - Systems with multiple MCU modules
-
-	  Dependencies: HAL_CAN, OSAL_NETWORK
-
-	  Recommended: Enable for CAN-based systems
-
-config PDL_MCU_UART_SUPPORT
-	bool "MCU peripheral via UART"
-	default n
-	select HAL_UART
-	select OSAL_NETWORK
-	help
-	  Enable MCU peripheral support via UART.
-
-	  UART-based MCU communication provides:
-	  - Simple point-to-point connection
-	  - Lower cost (no CAN transceiver needed)
-	  - Flexible baud rates
-	  - Easy debugging (can monitor with serial terminal)
-
-	  Memory footprint: ~5KB
-
-	  Use cases:
-	  - Single MCU module systems
-	  - Cost-sensitive designs
-	  - Debug and development
-
-	  Dependencies: HAL_UART, OSAL_NETWORK
-
-	  Recommended: Enable for UART-based systems
-
-endif # PDL_MCU_SUPPORT
 
 source "core/pdl/src/pdl_mcu/Config.in"
 

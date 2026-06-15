@@ -39,41 +39,53 @@ config TEST_OSAL
 
 config TEST_HAL
 	bool "Build HAL unit tests"
+	depends on OSAL  # HAL depends on OSAL
 	select HAL
 	default n
 	help
 	  Build HAL layer unit tests.
 	  This will automatically enable the HAL module.
 
+	  Note: HAL requires OSAL, so enable OSAL first.
+
 	  Fine-grained control over individual HAL test files is available
 	  in the HAL Unit Tests submenu.
 
 config TEST_PCL
 	bool "Build PCL unit tests"
+	depends on OSAL && HAL && TYPES  # PCL dependencies
 	select PCL
 	default n
 	help
 	  Build PCL layer unit tests.
 	  This will automatically enable the PCL module.
 
+	  Note: PCL requires OSAL, HAL, and TYPES. Enable these first.
+
 config TEST_PDL
 	bool "Build PDL unit tests"
+	depends on OSAL && HAL && PCL && TYPES  # PDL dependencies
 	select PDL
 	default n
 	help
 	  Build PDL layer unit tests.
 	  This will automatically enable the PDL module.
 
+	  Note: PDL requires OSAL, HAL, PCL, and TYPES. Enable these first.
+
 	  Fine-grained control over individual PDL test files is available
 	  in the PDL Unit Tests submenu.
 
 config TEST_ACL
 	bool "Build ACL unit tests"
+	depends on OSAL  # ACL dependency
 	select ACL
 	default n
 	help
 	  Build ACL layer unit tests.
 	  This will automatically enable the ACL module.
+
+	  Note: ACL requires OSAL, so enable OSAL first.
 
 config TEST_PRL
 	bool "Build PRL unit tests"
@@ -139,17 +151,23 @@ config TEST_PERFORMANCE_HAL
 
 config TEST_PERFORMANCE_PCL
 	bool "Build PCL performance tests"
+	depends on OSAL && HAL && TYPES  # PCL dependencies
 	select PCL
 	default n
 	help
 	  Build PCL layer performance tests.
 
+	  Note: PCL requires OSAL, HAL, and TYPES.
+
 config TEST_PERFORMANCE_PDL
 	bool "Build PDL performance tests"
+	depends on OSAL && HAL && PCL && TYPES  # PDL dependencies
 	select PDL
 	default y
 	help
 	  Build PDL layer performance tests.
+
+	  Note: PDL requires OSAL, HAL, PCL, and TYPES.
 
 config TEST_PERFORMANCE_ACL
 	bool "Build ACL performance tests"
@@ -189,17 +207,23 @@ config TEST_STRESS_HAL
 
 config TEST_STRESS_PCL
 	bool "Build PCL stress tests"
+	depends on OSAL && HAL && TYPES  # PCL dependencies
 	select PCL
 	default n
 	help
 	  Build PCL layer stress tests.
 
+	  Note: PCL requires OSAL, HAL, and TYPES.
+
 config TEST_STRESS_PDL
 	bool "Build PDL stress tests"
+	depends on OSAL && HAL && PCL && TYPES  # PDL dependencies
 	select PDL
 	default n
 	help
 	  Build PDL layer stress tests.
+
+	  Note: PDL requires OSAL, HAL, PCL, and TYPES.
 
 config TEST_STRESS_ACL
 	bool "Build ACL stress tests"
@@ -239,17 +263,23 @@ config TEST_SYSTEM_HAL
 
 config TEST_SYSTEM_PCL
 	bool "Build PCL system tests"
+	depends on OSAL && HAL && TYPES  # PCL dependencies
 	select PCL
 	default n
 	help
 	  Build PCL layer system tests.
 
+	  Note: PCL requires OSAL, HAL, and TYPES.
+
 config TEST_SYSTEM_PDL
 	bool "Build PDL system tests"
+	depends on OSAL && HAL && PCL && TYPES  # PDL dependencies
 	select PDL
 	default n
 	help
 	  Build PDL layer system tests.
+
+	  Note: PDL requires OSAL, HAL, PCL, and TYPES.
 
 config TEST_SYSTEM_ACL
 	bool "Build ACL system tests"
