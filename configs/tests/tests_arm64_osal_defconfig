@@ -16,7 +16,6 @@ CONFIG_PLATFORM_LINUX=y
 # Core Components - OSAL Only
 CONFIG_OSAL=y
 CONFIG_UTEST=y
-CONFIG_TYPES=y
 
 # Build Configuration - Shared Libraries for Testing
 CONFIG_OSAL_BUILD_SHARED=y
