@@ -1,0 +1,91 @@
+# ==============================================================================
+# Scripts Directory .gitignore
+# ==============================================================================
+# Ignore build artifacts and intermediate files generated during configuration
+# and build processes.
+# ==============================================================================
+
+# ==============================================================================
+# Kconfig Tools Build Artifacts
+# ==============================================================================
+
+# Kconfig binaries
+kconfig/conf
+kconfig/mconf
+kconfig/nconf
+kconfig/gconf
+kconfig/qconf
+
+# Kconfig binary markers
+kconfig/*conf-bin
+
+# Kconfig build flags
+kconfig/*conf-cflags
+kconfig/*conf-libs
+
+# Kconfig Qt meta-object compiler output
+kconfig/qconf-moc.cc
+
+# Kconfig object files
+kconfig/*.o
+
+# Kconfig command files (dependency tracking)
+kconfig/.*.cmd
+
+# Flex/Bison generated files
+kconfig/lexer.lex.c
+kconfig/parser.tab.c
+kconfig/parser.tab.h
+
+# lxdialog build artifacts
+kconfig/lxdialog/*.o
+kconfig/lxdialog/.*.cmd
+
+# ==============================================================================
+# Other Script Build Artifacts
+# ==============================================================================
+
+# Python bytecode
+*.pyc
+__pycache__/
+*.pyo
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
+.*.sw?
+
+# ==============================================================================
+# IDE and Editor Files
+# ==============================================================================
+
+# VS Code
+.vscode/
+
+# Vim
+*.vim
+.netrwhist
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ==============================================================================
+# OS Generated Files
+# ==============================================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+.directory
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
