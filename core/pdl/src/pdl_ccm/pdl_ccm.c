@@ -53,7 +53,7 @@ static void *heartbeat_task(void *arg)
 
     LOG_INFO("PDL_CCM", "Heartbeat task started");
 
-    while (OSAL_atomic_load_bool(\&ctx->running))
+    while (OSAL_atomic_load_bool(&ctx->running))
     {
         /* 检查连接状态 */
         if (!ccm_eth_is_connected(ctx->eth_handle))
@@ -125,7 +125,7 @@ static void *eth_rx_task(void *arg)
 
     LOG_INFO("PDL_CCM", "Ethernet RX task started");
 
-    while (OSAL_atomic_load_bool(\&ctx->running))
+    while (OSAL_atomic_load_bool(&ctx->running))
     {
         /* 接收以太网消息 */
         ret = ccm_eth_recv(ctx->eth_handle, &msg, ctx->config.recv_timeout_ms);
@@ -166,7 +166,7 @@ static void *eth_rx_task(void *arg)
 
                 ret = PRL_Decode(msg.payload, msg.payload_len,
                                 &dev_type, &msg_type, &payload, &payload_len);
-                if (ret == PRL_OK && payload_len >= OSAL_sizeof(prl_pmc_command_t))
+                if (ret == OSAL_SUCCESS && payload_len >= OSAL_sizeof(prl_pmc_command_t))
                 {
                     const prl_pmc_command_t *tc = (const prl_pmc_command_t *)payload;
                     const uint8_t *params = payload + OSAL_sizeof(prl_pmc_command_t);
@@ -187,7 +187,7 @@ static void *eth_rx_task(void *arg)
 
                 ret = PRL_Decode(msg.payload, msg.payload_len,
                                 &dev_type, &msg_type, &payload, &payload_len);
-                if (ret == PRL_OK && payload_len >= OSAL_sizeof(prl_pmc_ack_t))
+                if (ret == OSAL_SUCCESS && payload_len >= OSAL_sizeof(prl_pmc_ack_t))
                 {
                     const prl_pmc_ack_t *ack = (const prl_pmc_ack_t *)payload;
                     LOG_DEBUG("PDL_CCM", "Received ACK seq=%u result=%u",
@@ -261,7 +261,7 @@ int32_t PDL_CCM_Init(const pdl_ccm_config_t *config,
     }
 
     /* 启动接收线程 */
-    OSAL_atomic_store_bool(\&ctx->running, true);
+    OSAL_atomic_store_bool(&ctx->running, true);
     ret = OSAL_pthread_create(&ctx->rx_thread, NULL, eth_rx_task, ctx);
     if (ret != OSAL_SUCCESS)
     {
@@ -277,7 +277,7 @@ int32_t PDL_CCM_Init(const pdl_ccm_config_t *config,
     if (ret != OSAL_SUCCESS)
     {
         LOG_ERROR("PDL_CCM", "Failed to create heartbeat thread");
-        OSAL_atomic_store_bool(\&ctx->running, false);
+        OSAL_atomic_store_bool(&ctx->running, false);
         OSAL_pthread_join(ctx->rx_thread, NULL);
         ccm_eth_deinit(ctx->eth_handle);
         OSAL_pthread_mutex_destroy(&ctx->mutex);
@@ -303,7 +303,7 @@ int32_t PDL_CCM_Deinit(pdl_ccm_handle_t handle)
     }
 
     /* 停止线程 */
-    OSAL_atomic_store_bool(\&ctx->running, false);
+    OSAL_atomic_store_bool(&ctx->running, false);
     OSAL_pthread_join(ctx->rx_thread, NULL);
     OSAL_pthread_join(ctx->heartbeat_thread, NULL);
 

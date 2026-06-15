@@ -11,14 +11,6 @@
 #include "osal.h"
 
 /*
- * 本地 timeval 结构体定义（用于 socket 超时设置）
- */
-struct timeval {
-    int32_t tv_sec;   /* 秒 */
-    int32_t tv_usec;  /* 微秒 */
-};
-
-/*
  * 以太网通信上下文
  */
 typedef struct
@@ -39,7 +31,7 @@ int32_t ccm_eth_init(const pdl_ccm_config_t *config, void **handle)
 {
     ccm_eth_context_t *ctx;
     osal_sockaddr_in_t server_addr;
-    struct timeval tv;
+    osal_timeval_t tv;
     int32_t ret;
 
     if (!config || !handle)
