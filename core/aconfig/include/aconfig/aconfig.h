@@ -13,18 +13,15 @@
 #ifndef ACONFIG_H
 #define ACONFIG_H
 
-/* Core dependencies - always required */
-#include "osal.h"              /* OSAL 基础类型和返回值 */
+/* Core dependencies - types only */
+#include <stdint.h>
+#include <stdbool.h>
 #include "aconfig_types.h"     /* ACONFIG 核心数据结构（优化版） */
 
-/* 产品层功能定义（项目特定）
- * 注意：这些头文件应该在产品构建时提供
- * 核心层不应该依赖具体产品的功能定义
+/* 注意：不再包含 osal.h 和产品特定头文件
+ * - 源文件（.c）应该按依赖顺序包含：osal.h → pdl.h → aconfig.h
+ * - 产品代码应该包含产品特定的头文件（如 ccm_tc_functions.h）
  */
-#ifdef CONFIG_CCM
-#include "ccm_tc_functions.h"  /* CCM 遥控功能枚举 */
-#include "ccm_tm_functions.h"  /* CCM 遥测功能枚举 */
-#endif
 
 /**
  * @brief 初始化 ACONFIG 层
@@ -87,24 +84,6 @@ int32_t ACONFIG_GetInvalidationMap(uint32_t source_tm_id,
  * @return OSAL_SUCCESS 成功，OSAL_ERR_* 失败
  */
 int32_t ACONFIG_GetStatistics(aconfig_statistics_t *stats);
-
-/**
- * @brief 根据HWID查找配置表
- * @param hwid 硬件ID结构体指针
- * @return 配置表指针，失败返回NULL
- * @note 匹配规则：
- *       - 如果配置表的 hwid_count == 0 或 hwid_list == NULL，表示支持所有HWID
- *       - 否则，根据 product_id, project_id, board_type, hw_revision 进行匹配
- *       - serial_number 和 manufacture_date 不参与匹配
- */
-const aconfig_config_table_t* ACONFIG_FindTableByHWID(const pdl_hwid_t *hwid);
-
-/**
- * @brief 根据HWID自动加载配置表
- * @return OSAL_SUCCESS 成功，OSAL_ERR_* 失败
- * @note 从PDL_MISC读取HWID，然后查找并注册匹配的配置表
- */
-int32_t ACONFIG_LoadByHWID(void);
 
 /**
  * @brief 打印配置信息（调试用）

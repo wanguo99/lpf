@@ -53,8 +53,11 @@
 #ifndef TEST_MOCK_H
 #define TEST_MOCK_H
 
-#include "osal.h"
+#include <stdint.h>
+#include <stdbool.h>
 #include "test_assert.h"
+
+/* 注意：源文件需要包含 osal.h 以使用 OSAL API */
 
 #ifdef __cplusplus
 extern "C" {

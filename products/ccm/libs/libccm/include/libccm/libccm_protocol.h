@@ -1,8 +1,13 @@
 #ifndef LIBCCM_PROTOCOL_H
 #define LIBCCM_PROTOCOL_H
 
-#include "osal.h"
 #include "libccm_ipc.h"
+
+/* 注意：源文件需要先包含 osal.h，再包含本头文件
+ * 示例：
+ *   #include "osal.h"
+ *   #include "libccm_protocol.h"
+ */
 
 /* CAN帧ID定义 */
 #define CCM_CAN_ID_TC_CMD          0x100  /* 遥控命令 */

@@ -13,7 +13,10 @@
 #ifndef TEST_PERFORMANCE_H
 #define TEST_PERFORMANCE_H
 
-#include "osal.h"
+#include <stdint.h>
+#include <stdbool.h>
+
+/* 注意：源文件需要包含 osal.h 以使用 OSAL API */
 
 /* 性能指标类型 */
 typedef enum {

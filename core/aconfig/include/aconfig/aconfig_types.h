@@ -14,19 +14,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-/* 条件包含 PDL HWID 类型（如果 CONFIG_PDL 启用） */
-#ifdef CONFIG_PDL
-#include "pdl_misc.h"
-#else
-/* PDL 未启用时的占位类型 */
-typedef struct pdl_hwid {
-    uint32_t product_id;
-    uint32_t project_id;
-    uint8_t  board_type;
-    uint8_t  hw_revision;
-} pdl_hwid_t;
-#endif
-
 /**
  * @brief 设备类型枚举（从 PConfig 复用）
  */
@@ -119,10 +106,6 @@ typedef struct {
  */
 typedef struct {
     const char *name;                      /* 配置表名称 */
-
-    /* 硬件 ID 支持 */
-    uint32_t hwid_count;                   /* 支持的 HWID 数量，0 表示支持所有 HWID */
-    const pdl_hwid_t *hwid_list;           /* 支持的 HWID 列表，NULL 表示支持所有 HWID */
 
     /* 遥控配置（稀疏数组） */
     const aconfig_tc_entry_t *tc_entries;  /* 遥控配置条目数组 */

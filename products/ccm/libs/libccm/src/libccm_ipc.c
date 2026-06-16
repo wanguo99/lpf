@@ -1,5 +1,6 @@
+/* 按依赖顺序包含头文件 */
+#include "osal.h"               /* 必须首先包含 - 提供基础类型和 API */
 #include "libccm/libccm_ipc.h"
-#include "osal_log.h"
 
 /* 遥测缓存初始化 */
 int32_t CCM_TM_Cache_Init(ccm_tm_cache_t **cache)

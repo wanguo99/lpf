@@ -10,7 +10,12 @@
 #ifndef TEST_ASSERT_H
 #define TEST_ASSERT_H
 
-#include "osal.h"
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
+
+/* 注意：源文件需要包含 osal.h 以使用 OSAL API */
 
 /* Internal state tracking */
 extern bool g_test_failed;

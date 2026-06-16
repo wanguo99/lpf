@@ -1,7 +1,11 @@
 #ifndef LIBCCM_IPC_H
 #define LIBCCM_IPC_H
 
-#include "osal.h"
+/* 注意：源文件需要先包含 osal.h，再包含本头文件
+ * 示例：
+ *   #include "osal.h"
+ *   #include "libccm_ipc.h"
+ */
 
 /* 共享内存名称定义 */
 #define CCM_SHM_TELEMETRY_CACHE    "/ccm_tm_cache"

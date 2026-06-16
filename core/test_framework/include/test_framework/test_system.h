@@ -12,7 +12,10 @@
 #ifndef TEST_SYSTEM_H
 #define TEST_SYSTEM_H
 
-#include "osal.h"
+#include <stdint.h>
+#include <stdbool.h>
+
+/* 注意：源文件需要包含 osal.h 以使用 OSAL API */
 
 /* 系统测试类型 */
 typedef enum {

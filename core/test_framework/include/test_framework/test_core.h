@@ -15,8 +15,11 @@
 #ifndef TEST_CORE_H
 #define TEST_CORE_H
 
-#include "osal.h"
+#include <stdint.h>
+#include <stdbool.h>
 #include "test_metadata.h"
+
+/* 注意：源文件需要包含 osal.h 以使用 OSAL API */
 
 /* Test function signatures */
 typedef void (*test_func_t)(void);
