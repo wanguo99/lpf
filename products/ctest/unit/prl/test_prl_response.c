@@ -13,7 +13,7 @@
  * PRL_BuildResponse 基础测试
  *===========================================================================*/
 
-static void test_PRL_BuildResponse_basic(void)
+static void test_prl_BuildResponse_basic(void)
 {
     uint8_t request_buffer[256];
     uint8_t response_buffer[256];
@@ -56,7 +56,7 @@ static void test_PRL_BuildResponse_basic(void)
     TEST_ASSERT_TRUE(response_hdr->flags & PRL_FLAG_IS_ACK);
 }
 
-static void test_PRL_BuildResponse_empty_payload(void)
+static void test_prl_BuildResponse_empty_payload(void)
 {
     uint8_t request_buffer[256];
     uint8_t response_buffer[256];
@@ -85,7 +85,7 @@ static void test_PRL_BuildResponse_empty_payload(void)
     TEST_ASSERT_EQUAL(0, payload_len);
 }
 
-static void test_PRL_BuildResponse_preserves_sequence(void)
+static void test_prl_BuildResponse_preserves_sequence(void)
 {
     uint8_t request_buffer[256];
     uint8_t response_buffer[256];
@@ -116,7 +116,7 @@ static void test_PRL_BuildResponse_preserves_sequence(void)
     TEST_ASSERT_EQUAL(7777, OSAL_ntohl(response_hdr->seq));
 }
 
-static void test_PRL_BuildResponse_sets_ack_flag(void)
+static void test_prl_BuildResponse_sets_ack_flag(void)
 {
     uint8_t request_buffer[256];
     uint8_t response_buffer[256];
@@ -139,7 +139,7 @@ static void test_PRL_BuildResponse_sets_ack_flag(void)
     TEST_ASSERT_TRUE(response_hdr->flags & PRL_FLAG_IS_ACK);
 }
 
-static void test_PRL_BuildResponse_preserves_device_type(void)
+static void test_prl_BuildResponse_preserves_device_type(void)
 {
     uint8_t request_buffer[256];
     uint8_t response_buffer[256];
@@ -181,7 +181,7 @@ static void test_PRL_BuildResponse_preserves_device_type(void)
  * 错误处理测试
  *===========================================================================*/
 
-static void test_PRL_BuildResponse_null_request(void)
+static void test_prl_BuildResponse_null_request(void)
 {
     uint8_t response_buffer[256];
     uint8_t response_payload[] = {0x01};
@@ -194,7 +194,7 @@ static void test_PRL_BuildResponse_null_request(void)
     TEST_ASSERT_EQUAL(OSAL_ERR_INVALID_PARAM, ret);
 }
 
-static void test_PRL_BuildResponse_null_response_buffer(void)
+static void test_prl_BuildResponse_null_response_buffer(void)
 {
     uint8_t request_buffer[256];
     uint8_t response_payload[] = {0x01};
@@ -212,7 +212,7 @@ static void test_PRL_BuildResponse_null_response_buffer(void)
     TEST_ASSERT_EQUAL(OSAL_ERR_INVALID_PARAM, ret);
 }
 
-static void test_PRL_BuildResponse_invalid_request(void)
+static void test_prl_BuildResponse_invalid_request(void)
 {
     uint8_t request_buffer[256];
     uint8_t response_buffer[256];
@@ -234,7 +234,7 @@ static void test_PRL_BuildResponse_invalid_request(void)
     TEST_ASSERT_TRUE(ret < 0);
 }
 
-static void test_PRL_BuildResponse_request_too_short(void)
+static void test_prl_BuildResponse_request_too_short(void)
 {
     uint8_t request_buffer[256];
     uint8_t response_buffer[256];
@@ -251,7 +251,7 @@ static void test_PRL_BuildResponse_request_too_short(void)
     TEST_ASSERT_TRUE(ret < 0);
 }
 
-static void test_PRL_BuildResponse_buffer_too_small(void)
+static void test_prl_BuildResponse_buffer_too_small(void)
 {
     uint8_t request_buffer[256];
     uint8_t response_buffer[10];
@@ -274,7 +274,7 @@ static void test_PRL_BuildResponse_buffer_too_small(void)
  * 典型使用场景测试
  *===========================================================================*/
 
-static void test_PRL_BuildResponse_request_response_pattern(void)
+static void test_prl_BuildResponse_request_response_pattern(void)
 {
     uint8_t request_buffer[256];
     uint8_t response_buffer[256];
@@ -327,7 +327,7 @@ static void test_PRL_BuildResponse_request_response_pattern(void)
     TEST_ASSERT_EQUAL(request_seq, response_seq);
 }
 
-static void test_PRL_BuildResponse_error_response(void)
+static void test_prl_BuildResponse_error_response(void)
 {
     uint8_t request_buffer[256];
     uint8_t response_buffer[256];
@@ -357,7 +357,7 @@ static void test_PRL_BuildResponse_error_response(void)
     TEST_ASSERT_EQUAL(0xFF, decoded_payload[0]);
 }
 
-static void test_PRL_BuildResponse_large_response_payload(void)
+static void test_prl_BuildResponse_large_response_payload(void)
 {
     uint8_t request_buffer[256];
     uint8_t response_buffer[PRL_MAX_PACKET_SIZE];
@@ -391,7 +391,7 @@ static void test_PRL_BuildResponse_large_response_payload(void)
     TEST_ASSERT_EQUAL(0, OSAL_memcmp(large_response, decoded_payload, payload_len));
 }
 
-static void test_PRL_BuildResponse_with_need_ack_request(void)
+static void test_prl_BuildResponse_with_need_ack_request(void)
 {
     uint8_t request_buffer[256];
     uint8_t response_buffer[256];
@@ -422,86 +422,86 @@ static void test_PRL_BuildResponse_with_need_ack_request(void)
 
 static const test_case_t test_cases[] = {
     {
-        .name = "test_PRL_BuildResponse_basic",
-        .func = test_PRL_BuildResponse_basic,
+        .name = "test_prl_BuildResponse_basic",
+        .func = test_prl_BuildResponse_basic,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_BuildResponse_empty_payload",
-        .func = test_PRL_BuildResponse_empty_payload,
+        .name = "test_prl_BuildResponse_empty_payload",
+        .func = test_prl_BuildResponse_empty_payload,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_BuildResponse_preserves_sequence",
-        .func = test_PRL_BuildResponse_preserves_sequence,
+        .name = "test_prl_BuildResponse_preserves_sequence",
+        .func = test_prl_BuildResponse_preserves_sequence,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_BuildResponse_sets_ack_flag",
-        .func = test_PRL_BuildResponse_sets_ack_flag,
+        .name = "test_prl_BuildResponse_sets_ack_flag",
+        .func = test_prl_BuildResponse_sets_ack_flag,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_BuildResponse_preserves_device_type",
-        .func = test_PRL_BuildResponse_preserves_device_type,
+        .name = "test_prl_BuildResponse_preserves_device_type",
+        .func = test_prl_BuildResponse_preserves_device_type,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_BuildResponse_null_request",
-        .func = test_PRL_BuildResponse_null_request,
+        .name = "test_prl_BuildResponse_null_request",
+        .func = test_prl_BuildResponse_null_request,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_BuildResponse_null_response_buffer",
-        .func = test_PRL_BuildResponse_null_response_buffer,
+        .name = "test_prl_BuildResponse_null_response_buffer",
+        .func = test_prl_BuildResponse_null_response_buffer,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_BuildResponse_invalid_request",
-        .func = test_PRL_BuildResponse_invalid_request,
+        .name = "test_prl_BuildResponse_invalid_request",
+        .func = test_prl_BuildResponse_invalid_request,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_BuildResponse_request_too_short",
-        .func = test_PRL_BuildResponse_request_too_short,
+        .name = "test_prl_BuildResponse_request_too_short",
+        .func = test_prl_BuildResponse_request_too_short,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_BuildResponse_buffer_too_small",
-        .func = test_PRL_BuildResponse_buffer_too_small,
+        .name = "test_prl_BuildResponse_buffer_too_small",
+        .func = test_prl_BuildResponse_buffer_too_small,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_BuildResponse_request_response_pattern",
-        .func = test_PRL_BuildResponse_request_response_pattern,
+        .name = "test_prl_BuildResponse_request_response_pattern",
+        .func = test_prl_BuildResponse_request_response_pattern,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_BuildResponse_error_response",
-        .func = test_PRL_BuildResponse_error_response,
+        .name = "test_prl_BuildResponse_error_response",
+        .func = test_prl_BuildResponse_error_response,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_BuildResponse_large_response_payload",
-        .func = test_PRL_BuildResponse_large_response_payload,
+        .name = "test_prl_BuildResponse_large_response_payload",
+        .func = test_prl_BuildResponse_large_response_payload,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_BuildResponse_with_need_ack_request",
-        .func = test_PRL_BuildResponse_with_need_ack_request,
+        .name = "test_prl_BuildResponse_with_need_ack_request",
+        .func = test_prl_BuildResponse_with_need_ack_request,
         .setup = NULL,
         .teardown = NULL
     },

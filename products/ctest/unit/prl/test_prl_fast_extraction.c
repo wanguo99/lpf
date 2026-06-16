@@ -15,7 +15,7 @@
  * PRL_ValidatePacket 测试
  *===========================================================================*/
 
-static void test_PRL_ValidatePacket_valid(void)
+static void test_prl_ValidatePacket_valid(void)
 {
     uint8_t buffer[256];
     uint8_t payload[] = {0x01, 0x02, 0x03};
@@ -32,7 +32,7 @@ static void test_PRL_ValidatePacket_valid(void)
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 }
 
-static void test_PRL_ValidatePacket_invalid_magic(void)
+static void test_prl_ValidatePacket_invalid_magic(void)
 {
     uint8_t buffer[256];
     prl_header_t *hdr = (prl_header_t *)buffer;
@@ -51,7 +51,7 @@ static void test_PRL_ValidatePacket_invalid_magic(void)
     TEST_ASSERT_EQUAL(OSAL_EPROTO, ret);
 }
 
-static void test_PRL_ValidatePacket_invalid_version(void)
+static void test_prl_ValidatePacket_invalid_version(void)
 {
     uint8_t buffer[256];
     prl_header_t *hdr = (prl_header_t *)buffer;
@@ -70,7 +70,7 @@ static void test_PRL_ValidatePacket_invalid_version(void)
     TEST_ASSERT_EQUAL(OSAL_EPROTO, ret);
 }
 
-static void test_PRL_ValidatePacket_invalid_crc(void)
+static void test_prl_ValidatePacket_invalid_crc(void)
 {
     uint8_t buffer[256];
     uint8_t payload[] = {0xAA, 0xBB};
@@ -90,7 +90,7 @@ static void test_PRL_ValidatePacket_invalid_crc(void)
     TEST_ASSERT_EQUAL(OSAL_EBADMSG, ret);
 }
 
-static void test_PRL_ValidatePacket_null_packet(void)
+static void test_prl_ValidatePacket_null_packet(void)
 {
     int ret;
 
@@ -99,7 +99,7 @@ static void test_PRL_ValidatePacket_null_packet(void)
     TEST_ASSERT_EQUAL(OSAL_ERR_INVALID_PARAM, ret);
 }
 
-static void test_PRL_ValidatePacket_too_short(void)
+static void test_prl_ValidatePacket_too_short(void)
 {
     uint8_t buffer[256];
     int ret;
@@ -113,7 +113,7 @@ static void test_PRL_ValidatePacket_too_short(void)
     TEST_ASSERT_EQUAL(OSAL_EINVAL, ret);
 }
 
-static void test_PRL_ValidatePacket_zero_payload(void)
+static void test_prl_ValidatePacket_zero_payload(void)
 {
     uint8_t buffer[PRL_HEADER_SIZE];
     int ret, encoded_len;
@@ -132,7 +132,7 @@ static void test_PRL_ValidatePacket_zero_payload(void)
  * PRL_GetDeviceType 测试
  *===========================================================================*/
 
-static void test_PRL_GetDeviceType_mcu(void)
+static void test_prl_GetDeviceType_mcu(void)
 {
     uint8_t buffer[256];
     uint8_t dev_type;
@@ -149,7 +149,7 @@ static void test_PRL_GetDeviceType_mcu(void)
     TEST_ASSERT_EQUAL(PRL_DEV_TYPE_MCU, dev_type);
 }
 
-static void test_PRL_GetDeviceType_all_types(void)
+static void test_prl_GetDeviceType_all_types(void)
 {
     uint8_t buffer[256];
     uint8_t dev_type;
@@ -179,7 +179,7 @@ static void test_PRL_GetDeviceType_all_types(void)
     }
 }
 
-static void test_PRL_GetDeviceType_null_params(void)
+static void test_prl_GetDeviceType_null_params(void)
 {
     uint8_t buffer[256];
     uint8_t dev_type;
@@ -198,7 +198,7 @@ static void test_PRL_GetDeviceType_null_params(void)
     TEST_ASSERT_EQUAL(OSAL_ERR_INVALID_PARAM, ret);
 }
 
-static void test_PRL_GetDeviceType_too_short(void)
+static void test_prl_GetDeviceType_too_short(void)
 {
     uint8_t buffer[256];
     uint8_t dev_type;
@@ -213,7 +213,7 @@ static void test_PRL_GetDeviceType_too_short(void)
     TEST_ASSERT_EQUAL(OSAL_EINVAL, ret);
 }
 
-static void test_PRL_GetDeviceType_no_crc_check(void)
+static void test_prl_GetDeviceType_no_crc_check(void)
 {
     uint8_t buffer[256];
     uint8_t dev_type;
@@ -239,7 +239,7 @@ static void test_PRL_GetDeviceType_no_crc_check(void)
  * PRL_GetMessageType 测试
  *===========================================================================*/
 
-static void test_PRL_GetMessageType_basic(void)
+static void test_prl_GetMessageType_basic(void)
 {
     uint8_t buffer[256];
     uint8_t msg_type;
@@ -256,7 +256,7 @@ static void test_PRL_GetMessageType_basic(void)
     TEST_ASSERT_EQUAL(PRL_MCU_MSG_GET_VERSION, msg_type);
 }
 
-static void test_PRL_GetMessageType_various_types(void)
+static void test_prl_GetMessageType_various_types(void)
 {
     uint8_t buffer[256];
     uint8_t msg_type;
@@ -282,7 +282,7 @@ static void test_PRL_GetMessageType_various_types(void)
     }
 }
 
-static void test_PRL_GetMessageType_null_params(void)
+static void test_prl_GetMessageType_null_params(void)
 {
     uint8_t buffer[256];
     uint8_t msg_type;
@@ -301,7 +301,7 @@ static void test_PRL_GetMessageType_null_params(void)
     TEST_ASSERT_EQUAL(OSAL_ERR_INVALID_PARAM, ret);
 }
 
-static void test_PRL_GetMessageType_no_crc_check(void)
+static void test_prl_GetMessageType_no_crc_check(void)
 {
     uint8_t buffer[256];
     uint8_t msg_type;
@@ -327,7 +327,7 @@ static void test_PRL_GetMessageType_no_crc_check(void)
  * PRL_GetSequence 测试
  *===========================================================================*/
 
-static void test_PRL_GetSequence_basic(void)
+static void test_prl_GetSequence_basic(void)
 {
     uint8_t buffer[256];
     uint32_t seq, expected_seq;
@@ -348,7 +348,7 @@ static void test_PRL_GetSequence_basic(void)
     TEST_ASSERT_EQUAL(expected_seq, seq);
 }
 
-static void test_PRL_GetSequence_multiple_packets(void)
+static void test_prl_GetSequence_multiple_packets(void)
 {
     uint8_t buffer1[256], buffer2[256], buffer3[256];
     uint32_t seq1, seq2, seq3;
@@ -381,7 +381,7 @@ static void test_PRL_GetSequence_multiple_packets(void)
     TEST_ASSERT_EQUAL(1002, seq3);
 }
 
-static void test_PRL_GetSequence_null_params(void)
+static void test_prl_GetSequence_null_params(void)
 {
     uint8_t buffer[256];
     uint32_t seq;
@@ -400,7 +400,7 @@ static void test_PRL_GetSequence_null_params(void)
     TEST_ASSERT_EQUAL(OSAL_ERR_INVALID_PARAM, ret);
 }
 
-static void test_PRL_GetSequence_no_crc_check(void)
+static void test_prl_GetSequence_no_crc_check(void)
 {
     uint8_t buffer[256];
     uint32_t seq;
@@ -425,7 +425,7 @@ static void test_PRL_GetSequence_no_crc_check(void)
     TEST_ASSERT_EQUAL(9999, seq);
 }
 
-static void test_PRL_GetSequence_deduplication_scenario(void)
+static void test_prl_GetSequence_deduplication_scenario(void)
 {
     uint8_t buffer[256];
     uint32_t seq1, seq2;
@@ -511,128 +511,128 @@ static void test_validate_before_decode_scenario(void)
 
 static const test_case_t test_cases[] = {
     {
-        .name = "test_PRL_ValidatePacket_valid",
-        .func = test_PRL_ValidatePacket_valid,
+        .name = "test_prl_ValidatePacket_valid",
+        .func = test_prl_ValidatePacket_valid,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_ValidatePacket_invalid_magic",
-        .func = test_PRL_ValidatePacket_invalid_magic,
+        .name = "test_prl_ValidatePacket_invalid_magic",
+        .func = test_prl_ValidatePacket_invalid_magic,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_ValidatePacket_invalid_version",
-        .func = test_PRL_ValidatePacket_invalid_version,
+        .name = "test_prl_ValidatePacket_invalid_version",
+        .func = test_prl_ValidatePacket_invalid_version,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_ValidatePacket_invalid_crc",
-        .func = test_PRL_ValidatePacket_invalid_crc,
+        .name = "test_prl_ValidatePacket_invalid_crc",
+        .func = test_prl_ValidatePacket_invalid_crc,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_ValidatePacket_null_packet",
-        .func = test_PRL_ValidatePacket_null_packet,
+        .name = "test_prl_ValidatePacket_null_packet",
+        .func = test_prl_ValidatePacket_null_packet,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_ValidatePacket_too_short",
-        .func = test_PRL_ValidatePacket_too_short,
+        .name = "test_prl_ValidatePacket_too_short",
+        .func = test_prl_ValidatePacket_too_short,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_ValidatePacket_zero_payload",
-        .func = test_PRL_ValidatePacket_zero_payload,
+        .name = "test_prl_ValidatePacket_zero_payload",
+        .func = test_prl_ValidatePacket_zero_payload,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_GetDeviceType_mcu",
-        .func = test_PRL_GetDeviceType_mcu,
+        .name = "test_prl_GetDeviceType_mcu",
+        .func = test_prl_GetDeviceType_mcu,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_GetDeviceType_all_types",
-        .func = test_PRL_GetDeviceType_all_types,
+        .name = "test_prl_GetDeviceType_all_types",
+        .func = test_prl_GetDeviceType_all_types,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_GetDeviceType_null_params",
-        .func = test_PRL_GetDeviceType_null_params,
+        .name = "test_prl_GetDeviceType_null_params",
+        .func = test_prl_GetDeviceType_null_params,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_GetDeviceType_too_short",
-        .func = test_PRL_GetDeviceType_too_short,
+        .name = "test_prl_GetDeviceType_too_short",
+        .func = test_prl_GetDeviceType_too_short,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_GetDeviceType_no_crc_check",
-        .func = test_PRL_GetDeviceType_no_crc_check,
+        .name = "test_prl_GetDeviceType_no_crc_check",
+        .func = test_prl_GetDeviceType_no_crc_check,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_GetMessageType_basic",
-        .func = test_PRL_GetMessageType_basic,
+        .name = "test_prl_GetMessageType_basic",
+        .func = test_prl_GetMessageType_basic,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_GetMessageType_various_types",
-        .func = test_PRL_GetMessageType_various_types,
+        .name = "test_prl_GetMessageType_various_types",
+        .func = test_prl_GetMessageType_various_types,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_GetMessageType_null_params",
-        .func = test_PRL_GetMessageType_null_params,
+        .name = "test_prl_GetMessageType_null_params",
+        .func = test_prl_GetMessageType_null_params,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_GetMessageType_no_crc_check",
-        .func = test_PRL_GetMessageType_no_crc_check,
+        .name = "test_prl_GetMessageType_no_crc_check",
+        .func = test_prl_GetMessageType_no_crc_check,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_GetSequence_basic",
-        .func = test_PRL_GetSequence_basic,
+        .name = "test_prl_GetSequence_basic",
+        .func = test_prl_GetSequence_basic,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_GetSequence_multiple_packets",
-        .func = test_PRL_GetSequence_multiple_packets,
+        .name = "test_prl_GetSequence_multiple_packets",
+        .func = test_prl_GetSequence_multiple_packets,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_GetSequence_null_params",
-        .func = test_PRL_GetSequence_null_params,
+        .name = "test_prl_GetSequence_null_params",
+        .func = test_prl_GetSequence_null_params,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_GetSequence_no_crc_check",
-        .func = test_PRL_GetSequence_no_crc_check,
+        .name = "test_prl_GetSequence_no_crc_check",
+        .func = test_prl_GetSequence_no_crc_check,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_GetSequence_deduplication_scenario",
-        .func = test_PRL_GetSequence_deduplication_scenario,
+        .name = "test_prl_GetSequence_deduplication_scenario",
+        .func = test_prl_GetSequence_deduplication_scenario,
         .setup = NULL,
         .teardown = NULL
     },

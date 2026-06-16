@@ -15,7 +15,7 @@
  * 基础编解码测试
  *===========================================================================*/
 
-static void test_PRL_Encode_decode_basic(void)
+static void test_prl_Encode_decode_basic(void)
 {
     uint8_t buffer[256];
     uint8_t payload[] = {0x01, 0x02, 0x03, 0x04};
@@ -39,7 +39,7 @@ static void test_PRL_Encode_decode_basic(void)
     TEST_ASSERT_EQUAL(0, OSAL_memcmp(payload, decoded_payload, payload_len));
 }
 
-static void test_PRL_Encode_empty_payload(void)
+static void test_prl_Encode_empty_payload(void)
 {
     uint8_t buffer[256];
     uint8_t dev_type, msg_type;
@@ -100,7 +100,7 @@ static void test_prl_device_type_name(void)
  * 多设备类型测试
  *===========================================================================*/
 
-static void test_PRL_Encode_all_device_types(void)
+static void test_prl_Encode_all_device_types(void)
 {
     uint8_t buffer[256];
     uint8_t payload[] = {0xAA, 0xBB};
@@ -136,7 +136,7 @@ static void test_PRL_Encode_all_device_types(void)
  * 错误处理测试
  *===========================================================================*/
 
-static void test_PRL_Encode_invalid_params(void)
+static void test_prl_Encode_invalid_params(void)
 {
     uint8_t buffer[256];
     uint8_t payload[] = {0x01, 0x02};
@@ -158,7 +158,7 @@ static void test_PRL_Encode_invalid_params(void)
     TEST_ASSERT_EQUAL(OSAL_ENOBUFS, ret);
 }
 
-static void test_PRL_Decode_invalid_params(void)
+static void test_prl_Decode_invalid_params(void)
 {
     uint8_t buffer[256];
     uint8_t dev_type, msg_type;
@@ -254,14 +254,14 @@ static void test_prl_device_large_payload(void)
 /* 测试用例数组 - 使用函数指针数组 */
 static const test_case_t test_cases[] = {
 	{
-		.name = "test_PRL_Encode_decode_basic",
-		.func = test_PRL_Encode_decode_basic,
+		.name = "test_prl_Encode_decode_basic",
+		.func = test_prl_Encode_decode_basic,
 		.setup = NULL,
 		.teardown = NULL
 	},
 	{
-		.name = "test_PRL_Encode_empty_payload",
-		.func = test_PRL_Encode_empty_payload,
+		.name = "test_prl_Encode_empty_payload",
+		.func = test_prl_Encode_empty_payload,
 		.setup = NULL,
 		.teardown = NULL
 	},
@@ -278,20 +278,20 @@ static const test_case_t test_cases[] = {
 		.teardown = NULL
 	},
 	{
-		.name = "test_PRL_Encode_all_device_types",
-		.func = test_PRL_Encode_all_device_types,
+		.name = "test_prl_Encode_all_device_types",
+		.func = test_prl_Encode_all_device_types,
 		.setup = NULL,
 		.teardown = NULL
 	},
 	{
-		.name = "test_PRL_Encode_invalid_params",
-		.func = test_PRL_Encode_invalid_params,
+		.name = "test_prl_Encode_invalid_params",
+		.func = test_prl_Encode_invalid_params,
 		.setup = NULL,
 		.teardown = NULL
 	},
 	{
-		.name = "test_PRL_Decode_invalid_params",
-		.func = test_PRL_Decode_invalid_params,
+		.name = "test_prl_Decode_invalid_params",
+		.func = test_prl_Decode_invalid_params,
 		.setup = NULL,
 		.teardown = NULL
 	},

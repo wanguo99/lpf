@@ -13,7 +13,7 @@
  * 初始化和反初始化测试
  *===========================================================================*/
 
-static void test_PRL_Init_success(void)
+static void test_prl_Init_success(void)
 {
     int ret;
 
@@ -25,7 +25,7 @@ static void test_PRL_Init_success(void)
     PRL_Deinit();
 }
 
-static void test_PRL_Deinit_success(void)
+static void test_prl_Deinit_success(void)
 {
     int ret;
 
@@ -37,7 +37,7 @@ static void test_PRL_Deinit_success(void)
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 }
 
-static void test_PRL_Init_Deinit_multiple(void)
+static void test_prl_Init_Deinit_multiple(void)
 {
     int ret;
 
@@ -55,7 +55,7 @@ static void test_PRL_Init_Deinit_multiple(void)
  * 版本信息测试
  *===========================================================================*/
 
-static void test_PRL_GetVersion_valid(void)
+static void test_prl_GetVersion_valid(void)
 {
     uint8_t major, minor;
 
@@ -67,7 +67,7 @@ static void test_PRL_GetVersion_valid(void)
     TEST_ASSERT_EQUAL(PRL_VERSION_MINOR, minor);
 }
 
-static void test_PRL_GetVersion_null_params(void)
+static void test_prl_GetVersion_null_params(void)
 {
     uint8_t major, minor;
 
@@ -86,7 +86,7 @@ static void test_PRL_GetVersion_null_params(void)
  * 错误字符串测试
  *===========================================================================*/
 
-static void test_PRL_GetErrorString_common_errors(void)
+static void test_prl_GetErrorString_common_errors(void)
 {
     const char *str;
 
@@ -110,7 +110,7 @@ static void test_PRL_GetErrorString_common_errors(void)
     TEST_ASSERT_NOT_NULL(str);
 }
 
-static void test_PRL_GetErrorString_unknown_error(void)
+static void test_prl_GetErrorString_unknown_error(void)
 {
     const char *str;
 
@@ -123,7 +123,7 @@ static void test_PRL_GetErrorString_unknown_error(void)
  * 序列号管理测试
  *===========================================================================*/
 
-static void test_PRL_ResetSequence_basic(void)
+static void test_prl_ResetSequence_basic(void)
 {
     uint32_t seq;
 
@@ -135,7 +135,7 @@ static void test_PRL_ResetSequence_basic(void)
     TEST_ASSERT_EQUAL(100, seq);
 }
 
-static void test_PRL_GetCurrentSequence_increment(void)
+static void test_prl_GetCurrentSequence_increment(void)
 {
     uint8_t buffer[256];
     uint8_t payload[] = {0x01, 0x02};
@@ -168,7 +168,7 @@ static void test_PRL_GetCurrentSequence_increment(void)
     TEST_ASSERT_EQUAL(1002, seq3);
 }
 
-static void test_PRL_ResetSequence_zero(void)
+static void test_prl_ResetSequence_zero(void)
 {
     uint32_t seq;
 
@@ -179,7 +179,7 @@ static void test_PRL_ResetSequence_zero(void)
     TEST_ASSERT_EQUAL(0, seq);
 }
 
-static void test_PRL_ResetSequence_max_value(void)
+static void test_prl_ResetSequence_max_value(void)
 {
     uint32_t seq;
 
@@ -190,7 +190,7 @@ static void test_PRL_ResetSequence_max_value(void)
     TEST_ASSERT_EQUAL(UINT32_MAX, seq);
 }
 
-static void test_PRL_sequence_in_encoded_packet(void)
+static void test_prl_sequence_in_encoded_packet(void)
 {
     uint8_t buffer[256];
     uint8_t payload[] = {0xAA, 0xBB};
@@ -215,7 +215,7 @@ static void test_PRL_sequence_in_encoded_packet(void)
  * 时间戳验证测试
  *===========================================================================*/
 
-static void test_PRL_timestamp_populated(void)
+static void test_prl_timestamp_populated(void)
 {
     uint8_t buffer[256];
     uint8_t payload[] = {0x11, 0x22};
@@ -233,7 +233,7 @@ static void test_PRL_timestamp_populated(void)
     TEST_ASSERT_NOT_EQUAL(0, timestamp);
 }
 
-static void test_PRL_timestamp_reasonable(void)
+static void test_prl_timestamp_reasonable(void)
 {
     uint8_t buffer[256];
     prl_header_t *hdr = (prl_header_t *)buffer;
@@ -258,7 +258,7 @@ static void test_PRL_timestamp_reasonable(void)
  * 标志位测试
  *===========================================================================*/
 
-static void test_PRL_Encode_flag_none(void)
+static void test_prl_Encode_flag_none(void)
 {
     uint8_t buffer[256];
     prl_header_t *hdr = (prl_header_t *)buffer;
@@ -271,7 +271,7 @@ static void test_PRL_Encode_flag_none(void)
     TEST_ASSERT_EQUAL(PRL_FLAG_NONE, hdr->flags);
 }
 
-static void test_PRL_Encode_flag_need_ack(void)
+static void test_prl_Encode_flag_need_ack(void)
 {
     uint8_t buffer[256];
     prl_header_t *hdr = (prl_header_t *)buffer;
@@ -284,7 +284,7 @@ static void test_PRL_Encode_flag_need_ack(void)
     TEST_ASSERT_EQUAL(PRL_FLAG_NEED_ACK, hdr->flags);
 }
 
-static void test_PRL_Encode_flag_is_ack(void)
+static void test_prl_Encode_flag_is_ack(void)
 {
     uint8_t buffer[256];
     prl_header_t *hdr = (prl_header_t *)buffer;
@@ -297,7 +297,7 @@ static void test_PRL_Encode_flag_is_ack(void)
     TEST_ASSERT_EQUAL(PRL_FLAG_IS_ACK, hdr->flags);
 }
 
-static void test_PRL_Encode_flag_combination(void)
+static void test_prl_Encode_flag_combination(void)
 {
     uint8_t buffer[256];
     prl_header_t *hdr = (prl_header_t *)buffer;
@@ -315,7 +315,7 @@ static void test_PRL_Encode_flag_combination(void)
  * 边界条件测试
  *===========================================================================*/
 
-static void test_PRL_Encode_exact_buffer_size(void)
+static void test_prl_Encode_exact_buffer_size(void)
 {
     uint8_t buffer[PRL_HEADER_SIZE + 10];
     uint8_t payload[10] = {0};
@@ -328,7 +328,7 @@ static void test_PRL_Encode_exact_buffer_size(void)
     TEST_ASSERT_EQUAL(PRL_HEADER_SIZE + 10, ret);
 }
 
-static void test_PRL_Encode_oversized_payload(void)
+static void test_prl_Encode_oversized_payload(void)
 {
     uint8_t buffer[PRL_MAX_PACKET_SIZE];
     uint8_t large_payload[PRL_MAX_PAYLOAD_SIZE + 1] = {0};
@@ -341,7 +341,7 @@ static void test_PRL_Encode_oversized_payload(void)
     TEST_ASSERT_EQUAL(OSAL_EINVAL, ret);
 }
 
-static void test_PRL_Decode_exact_minimum_size(void)
+static void test_prl_Decode_exact_minimum_size(void)
 {
     uint8_t buffer[PRL_HEADER_SIZE];
     uint8_t dev_type, msg_type;
@@ -367,128 +367,128 @@ static void test_PRL_Decode_exact_minimum_size(void)
 
 static const test_case_t test_cases[] = {
     {
-        .name = "test_PRL_Init_success",
-        .func = test_PRL_Init_success,
+        .name = "test_prl_Init_success",
+        .func = test_prl_Init_success,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_Deinit_success",
-        .func = test_PRL_Deinit_success,
+        .name = "test_prl_Deinit_success",
+        .func = test_prl_Deinit_success,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_Init_Deinit_multiple",
-        .func = test_PRL_Init_Deinit_multiple,
+        .name = "test_prl_Init_Deinit_multiple",
+        .func = test_prl_Init_Deinit_multiple,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_GetVersion_valid",
-        .func = test_PRL_GetVersion_valid,
+        .name = "test_prl_GetVersion_valid",
+        .func = test_prl_GetVersion_valid,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_GetVersion_null_params",
-        .func = test_PRL_GetVersion_null_params,
+        .name = "test_prl_GetVersion_null_params",
+        .func = test_prl_GetVersion_null_params,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_GetErrorString_common_errors",
-        .func = test_PRL_GetErrorString_common_errors,
+        .name = "test_prl_GetErrorString_common_errors",
+        .func = test_prl_GetErrorString_common_errors,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_GetErrorString_unknown_error",
-        .func = test_PRL_GetErrorString_unknown_error,
+        .name = "test_prl_GetErrorString_unknown_error",
+        .func = test_prl_GetErrorString_unknown_error,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_ResetSequence_basic",
-        .func = test_PRL_ResetSequence_basic,
+        .name = "test_prl_ResetSequence_basic",
+        .func = test_prl_ResetSequence_basic,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_GetCurrentSequence_increment",
-        .func = test_PRL_GetCurrentSequence_increment,
+        .name = "test_prl_GetCurrentSequence_increment",
+        .func = test_prl_GetCurrentSequence_increment,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_ResetSequence_zero",
-        .func = test_PRL_ResetSequence_zero,
+        .name = "test_prl_ResetSequence_zero",
+        .func = test_prl_ResetSequence_zero,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_ResetSequence_max_value",
-        .func = test_PRL_ResetSequence_max_value,
+        .name = "test_prl_ResetSequence_max_value",
+        .func = test_prl_ResetSequence_max_value,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_sequence_in_encoded_packet",
-        .func = test_PRL_sequence_in_encoded_packet,
+        .name = "test_prl_sequence_in_encoded_packet",
+        .func = test_prl_sequence_in_encoded_packet,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_timestamp_populated",
-        .func = test_PRL_timestamp_populated,
+        .name = "test_prl_timestamp_populated",
+        .func = test_prl_timestamp_populated,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_timestamp_reasonable",
-        .func = test_PRL_timestamp_reasonable,
+        .name = "test_prl_timestamp_reasonable",
+        .func = test_prl_timestamp_reasonable,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_Encode_flag_none",
-        .func = test_PRL_Encode_flag_none,
+        .name = "test_prl_Encode_flag_none",
+        .func = test_prl_Encode_flag_none,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_Encode_flag_need_ack",
-        .func = test_PRL_Encode_flag_need_ack,
+        .name = "test_prl_Encode_flag_need_ack",
+        .func = test_prl_Encode_flag_need_ack,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_Encode_flag_is_ack",
-        .func = test_PRL_Encode_flag_is_ack,
+        .name = "test_prl_Encode_flag_is_ack",
+        .func = test_prl_Encode_flag_is_ack,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_Encode_flag_combination",
-        .func = test_PRL_Encode_flag_combination,
+        .name = "test_prl_Encode_flag_combination",
+        .func = test_prl_Encode_flag_combination,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_Encode_exact_buffer_size",
-        .func = test_PRL_Encode_exact_buffer_size,
+        .name = "test_prl_Encode_exact_buffer_size",
+        .func = test_prl_Encode_exact_buffer_size,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_Encode_oversized_payload",
-        .func = test_PRL_Encode_oversized_payload,
+        .name = "test_prl_Encode_oversized_payload",
+        .func = test_prl_Encode_oversized_payload,
         .setup = NULL,
         .teardown = NULL
     },
     {
-        .name = "test_PRL_Decode_exact_minimum_size",
-        .func = test_PRL_Decode_exact_minimum_size,
+        .name = "test_prl_Decode_exact_minimum_size",
+        .func = test_prl_Decode_exact_minimum_size,
         .setup = NULL,
         .teardown = NULL
     },
