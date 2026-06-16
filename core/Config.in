@@ -17,28 +17,31 @@ source "core/test_framework/Config.in"
 # Core Modules Testing
 # ============================================================================
 
-config BUILD_TESTING
+menuconfig BUILD_TESTING
 	bool "Build test suite"
 	default n
 	help
-	  Enable building of test suite for core modules.
+	  Build test suite for core modules.
 
-	  This option controls whether the test framework and test cases
-	  are compiled. Tests include:
+	  The test suite provides comprehensive testing capabilities:
 	  - Unit tests for individual modules (OSAL, HAL, PDL, PRL, etc.)
 	  - Performance tests for benchmarking
 	  - Stress tests for stability validation
 	  - System tests for integration testing
 
+	  Note: Most tests require OSAL (Operating System Abstraction Layer)
+	  as they depend on OS primitives like threads, mutexes, and timing.
+	  Enable the modules you want to test in their respective submenus.
+
 	  The test suite helps ensure code quality and detect regressions
 	  during development.
+
+	  Memory footprint: Varies by enabled test modules
 
 	  Recommended: Enable for development, disable for production.
 
 if BUILD_TESTING
-	menu "Test Configuration"
-		source "products/core-tests/Config.in"
-	endmenu
+	source "products/core-tests/Config.in"
 endif
 
 endmenu
