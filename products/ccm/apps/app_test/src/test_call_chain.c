@@ -131,29 +131,29 @@ int32_t APP_RunAllTests(void)
 	int32_t ret;
 	int32_t failed = 0;
 
-	LOG_INFO("APP_TEST", "");
+	LOG_INFO("APP_TEST", " ");
 	LOG_INFO("APP_TEST", "╔═══════════════════════════════════════════════════════════════╗");
 	LOG_INFO("APP_TEST", "║          Complete Call Chain Test Suite                      ║");
 	LOG_INFO("APP_TEST", "╚═══════════════════════════════════════════════════════════════╝");
-	LOG_INFO("APP_TEST", "");
+	LOG_INFO("APP_TEST", " ");
 
 	/* 测试 1: MCU CAN */
 	ret = APP_TestCallChain_MCU_CAN();
 	if (OSAL_SUCCESS != ret) failed++;
 
-	LOG_INFO("APP_TEST", "");
+	LOG_INFO("APP_TEST", " ");
 
 	/* 测试 2: MCU Serial */
 	ret = APP_TestCallChain_MCU_Serial();
 	if (OSAL_SUCCESS != ret) failed++;
 
-	LOG_INFO("APP_TEST", "");
+	LOG_INFO("APP_TEST", " ");
 
 	/* 测试 3: BMC */
 	ret = APP_TestCallChain_BMC();
 	if (OSAL_SUCCESS != ret) failed++;
 
-	LOG_INFO("APP_TEST", "");
+	LOG_INFO("APP_TEST", " ");
 	LOG_INFO("APP_TEST", "╔═══════════════════════════════════════════════════════════════╗");
 	LOG_INFO("APP_TEST", "║          Test Summary                                         ║");
 	LOG_INFO("APP_TEST", "╚═══════════════════════════════════════════════════════════════╝");
@@ -162,14 +162,14 @@ int32_t APP_RunAllTests(void)
 	LOG_INFO("APP_TEST", "Failed: %d", failed);
 
 	if (failed == 0) {
-		LOG_INFO("APP_TEST", "");
+		LOG_INFO("APP_TEST", " ");
 		LOG_INFO("APP_TEST", "✅ ALL TESTS PASSED");
-		LOG_INFO("APP_TEST", "");
+		LOG_INFO("APP_TEST", " ");
 		return OSAL_SUCCESS;
 	} else {
-		LOG_ERROR("APP_TEST", "");
+		LOG_ERROR("APP_TEST", " ");
 		LOG_ERROR("APP_TEST", "❌ SOME TESTS FAILED");
-		LOG_ERROR("APP_TEST", "");
+		LOG_ERROR("APP_TEST", " ");
 		return OSAL_ERR_GENERIC;
 	}
 }

@@ -1,0 +1,18 @@
+config APP_TEST
+	bool "Test Call Chain Application"
+	default n
+	depends on OSAL && HAL && PDL && PCONFIG && ACONFIG
+	help
+	  Complete call chain test application.
+
+	  This application tests the complete call chain from APP layer
+	  through ACONFIG, PDL, PCONFIG to HAL layer.
+
+	  Test functions:
+	    - APP_TestCallChain_MCU_CAN() - Test MCU CAN interface
+	    - APP_TestCallChain_MCU_Serial() - Test MCU Serial interface
+	    - APP_TestCallChain_BMC() - Test BMC interface
+	    - APP_RunAllTests() - Run all tests
+
+	  This is a debug/verification tool and should not be included
+	  in production builds.

@@ -116,6 +116,11 @@ if(CONFIG_APP_SUPERVISOR)
     add_subdirectory(apps/app_supervisor)
 endif()
 
+# Test application (debug/verification)
+if(CONFIG_APP_TEST)
+    add_subdirectory(apps/app_test)
+endif()
+
 # ============================================================================
 # Generate Executables from Application Components
 # ============================================================================
@@ -163,6 +168,18 @@ if(CONFIG_APP_SUPERVISOR)
     target_link_libraries(supervisor PRIVATE app_supervisor)
 endif()
 
+# Test application executable
+if(CONFIG_APP_TEST)
+    add_executable(test_call_chain ${CMAKE_CURRENT_BINARY_DIR}/test_main.c)
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/test_main.c
+                       COMMAND ${CMAKE_COMMAND} -E copy
+                       ${CMAKE_CURRENT_SOURCE_DIR}/apps/app_test/src/main.c
+                       ${CMAKE_CURRENT_BINARY_DIR}/test_main.c
+                       DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/apps/app_test/src/main.c
+                       VERBATIM)
+    target_link_libraries(test_call_chain PRIVATE app_test)
+endif()
+
 # ============================================================================
 # Installation Rules
 # ============================================================================
@@ -200,6 +217,14 @@ endif()
 
 if(CONFIG_APP_SUPERVISOR)
     install(TARGETS supervisor
+        RUNTIME DESTINATION ${INSTALL_BINDIR}
+        COMPONENT applications
+    )
+endif()
+
+# Test application installation (optional)
+if(CONFIG_APP_TEST)
+    install(TARGETS test_call_chain
         RUNTIME DESTINATION ${INSTALL_BINDIR}
         COMPONENT applications
     )

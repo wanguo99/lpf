@@ -59,6 +59,9 @@ source "products/ccm/apps/app_health/Config.in"
 source "products/ccm/apps/app_logger/Config.in"
 source "products/ccm/apps/app_supervisor/Config.in"
 
+# Test Application (Debug/Verification)
+source "products/ccm/apps/app_test/Config.in"
+
 endmenu
 
 endmenu
