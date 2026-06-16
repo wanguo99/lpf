@@ -71,12 +71,15 @@ endchoice
 
 config PROJECT_NAME
 	string "Project name"
-	default "h200_100p_am625" if PRODUCT_CCM && PROJECT_H200_100P_AM625
-	default "h200_200p" if PRODUCT_CCM && PROJECT_H200_200P
-	default "ctest" if PRODUCT_CTEST
 	default "unknown"
 	help
-	  Project name derived from product and platform selection.
+	  Project name, typically extracted from defconfig filename.
+
+	  Naming convention: <product>_<project>_defconfig
+	  - ctest_x86_full_defconfig → project name: x86_full
+	  - ccm_h200_100p_am625_debug_defconfig → project name: h200_100p_am625_debug
+
+	  Can be overridden in defconfig file by setting CONFIG_PROJECT_NAME.
 
 config PROJECT_VERSION
 	string "Project version"

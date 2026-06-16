@@ -101,6 +101,7 @@ endif
 %_defconfig: $(obj)/conf
 	@defconfig_file=""; \
 	product_name=$$(echo "$@" | cut -d'_' -f1); \
+	project_name=$$(echo "$@" | sed 's/^[^_]*_//; s/_defconfig$$//'); \
 	if [ -f "$(srctree)/configs/$$product_name/$@" ]; then \
 		defconfig_file="$(srctree)/configs/$$product_name/$@"; \
 	elif [ -f "$(srctree)/arch/$(SRCARCH)/configs/$@" ]; then \
@@ -110,7 +111,14 @@ endif
 		echo "  Expected: $(srctree)/configs/$$product_name/$@"; \
 		exit 1; \
 	fi; \
-	$< $(silent) --defconfig=$$defconfig_file $(Kconfig)
+	tmpfile=$$(mktemp); \
+	if grep -q "^CONFIG_PROJECT_NAME=" $$defconfig_file; then \
+		cat $$defconfig_file > $$tmpfile; \
+	else \
+		(cat $$defconfig_file; echo "CONFIG_PROJECT_NAME=\"$$project_name\"") > $$tmpfile; \
+	fi; \
+	$< $(silent) --defconfig=$$tmpfile $(Kconfig); \
+	rm -f $$tmpfile
 
 configfiles = $(wildcard $(srctree)/kernel/configs/$(1) $(srctree)/arch/$(SRCARCH)/configs/$(1))
 all-config-fragments = $(call configfiles,*.config)
