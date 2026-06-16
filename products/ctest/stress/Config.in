@@ -44,27 +44,27 @@ config TEST_STRESS_ALL
 
 # Source layer-specific Config.in files
 if TEST_OSAL
-	source "products/core-tests/stress/osal/Config.in"
+	source "products/ctest/stress/osal/Config.in"
 endif
 
 if TEST_HAL
-	source "products/core-tests/stress/hal/Config.in"
+	source "products/ctest/stress/hal/Config.in"
 endif
 
 if TEST_PDL
-	source "products/core-tests/stress/pdl/Config.in"
+	source "products/ctest/stress/pdl/Config.in"
 endif
 
 if TEST_PRL
-	source "products/core-tests/stress/prl/Config.in"
+	source "products/ctest/stress/prl/Config.in"
 endif
 
 if TEST_PCONFIG
-	source "products/core-tests/stress/pconfig/Config.in"
+	source "products/ctest/stress/pconfig/Config.in"
 endif
 
 if TEST_ACONFIG
-	source "products/core-tests/stress/aconfig/Config.in"
+	source "products/ctest/stress/aconfig/Config.in"
 endif
 
 endmenu

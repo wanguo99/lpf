@@ -24,7 +24,7 @@
 # - Actionable guidance: Provides step-by-step fix instructions
 #
 # For detailed documentation on error handling and validation, see:
-#   products/core-tests/docs/ERROR_HANDLING.md
+#   products/ctest/docs/ERROR_HANDLING.md
 # ============================================================================
 
 # ----------------------------------------------------------------------------
@@ -134,10 +134,10 @@ function(test_discover_and_add)
                 "Test file '${TEST_NAME}.c' found but ${CONFIG_NAME} not defined in Kconfig.\n"
                 "  File: ${TEST_FILE}\n"
                 "  Expected config: ${CONFIG_NAME}\n"
-                "  Location: products/core-tests/${CATEGORY}/${PARENT_DIR}/Kconfig\n"
+                "  Location: products/ctest/${CATEGORY}/${PARENT_DIR}/Kconfig\n"
                 "\n"
                 "  Actionable steps:\n"
-                "  1. Add the following to products/core-tests/${CATEGORY}/${PARENT_DIR}/Kconfig:\n"
+                "  1. Add the following to products/ctest/${CATEGORY}/${PARENT_DIR}/Kconfig:\n"
                 "\n"
                 "     config ${CONFIG_NAME}\n"
                 "         bool \"<Test description>\"\n"
@@ -403,7 +403,7 @@ function(test_validate_kconfig_consistency)
             "\n"
             "  Actionable steps:\n"
             "  1. Create missing test files, or\n"
-            "  2. Remove orphaned Kconfig options from products/core-tests/.../Kconfig\n"
+            "  2. Remove orphaned Kconfig options from products/ctest/.../Kconfig\n"
             "  3. Update corresponding _ALL selection lists"
         )
     endif()

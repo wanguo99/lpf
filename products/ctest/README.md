@@ -540,7 +540,7 @@ TEST_SUITE_REGISTER(osal_timer, "OSAL", osal_timer_cases,
 
 #### 2. 添加 Config.in 配置
 
-在 `products/core-tests/unit/osal/Kconfig` 中添加：
+在 `products/ctest/unit/osal/Kconfig` 中添加：
 
 ```kconfig
 config TEST_OSAL_TIMER

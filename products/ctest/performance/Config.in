@@ -38,23 +38,23 @@ config TEST_PERFORMANCE_ALL
 
 # Source layer-specific Config.in files
 if TEST_OSAL
-	source "products/core-tests/performance/osal/Config.in"
+	source "products/ctest/performance/osal/Config.in"
 endif
 
 if TEST_HAL
-	source "products/core-tests/performance/hal/Config.in"
+	source "products/ctest/performance/hal/Config.in"
 endif
 
 if TEST_PDL
-	source "products/core-tests/performance/pdl/Config.in"
+	source "products/ctest/performance/pdl/Config.in"
 endif
 
 if TEST_PCL
-	source "products/core-tests/performance/pconfig/Config.in"
+	source "products/ctest/performance/pconfig/Config.in"
 endif
 
 if TEST_ACL
-	source "products/core-tests/performance/aconfig/Config.in"
+	source "products/ctest/performance/aconfig/Config.in"
 endif
 
 endmenu

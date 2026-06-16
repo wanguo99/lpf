@@ -41,7 +41,7 @@ menuconfig BUILD_TESTING
 	  Recommended: Enable for development, disable for production.
 
 if BUILD_TESTING
-	source "products/core-tests/Config.in"
+	source "products/ctest/Config.in"
 endif
 
 endmenu

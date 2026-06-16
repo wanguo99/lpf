@@ -111,7 +111,7 @@ endif()
 
 if(CONFIG_BUILD_TESTING)
     message(STATUS "Building test suite")
-    add_subdirectory(products/core-tests)
+    add_subdirectory(products/ctest)
 endif()
 
 # ==============================================================================

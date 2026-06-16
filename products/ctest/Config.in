@@ -114,7 +114,7 @@ config TEST_PCONFIG
 	  in the PCONFIG Unit Tests submenu.
 
 # Source fine-grained unit test configurations
-source "products/core-tests/unit/Config.in"
+source "products/ctest/unit/Config.in"
 
 endif # TEST_UNIT
 
@@ -170,7 +170,7 @@ config TEST_PERFORMANCE_ACL
 	  Build ACONFIG layer performance tests.
 
 # Source fine-grained performance test configurations
-source "products/core-tests/performance/Config.in"
+source "products/ctest/performance/Config.in"
 
 endif # TEST_PERFORMANCE
 
@@ -233,7 +233,7 @@ config TEST_STRESS_ACL
 	  Build ACONFIG layer stress tests.
 
 # Source fine-grained stress test configurations
-source "products/core-tests/stress/Config.in"
+source "products/ctest/stress/Config.in"
 
 endif # TEST_STRESS
 
@@ -302,6 +302,6 @@ config TEST_INTEGRATION
 	  Build integration tests verifying interactions between modules.
 
 # Source fine-grained system and integration test configurations
-source "products/core-tests/system/Config.in"
+source "products/ctest/system/Config.in"
 
 endif # TEST_SYSTEM

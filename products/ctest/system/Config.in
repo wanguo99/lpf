@@ -44,31 +44,31 @@ config TEST_SYSTEM_ALL
 
 # Source layer-specific Config.in files
 if TEST_OSAL
-	source "products/core-tests/system/osal/Config.in"
+	source "products/ctest/system/osal/Config.in"
 endif
 
 if TEST_HAL
-	source "products/core-tests/system/hal/Config.in"
+	source "products/ctest/system/hal/Config.in"
 endif
 
 if TEST_PDL
-	source "products/core-tests/system/pdl/Config.in"
+	source "products/ctest/system/pdl/Config.in"
 endif
 
 if TEST_PRL
-	source "products/core-tests/system/prl/Config.in"
+	source "products/ctest/system/prl/Config.in"
 endif
 
 if CONFIG_PCL
-	source "products/core-tests/system/pconfig/Config.in"
+	source "products/ctest/system/pconfig/Config.in"
 endif
 
 if CONFIG_ACL
-	source "products/core-tests/system/aconfig/Config.in"
+	source "products/ctest/system/aconfig/Config.in"
 endif
 
 # Integration tests (full stack)
-source "products/core-tests/system/integration/Config.in"
+source "products/ctest/system/integration/Config.in"
 
 endmenu
 
