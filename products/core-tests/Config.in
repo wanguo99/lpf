@@ -51,27 +51,16 @@ config TEST_HAL
 	  Fine-grained control over individual HAL test files is available
 	  in the HAL Unit Tests submenu.
 
-config TEST_PCONFIG
-	bool "Build PCONFIG unit tests"
-	depends on OSAL && HAL && TYPES  # PCONFIG dependencies
-	select PCONFIG
-	default n
-	help
-	  Build PCONFIG layer unit tests.
-	  This will automatically enable the PCONFIG module.
-
-	  Note: PCONFIG requires OSAL, HAL, and TYPES. Enable these first.
-
 config TEST_PDL
 	bool "Build PDL unit tests"
-	depends on OSAL && HAL && PCONFIG && TYPES  # PDL dependencies
+	depends on OSAL && HAL && PCONFIG  # PDL dependencies
 	select PDL
 	default n
 	help
 	  Build PDL layer unit tests.
 	  This will automatically enable the PDL module.
 
-	  Note: PDL requires OSAL, HAL, PCONFIG, and TYPES.
+	  Note: PDL requires OSAL, HAL, and PCONFIG.
 
 	  Fine-grained control over individual PDL test files is available
 	  in the PDL Unit Tests submenu.
@@ -155,23 +144,23 @@ config TEST_PERFORMANCE_HAL
 
 config TEST_PERFORMANCE_PCONFIG
 	bool "Build PCONFIG performance tests"
-	depends on OSAL && HAL && TYPES  # PCONFIG dependencies
+	depends on OSAL && HAL  # PCONFIG dependencies
 	select PCONFIG
 	default n
 	help
 	  Build PCONFIG layer performance tests.
 
-	  Note: PCONFIG requires OSAL, HAL, and TYPES.
+	  Note: PCONFIG requires OSAL and HAL.
 
 config TEST_PERFORMANCE_PDL
 	bool "Build PDL performance tests"
-	depends on OSAL && HAL && PCONFIG && TYPES  # PDL dependencies
+	depends on OSAL && HAL && PCONFIG  # PDL dependencies
 	select PDL
 	default y
 	help
 	  Build PDL layer performance tests.
 
-	  Note: PDL requires OSAL, HAL, PCONFIG, and TYPES.
+	  Note: PDL requires OSAL, HAL, and PCONFIG.
 
 config TEST_PERFORMANCE_ACL
 	bool "Build ACL performance tests"
@@ -274,23 +263,23 @@ config TEST_SYSTEM_HAL
 
 config TEST_SYSTEM_PCONFIG
 	bool "Build PCONFIG system tests"
-	depends on OSAL && HAL && TYPES  # PCONFIG dependencies
+	depends on OSAL && HAL  # PCONFIG dependencies
 	select PCONFIG
 	default n
 	help
 	  Build PCONFIG layer system tests.
 
-	  Note: PCONFIG requires OSAL, HAL, and TYPES.
+	  Note: PCONFIG requires OSAL and HAL.
 
 config TEST_SYSTEM_PDL
 	bool "Build PDL system tests"
-	depends on OSAL && HAL && PCONFIG && TYPES  # PDL dependencies
+	depends on OSAL && HAL && PCONFIG  # PDL dependencies
 	select PDL
 	default n
 	help
 	  Build PDL layer system tests.
 
-	  Note: PDL requires OSAL, HAL, PCONFIG, and TYPES.
+	  Note: PDL requires OSAL, HAL, and PCONFIG.
 
 config TEST_SYSTEM_ACL
 	bool "Build ACL system tests"
@@ -305,13 +294,6 @@ config TEST_SYSTEM_ACONFIG
 	default n
 	help
 	  Build ACONFIG layer system tests.
-
-config TEST_SYSTEM_PCONFIG
-	bool "Build PCONFIG system tests"
-	select PCONFIG
-	default n
-	help
-	  Build PCONFIG layer system tests.
 
 config TEST_INTEGRATION
 	bool "Build integration tests"

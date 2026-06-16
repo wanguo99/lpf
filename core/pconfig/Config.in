@@ -3,7 +3,7 @@
 menuconfig PCONFIG
 	bool "PCONFIG (Peripheral Configuration Library)"
 	default n
-	depends on OSAL && HAL && TYPES
+	depends on OSAL && HAL
 	help
 	  Peripheral Configuration Library provides device-tree-like hardware
 	  configuration management.
@@ -26,8 +26,7 @@ menuconfig PCONFIG
 	  - Runtime board identification
 	  - Peripheral auto-configuration
 
-	  Dependencies: OSAL (for basic services), HAL (for hardware access),
-	                TYPES (for PDL configuration types)
+	  Dependencies: OSAL (for basic services), HAL (for hardware access)
 
 	  Note: Enable OSAL, HAL, and TYPES first in "Core Modules" menu.
 
