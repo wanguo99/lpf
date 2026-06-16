@@ -47,7 +47,7 @@ static int32_t spi_continuous_transfer_worker(void *user_data, uint32_t iteratio
 	}
 
 	/* Perform transfer */
-	ret = HAL_SPI_Transfer(ctx->handle, tx_buffer, rx_buffer, SPI_STRESS_SMALL_BUF);
+	ret = HAL_SPI_transfer(ctx->handle, tx_buffer, rx_buffer, SPI_STRESS_SMALL_BUF);
 	if (ret == OSAL_SUCCESS) {
 		OSAL_atomic_inc(ctx->transfer_counter);
 		OSAL_atomic_add(ctx->byte_counter, SPI_STRESS_SMALL_BUF);
@@ -81,7 +81,7 @@ static void test_stress_spi_continuous_transfer(void)
 	           SPI_STRESS_DURATION_SEC, SPI_STRESS_SPEED_HZ);
 
 	/* Open SPI device */
-	ret = HAL_SPI_Open(&config, &handle);
+	ret = HAL_SPI_open(&config, &handle);
 	if (ret != OSAL_SUCCESS) {
 		OSAL_printf("[ SKIP ] SPI device not available\n");
 		TEST_SKIP("SPI device not available");
@@ -135,7 +135,7 @@ static void test_stress_spi_continuous_transfer(void)
 
 	/* Cleanup */
 	stress_context_destroy(stress_ctx);
-	HAL_SPI_Close(handle);
+	HAL_SPI_close(handle);
 
 	OSAL_printf("[ PASS ] SPI continuous transfer stress test completed\n");
 }
@@ -167,7 +167,7 @@ static void test_stress_spi_large_buffers(void)
 	           SPI_STRESS_HUGE_BUF, iterations);
 
 	/* Open SPI device */
-	ret = HAL_SPI_Open(&config, &handle);
+	ret = HAL_SPI_open(&config, &handle);
 	if (ret != OSAL_SUCCESS) {
 		OSAL_printf("[ SKIP ] SPI device not available\n");
 		TEST_SKIP("SPI device not available");
@@ -190,7 +190,7 @@ static void test_stress_spi_large_buffers(void)
 	uint64_t start_time = 0;
 
 	for (uint32_t i = 0; i < iterations; i++) {
-		ret = HAL_SPI_Transfer(handle, tx_buffer, rx_buffer, SPI_STRESS_HUGE_BUF);
+		ret = HAL_SPI_transfer(handle, tx_buffer, rx_buffer, SPI_STRESS_HUGE_BUF);
 		TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
 		total_bytes += SPI_STRESS_HUGE_BUF;
@@ -210,7 +210,7 @@ static void test_stress_spi_large_buffers(void)
 	/* Cleanup */
 	OSAL_free(tx_buffer);
 	OSAL_free(rx_buffer);
-	HAL_SPI_Close(handle);
+	HAL_SPI_close(handle);
 
 	OSAL_printf("[ PASS ] SPI large buffer stress test completed\n");
 }
@@ -235,7 +235,7 @@ static int32_t spi_concurrent_worker(void *user_data, uint32_t iteration)
 	}
 
 	/* Perform transfer */
-	ret = HAL_SPI_Transfer(ctx->handle, tx_buffer, rx_buffer, SPI_STRESS_SMALL_BUF);
+	ret = HAL_SPI_transfer(ctx->handle, tx_buffer, rx_buffer, SPI_STRESS_SMALL_BUF);
 	if (ret == OSAL_SUCCESS) {
 		OSAL_atomic_inc(ctx->transfer_counter);
 	}
@@ -268,10 +268,10 @@ static void test_stress_spi_concurrent_access(void)
 
 	/* Open multiple SPI handles */
 	for (uint32_t i = 0; i < SPI_STRESS_THREAD_COUNT; i++) {
-		ret = HAL_SPI_Open(&config, &handles[i]);
+		ret = HAL_SPI_open(&config, &handles[i]);
 		if (ret != OSAL_SUCCESS) {
 			for (uint32_t j = 0; j < i; j++) {
-				HAL_SPI_Close(handles[j]);
+				HAL_SPI_close(handles[j]);
 			}
 			OSAL_printf("[ SKIP ] Cannot open multiple SPI handles\n");
 			TEST_SKIP("SPI multi-open not supported");
@@ -318,7 +318,7 @@ static void test_stress_spi_concurrent_access(void)
 	/* Cleanup */
 	stress_context_destroy(stress_ctx);
 	for (uint32_t i = 0; i < SPI_STRESS_THREAD_COUNT; i++) {
-		HAL_SPI_Close(handles[i]);
+		HAL_SPI_close(handles[i]);
 	}
 
 	OSAL_printf("[ PASS ] SPI concurrent access stress test completed\n");
@@ -350,7 +350,7 @@ static void test_stress_spi_rapid_config_changes(void)
 	OSAL_printf("         Iterations: %u\n", iterations);
 
 	/* Open SPI device */
-	ret = HAL_SPI_Open(&config, &handle);
+	ret = HAL_SPI_open(&config, &handle);
 	if (ret != OSAL_SUCCESS) {
 		OSAL_printf("[ SKIP ] SPI device not available\n");
 		TEST_SKIP("SPI device not available");
@@ -364,7 +364,7 @@ static void test_stress_spi_rapid_config_changes(void)
 		config.mode = mode;
 		config.speed_hz = 500000 + ((i % 4) * 250000);
 
-		ret = HAL_SPI_SetConfig(handle, &config);
+		ret = HAL_SPI_set_config(handle, &config);
 		TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
 		/* Fill buffer */
@@ -373,7 +373,7 @@ static void test_stress_spi_rapid_config_changes(void)
 		}
 
 		/* Perform transfer with new config */
-		ret = HAL_SPI_Transfer(handle, tx_buffer, rx_buffer, sizeof(tx_buffer));
+		ret = HAL_SPI_transfer(handle, tx_buffer, rx_buffer, sizeof(tx_buffer));
 		TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
 		/* Progress indicator */
@@ -383,7 +383,7 @@ static void test_stress_spi_rapid_config_changes(void)
 	}
 
 	/* Cleanup */
-	HAL_SPI_Close(handle);
+	HAL_SPI_close(handle);
 
 	OSAL_printf("[ PASS ] SPI rapid config changes stress test completed\n");
 }

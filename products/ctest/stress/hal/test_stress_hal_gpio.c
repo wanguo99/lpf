@@ -47,7 +47,7 @@ static int32_t gpio_toggle_worker(void *user_data, uint32_t iteration)
 
 	/* Toggle pin state */
 	level = (iteration % 2) ? HAL_GPIO_LEVEL_HIGH : HAL_GPIO_LEVEL_LOW;
-	ret = HAL_GPIO_SetLevel(ctx->handle, level);
+	ret = HAL_GPIO_set_level(ctx->handle, level);
 
 	if (ret == OSAL_SUCCESS) {
 		OSAL_atomic_inc(ctx->toggle_counter);
@@ -84,11 +84,11 @@ static void test_stress_gpio_high_frequency_toggle(void)
 		config.callback = NULL;
 		config.user_data = NULL;
 
-		ret = HAL_GPIO_Init(&config, &handles[i]);
+		ret = HAL_GPIO_init(&config, &handles[i]);
 		if (ret != OSAL_SUCCESS) {
 			/* Skip if GPIO not available */
 			for (uint32_t j = 0; j < i; j++) {
-				HAL_GPIO_Deinit(handles[j]);
+				HAL_GPIO_deinit(handles[j]);
 			}
 			OSAL_printf("[ SKIP ] GPIO pins not available\n");
 			TEST_SKIP("GPIO not available");
@@ -143,7 +143,7 @@ static void test_stress_gpio_high_frequency_toggle(void)
 	/* Cleanup */
 	stress_context_destroy(stress_ctx);
 	for (uint32_t i = 0; i < GPIO_STRESS_THREAD_COUNT; i++) {
-		HAL_GPIO_Deinit(handles[i]);
+		HAL_GPIO_deinit(handles[i]);
 	}
 
 	OSAL_printf("[ PASS ] GPIO high-frequency toggle stress test completed\n");
@@ -164,13 +164,13 @@ static int32_t gpio_concurrent_access_worker(void *user_data, uint32_t iteration
 
 	/* Write operation */
 	level = (iteration % 2) ? HAL_GPIO_LEVEL_HIGH : HAL_GPIO_LEVEL_LOW;
-	ret = HAL_GPIO_SetLevel(ctx->handle, level);
+	ret = HAL_GPIO_set_level(ctx->handle, level);
 	if (ret != OSAL_SUCCESS) {
 		return ret;
 	}
 
 	/* Read back to verify */
-	ret = HAL_GPIO_GetLevel(ctx->handle, &level);
+	ret = HAL_GPIO_get_level(ctx->handle, &level);
 	if (ret != OSAL_SUCCESS) {
 		return ret;
 	}
@@ -212,10 +212,10 @@ static void test_stress_gpio_concurrent_access(void)
 		config.callback = NULL;
 		config.user_data = NULL;
 
-		ret = HAL_GPIO_Init(&config, &handles[i]);
+		ret = HAL_GPIO_init(&config, &handles[i]);
 		if (ret != OSAL_SUCCESS) {
 			for (uint32_t j = 0; j < i; j++) {
-				HAL_GPIO_Deinit(handles[j]);
+				HAL_GPIO_deinit(handles[j]);
 			}
 			OSAL_printf("[ SKIP ] GPIO pins not available\n");
 			TEST_SKIP("GPIO not available");
@@ -261,7 +261,7 @@ static void test_stress_gpio_concurrent_access(void)
 	/* Cleanup */
 	stress_context_destroy(stress_ctx);
 	for (uint32_t i = 0; i < GPIO_STRESS_PIN_COUNT; i++) {
-		HAL_GPIO_Deinit(handles[i]);
+		HAL_GPIO_deinit(handles[i]);
 	}
 
 	OSAL_printf("[ PASS ] GPIO concurrent access stress test completed\n");
@@ -318,10 +318,10 @@ static void test_stress_gpio_interrupt_storm(void)
 		config.callback = gpio_interrupt_storm_callback;
 		config.user_data = &ctx;
 
-		ret = HAL_GPIO_Init(&config, &ctx.handles[i]);
+		ret = HAL_GPIO_init(&config, &ctx.handles[i]);
 		if (ret != OSAL_SUCCESS) {
 			for (uint32_t j = 0; j < i; j++) {
-				HAL_GPIO_Deinit(ctx.handles[j]);
+				HAL_GPIO_deinit(ctx.handles[j]);
 			}
 			OSAL_printf("[ SKIP ] GPIO interrupt not supported\n");
 			TEST_SKIP("GPIO interrupt not available");
@@ -329,7 +329,7 @@ static void test_stress_gpio_interrupt_storm(void)
 		}
 
 		/* Enable interrupt */
-		ret = HAL_GPIO_EnableInterrupt(ctx.handles[i]);
+		ret = HAL_GPIO_enable_interrupt(ctx.handles[i]);
 		TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 	}
 
@@ -339,7 +339,7 @@ static void test_stress_gpio_interrupt_storm(void)
 	for (uint32_t trigger = 0; trigger < triggers_per_pin; trigger++) {
 		for (uint32_t i = 0; i < GPIO_STRESS_PIN_COUNT; i++) {
 			hal_gpio_level_t level = (trigger % 2) ? HAL_GPIO_LEVEL_HIGH : HAL_GPIO_LEVEL_LOW;
-			ret = HAL_GPIO_SetLevel(ctx.handles[i], level);
+			ret = HAL_GPIO_set_level(ctx.handles[i], level);
 			TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 		}
 
@@ -376,8 +376,8 @@ static void test_stress_gpio_interrupt_storm(void)
 
 	/* Cleanup */
 	for (uint32_t i = 0; i < GPIO_STRESS_PIN_COUNT; i++) {
-		HAL_GPIO_DisableInterrupt(ctx.handles[i]);
-		HAL_GPIO_Deinit(ctx.handles[i]);
+		HAL_GPIO_disable_interrupt(ctx.handles[i]);
+		HAL_GPIO_deinit(ctx.handles[i]);
 	}
 
 	OSAL_printf("[ PASS ] GPIO interrupt storm stress test completed\n");
@@ -409,7 +409,7 @@ static void test_stress_gpio_rapid_config_changes(void)
 	OSAL_printf("         Iterations: %u\n", iterations);
 
 	/* Initialize GPIO */
-	ret = HAL_GPIO_Init(&config, &handle);
+	ret = HAL_GPIO_init(&config, &handle);
 	if (ret != OSAL_SUCCESS) {
 		OSAL_printf("[ SKIP ] GPIO not available\n");
 		TEST_SKIP("GPIO not available");
@@ -421,12 +421,12 @@ static void test_stress_gpio_rapid_config_changes(void)
 		hal_gpio_direction_t dir = (i % 2) ?
 			HAL_GPIO_DIRECTION_INPUT : HAL_GPIO_DIRECTION_OUTPUT;
 
-		ret = HAL_GPIO_SetDirection(handle, dir);
+		ret = HAL_GPIO_set_direction(handle, dir);
 		TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
 		/* Verify direction */
 		hal_gpio_direction_t read_dir;
-		ret = HAL_GPIO_GetDirection(handle, &read_dir);
+		ret = HAL_GPIO_get_direction(handle, &read_dir);
 		TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 		TEST_ASSERT_EQUAL(dir, read_dir);
 
@@ -434,7 +434,7 @@ static void test_stress_gpio_rapid_config_changes(void)
 		if (dir == HAL_GPIO_DIRECTION_OUTPUT) {
 			hal_gpio_level_t level = (i % 4 < 2) ?
 				HAL_GPIO_LEVEL_HIGH : HAL_GPIO_LEVEL_LOW;
-			ret = HAL_GPIO_SetLevel(handle, level);
+			ret = HAL_GPIO_set_level(handle, level);
 			TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 		}
 
@@ -445,7 +445,7 @@ static void test_stress_gpio_rapid_config_changes(void)
 	}
 
 	/* Cleanup */
-	HAL_GPIO_Deinit(handle);
+	HAL_GPIO_deinit(handle);
 
 	OSAL_printf("[ PASS ] GPIO rapid config changes stress test completed\n");
 }

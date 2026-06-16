@@ -20,7 +20,7 @@ static void test_hal_watchdog_init_deinit(void)
         .enable_on_init = false
     };
 
-    int32_t ret = HAL_WATCHDOG_Init(&config, &handle);
+    int32_t ret = HAL_WATCHDOG_init(&config, &handle);
 
     /* 如果设备不存在，跳过测试 */
     TEST_ASSERT_FALSE(ret != OSAL_SUCCESS); // Watchdog device not available
@@ -28,7 +28,7 @@ static void test_hal_watchdog_init_deinit(void)
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
     TEST_ASSERT_NOT_NULL(handle);
 
-    ret = HAL_WATCHDOG_Deinit(handle);
+    ret = HAL_WATCHDOG_deinit(handle);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 }
 
@@ -45,16 +45,16 @@ static void test_hal_watchdog_null_params(void)
     };
 
     /* NULL config */
-    int32_t ret = HAL_WATCHDOG_Init(NULL, &handle);
+    int32_t ret = HAL_WATCHDOG_init(NULL, &handle);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 
     /* NULL handle */
-    ret = HAL_WATCHDOG_Init(&config, NULL);
+    ret = HAL_WATCHDOG_init(&config, NULL);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 
     /* NULL device */
     config.device = NULL;
-    ret = HAL_WATCHDOG_Init(&config, &handle);
+    ret = HAL_WATCHDOG_init(&config, &handle);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
 
@@ -70,29 +70,29 @@ static void test_hal_watchdog_kick(void)
         .enable_on_init = false
     };
 
-    int32_t ret = HAL_WATCHDOG_Init(&config, &handle);
+    int32_t ret = HAL_WATCHDOG_init(&config, &handle);
     TEST_ASSERT_FALSE(ret != OSAL_SUCCESS); // Watchdog device not available
 
     /* 喂狗 */
-    ret = HAL_WATCHDOG_Kick(handle);
+    ret = HAL_WATCHDOG_kick(handle);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     /* 多次喂狗 */
     uint32_t i;
     for (i = 0; i < 5; i++)
     {
-        ret = HAL_WATCHDOG_Kick(handle);
+        ret = HAL_WATCHDOG_kick(handle);
         TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
         OSAL_msleep(100);
     }
 
     /* 检查统计信息 */
     uint32_t kick_count = 0;
-    ret = HAL_WATCHDOG_GetStats(handle, &kick_count);
+    ret = HAL_WATCHDOG_get_stats(handle, &kick_count);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
     TEST_ASSERT_EQUAL(6, kick_count);
 
-    HAL_WATCHDOG_Deinit(handle);
+    HAL_WATCHDOG_deinit(handle);
 }
 
 /**
@@ -107,30 +107,30 @@ static void test_hal_watchdog_timeout(void)
         .enable_on_init = false
     };
 
-    int32_t ret = HAL_WATCHDOG_Init(&config, &handle);
+    int32_t ret = HAL_WATCHDOG_init(&config, &handle);
     TEST_ASSERT_FALSE(ret != OSAL_SUCCESS); // Watchdog device not available
 
     /* 获取当前超时时间 */
     uint32_t timeout = 0;
-    ret = HAL_WATCHDOG_GetTimeout(handle, &timeout);
+    ret = HAL_WATCHDOG_get_timeout(handle, &timeout);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
     LOG_INFO("TEST", "Current timeout: %u seconds", timeout);
 
     /* 尝试设置新的超时时间（某些硬件可能不支持） */
-    ret = HAL_WATCHDOG_SetTimeout(handle, 60);
+    ret = HAL_WATCHDOG_set_timeout(handle, 60);
     if (ret == OSAL_ERR_NOT_SUPPORTED) {
         LOG_INFO("TEST", "Hardware does not support setting timeout dynamically");
-        HAL_WATCHDOG_Deinit(handle);
+        HAL_WATCHDOG_deinit(handle);
         return;
     }
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     /* 验证设置 */
-    ret = HAL_WATCHDOG_GetTimeout(handle, &timeout);
+    ret = HAL_WATCHDOG_get_timeout(handle, &timeout);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
     TEST_ASSERT_EQUAL(60, timeout);
 
-    HAL_WATCHDOG_Deinit(handle);
+    HAL_WATCHDOG_deinit(handle);
 }
 
 /**
@@ -145,16 +145,16 @@ static void test_hal_watchdog_timeleft(void)
         .enable_on_init = false
     };
 
-    int32_t ret = HAL_WATCHDOG_Init(&config, &handle);
+    int32_t ret = HAL_WATCHDOG_init(&config, &handle);
     TEST_ASSERT_FALSE(ret != OSAL_SUCCESS); // Watchdog device not available
 
     /* 喂狗 */
-    ret = HAL_WATCHDOG_Kick(handle);
+    ret = HAL_WATCHDOG_kick(handle);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     /* 获取剩余时间（某些硬件可能不支持） */
     uint32_t timeleft = 0;
-    ret = HAL_WATCHDOG_GetTimeleft(handle, &timeleft);
+    ret = HAL_WATCHDOG_get_timeleft(handle, &timeleft);
     if (ret == OSAL_SUCCESS)
     {
         LOG_INFO("TEST", "Time left: %u seconds", timeleft);
@@ -165,7 +165,7 @@ static void test_hal_watchdog_timeleft(void)
         LOG_WARN("TEST", "GetTimeleft not supported by hardware");
     }
 
-    HAL_WATCHDOG_Deinit(handle);
+    HAL_WATCHDOG_deinit(handle);
 }
 
 /**
@@ -180,30 +180,30 @@ static void test_hal_watchdog_enable_disable(void)
         .enable_on_init = false
     };
 
-    int32_t ret = HAL_WATCHDOG_Init(&config, &handle);
+    int32_t ret = HAL_WATCHDOG_init(&config, &handle);
     TEST_ASSERT_FALSE(ret != OSAL_SUCCESS); // Watchdog device not available
 
     /* 启用看门狗 */
-    ret = HAL_WATCHDOG_Enable(handle);
+    ret = HAL_WATCHDOG_enable(handle);
     if (ret != OSAL_SUCCESS)
     {
         LOG_WARN("TEST", "Enable not supported, skipping");
-        HAL_WATCHDOG_Deinit(handle);
+        HAL_WATCHDOG_deinit(handle);
         return;
     }
 
     /* 喂狗 */
-    ret = HAL_WATCHDOG_Kick(handle);
+    ret = HAL_WATCHDOG_kick(handle);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     /* 尝试禁用（某些硬件可能不支持） */
-    ret = HAL_WATCHDOG_Disable(handle);
+    ret = HAL_WATCHDOG_disable(handle);
     if (ret == OSAL_ERR_NOT_SUPPORTED)
     {
         LOG_WARN("TEST", "Disable not supported by hardware");
     }
 
-    HAL_WATCHDOG_Deinit(handle);
+    HAL_WATCHDOG_deinit(handle);
 }
 
 /**
@@ -211,14 +211,14 @@ static void test_hal_watchdog_enable_disable(void)
  */
 static void test_hal_watchdog_invalid_handle(void)
 {
-    int32_t ret = HAL_WATCHDOG_Kick(NULL);
+    int32_t ret = HAL_WATCHDOG_kick(NULL);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 
-    ret = HAL_WATCHDOG_Deinit(NULL);
+    ret = HAL_WATCHDOG_deinit(NULL);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 
     uint32_t timeout = 0;
-    ret = HAL_WATCHDOG_GetTimeout(NULL, &timeout);
+    ret = HAL_WATCHDOG_get_timeout(NULL, &timeout);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
 
@@ -234,33 +234,33 @@ static void test_hal_watchdog_getstats_verification(void)
         .enable_on_init = false
     };
 
-    int32_t ret = HAL_WATCHDOG_Init(&config, &handle);
+    int32_t ret = HAL_WATCHDOG_init(&config, &handle);
     TEST_ASSERT_FALSE(ret != OSAL_SUCCESS);
 
     /* 初始统计应为0 */
     uint32_t kick_count = 999;
-    ret = HAL_WATCHDOG_GetStats(handle, &kick_count);
+    ret = HAL_WATCHDOG_get_stats(handle, &kick_count);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
     TEST_ASSERT_EQUAL(0, kick_count);
 
     /* 喂狗后统计应递增 */
     for (uint32_t i = 1; i <= 10; i++) {
-        ret = HAL_WATCHDOG_Kick(handle);
+        ret = HAL_WATCHDOG_kick(handle);
         TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
-        ret = HAL_WATCHDOG_GetStats(handle, &kick_count);
+        ret = HAL_WATCHDOG_get_stats(handle, &kick_count);
         TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
         TEST_ASSERT_EQUAL(i, kick_count);
     }
 
     /* NULL参数测试 */
-    ret = HAL_WATCHDOG_GetStats(NULL, &kick_count);
+    ret = HAL_WATCHDOG_get_stats(NULL, &kick_count);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 
-    ret = HAL_WATCHDOG_GetStats(handle, NULL);
+    ret = HAL_WATCHDOG_get_stats(handle, NULL);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 
-    HAL_WATCHDOG_Deinit(handle);
+    HAL_WATCHDOG_deinit(handle);
 }
 
 /**
@@ -275,15 +275,15 @@ static void test_hal_watchdog_min_timeout(void)
         .enable_on_init = false
     };
 
-    int32_t ret = HAL_WATCHDOG_Init(&config, &handle);
+    int32_t ret = HAL_WATCHDOG_init(&config, &handle);
     TEST_ASSERT_FALSE(ret != OSAL_SUCCESS);
 
     uint32_t timeout = 0;
-    ret = HAL_WATCHDOG_GetTimeout(handle, &timeout);
+    ret = HAL_WATCHDOG_get_timeout(handle, &timeout);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
     TEST_ASSERT(timeout >= 1);
 
-    HAL_WATCHDOG_Deinit(handle);
+    HAL_WATCHDOG_deinit(handle);
 }
 
 /**
@@ -298,17 +298,17 @@ static void test_hal_watchdog_max_timeout(void)
         .enable_on_init = false
     };
 
-    int32_t ret = HAL_WATCHDOG_Init(&config, &handle);
+    int32_t ret = HAL_WATCHDOG_init(&config, &handle);
     if (ret != OSAL_SUCCESS) {
         TEST_MESSAGE("SKIPPED: Max timeout not supported");
         return;
     }
 
     uint32_t timeout = 0;
-    ret = HAL_WATCHDOG_GetTimeout(handle, &timeout);
+    ret = HAL_WATCHDOG_get_timeout(handle, &timeout);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
-    HAL_WATCHDOG_Deinit(handle);
+    HAL_WATCHDOG_deinit(handle);
 }
 
 /**
@@ -324,17 +324,17 @@ static void test_hal_watchdog_double_init(void)
         .enable_on_init = false
     };
 
-    int32_t ret = HAL_WATCHDOG_Init(&config, &handle1);
+    int32_t ret = HAL_WATCHDOG_init(&config, &handle1);
     TEST_ASSERT_FALSE(ret != OSAL_SUCCESS);
 
     /* 尝试再次初始化同一设备 */
-    ret = HAL_WATCHDOG_Init(&config, &handle2);
+    ret = HAL_WATCHDOG_init(&config, &handle2);
     /* 某些实现可能允许，某些可能拒绝 */
     if (ret == OSAL_SUCCESS) {
-        HAL_WATCHDOG_Deinit(handle2);
+        HAL_WATCHDOG_deinit(handle2);
     }
 
-    HAL_WATCHDOG_Deinit(handle1);
+    HAL_WATCHDOG_deinit(handle1);
 }
 
 /**
@@ -349,14 +349,14 @@ static void test_hal_watchdog_double_deinit(void)
         .enable_on_init = false
     };
 
-    int32_t ret = HAL_WATCHDOG_Init(&config, &handle);
+    int32_t ret = HAL_WATCHDOG_init(&config, &handle);
     TEST_ASSERT_FALSE(ret != OSAL_SUCCESS);
 
-    ret = HAL_WATCHDOG_Deinit(handle);
+    ret = HAL_WATCHDOG_deinit(handle);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     /* 再次反初始化应失败 */
-    ret = HAL_WATCHDOG_Deinit(handle);
+    ret = HAL_WATCHDOG_deinit(handle);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
 

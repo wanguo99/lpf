@@ -23,7 +23,7 @@ static void test_hal_serial_open_success(void)
         .flow_control = HAL_SERIAL_FLOW_NONE
     };
 
-    int32_t ret = HAL_Serial_Open("/dev/ttyS0", &config, &handle);
+    int32_t ret = HAL_SERIAL_open("/dev/ttyS0", &config, &handle);
     if (OSAL_SUCCESS != ret) {
         TEST_ASSERT_FALSE(true); // /dev/ttyS0 not available
     }
@@ -31,7 +31,7 @@ static void test_hal_serial_open_success(void)
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
     TEST_ASSERT_NOT_NULL(handle);
 
-    HAL_Serial_Close(handle);
+    HAL_SERIAL_close(handle);
 }
 
 /* 测试用例: 串口打开 - 空设备路径 */
@@ -46,7 +46,7 @@ static void test_hal_serial_open_null_device(void)
         .flow_control = HAL_SERIAL_FLOW_NONE
     };
 
-    int32_t ret = HAL_Serial_Open(NULL, &config, &handle);
+    int32_t ret = HAL_SERIAL_open(NULL, &config, &handle);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
 
@@ -55,7 +55,7 @@ static void test_hal_serial_open_null_config(void)
 {
     hal_serial_handle_t handle = NULL;
 
-    int32_t ret = HAL_Serial_Open("/dev/ttyS0", NULL, &handle);
+    int32_t ret = HAL_SERIAL_open("/dev/ttyS0", NULL, &handle);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
 
@@ -70,7 +70,7 @@ static void test_hal_serial_open_null_handle(void)
         .flow_control = HAL_SERIAL_FLOW_NONE
     };
 
-    int32_t ret = HAL_Serial_Open("/dev/ttyS0", &config, NULL);
+    int32_t ret = HAL_SERIAL_open("/dev/ttyS0", &config, NULL);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
 
@@ -86,7 +86,7 @@ static void test_hal_serial_open_invalid_device(void)
         .flow_control = HAL_SERIAL_FLOW_NONE
     };
 
-    int32_t ret = HAL_Serial_Open("/dev/invalid_tty999", &config, &handle);
+    int32_t ret = HAL_SERIAL_open("/dev/invalid_tty999", &config, &handle);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
 
@@ -102,19 +102,19 @@ static void test_hal_serial_close(void)
         .flow_control = HAL_SERIAL_FLOW_NONE
     };
 
-    int32_t ret = HAL_Serial_Open("/dev/ttyS0", &config, &handle);
+    int32_t ret = HAL_SERIAL_open("/dev/ttyS0", &config, &handle);
     if (OSAL_SUCCESS != ret) {
         TEST_ASSERT_FALSE(true); // /dev/ttyS0 not available
     }
 
-    ret = HAL_Serial_Close(handle);
+    ret = HAL_SERIAL_close(handle);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 }
 
 /* 测试用例: 串口关闭 - 空句柄 */
 static void test_hal_serial_close_null_handle(void)
 {
-    int32_t ret = HAL_Serial_Close(NULL);
+    int32_t ret = HAL_SERIAL_close(NULL);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
 
@@ -135,15 +135,15 @@ static void test_hal_serial_write_success(void)
     };
     uint8_t data[] = "Hello Serial";
 
-    int32_t ret = HAL_Serial_Open("/dev/ttyS0", &config, &handle);
+    int32_t ret = HAL_SERIAL_open("/dev/ttyS0", &config, &handle);
     if (OSAL_SUCCESS != ret) {
         TEST_ASSERT_FALSE(true); // /dev/ttyS0 not available
     }
 
-    ret = HAL_Serial_Write(handle, data, OSAL_sizeof(data), 1000);
+    ret = HAL_SERIAL_write(handle, data, OSAL_sizeof(data), 1000);
     TEST_ASSERT_TRUE(ret > 0);
 
-    HAL_Serial_Close(handle);
+    HAL_SERIAL_close(handle);
 }
 
 /* 测试用例: 串口写入 - 空句柄 */
@@ -151,7 +151,7 @@ static void test_hal_serial_write_null_handle(void)
 {
     uint8_t data[] = "test";
 
-    int32_t ret = HAL_Serial_Write(NULL, data, OSAL_sizeof(data), 1000);
+    int32_t ret = HAL_SERIAL_write(NULL, data, OSAL_sizeof(data), 1000);
     TEST_ASSERT_EQUAL(OSAL_ERR_INVALID_POINTER, ret);
 }
 
@@ -167,15 +167,15 @@ static void test_hal_serial_write_null_buffer(void)
         .flow_control = HAL_SERIAL_FLOW_NONE
     };
 
-    int32_t ret = HAL_Serial_Open("/dev/ttyS0", &config, &handle);
+    int32_t ret = HAL_SERIAL_open("/dev/ttyS0", &config, &handle);
     if (OSAL_SUCCESS != ret) {
         TEST_ASSERT_FALSE(true); // /dev/ttyS0 not available
     }
 
-    ret = HAL_Serial_Write(handle, NULL, 10, 1000);
+    ret = HAL_SERIAL_write(handle, NULL, 10, 1000);
     TEST_ASSERT_TRUE(ret < 0);
 
-    HAL_Serial_Close(handle);
+    HAL_SERIAL_close(handle);
 }
 
 /* 测试用例: 串口写入 - 零长度 */
@@ -191,15 +191,15 @@ static void test_hal_serial_write_zero_length(void)
     };
     uint8_t data[] = "test";
 
-    int32_t ret = HAL_Serial_Open("/dev/ttyS0", &config, &handle);
+    int32_t ret = HAL_SERIAL_open("/dev/ttyS0", &config, &handle);
     if (OSAL_SUCCESS != ret) {
         TEST_ASSERT_FALSE(true); // /dev/ttyS0 not available
     }
 
-    ret = HAL_Serial_Write(handle, data, 0, 1000);
+    ret = HAL_SERIAL_write(handle, data, 0, 1000);
     TEST_ASSERT_EQUAL(0, ret);
 
-    HAL_Serial_Close(handle);
+    HAL_SERIAL_close(handle);
 }
 
 /* 测试用例: 串口读取 - 超时 */
@@ -215,15 +215,15 @@ static void test_hal_serial_read_timeout(void)
     };
     uint8_t buffer[64];
 
-    int32_t ret = HAL_Serial_Open("/dev/ttyS0", &config, &handle);
+    int32_t ret = HAL_SERIAL_open("/dev/ttyS0", &config, &handle);
     if (OSAL_SUCCESS != ret) {
         TEST_ASSERT_FALSE(true); // /dev/ttyS0 not available
     }
 
-    ret = HAL_Serial_Read(handle, buffer, OSAL_sizeof(buffer), 100);
+    ret = HAL_SERIAL_read(handle, buffer, OSAL_sizeof(buffer), 100);
     /* 超时或读取到数据都是正常的 */
 
-    HAL_Serial_Close(handle);
+    HAL_SERIAL_close(handle);
 }
 
 /* 测试用例: 串口读取 - 空句柄 */
@@ -231,7 +231,7 @@ static void test_hal_serial_read_null_handle(void)
 {
     uint8_t buffer[64];
 
-    int32_t ret = HAL_Serial_Read(NULL, buffer, OSAL_sizeof(buffer), 100);
+    int32_t ret = HAL_SERIAL_read(NULL, buffer, OSAL_sizeof(buffer), 100);
     TEST_ASSERT_EQUAL(OSAL_ERR_INVALID_POINTER, ret);
 }
 
@@ -247,15 +247,15 @@ static void test_hal_serial_read_null_buffer(void)
         .flow_control = HAL_SERIAL_FLOW_NONE
     };
 
-    int32_t ret = HAL_Serial_Open("/dev/ttyS0", &config, &handle);
+    int32_t ret = HAL_SERIAL_open("/dev/ttyS0", &config, &handle);
     if (OSAL_SUCCESS != ret) {
         TEST_ASSERT_FALSE(true); // /dev/ttyS0 not available
     }
 
-    ret = HAL_Serial_Read(handle, NULL, 64, 100);
+    ret = HAL_SERIAL_read(handle, NULL, 64, 100);
     TEST_ASSERT_TRUE(ret < 0);
 
-    HAL_Serial_Close(handle);
+    HAL_SERIAL_close(handle);
 }
 
 /*===========================================================================
@@ -274,21 +274,21 @@ static void test_hal_serial_flush_success(void)
         .flow_control = HAL_SERIAL_FLOW_NONE
     };
 
-    int32_t ret = HAL_Serial_Open("/dev/ttyS0", &config, &handle);
+    int32_t ret = HAL_SERIAL_open("/dev/ttyS0", &config, &handle);
     if (OSAL_SUCCESS != ret) {
         TEST_ASSERT_FALSE(true); // /dev/ttyS0 not available
     }
 
-    ret = HAL_Serial_Flush(handle);
+    ret = HAL_SERIAL_flush(handle);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
-    HAL_Serial_Close(handle);
+    HAL_SERIAL_close(handle);
 }
 
 /* 测试用例: 刷新缓冲区 - 空句柄 */
 static void test_hal_serial_flush_null_handle(void)
 {
-    int32_t ret = HAL_Serial_Flush(NULL);
+    int32_t ret = HAL_SERIAL_flush(NULL);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
 
@@ -315,15 +315,15 @@ static void test_hal_serial_set_config_success(void)
         .flow_control = HAL_SERIAL_FLOW_NONE
     };
 
-    int32_t ret = HAL_Serial_Open("/dev/ttyS0", &config, &handle);
+    int32_t ret = HAL_SERIAL_open("/dev/ttyS0", &config, &handle);
     if (OSAL_SUCCESS != ret) {
         TEST_ASSERT_FALSE(true); // /dev/ttyS0 not available
     }
 
-    ret = HAL_Serial_SetConfig(handle, &new_config);
+    ret = HAL_SERIAL_set_config(handle, &new_config);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
-    HAL_Serial_Close(handle);
+    HAL_SERIAL_close(handle);
 }
 
 /* 测试用例: 设置配置 - 空句柄 */
@@ -337,7 +337,7 @@ static void test_hal_serial_set_config_null_handle(void)
         .flow_control = HAL_SERIAL_FLOW_NONE
     };
 
-    int32_t ret = HAL_Serial_SetConfig(NULL, &config);
+    int32_t ret = HAL_SERIAL_set_config(NULL, &config);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
 
@@ -353,15 +353,15 @@ static void test_hal_serial_set_config_null_config(void)
         .flow_control = HAL_SERIAL_FLOW_NONE
     };
 
-    int32_t ret = HAL_Serial_Open("/dev/ttyS0", &config, &handle);
+    int32_t ret = HAL_SERIAL_open("/dev/ttyS0", &config, &handle);
     if (OSAL_SUCCESS != ret) {
         TEST_ASSERT_FALSE(true); // /dev/ttyS0 not available
     }
 
-    ret = HAL_Serial_SetConfig(handle, NULL);
+    ret = HAL_SERIAL_set_config(handle, NULL);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 
-    HAL_Serial_Close(handle);
+    HAL_SERIAL_close(handle);
 }
 
 /*===========================================================================
@@ -380,13 +380,13 @@ static void test_hal_serial_different_baudrate(void)
         .flow_control = HAL_SERIAL_FLOW_NONE
     };
 
-    int32_t ret = HAL_Serial_Open("/dev/ttyS0", &config, &handle);
+    int32_t ret = HAL_SERIAL_open("/dev/ttyS0", &config, &handle);
     if (OSAL_SUCCESS != ret) {
         TEST_ASSERT_FALSE(true); // /dev/ttyS0 not available
     }
 
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
-    HAL_Serial_Close(handle);
+    HAL_SERIAL_close(handle);
 }
 
 /* 测试用例: 不同校验位 */
@@ -401,13 +401,13 @@ static void test_hal_serial_different_parity(void)
         .flow_control = HAL_SERIAL_FLOW_NONE
     };
 
-    int32_t ret = HAL_Serial_Open("/dev/ttyS0", &config, &handle);
+    int32_t ret = HAL_SERIAL_open("/dev/ttyS0", &config, &handle);
     if (OSAL_SUCCESS != ret) {
         TEST_ASSERT_FALSE(true); // /dev/ttyS0 not available
     }
 
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
-    HAL_Serial_Close(handle);
+    HAL_SERIAL_close(handle);
 }
 
 /* 测试用例: 不同数据位 */
@@ -422,13 +422,13 @@ static void test_hal_serial_different_databits(void)
         .flow_control = HAL_SERIAL_FLOW_NONE
     };
 
-    int32_t ret = HAL_Serial_Open("/dev/ttyS0", &config, &handle);
+    int32_t ret = HAL_SERIAL_open("/dev/ttyS0", &config, &handle);
     if (OSAL_SUCCESS != ret) {
         TEST_ASSERT_FALSE(true); // /dev/ttyS0 not available
     }
 
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
-    HAL_Serial_Close(handle);
+    HAL_SERIAL_close(handle);
 }
 
 /* 测试用例: 不同停止位 */
@@ -443,23 +443,23 @@ static void test_hal_serial_different_stopbits(void)
         .flow_control = HAL_SERIAL_FLOW_NONE
     };
 
-    int32_t ret = HAL_Serial_Open("/dev/ttyS0", &config, &handle);
+    int32_t ret = HAL_SERIAL_open("/dev/ttyS0", &config, &handle);
     if (OSAL_SUCCESS != ret) {
         TEST_ASSERT_FALSE(true); // /dev/ttyS0 not available
     }
 
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
-    HAL_Serial_Close(handle);
+    HAL_SERIAL_close(handle);
 
     /* 测试1个停止位 */
     config.stop_bits = 1;
-    ret = HAL_Serial_Open("/dev/ttyS0", &config, &handle);
+    ret = HAL_SERIAL_open("/dev/ttyS0", &config, &handle);
     if (OSAL_SUCCESS != ret) {
         TEST_ASSERT_FALSE(true); // /dev/ttyS0 not available
     }
 
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
-    HAL_Serial_Close(handle);
+    HAL_SERIAL_close(handle);
 }
 
 /* 测试用例: 硬件流控 */
@@ -474,7 +474,7 @@ static void test_hal_serial_hardware_flow_control(void)
         .flow_control = HAL_SERIAL_FLOW_HW
     };
 
-    int32_t ret = HAL_Serial_Open("/dev/ttyS0", &config, &handle);
+    int32_t ret = HAL_SERIAL_open("/dev/ttyS0", &config, &handle);
     if (OSAL_SUCCESS != ret) {
         TEST_MESSAGE("SKIPPED: Hardware flow control not available");
         return;
@@ -484,10 +484,10 @@ static void test_hal_serial_hardware_flow_control(void)
 
     /* 尝试写入数据 */
     uint8_t data[] = "Test HW Flow";
-    ret = HAL_Serial_Write(handle, data, sizeof(data), 1000);
+    ret = HAL_SERIAL_write(handle, data, sizeof(data), 1000);
     TEST_ASSERT_TRUE(ret >= 0);
 
-    HAL_Serial_Close(handle);
+    HAL_SERIAL_close(handle);
 }
 
 /* 测试用例: 软件流控 */
@@ -502,7 +502,7 @@ static void test_hal_serial_software_flow_control(void)
         .flow_control = HAL_SERIAL_FLOW_SW
     };
 
-    int32_t ret = HAL_Serial_Open("/dev/ttyS0", &config, &handle);
+    int32_t ret = HAL_SERIAL_open("/dev/ttyS0", &config, &handle);
     if (OSAL_SUCCESS != ret) {
         TEST_MESSAGE("SKIPPED: Software flow control not available");
         return;
@@ -512,10 +512,10 @@ static void test_hal_serial_software_flow_control(void)
 
     /* 尝试写入数据 */
     uint8_t data[] = "Test SW Flow";
-    ret = HAL_Serial_Write(handle, data, sizeof(data), 1000);
+    ret = HAL_SERIAL_write(handle, data, sizeof(data), 1000);
     TEST_ASSERT_TRUE(ret >= 0);
 
-    HAL_Serial_Close(handle);
+    HAL_SERIAL_close(handle);
 }
 
 /* 测试用例: 边界值测试 - 最大波特率 */
@@ -530,14 +530,14 @@ static void test_hal_serial_max_baudrate(void)
         .flow_control = HAL_SERIAL_FLOW_NONE
     };
 
-    int32_t ret = HAL_Serial_Open("/dev/ttyS0", &config, &handle);
+    int32_t ret = HAL_SERIAL_open("/dev/ttyS0", &config, &handle);
     if (OSAL_SUCCESS != ret) {
         TEST_MESSAGE("SKIPPED: Max baud rate not supported");
         return;
     }
 
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
-    HAL_Serial_Close(handle);
+    HAL_SERIAL_close(handle);
 }
 
 /* 测试用例: 边界值测试 - 最小波特率 */
@@ -552,14 +552,14 @@ static void test_hal_serial_min_baudrate(void)
         .flow_control = HAL_SERIAL_FLOW_NONE
     };
 
-    int32_t ret = HAL_Serial_Open("/dev/ttyS0", &config, &handle);
+    int32_t ret = HAL_SERIAL_open("/dev/ttyS0", &config, &handle);
     if (OSAL_SUCCESS != ret) {
         TEST_MESSAGE("SKIPPED: Min baud rate not supported");
         return;
     }
 
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
-    HAL_Serial_Close(handle);
+    HAL_SERIAL_close(handle);
 }
 
 /* 测试用例: 大数据写入 */
@@ -574,7 +574,7 @@ static void test_hal_serial_large_write(void)
         .flow_control = HAL_SERIAL_FLOW_NONE
     };
 
-    int32_t ret = HAL_Serial_Open("/dev/ttyS0", &config, &handle);
+    int32_t ret = HAL_SERIAL_open("/dev/ttyS0", &config, &handle);
     if (OSAL_SUCCESS != ret) {
         TEST_ASSERT_FALSE(true); // /dev/ttyS0 not available
     }
@@ -585,10 +585,10 @@ static void test_hal_serial_large_write(void)
         large_data[i] = (uint8_t)(i & 0xFF);
     }
 
-    ret = HAL_Serial_Write(handle, large_data, sizeof(large_data), 5000);
+    ret = HAL_SERIAL_write(handle, large_data, sizeof(large_data), 5000);
     TEST_ASSERT_TRUE(ret > 0);
 
-    HAL_Serial_Close(handle);
+    HAL_SERIAL_close(handle);
 }
 
 /* 测试用例: 非阻塞读取 */
@@ -604,17 +604,17 @@ static void test_hal_serial_nonblocking_read(void)
     };
     uint8_t buffer[64];
 
-    int32_t ret = HAL_Serial_Open("/dev/ttyS0", &config, &handle);
+    int32_t ret = HAL_SERIAL_open("/dev/ttyS0", &config, &handle);
     if (OSAL_SUCCESS != ret) {
         TEST_ASSERT_FALSE(true); // /dev/ttyS0 not available
     }
 
     /* 非阻塞读取 (timeout = 0) */
-    ret = HAL_Serial_Read(handle, buffer, sizeof(buffer), 0);
+    ret = HAL_SERIAL_read(handle, buffer, sizeof(buffer), 0);
     /* 应该立即返回，可能返回0或负数 */
     TEST_ASSERT_TRUE(ret >= 0 || ret == OSAL_ERR_TIMEOUT);
 
-    HAL_Serial_Close(handle);
+    HAL_SERIAL_close(handle);
 }
 
 /*===========================================================================

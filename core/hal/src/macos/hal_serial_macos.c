@@ -10,7 +10,7 @@
 #include "hal.h"
 #include "osal.h"
 
-int32_t HAL_Serial_Open(const char *device, const hal_serial_config_t *config,
+int32_t HAL_SERIAL_open(const char *device, const hal_serial_config_t *config,
                       hal_serial_handle_t *handle)
 {
     (void)device;
@@ -19,13 +19,13 @@ int32_t HAL_Serial_Open(const char *device, const hal_serial_config_t *config,
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_Serial_Close(hal_serial_handle_t handle)
+int32_t HAL_SERIAL_close(hal_serial_handle_t handle)
 {
     (void)handle;
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_Serial_Write(hal_serial_handle_t handle, const void *buffer,
+int32_t HAL_SERIAL_write(hal_serial_handle_t handle, const void *buffer,
                        uint32_t size, int32_t timeout)
 {
     (void)handle;
@@ -35,7 +35,7 @@ int32_t HAL_Serial_Write(hal_serial_handle_t handle, const void *buffer,
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_Serial_Read(hal_serial_handle_t handle, void *buffer,
+int32_t HAL_SERIAL_read(hal_serial_handle_t handle, void *buffer,
                       uint32_t size, int32_t timeout)
 {
     (void)handle;
@@ -45,13 +45,13 @@ int32_t HAL_Serial_Read(hal_serial_handle_t handle, void *buffer,
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_Serial_Flush(hal_serial_handle_t handle)
+int32_t HAL_SERIAL_flush(hal_serial_handle_t handle)
 {
     (void)handle;
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_Serial_SetConfig(hal_serial_handle_t handle,
+int32_t HAL_SERIAL_set_config(hal_serial_handle_t handle,
                            const hal_serial_config_t *config)
 {
     (void)handle;

@@ -10,20 +10,20 @@
 #include "osal.h"
 #include "hal.h"
 
-int32_t HAL_I2C_Open(const hal_i2c_config_t *config, hal_i2c_handle_t *handle)
+int32_t HAL_I2C_open(const hal_i2c_config_t *config, hal_i2c_handle_t *handle)
 {
     (void)config;
     (void)handle;
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_I2C_Close(hal_i2c_handle_t handle)
+int32_t HAL_I2C_close(hal_i2c_handle_t handle)
 {
     (void)handle;
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_I2C_Write(hal_i2c_handle_t handle, uint16_t slave_addr,
+int32_t HAL_I2C_write(hal_i2c_handle_t handle, uint16_t slave_addr,
                       const uint8_t *buffer, uint32_t size)
 {
     (void)handle;
@@ -33,7 +33,7 @@ int32_t HAL_I2C_Write(hal_i2c_handle_t handle, uint16_t slave_addr,
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_I2C_Read(hal_i2c_handle_t handle, uint16_t slave_addr,
+int32_t HAL_I2C_read(hal_i2c_handle_t handle, uint16_t slave_addr,
                      uint8_t *buffer, uint32_t size)
 {
     (void)handle;
@@ -43,7 +43,7 @@ int32_t HAL_I2C_Read(hal_i2c_handle_t handle, uint16_t slave_addr,
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_I2C_WriteReg(hal_i2c_handle_t handle, uint16_t slave_addr,
+int32_t HAL_I2C_write_reg(hal_i2c_handle_t handle, uint16_t slave_addr,
                          uint8_t reg_addr, const uint8_t *buffer, uint32_t size)
 {
     (void)handle;
@@ -54,7 +54,7 @@ int32_t HAL_I2C_WriteReg(hal_i2c_handle_t handle, uint16_t slave_addr,
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_I2C_ReadReg(hal_i2c_handle_t handle, uint16_t slave_addr,
+int32_t HAL_I2C_read_reg(hal_i2c_handle_t handle, uint16_t slave_addr,
                         uint8_t reg_addr, uint8_t *buffer, uint32_t size)
 {
     (void)handle;
@@ -65,7 +65,7 @@ int32_t HAL_I2C_ReadReg(hal_i2c_handle_t handle, uint16_t slave_addr,
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_I2C_Transfer(hal_i2c_handle_t handle, i2c_msg_t *msgs, uint32_t num)
+int32_t HAL_I2C_transfer(hal_i2c_handle_t handle, i2c_msg_t *msgs, uint32_t num)
 {
     (void)handle;
     (void)msgs;

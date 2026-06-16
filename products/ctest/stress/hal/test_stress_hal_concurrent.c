@@ -85,7 +85,7 @@ static void* serial_worker_thread(void *arg)
 			buffer[i] = (uint8_t)(iteration + i);
 		}
 
-		ret = HAL_Serial_Write(ctx->serial_handle, buffer, sizeof(buffer), 100);
+		ret = HAL_SERIAL_write(ctx->serial_handle, buffer, sizeof(buffer), 100);
 		if (ret > 0) {
 			OSAL_atomic_fetch_add(&ctx->serial_counter, (uint32_t)ret);
 		}
@@ -116,7 +116,7 @@ static void* spi_worker_thread(void *arg)
 			tx_buffer[i] = (uint8_t)(iteration + i);
 		}
 
-		ret = HAL_SPI_Transfer(ctx->spi_handle, tx_buffer, rx_buffer, sizeof(tx_buffer));
+		ret = HAL_SPI_transfer(ctx->spi_handle, tx_buffer, rx_buffer, sizeof(tx_buffer));
 		if (ret == OSAL_SUCCESS) {
 			OSAL_atomic_inc(&ctx->spi_counter);
 		}
@@ -146,7 +146,7 @@ static void* i2c_worker_thread(void *arg)
 			data[i] = (uint8_t)(iteration + i);
 		}
 
-		ret = HAL_I2C_Write(ctx->i2c_handle, 0x50, data, sizeof(data));
+		ret = HAL_I2C_write(ctx->i2c_handle, 0x50, data, sizeof(data));
 		if (ret == OSAL_SUCCESS || ret == OSAL_ERR_TIMEOUT || ret == OSAL_EIO) {
 			OSAL_atomic_inc(&ctx->i2c_counter);
 		}
@@ -173,7 +173,7 @@ static void* gpio_worker_thread(void *arg)
 	while (!ctx->stop_flag) {
 		hal_gpio_level_t level = (iteration % 2) ? HAL_GPIO_LEVEL_HIGH : HAL_GPIO_LEVEL_LOW;
 
-		ret = HAL_GPIO_SetLevel(ctx->gpio_pin, level);
+		ret = HAL_GPIO_set_level(ctx->gpio_pin, level);
 		if (ret == OSAL_SUCCESS) {
 			OSAL_atomic_inc(&ctx->gpio_counter);
 		}
@@ -197,7 +197,7 @@ static void* watchdog_worker_thread(void *arg)
 	OSAL_printf("[ INFO ] Watchdog worker started\n");
 
 	while (!ctx->stop_flag) {
-		ret = HAL_WATCHDOG_Kick(ctx->watchdog_handle);
+		ret = HAL_WATCHDOG_kick(ctx->watchdog_handle);
 		if (ret == OSAL_SUCCESS) {
 			OSAL_atomic_inc(&ctx->watchdog_counter);
 		}
@@ -252,7 +252,7 @@ static void test_stress_hal_all_drivers_concurrent(void)
 		.parity = HAL_SERIAL_PARITY_NONE,
 		.flow_control = 0
 	};
-	ret = HAL_Serial_Open("/dev/ttyUSB0", &serial_config, &ctx.serial_handle);
+	ret = HAL_SERIAL_open("/dev/ttyUSB0", &serial_config, &ctx.serial_handle);
 	if (ret == OSAL_SUCCESS) {
 		active_drivers++;
 		OSAL_printf("[ INFO ] Serial driver initialized\n");
@@ -266,7 +266,7 @@ static void test_stress_hal_all_drivers_concurrent(void)
 		.max_speed_hz = 1000000,
 		.timeout = 1000
 	};
-	ret = HAL_SPI_Open(&spi_config, &ctx.spi_handle);
+	ret = HAL_SPI_open(&spi_config, &ctx.spi_handle);
 	if (ret == OSAL_SUCCESS) {
 		active_drivers++;
 		OSAL_printf("[ INFO ] SPI driver initialized\n");
@@ -277,7 +277,7 @@ static void test_stress_hal_all_drivers_concurrent(void)
 		.device = "/dev/i2c-0",
 		.timeout = 1000
 	};
-	ret = HAL_I2C_Open(&i2c_config, &ctx.i2c_handle);
+	ret = HAL_I2C_open(&i2c_config, &ctx.i2c_handle);
 	if (ret == OSAL_SUCCESS) {
 		active_drivers++;
 		OSAL_printf("[ INFO ] I2C driver initialized\n");
@@ -292,7 +292,7 @@ static void test_stress_hal_all_drivers_concurrent(void)
 		.callback = NULL,
 		.user_data = NULL
 	};
-	ret = HAL_GPIO_Init(ctx.gpio_pin, &gpio_config);
+	ret = HAL_GPIO_init(ctx.gpio_pin, &gpio_config);
 	if (ret == OSAL_SUCCESS) {
 		active_drivers++;
 		OSAL_printf("[ INFO ] GPIO driver initialized\n");
@@ -304,9 +304,9 @@ static void test_stress_hal_all_drivers_concurrent(void)
 		.timeout_sec = 10,
 		.enable_on_init = false
 	};
-	ret = HAL_WATCHDOG_Init(&watchdog_config, &ctx.watchdog_handle);
+	ret = HAL_WATCHDOG_init(&watchdog_config, &ctx.watchdog_handle);
 	if (ret == OSAL_SUCCESS) {
-		HAL_WATCHDOG_Enable(ctx.watchdog_handle);
+		HAL_WATCHDOG_enable(ctx.watchdog_handle);
 		active_drivers++;
 		OSAL_printf("[ INFO ] Watchdog driver initialized\n");
 	}
@@ -404,20 +404,20 @@ static void test_stress_hal_all_drivers_concurrent(void)
 cleanup:
 	/* Cleanup drivers */
 	if (ctx.watchdog_handle) {
-		HAL_WATCHDOG_Disable(ctx.watchdog_handle);
-		HAL_WATCHDOG_Deinit(ctx.watchdog_handle);
+		HAL_WATCHDOG_disable(ctx.watchdog_handle);
+		HAL_WATCHDOG_deinit(ctx.watchdog_handle);
 	}
 	if (ctx.gpio_pin) {
-		HAL_GPIO_Deinit(ctx.gpio_pin);
+		HAL_GPIO_deinit(ctx.gpio_pin);
 	}
 	if (ctx.i2c_handle) {
-		HAL_I2C_Close(ctx.i2c_handle);
+		HAL_I2C_close(ctx.i2c_handle);
 	}
 	if (ctx.spi_handle) {
-		HAL_SPI_Close(ctx.spi_handle);
+		HAL_SPI_close(ctx.spi_handle);
 	}
 	if (ctx.serial_handle) {
-		HAL_Serial_Close(ctx.serial_handle);
+		HAL_SERIAL_close(ctx.serial_handle);
 	}
 	if (ctx.can_handle) {
 		HAL_CAN_deinit(ctx.can_handle);

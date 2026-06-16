@@ -10,48 +10,48 @@
 #include "hal.h"
 #include "osal.h"
 
-int32_t HAL_GPIO_Init(uint32_t gpio_num, const hal_gpio_config_t *config)
+int32_t HAL_GPIO_init(uint32_t gpio_num, const hal_gpio_config_t *config)
 {
     (void)gpio_num;
     (void)config;
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_GPIO_Deinit(uint32_t gpio_num)
+int32_t HAL_GPIO_deinit(uint32_t gpio_num)
 {
     (void)gpio_num;
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_GPIO_SetDirection(uint32_t gpio_num, hal_gpio_direction_t direction)
-{
-    (void)gpio_num;
-    (void)direction;
-    return OSAL_ERR_NOT_IMPLEMENTED;
-}
-
-int32_t HAL_GPIO_GetDirection(uint32_t gpio_num, hal_gpio_direction_t *direction)
+int32_t HAL_GPIO_set_direction(uint32_t gpio_num, hal_gpio_direction_t direction)
 {
     (void)gpio_num;
     (void)direction;
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_GPIO_SetLevel(uint32_t gpio_num, hal_gpio_level_t level)
+int32_t HAL_GPIO_get_direction(uint32_t gpio_num, hal_gpio_direction_t *direction)
+{
+    (void)gpio_num;
+    (void)direction;
+    return OSAL_ERR_NOT_IMPLEMENTED;
+}
+
+int32_t HAL_GPIO_set_level(uint32_t gpio_num, hal_gpio_level_t level)
 {
     (void)gpio_num;
     (void)level;
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_GPIO_GetLevel(uint32_t gpio_num, hal_gpio_level_t *level)
+int32_t HAL_GPIO_get_level(uint32_t gpio_num, hal_gpio_level_t *level)
 {
     (void)gpio_num;
     (void)level;
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_GPIO_SetInterrupt(uint32_t gpio_num, hal_gpio_edge_t edge,
+int32_t HAL_GPIO_set_interrupt(uint32_t gpio_num, hal_gpio_edge_t edge,
                                hal_gpio_isr_callback_t callback, void *user_data)
 {
     (void)gpio_num;
@@ -61,13 +61,13 @@ int32_t HAL_GPIO_SetInterrupt(uint32_t gpio_num, hal_gpio_edge_t edge,
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_GPIO_EnableInterrupt(uint32_t gpio_num)
+int32_t HAL_GPIO_enable_interrupt(uint32_t gpio_num)
 {
     (void)gpio_num;
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_GPIO_DisableInterrupt(uint32_t gpio_num)
+int32_t HAL_GPIO_disable_interrupt(uint32_t gpio_num)
 {
     (void)gpio_num;
     return OSAL_ERR_NOT_IMPLEMENTED;

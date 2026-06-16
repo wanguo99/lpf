@@ -183,7 +183,7 @@ int32_t bmc_transport_serial_init(const char *device, uint32_t baudrate, uint32_
     serial_config.stop_bits = 1;
     serial_config.parity = HAL_SERIAL_PARITY_NONE;
 
-    if (OSAL_SUCCESS != HAL_Serial_Open(device, &serial_config, &ctx->serial_handle))
+    if (OSAL_SUCCESS != HAL_SERIAL_open(device, &serial_config, &ctx->serial_handle))
     {
         OSAL_free(ctx);
         return OSAL_ERR_GENERIC;
@@ -207,7 +207,7 @@ int32_t bmc_transport_serial_deinit(void *handle)
 
     ctx = (bmc_transport_serial_context_t *)handle;
 
-    HAL_Serial_Close(ctx->serial_handle);
+    HAL_SERIAL_close(ctx->serial_handle);
     OSAL_free(ctx);
 
     return OSAL_SUCCESS;
@@ -234,7 +234,7 @@ int32_t bmc_transport_serial_send_recv(void *handle,
     ctx = (bmc_transport_serial_context_t *)handle;
 
     /* 发送请求 */
-    if (HAL_Serial_Write(ctx->serial_handle, request, req_size, ctx->timeout_ms) != (int32_t)req_size)
+    if (HAL_SERIAL_write(ctx->serial_handle, request, req_size, ctx->timeout_ms) != (int32_t)req_size)
     {
         return OSAL_ERR_GENERIC;
     }
@@ -242,7 +242,7 @@ int32_t bmc_transport_serial_send_recv(void *handle,
     /* 接收响应 */
     if (NULL != response && resp_size > 0)
     {
-        recv_len = HAL_Serial_Read(ctx->serial_handle, response, resp_size, ctx->timeout_ms);
+        recv_len = HAL_SERIAL_read(ctx->serial_handle, response, resp_size, ctx->timeout_ms);
         if (recv_len < 0)
         {
             return OSAL_ERR_GENERIC;

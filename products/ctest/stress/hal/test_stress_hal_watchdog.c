@@ -35,7 +35,7 @@ static int32_t watchdog_rapid_kick_worker(void *user_data, uint32_t iteration)
 	int32_t ret;
 
 	/* Kick watchdog */
-	ret = HAL_WATCHDOG_Kick(ctx->handle);
+	ret = HAL_WATCHDOG_kick(ctx->handle);
 	if (ret == OSAL_SUCCESS) {
 		OSAL_atomic_inc(ctx->kick_counter);
 	}
@@ -69,7 +69,7 @@ static void test_stress_watchdog_rapid_kick(void)
 	           WATCHDOG_STRESS_DURATION, WATCHDOG_STRESS_TIMEOUT_SEC);
 
 	/* Initialize watchdog */
-	ret = HAL_WATCHDOG_Init(&config, &handle);
+	ret = HAL_WATCHDOG_init(&config, &handle);
 	if (ret != OSAL_SUCCESS) {
 		OSAL_printf("[ SKIP ] Watchdog device not available\n");
 		TEST_SKIP("Watchdog not available");
@@ -77,7 +77,7 @@ static void test_stress_watchdog_rapid_kick(void)
 	}
 
 	/* Enable watchdog */
-	ret = HAL_WATCHDOG_Enable(handle);
+	ret = HAL_WATCHDOG_enable(handle);
 	TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
 	/* Initialize counter */
@@ -120,8 +120,8 @@ static void test_stress_watchdog_rapid_kick(void)
 
 	/* Cleanup */
 	stress_context_destroy(stress_ctx);
-	HAL_WATCHDOG_Disable(handle);
-	HAL_WATCHDOG_Deinit(handle);
+	HAL_WATCHDOG_disable(handle);
+	HAL_WATCHDOG_deinit(handle);
 
 	OSAL_printf("[ PASS ] Watchdog rapid kick stress test completed\n");
 }
@@ -148,7 +148,7 @@ static void test_stress_watchdog_timeout_edge_cases(void)
 	OSAL_printf("[ INFO ] Starting watchdog timeout edge cases stress test\n");
 
 	/* Initialize watchdog */
-	ret = HAL_WATCHDOG_Init(&config, &handle);
+	ret = HAL_WATCHDOG_init(&config, &handle);
 	if (ret != OSAL_SUCCESS) {
 		OSAL_printf("[ SKIP ] Watchdog device not available\n");
 		TEST_SKIP("Watchdog not available");
@@ -156,7 +156,7 @@ static void test_stress_watchdog_timeout_edge_cases(void)
 	}
 
 	/* Enable watchdog */
-	ret = HAL_WATCHDOG_Enable(handle);
+	ret = HAL_WATCHDOG_enable(handle);
 	TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
 	/* Test various timeout values */
@@ -166,20 +166,20 @@ static void test_stress_watchdog_timeout_edge_cases(void)
 		OSAL_printf("[ INFO ] Testing timeout: %u ms\n", test_timeouts[i]);
 
 		/* Set new timeout */
-		ret = HAL_WATCHDOG_SetTimeout(handle, test_timeouts[i]);
+		ret = HAL_WATCHDOG_set_timeout(handle, test_timeouts[i]);
 		TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
 		/* Read back timeout */
-		ret = HAL_WATCHDOG_GetTimeout(handle, &timeout_ms);
+		ret = HAL_WATCHDOG_get_timeout(handle, &timeout_ms);
 		TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 		OSAL_printf("         Configured timeout: %u ms\n", timeout_ms);
 
 		/* Kick watchdog */
-		ret = HAL_WATCHDOG_Kick(handle);
+		ret = HAL_WATCHDOG_kick(handle);
 		TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
 		/* Check time left */
-		ret = HAL_WATCHDOG_GetTimeleft(handle, &timeleft_ms);
+		ret = HAL_WATCHDOG_get_timeleft(handle, &timeleft_ms);
 		if (ret == OSAL_SUCCESS) {
 			OSAL_printf("         Time left: %u ms\n", timeleft_ms);
 			/* Time left should be close to timeout */
@@ -191,13 +191,13 @@ static void test_stress_watchdog_timeout_edge_cases(void)
 		OSAL_usleep(timeout_ms / 2 * 1000);
 
 		/* Kick again to prevent reset */
-		ret = HAL_WATCHDOG_Kick(handle);
+		ret = HAL_WATCHDOG_kick(handle);
 		TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 	}
 
 	/* Cleanup */
-	HAL_WATCHDOG_Disable(handle);
-	HAL_WATCHDOG_Deinit(handle);
+	HAL_WATCHDOG_disable(handle);
+	HAL_WATCHDOG_deinit(handle);
 
 	OSAL_printf("[ PASS ] Watchdog timeout edge cases stress test completed\n");
 }
@@ -224,7 +224,7 @@ static void test_stress_watchdog_concurrent_config(void)
 	OSAL_printf("         Iterations: %u\n", iterations);
 
 	/* Initialize watchdog */
-	ret = HAL_WATCHDOG_Init(&config, &handle);
+	ret = HAL_WATCHDOG_init(&config, &handle);
 	if (ret != OSAL_SUCCESS) {
 		OSAL_printf("[ SKIP ] Watchdog device not available\n");
 		TEST_SKIP("Watchdog not available");
@@ -232,7 +232,7 @@ static void test_stress_watchdog_concurrent_config(void)
 	}
 
 	/* Enable watchdog */
-	ret = HAL_WATCHDOG_Enable(handle);
+	ret = HAL_WATCHDOG_enable(handle);
 	TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
 	/* Rapidly change timeout and kick */
@@ -240,11 +240,11 @@ static void test_stress_watchdog_concurrent_config(void)
 		uint32_t new_timeout = 2000 + ((i % 5) * 1000);
 
 		/* Change timeout */
-		ret = HAL_WATCHDOG_SetTimeout(handle, new_timeout);
+		ret = HAL_WATCHDOG_set_timeout(handle, new_timeout);
 		TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
 		/* Kick watchdog */
-		ret = HAL_WATCHDOG_Kick(handle);
+		ret = HAL_WATCHDOG_kick(handle);
 		TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
 		/* Small delay */
@@ -257,8 +257,8 @@ static void test_stress_watchdog_concurrent_config(void)
 	}
 
 	/* Cleanup */
-	HAL_WATCHDOG_Disable(handle);
-	HAL_WATCHDOG_Deinit(handle);
+	HAL_WATCHDOG_disable(handle);
+	HAL_WATCHDOG_deinit(handle);
 
 	OSAL_printf("[ PASS ] Watchdog concurrent config stress test completed\n");
 }
@@ -294,7 +294,7 @@ static void* watchdog_kicker_thread(void *arg)
 	int32_t ret;
 
 	while (!ctx->stop_flag) {
-		ret = HAL_WATCHDOG_Kick(ctx->handle);
+		ret = HAL_WATCHDOG_kick(ctx->handle);
 		if (ret == OSAL_SUCCESS) {
 			OSAL_atomic_inc(ctx->kick_counter);
 		}
@@ -329,7 +329,7 @@ static void test_stress_watchdog_under_load(void)
 	OSAL_printf("         Duration: %u sec\n", test_duration_sec);
 
 	/* Initialize watchdog */
-	ret = HAL_WATCHDOG_Init(&config, &handle);
+	ret = HAL_WATCHDOG_init(&config, &handle);
 	if (ret != OSAL_SUCCESS) {
 		OSAL_printf("[ SKIP ] Watchdog device not available\n");
 		TEST_SKIP("Watchdog not available");
@@ -337,7 +337,7 @@ static void test_stress_watchdog_under_load(void)
 	}
 
 	/* Enable watchdog */
-	ret = HAL_WATCHDOG_Enable(handle);
+	ret = HAL_WATCHDOG_enable(handle);
 	TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
 	/* Setup kick context */
@@ -379,8 +379,8 @@ static void test_stress_watchdog_under_load(void)
 	TEST_ASSERT_TRUE(total_kicks >= (uint64_t)(test_duration_sec * 0.8));
 
 	/* Cleanup */
-	HAL_WATCHDOG_Disable(handle);
-	HAL_WATCHDOG_Deinit(handle);
+	HAL_WATCHDOG_disable(handle);
+	HAL_WATCHDOG_deinit(handle);
 
 	OSAL_printf("[ PASS ] Watchdog under CPU load stress test completed\n");
 }

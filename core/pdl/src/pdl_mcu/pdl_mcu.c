@@ -560,10 +560,10 @@ int32_t PDL_MCU_TestCall(uint32_t index)
 		break;
 
 	case PCONFIG_MCU_INTERFACE_SERIAL:
-		LOG_INFO("PDL_MCU", "Calling HAL_Serial_TestCall...");
+		LOG_INFO("PDL_MCU", "Calling HAL_SERIAL_test_call...");
 		LOG_INFO("PDL_MCU", "Serial Device: %s", config->hw.serial.device);
 		LOG_INFO("PDL_MCU", "Serial Baudrate: %u", config->hw.serial.baudrate);
-		ret = HAL_Serial_TestCall(NULL);
+		ret = HAL_SERIAL_test_call(NULL);
 		break;
 
 	default:

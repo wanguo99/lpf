@@ -222,7 +222,7 @@ static void* gpio_isr_thread(void *arg)
  * GPIO API实现
  *===========================================================================*/
 
-int32_t HAL_GPIO_Init(uint32_t gpio_num, const hal_gpio_config_t *config)
+int32_t HAL_GPIO_init(uint32_t gpio_num, const hal_gpio_config_t *config)
 {
     int32_t ret;
 
@@ -257,7 +257,7 @@ int32_t HAL_GPIO_Init(uint32_t gpio_num, const hal_gpio_config_t *config)
     OSAL_msleep(100);  /* 100ms */
 
     /* 设置方向 */
-    ret = HAL_GPIO_SetDirection(gpio_num, config->direction);
+    ret = HAL_GPIO_set_direction(gpio_num, config->direction);
     if (ret != OSAL_SUCCESS) {
         gpio_unexport(gpio_num);
         OSAL_pthread_mutex_unlock(&gpio_isr_mutex);
@@ -267,7 +267,7 @@ int32_t HAL_GPIO_Init(uint32_t gpio_num, const hal_gpio_config_t *config)
 
     /* 如果是输出模式，设置初始电平 */
     if (config->direction == HAL_GPIO_DIR_OUTPUT) {
-        ret = HAL_GPIO_SetLevel(gpio_num, config->initial_level);
+        ret = HAL_GPIO_set_level(gpio_num, config->initial_level);
         if (ret != OSAL_SUCCESS) {
             gpio_unexport(gpio_num);
             OSAL_pthread_mutex_unlock(&gpio_isr_mutex);
@@ -278,7 +278,7 @@ int32_t HAL_GPIO_Init(uint32_t gpio_num, const hal_gpio_config_t *config)
 
     /* 配置中断 */
     if (config->edge != HAL_GPIO_EDGE_NONE && config->callback) {
-        ret = HAL_GPIO_SetInterrupt(gpio_num, config->edge, config->callback, config->user_data);
+        ret = HAL_GPIO_set_interrupt(gpio_num, config->edge, config->callback, config->user_data);
         if (ret != OSAL_SUCCESS) {
             gpio_unexport(gpio_num);
             OSAL_pthread_mutex_unlock(&gpio_isr_mutex);
@@ -293,7 +293,7 @@ int32_t HAL_GPIO_Init(uint32_t gpio_num, const hal_gpio_config_t *config)
     return OSAL_SUCCESS;
 }
 
-int32_t HAL_GPIO_Deinit(uint32_t gpio_num)
+int32_t HAL_GPIO_deinit(uint32_t gpio_num)
 {
     int32_t ret;
 
@@ -335,7 +335,7 @@ int32_t HAL_GPIO_Deinit(uint32_t gpio_num)
     return ret;
 }
 
-int32_t HAL_GPIO_SetDirection(uint32_t gpio_num, hal_gpio_direction_t direction)
+int32_t HAL_GPIO_set_direction(uint32_t gpio_num, hal_gpio_direction_t direction)
 {
     char path[256];
     const char *dir_str;
@@ -365,7 +365,7 @@ int32_t HAL_GPIO_SetDirection(uint32_t gpio_num, hal_gpio_direction_t direction)
     return ret;
 }
 
-int32_t HAL_GPIO_GetDirection(uint32_t gpio_num, hal_gpio_direction_t *direction)
+int32_t HAL_GPIO_get_direction(uint32_t gpio_num, hal_gpio_direction_t *direction)
 {
     char path[256];
     char buffer[16];
@@ -400,7 +400,7 @@ int32_t HAL_GPIO_GetDirection(uint32_t gpio_num, hal_gpio_direction_t *direction
     return OSAL_SUCCESS;
 }
 
-int32_t HAL_GPIO_SetLevel(uint32_t gpio_num, hal_gpio_level_t level)
+int32_t HAL_GPIO_set_level(uint32_t gpio_num, hal_gpio_level_t level)
 {
     char path[256];
     const char *level_str;
@@ -430,7 +430,7 @@ int32_t HAL_GPIO_SetLevel(uint32_t gpio_num, hal_gpio_level_t level)
     return ret;
 }
 
-int32_t HAL_GPIO_GetLevel(uint32_t gpio_num, hal_gpio_level_t *level)
+int32_t HAL_GPIO_get_level(uint32_t gpio_num, hal_gpio_level_t *level)
 {
     char path[256];
     char buffer[4];
@@ -465,7 +465,7 @@ int32_t HAL_GPIO_GetLevel(uint32_t gpio_num, hal_gpio_level_t *level)
     return OSAL_SUCCESS;
 }
 
-int32_t HAL_GPIO_SetInterrupt(uint32_t gpio_num, hal_gpio_edge_t edge,
+int32_t HAL_GPIO_set_interrupt(uint32_t gpio_num, hal_gpio_edge_t edge,
                                hal_gpio_isr_callback_t callback, void *user_data)
 {
     char path[256];
@@ -552,7 +552,7 @@ int32_t HAL_GPIO_SetInterrupt(uint32_t gpio_num, hal_gpio_edge_t edge,
     return OSAL_SUCCESS;
 }
 
-int32_t HAL_GPIO_EnableInterrupt(uint32_t gpio_num)
+int32_t HAL_GPIO_enable_interrupt(uint32_t gpio_num)
 {
     int32_t ret;
 
@@ -580,7 +580,7 @@ int32_t HAL_GPIO_EnableInterrupt(uint32_t gpio_num)
     return OSAL_SUCCESS;
 }
 
-int32_t HAL_GPIO_DisableInterrupt(uint32_t gpio_num)
+int32_t HAL_GPIO_disable_interrupt(uint32_t gpio_num)
 {
     int32_t ret;
 

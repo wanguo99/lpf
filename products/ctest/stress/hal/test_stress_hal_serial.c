@@ -55,7 +55,7 @@ static int32_t serial_continuous_tx_worker(void *user_data, uint32_t iteration)
 	}
 
 	/* Transmit data */
-	ret = HAL_Serial_Write(ctx->handle, buffer, SERIAL_STRESS_BUFFER_SIZE, &written);
+	ret = HAL_SERIAL_write(ctx->handle, buffer, SERIAL_STRESS_BUFFER_SIZE, &written);
 	if (ret == OSAL_SUCCESS) {
 		OSAL_atomic_add(ctx->byte_counter, written);
 	}
@@ -91,7 +91,7 @@ static void test_stress_serial_continuous_transmission(void)
 	           SERIAL_STRESS_DURATION_SEC, SERIAL_STRESS_BAUDRATE);
 
 	/* Open serial port */
-	ret = HAL_Serial_Open(&config, &handle);
+	ret = HAL_SERIAL_open(&config, &handle);
 	if (ret != OSAL_SUCCESS) {
 		OSAL_printf("[ SKIP ] Serial port not available\n");
 		TEST_SKIP("Serial port not available");
@@ -141,7 +141,7 @@ static void test_stress_serial_continuous_transmission(void)
 
 	/* Cleanup */
 	stress_context_destroy(stress_ctx);
-	HAL_Serial_Close(handle);
+	HAL_SERIAL_close(handle);
 
 	OSAL_printf("[ PASS ] Serial continuous transmission stress test completed\n");
 }
@@ -166,7 +166,7 @@ static int32_t serial_concurrent_write_worker(void *user_data, uint32_t iteratio
 	}
 
 	/* Write data */
-	ret = HAL_Serial_Write(ctx->handle, buffer, SERIAL_STRESS_PATTERN_SIZE, &written);
+	ret = HAL_SERIAL_write(ctx->handle, buffer, SERIAL_STRESS_PATTERN_SIZE, &written);
 	if (ret == OSAL_SUCCESS) {
 		OSAL_atomic_add(ctx->byte_counter, written);
 	}
@@ -185,7 +185,7 @@ static int32_t serial_concurrent_read_worker(void *user_data, uint32_t iteration
 	int32_t ret;
 
 	/* Try to read data */
-	ret = HAL_Serial_Read(ctx->handle, buffer, SERIAL_STRESS_PATTERN_SIZE, &read_count);
+	ret = HAL_SERIAL_read(ctx->handle, buffer, SERIAL_STRESS_PATTERN_SIZE, &read_count);
 	if (ret == OSAL_SUCCESS) {
 		OSAL_atomic_add(ctx->byte_counter, read_count);
 	} else if (ret == OSAL_ERR_TIMEOUT) {
@@ -224,7 +224,7 @@ static void test_stress_serial_concurrent_operations(void)
 	OSAL_printf("[ INFO ] Starting serial concurrent operations stress test\n");
 
 	/* Open serial port */
-	ret = HAL_Serial_Open(&config, &handle);
+	ret = HAL_SERIAL_open(&config, &handle);
 	if (ret != OSAL_SUCCESS) {
 		OSAL_printf("[ SKIP ] Serial port not available\n");
 		TEST_SKIP("Serial port not available");
@@ -282,7 +282,7 @@ static void test_stress_serial_concurrent_operations(void)
 	/* Cleanup */
 	stress_context_destroy(write_stress);
 	stress_context_destroy(read_stress);
-	HAL_Serial_Close(handle);
+	HAL_SERIAL_close(handle);
 
 	OSAL_printf("[ PASS ] Serial concurrent operations stress test completed\n");
 }
@@ -316,7 +316,7 @@ static void test_stress_serial_buffer_overflow(void)
 	OSAL_printf("[ INFO ] Starting serial buffer overflow stress test\n");
 
 	/* Open serial port */
-	ret = HAL_Serial_Open(&config, &handle);
+	ret = HAL_SERIAL_open(&config, &handle);
 	if (ret != OSAL_SUCCESS) {
 		OSAL_printf("[ SKIP ] Serial port not available\n");
 		TEST_SKIP("Serial port not available");
@@ -330,7 +330,7 @@ static void test_stress_serial_buffer_overflow(void)
 
 	/* Flood the receive buffer */
 	for (uint32_t i = 0; i < overflow_iterations; i++) {
-		ret = HAL_Serial_Write(handle, tx_buffer, SERIAL_STRESS_BUFFER_SIZE, &written);
+		ret = HAL_SERIAL_write(handle, tx_buffer, SERIAL_STRESS_BUFFER_SIZE, &written);
 		TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
 		/* Don't read immediately - let buffer fill up */
@@ -347,7 +347,7 @@ static void test_stress_serial_buffer_overflow(void)
 	uint32_t read_attempts = 0;
 
 	while (read_attempts < 1000) {
-		ret = HAL_Serial_Read(handle, rx_buffer, sizeof(rx_buffer), &read_count);
+		ret = HAL_SERIAL_read(handle, rx_buffer, sizeof(rx_buffer), &read_count);
 		if (ret == OSAL_SUCCESS && read_count > 0) {
 			total_read += read_count;
 		} else if (ret == OSAL_ERR_TIMEOUT) {
@@ -361,15 +361,15 @@ static void test_stress_serial_buffer_overflow(void)
 	           (unsigned long long)total_read);
 
 	/* Verify system is still functional after overflow */
-	HAL_Serial_Flush(handle);
+	HAL_SERIAL_flush(handle);
 
 	uint8_t test_pattern[] = {0xAA, 0xBB, 0xCC, 0xDD};
-	ret = HAL_Serial_Write(handle, test_pattern, sizeof(test_pattern), &written);
+	ret = HAL_SERIAL_write(handle, test_pattern, sizeof(test_pattern), &written);
 	TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 	TEST_ASSERT_EQUAL(sizeof(test_pattern), written);
 
 	/* Cleanup */
-	HAL_Serial_Close(handle);
+	HAL_SERIAL_close(handle);
 
 	OSAL_printf("[ PASS ] Serial buffer overflow stress test completed\n");
 }
@@ -399,7 +399,7 @@ static void* serial_longrun_worker(void *arg)
 
 	while (!ctx->stop_flag) {
 		/* Write data */
-		ret = HAL_Serial_Write(ctx->handle, tx_buffer, sizeof(tx_buffer), &written);
+		ret = HAL_SERIAL_write(ctx->handle, tx_buffer, sizeof(tx_buffer), &written);
 		if (ret == OSAL_SUCCESS) {
 			ctx->total_bytes_tx += written;
 		} else {
@@ -407,7 +407,7 @@ static void* serial_longrun_worker(void *arg)
 		}
 
 		/* Try to read back */
-		ret = HAL_Serial_Read(ctx->handle, rx_buffer, sizeof(rx_buffer), &read_count);
+		ret = HAL_SERIAL_read(ctx->handle, rx_buffer, sizeof(rx_buffer), &read_count);
 		if (ret == OSAL_SUCCESS) {
 			ctx->total_bytes_rx += read_count;
 		} else if (ret != OSAL_ERR_TIMEOUT) {
@@ -458,7 +458,7 @@ static void test_stress_serial_long_running(void)
 	OSAL_printf("         Duration: %u seconds\n", test_duration_sec);
 
 	/* Open serial port */
-	ret = HAL_Serial_Open(SERIAL_STRESS_PORT, &config, &handle);
+	ret = HAL_SERIAL_open(SERIAL_STRESS_PORT, &config, &handle);
 	if (ret != OSAL_SUCCESS) {
 		OSAL_printf("[ SKIP ] Serial port not available\n");
 		TEST_SKIP("Serial port not available");
@@ -492,7 +492,7 @@ static void test_stress_serial_long_running(void)
 	TEST_ASSERT_TRUE(ctx.error_count < 100); /* Allow some errors */
 
 	/* Cleanup */
-	HAL_Serial_Close(handle);
+	HAL_SERIAL_close(handle);
 
 	OSAL_printf("[ PASS ] Serial long-running stability test completed\n");
 }

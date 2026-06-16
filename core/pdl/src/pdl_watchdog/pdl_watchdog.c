@@ -33,7 +33,7 @@ static void *watchdog_kick_thread(void *arg)
     while (OSAL_atomic_load_bool(&ctx->running))
     {
         /* 喂狗 */
-        int32_t ret = HAL_WATCHDOG_Kick(ctx->hal_handle);
+        int32_t ret = HAL_WATCHDOG_kick(ctx->hal_handle);
         if (ret == OSAL_SUCCESS)
         {
             OSAL_atomic_fetch_add(&ctx->kick_count, 1);
@@ -91,10 +91,10 @@ int32_t PDL_WATCHDOG_Init(const pdl_watchdog_config_t *config, pdl_watchdog_hand
     hal_config.timeout_sec = config->timeout_sec;
     hal_config.enable_on_init = config->enable_on_init;
 
-    ret = HAL_WATCHDOG_Init(&hal_config, &ctx->hal_handle);
+    ret = HAL_WATCHDOG_init(&hal_config, &ctx->hal_handle);
     if (ret != OSAL_SUCCESS)
     {
-        LOG_ERROR("PDL_WDT", "HAL_WATCHDOG_Init failed: %d", ret);
+        LOG_ERROR("PDL_WDT", "HAL_WATCHDOG_init failed: %d", ret);
         OSAL_free(ctx);
         return ret;
     }
@@ -132,7 +132,7 @@ int32_t PDL_WATCHDOG_Deinit(pdl_watchdog_handle_t handle)
     }
 
     /* 关闭HAL层 */
-    HAL_WATCHDOG_Deinit(ctx->hal_handle);
+    HAL_WATCHDOG_deinit(ctx->hal_handle);
 
     LOG_INFO("PDL_WDT", "Watchdog service deinitialized: %s (kicked %u times)",
              ctx->name, OSAL_atomic_load(&ctx->kick_count));
@@ -227,7 +227,7 @@ int32_t PDL_WATCHDOG_Kick(pdl_watchdog_handle_t handle)
 
     ctx = (watchdog_context_t *)handle;
 
-    ret = HAL_WATCHDOG_Kick(ctx->hal_handle);
+    ret = HAL_WATCHDOG_kick(ctx->hal_handle);
     if (ret == OSAL_SUCCESS)
     {
         OSAL_atomic_fetch_add(&ctx->kick_count, 1);
@@ -263,7 +263,7 @@ int32_t PDL_WATCHDOG_GetStatus(pdl_watchdog_handle_t handle, pdl_watchdog_status
 
     /* 获取HAL层超时时间 */
     timeout = 0;
-    if (HAL_WATCHDOG_GetTimeout(ctx->hal_handle, &timeout) == OSAL_SUCCESS)
+    if (HAL_WATCHDOG_get_timeout(ctx->hal_handle, &timeout) == OSAL_SUCCESS)
     {
         status->timeout_sec = timeout;
     }
@@ -314,7 +314,7 @@ int32_t PDL_WATCHDOG_Enable(pdl_watchdog_handle_t handle)
 
     ctx = (watchdog_context_t *)handle;
 
-    ret = HAL_WATCHDOG_Enable(ctx->hal_handle);
+    ret = HAL_WATCHDOG_enable(ctx->hal_handle);
     if (ret == OSAL_SUCCESS)
     {
         ctx->enabled = true;
@@ -340,7 +340,7 @@ int32_t PDL_WATCHDOG_Disable(pdl_watchdog_handle_t handle)
 
     ctx = (watchdog_context_t *)handle;
 
-    ret = HAL_WATCHDOG_Disable(ctx->hal_handle);
+    ret = HAL_WATCHDOG_disable(ctx->hal_handle);
     if (ret == OSAL_SUCCESS)
     {
         ctx->enabled = false;

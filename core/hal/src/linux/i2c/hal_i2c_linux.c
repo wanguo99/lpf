@@ -17,7 +17,7 @@
 /**
  * @brief 打开I2C设备
  */
-int32_t HAL_I2C_Open(const hal_i2c_config_t *config, hal_i2c_handle_t *handle)
+int32_t HAL_I2C_open(const hal_i2c_config_t *config, hal_i2c_handle_t *handle)
 {
     hal_i2c_context_t *impl;
     int32_t ret;
@@ -107,7 +107,7 @@ int32_t HAL_I2C_Open(const hal_i2c_config_t *config, hal_i2c_handle_t *handle)
 /**
  * @brief 关闭I2C设备
  */
-int32_t HAL_I2C_Close(hal_i2c_handle_t handle)
+int32_t HAL_I2C_close(hal_i2c_handle_t handle)
 {
     hal_i2c_context_t *impl = (hal_i2c_context_t *)handle;
 
@@ -142,7 +142,7 @@ int32_t HAL_I2C_Close(hal_i2c_handle_t handle)
 /**
  * @brief 写入数据到I2C从设备
  */
-int32_t HAL_I2C_Write(hal_i2c_handle_t handle, uint16_t slave_addr,
+int32_t HAL_I2C_write(hal_i2c_handle_t handle, uint16_t slave_addr,
                       const uint8_t *buffer, uint32_t size)
 {
     hal_i2c_context_t *impl = (hal_i2c_context_t *)handle;
@@ -212,7 +212,7 @@ unlock:
 /**
  * @brief 从I2C从设备读取数据
  */
-int32_t HAL_I2C_Read(hal_i2c_handle_t handle, uint16_t slave_addr,
+int32_t HAL_I2C_read(hal_i2c_handle_t handle, uint16_t slave_addr,
                      uint8_t *buffer, uint32_t size)
 {
     hal_i2c_context_t *impl = (hal_i2c_context_t *)handle;
@@ -282,7 +282,7 @@ unlock:
 /**
  * @brief 写寄存器操作
  */
-int32_t HAL_I2C_WriteReg(hal_i2c_handle_t handle, uint16_t slave_addr,
+int32_t HAL_I2C_write_reg(hal_i2c_handle_t handle, uint16_t slave_addr,
                          uint8_t reg_addr, const uint8_t *buffer, uint32_t size)
 {
     hal_i2c_context_t *impl = (hal_i2c_context_t *)handle;
@@ -307,7 +307,7 @@ int32_t HAL_I2C_WriteReg(hal_i2c_handle_t handle, uint16_t slave_addr,
     OSAL_memcpy(&write_buf[1], buffer, size);
 
     /* 执行写操作 */
-    ret = HAL_I2C_Write(handle, slave_addr, write_buf, size + 1);
+    ret = HAL_I2C_write(handle, slave_addr, write_buf, size + 1);
 
     OSAL_free(write_buf);
     return ret;
@@ -316,7 +316,7 @@ int32_t HAL_I2C_WriteReg(hal_i2c_handle_t handle, uint16_t slave_addr,
 /**
  * @brief 读寄存器操作
  */
-int32_t HAL_I2C_ReadReg(hal_i2c_handle_t handle, uint16_t slave_addr,
+int32_t HAL_I2C_read_reg(hal_i2c_handle_t handle, uint16_t slave_addr,
                         uint8_t reg_addr, uint8_t *buffer, uint32_t size)
 {
     hal_i2c_context_t *impl = (hal_i2c_context_t *)handle;
@@ -382,7 +382,7 @@ int32_t HAL_I2C_ReadReg(hal_i2c_handle_t handle, uint16_t slave_addr,
 /**
  * @brief 执行I2C传输
  */
-int32_t HAL_I2C_Transfer(hal_i2c_handle_t handle, hal_i2c_msg_t *msgs, uint32_t num)
+int32_t HAL_I2C_transfer(hal_i2c_handle_t handle, hal_i2c_msg_t *msgs, uint32_t num)
 {
     hal_i2c_context_t *impl = (hal_i2c_context_t *)handle;
     struct i2c_msg *kernel_msgs;

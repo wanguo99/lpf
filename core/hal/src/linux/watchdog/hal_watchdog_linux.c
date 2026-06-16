@@ -16,7 +16,7 @@
 /**
  * @brief 初始化Watchdog驱动
  */
-int32_t HAL_WATCHDOG_Init(const hal_watchdog_config_t *config, hal_watchdog_handle_t *handle)
+int32_t HAL_WATCHDOG_init(const hal_watchdog_config_t *config, hal_watchdog_handle_t *handle)
 {
     hal_watchdog_context_t *ctx;
     int32_t timeout;
@@ -97,7 +97,7 @@ int32_t HAL_WATCHDOG_Init(const hal_watchdog_config_t *config, hal_watchdog_hand
 /**
  * @brief 关闭Watchdog驱动
  */
-int32_t HAL_WATCHDOG_Deinit(hal_watchdog_handle_t handle)
+int32_t HAL_WATCHDOG_deinit(hal_watchdog_handle_t handle)
 {
     hal_watchdog_context_t *ctx;
     const char magic = 'V';
@@ -136,7 +136,7 @@ int32_t HAL_WATCHDOG_Deinit(hal_watchdog_handle_t handle)
 /**
  * @brief 喂狗（重置看门狗定时器）
  */
-int32_t HAL_WATCHDOG_Kick(hal_watchdog_handle_t handle)
+int32_t HAL_WATCHDOG_kick(hal_watchdog_handle_t handle)
 {
     hal_watchdog_context_t *ctx;
 
@@ -170,7 +170,7 @@ int32_t HAL_WATCHDOG_Kick(hal_watchdog_handle_t handle)
 /**
  * @brief 启用看门狗
  */
-int32_t HAL_WATCHDOG_Enable(hal_watchdog_handle_t handle)
+int32_t HAL_WATCHDOG_enable(hal_watchdog_handle_t handle)
 {
     hal_watchdog_context_t *ctx;
     int32_t options;
@@ -206,7 +206,7 @@ int32_t HAL_WATCHDOG_Enable(hal_watchdog_handle_t handle)
 /**
  * @brief 禁用看门狗
  */
-int32_t HAL_WATCHDOG_Disable(hal_watchdog_handle_t handle)
+int32_t HAL_WATCHDOG_disable(hal_watchdog_handle_t handle)
 {
     hal_watchdog_context_t *ctx;
     int32_t options;
@@ -242,7 +242,7 @@ int32_t HAL_WATCHDOG_Disable(hal_watchdog_handle_t handle)
 /**
  * @brief 设置看门狗超时时间
  */
-int32_t HAL_WATCHDOG_SetTimeout(hal_watchdog_handle_t handle, uint32_t timeout_sec)
+int32_t HAL_WATCHDOG_set_timeout(hal_watchdog_handle_t handle, uint32_t timeout_sec)
 {
     hal_watchdog_context_t *ctx;
     int32_t timeout;
@@ -278,7 +278,7 @@ int32_t HAL_WATCHDOG_SetTimeout(hal_watchdog_handle_t handle, uint32_t timeout_s
 /**
  * @brief 获取看门狗超时时间
  */
-int32_t HAL_WATCHDOG_GetTimeout(hal_watchdog_handle_t handle, uint32_t *timeout_sec)
+int32_t HAL_WATCHDOG_get_timeout(hal_watchdog_handle_t handle, uint32_t *timeout_sec)
 {
     hal_watchdog_context_t *ctx;
     int32_t timeout;
@@ -313,7 +313,7 @@ int32_t HAL_WATCHDOG_GetTimeout(hal_watchdog_handle_t handle, uint32_t *timeout_
 /**
  * @brief 获取看门狗剩余时间
  */
-int32_t HAL_WATCHDOG_GetTimeleft(hal_watchdog_handle_t handle, uint32_t *timeleft_sec)
+int32_t HAL_WATCHDOG_get_timeleft(hal_watchdog_handle_t handle, uint32_t *timeleft_sec)
 {
     hal_watchdog_context_t *ctx;
     int32_t timeleft;
@@ -348,7 +348,7 @@ int32_t HAL_WATCHDOG_GetTimeleft(hal_watchdog_handle_t handle, uint32_t *timelef
 /**
  * @brief 获取看门狗统计信息
  */
-int32_t HAL_WATCHDOG_GetStats(hal_watchdog_handle_t handle, uint32_t *kick_count)
+int32_t HAL_WATCHDOG_get_stats(hal_watchdog_handle_t handle, uint32_t *kick_count)
 {
     hal_watchdog_context_t *ctx;
 

@@ -10,59 +10,59 @@
 #include "hal.h"
 #include "osal.h"
 
-int32_t HAL_WATCHDOG_Init(const hal_watchdog_config_t *config, hal_watchdog_handle_t *handle)
+int32_t HAL_WATCHDOG_init(const hal_watchdog_config_t *config, hal_watchdog_handle_t *handle)
 {
     (void)config;
     (void)handle;
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_WATCHDOG_Deinit(hal_watchdog_handle_t handle)
+int32_t HAL_WATCHDOG_deinit(hal_watchdog_handle_t handle)
 {
     (void)handle;
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_WATCHDOG_Kick(hal_watchdog_handle_t handle)
+int32_t HAL_WATCHDOG_kick(hal_watchdog_handle_t handle)
 {
     (void)handle;
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_WATCHDOG_Enable(hal_watchdog_handle_t handle)
+int32_t HAL_WATCHDOG_enable(hal_watchdog_handle_t handle)
 {
     (void)handle;
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_WATCHDOG_Disable(hal_watchdog_handle_t handle)
+int32_t HAL_WATCHDOG_disable(hal_watchdog_handle_t handle)
 {
     (void)handle;
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_WATCHDOG_SetTimeout(hal_watchdog_handle_t handle, uint32_t timeout_sec)
-{
-    (void)handle;
-    (void)timeout_sec;
-    return OSAL_ERR_NOT_IMPLEMENTED;
-}
-
-int32_t HAL_WATCHDOG_GetTimeout(hal_watchdog_handle_t handle, uint32_t *timeout_sec)
+int32_t HAL_WATCHDOG_set_timeout(hal_watchdog_handle_t handle, uint32_t timeout_sec)
 {
     (void)handle;
     (void)timeout_sec;
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_WATCHDOG_GetTimeleft(hal_watchdog_handle_t handle, uint32_t *timeleft_sec)
+int32_t HAL_WATCHDOG_get_timeout(hal_watchdog_handle_t handle, uint32_t *timeout_sec)
+{
+    (void)handle;
+    (void)timeout_sec;
+    return OSAL_ERR_NOT_IMPLEMENTED;
+}
+
+int32_t HAL_WATCHDOG_get_timeleft(hal_watchdog_handle_t handle, uint32_t *timeleft_sec)
 {
     (void)handle;
     (void)timeleft_sec;
     return OSAL_ERR_NOT_IMPLEMENTED;
 }
 
-int32_t HAL_WATCHDOG_GetStats(hal_watchdog_handle_t handle, uint32_t *kick_count)
+int32_t HAL_WATCHDOG_get_stats(hal_watchdog_handle_t handle, uint32_t *kick_count)
 {
     (void)handle;
     (void)kick_count;

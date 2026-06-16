@@ -51,7 +51,7 @@ typedef struct
  * @note 某些硬件看门狗在打开设备时会自动启用，无法停止
  * @note 线程安全：单个看门狗设备通常由单个进程管理
  */
-int32_t HAL_WATCHDOG_Init(const hal_watchdog_config_t *config, hal_watchdog_handle_t *handle);
+int32_t HAL_WATCHDOG_init(const hal_watchdog_config_t *config, hal_watchdog_handle_t *handle);
 
 /**
  * @brief 关闭看门狗驱动
@@ -66,7 +66,7 @@ int32_t HAL_WATCHDOG_Init(const hal_watchdog_config_t *config, hal_watchdog_hand
  * @note 关闭看门狗可能导致系统重启，取决于硬件实现
  * @note 在Linux上，写入魔术字符'V'可以安全关闭看门狗（如果硬件支持）
  */
-int32_t HAL_WATCHDOG_Deinit(hal_watchdog_handle_t handle);
+int32_t HAL_WATCHDOG_deinit(hal_watchdog_handle_t handle);
 
 /**
  * @brief 喂狗（重置看门狗定时器）
@@ -81,7 +81,7 @@ int32_t HAL_WATCHDOG_Deinit(hal_watchdog_handle_t handle);
  *
  * @note 必须在超时时间内定期调用此函数，否则系统会复位
  */
-int32_t HAL_WATCHDOG_Kick(hal_watchdog_handle_t handle);
+int32_t HAL_WATCHDOG_kick(hal_watchdog_handle_t handle);
 
 /**
  * @brief 启用看门狗
@@ -96,7 +96,7 @@ int32_t HAL_WATCHDOG_Kick(hal_watchdog_handle_t handle);
  *
  * @note 某些硬件看门狗在Init时就已启用
  */
-int32_t HAL_WATCHDOG_Enable(hal_watchdog_handle_t handle);
+int32_t HAL_WATCHDOG_enable(hal_watchdog_handle_t handle);
 
 /**
  * @brief 禁用看门狗
@@ -112,7 +112,7 @@ int32_t HAL_WATCHDOG_Enable(hal_watchdog_handle_t handle);
  *
  * @note 许多硬件看门狗一旦启用就无法禁用，此时返回OSAL_ERR_NOT_SUPPORTED
  */
-int32_t HAL_WATCHDOG_Disable(hal_watchdog_handle_t handle);
+int32_t HAL_WATCHDOG_disable(hal_watchdog_handle_t handle);
 
 /**
  * @brief 设置看门狗超时时间
@@ -128,7 +128,7 @@ int32_t HAL_WATCHDOG_Disable(hal_watchdog_handle_t handle);
  *
  * @note 实际超时时间可能受硬件限制，驱动会选择最接近的值
  */
-int32_t HAL_WATCHDOG_SetTimeout(hal_watchdog_handle_t handle, uint32_t timeout_sec);
+int32_t HAL_WATCHDOG_set_timeout(hal_watchdog_handle_t handle, uint32_t timeout_sec);
 
 /**
  * @brief 获取看门狗超时时间
@@ -144,7 +144,7 @@ int32_t HAL_WATCHDOG_SetTimeout(hal_watchdog_handle_t handle, uint32_t timeout_s
  *
  * @note 返回的是实际硬件使用的超时时间，可能与设置的值略有不同
  */
-int32_t HAL_WATCHDOG_GetTimeout(hal_watchdog_handle_t handle, uint32_t *timeout_sec);
+int32_t HAL_WATCHDOG_get_timeout(hal_watchdog_handle_t handle, uint32_t *timeout_sec);
 
 /**
  * @brief 获取看门狗剩余时间
@@ -161,7 +161,7 @@ int32_t HAL_WATCHDOG_GetTimeout(hal_watchdog_handle_t handle, uint32_t *timeout_
  *
  * @note 并非所有看门狗硬件都支持读取剩余时间
  */
-int32_t HAL_WATCHDOG_GetTimeleft(hal_watchdog_handle_t handle, uint32_t *timeleft_sec);
+int32_t HAL_WATCHDOG_get_timeleft(hal_watchdog_handle_t handle, uint32_t *timeleft_sec);
 
 /**
  * @brief 获取看门狗统计信息
@@ -176,7 +176,7 @@ int32_t HAL_WATCHDOG_GetTimeleft(hal_watchdog_handle_t handle, uint32_t *timelef
  *
  * @note 统计信息由驱动维护，不是硬件功能
  */
-int32_t HAL_WATCHDOG_GetStats(hal_watchdog_handle_t handle, uint32_t *kick_count);
+int32_t HAL_WATCHDOG_get_stats(hal_watchdog_handle_t handle, uint32_t *kick_count);
 
 #ifdef __cplusplus
 }

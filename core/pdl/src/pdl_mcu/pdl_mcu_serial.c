@@ -106,7 +106,7 @@ int32_t mcu_serial_init(const void *config, void **handle)
     serial_config.parity = pdl_to_hal_parity(mcu_cfg->hw.serial.parity);
     serial_config.flow_control = pdl_to_hal_flow_control(mcu_cfg->hw.serial.flow_control);
 
-    if (OSAL_SUCCESS != HAL_Serial_Open(mcu_cfg->hw.serial.device, &serial_config, &ctx->serial_handle))
+    if (OSAL_SUCCESS != HAL_SERIAL_open(mcu_cfg->hw.serial.device, &serial_config, &ctx->serial_handle))
     {
         OSAL_free(ctx);
         return OSAL_ERR_GENERIC;
@@ -115,7 +115,7 @@ int32_t mcu_serial_init(const void *config, void **handle)
     /* 创建接收互斥锁 */
     if (OSAL_SUCCESS != OSAL_pthread_mutex_init(&ctx->rx_mutex, NULL))
     {
-        HAL_Serial_Close(ctx->serial_handle);
+        HAL_SERIAL_close(ctx->serial_handle);
         OSAL_free(ctx);
         return OSAL_ERR_GENERIC;
     }
@@ -138,7 +138,7 @@ int32_t mcu_serial_deinit(void *handle)
 
     ctx = (mcu_serial_context_t *)handle;
 
-    HAL_Serial_Close(ctx->serial_handle);
+    HAL_SERIAL_close(ctx->serial_handle);
     OSAL_pthread_mutex_destroy(&ctx->rx_mutex);
     OSAL_free(ctx);
 
@@ -290,7 +290,7 @@ int32_t mcu_serial_send_command(void *handle,
     }
 
     /* 发送 */
-    if (HAL_Serial_Write(ctx->serial_handle, tx_frame, tx_len, timeout_ms) != (int32_t)tx_len)
+    if (HAL_SERIAL_write(ctx->serial_handle, tx_frame, tx_len, timeout_ms) != (int32_t)tx_len)
     {
         return OSAL_ERR_GENERIC;
     }
@@ -306,7 +306,7 @@ int32_t mcu_serial_send_command(void *handle,
     /* 接收响应，使用剩余超时时间 */
     OSAL_pthread_mutex_lock(&ctx->rx_mutex);
 
-    rx_len = HAL_Serial_Read(ctx->serial_handle, rx_frame, OSAL_sizeof(rx_frame), remaining_timeout_ms);
+    rx_len = HAL_SERIAL_read(ctx->serial_handle, rx_frame, OSAL_sizeof(rx_frame), remaining_timeout_ms);
 
     if (rx_len > 0)
     {

@@ -35,7 +35,7 @@ static uint32_t hal_serial_get_baudrate(uint32_t baudrate)
     }
 }
 
-int32_t HAL_Serial_Open(const char *device, const hal_serial_config_t *config, hal_serial_handle_t *handle)
+int32_t HAL_SERIAL_open(const char *device, const hal_serial_config_t *config, hal_serial_handle_t *handle)
 {
     hal_serial_context_t *ctx;
     osal_termios_t tty;
@@ -203,9 +203,9 @@ int32_t HAL_Serial_Open(const char *device, const hal_serial_config_t *config, h
 }
 
 /************************************************************************
- * HAL_Serial_Close - 关闭串口
+ * HAL_SERIAL_close - 关闭串口
  ************************************************************************/
-int32_t HAL_Serial_Close(hal_serial_handle_t handle)
+int32_t HAL_SERIAL_close(hal_serial_handle_t handle)
 {
     hal_serial_context_t *ctx = (hal_serial_context_t *)handle;
 
@@ -233,9 +233,9 @@ int32_t HAL_Serial_Close(hal_serial_handle_t handle)
 }
 
 /************************************************************************
- * HAL_Serial_Write - 发送数据
+ * HAL_SERIAL_write - 发送数据
  ************************************************************************/
-int32_t HAL_Serial_Write(hal_serial_handle_t handle, const void *buffer, uint32_t size, int32_t timeout)
+int32_t HAL_SERIAL_write(hal_serial_handle_t handle, const void *buffer, uint32_t size, int32_t timeout)
 {
     hal_serial_context_t *ctx = (hal_serial_context_t *)handle;
     osal_fd_set_t writefds;
@@ -319,9 +319,9 @@ int32_t HAL_Serial_Write(hal_serial_handle_t handle, const void *buffer, uint32_
 }
 
 /************************************************************************
- * HAL_Serial_Read - 接收数据
+ * HAL_SERIAL_read - 接收数据
  ************************************************************************/
-int32_t HAL_Serial_Read(hal_serial_handle_t handle, void *buffer, uint32_t size, int32_t timeout)
+int32_t HAL_SERIAL_read(hal_serial_handle_t handle, void *buffer, uint32_t size, int32_t timeout)
 {
     hal_serial_context_t *ctx = (hal_serial_context_t *)handle;
     osal_fd_set_t readfds;
@@ -405,9 +405,9 @@ int32_t HAL_Serial_Read(hal_serial_handle_t handle, void *buffer, uint32_t size,
 }
 
 /************************************************************************
- * HAL_Serial_Flush - 清空接收缓冲区
+ * HAL_SERIAL_flush - 清空接收缓冲区
  ************************************************************************/
-int32_t HAL_Serial_Flush(hal_serial_handle_t handle)
+int32_t HAL_SERIAL_flush(hal_serial_handle_t handle)
 {
     hal_serial_context_t *ctx = (hal_serial_context_t *)handle;
     int32_t ret;
@@ -457,9 +457,9 @@ int32_t HAL_Serial_Flush(hal_serial_handle_t handle)
 }
 
 /************************************************************************
- * HAL_Serial_SetConfig - 动态设置串口配置
+ * HAL_SERIAL_set_config - 动态设置串口配置
  ************************************************************************/
-int32_t HAL_Serial_SetConfig(hal_serial_handle_t handle,
+int32_t HAL_SERIAL_set_config(hal_serial_handle_t handle,
                             const hal_serial_config_t *config)
 {
     hal_serial_context_t *ctx = (hal_serial_context_t *)handle;
@@ -575,12 +575,12 @@ unlock:
 /**
  * @brief 串口测试调用实现（调试接口）
  */
-int32_t HAL_Serial_TestCall(hal_serial_handle_t handle)
+int32_t HAL_SERIAL_test_call(hal_serial_handle_t handle)
 {
 	LOG_INFO("HAL_SERIAL", "========================================");
 	LOG_INFO("HAL_SERIAL", "HAL Layer: Serial TestCall");
 	LOG_INFO("HAL_SERIAL", "Handle: %p", handle);
-	LOG_INFO("HAL_SERIAL", "HAL_Serial_TestCall() executed successfully");
+	LOG_INFO("HAL_SERIAL", "HAL_SERIAL_test_call() executed successfully");
 	LOG_INFO("HAL_SERIAL", "========================================");
 
 	return OSAL_SUCCESS;

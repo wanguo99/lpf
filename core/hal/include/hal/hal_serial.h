@@ -69,7 +69,7 @@ typedef struct
  *
  * @note 线程安全：使用文件锁保护多进程并发访问
  */
-int32_t HAL_Serial_Open(const char *device, const hal_serial_config_t *config,
+int32_t HAL_SERIAL_open(const char *device, const hal_serial_config_t *config,
                         hal_serial_handle_t *handle);
 
 /**
@@ -84,7 +84,7 @@ int32_t HAL_Serial_Open(const char *device, const hal_serial_config_t *config,
  *
  * @note 线程安全：使用文件锁保护多进程并发访问
  */
-int32_t HAL_Serial_Close(hal_serial_handle_t handle);
+int32_t HAL_SERIAL_close(hal_serial_handle_t handle);
 
 /**
  * @brief 向串口写入数据
@@ -107,7 +107,7 @@ int32_t HAL_Serial_Close(hal_serial_handle_t handle);
  * @note 返回值可能小于size（部分写入），需要检查返回值
  * @note 线程安全：使用文件锁保护多进程并发访问
  */
-int32_t HAL_Serial_Write(hal_serial_handle_t handle, const void *buffer,
+int32_t HAL_SERIAL_write(hal_serial_handle_t handle, const void *buffer,
                          uint32_t size, int32_t timeout);
 
 /**
@@ -131,7 +131,7 @@ int32_t HAL_Serial_Write(hal_serial_handle_t handle, const void *buffer,
  * @note 返回值可能小于size（部分读取），需要检查返回值
  * @note 线程安全：使用文件锁保护多进程并发访问
  */
-int32_t HAL_Serial_Read(hal_serial_handle_t handle, void *buffer,
+int32_t HAL_SERIAL_read(hal_serial_handle_t handle, void *buffer,
                         uint32_t size, int32_t timeout);
 
 /**
@@ -147,7 +147,7 @@ int32_t HAL_Serial_Read(hal_serial_handle_t handle, void *buffer,
  *
  * @note 线程安全：使用文件锁保护多进程并发访问
  */
-int32_t HAL_Serial_Flush(hal_serial_handle_t handle);
+int32_t HAL_SERIAL_flush(hal_serial_handle_t handle);
 
 /**
  * @brief 设置串口配置
@@ -163,7 +163,7 @@ int32_t HAL_Serial_Flush(hal_serial_handle_t handle);
  *
  * @note 线程安全：使用文件锁保护多进程并发访问
  */
-int32_t HAL_Serial_SetConfig(hal_serial_handle_t handle,
+int32_t HAL_SERIAL_set_config(hal_serial_handle_t handle,
                               const hal_serial_config_t *config);
 
 /**
@@ -176,7 +176,7 @@ int32_t HAL_Serial_SetConfig(hal_serial_handle_t handle,
  *
  * @note 预留的调试接口，用于验证 HAL 层调用链
  */
-int32_t HAL_Serial_TestCall(hal_serial_handle_t handle);
+int32_t HAL_SERIAL_test_call(hal_serial_handle_t handle);
 
 #ifdef __cplusplus
 }
