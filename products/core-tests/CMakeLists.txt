@@ -127,8 +127,8 @@ if(CONFIG_TEST_UNIT)
         )
     endif()
 
-    # PCL Unit Tests - Auto-discover all test_pcl_*.c files
-    if(CONFIG_TEST_PCL)
+    # PCONFIG Unit Tests - Auto-discover all test_pconfig_*.c files
+    if(CONFIG_TEST_PCONFIG)
         test_discover_and_add(
             TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/pconfig
@@ -181,8 +181,8 @@ if(CONFIG_TEST_UNIT)
         )
     endif()
 
-    # ACL Unit Tests - Auto-discover all test_acl_*.c files
-    if(CONFIG_TEST_ACL)
+    # ACONFIG Unit Tests - Auto-discover all test_aconfig_*.c files
+    if(CONFIG_TEST_ACONFIG)
         test_discover_and_add(
             TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/acl
@@ -237,8 +237,8 @@ if(CONFIG_TEST_PERFORMANCE)
         )
     endif()
 
-    # PCL Performance Tests - Auto-discover all test_perf_pconfig_*.c files
-    if(CONFIG_TEST_PERFORMANCE_PCL)
+    # PCONFIG Performance Tests - Auto-discover all test_perf_pconfig_*.c files
+    if(CONFIG_TEST_PERFORMANCE_PCONFIG)
         test_discover_and_add(
             TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/performance/pconfig
@@ -247,8 +247,8 @@ if(CONFIG_TEST_PERFORMANCE)
         )
     endif()
 
-    # ACL Performance Tests - Auto-discover all test_perf_aconfig_*.c files
-    if(CONFIG_TEST_PERFORMANCE_ACL)
+    # ACONFIG Performance Tests - Auto-discover all test_perf_aconfig_*.c files
+    if(CONFIG_TEST_PERFORMANCE_ACONFIG)
         test_discover_and_add(
             TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/performance/aconfig
@@ -306,8 +306,8 @@ if(CONFIG_TEST_STRESS)
         )
     endif()
 
-    # PCL Stress Tests - Auto-discover all test_stress_pconfig_*.c files
-    if(CONFIG_TEST_STRESS_PCL)
+    # PCONFIG Stress Tests - Auto-discover all test_stress_pconfig_*.c files
+    if(CONFIG_TEST_STRESS_PCONFIG)
         test_discover_and_add(
             TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/stress/pconfig
@@ -316,8 +316,8 @@ if(CONFIG_TEST_STRESS)
         )
     endif()
 
-    # ACL Stress Tests - Auto-discover all test_stress_aconfig_*.c files
-    if(CONFIG_TEST_STRESS_ACL)
+    # ACONFIG Stress Tests - Auto-discover all test_stress_aconfig_*.c files
+    if(CONFIG_TEST_STRESS_ACONFIG)
         test_discover_and_add(
             TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/stress/aconfig
@@ -402,8 +402,8 @@ if(CONFIG_TEST_SYSTEM)
         )
     endif()
 
-    # PCL System Tests - Auto-discover all test_system_pcl_*.c files
-    if(CONFIG_TEST_SYSTEM_PCL)
+    # PCONFIG System Tests - Auto-discover all test_system_pconfig_*.c files
+    if(CONFIG_TEST_SYSTEM_PCONFIG)
         test_discover_and_add(
             TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/system/pcl
@@ -412,8 +412,8 @@ if(CONFIG_TEST_SYSTEM)
         )
     endif()
 
-    # ACL System Tests - Auto-discover all test_system_acl_*.c files
-    if(CONFIG_TEST_SYSTEM_ACL)
+    # ACONFIG System Tests - Auto-discover all test_system_aconfig_*.c files
+    if(CONFIG_TEST_SYSTEM_ACONFIG)
         test_discover_and_add(
             TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/system/acl

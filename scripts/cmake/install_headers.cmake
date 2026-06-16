@@ -70,8 +70,8 @@ endfunction()
 # Install core module headers based on Kconfig
 install_module_headers(OSAL "core/osal")
 install_module_headers(HAL "core/hal")
-install_module_headers(PCL "core/pconfig")
-install_module_headers(ACL "core/aconfig")
+install_module_headers(PCONFIG "core/pconfig")
+install_module_headers(ACONFIG "core/aconfig")
 install_module_headers(PDL "core/pdl")
 install_module_headers(PRL "core/prl")
 

@@ -18,7 +18,7 @@ endif()
 load_platform_config(CONFIG_PROJECT_NAME ${CMAKE_CURRENT_SOURCE_DIR}/configs/platforms)
 
 # Create platform config object library to avoid path duplication
-if(PLATFORM_PCL_SRCS OR PLATFORM_ACL_SRCS)
+if(PLATFORM_PCONFIG_SRCS OR PLATFORM_ACONFIG_SRCS)
     add_library(platform_config_obj OBJECT)
 
     # Add include directories from core modules
@@ -35,22 +35,22 @@ if(PLATFORM_PCL_SRCS OR PLATFORM_ACL_SRCS)
     # 注意：不需要通过 -D 添加 CONFIG_* 宏，因为 autoconf.h 已经通过 -include 自动包含
     # 重复定义会导致编译错误（-Werror）
 
-    if(PLATFORM_PCL_SRCS)
-        target_sources(platform_config_obj PRIVATE ${PLATFORM_PCL_SRCS})
+    if(PLATFORM_PCONFIG_SRCS)
+        target_sources(platform_config_obj PRIVATE ${PLATFORM_PCONFIG_SRCS})
     endif()
 
-    if(PLATFORM_ACL_SRCS)
-        target_sources(platform_config_obj PRIVATE ${PLATFORM_ACL_SRCS})
+    if(PLATFORM_ACONFIG_SRCS)
+        target_sources(platform_config_obj PRIVATE ${PLATFORM_ACONFIG_SRCS})
         if(PLATFORM_CONFIG_INCLUDE)
             target_include_directories(platform_config_obj PRIVATE ${PLATFORM_CONFIG_INCLUDE})
         endif()
     endif()
 endif()
 
-# Register PCL with platform config
-if(CONFIG_PCL)
+# Register PCONFIG with platform config
+if(CONFIG_PCONFIG)
     # Clear platform sources - they will be linked via object library
-    if(PLATFORM_PCL_SRCS)
+    if(PLATFORM_PCONFIG_SRCS)
         set(PCONFIG_PLATFORM_OBJS $<TARGET_OBJECTS:platform_config_obj>)
         set(PCONFIG_EXTRA_SRCS "")  # Don't add sources directly
         set(PCONFIG_EXTRA_INCLUDE ${PLATFORM_CONFIG_INCLUDE})
@@ -70,10 +70,10 @@ if(CONFIG_PRL)
     add_subdirectory(${SDK_PATH}/core/prl ${CMAKE_CURRENT_BINARY_DIR}/prl)
 endif()
 
-# Register ACL with platform config
-if(CONFIG_ACL)
+# Register ACONFIG with platform config
+if(CONFIG_ACONFIG)
     # Clear platform sources - they will be linked via object library
-    if(PLATFORM_ACL_SRCS)
+    if(PLATFORM_ACONFIG_SRCS)
         set(ACONFIG_EXTRA_SRCS "")  # Don't add sources directly
         set(ACONFIG_EXTRA_INCLUDE ${PLATFORM_CONFIG_INCLUDE})
     endif()

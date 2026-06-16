@@ -95,10 +95,10 @@ CONFIG_TEST_HAL_WATCHDOG=y
 # CONFIG_TEST_SYSTEM is not set
 
 # Other Modules - Disabled
-# CONFIG_PCL is not set
+# CONFIG_PCONFIG is not set
 # CONFIG_PDL is not set
 # CONFIG_PRL is not set
-# CONFIG_ACL is not set
+# CONFIG_ACONFIG is not set
 
 # Products - Disabled
 # CONFIG_PRODUCT_CCM is not set

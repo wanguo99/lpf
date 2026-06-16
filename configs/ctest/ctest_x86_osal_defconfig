@@ -103,10 +103,10 @@ CONFIG_TEST_OSAL_VERSION=y
 
 # Other Modules - Disabled
 # CONFIG_HAL is not set
-# CONFIG_PCL is not set
+# CONFIG_PCONFIG is not set
 # CONFIG_PDL is not set
 # CONFIG_PRL is not set
-# CONFIG_ACL is not set
+# CONFIG_ACONFIG is not set
 
 # Products - Disabled
 # CONFIG_PRODUCT_CCM is not set

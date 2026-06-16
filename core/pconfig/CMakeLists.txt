@@ -13,7 +13,7 @@ endif()
 ###############################################
 
 ############## Add source files ###############
-# PCL 核心源文件
+# PCONFIG 核心源文件
 list(APPEND ADD_SRCS
     "src/pconfig_api.c"
     "src/pconfig_register.c"
