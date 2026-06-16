@@ -113,7 +113,7 @@ int32_t PDL_BMC_Init(uint32_t index, pdl_bmc_handle_t *handle)
     if (config->primary_channel == PCONFIG_BMC_CHANNEL_NETWORK ||
         (config->auto_switch && config->backup_channel == PCONFIG_BMC_CHANNEL_NETWORK))
     {
-        const pdl_bmc_channel_config_t *net_cfg =
+        const pconfig_bmc_channel_config_t *net_cfg =
             (config->primary_channel == PCONFIG_BMC_CHANNEL_NETWORK) ?
             &config->primary_config : &config->backup_config;
 
@@ -136,7 +136,7 @@ int32_t PDL_BMC_Init(uint32_t index, pdl_bmc_handle_t *handle)
     if (config->primary_channel == PCONFIG_BMC_CHANNEL_SERIAL ||
         (config->auto_switch && config->backup_channel == PCONFIG_BMC_CHANNEL_SERIAL))
     {
-        const pdl_bmc_channel_config_t *serial_cfg =
+        const pconfig_bmc_channel_config_t *serial_cfg =
             (config->primary_channel == PCONFIG_BMC_CHANNEL_SERIAL) ?
             &config->primary_config : &config->backup_config;
 
@@ -170,7 +170,7 @@ int32_t PDL_BMC_Init(uint32_t index, pdl_bmc_handle_t *handle)
         /* 如果使用网络通道，获取认证信息 */
         if (ctx->current_channel == PCONFIG_BMC_CHANNEL_NETWORK)
         {
-            const pdl_bmc_channel_config_t *net_cfg =
+            const pconfig_bmc_channel_config_t *net_cfg =
                 (config->primary_channel == PCONFIG_BMC_CHANNEL_NETWORK) ?
                 &config->primary_config : &config->backup_config;
             username = net_cfg->network.username;
