@@ -77,7 +77,10 @@ if(CONFIG_ACONFIG)
         set(ACONFIG_EXTRA_SRCS "")  # Don't add sources directly
         set(ACONFIG_EXTRA_INCLUDE ${PLATFORM_CONFIG_INCLUDE})
     endif()
+    # Core ACONFIG (generic framework)
     add_subdirectory(${SDK_PATH}/core/aconfig ${CMAKE_CURRENT_BINARY_DIR}/aconfig)
+    # CCM product-specific ACONFIG implementation
+    add_subdirectory(aconfig ${CMAKE_CURRENT_BINARY_DIR}/ccm_aconfig)
     # Link platform config objects after aconfig is created
     if(TARGET platform_config_obj AND TARGET aconfig)
         target_sources(aconfig PRIVATE $<TARGET_OBJECTS:platform_config_obj>)

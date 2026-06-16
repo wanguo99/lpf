@@ -93,7 +93,7 @@ int32_t ACONFIG_UnregisterTable(void)
 	if (NULL == g_aconfig_table) {
 		LOG_WARN("ACONFIG", "No table registered");
 		OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
-		return OSAL_ERR_NOT_FOUND;
+		return OSAL_ERR_NAME_NOT_FOUND;
 	}
 
 	LOG_INFO("ACONFIG", "Unregistered table '%s'", g_aconfig_table->name);
