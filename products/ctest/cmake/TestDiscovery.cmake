@@ -171,14 +171,19 @@ function(test_discover_and_add)
 
     # Report discovery statistics
     if(FOUND_COUNT GREATER 0)
+        # Always show summary
         message(STATUS "  ${ARG_MODULE}: ${ENABLED_COUNT}/${FOUND_COUNT} tests enabled")
-        if(ENABLED_COUNT GREATER 0)
-            # Show list of enabled tests for verification
-            string(REPLACE ";" ", " ENABLED_LIST "${ENABLED_FILES}")
-            message(STATUS "    Enabled: ${ENABLED_LIST}")
-        endif()
-        if(DISABLED_COUNT GREATER 0)
-            message(STATUS "    Disabled: ${DISABLED_COUNT} test(s)")
+
+        # Show detailed list only in verbose mode (V=1 or VERBOSE env var)
+        if(CMAKE_VERBOSE_MAKEFILE OR DEFINED ENV{VERBOSE} OR "$ENV{V}" STREQUAL "1")
+            if(ENABLED_COUNT GREATER 0)
+                # Show list of enabled tests for verification
+                string(REPLACE ";" ", " ENABLED_LIST "${ENABLED_FILES}")
+                message(STATUS "    Enabled: ${ENABLED_LIST}")
+            endif()
+            if(DISABLED_COUNT GREATER 0)
+                message(STATUS "    Disabled: ${DISABLED_COUNT} test(s)")
+            endif()
         endif()
     else()
         message(STATUS "  ${ARG_MODULE}: No test files found in ${ARG_DIRECTORY}")
