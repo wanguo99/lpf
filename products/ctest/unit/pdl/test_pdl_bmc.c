@@ -22,7 +22,7 @@ static void create_network_config(pdl_bmc_config_t *config)
     config->primary_config.network.password = "admin";
     config->primary_config.network.timeout_ms = 5000;
 
-    config->backup_channel = PDL_BMC_CHANNEL_SERIAL;
+    config->backup_channel = PCONFIG_BMC_CHANNEL_SERIAL;
     config->backup_config.serial.device = "/dev/ttyS2";
     config->backup_config.serial.baudrate = 115200;
     config->backup_config.serial.timeout_ms = 5000;
@@ -35,7 +35,7 @@ static void create_network_config(pdl_bmc_config_t *config)
 /* 创建串口主通道配置（网络备用） */
 static void create_serial_config(pdl_bmc_config_t *config)
 {
-    config->primary_channel = PDL_BMC_CHANNEL_SERIAL;
+    config->primary_channel = PCONFIG_BMC_CHANNEL_SERIAL;
     config->primary_config.serial.device = "/dev/ttyS2";
     config->primary_config.serial.baudrate = 115200;
     config->primary_config.serial.timeout_ms = 5000;
@@ -349,7 +349,7 @@ static void test_pdl_bmc_switch_channel_success(void)
     int32_t ret = PDL_BMC_Init(&config, &handle);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
-    ret = PDL_BMC_SwitchChannel(handle, PDL_BMC_CHANNEL_SERIAL);
+    ret = PDL_BMC_SwitchChannel(handle, PCONFIG_BMC_CHANNEL_SERIAL);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     ret = PDL_BMC_SwitchChannel(handle, PDL_BMC_CHANNEL_NETWORK);
@@ -377,7 +377,7 @@ static void test_pdl_bmc_get_channel_success(void)
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     pdl_bmc_channel_t channel = PDL_BMC_GetChannel(handle);
-    TEST_ASSERT_TRUE(channel == PDL_BMC_CHANNEL_NETWORK || channel == PDL_BMC_CHANNEL_SERIAL);
+    TEST_ASSERT_TRUE(channel == PDL_BMC_CHANNEL_NETWORK || channel == PCONFIG_BMC_CHANNEL_SERIAL);
 
     PDL_BMC_Deinit(handle);
 }

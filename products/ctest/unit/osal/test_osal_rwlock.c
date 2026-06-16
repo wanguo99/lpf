@@ -303,23 +303,21 @@ static void test_rwlock_readers_and_writers(void)
 
 void test_osal_rwlock(void)
 {
-    TEST_GROUP_START("OSAL RWLock");
 
     /* 基础功能测试 */
-    TEST_RUN(test_rwlock_init_destroy);
-    TEST_RUN(test_rwlock_init_destroy_null_pointer);
-    TEST_RUN(test_rwlock_rdlock_unlock);
-    TEST_RUN(test_rwlock_wrlock_unlock);
-    TEST_RUN(test_rwlock_tryrdlock);
-    TEST_RUN(test_rwlock_trywrlock);
-    TEST_RUN(test_rwlock_tryrdlock_when_write_locked);
-    TEST_RUN(test_rwlock_trywrlock_when_read_locked);
-    TEST_RUN(test_rwlock_trywrlock_when_write_locked);
-    TEST_RUN(test_rwlock_null_pointer_operations);
+    test_rwlock_init_destroy();
+    test_rwlock_init_destroy_null_pointer();
+    test_rwlock_rdlock_unlock();
+    test_rwlock_wrlock_unlock();
+    test_rwlock_tryrdlock();
+    test_rwlock_trywrlock();
+    test_rwlock_tryrdlock_when_write_locked();
+    test_rwlock_trywrlock_when_read_locked();
+    test_rwlock_trywrlock_when_write_locked();
+    test_rwlock_null_pointer_operations();
 
     /* 多线程测试 */
-    TEST_RUN(test_rwlock_multiple_readers);
-    TEST_RUN(test_rwlock_readers_and_writers);
+    test_rwlock_multiple_readers();
+    test_rwlock_readers_and_writers();
 
-    TEST_GROUP_END();
 }

@@ -506,35 +506,33 @@ static void test_configure_serial_9600_7e1(void)
 
 void test_osal_termios(void)
 {
-    TEST_GROUP_START("OSAL Termios");
 
     /* 基础功能测试 */
-    TEST_RUN(test_tcgetattr_tcsetattr);
-    TEST_RUN(test_tcgetattr_invalid_fd);
-    TEST_RUN(test_tcgetattr_null_pointer);
-    TEST_RUN(test_tcsetattr_null_pointer);
+    test_tcgetattr_tcsetattr();
+    test_tcgetattr_invalid_fd();
+    test_tcgetattr_null_pointer();
+    test_tcsetattr_null_pointer();
 
     /* 波特率测试 */
-    TEST_RUN(test_cfsetispeed_cfgetispeed);
-    TEST_RUN(test_cfsetospeed_cfgetospeed);
-    TEST_RUN(test_baudrate_common_values);
-    TEST_RUN(test_cfsetispeed_null_pointer);
-    TEST_RUN(test_cfsetospeed_null_pointer);
+    test_cfsetispeed_cfgetispeed();
+    test_cfsetospeed_cfgetospeed();
+    test_baudrate_common_values();
+    test_cfsetispeed_null_pointer();
+    test_cfsetospeed_null_pointer();
 
     /* 控制模式测试 */
-    TEST_RUN(test_set_raw_mode);
-    TEST_RUN(test_set_8n1_mode);
+    test_set_raw_mode();
+    test_set_8n1_mode();
 
     /* 队列控制测试 */
-    TEST_RUN(test_tcflush);
-    TEST_RUN(test_tcflush_invalid_fd);
-    TEST_RUN(test_tcdrain);
-    TEST_RUN(test_tcsendbreak);
-    TEST_RUN(test_tcflow);
+    test_tcflush();
+    test_tcflush_invalid_fd();
+    test_tcdrain();
+    test_tcsendbreak();
+    test_tcflow();
 
     /* 串口配置场景测试 */
-    TEST_RUN(test_configure_serial_115200_8n1);
-    TEST_RUN(test_configure_serial_9600_7e1);
+    test_configure_serial_115200_8n1();
+    test_configure_serial_9600_7e1();
 
-    TEST_GROUP_END();
 }

@@ -111,7 +111,7 @@ static void test_multidevice_concurrent_init(void)
 
 	pdl_mcu_config_t mcu_config;
 	OSAL_memset(&mcu_config, 0, sizeof(mcu_config));
-	mcu_config.interface = PDL_MCU_INTERFACE_CAN;
+	mcu_config.interface = PCONFIG_MCU_INTERFACE_CAN;
 	mcu_config.hw.can.device = "can0";
 	mcu_config.hw.can.bitrate = 500000;
 	mcu_config.hw.can.tx_id = 0x100;
@@ -185,7 +185,7 @@ static void test_multidevice_concurrent_operations(void)
 	/* 初始化设备 */
 	pdl_mcu_config_t mcu_config;
 	OSAL_memset(&mcu_config, 0, sizeof(mcu_config));
-	mcu_config.interface = PDL_MCU_INTERFACE_CAN;
+	mcu_config.interface = PCONFIG_MCU_INTERFACE_CAN;
 	mcu_config.hw.can.device = "can0";
 	mcu_config.hw.can.bitrate = 500000;
 	mcu_config.hw.can.tx_id = 0x100;
@@ -274,7 +274,7 @@ static void test_multidevice_independence(void)
 	/* 初始化MCU和Watchdog，验证它们不会相互影响 */
 	pdl_mcu_config_t mcu_config;
 	OSAL_memset(&mcu_config, 0, sizeof(mcu_config));
-	mcu_config.interface = PDL_MCU_INTERFACE_CAN;
+	mcu_config.interface = PCONFIG_MCU_INTERFACE_CAN;
 	mcu_config.hw.can.device = "can0";
 	mcu_config.hw.can.bitrate = 500000;
 	mcu_config.hw.can.tx_id = 0x100;

@@ -6,6 +6,7 @@
 #include <test_framework/test_framework.h>
 #include <test_framework/test_performance.h>
 #include "hal.h"
+#include "osal.h"
 
 /**
  * 测试CAN发送性能

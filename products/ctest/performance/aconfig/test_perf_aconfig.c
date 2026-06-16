@@ -4,6 +4,7 @@
  */
 
 #include <test_framework/test_framework.h>
+#include "osal.h"
 #include <test_framework/test_performance.h>
 #include "aconfig.h"
 

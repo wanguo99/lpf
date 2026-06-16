@@ -95,7 +95,7 @@ static void test_protocol_stack_mcu_end_to_end(void)
 	/* 初始化MCU */
 	pdl_mcu_config_t mcu_config;
 	OSAL_memset(&mcu_config, 0, sizeof(mcu_config));
-	mcu_config.interface = PDL_MCU_INTERFACE_CAN;
+	mcu_config.interface = PCONFIG_MCU_INTERFACE_CAN;
 	mcu_config.hw.can.device = "can0";
 	mcu_config.hw.can.bitrate = 500000;
 	mcu_config.hw.can.tx_id = 0x100;

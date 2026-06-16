@@ -4,6 +4,7 @@
  */
 
 #include "test_mock.h"
+#include "osal.h"
 
 /* 全局 mock 注册表 */
 test_mock_registry_t g_mock_registry = {0};

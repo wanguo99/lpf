@@ -14,8 +14,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-
-/* 注意：源文件需要包含 osal.h 以使用 OSAL API */
+#include "osal.h"
 
 /* Internal state tracking */
 extern bool g_test_failed;

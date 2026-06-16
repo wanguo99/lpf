@@ -474,31 +474,29 @@ static void test_fd_set_boundary(void)
 
 void test_osal_poll_select(void)
 {
-    TEST_GROUP_START("OSAL Poll/Select");
 
     /* Poll 测试 */
-    TEST_RUN(test_poll_immediate_return);
-    TEST_RUN(test_poll_timeout);
-    TEST_RUN(test_poll_multiple_fds);
-    TEST_RUN(test_poll_write_ready);
-    TEST_RUN(test_poll_invalid_fd);
-    TEST_RUN(test_poll_null_pointer);
-    TEST_RUN(test_poll_hangup);
+    test_poll_immediate_return();
+    test_poll_timeout();
+    test_poll_multiple_fds();
+    test_poll_write_ready();
+    test_poll_invalid_fd();
+    test_poll_null_pointer();
+    test_poll_hangup();
 
     /* Select 测试 */
-    TEST_RUN(test_fd_set_operations);
-    TEST_RUN(test_select_immediate_return);
-    TEST_RUN(test_select_timeout);
-    TEST_RUN(test_select_multiple_fds);
-    TEST_RUN(test_select_write_ready);
-    TEST_RUN(test_select_read_and_write);
-    TEST_RUN(test_select_null_sets);
-    TEST_RUN(test_select_null_timeout);
-    TEST_RUN(test_pselect_basic);
+    test_fd_set_operations();
+    test_select_immediate_return();
+    test_select_timeout();
+    test_select_multiple_fds();
+    test_select_write_ready();
+    test_select_read_and_write();
+    test_select_null_sets();
+    test_select_null_timeout();
+    test_pselect_basic();
 
     /* 边界测试 */
-    TEST_RUN(test_fd_set_large_fd);
-    TEST_RUN(test_fd_set_boundary);
+    test_fd_set_large_fd();
+    test_fd_set_boundary();
 
-    TEST_GROUP_END();
 }

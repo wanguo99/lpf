@@ -479,41 +479,39 @@ static void test_flock_different_files(void)
 
 void test_osal_flock(void)
 {
-    TEST_GROUP_START("OSAL FileLock");
 
     /* 基础功能测试 */
-    TEST_RUN(test_flock_create_destroy);
-    TEST_RUN(test_flock_create_null_path);
-    TEST_RUN(test_flock_create_null_output);
-    TEST_RUN(test_flock_destroy_null_pointer);
+    test_flock_create_destroy();
+    test_flock_create_null_path();
+    test_flock_create_null_output();
+    test_flock_destroy_null_pointer();
 
     /* 独占锁测试 */
-    TEST_RUN(test_flock_exclusive_lock_unlock);
-    TEST_RUN(test_flock_try_lock_exclusive);
-    TEST_RUN(test_flock_exclusive_blocks_exclusive);
+    test_flock_exclusive_lock_unlock();
+    test_flock_try_lock_exclusive();
+    test_flock_exclusive_blocks_exclusive();
 
     /* 共享锁测试 */
-    TEST_RUN(test_flock_shared_lock_unlock);
-    TEST_RUN(test_flock_multiple_shared_locks);
-    TEST_RUN(test_flock_shared_blocks_exclusive);
-    TEST_RUN(test_flock_exclusive_blocks_shared);
+    test_flock_shared_lock_unlock();
+    test_flock_multiple_shared_locks();
+    test_flock_shared_blocks_exclusive();
+    test_flock_exclusive_blocks_shared();
 
     /* 超时锁测试 */
-    TEST_RUN(test_flock_timed_lock_success);
-    TEST_RUN(test_flock_timed_lock_timeout);
+    test_flock_timed_lock_success();
+    test_flock_timed_lock_timeout();
 
     /* 错误处理测试 */
-    TEST_RUN(test_flock_lock_null_pointer);
-    TEST_RUN(test_flock_unlock_null_pointer);
-    TEST_RUN(test_flock_try_lock_null_pointer);
-    TEST_RUN(test_flock_timed_lock_null_pointer);
+    test_flock_lock_null_pointer();
+    test_flock_unlock_null_pointer();
+    test_flock_try_lock_null_pointer();
+    test_flock_timed_lock_null_pointer();
 
     /* 多线程测试 */
-    TEST_RUN(test_flock_multiple_threads_exclusive);
+    test_flock_multiple_threads_exclusive();
 
     /* 实际场景测试 */
-    TEST_RUN(test_flock_upgrade_lock);
-    TEST_RUN(test_flock_different_files);
+    test_flock_upgrade_lock();
+    test_flock_different_files();
 
-    TEST_GROUP_END();
 }

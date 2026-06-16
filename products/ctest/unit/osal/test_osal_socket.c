@@ -476,41 +476,39 @@ static void test_if_indextoname(void)
 
 void test_osal_socket(void)
 {
-    TEST_GROUP_START("OSAL Socket");
 
     /* 基础功能测试 */
-    TEST_RUN(test_socket_create_close);
-    TEST_RUN(test_socket_create_udp);
-    TEST_RUN(test_socket_create_invalid_domain);
-    TEST_RUN(test_socket_bind);
-    TEST_RUN(test_socket_bind_null_addr);
-    TEST_RUN(test_socket_listen);
-    TEST_RUN(test_socket_setsockopt_reuseaddr);
-    TEST_RUN(test_socket_getsockopt);
-    TEST_RUN(test_socket_shutdown);
+    test_socket_create_close();
+    test_socket_create_udp();
+    test_socket_create_invalid_domain();
+    test_socket_bind();
+    test_socket_bind_null_addr();
+    test_socket_listen();
+    test_socket_setsockopt_reuseaddr();
+    test_socket_getsockopt();
+    test_socket_shutdown();
 
     /* 字节序转换测试 */
-    TEST_RUN(test_htons);
-    TEST_RUN(test_htonl);
-    TEST_RUN(test_ntohs);
-    TEST_RUN(test_ntohl);
-    TEST_RUN(test_byteorder_round_trip);
+    test_htons();
+    test_htonl();
+    test_ntohs();
+    test_ntohl();
+    test_byteorder_round_trip();
 
     /* IP地址转换测试 */
-    TEST_RUN(test_inet_pton_ipv4);
-    TEST_RUN(test_inet_pton_ipv4_invalid);
-    TEST_RUN(test_inet_ntop_ipv4);
-    TEST_RUN(test_inet_round_trip);
+    test_inet_pton_ipv4();
+    test_inet_pton_ipv4_invalid();
+    test_inet_ntop_ipv4();
+    test_inet_round_trip();
 
     /* TCP测试 */
-    TEST_RUN(test_socket_tcp_client_server);
+    test_socket_tcp_client_server();
 
     /* UDP测试 */
-    TEST_RUN(test_socket_udp_sendto_recvfrom);
+    test_socket_udp_sendto_recvfrom();
 
     /* 网络接口测试 */
-    TEST_RUN(test_if_nametoindex);
-    TEST_RUN(test_if_indextoname);
+    test_if_nametoindex();
+    test_if_indextoname();
 
-    TEST_GROUP_END();
 }

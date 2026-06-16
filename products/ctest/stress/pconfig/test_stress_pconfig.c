@@ -10,6 +10,7 @@
  */
 
 #include <test_framework/test_framework.h>
+#include "osal.h"
 #include <test_framework/test_stress.h>
 #include "pconfig.h"
 
@@ -24,7 +25,7 @@ static pconfig_mcu_entry_t stress_mcu_entries[] = {
         .enabled = true,
         .config = {
             .name = "test_mcu_0",
-            .interface = PDL_MCU_INTERFACE_CAN,
+            .interface = PCONFIG_MCU_INTERFACE_CAN,
             .hw.can = {
                 .device = "can0",
                 .bitrate = 500000,
@@ -47,7 +48,7 @@ static pconfig_bmc_entry_t stress_bmc_entries[] = {
         .description = "Test BMC 0",
         .enabled = true,
         .config = {
-            .primary_channel = PDL_BMC_CHANNEL_SERIAL,
+            .primary_channel = PCONFIG_BMC_CHANNEL_SERIAL,
             .primary_config.serial = {
                 .device = "/dev/ttyS0",
                 .baudrate = 115200,
@@ -265,7 +266,7 @@ static void init_massive_configs(void)
             OSAL_snprintf(massive_mcu_arrays[i][j].config.name,
                      sizeof(massive_mcu_arrays[i][j].config.name),
                      "stress_mcu_%u_%u", i, j);
-            massive_mcu_arrays[i][j].config.interface = PDL_MCU_INTERFACE_CAN;
+            massive_mcu_arrays[i][j].config.interface = PCONFIG_MCU_INTERFACE_CAN;
             massive_mcu_arrays[i][j].config.hw.can.device = "can0";
             massive_mcu_arrays[i][j].config.hw.can.bitrate = 500000;
             massive_mcu_arrays[i][j].config.hw.can.tx_id = 0x100 + i * 2 + j;

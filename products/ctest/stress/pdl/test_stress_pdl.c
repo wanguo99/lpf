@@ -64,7 +64,7 @@ static void test_stress_bmc_concurrent_read(void)
 			.password = "admin",
 			.timeout_ms = 5000
 		},
-		.backup_channel = PDL_BMC_CHANNEL_SERIAL,
+		.backup_channel = PCONFIG_BMC_CHANNEL_SERIAL,
 		.auto_switch = false,
 		.retry_count = 3,
 		.health_check_interval = 5000
@@ -145,7 +145,7 @@ static void test_stress_mcu_long_running_query(void)
 	mcu_stress_data_t data;
 	pdl_mcu_config_t config = {
 		.name = "MCU_TEST",
-		.interface = PDL_MCU_INTERFACE_CAN,
+		.interface = PCONFIG_MCU_INTERFACE_CAN,
 		.hw.can = {
 			.device = "can0",
 			.bitrate = 500000,
@@ -492,7 +492,7 @@ static void test_stress_multidevice_mixed(void)
 	/* 初始化MCU */
 	pdl_mcu_config_t mcu_config = {
 		.name = "MCU_TEST",
-		.interface = PDL_MCU_INTERFACE_CAN,
+		.interface = PCONFIG_MCU_INTERFACE_CAN,
 		.hw.can = {
 			.device = "can0",
 			.bitrate = 500000,
@@ -576,7 +576,7 @@ static void test_stress_resource_exhaustion(void)
 		pdl_mcu_handle_t handle;
 		pdl_mcu_config_t config = {
 			.name = "MCU_TEST",
-			.interface = PDL_MCU_INTERFACE_CAN,
+			.interface = PCONFIG_MCU_INTERFACE_CAN,
 			.hw.can = {
 				.device = "can0",
 				.bitrate = 500000,

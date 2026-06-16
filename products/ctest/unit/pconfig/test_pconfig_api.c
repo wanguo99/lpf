@@ -14,7 +14,7 @@ static pconfig_mcu_entry_t test_mcu_entries[] = {
         .enabled = true,
         .config = {
             .name = "power_mcu",
-            .interface = PDL_MCU_INTERFACE_CAN,
+            .interface = PCONFIG_MCU_INTERFACE_CAN,
             .hw.can = {
                 .device = "can0",
                 .bitrate = 500000,
@@ -34,7 +34,7 @@ static pconfig_mcu_entry_t test_mcu_entries[] = {
         .enabled = true,
         .config = {
             .name = "payload_mcu",
-            .interface = PDL_MCU_INTERFACE_CAN,
+            .interface = PCONFIG_MCU_INTERFACE_CAN,
             .hw.can = {
                 .device = "can0",
                 .bitrate = 500000,
@@ -57,7 +57,7 @@ static pconfig_bmc_entry_t test_bmc_entries[] = {
         .description = "Satellite platform BMC",
         .enabled = true,
         .config = {
-            .primary_channel = PDL_BMC_CHANNEL_SERIAL,
+            .primary_channel = PCONFIG_BMC_CHANNEL_SERIAL,
             .primary_config.serial = {
                 .device = "/dev/ttyS1",
                 .baudrate = 115200,
@@ -66,7 +66,7 @@ static pconfig_bmc_entry_t test_bmc_entries[] = {
                 .parity = 0,
                 .timeout_ms = 2000
             },
-            .backup_channel = PDL_BMC_CHANNEL_NETWORK,
+            .backup_channel = PCONFIG_BMC_CHANNEL_NETWORK,
             .backup_config.network = {
                 .ip_addr = "192.168.1.100",
                 .port = 623,
@@ -326,7 +326,7 @@ static void test_pconfig_hw_get_bmc_by_id(void)
     const pconfig_bmc_entry_t *bmc = PCONFIG_HW_GetBMC(platform, 0);
 
     TEST_ASSERT_NOT_EQUAL(NULL, bmc);
-    TEST_ASSERT_EQUAL(PDL_BMC_CHANNEL_SERIAL, bmc->config.primary_channel);
+    TEST_ASSERT_EQUAL(PCONFIG_BMC_CHANNEL_SERIAL, bmc->config.primary_channel);
     TEST_ASSERT_EQUAL(115200, bmc->config.primary_config.serial.baudrate);
     TEST_ASSERT_TRUE(bmc->enabled);
 }

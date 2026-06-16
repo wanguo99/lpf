@@ -17,7 +17,7 @@
 static void create_can_config(pdl_mcu_config_t *config)
 {
     OSAL_memset(config, 0, OSAL_sizeof(pdl_mcu_config_t));
-    config->interface = PDL_MCU_INTERFACE_CAN;
+    config->interface = PCONFIG_MCU_INTERFACE_CAN;
     config->hw.can.device = "can0";
     config->hw.can.bitrate = 500000;
     config->hw.can.tx_id = 0x100;

@@ -291,38 +291,36 @@ static void test_crc16_incremental_stream(void)
 
 void test_osal_crc(void)
 {
-    TEST_GROUP_START("OSAL CRC");
 
     /* CRC16-CCITT 基础测试 */
-    TEST_RUN(test_crc16_empty_data);
-    TEST_RUN(test_crc16_single_byte);
-    TEST_RUN(test_crc16_known_values);
-    TEST_RUN(test_crc16_same_data_same_result);
-    TEST_RUN(test_crc16_different_data_different_result);
-    TEST_RUN(test_crc16_all_zeros);
-    TEST_RUN(test_crc16_all_ones);
-    TEST_RUN(test_crc16_null_pointer);
+    test_crc16_empty_data();
+    test_crc16_single_byte();
+    test_crc16_known_values();
+    test_crc16_same_data_same_result();
+    test_crc16_different_data_different_result();
+    test_crc16_all_zeros();
+    test_crc16_all_ones();
+    test_crc16_null_pointer();
 
     /* CRC16-CCITT Update 测试 */
-    TEST_RUN(test_crc16_update_incremental);
-    TEST_RUN(test_crc16_update_single_bytes);
-    TEST_RUN(test_crc16_update_with_skip);
-    TEST_RUN(test_crc16_update_empty_data);
-    TEST_RUN(test_crc16_update_null_pointer);
+    test_crc16_update_incremental();
+    test_crc16_update_single_bytes();
+    test_crc16_update_with_skip();
+    test_crc16_update_empty_data();
+    test_crc16_update_null_pointer();
 
     /* CRC16 数据完整性测试 */
-    TEST_RUN(test_crc16_data_corruption_detection);
-    TEST_RUN(test_crc16_length_sensitivity);
-    TEST_RUN(test_crc16_large_data);
+    test_crc16_data_corruption_detection();
+    test_crc16_length_sensitivity();
+    test_crc16_large_data();
 
     /* CRC32 测试（预留） */
-    TEST_RUN(test_crc32_empty_data);
-    TEST_RUN(test_crc32_some_data);
-    TEST_RUN(test_crc32_update_returns_input);
+    test_crc32_empty_data();
+    test_crc32_some_data();
+    test_crc32_update_returns_input();
 
     /* 实际应用场景测试 */
-    TEST_RUN(test_crc16_packet_validation);
-    TEST_RUN(test_crc16_incremental_stream);
+    test_crc16_packet_validation();
+    test_crc16_incremental_stream();
 
-    TEST_GROUP_END();
 }

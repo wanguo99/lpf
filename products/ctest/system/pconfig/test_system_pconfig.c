@@ -11,6 +11,7 @@
  */
 
 #include <test_framework/test_framework.h>
+#include "osal.h"
 #include <test_framework/test_system.h>
 #include "pconfig.h"
 #include <pthread.h>
@@ -26,7 +27,7 @@ static pconfig_mcu_entry_t test_platform1_mcu[] = {
         .enabled = true,
         .config = {
             .name = "platform1_mcu0",
-            .interface = PDL_MCU_INTERFACE_CAN,
+            .interface = PCONFIG_MCU_INTERFACE_CAN,
             .hw.can = {
                 .device = "can0",
                 .bitrate = 500000,
@@ -76,7 +77,7 @@ static pconfig_bmc_entry_t test_platform1_bmc[] = {
                 .password = "test123",
                 .timeout_ms = 2000
             },
-            .backup_channel = PDL_BMC_CHANNEL_SERIAL,
+            .backup_channel = PCONFIG_BMC_CHANNEL_SERIAL,
             .backup_config.serial = {
                 .device = "/dev/ttyS2",
                 .baudrate = 115200,
@@ -136,7 +137,7 @@ static pconfig_mcu_entry_t test_platform2_mcu[] = {
         .enabled = true,
         .config = {
             .name = "platform2_mcu0",
-            .interface = PDL_MCU_INTERFACE_CAN,
+            .interface = PCONFIG_MCU_INTERFACE_CAN,
             .hw.can = {
                 .device = "can1",
                 .bitrate = 1000000,
@@ -158,7 +159,7 @@ static pconfig_bmc_entry_t test_platform2_bmc[] = {
         .description = "Platform2 BMC on Serial only",
         .enabled = true,
         .config = {
-            .primary_channel = PDL_BMC_CHANNEL_SERIAL,
+            .primary_channel = PCONFIG_BMC_CHANNEL_SERIAL,
             .primary_config.serial = {
                 .device = "/dev/ttyS3",
                 .baudrate = 57600,
@@ -250,7 +251,7 @@ static void test_system_config_end_to_end_load(void) {
     const pconfig_mcu_entry_t *mcu0 = PCONFIG_HW_GetMCU(board, 0);
     TEST_ASSERT_NOT_NULL(mcu0);
     TEST_ASSERT_TRUE(mcu0->enabled);
-    TEST_ASSERT_EQUAL(PDL_MCU_INTERFACE_CAN, mcu0->config.interface);
+    TEST_ASSERT_EQUAL(PCONFIG_MCU_INTERFACE_CAN, mcu0->config.interface);
     TEST_ASSERT_EQUAL(0x100, mcu0->config.hw.can.tx_id);
 
     const pconfig_mcu_entry_t *mcu1 = PCONFIG_HW_GetMCU(board, 1);
