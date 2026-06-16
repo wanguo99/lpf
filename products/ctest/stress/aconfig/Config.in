@@ -3,8 +3,6 @@
 # Tests application configuration layer under extreme conditions.
 # Verifies concurrent access, performance baselines, and stability.
 
-if TEST_STRESS_ACONFIG
-
 menu "ACONFIG Stress Tests"
 
 config TEST_STRESS_ACONFIG
@@ -125,5 +123,3 @@ config TEST_STRESS_ACONFIG_THROUGHPUT
 	  Test file: test_stress_aconfig.c
 
 endmenu
-
-endif # TEST_STRESS_ACONFIG

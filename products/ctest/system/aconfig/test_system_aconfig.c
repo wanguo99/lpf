@@ -68,19 +68,18 @@ static int32_t execute_telecommand(uint32_t tc_id, system_context_t *ctx)
 {
 	const aconfig_tc_config_t *tc_config;
 	uint32_t i;
-	int32_t ret;
 
 	/* 查询TC配置 */
 	tc_config = ACONFIG_GetTcConfig(tc_id);
 	if (!tc_config) {
 		OSAL_printf("[ ERROR    ] TC %u not found in config\n", tc_id);
-		return OSAL_ERR_NOT_FOUND;
+		return OSAL_ERR_NAME_NOT_FOUND;
 	}
 
 	/* 检查是否使能 */
 	if (!ACONFIG_IsTcEnabled(tc_id)) {
 		OSAL_printf("[ ERROR    ] TC %u is disabled\n", tc_id);
-		return OSAL_ERR_NOT_PERMITTED;
+		return OSAL_ERR_NOT_SUPPORTED;
 	}
 
 	/* 模拟执行（实际场景会调用PDL层） */
@@ -88,7 +87,7 @@ static int32_t execute_telecommand(uint32_t tc_id, system_context_t *ctx)
 
 	ctx->tc_results[ctx->tc_count].tc_id = tc_id;
 	ctx->tc_results[ctx->tc_count].status = OSAL_SUCCESS;
-	ctx->tc_results[ctx->tc_count].timestamp = (uint32_t)OSAL_time(NULL);
+	ctx->tc_results[ctx->tc_count].timestamp = (uint32_t)OSAL_get_monotonic_time();
 	ctx->tc_count++;
 
 	/* 处理失效映射 - 使TC配置中内嵌的失效映射 */
@@ -129,13 +128,13 @@ static int32_t collect_telemetry(uint32_t tm_id, system_context_t *ctx)
 	tm_config = ACONFIG_GetTmConfig(tm_id);
 	if (!tm_config) {
 		OSAL_printf("[ ERROR    ] TM %u not found in config\n", tm_id);
-		return OSAL_ERR_NOT_FOUND;
+		return OSAL_ERR_NAME_NOT_FOUND;
 	}
 
 	/* 检查是否使能 */
 	if (!ACONFIG_IsTmEnabled(tm_id)) {
 		OSAL_printf("[ ERROR    ] TM %u is disabled\n", tm_id);
-		return OSAL_ERR_NOT_PERMITTED;
+		return OSAL_ERR_NOT_SUPPORTED;
 	}
 
 	/* 模拟采集（实际场景会调用PDL层） */
@@ -143,7 +142,7 @@ static int32_t collect_telemetry(uint32_t tm_id, system_context_t *ctx)
 
 	ctx->tm_cache[ctx->tm_count].tm_id = tm_id;
 	ctx->tm_cache[ctx->tm_count].value = tm_id * 10;  /* 模拟数据 */
-	ctx->tm_cache[ctx->tm_count].timestamp = (uint32_t)OSAL_time(NULL);
+	ctx->tm_cache[ctx->tm_count].timestamp = (uint32_t)OSAL_get_monotonic_time();
 	ctx->tm_cache[ctx->tm_count].valid = true;
 	ctx->tm_count++;
 
