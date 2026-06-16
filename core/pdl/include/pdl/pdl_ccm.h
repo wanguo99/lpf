@@ -95,7 +95,7 @@ typedef void (*pdl_ccm_command_callback_t)(uint32_t tc_id,
  * @return OSAL_SUCCESS 成功
  * @return OSAL_ERR_GENERIC 失败
  */
-int32_t PDL_CCM_Init(const pdl_ccm_config_t *config,
+int32_t PDL_CCM_init(const pdl_ccm_config_t *config,
                      pdl_ccm_handle_t *handle);
 
 /**
@@ -105,7 +105,7 @@ int32_t PDL_CCM_Init(const pdl_ccm_config_t *config,
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_CCM_Deinit(pdl_ccm_handle_t handle);
+int32_t PDL_CCM_deinit(pdl_ccm_handle_t handle);
 
 /**
  * @brief 注册遥测数据回调函数
@@ -116,7 +116,7 @@ int32_t PDL_CCM_Deinit(pdl_ccm_handle_t handle);
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_CCM_RegisterTelemetryCallback(pdl_ccm_handle_t handle,
+int32_t PDL_CCM_register_telemetry_callback(pdl_ccm_handle_t handle,
                                           pdl_ccm_telemetry_callback_t callback,
                                           void *user_data);
 
@@ -129,7 +129,7 @@ int32_t PDL_CCM_RegisterTelemetryCallback(pdl_ccm_handle_t handle,
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_CCM_RegisterCommandCallback(pdl_ccm_handle_t handle,
+int32_t PDL_CCM_register_command_callback(pdl_ccm_handle_t handle,
                                          pdl_ccm_command_callback_t callback,
                                          void *user_data);
 
@@ -144,7 +144,7 @@ int32_t PDL_CCM_RegisterCommandCallback(pdl_ccm_handle_t handle,
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_CCM_SendTelemetry(pdl_ccm_handle_t handle,
+int32_t PDL_CCM_send_telemetry(pdl_ccm_handle_t handle,
                                uint32_t tm_id,
                                uint32_t tm_source,
                                const uint8_t *data,
@@ -162,7 +162,7 @@ int32_t PDL_CCM_SendTelemetry(pdl_ccm_handle_t handle,
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_CCM_SendCommand(pdl_ccm_handle_t handle,
+int32_t PDL_CCM_send_command(pdl_ccm_handle_t handle,
                              uint32_t tc_id,
                              uint32_t tc_target,
                              uint32_t tc_action,
@@ -184,7 +184,7 @@ int32_t PDL_CCM_SendCommand(pdl_ccm_handle_t handle,
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_CCM_SendFirmwareUpdate(pdl_ccm_handle_t handle,
+int32_t PDL_CCM_send_firmware_update(pdl_ccm_handle_t handle,
                                     uint32_t firmware_id,
                                     uint32_t target_device,
                                     uint32_t firmware_version,
@@ -204,7 +204,7 @@ int32_t PDL_CCM_SendFirmwareUpdate(pdl_ccm_handle_t handle,
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_CCM_NodeManage(pdl_ccm_handle_t handle,
+int32_t PDL_CCM_node_manage(pdl_ccm_handle_t handle,
                             uint32_t node_id,
                             pdl_ccm_node_op_t operation,
                             uint32_t *node_status);
@@ -219,7 +219,7 @@ int32_t PDL_CCM_NodeManage(pdl_ccm_handle_t handle,
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_CCM_PowerControl(pdl_ccm_handle_t handle,
+int32_t PDL_CCM_power_control(pdl_ccm_handle_t handle,
                               uint32_t power_domain,
                               pdl_ccm_power_op_t operation,
                               uint32_t *power_status);

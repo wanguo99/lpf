@@ -92,7 +92,7 @@ typedef struct
  *       3. 检查配置是否启用
  *       4. 将 PCONFIG 配置转换为 HAL 配置并初始化硬件
  */
-int32_t PDL_BMC_Init(uint32_t index, pdl_bmc_handle_t *handle);
+int32_t PDL_BMC_init(uint32_t index, pdl_bmc_handle_t *handle);
 
 /**
  * @brief 反初始化BMC服务
@@ -101,7 +101,7 @@ int32_t PDL_BMC_Init(uint32_t index, pdl_bmc_handle_t *handle);
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_BMC_Deinit(pdl_bmc_handle_t handle);
+int32_t PDL_BMC_deinit(pdl_bmc_handle_t handle);
 
 /**
  * @brief 电源开机
@@ -110,7 +110,7 @@ int32_t PDL_BMC_Deinit(pdl_bmc_handle_t handle);
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_BMC_PowerOn(pdl_bmc_handle_t handle);
+int32_t PDL_BMC_power_on(pdl_bmc_handle_t handle);
 
 /**
  * @brief 电源关机
@@ -119,7 +119,7 @@ int32_t PDL_BMC_PowerOn(pdl_bmc_handle_t handle);
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_BMC_PowerOff(pdl_bmc_handle_t handle);
+int32_t PDL_BMC_power_off(pdl_bmc_handle_t handle);
 
 /**
  * @brief 电源复位
@@ -128,7 +128,7 @@ int32_t PDL_BMC_PowerOff(pdl_bmc_handle_t handle);
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_BMC_PowerReset(pdl_bmc_handle_t handle);
+int32_t PDL_BMC_power_reset(pdl_bmc_handle_t handle);
 
 /**
  * @brief 获取BMC状态
@@ -138,7 +138,7 @@ int32_t PDL_BMC_PowerReset(pdl_bmc_handle_t handle);
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_BMC_GetStatus(pdl_bmc_handle_t handle, pdl_bmc_status_t *status);
+int32_t PDL_BMC_get_status(pdl_bmc_handle_t handle, pdl_bmc_status_t *status);
 
 /**
  * @brief 读取传感器
@@ -149,7 +149,7 @@ int32_t PDL_BMC_GetStatus(pdl_bmc_handle_t handle, pdl_bmc_status_t *status);
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_BMC_ReadSensor(pdl_bmc_handle_t handle,
+int32_t PDL_BMC_read_sensor(pdl_bmc_handle_t handle,
 			uint32_t sensor_id,
 			pdl_bmc_sensor_reading_t *reading);
 
@@ -163,6 +163,6 @@ int32_t PDL_BMC_ReadSensor(pdl_bmc_handle_t handle,
  *
  * @note 预留的调试接口，验证完整调用链
  */
-int32_t PDL_BMC_TestCall(uint32_t index);
+int32_t PDL_BMC_test_call(uint32_t index);
 
 #endif /* PDL_BMC_H */

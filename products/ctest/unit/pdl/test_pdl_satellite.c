@@ -48,7 +48,7 @@ static void test_pdl_satellite_init_null_config(void)
 {
     pdl_satellite_handle_t handle = NULL;
 
-    int32_t ret = PDL_SATELLITE_Init(NULL, &handle);
+    int32_t ret = PDL_SATELLITE_init(NULL, &handle);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
 
@@ -62,7 +62,7 @@ static void test_pdl_satellite_init_null_handle(void)
     config.heartbeat_interval_ms = 1000;
     config.cmd_timeout_ms = 5000;
 
-    int32_t ret = PDL_SATELLITE_Init(&config, NULL);
+    int32_t ret = PDL_SATELLITE_init(&config, NULL);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
 
@@ -76,7 +76,7 @@ static void test_pdl_satellite_deinit(void)
 /* 测试用例: 清理空句柄 */
 static void test_pdl_satellite_deinit_null_handle(void)
 {
-    int32_t ret = PDL_SATELLITE_Deinit(NULL);
+    int32_t ret = PDL_SATELLITE_deinit(NULL);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
 
@@ -94,7 +94,7 @@ static void test_pdl_satellite_register_callback_success(void)
 /* 测试用例: 注册回调 - 空句柄 */
 static void test_pdl_satellite_register_callback_null_handle(void)
 {
-    int32_t ret = PDL_SATELLITE_RegisterCallback(NULL, test_satellite_callback, NULL);
+    int32_t ret = PDL_SATELLITE_register_callback(NULL, test_satellite_callback, NULL);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
 
@@ -119,7 +119,7 @@ static void test_pdl_satellite_send_response_success(void)
 /* 测试用例: 发送响应 - 空句柄 */
 static void test_pdl_satellite_send_response_null_handle(void)
 {
-    int32_t ret = PDL_SATELLITE_SendResponse(NULL, 0x01, PDL_SATELLITE_STATUS_OK, 0);
+    int32_t ret = PDL_SATELLITE_send_response(NULL, 0x01, PDL_SATELLITE_STATUS_OK, 0);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
 
@@ -144,7 +144,7 @@ static void test_pdl_satellite_send_heartbeat_success(void)
 /* 测试用例: 发送心跳 - 空句柄 */
 static void test_pdl_satellite_send_heartbeat_null_handle(void)
 {
-    int32_t ret = PDL_SATELLITE_SendHeartbeat(NULL, PDL_SATELLITE_STATUS_OK);
+    int32_t ret = PDL_SATELLITE_send_heartbeat(NULL, PDL_SATELLITE_STATUS_OK);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
 
@@ -171,7 +171,7 @@ static void test_pdl_satellite_get_stats_null_handle(void)
 {
     uint32_t rx_count, tx_count, error_count;
 
-    int32_t ret = PDL_SATELLITE_GetStats(NULL, &rx_count, &tx_count, &error_count);
+    int32_t ret = PDL_SATELLITE_get_stats(NULL, &rx_count, &tx_count, &error_count);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
 

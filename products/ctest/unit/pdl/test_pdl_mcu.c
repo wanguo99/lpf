@@ -20,12 +20,12 @@ static void test_pdl_mcu_init_valid_index(void)
     pdl_mcu_handle_t handle = NULL;
 
     /* 使用索引 0 初始化（假设 PCONFIG 中已配置） */
-    int32_t ret = PDL_MCU_Init(0, &handle);
+    int32_t ret = PDL_MCU_init(0, &handle);
 
     /* 如果配置存在且启用，应该成功 */
     if (ret == OSAL_SUCCESS) {
         TEST_ASSERT_NOT_NULL(handle);
-        PDL_MCU_Deinit(handle);
+        PDL_MCU_deinit(handle);
     } else {
         /* 配置不存在或未启用，跳过测试 */
         TEST_MESSAGE("SKIPPED: MCU index 0 not configured in PCONFIG");
@@ -35,7 +35,7 @@ static void test_pdl_mcu_init_valid_index(void)
 /* 测试用例: MCU驱动初始化 - 空句柄指针 */
 static void test_pdl_mcu_init_null_handle(void)
 {
-    int32_t ret = PDL_MCU_Init(0, NULL);
+    int32_t ret = PDL_MCU_init(0, NULL);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
 
@@ -45,7 +45,7 @@ static void test_pdl_mcu_init_invalid_index(void)
     pdl_mcu_handle_t handle = NULL;
 
     /* 使用一个很大的无效索引 */
-    int32_t ret = PDL_MCU_Init(999, &handle);
+    int32_t ret = PDL_MCU_init(999, &handle);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
 
@@ -54,9 +54,9 @@ static void test_pdl_mcu_deinit(void)
 {
     pdl_mcu_handle_t handle = NULL;
 
-    int32_t ret = PDL_MCU_Init(0, &handle);
+    int32_t ret = PDL_MCU_init(0, &handle);
     if (ret == OSAL_SUCCESS) {
-        ret = PDL_MCU_Deinit(handle);
+        ret = PDL_MCU_deinit(handle);
         TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
     } else {
         TEST_MESSAGE("SKIPPED: MCU index 0 not configured");
@@ -66,7 +66,7 @@ static void test_pdl_mcu_deinit(void)
 /* 测试用例: 清理空句柄 */
 static void test_pdl_mcu_deinit_null_handle(void)
 {
-    int32_t ret = PDL_MCU_Deinit(NULL);
+    int32_t ret = PDL_MCU_deinit(NULL);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
 
@@ -78,7 +78,7 @@ static void test_pdl_mcu_deinit_null_handle(void)
 static void test_pdl_mcu_get_version_null_handle(void)
 {
     pdl_mcu_version_t version;
-    int32_t ret = PDL_MCU_GetVersion(NULL, &version);
+    int32_t ret = PDL_MCU_get_version(NULL, &version);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
 
@@ -87,11 +87,11 @@ static void test_pdl_mcu_get_version_null_output(void)
 {
     pdl_mcu_handle_t handle = NULL;
 
-    int32_t ret = PDL_MCU_Init(0, &handle);
+    int32_t ret = PDL_MCU_init(0, &handle);
     if (ret == OSAL_SUCCESS) {
-        ret = PDL_MCU_GetVersion(handle, NULL);
+        ret = PDL_MCU_get_version(handle, NULL);
         TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
-        PDL_MCU_Deinit(handle);
+        PDL_MCU_deinit(handle);
     } else {
         TEST_MESSAGE("SKIPPED: MCU index 0 not configured");
     }
@@ -108,7 +108,7 @@ static void test_pdl_mcu_send_command_null_handle(void)
     uint8_t resp_data[32];
     uint32_t resp_len;
 
-    int32_t ret = PDL_MCU_SendCommand(NULL, 0x01, cmd_data, sizeof(cmd_data),
+    int32_t ret = PDL_MCU_send_command(NULL, 0x01, cmd_data, sizeof(cmd_data),
                                        resp_data, sizeof(resp_data), &resp_len);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
@@ -120,12 +120,12 @@ static void test_pdl_mcu_send_command_null_response(void)
     uint8_t cmd_data[] = {0x01, 0x02, 0x03};
     uint32_t resp_len;
 
-    int32_t ret = PDL_MCU_Init(0, &handle);
+    int32_t ret = PDL_MCU_init(0, &handle);
     if (ret == OSAL_SUCCESS) {
-        ret = PDL_MCU_SendCommand(handle, 0x01, cmd_data, sizeof(cmd_data),
+        ret = PDL_MCU_send_command(handle, 0x01, cmd_data, sizeof(cmd_data),
                                    NULL, 32, &resp_len);
         TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
-        PDL_MCU_Deinit(handle);
+        PDL_MCU_deinit(handle);
     } else {
         TEST_MESSAGE("SKIPPED: MCU index 0 not configured");
     }
@@ -139,7 +139,7 @@ static void test_pdl_mcu_send_command_null_response(void)
 static void test_pdl_mcu_get_status_null_handle(void)
 {
     pdl_mcu_status_t status;
-    int32_t ret = PDL_MCU_GetStatus(NULL, &status);
+    int32_t ret = PDL_MCU_get_status(NULL, &status);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
 
@@ -148,11 +148,11 @@ static void test_pdl_mcu_get_status_null_output(void)
 {
     pdl_mcu_handle_t handle = NULL;
 
-    int32_t ret = PDL_MCU_Init(0, &handle);
+    int32_t ret = PDL_MCU_init(0, &handle);
     if (ret == OSAL_SUCCESS) {
-        ret = PDL_MCU_GetStatus(handle, NULL);
+        ret = PDL_MCU_get_status(handle, NULL);
         TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
-        PDL_MCU_Deinit(handle);
+        PDL_MCU_deinit(handle);
     } else {
         TEST_MESSAGE("SKIPPED: MCU index 0 not configured");
     }

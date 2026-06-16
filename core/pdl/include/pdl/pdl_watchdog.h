@@ -71,7 +71,7 @@ typedef struct
  * @return OSAL_ERR_INVALID_POINTER 参数为NULL
  * @return OSAL_ERR_GENERIC 失败
  */
-int32_t PDL_WATCHDOG_Init(const pdl_watchdog_config_t *config, pdl_watchdog_handle_t *handle);
+int32_t PDL_WATCHDOG_init(const pdl_watchdog_config_t *config, pdl_watchdog_handle_t *handle);
 
 /**
  * @brief 关闭Watchdog服务
@@ -81,7 +81,7 @@ int32_t PDL_WATCHDOG_Init(const pdl_watchdog_config_t *config, pdl_watchdog_hand
  * @return OSAL_SUCCESS 成功
  * @return OSAL_ERR_INVALID_POINTER 参数为NULL
  */
-int32_t PDL_WATCHDOG_Deinit(pdl_watchdog_handle_t handle);
+int32_t PDL_WATCHDOG_deinit(pdl_watchdog_handle_t handle);
 
 /**
  * @brief 启动自动喂狗服务
@@ -94,7 +94,7 @@ int32_t PDL_WATCHDOG_Deinit(pdl_watchdog_handle_t handle);
  * @return OSAL_ERR_INVALID_POINTER 参数为NULL
  * @return OSAL_ERR_GENERIC 失败
  */
-int32_t PDL_WATCHDOG_Start(pdl_watchdog_handle_t handle);
+int32_t PDL_WATCHDOG_start(pdl_watchdog_handle_t handle);
 
 /**
  * @brief 停止自动喂狗服务
@@ -106,7 +106,7 @@ int32_t PDL_WATCHDOG_Start(pdl_watchdog_handle_t handle);
  * @return OSAL_SUCCESS 成功
  * @return OSAL_ERR_INVALID_POINTER 参数为NULL
  */
-int32_t PDL_WATCHDOG_Stop(pdl_watchdog_handle_t handle);
+int32_t PDL_WATCHDOG_stop(pdl_watchdog_handle_t handle);
 
 /**
  * @brief 手动喂狗
@@ -119,7 +119,7 @@ int32_t PDL_WATCHDOG_Stop(pdl_watchdog_handle_t handle);
  * @return OSAL_ERR_INVALID_POINTER 参数为NULL
  * @return OSAL_ERR_GENERIC 失败
  */
-int32_t PDL_WATCHDOG_Kick(pdl_watchdog_handle_t handle);
+int32_t PDL_WATCHDOG_kick(pdl_watchdog_handle_t handle);
 
 /**
  * @brief 获取Watchdog状态
@@ -130,7 +130,7 @@ int32_t PDL_WATCHDOG_Kick(pdl_watchdog_handle_t handle);
  * @return OSAL_SUCCESS 成功
  * @return OSAL_ERR_INVALID_POINTER 参数为NULL
  */
-int32_t PDL_WATCHDOG_GetStatus(pdl_watchdog_handle_t handle, pdl_watchdog_status_t *status);
+int32_t PDL_WATCHDOG_get_status(pdl_watchdog_handle_t handle, pdl_watchdog_status_t *status);
 
 /**
  * @brief 设置喂狗间隔
@@ -144,7 +144,7 @@ int32_t PDL_WATCHDOG_GetStatus(pdl_watchdog_handle_t handle, pdl_watchdog_status
  * @return OSAL_ERR_INVALID_POINTER 参数为NULL
  * @return OSAL_ERR_GENERIC 失败
  */
-int32_t PDL_WATCHDOG_SetInterval(pdl_watchdog_handle_t handle, uint32_t interval_ms);
+int32_t PDL_WATCHDOG_set_interval(pdl_watchdog_handle_t handle, uint32_t interval_ms);
 
 /**
  * @brief 启用看门狗
@@ -155,7 +155,7 @@ int32_t PDL_WATCHDOG_SetInterval(pdl_watchdog_handle_t handle, uint32_t interval
  * @return OSAL_ERR_INVALID_POINTER 参数为NULL
  * @return OSAL_ERR_GENERIC 失败
  */
-int32_t PDL_WATCHDOG_Enable(pdl_watchdog_handle_t handle);
+int32_t PDL_WATCHDOG_enable(pdl_watchdog_handle_t handle);
 
 /**
  * @brief 禁用看门狗
@@ -169,6 +169,6 @@ int32_t PDL_WATCHDOG_Enable(pdl_watchdog_handle_t handle);
  * @return OSAL_ERR_INVALID_POINTER 参数为NULL
  * @return OSAL_ERR_GENERIC 失败
  */
-int32_t PDL_WATCHDOG_Disable(pdl_watchdog_handle_t handle);
+int32_t PDL_WATCHDOG_disable(pdl_watchdog_handle_t handle);
 
 #endif /* PDL_WATCHDOG_H */

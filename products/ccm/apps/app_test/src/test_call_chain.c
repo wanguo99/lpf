@@ -38,8 +38,8 @@ int32_t APP_TestCallChain_MCU_CAN(void)
 	LOG_INFO("APP_TEST", "Got MCU index: %u", mcu_index);
 
 	/* 步骤 2: 调用 PDL 测试接口 */
-	LOG_INFO("APP_TEST", "Step 2: Call PDL_MCU_TestCall(%u)", mcu_index);
-	ret = PDL_MCU_TestCall(mcu_index);
+	LOG_INFO("APP_TEST", "Step 2: Call PDL_MCU_test_call(%u)", mcu_index);
+	ret = PDL_MCU_test_call(mcu_index);
 
 	if (OSAL_SUCCESS == ret) {
 		LOG_INFO("APP_TEST", "========================================");
@@ -73,8 +73,8 @@ int32_t APP_TestCallChain_MCU_Serial(void)
 	mcu_index = 1;  /* 假设 Serial 是 index 1 */
 	LOG_INFO("APP_TEST", "Got MCU index: %u", mcu_index);
 
-	LOG_INFO("APP_TEST", "Step 2: Call PDL_MCU_TestCall(%u)", mcu_index);
-	ret = PDL_MCU_TestCall(mcu_index);
+	LOG_INFO("APP_TEST", "Step 2: Call PDL_MCU_test_call(%u)", mcu_index);
+	ret = PDL_MCU_test_call(mcu_index);
 
 	if (OSAL_SUCCESS == ret) {
 		LOG_INFO("APP_TEST", "========================================");
@@ -107,8 +107,8 @@ int32_t APP_TestCallChain_BMC(void)
 	bmc_index = 0;  /* 假设 BMC 是 index 0 */
 	LOG_INFO("APP_TEST", "Got BMC index: %u", bmc_index);
 
-	LOG_INFO("APP_TEST", "Step 2: Call PDL_BMC_TestCall(%u)", bmc_index);
-	ret = PDL_BMC_TestCall(bmc_index);
+	LOG_INFO("APP_TEST", "Step 2: Call PDL_BMC_test_call(%u)", bmc_index);
+	ret = PDL_BMC_test_call(bmc_index);
 
 	if (OSAL_SUCCESS == ret) {
 		LOG_INFO("APP_TEST", "========================================");

@@ -89,25 +89,25 @@ static void test_hal_pdl_integration(void) {
     };
 
     pdl_watchdog_handle_t wdt_handle = NULL;
-    int32_t ret = PDL_WATCHDOG_Init(&wdt_config, &wdt_handle);
+    int32_t ret = PDL_WATCHDOG_init(&wdt_config, &wdt_handle);
     TEST_ASSERT_EQUAL(0, ret);
 
     if (ret == 0 && wdt_handle != NULL) {
-        ret = PDL_WATCHDOG_Start(wdt_handle);
+        ret = PDL_WATCHDOG_start(wdt_handle);
         TEST_ASSERT_EQUAL(0, ret);
 
-        ret = PDL_WATCHDOG_Kick(wdt_handle);
+        ret = PDL_WATCHDOG_kick(wdt_handle);
         TEST_ASSERT_EQUAL(0, ret);
 
         pdl_watchdog_status_t status;
-        ret = PDL_WATCHDOG_GetStatus(wdt_handle, &status);
+        ret = PDL_WATCHDOG_get_status(wdt_handle, &status);
         TEST_ASSERT_EQUAL(0, ret);
         TEST_ASSERT_TRUE(status.running);
 
-        ret = PDL_WATCHDOG_Stop(wdt_handle);
+        ret = PDL_WATCHDOG_stop(wdt_handle);
         TEST_ASSERT_EQUAL(0, ret);
 
-        PDL_WATCHDOG_Deinit(wdt_handle);
+        PDL_WATCHDOG_deinit(wdt_handle);
     }
 
     OSAL_printf("[ PASS     ] HAL + PDL integration test passed\n");

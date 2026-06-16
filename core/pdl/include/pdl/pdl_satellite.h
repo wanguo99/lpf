@@ -62,7 +62,7 @@ typedef void (*pdl_satellite_cmd_callback_t)(uint8_t cmd_type, uint32_t param, v
  * @return OSAL_SUCCESS 成功
  * @return OSAL_ERR_GENERIC 失败
  */
-int32_t PDL_SATELLITE_Init(const pdl_satellite_config_t *config,
+int32_t PDL_SATELLITE_init(const pdl_satellite_config_t *config,
                          pdl_satellite_handle_t *handle);
 
 /**
@@ -72,7 +72,7 @@ int32_t PDL_SATELLITE_Init(const pdl_satellite_config_t *config,
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_SATELLITE_Deinit(pdl_satellite_handle_t handle);
+int32_t PDL_SATELLITE_deinit(pdl_satellite_handle_t handle);
 
 /**
  * @brief 注册命令回调函数
@@ -83,7 +83,7 @@ int32_t PDL_SATELLITE_Deinit(pdl_satellite_handle_t handle);
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_SATELLITE_RegisterCallback(pdl_satellite_handle_t handle,
+int32_t PDL_SATELLITE_register_callback(pdl_satellite_handle_t handle,
                                      pdl_satellite_cmd_callback_t callback,
                                      void *user_data);
 
@@ -97,7 +97,7 @@ int32_t PDL_SATELLITE_RegisterCallback(pdl_satellite_handle_t handle,
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_SATELLITE_SendResponse(pdl_satellite_handle_t handle,
+int32_t PDL_SATELLITE_send_response(pdl_satellite_handle_t handle,
                                  uint32_t seq_num,
                                  pdl_satellite_status_t status,
                                  uint32_t result);
@@ -110,7 +110,7 @@ int32_t PDL_SATELLITE_SendResponse(pdl_satellite_handle_t handle,
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_SATELLITE_SendHeartbeat(pdl_satellite_handle_t handle,
+int32_t PDL_SATELLITE_send_heartbeat(pdl_satellite_handle_t handle,
                                   pdl_satellite_status_t status);
 
 /**
@@ -123,7 +123,7 @@ int32_t PDL_SATELLITE_SendHeartbeat(pdl_satellite_handle_t handle,
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_SATELLITE_GetStats(pdl_satellite_handle_t handle,
+int32_t PDL_SATELLITE_get_stats(pdl_satellite_handle_t handle,
                              uint32_t *rx_count,
                              uint32_t *tx_count,
                              uint32_t *error_count);

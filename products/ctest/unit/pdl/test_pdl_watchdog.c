@@ -24,13 +24,13 @@ static void test_pdl_watchdog_init_deinit(void)
         .enable_on_init = false
     };
 
-    int32_t ret = PDL_WATCHDOG_Init(&config, &handle);
+    int32_t ret = PDL_WATCHDOG_init(&config, &handle);
     TEST_ASSERT_FALSE(ret != OSAL_SUCCESS); // Watchdog device not available
 
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
     TEST_ASSERT_NOT_NULL(handle);
 
-    ret = PDL_WATCHDOG_Deinit(handle);
+    ret = PDL_WATCHDOG_deinit(handle);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 }
 
@@ -50,11 +50,11 @@ static void test_pdl_watchdog_null_params(void)
     };
 
     /* NULL config */
-    int32_t ret = PDL_WATCHDOG_Init(NULL, &handle);
+    int32_t ret = PDL_WATCHDOG_init(NULL, &handle);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 
     /* NULL handle */
-    ret = PDL_WATCHDOG_Init(&config, NULL);
+    ret = PDL_WATCHDOG_init(&config, NULL);
     TEST_ASSERT_NOT_EQUAL(OSAL_SUCCESS, ret);
 }
 
@@ -73,30 +73,30 @@ static void test_pdl_watchdog_manual_kick(void)
         .enable_on_init = false
     };
 
-    int32_t ret = PDL_WATCHDOG_Init(&config, &handle);
+    int32_t ret = PDL_WATCHDOG_init(&config, &handle);
     TEST_ASSERT_FALSE(ret != OSAL_SUCCESS); // Watchdog device not available
 
     /* 手动喂狗 */
-    ret = PDL_WATCHDOG_Kick(handle);
+    ret = PDL_WATCHDOG_kick(handle);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     /* 多次喂狗 */
     uint32_t i;
     for (i = 0; i < 5; i++)
     {
-        ret = PDL_WATCHDOG_Kick(handle);
+        ret = PDL_WATCHDOG_kick(handle);
         TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
         OSAL_msleep(100);
     }
 
     /* 检查状态 */
     pdl_watchdog_status_t status;
-    ret = PDL_WATCHDOG_GetStatus(handle, &status);
+    ret = PDL_WATCHDOG_get_status(handle, &status);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
     TEST_ASSERT_EQUAL(6, status.kick_count);
     TEST_ASSERT_EQUAL(PDL_WATCHDOG_MODE_MANUAL, status.mode);
 
-    PDL_WATCHDOG_Deinit(handle);
+    PDL_WATCHDOG_deinit(handle);
 }
 
 /**
@@ -114,11 +114,11 @@ static void test_pdl_watchdog_auto_mode(void)
         .enable_on_init = false
     };
 
-    int32_t ret = PDL_WATCHDOG_Init(&config, &handle);
+    int32_t ret = PDL_WATCHDOG_init(&config, &handle);
     TEST_ASSERT_FALSE(ret != OSAL_SUCCESS); // Watchdog device not available
 
     /* 启动自动喂狗 */
-    ret = PDL_WATCHDOG_Start(handle);
+    ret = PDL_WATCHDOG_start(handle);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     /* 等待一段时间让自动喂狗线程工作 */
@@ -126,21 +126,21 @@ static void test_pdl_watchdog_auto_mode(void)
 
     /* 检查状态 */
     pdl_watchdog_status_t status;
-    ret = PDL_WATCHDOG_GetStatus(handle, &status);
+    ret = PDL_WATCHDOG_get_status(handle, &status);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
     TEST_ASSERT_EQUAL(true, status.running);
     TEST_ASSERT(status.kick_count >= 2);  /* 至少喂了2次 */
 
     /* 停止自动喂狗 */
-    ret = PDL_WATCHDOG_Stop(handle);
+    ret = PDL_WATCHDOG_stop(handle);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     /* 检查状态 */
-    ret = PDL_WATCHDOG_GetStatus(handle, &status);
+    ret = PDL_WATCHDOG_get_status(handle, &status);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
     TEST_ASSERT_EQUAL(false, status.running);
 
-    PDL_WATCHDOG_Deinit(handle);
+    PDL_WATCHDOG_deinit(handle);
 }
 
 /**
@@ -158,19 +158,19 @@ static void test_pdl_watchdog_get_status(void)
         .enable_on_init = false
     };
 
-    int32_t ret = PDL_WATCHDOG_Init(&config, &handle);
+    int32_t ret = PDL_WATCHDOG_init(&config, &handle);
     TEST_ASSERT_FALSE(ret != OSAL_SUCCESS); // Watchdog device not available
 
     /* 获取状态 */
     pdl_watchdog_status_t status;
-    ret = PDL_WATCHDOG_GetStatus(handle, &status);
+    ret = PDL_WATCHDOG_get_status(handle, &status);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
     TEST_ASSERT_EQUAL(false, status.running);
     TEST_ASSERT_EQUAL(PDL_WATCHDOG_MODE_MANUAL, status.mode);
     TEST_ASSERT_EQUAL(5000, status.kick_interval_ms);
     TEST_ASSERT_EQUAL(0, status.kick_count);
 
-    PDL_WATCHDOG_Deinit(handle);
+    PDL_WATCHDOG_deinit(handle);
 }
 
 /**
@@ -188,20 +188,20 @@ static void test_pdl_watchdog_set_interval(void)
         .enable_on_init = false
     };
 
-    int32_t ret = PDL_WATCHDOG_Init(&config, &handle);
+    int32_t ret = PDL_WATCHDOG_init(&config, &handle);
     TEST_ASSERT_FALSE(ret != OSAL_SUCCESS); // Watchdog device not available
 
     /* 设置新的间隔 */
-    ret = PDL_WATCHDOG_SetInterval(handle, 3000);
+    ret = PDL_WATCHDOG_set_interval(handle, 3000);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     /* 验证 */
     pdl_watchdog_status_t status;
-    ret = PDL_WATCHDOG_GetStatus(handle, &status);
+    ret = PDL_WATCHDOG_get_status(handle, &status);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
     TEST_ASSERT_EQUAL(3000, status.kick_interval_ms);
 
-    PDL_WATCHDOG_Deinit(handle);
+    PDL_WATCHDOG_deinit(handle);
 }
 
 /**
@@ -219,20 +219,20 @@ static void test_pdl_watchdog_enable_disable(void)
         .enable_on_init = false
     };
 
-    int32_t ret = PDL_WATCHDOG_Init(&config, &handle);
+    int32_t ret = PDL_WATCHDOG_init(&config, &handle);
     TEST_ASSERT_FALSE(ret != OSAL_SUCCESS); // Watchdog device not available
 
     /* 启用 */
-    ret = PDL_WATCHDOG_Enable(handle);
+    ret = PDL_WATCHDOG_enable(handle);
     if (ret == OSAL_SUCCESS)
     {
         pdl_watchdog_status_t status;
-        ret = PDL_WATCHDOG_GetStatus(handle, &status);
+        ret = PDL_WATCHDOG_get_status(handle, &status);
         TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
         TEST_ASSERT_EQUAL(true, status.enabled);
     }
 
-    PDL_WATCHDOG_Deinit(handle);
+    PDL_WATCHDOG_deinit(handle);
 }
 
 /* 测试用例数组 - 使用函数指针数组 */

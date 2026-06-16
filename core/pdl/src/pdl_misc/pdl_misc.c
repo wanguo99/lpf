@@ -21,7 +21,7 @@
  * - RTOS: 从 EEPROM、OTP 或固定地址读取
  * - 测试: 从环境变量 ES_MIDDLEWARE_HWID 读取
  */
-int32_t PDL_MISC_GetHWID(pdl_hwid_t *hwid)
+int32_t PDL_MISC_get_hwid(pdl_hwid_t *hwid)
 {
     if (hwid == NULL) {
         return OSAL_ERR_INVALID_PARAM;
@@ -69,7 +69,7 @@ int32_t PDL_MISC_GetHWID(pdl_hwid_t *hwid)
  * 分区表查询实现
  *===========================================================================*/
 
-int32_t PDL_MISC_GetPartitionInfo(const char *name, pdl_partition_info_t *info)
+int32_t PDL_MISC_get_partition_info(const char *name, pdl_partition_info_t *info)
 {
     if (name == NULL || info == NULL) {
         return OSAL_ERR_INVALID_PARAM;
@@ -85,7 +85,7 @@ int32_t PDL_MISC_GetPartitionInfo(const char *name, pdl_partition_info_t *info)
  * 设备启动信息实现
  *===========================================================================*/
 
-int32_t PDL_MISC_GetBootInfo(pdl_boot_info_t *info)
+int32_t PDL_MISC_get_boot_info(pdl_boot_info_t *info)
 {
     if (info == NULL) {
         return OSAL_ERR_INVALID_PARAM;

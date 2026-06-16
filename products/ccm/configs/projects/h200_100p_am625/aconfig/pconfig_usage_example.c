@@ -40,17 +40,17 @@ void example_use_device_map(void)
     /* 4. 使用硬件配置 */
     if (payload_mcu && payload_mcu->enabled) {
         LOG_INFO("APP", "Init payload MCU: %s", payload_mcu->description);
-        /* PDL_MCU_Init(&payload_mcu->config); */
+        /* PDL_MCU_init(&payload_mcu->config); */
     }
 
     if (power_mcu && power_mcu->enabled) {
         LOG_INFO("APP", "Init power MCU: %s", power_mcu->description);
-        /* PDL_MCU_Init(&power_mcu->config); */
+        /* PDL_MCU_init(&power_mcu->config); */
     }
 
     if (main_bmc && main_bmc->enabled) {
         LOG_INFO("APP", "Init main BMC: %s", main_bmc->description);
-        /* PDL_BMC_Init(&main_bmc->config); */
+        /* PDL_BMC_init(&main_bmc->config); */
     }
 }
 

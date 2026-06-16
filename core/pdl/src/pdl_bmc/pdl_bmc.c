@@ -46,7 +46,7 @@ typedef struct
 /**
  * @brief 初始化BMC服务
  */
-int32_t PDL_BMC_Init(uint32_t index, pdl_bmc_handle_t *handle)
+int32_t PDL_BMC_init(uint32_t index, pdl_bmc_handle_t *handle)
 {
     bmc_context_t *ctx;
     const pconfig_platform_config_t *platform;
@@ -219,7 +219,7 @@ int32_t PDL_BMC_Init(uint32_t index, pdl_bmc_handle_t *handle)
 /**
  * @brief 反初始化BMC服务
  */
-int32_t PDL_BMC_Deinit(pdl_bmc_handle_t handle)
+int32_t PDL_BMC_deinit(pdl_bmc_handle_t handle)
 {
     bmc_context_t *ctx;
 
@@ -265,7 +265,7 @@ int32_t PDL_BMC_Deinit(pdl_bmc_handle_t handle)
 /**
  * @brief 电源开机
  */
-int32_t PDL_BMC_PowerOn(pdl_bmc_handle_t handle)
+int32_t PDL_BMC_power_on(pdl_bmc_handle_t handle)
 {
     bmc_context_t *ctx;
     int32_t ret;
@@ -321,7 +321,7 @@ int32_t PDL_BMC_PowerOn(pdl_bmc_handle_t handle)
 /**
  * @brief 电源关机
  */
-int32_t PDL_BMC_PowerOff(pdl_bmc_handle_t handle)
+int32_t PDL_BMC_power_off(pdl_bmc_handle_t handle)
 {
     bmc_context_t *ctx;
     int32_t ret;
@@ -377,7 +377,7 @@ int32_t PDL_BMC_PowerOff(pdl_bmc_handle_t handle)
 /**
  * @brief 电源复位
  */
-int32_t PDL_BMC_PowerReset(pdl_bmc_handle_t handle)
+int32_t PDL_BMC_power_reset(pdl_bmc_handle_t handle)
 {
     bmc_context_t *ctx;
     int32_t ret;
@@ -687,7 +687,7 @@ int32_t PDL_BMC_GetStats(pdl_bmc_handle_t handle,
 /**
  * @brief BMC 测试调用链实现（调试接口）
  */
-int32_t PDL_BMC_TestCall(uint32_t index)
+int32_t PDL_BMC_test_call(uint32_t index)
 {
 	const pconfig_platform_config_t *platform;
 	const pconfig_bmc_entry_t *bmc_entry;
@@ -724,7 +724,7 @@ int32_t PDL_BMC_TestCall(uint32_t index)
 		LOG_INFO("PDL_BMC", "Serial Baudrate: %u", config->primary_config.serial.baudrate);
 	}
 
-	LOG_INFO("PDL_BMC", "PDL_BMC_TestCall() completed successfully");
+	LOG_INFO("PDL_BMC", "PDL_BMC_test_call() completed successfully");
 	LOG_INFO("PDL_BMC", "========================================");
 
 	return OSAL_SUCCESS;

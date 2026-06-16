@@ -85,7 +85,7 @@ typedef struct
  *       3. 检查配置是否启用
  *       4. 将 PCONFIG 配置转换为 HAL 配置并初始化硬件
  */
-int32_t PDL_MCU_Init(uint32_t index, pdl_mcu_handle_t *handle);
+int32_t PDL_MCU_init(uint32_t index, pdl_mcu_handle_t *handle);
 
 /**
  * @brief 反初始化MCU驱动
@@ -94,7 +94,7 @@ int32_t PDL_MCU_Init(uint32_t index, pdl_mcu_handle_t *handle);
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_MCU_Deinit(pdl_mcu_handle_t handle);
+int32_t PDL_MCU_deinit(pdl_mcu_handle_t handle);
 
 /**
  * @brief 获取MCU版本
@@ -104,7 +104,7 @@ int32_t PDL_MCU_Deinit(pdl_mcu_handle_t handle);
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_MCU_GetVersion(pdl_mcu_handle_t handle, pdl_mcu_version_t *version);
+int32_t PDL_MCU_get_version(pdl_mcu_handle_t handle, pdl_mcu_version_t *version);
 
 /**
  * @brief 获取MCU状态
@@ -114,7 +114,7 @@ int32_t PDL_MCU_GetVersion(pdl_mcu_handle_t handle, pdl_mcu_version_t *version);
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_MCU_GetStatus(pdl_mcu_handle_t handle, pdl_mcu_status_t *status);
+int32_t PDL_MCU_get_status(pdl_mcu_handle_t handle, pdl_mcu_status_t *status);
 
 /**
  * @brief 发送命令到MCU
@@ -129,7 +129,7 @@ int32_t PDL_MCU_GetStatus(pdl_mcu_handle_t handle, pdl_mcu_status_t *status);
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_MCU_SendCommand(pdl_mcu_handle_t handle,
+int32_t PDL_MCU_send_command(pdl_mcu_handle_t handle,
 			  uint8_t cmd,
 			  const uint8_t *data,
 			  uint32_t data_len,
@@ -144,7 +144,7 @@ int32_t PDL_MCU_SendCommand(pdl_mcu_handle_t handle,
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_MCU_Reset(pdl_mcu_handle_t handle);
+int32_t PDL_MCU_reset(pdl_mcu_handle_t handle);
 
 /**
  * @brief MCU 测试调用链（调试接口）
@@ -155,8 +155,8 @@ int32_t PDL_MCU_Reset(pdl_mcu_handle_t handle);
  * @return OSAL_ERR_GENERIC 失败
  *
  * @note 预留的调试接口，验证完整调用链：
- *       APP → PDL_MCU_TestCall → PCONFIG → HAL_XXX_TestCall
+ *       APP → PDL_MCU_test_call → PCONFIG → HAL_XXX_TestCall
  */
-int32_t PDL_MCU_TestCall(uint32_t index);
+int32_t PDL_MCU_test_call(uint32_t index);
 
 #endif /* PDL_MCU_H */

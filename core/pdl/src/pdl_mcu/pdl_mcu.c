@@ -32,7 +32,7 @@ typedef struct
 /**
  * @brief 初始化MCU驱动
  */
-int32_t PDL_MCU_Init(uint32_t index, pdl_mcu_handle_t *handle)
+int32_t PDL_MCU_init(uint32_t index, pdl_mcu_handle_t *handle)
 {
     mcu_context_t *ctx;
     const pconfig_platform_config_t *platform;
@@ -130,7 +130,7 @@ int32_t PDL_MCU_Init(uint32_t index, pdl_mcu_handle_t *handle)
 /**
  * @brief 反初始化MCU驱动
  */
-int32_t PDL_MCU_Deinit(pdl_mcu_handle_t handle)
+int32_t PDL_MCU_deinit(pdl_mcu_handle_t handle)
 {
     mcu_context_t *ctx;
 
@@ -221,7 +221,7 @@ static int32_t mcu_send_command_internal(mcu_context_t *ctx,
 /**
  * @brief 获取MCU版本
  */
-int32_t PDL_MCU_GetVersion(pdl_mcu_handle_t handle, pdl_mcu_version_t *version)
+int32_t PDL_MCU_get_version(pdl_mcu_handle_t handle, pdl_mcu_version_t *version)
 {
     mcu_context_t *ctx;
     uint8_t tx_buf[256];
@@ -260,7 +260,7 @@ int32_t PDL_MCU_GetVersion(pdl_mcu_handle_t handle, pdl_mcu_version_t *version)
 /**
  * @brief 获取MCU状态
  */
-int32_t PDL_MCU_GetStatus(pdl_mcu_handle_t handle, pdl_mcu_status_t *status)
+int32_t PDL_MCU_get_status(pdl_mcu_handle_t handle, pdl_mcu_status_t *status)
 {
     mcu_context_t *ctx;
     uint8_t tx_buf[256];
@@ -315,7 +315,7 @@ int32_t PDL_MCU_GetStatus(pdl_mcu_handle_t handle, pdl_mcu_status_t *status)
 /**
  * @brief MCU复位
  */
-int32_t PDL_MCU_Reset(pdl_mcu_handle_t handle)
+int32_t PDL_MCU_reset(pdl_mcu_handle_t handle)
 {
     mcu_context_t *ctx;
     uint8_t tx_buf[256];
@@ -416,7 +416,7 @@ int32_t PDL_MCU_WriteRegister(pdl_mcu_handle_t handle, uint8_t reg_addr, uint8_t
 /**
  * @brief 发送自定义命令到MCU
  */
-int32_t PDL_MCU_SendCommand(pdl_mcu_handle_t handle,
+int32_t PDL_MCU_send_command(pdl_mcu_handle_t handle,
                           uint8_t cmd_code,
                           const uint8_t *data,
                           uint32_t data_len,
@@ -520,7 +520,7 @@ const char* PDL_MCU_GetStateName(pdl_mcu_state_t state)
 /**
  * @brief MCU 测试调用链实现（调试接口）
  */
-int32_t PDL_MCU_TestCall(uint32_t index)
+int32_t PDL_MCU_test_call(uint32_t index)
 {
 	const pconfig_platform_config_t *platform;
 	const pconfig_mcu_entry_t *mcu_entry;
@@ -573,9 +573,9 @@ int32_t PDL_MCU_TestCall(uint32_t index)
 	}
 
 	if (OSAL_SUCCESS == ret) {
-		LOG_INFO("PDL_MCU", "PDL_MCU_TestCall() completed successfully");
+		LOG_INFO("PDL_MCU", "PDL_MCU_test_call() completed successfully");
 	} else {
-		LOG_ERROR("PDL_MCU", "PDL_MCU_TestCall() failed: %d", ret);
+		LOG_ERROR("PDL_MCU", "PDL_MCU_test_call() failed: %d", ret);
 	}
 
 	LOG_INFO("PDL_MCU", "========================================");

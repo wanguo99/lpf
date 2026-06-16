@@ -77,7 +77,7 @@ static void test_ccm_init_and_basic_communication(void)
 	config.timeout_ms = 3000;
 	config.retry_count = 3;
 
-	ret = PDL_CCM_Init(&config);
+	ret = PDL_CCM_init(&config);
 	if (ret != OSAL_SUCCESS) {
 		OSAL_printf("[SKIP] CCM initialization failed: %d\n", ret);
 		TEST_ASSERT_TRUE(true);
@@ -86,11 +86,11 @@ static void test_ccm_init_and_basic_communication(void)
 	OSAL_printf("[OK] CCM initialized\n");
 
 	/* 注册回调 */
-	ret = PDL_CCM_RegisterTelemetryCallback(telemetry_callback, NULL);
+	ret = PDL_CCM_register_telemetry_callback(telemetry_callback, NULL);
 	TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 	OSAL_printf("[OK] Telemetry callback registered\n");
 
-	ret = PDL_CCM_RegisterCommandCallback(command_callback, NULL);
+	ret = PDL_CCM_register_command_callback(command_callback, NULL);
 	TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 	OSAL_printf("[OK] Command callback registered\n");
 
@@ -120,7 +120,7 @@ static void test_ccm_init_and_basic_communication(void)
 	}
 
 	/* 清理 */
-	ret = PDL_CCM_Deinit();
+	ret = PDL_CCM_deinit();
 	TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 	OSAL_printf("[OK] CCM deinitialized\n");
 
@@ -152,7 +152,7 @@ static void test_ccm_telemetry_transmission(void)
 	config.interface.eth.local_port = 9999;
 	config.timeout_ms = 3000;
 
-	ret = PDL_CCM_Init(&config);
+	ret = PDL_CCM_init(&config);
 	if (ret != OSAL_SUCCESS) {
 		OSAL_printf("[SKIP] CCM not available: %d\n", ret);
 		TEST_ASSERT_TRUE(true);
@@ -168,14 +168,14 @@ static void test_ccm_telemetry_transmission(void)
 	/* 发送不同类型的遥测 */
 	OSAL_printf("[Step 1] Sending various telemetry types...\n");
 
-	ret = PDL_CCM_SendTelemetry(0x01, tm_data, 64);
+	ret = PDL_CCM_send_telemetry(0x01, tm_data, 64);
 	if (ret == OSAL_SUCCESS) {
 		OSAL_printf("[OK] Telemetry type 0x01 sent (64 bytes)\n");
 	} else {
 		OSAL_printf("[WARN] Telemetry 0x01 failed: %d\n", ret);
 	}
 
-	ret = PDL_CCM_SendTelemetry(0x02, tm_data, 32);
+	ret = PDL_CCM_send_telemetry(0x02, tm_data, 32);
 	if (ret == OSAL_SUCCESS) {
 		OSAL_printf("[OK] Telemetry type 0x02 sent (32 bytes)\n");
 	} else {
@@ -193,7 +193,7 @@ static void test_ccm_telemetry_transmission(void)
 	}
 
 	/* 清理 */
-	PDL_CCM_Deinit();
+	PDL_CCM_deinit();
 
 	OSAL_printf("=== Test Completed: CCM Telemetry ===\n");
 #else
@@ -223,7 +223,7 @@ static void test_ccm_telecommand_transmission(void)
 	config.interface.eth.local_port = 9999;
 	config.timeout_ms = 3000;
 
-	ret = PDL_CCM_Init(&config);
+	ret = PDL_CCM_init(&config);
 	if (ret != OSAL_SUCCESS) {
 		OSAL_printf("[SKIP] CCM not available: %d\n", ret);
 		TEST_ASSERT_TRUE(true);
@@ -234,7 +234,7 @@ static void test_ccm_telecommand_transmission(void)
 	uint8_t tc_data[] = {0x01, 0x02, 0x03, 0x04};
 
 	OSAL_printf("[Step 1] Sending telecommand...\n");
-	ret = PDL_CCM_SendCommand(0x10, tc_data, sizeof(tc_data));
+	ret = PDL_CCM_send_command(0x10, tc_data, sizeof(tc_data));
 	if (ret == OSAL_SUCCESS) {
 		OSAL_printf("[OK] Telecommand sent\n");
 	} else {
@@ -245,7 +245,7 @@ static void test_ccm_telecommand_transmission(void)
 	OSAL_Sleep(1000);
 
 	/* 清理 */
-	PDL_CCM_Deinit();
+	PDL_CCM_deinit();
 
 	OSAL_printf("=== Test Completed: CCM Telecommand ===\n");
 #else
@@ -275,7 +275,7 @@ static void test_ccm_node_management(void)
 	config.interface.eth.local_port = 9999;
 	config.timeout_ms = 3000;
 
-	ret = PDL_CCM_Init(&config);
+	ret = PDL_CCM_init(&config);
 	if (ret != OSAL_SUCCESS) {
 		OSAL_printf("[SKIP] CCM not available: %d\n", ret);
 		TEST_ASSERT_TRUE(true);
@@ -284,7 +284,7 @@ static void test_ccm_node_management(void)
 
 	/* 查询节点状态 */
 	OSAL_printf("[Step 1] Querying node status...\n");
-	ret = PDL_CCM_NodeManage(PDL_CCM_NODE_OP_QUERY, 1);
+	ret = PDL_CCM_node_manage(PDL_CCM_NODE_OP_QUERY, 1);
 	if (ret == OSAL_SUCCESS) {
 		OSAL_printf("[OK] Node query sent\n");
 	} else {
@@ -295,7 +295,7 @@ static void test_ccm_node_management(void)
 
 	/* 启动节点 */
 	OSAL_printf("[Step 2] Starting node...\n");
-	ret = PDL_CCM_NodeManage(PDL_CCM_NODE_OP_START, 1);
+	ret = PDL_CCM_node_manage(PDL_CCM_NODE_OP_START, 1);
 	if (ret == OSAL_SUCCESS) {
 		OSAL_printf("[OK] Node start command sent\n");
 	} else {
@@ -306,7 +306,7 @@ static void test_ccm_node_management(void)
 
 	/* 停止节点 */
 	OSAL_printf("[Step 3] Stopping node...\n");
-	ret = PDL_CCM_NodeManage(PDL_CCM_NODE_OP_STOP, 1);
+	ret = PDL_CCM_node_manage(PDL_CCM_NODE_OP_STOP, 1);
 	if (ret == OSAL_SUCCESS) {
 		OSAL_printf("[OK] Node stop command sent\n");
 	} else {
@@ -314,7 +314,7 @@ static void test_ccm_node_management(void)
 	}
 
 	/* 清理 */
-	PDL_CCM_Deinit();
+	PDL_CCM_deinit();
 
 	OSAL_printf("=== Test Completed: CCM Node Management ===\n");
 #else
@@ -344,7 +344,7 @@ static void test_ccm_power_control(void)
 	config.interface.eth.local_port = 9999;
 	config.timeout_ms = 3000;
 
-	ret = PDL_CCM_Init(&config);
+	ret = PDL_CCM_init(&config);
 	if (ret != OSAL_SUCCESS) {
 		OSAL_printf("[SKIP] CCM not available: %d\n", ret);
 		TEST_ASSERT_TRUE(true);
@@ -353,7 +353,7 @@ static void test_ccm_power_control(void)
 
 	/* 查询电源状态 */
 	OSAL_printf("[Step 1] Querying power domain status...\n");
-	ret = PDL_CCM_PowerControl(PDL_CCM_POWER_OP_QUERY, 1);
+	ret = PDL_CCM_power_control(PDL_CCM_POWER_OP_QUERY, 1);
 	if (ret == OSAL_SUCCESS) {
 		OSAL_printf("[OK] Power query sent\n");
 	} else {
@@ -364,7 +364,7 @@ static void test_ccm_power_control(void)
 
 	/* 上电 */
 	OSAL_printf("[Step 2] Powering on domain...\n");
-	ret = PDL_CCM_PowerControl(PDL_CCM_POWER_OP_ON, 1);
+	ret = PDL_CCM_power_control(PDL_CCM_POWER_OP_ON, 1);
 	if (ret == OSAL_SUCCESS) {
 		OSAL_printf("[OK] Power on command sent\n");
 	} else {
@@ -375,7 +375,7 @@ static void test_ccm_power_control(void)
 
 	/* 下电 */
 	OSAL_printf("[Step 3] Powering off domain...\n");
-	ret = PDL_CCM_PowerControl(PDL_CCM_POWER_OP_OFF, 1);
+	ret = PDL_CCM_power_control(PDL_CCM_POWER_OP_OFF, 1);
 	if (ret == OSAL_SUCCESS) {
 		OSAL_printf("[OK] Power off command sent\n");
 	} else {
@@ -383,7 +383,7 @@ static void test_ccm_power_control(void)
 	}
 
 	/* 清理 */
-	PDL_CCM_Deinit();
+	PDL_CCM_deinit();
 
 	OSAL_printf("=== Test Completed: CCM Power Control ===\n");
 #else
@@ -413,7 +413,7 @@ static void test_ccm_status_query(void)
 	config.interface.eth.local_port = 9999;
 	config.timeout_ms = 3000;
 
-	ret = PDL_CCM_Init(&config);
+	ret = PDL_CCM_init(&config);
 	if (ret != OSAL_SUCCESS) {
 		OSAL_printf("[SKIP] CCM not available: %d\n", ret);
 		TEST_ASSERT_TRUE(true);
@@ -440,7 +440,7 @@ static void test_ccm_status_query(void)
 	}
 
 	/* 清理 */
-	PDL_CCM_Deinit();
+	PDL_CCM_deinit();
 
 	OSAL_printf("=== Test Completed: CCM Status Query ===\n");
 #else

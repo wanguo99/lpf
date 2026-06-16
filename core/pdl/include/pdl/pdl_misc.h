@@ -77,7 +77,7 @@ typedef struct __attribute__((packed)) {
  *       - RTOS: 从 EEPROM、OTP 或配置区读取
  *       - 测试环境: 从环境变量或配置文件读取
  */
-int32_t PDL_MISC_GetHWID(pdl_hwid_t *hwid);
+int32_t PDL_MISC_get_hwid(pdl_hwid_t *hwid);
 
 /*===========================================================================
  * 分区表查询
@@ -105,7 +105,7 @@ typedef struct {
  * @retval OSAL_ERR_NOT_FOUND    分区不存在
  * @retval OSAL_ERR_NOT_IMPLEMENTED 功能未实现
  */
-int32_t PDL_MISC_GetPartitionInfo(const char *name, pdl_partition_info_t *info);
+int32_t PDL_MISC_get_partition_info(const char *name, pdl_partition_info_t *info);
 
 /*===========================================================================
  * 设备启动信息
@@ -142,7 +142,7 @@ typedef struct {
  * @retval OSAL_ERR_INVALID_PARAM 参数无效
  * @retval OSAL_ERR_NOT_IMPLEMENTED 功能未实现
  */
-int32_t PDL_MISC_GetBootInfo(pdl_boot_info_t *info);
+int32_t PDL_MISC_get_boot_info(pdl_boot_info_t *info);
 
 #ifdef __cplusplus
 }
