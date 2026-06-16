@@ -296,27 +296,27 @@ static void test_system_bmc_mcu_coordination(void)
 	/* 场景2: BMC读取传感器，MCU读取寄存器 */
 	OSAL_printf("[Scenario 2] Reading sensors and registers...\n");
 
-	pdl_bmc_sensor_data_t sensors[10];
-	uint32_t sensor_count = 10;
-	ret = PDL_BMC_ReadSensors(bmc_handle, sensors, &sensor_count);
+	pdl_bmc_sensor_reading_t sensors[10];
+	uint32_t sensor_count = 0;
+	ret = PDL_BMC_ReadSensors(bmc_handle, PDL_BMC_SENSOR_TEMP, sensors, 10, &sensor_count);
 	if (ret == OSAL_SUCCESS) {
 		OSAL_printf("[OK] BMC read %u sensors\n", sensor_count);
 	}
 
-	uint32_t reg_value;
-	ret = PDL_MCU_ReadRegister(mcu_handle, 0x1000, &reg_value);
+	uint8_t reg_value;
+	ret = PDL_MCU_ReadRegister(mcu_handle, 0x10, &reg_value);
 	if (ret == OSAL_SUCCESS) {
-		OSAL_printf("[OK] MCU register[0x1000] = 0x%08X\n", reg_value);
+		OSAL_printf("[OK] MCU register[0x10] = 0x%02X\n", reg_value);
 	}
 
 	/* 场景3: 验证设备统计信息独立 */
 	OSAL_printf("[Scenario 3] Verifying independent statistics...\n");
 
-	pdl_bmc_stats_t bmc_stats;
-	ret = PDL_BMC_GetStats(bmc_handle, &bmc_stats);
+	uint32_t cmd_count, success_count, fail_count, switch_count;
+	ret = PDL_BMC_GetStats(bmc_handle, &cmd_count, &success_count, &fail_count, &switch_count);
 	if (ret == OSAL_SUCCESS) {
 		OSAL_printf("[OK] BMC stats: cmd=%u, success=%u, fail=%u\n",
-			bmc_stats.cmd_count, bmc_stats.cmd_success, bmc_stats.cmd_fail);
+			cmd_count, success_count, fail_count);
 	}
 
 	/* 清理 */
@@ -352,11 +352,10 @@ skip_test:
  *===========================================================================*/
 
 #ifdef CONFIG_PDL_SATELLITE_SUPPORT
-static void satellite_command_callback(uint8_t cmd_id, const uint8_t *data,
-				       uint16_t len, void *user_data)
+static void satellite_command_callback(uint8_t cmd_type, uint32_t param, void *user_data)
 {
 	(void)user_data;
-	OSAL_printf("[CALLBACK] Received satellite command: id=0x%02X, len=%u\n", cmd_id, len);
+	OSAL_printf("[CALLBACK] Received satellite command: type=0x%02X, param=0x%08X\n", cmd_type, param);
 	g_test_callback_triggered = true;
 	g_test_callback_count++;
 }
@@ -376,10 +375,10 @@ static void test_system_satellite_telemetry_full_flow(void)
 	/* 初始化卫星服务 */
 	pdl_satellite_config_t sat_config;
 	OSAL_memset(&sat_config, 0, sizeof(sat_config));
-	sat_config.can.device = "can1";
-	sat_config.can.bitrate = 250000;
-	sat_config.can.tx_id = 0x300;
-	sat_config.can.rx_id = 0x400;
+	sat_config.can_device = "can1";
+	sat_config.can_bitrate = 250000;
+	sat_config.heartbeat_interval_ms = 1000;
+	sat_config.cmd_timeout_ms = 5000;
 
 	ret = PDL_SATELLITE_Init(&sat_config, &sat_handle);
 	if (ret != OSAL_SUCCESS) {
@@ -395,7 +394,7 @@ static void test_system_satellite_telemetry_full_flow(void)
 
 	/* 发送心跳 */
 	OSAL_printf("[Step 1] Sending heartbeat...\n");
-	ret = PDL_SATELLITE_SendHeartbeat(sat_handle, 0);
+	ret = PDL_SATELLITE_SendHeartbeat(sat_handle, PDL_SATELLITE_STATUS_OK);
 	if (ret == OSAL_SUCCESS) {
 		OSAL_printf("[OK] Heartbeat sent\n");
 	} else {
@@ -404,8 +403,7 @@ static void test_system_satellite_telemetry_full_flow(void)
 
 	/* 发送响应 */
 	OSAL_printf("[Step 2] Sending response...\n");
-	uint8_t response_data[] = {0x01, 0x02, 0x03, 0x04};
-	ret = PDL_SATELLITE_SendResponse(sat_handle, 1, 0, response_data, sizeof(response_data));
+	ret = PDL_SATELLITE_SendResponse(sat_handle, 1, PDL_SATELLITE_STATUS_OK, 0x12345678);
 	if (ret == OSAL_SUCCESS) {
 		OSAL_printf("[OK] Response sent\n");
 	} else {

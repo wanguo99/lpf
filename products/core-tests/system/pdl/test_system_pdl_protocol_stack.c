@@ -114,10 +114,10 @@ static void test_protocol_stack_mcu_end_to_end(void)
 
 	/* 发送命令（通过协议栈） */
 	uint8_t response[256];
-	uint32_t response_len = sizeof(response);
+	uint32_t response_len = 0;
 	ret = PDL_MCU_SendCommand(mcu_handle, PRL_MCU_MSG_GET_STATUS,
 				   g_test_payload, TEST_PAYLOAD_SIZE,
-				   response, &response_len);
+				   response, sizeof(response), &response_len);
 
 	if (ret == OSAL_SUCCESS) {
 		OSAL_printf("[OK] Command sent and response received (%u bytes)\n", response_len);
