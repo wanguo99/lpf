@@ -11,17 +11,17 @@
 #include "aconfig_internal.h"
 
 /* 全局配置表 */
-static const aconfig_config_table_t *g_acl_table = NULL;
+static const aconfig_config_table_t *g_aconfig_table = NULL;
 
 /* 读写锁保护全局配置表（读多写少场景） */
-static osal_rwlock_t g_acl_rwlock = PTHREAD_RWLOCK_INITIALIZER;
+static osal_rwlock_t g_aconfig_rwlock = PTHREAD_RWLOCK_INITIALIZER;
 
 /**
  * @brief 初始化ACONFIG层
  */
 int32_t ACONFIG_Init(void)
 {
-    g_acl_table = NULL;
+    g_aconfig_table = NULL;
 
     LOG_INFO("ACONFIG", "Initialized (optimized version)");
     return OSAL_SUCCESS;
@@ -40,17 +40,17 @@ int32_t ACONFIG_RegisterTable(const aconfig_config_table_t *table)
     }
 
     /* 获取写锁（独占访问） */
-    ret = OSAL_pthread_rwlock_wrlock(&g_acl_rwlock);
+    ret = OSAL_pthread_rwlock_wrlock(&g_aconfig_rwlock);
     if (OSAL_SUCCESS != ret) {
         LOG_ERROR("ACONFIG", "Failed to acquire write lock: %d", ret);
         return ret;
     }
 
-    if (NULL != g_acl_table) {
+    if (NULL != g_aconfig_table) {
         LOG_WARN("ACONFIG", "Table already registered, overwriting");
     }
 
-    g_acl_table = table;
+    g_aconfig_table = table;
 
     LOG_INFO("ACONFIG", "Registered table '%s' (TC:%u entries, TM:%u entries)",
                table->name,
@@ -58,7 +58,7 @@ int32_t ACONFIG_RegisterTable(const aconfig_config_table_t *table)
                table->tm_count);
 
     /* 释放写锁 */
-    OSAL_pthread_rwlock_unlock(&g_acl_rwlock);
+    OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
 
     return OSAL_SUCCESS;
 }
@@ -72,26 +72,26 @@ const aconfig_tc_config_t* ACONFIG_GetTcConfig(uint32_t function_id)
     uint32_t i;
 
     /* 获取读锁（允许多个读者） */
-    if (OSAL_SUCCESS != OSAL_pthread_rwlock_rdlock(&g_acl_rwlock)) {
+    if (OSAL_SUCCESS != OSAL_pthread_rwlock_rdlock(&g_aconfig_rwlock)) {
         return NULL;
     }
 
     /* NULL 检查 */
-    if (NULL == g_acl_table || NULL == g_acl_table->tc_entries) {
-        OSAL_pthread_rwlock_unlock(&g_acl_rwlock);
+    if (NULL == g_aconfig_table || NULL == g_aconfig_table->tc_entries) {
+        OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
         return NULL;
     }
 
     /* 查找匹配的 function_id（稀疏数组线性查找）*/
-    for (i = 0; i < g_acl_table->tc_count; i++) {
-        if (g_acl_table->tc_entries[i].function_id == function_id) {
-            config = &g_acl_table->tc_entries[i].config;
+    for (i = 0; i < g_aconfig_table->tc_count; i++) {
+        if (g_aconfig_table->tc_entries[i].function_id == function_id) {
+            config = &g_aconfig_table->tc_entries[i].config;
             break;
         }
     }
 
     /* 释放读锁 */
-    OSAL_pthread_rwlock_unlock(&g_acl_rwlock);
+    OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
 
     return config;
 }
@@ -105,26 +105,26 @@ const aconfig_tm_config_t* ACONFIG_GetTmConfig(uint32_t function_id)
     uint32_t i;
 
     /* 获取读锁（允许多个读者） */
-    if (OSAL_SUCCESS != OSAL_pthread_rwlock_rdlock(&g_acl_rwlock)) {
+    if (OSAL_SUCCESS != OSAL_pthread_rwlock_rdlock(&g_aconfig_rwlock)) {
         return NULL;
     }
 
     /* NULL 检查 */
-    if (NULL == g_acl_table || NULL == g_acl_table->tm_entries) {
-        OSAL_pthread_rwlock_unlock(&g_acl_rwlock);
+    if (NULL == g_aconfig_table || NULL == g_aconfig_table->tm_entries) {
+        OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
         return NULL;
     }
 
     /* 查找匹配的 function_id（稀疏数组线性查找）*/
-    for (i = 0; i < g_acl_table->tm_count; i++) {
-        if (g_acl_table->tm_entries[i].function_id == function_id) {
-            config = &g_acl_table->tm_entries[i].config;
+    for (i = 0; i < g_aconfig_table->tm_count; i++) {
+        if (g_aconfig_table->tm_entries[i].function_id == function_id) {
+            config = &g_aconfig_table->tm_entries[i].config;
             break;
         }
     }
 
     /* 释放读锁 */
-    OSAL_pthread_rwlock_unlock(&g_acl_rwlock);
+    OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
 
     return config;
 }
@@ -201,35 +201,35 @@ int32_t ACONFIG_GetStatistics(aconfig_statistics_t *stats)
     OSAL_memset(stats, 0, OSAL_sizeof(aconfig_statistics_t));
 
     /* 获取读锁 */
-    if (OSAL_SUCCESS != OSAL_pthread_rwlock_rdlock(&g_acl_rwlock)) {
+    if (OSAL_SUCCESS != OSAL_pthread_rwlock_rdlock(&g_aconfig_rwlock)) {
         return OSAL_ERR_GENERIC;
     }
 
-    if (NULL == g_acl_table) {
-        OSAL_pthread_rwlock_unlock(&g_acl_rwlock);
+    if (NULL == g_aconfig_table) {
+        OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
         return OSAL_SUCCESS;
     }
 
     /* 统计遥控配置 */
-    if (NULL != g_acl_table->tc_entries) {
-        for (i = 0; i < g_acl_table->tc_count; i++) {
-            if (g_acl_table->tc_entries[i].config.enabled) {
+    if (NULL != g_aconfig_table->tc_entries) {
+        for (i = 0; i < g_aconfig_table->tc_count; i++) {
+            if (g_aconfig_table->tc_entries[i].config.enabled) {
                 stats->tc_enabled_count++;
             } else {
                 stats->tc_disabled_count++;
             }
 
             /* 统计失效映射 */
-            if (g_acl_table->tc_entries[i].config.invalidated_tm_count > 0) {
+            if (g_aconfig_table->tc_entries[i].config.invalidated_tm_count > 0) {
                 total_inv_maps++;
             }
         }
     }
 
     /* 统计遥测配置 */
-    if (NULL != g_acl_table->tm_entries) {
-        for (i = 0; i < g_acl_table->tm_count; i++) {
-            if (g_acl_table->tm_entries[i].config.enabled) {
+    if (NULL != g_aconfig_table->tm_entries) {
+        for (i = 0; i < g_aconfig_table->tm_count; i++) {
+            if (g_aconfig_table->tm_entries[i].config.enabled) {
                 stats->tm_enabled_count++;
             } else {
                 stats->tm_disabled_count++;
@@ -240,7 +240,7 @@ int32_t ACONFIG_GetStatistics(aconfig_statistics_t *stats)
     stats->total_invalidation_maps = total_inv_maps;
 
     /* 释放读锁 */
-    OSAL_pthread_rwlock_unlock(&g_acl_rwlock);
+    OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
 
     return OSAL_SUCCESS;
 }
@@ -253,23 +253,23 @@ void ACONFIG_PrintConfig(void)
     aconfig_statistics_t stats = {0};
 
     /* 获取读锁 */
-    if (OSAL_SUCCESS != OSAL_pthread_rwlock_rdlock(&g_acl_rwlock)) {
+    if (OSAL_SUCCESS != OSAL_pthread_rwlock_rdlock(&g_aconfig_rwlock)) {
         LOG_ERROR("ACONFIG", "Failed to acquire read lock");
         return;
     }
 
-    if (NULL == g_acl_table) {
+    if (NULL == g_aconfig_table) {
         LOG_INFO("ACONFIG", "No table registered");
-        OSAL_pthread_rwlock_unlock(&g_acl_rwlock);
+        OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
         return;
     }
 
-    LOG_INFO("ACONFIG", "Configuration: %s", g_acl_table->name);
-    LOG_INFO("ACONFIG", "  TC entries: %u (sparse array)", g_acl_table->tc_count);
-    LOG_INFO("ACONFIG", "  TM entries: %u (sparse array)", g_acl_table->tm_count);
+    LOG_INFO("ACONFIG", "Configuration: %s", g_aconfig_table->name);
+    LOG_INFO("ACONFIG", "  TC entries: %u (sparse array)", g_aconfig_table->tc_count);
+    LOG_INFO("ACONFIG", "  TM entries: %u (sparse array)", g_aconfig_table->tm_count);
 
     /* 释放读锁 */
-    OSAL_pthread_rwlock_unlock(&g_acl_rwlock);
+    OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
 
     if (OSAL_SUCCESS == ACONFIG_GetStatistics(&stats)) {
         LOG_INFO("ACONFIG", "  TC enabled: %u, disabled: %u",
@@ -299,29 +299,29 @@ const aconfig_config_table_t* ACONFIG_FindTableByHWID(const pdl_hwid_t *hwid)
     }
 
     /* 获取读锁 */
-    if (OSAL_SUCCESS != OSAL_pthread_rwlock_rdlock(&g_acl_rwlock)) {
+    if (OSAL_SUCCESS != OSAL_pthread_rwlock_rdlock(&g_aconfig_rwlock)) {
         return NULL;
     }
 
     /* 检查当前表是否支持该 HWID */
-    if (g_acl_table != NULL) {
+    if (g_aconfig_table != NULL) {
         /* 如果配置表的 hwid_count == 0，表示支持所有 HWID */
-        if (g_acl_table->hwid_count == 0 || g_acl_table->hwid_list == NULL) {
-            OSAL_pthread_rwlock_unlock(&g_acl_rwlock);
-            LOG_INFO("ACONFIG", "Current table '%s' supports all HWIDs", g_acl_table->name);
-            return g_acl_table;
+        if (g_aconfig_table->hwid_count == 0 || g_aconfig_table->hwid_list == NULL) {
+            OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
+            LOG_INFO("ACONFIG", "Current table '%s' supports all HWIDs", g_aconfig_table->name);
+            return g_aconfig_table;
         }
 
         /* TODO: 实现精确的 HWID 匹配 */
         LOG_WARN("ACONFIG", "HWID matching not fully implemented yet");
     }
 
-    OSAL_pthread_rwlock_unlock(&g_acl_rwlock);
+    OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
 
     LOG_INFO("ACONFIG", "HWID: product=0x%04X, project=0x%04X",
              hwid->product_id, hwid->project_id);
 
-    return g_acl_table;  /* 简化实现：返回当前表 */
+    return g_aconfig_table;  /* 简化实现：返回当前表 */
 }
 
 int32_t ACONFIG_LoadByHWID(void)

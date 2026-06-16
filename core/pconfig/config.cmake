@@ -15,8 +15,8 @@ set(PCONFIG_SRCS "")
 # 核心源文件（总是需要）
 # =============================================================================
 list(APPEND PCONFIG_SRCS
-    "src/pcl_api.c"
-    "src/pcl_register.c"
+    "src/pconfig_api.c"
+    "src/pconfig_register.c"
 )
 
 message(STATUS "  [PCONFIG] Core API enabled")

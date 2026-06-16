@@ -50,7 +50,7 @@ config ACONFIG_BUILD_STATIC
 	bool "Build static library (.a)"
 	default n
 	help
-	  Build ACONFIG as a static library (libacl.a).
+	  Build ACONFIG as a static library (libaconfig.a).
 
 	  Static linking advantages:
 	  - No runtime dependencies
@@ -63,7 +63,7 @@ config ACONFIG_BUILD_SHARED
 	bool "Build shared library (.so)"
 	default n
 	help
-	  Build ACONFIG as a shared library (libacl.so).
+	  Build ACONFIG as a shared library (libaconfig.so).
 
 	  Shared library advantages:
 	  - Can update device mappings without recompiling apps

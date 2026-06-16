@@ -424,8 +424,8 @@ tests/
 │   │   ├── test_hal_can.c
 │   │   ├── test_hal_serial.c
 │   │   └── ...
-│   ├── pcl/                    # PConfig层单元测试
-│   │   └── test_pcl_api.c
+│   ├── pconfig/                    # PConfig层单元测试
+│   │   └── test_pconfig_api.c
 │   └── pdl/                    # PDL层单元测试
 │       ├── test_pdl_bmc.c
 │       └── ...
@@ -476,7 +476,7 @@ tests/
 
 | 模块 | 测试用例数 | 覆盖功能 |
 |------|-----------|---------|
-| test_pcl_api | 3 | 配置查询、外设枚举 |
+| test_pconfig_api | 3 | 配置查询、外设枚举 |
 
 ### PDL层测试
 
@@ -645,7 +645,7 @@ TEST_ASSERT_MEM_EQUAL(expected, actual, size)
 - `unit/osal/test_osal_version.c` - OSAL版本测试
 - `unit/osal/test_osal_atomic.c` - OSAL原子操作测试
 - `unit/hal/test_hal_can.c` - HAL CAN测试
-- `unit/pcl/test_pcl_api.c` - PConfig API测试
+- `unit/pconfig/test_pconfig_api.c` - PConfig API测试
 - `unit/pdl/test_pdl_bmc.c` - PDL BMC测试
 
 **目录结构**：
@@ -854,5 +854,5 @@ TEST_CASE(test_with_timeout)
 - [编码规范](../docs/CODING_STANDARDS.md)
 - [OSAL层文档](../osal/README.md)
 - [HAL层文档](../hal/README.md)
-- [PCONFIG文档](../pcl/README.md)
+- [PCONFIG文档](../pconfig/README.md)
 - [PDL文档](../pdl/README.md)

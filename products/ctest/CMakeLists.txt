@@ -132,7 +132,7 @@ if(CONFIG_TEST_UNIT)
         test_discover_and_add(
             TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/pconfig
-            MODULE pcl
+            MODULE pconfig
             LIBRARY pconfig
         )
     endif()
@@ -185,8 +185,8 @@ if(CONFIG_TEST_UNIT)
     if(CONFIG_TEST_ACONFIG)
         test_discover_and_add(
             TARGET es-middleware-test
-            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/acl
-            MODULE acl
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/aconfig
+            MODULE aconfig
             LIBRARY aconfig
         )
     endif()
@@ -242,7 +242,7 @@ if(CONFIG_TEST_PERFORMANCE)
         test_discover_and_add(
             TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/performance/pconfig
-            MODULE perf_pcl
+            MODULE perf_pconfig
             LIBRARY pconfig
         )
     endif()
@@ -252,7 +252,7 @@ if(CONFIG_TEST_PERFORMANCE)
         test_discover_and_add(
             TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/performance/aconfig
-            MODULE perf_acl
+            MODULE perf_aconfig
             LIBRARY aconfig
         )
     endif()
@@ -311,7 +311,7 @@ if(CONFIG_TEST_STRESS)
         test_discover_and_add(
             TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/stress/pconfig
-            MODULE stress_pcl
+            MODULE stress_pconfig
             LIBRARY pconfig
         )
     endif()
@@ -321,7 +321,7 @@ if(CONFIG_TEST_STRESS)
         test_discover_and_add(
             TARGET es-middleware-test
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/stress/aconfig
-            MODULE stress_acl
+            MODULE stress_aconfig
             LIBRARY aconfig
         )
     endif()
@@ -416,8 +416,8 @@ if(CONFIG_TEST_SYSTEM)
     if(CONFIG_TEST_SYSTEM_ACONFIG)
         test_discover_and_add(
             TARGET es-middleware-test
-            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/system/acl
-            MODULE system_acl
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/system/aconfig
+            MODULE system_aconfig
             LIBRARY aconfig
         )
     endif()

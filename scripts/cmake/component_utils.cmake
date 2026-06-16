@@ -66,18 +66,18 @@ function(load_platform_config config_var base_dir)
     message("-- Loading platform config: ${${config_var}}")
 
     # Collect ACONFIG config files - use absolute paths to avoid path issues
-    file(GLOB _acl_srcs "${PLATFORM_CONFIG_DIR}/aconfig/*.c" "${PLATFORM_CONFIG_DIR}/aconfig/*/*.c")
-    if(_acl_srcs)
-        set(_aconfig_srcs ${_acl_srcs} PARENT_SCOPE)
+    file(GLOB _aconfig_srcs "${PLATFORM_CONFIG_DIR}/aconfig/*.c" "${PLATFORM_CONFIG_DIR}/aconfig/*/*.c")
+    if(_aconfig_srcs)
+        set(_aconfig_srcs ${_aconfig_srcs} PARENT_SCOPE)
         set(PLATFORM_CONFIG_INCLUDE ${PLATFORM_CONFIG_DIR}/aconfig PARENT_SCOPE)
         # Export config dir for proper object file placement
         set(PLATFORM_CONFIG_DIR ${PLATFORM_CONFIG_DIR} PARENT_SCOPE)
     endif()
 
     # Collect PCONFIG config files - use absolute paths to avoid path issues
-    file(GLOB _pcl_srcs "${PLATFORM_CONFIG_DIR}/pconfig/*.c")
-    if(_pcl_srcs)
-        set(_pconfig_srcs ${_pcl_srcs} PARENT_SCOPE)
+    file(GLOB _pconfig_srcs "${PLATFORM_CONFIG_DIR}/pconfig/*.c")
+    if(_pconfig_srcs)
+        set(_pconfig_srcs ${_pconfig_srcs} PARENT_SCOPE)
         # Export config dir for proper object file placement
         set(PLATFORM_CONFIG_DIR ${PLATFORM_CONFIG_DIR} PARENT_SCOPE)
     endif()

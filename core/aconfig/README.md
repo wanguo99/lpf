@@ -27,11 +27,11 @@ HAL层 (硬件抽象)
 ## 目录结构
 
 ```
-acl/
+aconfig/
 ├── include/
 │   ├── aconfig_api.h              # AConfig API接口
 │   ├── aconfig_config.h           # ACONFIG配置结构定义
-│   └── pmc_acl_types.h        # PMC业务功能枚举
+│   └── pmc_aconfig_types.h        # PMC业务功能枚举
 ├── src/
 │   └── aconfig_api.c              # AConfig API实现
 ├── config/
@@ -230,7 +230,7 @@ int32_t handle_telemetry(pmc_tm_function_t tm_type, telemetry_data_t *data)
 ### PMC v1.0配置示例
 
 ```c
-/* acl/config/pmc_v1/aconfig_pmc_v1.c */
+/* aconfig/config/pmc_v1/aconfig_pmc_v1.c */
 
 const aconfig_tc_config_t g_pmc_tc_configs[] = {
     /* 服务器电源控制 → BMC */

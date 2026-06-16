@@ -525,8 +525,8 @@ static const test_case_t test_cases[] = {
 
 /* 测试套件定义 */
 static const test_suite_t test_suite = {
-	.suite_name = "stress_pcl",
-	.module_name = "stress_pcl",
+	.suite_name = "stress_pconfig",
+	.module_name = "stress_pconfig",
 	.layer_name = "PCONFIG",
 	.cases = test_cases,
 	.case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
@@ -542,7 +542,7 @@ static const test_suite_t test_suite = {
 
 /* 测试套件注册函数 */
 __attribute__((constructor))
-static void register_stress_pcl_tests(void)
+static void register_stress_pconfig_tests(void)
 {
 	libutest_register_suite(&test_suite);
 }

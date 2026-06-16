@@ -148,7 +148,7 @@ static const aconfig_tm_entry_t g_ccm_tm_entries[] = {
  * CCM 配置表（新格式）
  *===========================================================================*/
 
-static const aconfig_config_table_t g_ccm_acl_table = {
+static const aconfig_config_table_t g_ccm_aconfig_table = {
     .name = "CCM_H200",
     .hwid_count = 0,      // 支持所有 HWID
     .hwid_list = NULL,
@@ -177,7 +177,7 @@ int32_t CCM_ACONFIG_Init(void)
     }
 
     /* 注册 CCM 配置表（新格式） */
-    ret = ACONFIG_RegisterTable(&g_ccm_acl_table);
+    ret = ACONFIG_RegisterTable(&g_ccm_aconfig_table);
     if (OSAL_SUCCESS != ret) {
         LOG_ERROR("CCM_ACONFIG", "ACONFIG_RegisterTable failed, ret=%d", ret);
         return ret;
@@ -185,9 +185,9 @@ int32_t CCM_ACONFIG_Init(void)
 
     LOG_INFO("CCM_ACONFIG", "Initialized (optimized format)");
     LOG_INFO("CCM_ACONFIG", "  TC entries: %u (sparse array)",
-             g_ccm_acl_table.tc_count);
+             g_ccm_aconfig_table.tc_count);
     LOG_INFO("CCM_ACONFIG", "  TM entries: %u (sparse array)",
-             g_ccm_acl_table.tm_count);
+             g_ccm_aconfig_table.tm_count);
 
     return OSAL_SUCCESS;
 }
@@ -218,8 +218,8 @@ int32_t CCM_ACONFIG_Init(void)
  *    新：.validity_period_ms
  *
  * 5. 注册 API 变化：
- *    旧：ACONFIG_RegisterTableLegacy(&g_ccm_acl_table)
- *    新：ACONFIG_RegisterTable(&g_ccm_acl_table)
+ *    旧：ACONFIG_RegisterTableLegacy(&g_ccm_aconfig_table)
+ *    新：ACONFIG_RegisterTable(&g_ccm_aconfig_table)
  *
  * 内存占用对比：
  *   旧格式：~40KB (1000个TC + 1000个TM的密集数组)

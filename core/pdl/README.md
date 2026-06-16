@@ -349,5 +349,5 @@ if (ret != OS_SUCCESS) {
 - [API参考](docs/API_REFERENCE.md)
 - [使用指南](docs/USAGE_GUIDE.md)
 - [HAL层文档](../hal/README.md)
-- [PCONFIG文档](../pcl/README.md)
+- [PCONFIG文档](../pconfig/README.md)
 - [编码规范](../docs/CODING_STANDARDS.md)

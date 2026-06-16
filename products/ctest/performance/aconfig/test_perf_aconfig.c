@@ -58,8 +58,8 @@ static const test_case_t test_cases[] = {
 
 /* 测试套件定义 */
 static const test_suite_t test_suite = {
-	.suite_name = "perf_acl",
-	.module_name = "perf_acl",
+	.suite_name = "perf_aconfig",
+	.module_name = "perf_aconfig",
 	.layer_name = "ACONFIG",
 	.cases = test_cases,
 	.case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
@@ -69,13 +69,13 @@ static const test_suite_t test_suite = {
 		.category = TEST_CATEGORY_PERFORMANCE,
 		.tags = TEST_TAG_SLOW,
 		.timeout_ms = 5000,
-		.description = "ACONFIG perf_acl tests"
+		.description = "ACONFIG perf_aconfig tests"
 	}
 };
 
 /* 测试套件注册函数 */
 __attribute__((constructor))
-static void register_perf_acl_tests(void)
+static void register_perf_aconfig_tests(void)
 {
 	libutest_register_suite(&test_suite);
 }
