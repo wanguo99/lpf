@@ -17,7 +17,7 @@ static const aconfig_config_table_t *g_acl_table = NULL;
 static osal_rwlock_t g_acl_rwlock = PTHREAD_RWLOCK_INITIALIZER;
 
 /**
- * @brief 初始化ACL层
+ * @brief 初始化ACONFIG层
  */
 int32_t ACONFIG_Init(void)
 {

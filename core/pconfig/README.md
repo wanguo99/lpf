@@ -49,7 +49,7 @@ pcl/platform/
 
 ### 配置选择机制
 
-PCL支持三种配置选择方式（优先级从高到低）：
+PCONFIG支持三种配置选择方式（优先级从高到低）：
 
 1. **环境变量**（最高优先级）
    ```bash
@@ -59,7 +59,7 @@ PCL支持三种配置选择方式（优先级从高到低）：
 
 2. **编译选项**
    ```bash
-   cmake ../.. -DPCL_PLATFORM=ti/am6254/H200_100P -DPCL_VERSION=v2
+   cmake ../.. -DPCONFIG_PLATFORM=ti/am6254/H200_100P -DPCONFIG_VERSION=v2
    ```
 
 3. **默认配置**（最低优先级）
@@ -119,7 +119,7 @@ make menuconfig
 pcl/
 ├── include/                    # 公共接口头文件
 │   ├── api/                    # API接口
-│   │   └── pconfig_api.h           # PCL查询接口
+│   │   └── pconfig_api.h           # PCONFIG查询接口
 │   ├── internal/               # 内部接口
 │   │   └── pconfig_register.h      # 配置注册接口
 │   ├── peripheral/             # 外设配置定义
@@ -151,25 +151,25 @@ pcl/
 
 ## 依赖关系
 
-**PCL依赖**：
+**PCONFIG依赖**：
 - OSAL层：基础类型定义（`osal_types.h`）
 - 无其他模块依赖（纯配置库）
 
 **被依赖**：
 - PDL层：外设驱动层（唯一使用者）
 
-**重要**：PCL必须保持完全平台无关，只包含配置数据结构。
+**重要**：PCONFIG必须保持完全平台无关，只包含配置数据结构。
 
 ## 使用示例
 
-### 在PDL层中使用PCL
+### 在PDL层中使用PCONFIG
 
 **CMakeLists.txt配置**：
 ```cmake
-# 链接PCL接口库（获取头文件路径）
+# 链接PCONFIG接口库（获取头文件路径）
 target_link_libraries(pdl PUBLIC es_middleware::pconfig_public_api)
 
-# 链接PCL实现库（运行时链接）
+# 链接PCONFIG实现库（运行时链接）
 target_link_libraries(pdl PRIVATE es_middleware::pcl)
 ```
 
@@ -179,7 +179,7 @@ target_link_libraries(pdl PRIVATE es_middleware::pcl)
 
 int main(void)
 {
-    /* 初始化PCL */
+    /* 初始化PCONFIG */
     int32 ret = PCONFIG_Init();
     if (ret != OS_SUCCESS) {
         LOG_ERROR("APP", "PConfig init failed");
@@ -343,7 +343,7 @@ const pconfig_bmc_t* PCONFIG_GetBMCConfigs(uint32 *count)
 4. 在 `CMakeLists.txt` 中添加平台判断
 5. 编译验证：
    ```bash
-   cmake ../.. -DPCL_PLATFORM=<vendor>/<chip>/<product> -DPCL_VERSION=v1
+   cmake ../.. -DPCONFIG_PLATFORM=<vendor>/<chip>/<product> -DPCONFIG_VERSION=v1
    make pcl -j$(nproc)
    ```
 
@@ -375,7 +375,7 @@ const pconfig_bmc_t* PCONFIG_GetBMCConfigs(uint32 *count)
 ### 编码规范（重要）
 
 **必须遵守**：
-- [正确] PCL必须保持完全平台无关
+- [正确] PCONFIG必须保持完全平台无关
 - [错误] 禁止包含任何系统头文件（`<unistd.h>`, `<sys/socket.h>` 等）
 - [错误] 禁止调用任何系统API或OSAL接口
 - [正确] 只能使用OSAL类型定义（`osal_types.h`）
@@ -411,8 +411,8 @@ const pconfig_mcu_t* PCONFIG_GetMCUConfigs(uint32 *count)
 # 编译测试
 ./build.sh -d
 
-# 运行PCL测试
-./build/bin/unit-test -L PConfig           # 运行所有PCL测试
+# 运行PCONFIG测试
+./build/bin/unit-test -L PConfig           # 运行所有PCONFIG测试
 ./build/bin/unit-test -m test_pcl_api  # 运行API测试
 ./build/bin/unit-test -i               # 交互式菜单
 ```
@@ -432,7 +432,7 @@ export PCONFIG_VERSION=v2
 ./build.sh
 
 # 方法2: 使用CMake参数
-cmake ../.. -DPCL_PLATFORM=ti/am6254/H200_100P -DPCL_VERSION=v2
+cmake ../.. -DPCONFIG_PLATFORM=ti/am6254/H200_100P -DPCONFIG_VERSION=v2
 make -j$(nproc)
 ```
 
@@ -446,17 +446,17 @@ cp platform/ti/am6254/H200_100P/h200_100p_v2.c \
 vim platform/ti/am6254/H200_100P/h200_100p_v3.c
 
 # 3. 编译验证
-cmake ../.. -DPCL_PLATFORM=ti/am6254/H200_100P -DPCL_VERSION=v3
+cmake ../.. -DPCONFIG_PLATFORM=ti/am6254/H200_100P -DPCONFIG_VERSION=v3
 make pcl -j$(nproc)
 ```
 
-**Q: PCL和HAL的区别？**
+**Q: PCONFIG和HAL的区别？**
 - PConfig：硬件配置库，纯数据配置，不包含任何代码逻辑
 - HAL：硬件抽象层，封装硬件驱动，包含实际的硬件操作代码
 
-**Q: 为什么PCL不能调用OSAL接口？**
+**Q: 为什么PCONFIG不能调用OSAL接口？**
 ```c
-/* PCL是纯配置库，必须保持完全平台无关 */
+/* PCONFIG是纯配置库，必须保持完全平台无关 */
 /* 只能包含配置数据结构，不能包含任何代码逻辑 */
 /* 这样可以确保配置在任何平台上都能正确编译 */
 ```
@@ -478,12 +478,12 @@ LOG_INFO("APP", "Platform: %s, Version: %s",
 1. **配置分离**：硬件配置与业务代码完全分离
 2. **外设为单位**：以外设为单位管理配置，类似Linux设备树
 3. **接口内嵌**：每个外设配置包含其通信接口配置
-4. **平台无关**：PCL必须保持完全平台无关，只包含配置数据
+4. **平台无关**：PCONFIG必须保持完全平台无关，只包含配置数据
 5. **运行时查询**：支持运行时动态查询配置信息
 
 ## 参考文档
 
-- [PCL详细文档](docs/README.md)
+- [PCONFIG详细文档](docs/README.md)
 - [架构设计](docs/ARCHITECTURE.md)
 - [API参考](docs/API_REFERENCE.md)
 - [配置规范](docs/CONFIGURATION_GUIDE.md)

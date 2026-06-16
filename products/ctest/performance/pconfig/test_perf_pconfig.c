@@ -1,6 +1,6 @@
 /**
  * @file test_perf_pconfig.c
- * @brief PCL层性能测试
+ * @brief PCONFIG层性能测试
  */
 
 #include <test_framework/test_framework.h>

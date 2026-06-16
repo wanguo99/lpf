@@ -165,28 +165,28 @@ static const aconfig_config_table_t g_ccm_acl_table = {
  * @brief 初始化 CCM AConfig 配置
  * @return OSAL_SUCCESS 成功，其他值失败
  */
-int32_t CCM_ACL_Init(void)
+int32_t CCM_ACONFIG_Init(void)
 {
     int32_t ret;
 
     /* 初始化 AConfig 框架 */
     ret = ACONFIG_Init();
     if (OSAL_SUCCESS != ret) {
-        LOG_ERROR("CCM_ACL", "ACONFIG_Init failed, ret=%d", ret);
+        LOG_ERROR("CCM_ACONFIG", "ACONFIG_Init failed, ret=%d", ret);
         return ret;
     }
 
     /* 注册 CCM 配置表（新格式） */
     ret = ACONFIG_RegisterTable(&g_ccm_acl_table);
     if (OSAL_SUCCESS != ret) {
-        LOG_ERROR("CCM_ACL", "ACONFIG_RegisterTable failed, ret=%d", ret);
+        LOG_ERROR("CCM_ACONFIG", "ACONFIG_RegisterTable failed, ret=%d", ret);
         return ret;
     }
 
-    LOG_INFO("CCM_ACL", "Initialized (optimized format)");
-    LOG_INFO("CCM_ACL", "  TC entries: %u (sparse array)",
+    LOG_INFO("CCM_ACONFIG", "Initialized (optimized format)");
+    LOG_INFO("CCM_ACONFIG", "  TC entries: %u (sparse array)",
              g_ccm_acl_table.tc_count);
-    LOG_INFO("CCM_ACL", "  TM entries: %u (sparse array)",
+    LOG_INFO("CCM_ACONFIG", "  TM entries: %u (sparse array)",
              g_ccm_acl_table.tm_count);
 
     return OSAL_SUCCESS;

@@ -3,18 +3,18 @@
 # =============================================================================
 # 功能：根据 Kconfig 配置选择需要编译的源文件
 # 用法：include(config.cmake)
-#       然后使用 ${PCL_SRCS} 变量
+#       然后使用 ${PCONFIG_SRCS} 变量
 # =============================================================================
 
 message(STATUS "Configuring PCONFIG module...")
 
 # 初始化源文件列表
-set(PCL_SRCS "")
+set(PCONFIG_SRCS "")
 
 # =============================================================================
 # 核心源文件（总是需要）
 # =============================================================================
-list(APPEND PCL_SRCS
+list(APPEND PCONFIG_SRCS
     "src/pcl_api.c"
     "src/pcl_register.c"
 )
@@ -22,9 +22,9 @@ list(APPEND PCL_SRCS
 message(STATUS "  [PCONFIG] Core API enabled")
 
 # 验证源文件
-if(NOT PCL_SRCS)
+if(NOT PCONFIG_SRCS)
     message(FATAL_ERROR "PCONFIG: No source files selected.")
 endif()
 
-list(LENGTH PCL_SRCS PCL_FILE_COUNT)
-message(STATUS "  [PCONFIG] Total ${PCL_FILE_COUNT} source files selected")
+list(LENGTH PCONFIG_SRCS PCONFIG_FILE_COUNT)
+message(STATUS "  [PCONFIG] Total ${PCONFIG_FILE_COUNT} source files selected")

@@ -30,7 +30,7 @@ HAL层 (硬件抽象)
 acl/
 ├── include/
 │   ├── aconfig_api.h              # AConfig API接口
-│   ├── aconfig_config.h           # ACL配置结构定义
+│   ├── aconfig_config.h           # ACONFIG配置结构定义
 │   └── pmc_acl_types.h        # PMC业务功能枚举
 ├── src/
 │   └── aconfig_api.c              # AConfig API实现
@@ -149,14 +149,14 @@ void ACONFIG_DumpConfig(void);
 ```c
 int32_t ret = ACONFIG_Init();
 if (ret != OSAL_SUCCESS) {
-    LOG_ERROR("APP", "ACL初始化失败");
+    LOG_ERROR("APP", "ACONFIG初始化失败");
     return ret;
 }
 
 /* 验证配置 */
 ret = ACONFIG_ValidateConfig();
 if (ret != OSAL_SUCCESS) {
-    LOG_ERROR("APP", "ACL配置验证失败");
+    LOG_ERROR("APP", "ACONFIG配置验证失败");
     return ret;
 }
 
@@ -169,7 +169,7 @@ ACONFIG_PrintStatistics();
 ```c
 int32_t handle_telecommand(pmc_tc_function_t cmd_type, uint32_t param)
 {
-    /* 1. 通过ACL查询设备映射（O(1)） */
+    /* 1. 通过ACONFIG查询设备映射（O(1)） */
     const aconfig_tc_config_t *cfg = ACONFIG_GetTcConfig(cmd_type);
     if (cfg == NULL || !cfg->enabled) {
         LOG_ERROR("TC", "命令未配置: %d", cmd_type);
@@ -207,7 +207,7 @@ int32_t handle_telecommand(pmc_tc_function_t cmd_type, uint32_t param)
 ```c
 int32_t handle_telemetry(pmc_tm_function_t tm_type, telemetry_data_t *data)
 {
-    /* 1. 通过ACL查询设备映射（O(1)） */
+    /* 1. 通过ACONFIG查询设备映射（O(1)） */
     const aconfig_tm_config_t *cfg = ACONFIG_GetTmConfig(tm_type);
     if (cfg == NULL || !cfg->enabled) {
         LOG_ERROR("TM", "遥测未配置: %d", tm_type);

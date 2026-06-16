@@ -21,8 +21,8 @@ config TEST_PERFORMANCE_ALL
 	select TEST_PERFORMANCE_OSAL if TEST_OSAL
 	select TEST_PERFORMANCE_HAL if TEST_HAL
 	select TEST_PERFORMANCE_PDL if TEST_PDL
-	select TEST_PERFORMANCE_PCL if TEST_PCL
-	select TEST_PERFORMANCE_ACL if TEST_ACL
+	select TEST_PERFORMANCE_PCONFIG if TEST_PCONFIG
+	select TEST_PERFORMANCE_ACONFIG if TEST_ACONFIG
 	help
 	  Enable all performance tests at once.
 	  Disabling this allows individual layer selection below.
@@ -49,11 +49,11 @@ if TEST_PDL
 	source "products/ctest/performance/pdl/Config.in"
 endif
 
-if TEST_PCL
+if TEST_PCONFIG
 	source "products/ctest/performance/pconfig/Config.in"
 endif
 
-if TEST_ACL
+if TEST_ACONFIG
 	source "products/ctest/performance/aconfig/Config.in"
 endif
 

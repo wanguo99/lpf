@@ -1274,7 +1274,7 @@ config SANITY_ERROR_TEST_HAL_NO_MODULE
 
 config SANITY_ERROR_TEST_PCONFIG_NO_MODULE
 	def_bool y
-	depends on TEST_PCL && !PCONFIG
+	depends on TEST_PCONFIG && !PCONFIG
 	prompt "ERROR: PCONFIG tests require PCONFIG module to be enabled"
 
 config SANITY_ERROR_TEST_PDL_NO_MODULE

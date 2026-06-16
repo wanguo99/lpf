@@ -24,7 +24,7 @@ config TEST_PERF_PCONFIG
 
 menu "PCONFIG Performance Tests"
 
-config TEST_PERF_PCL_PARSE
+config TEST_PERF_PCONFIG_PARSE
 	bool "Configuration parsing performance tests"
 	default n
 	help
@@ -38,11 +38,11 @@ config TEST_PERF_PCL_PARSE
 
 	  Runtime: 2-3 seconds
 	  Hardware: None
-	  Dependencies: CONFIG_PCL
+	  Dependencies: CONFIG_PCONFIG
 	  Tags: performance, parsing
 	  Test file: test_perf_pconfig_parse.c
 
-config TEST_PERF_PCL_LOOKUP
+config TEST_PERF_PCONFIG_LOOKUP
 	bool "Device lookup performance tests"
 	default n
 	help
@@ -56,7 +56,7 @@ config TEST_PERF_PCL_LOOKUP
 
 	  Runtime: 1-2 seconds
 	  Hardware: None
-	  Dependencies: CONFIG_PCL
+	  Dependencies: CONFIG_PCONFIG
 	  Tags: performance, lookup
 	  Test file: test_perf_pconfig_lookup.c
 

@@ -22,8 +22,8 @@ config TEST_STRESS_ALL
 	select TEST_STRESS_HAL if TEST_HAL
 	select TEST_STRESS_PDL if TEST_PDL
 	select TEST_STRESS_PRL if TEST_PRL
-	select TEST_STRESS_PCL if TEST_PCONFIG
-	select TEST_STRESS_ACL if TEST_ACONFIG
+	select TEST_STRESS_PCONFIG if TEST_PCONFIG
+	select TEST_STRESS_ACONFIG if TEST_ACONFIG
 	help
 	  Enable all stress tests at once.
 	  Disabling this allows individual layer selection below.

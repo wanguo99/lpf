@@ -23,10 +23,10 @@ config TEST_SYSTEM_ALL
 	select TEST_SYSTEM_HAL if TEST_HAL
 	select TEST_SYSTEM_PDL if TEST_PDL
 	select TEST_SYSTEM_PRL if TEST_PRL
-	select TEST_SYSTEM_PCL if TEST_PCL
-	select TEST_SYSTEM_ACL if TEST_ACL
-	select TEST_SYSTEM_ACONFIG if CONFIG_ACL
-	select TEST_SYSTEM_PCONFIG if CONFIG_PCL
+	select TEST_SYSTEM_PCONFIG if TEST_PCONFIG
+	select TEST_SYSTEM_ACONFIG if TEST_ACONFIG
+	select TEST_SYSTEM_ACONFIG if CONFIG_ACONFIG
+	select TEST_SYSTEM_PCONFIG if CONFIG_PCONFIG
 	select TEST_INTEGRATION
 	help
 	  Enable all system and integration tests at once.
@@ -59,11 +59,11 @@ if TEST_PRL
 	source "products/ctest/system/prl/Config.in"
 endif
 
-if CONFIG_PCL
+if CONFIG_PCONFIG
 	source "products/ctest/system/pconfig/Config.in"
 endif
 
-if CONFIG_ACL
+if CONFIG_ACONFIG
 	source "products/ctest/system/aconfig/Config.in"
 endif
 

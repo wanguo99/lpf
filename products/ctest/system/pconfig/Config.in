@@ -3,7 +3,7 @@
 # Platform configuration layer integration tests.
 # Tests PCONFIG with underlying HAL and PDL components.
 
-if TEST_SYSTEM_PCL
+if TEST_SYSTEM_PCONFIG
 
 menu "PCONFIG System Tests"
 
@@ -28,7 +28,7 @@ config TEST_SYSTEM_PCONFIG_HAL
 
 	  Runtime: 3-5 seconds
 	  Hardware: Mock devices
-	  Dependencies: CONFIG_PCL, CONFIG_HAL
+	  Dependencies: CONFIG_PCONFIG, CONFIG_HAL
 	  Tags: integration, config, hal
 	  Test file: test_system_pconfig_hal.c
 
@@ -53,7 +53,7 @@ config TEST_SYSTEM_PCONFIG_PDL
 
 	  Runtime: 3-5 seconds
 	  Hardware: Mock devices
-	  Dependencies: CONFIG_PCL, CONFIG_PDL
+	  Dependencies: CONFIG_PCONFIG, CONFIG_PDL
 	  Tags: integration, config, pdl
 	  Test file: test_system_pconfig_pdl.c
 
@@ -78,10 +78,10 @@ config TEST_SYSTEM_PCONFIG_RUNTIME
 
 	  Runtime: 5-10 seconds
 	  Hardware: Mock devices
-	  Dependencies: CONFIG_PCL
+	  Dependencies: CONFIG_PCONFIG
 	  Tags: integration, config, dynamic
 	  Test file: test_system_pconfig_runtime.c
 
 endmenu
 
-endif # TEST_SYSTEM_PCL
+endif # TEST_SYSTEM_PCONFIG

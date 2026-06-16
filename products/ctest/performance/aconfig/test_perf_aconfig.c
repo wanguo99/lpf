@@ -1,6 +1,6 @@
 /**
  * @file test_perf_aconfig.c
- * @brief ACL层性能测试
+ * @brief ACONFIG层性能测试
  */
 
 #include <test_framework/test_framework.h>

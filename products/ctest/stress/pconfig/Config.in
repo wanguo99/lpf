@@ -3,7 +3,7 @@
 # Tests platform configuration layer under extreme conditions.
 # Verifies configuration handling under load and error scenarios.
 
-config TEST_STRESS_PCL
+config TEST_STRESS_PCONFIG
 	bool "PCONFIG stress tests"
 	depends on TEST_STRESS && TEST_PCONFIG
 	default y if TEST_STRESS_ALL
@@ -28,11 +28,11 @@ config TEST_STRESS_PCL
 	  Tags: stress, config, concurrency
 	  Test file: test_stress_pconfig.c
 
-if TEST_STRESS_PCL
+if TEST_STRESS_PCONFIG
 
 menu "PCONFIG Stress Tests"
 
-config TEST_STRESS_PCL_LARGE_CONFIG
+config TEST_STRESS_PCONFIG_LARGE_CONFIG
 	bool "Large configuration file stress tests"
 	default n
 	help
@@ -53,11 +53,11 @@ config TEST_STRESS_PCL_LARGE_CONFIG
 
 	  Runtime: 15-30 seconds
 	  Hardware: None
-	  Dependencies: CONFIG_PCL
+	  Dependencies: CONFIG_PCONFIG
 	  Tags: stress, config, large
 	  Test file: test_stress_pconfig_large_config.c
 
-config TEST_STRESS_PCL_RELOAD
+config TEST_STRESS_PCONFIG_RELOAD
 	bool "Configuration reload stress tests"
 	default n
 	help
@@ -77,11 +77,11 @@ config TEST_STRESS_PCL_RELOAD
 
 	  Runtime: 15-30 seconds
 	  Hardware: None
-	  Dependencies: CONFIG_PCL
+	  Dependencies: CONFIG_PCONFIG
 	  Tags: stress, config, reload
 	  Test file: test_stress_pconfig_reload.c
 
-config TEST_STRESS_PCL_MALFORMED
+config TEST_STRESS_PCONFIG_MALFORMED
 	bool "Malformed configuration stress tests"
 	default n
 	help
@@ -103,10 +103,10 @@ config TEST_STRESS_PCL_MALFORMED
 
 	  Runtime: 10-20 seconds
 	  Hardware: None
-	  Dependencies: CONFIG_PCL
+	  Dependencies: CONFIG_PCONFIG
 	  Tags: stress, config, robustness
 	  Test file: test_stress_pconfig_malformed.c
 
 endmenu
 
-endif # TEST_STRESS_PCL
+endif # TEST_STRESS_PCONFIG

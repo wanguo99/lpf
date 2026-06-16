@@ -3,11 +3,11 @@
 # Measures application configuration layer performance.
 # Tests telecommand/telemetry mapping and processing speed.
 
-if TEST_PERFORMANCE_ACL
+if TEST_PERFORMANCE_ACONFIG
 
 menu "ACONFIG Performance Tests"
 
-config TEST_PERF_ACL_TC
+config TEST_PERF_ACONFIG_TC
 	bool "Telecommand processing performance tests"
 	default n
 	help
@@ -21,11 +21,11 @@ config TEST_PERF_ACL_TC
 
 	  Runtime: 2-3 seconds
 	  Hardware: None
-	  Dependencies: CONFIG_ACL
+	  Dependencies: CONFIG_ACONFIG
 	  Tags: performance, telecommand
 	  Test file: test_perf_aconfig_tc.c
 
-config TEST_PERF_ACL_TM
+config TEST_PERF_ACONFIG_TM
 	bool "Telemetry collection performance tests"
 	default n
 	help
@@ -39,10 +39,10 @@ config TEST_PERF_ACL_TM
 
 	  Runtime: 2-3 seconds
 	  Hardware: None
-	  Dependencies: CONFIG_ACL
+	  Dependencies: CONFIG_ACONFIG
 	  Tags: performance, telemetry
 	  Test file: test_perf_aconfig_tm.c
 
 endmenu
 
-endif # TEST_PERFORMANCE_ACL
+endif # TEST_PERFORMANCE_ACONFIG

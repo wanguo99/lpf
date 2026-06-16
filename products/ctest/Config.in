@@ -65,7 +65,7 @@ config TEST_PDL
 	  Fine-grained control over individual PDL test files is available
 	  in the PDL Unit Tests submenu.
 
-config TEST_ACL
+config TEST_ACONFIG
 	bool "Build ACONFIG unit tests"
 	depends on OSAL  # ACONFIG dependency
 	select ACONFIG
@@ -162,7 +162,7 @@ config TEST_PERFORMANCE_PDL
 
 	  Note: PDL requires OSAL, HAL, and PCONFIG.
 
-config TEST_PERFORMANCE_ACL
+config TEST_PERFORMANCE_ACONFIG
 	bool "Build ACONFIG performance tests"
 	select ACONFIG
 	default n
@@ -225,7 +225,7 @@ config TEST_STRESS_PRL
 	help
 	  Build PRL layer stress tests.
 
-config TEST_STRESS_ACL
+config TEST_STRESS_ACONFIG
 	bool "Build ACONFIG stress tests"
 	select ACONFIG
 	default n
@@ -281,7 +281,7 @@ config TEST_SYSTEM_PDL
 
 	  Note: PDL requires OSAL, HAL, and PCONFIG.
 
-config TEST_SYSTEM_ACL
+config TEST_SYSTEM_ACONFIG
 	bool "Build ACONFIG system tests"
 	select ACONFIG
 	default n

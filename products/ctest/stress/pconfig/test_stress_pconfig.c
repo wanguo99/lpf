@@ -1,6 +1,6 @@
 /**
  * @file test_stress_pconfig.c
- * @brief PCL层压力测试 - PCONFIG模块压力测试
+ * @brief PCONFIG层压力测试 - PCONFIG模块压力测试
  *
  * 测试场景：
  * 1. 并发查询压力 - 多线程同时查询配置
