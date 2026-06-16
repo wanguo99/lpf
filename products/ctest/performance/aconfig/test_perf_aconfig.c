@@ -6,7 +6,6 @@
 #include <test_framework/test_framework.h>
 #include <test_framework/test_performance.h>
 #include "aconfig.h"
-#include <aconfig/aconfig.h>
 
 /**
  * 测试遥控配置查询性能

@@ -7,6 +7,23 @@ if TEST_PERFORMANCE_ACONFIG
 
 menu "ACONFIG Performance Tests"
 
+config TEST_PERF_ACONFIG
+	bool "ACONFIG performance tests"
+	default y
+	help
+	  Application configuration layer performance benchmarks.
+
+	  Measures:
+	    - TC/TM lookup performance
+	    - Configuration query latency
+	    - Mapping table performance
+
+	  Runtime: 2-3 seconds
+	  Hardware: None
+	  Dependencies: CONFIG_ACONFIG
+	  Tags: performance, aconfig
+	  Test file: test_perf_aconfig.c
+
 config TEST_PERF_ACONFIG_TC
 	bool "Telecommand processing performance tests"
 	default n

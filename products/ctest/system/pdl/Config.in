@@ -135,7 +135,7 @@ config TEST_SYSTEM_PDL_TELEMETRY
 config TEST_SYSTEM_PDL_CCM
 	bool "CCM device integration tests"
 	default y
-	depends on CONFIG_PDL_CCM_SUPPORT
+	depends on PDL_CCM_SUPPORT
 	help
 	  Comprehensive CCM communication driver integration tests.
 

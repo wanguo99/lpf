@@ -331,3 +331,4 @@ CONFIG_TEST_FRAMEWORK_VERBOSE=y
 # ============================================================================
 CONFIG_TEST_PERF_ACONFIG_TC=y
 CONFIG_TEST_PERF_ACONFIG_TM=y
+# CONFIG_TEST_SYSTEM_PDL_CCM is not set
