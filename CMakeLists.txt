@@ -107,11 +107,6 @@ if(CONFIG_PRODUCT_CCM)
     add_subdirectory(products/ccm)
 endif()
 
-if(CONFIG_PRODUCT_SAMPLE)
-    message(STATUS "Building Sample product")
-    add_subdirectory(products/sample)
-endif()
-
 # ==============================================================================
 # Build Tests
 # ==============================================================================
@@ -136,7 +131,6 @@ message(STATUS "Install Prefix: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "")
 message(STATUS "Products:")
 message(STATUS "  CCM:          ${CONFIG_PRODUCT_CCM}")
-message(STATUS "  Sample:       ${CONFIG_PRODUCT_SAMPLE}")
 message(STATUS "  Tests:        ${CONFIG_BUILD_TESTING}")
 message(STATUS "")
 message(STATUS "Core Modules:")
