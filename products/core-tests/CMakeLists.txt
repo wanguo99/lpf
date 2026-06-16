@@ -131,7 +131,7 @@ if(CONFIG_TEST_UNIT)
     if(CONFIG_TEST_PCL)
         test_discover_and_add(
             TARGET es-middleware-test
-            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/pcl
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/pconfig
             MODULE pcl
             LIBRARY pconfig
         )
@@ -237,21 +237,21 @@ if(CONFIG_TEST_PERFORMANCE)
         )
     endif()
 
-    # PCL Performance Tests - Auto-discover all test_perf_pcl_*.c files
+    # PCL Performance Tests - Auto-discover all test_perf_pconfig_*.c files
     if(CONFIG_TEST_PERFORMANCE_PCL)
         test_discover_and_add(
             TARGET es-middleware-test
-            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/performance/pcl
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/performance/pconfig
             MODULE perf_pcl
             LIBRARY pconfig
         )
     endif()
 
-    # ACL Performance Tests - Auto-discover all test_perf_acl_*.c files
+    # ACL Performance Tests - Auto-discover all test_perf_aconfig_*.c files
     if(CONFIG_TEST_PERFORMANCE_ACL)
         test_discover_and_add(
             TARGET es-middleware-test
-            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/performance/acl
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/performance/aconfig
             MODULE perf_acl
             LIBRARY aconfig
         )
@@ -306,21 +306,21 @@ if(CONFIG_TEST_STRESS)
         )
     endif()
 
-    # PCL Stress Tests - Auto-discover all test_stress_pcl_*.c files
+    # PCL Stress Tests - Auto-discover all test_stress_pconfig_*.c files
     if(CONFIG_TEST_STRESS_PCL)
         test_discover_and_add(
             TARGET es-middleware-test
-            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/stress/pcl
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/stress/pconfig
             MODULE stress_pcl
             LIBRARY pconfig
         )
     endif()
 
-    # ACL Stress Tests - Auto-discover all test_stress_acl_*.c files
+    # ACL Stress Tests - Auto-discover all test_stress_aconfig_*.c files
     if(CONFIG_TEST_STRESS_ACL)
         test_discover_and_add(
             TARGET es-middleware-test
-            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/stress/acl
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/stress/aconfig
             MODULE stress_acl
             LIBRARY aconfig
         )

@@ -23,7 +23,7 @@ config TEST_PERF_PCL_PARSE
 	  Hardware: None
 	  Dependencies: CONFIG_PCL
 	  Tags: performance, parsing
-	  Test file: test_perf_pcl_parse.c
+	  Test file: test_perf_pconfig_parse.c
 
 config TEST_PERF_PCL_LOOKUP
 	bool "Device lookup performance tests"
@@ -41,7 +41,7 @@ config TEST_PERF_PCL_LOOKUP
 	  Hardware: None
 	  Dependencies: CONFIG_PCL
 	  Tags: performance, lookup
-	  Test file: test_perf_pcl_lookup.c
+	  Test file: test_perf_pconfig_lookup.c
 
 endmenu
 

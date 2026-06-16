@@ -1,5 +1,5 @@
 /**
- * @file test_perf_acl.c
+ * @file test_perf_aconfig.c
  * @brief ACL层性能测试
  */
 
@@ -60,7 +60,7 @@ static const test_case_t test_cases[] = {
 static const test_suite_t test_suite = {
 	.suite_name = "perf_acl",
 	.module_name = "perf_acl",
-	.layer_name = "ACL",
+	.layer_name = "ACONFIG",
 	.cases = test_cases,
 	.case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
 	.suite_setup = NULL,
@@ -69,7 +69,7 @@ static const test_suite_t test_suite = {
 		.category = TEST_CATEGORY_PERFORMANCE,
 		.tags = TEST_TAG_SLOW,
 		.timeout_ms = 5000,
-		.description = "ACL perf_acl tests"
+		.description = "ACONFIG perf_acl tests"
 	}
 };
 

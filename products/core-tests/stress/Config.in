@@ -8,8 +8,8 @@
 #   - stress/osal/Config.in - OSAL stress tests
 #   - stress/hal/Config.in - HAL stress tests
 #   - stress/pdl/Config.in - PDL stress tests
-#   - stress/pcl/Config.in - PCL stress tests
-#   - stress/acl/Config.in - ACL stress tests
+#   - stress/pconfig/Config.in - PCL stress tests
+#   - stress/aconfig/Config.in - ACL stress tests
 
 if TEST_STRESS
 
@@ -60,11 +60,11 @@ if TEST_PRL
 endif
 
 if TEST_PCONFIG
-	source "products/core-tests/stress/pcl/Config.in"
+	source "products/core-tests/stress/pconfig/Config.in"
 endif
 
 if TEST_ACONFIG
-	source "products/core-tests/stress/acl/Config.in"
+	source "products/core-tests/stress/aconfig/Config.in"
 endif
 
 endmenu

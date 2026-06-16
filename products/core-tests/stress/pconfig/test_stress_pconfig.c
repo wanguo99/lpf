@@ -1,5 +1,5 @@
 /**
- * @file test_stress_pcl.c
+ * @file test_stress_pconfig.c
  * @brief PCL层压力测试 - PCONFIG模块压力测试
  *
  * 测试场景：
@@ -527,7 +527,7 @@ static const test_case_t test_cases[] = {
 static const test_suite_t test_suite = {
 	.suite_name = "stress_pcl",
 	.module_name = "stress_pcl",
-	.layer_name = "PCL",
+	.layer_name = "PCONFIG",
 	.cases = test_cases,
 	.case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
 	.suite_setup = NULL,
@@ -536,7 +536,7 @@ static const test_suite_t test_suite = {
 		.category = TEST_CATEGORY_STRESS,
 		.tags = TEST_TAG_SLOW,
 		.timeout_ms = 60000,  /* 60秒超时 */
-		.description = "PCL stress tests - concurrent access, massive load, long-running stability"
+		.description = "PCONFIG stress tests - concurrent access, massive load, long-running stability"
 	}
 };
 

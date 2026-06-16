@@ -23,7 +23,7 @@ config TEST_PERF_ACL_TC
 	  Hardware: None
 	  Dependencies: CONFIG_ACL
 	  Tags: performance, telecommand
-	  Test file: test_perf_acl_tc.c
+	  Test file: test_perf_aconfig_tc.c
 
 config TEST_PERF_ACL_TM
 	bool "Telemetry collection performance tests"
@@ -41,7 +41,7 @@ config TEST_PERF_ACL_TM
 	  Hardware: None
 	  Dependencies: CONFIG_ACL
 	  Tags: performance, telemetry
-	  Test file: test_perf_acl_tm.c
+	  Test file: test_perf_aconfig_tm.c
 
 endmenu
 

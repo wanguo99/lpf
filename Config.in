@@ -4,7 +4,7 @@
 # This is the root Config.in file for the entire ES-Middleware SDK.
 # It provides a unified configuration interface for:
 #   - Product selection (which products to build)
-#   - Core components configuration (OSAL, HAL, PCL, PDL, ACL)
+#   - Core components configuration (OSAL, HAL, PCONFIG, PDL, ACONFIG)
 #   - Product-specific configurations
 # ============================================================================
 
@@ -1238,20 +1238,20 @@ config SANITY_ERROR_HAL_NO_OSAL
 	depends on HAL && !OSAL
 	prompt "ERROR: HAL requires OSAL to be enabled"
 
-config SANITY_ERROR_PCL_NO_DEPS
+config SANITY_ERROR_PCONFIG_NO_DEPS
 	def_bool y
-	depends on PCL && (!OSAL || !HAL || !TYPES)
-	prompt "ERROR: PCL requires OSAL, HAL, and TYPES to be enabled"
+	depends on PCONFIG && (!OSAL || !HAL || !TYPES)
+	prompt "ERROR: PCONFIG requires OSAL, HAL, and TYPES to be enabled"
 
 config SANITY_ERROR_PDL_NO_DEPS
 	def_bool y
-	depends on PDL && (!OSAL || !HAL || !PCL || !TYPES)
-	prompt "ERROR: PDL requires OSAL, HAL, PCL, and TYPES to be enabled"
+	depends on PDL && (!OSAL || !HAL || !PCONFIG || !TYPES)
+	prompt "ERROR: PDL requires OSAL, HAL, PCONFIG, and TYPES to be enabled"
 
-config SANITY_ERROR_ACL_NO_OSAL
+config SANITY_ERROR_ACONFIG_NO_OSAL
 	def_bool y
-	depends on ACL && !OSAL
-	prompt "ERROR: ACL requires OSAL to be enabled"
+	depends on ACONFIG && !OSAL
+	prompt "ERROR: ACONFIG requires OSAL to be enabled"
 
 config SANITY_ERROR_TEST_FRAMEWORK_NO_OSAL
 	def_bool y
@@ -1272,10 +1272,10 @@ config SANITY_ERROR_TEST_HAL_NO_MODULE
 	depends on TEST_HAL && !HAL
 	prompt "ERROR: HAL tests require HAL module to be enabled"
 
-config SANITY_ERROR_TEST_PCL_NO_MODULE
+config SANITY_ERROR_TEST_PCONFIG_NO_MODULE
 	def_bool y
-	depends on TEST_PCL && !PCL
-	prompt "ERROR: PCL tests require PCL module to be enabled"
+	depends on TEST_PCL && !PCONFIG
+	prompt "ERROR: PCONFIG tests require PCONFIG module to be enabled"
 
 config SANITY_ERROR_TEST_PDL_NO_MODULE
 	def_bool y
@@ -1287,10 +1287,10 @@ config SANITY_ERROR_TEST_PRL_NO_MODULE
 	depends on TEST_PRL && !PRL
 	prompt "ERROR: PRL tests require PRL module to be enabled"
 
-config SANITY_ERROR_TEST_ACL_NO_MODULE
+config SANITY_ERROR_TEST_ACONFIG_NO_MODULE
 	def_bool y
-	depends on TEST_ACONFIG && !ACL
-	prompt "ERROR: ACL tests require ACL module to be enabled"
+	depends on TEST_ACONFIG && !ACONFIG
+	prompt "ERROR: ACONFIG tests require ACONFIG module to be enabled"
 
 # ============================================================================
 # HAL Driver Dependency Checks
@@ -1480,8 +1480,8 @@ config SANITY_ERROR_RTOS_WITH_UNSUPPORTED_FEATURES
 
 config SANITY_ERROR_CCM_NO_DEPS
 	def_bool y
-	depends on PRODUCT_CCM && (!OSAL || !HAL || !PCL || !PDL || !ACL)
-	prompt "ERROR: CCM product requires OSAL, HAL, PCL, PDL, and ACL"
+	depends on PRODUCT_CCM && (!OSAL || !HAL || !PCONFIG || !PDL || !ACONFIG)
+	prompt "ERROR: CCM product requires OSAL, HAL, PCONFIG, PDL, and ACONFIG"
 
 config SANITY_WARN_TEST_PRODUCT_CONFLICT
 	def_bool y
@@ -1495,9 +1495,9 @@ config SANITY_WARN_TEST_PRODUCT_CONFLICT
 config SANITY_CHECK_PASSED
 	def_bool y
 	depends on !SANITY_ERROR_HAL_NO_OSAL && \
-	           !SANITY_ERROR_PCL_NO_DEPS && \
+	           !SANITY_ERROR_PCONFIG_NO_DEPS && \
 	           !SANITY_ERROR_PDL_NO_DEPS && \
-	           !SANITY_ERROR_ACL_NO_OSAL && \
+	           !SANITY_ERROR_ACONFIG_NO_OSAL && \
 	           !SANITY_ERROR_FORTIFY_WITH_O0 && \
 	           !SANITY_ERROR_PIE_NO_PIC && \
 	           !SANITY_ERROR_SANITIZER_CONFLICT && \

@@ -8,8 +8,8 @@
 #   - performance/osal/Config.in - OSAL performance tests
 #   - performance/hal/Config.in - HAL performance tests
 #   - performance/pdl/Config.in - PDL performance tests
-#   - performance/pcl/Config.in - PCL performance tests
-#   - performance/acl/Config.in - ACL performance tests
+#   - performance/pconfig/Config.in - PCL performance tests
+#   - performance/aconfig/Config.in - ACL performance tests
 
 if TEST_PERFORMANCE
 
@@ -50,11 +50,11 @@ if TEST_PDL
 endif
 
 if TEST_PCL
-	source "products/core-tests/performance/pcl/Config.in"
+	source "products/core-tests/performance/pconfig/Config.in"
 endif
 
 if TEST_ACL
-	source "products/core-tests/performance/acl/Config.in"
+	source "products/core-tests/performance/aconfig/Config.in"
 endif
 
 endmenu

@@ -26,7 +26,7 @@ config TEST_STRESS_PCL
 	  Hardware: None
 	  Dependencies: CONFIG_PCONFIG
 	  Tags: stress, config, concurrency
-	  Test file: test_stress_pcl.c
+	  Test file: test_stress_pconfig.c
 
 if TEST_STRESS_PCL
 
@@ -55,7 +55,7 @@ config TEST_STRESS_PCL_LARGE_CONFIG
 	  Hardware: None
 	  Dependencies: CONFIG_PCL
 	  Tags: stress, config, large
-	  Test file: test_stress_pcl_large_config.c
+	  Test file: test_stress_pconfig_large_config.c
 
 config TEST_STRESS_PCL_RELOAD
 	bool "Configuration reload stress tests"
@@ -79,7 +79,7 @@ config TEST_STRESS_PCL_RELOAD
 	  Hardware: None
 	  Dependencies: CONFIG_PCL
 	  Tags: stress, config, reload
-	  Test file: test_stress_pcl_reload.c
+	  Test file: test_stress_pconfig_reload.c
 
 config TEST_STRESS_PCL_MALFORMED
 	bool "Malformed configuration stress tests"
@@ -105,7 +105,7 @@ config TEST_STRESS_PCL_MALFORMED
 	  Hardware: None
 	  Dependencies: CONFIG_PCL
 	  Tags: stress, config, robustness
-	  Test file: test_stress_pcl_malformed.c
+	  Test file: test_stress_pconfig_malformed.c
 
 endmenu
 

@@ -3,7 +3,7 @@
  * @brief Unified test runner - Busybox-style main entry point
  *
  * Supports both direct invocation (es-middleware-test) and symlink invocation
- * (osal-test, hal-test, pcl-test, pdl-test)
+ * (osal-test, hal-test, pconfig-test, pdl-test)
  */
 
 #include <test_framework/test_framework.h>
@@ -38,8 +38,8 @@ static const char *detect_layer_filter(const char *program_name)
         return "OSAL";
     } else if (0 == OSAL_strcmp(program_name, "hal-test")) {
         return "HAL";
-    } else if (0 == OSAL_strcmp(program_name, "pcl-test")) {
-        return "PCL";
+    } else if (0 == OSAL_strcmp(program_name, "pconfig-test")) {
+        return "PCONFIG";
     } else if (0 == OSAL_strcmp(program_name, "pdl-test")) {
         return "PDL";
     }

@@ -1,5 +1,5 @@
 /**
- * @file test_perf_pcl.c
+ * @file test_perf_pconfig.c
  * @brief PCL层性能测试
  */
 
@@ -59,7 +59,7 @@ static const test_case_t test_cases[] = {
 static const test_suite_t test_suite = {
 	.suite_name = "perf_pcl",
 	.module_name = "perf_pcl",
-	.layer_name = "PCL",
+	.layer_name = "PCONFIG",
 	.cases = test_cases,
 	.case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
 	.suite_setup = NULL,
@@ -68,7 +68,7 @@ static const test_suite_t test_suite = {
 		.category = TEST_CATEGORY_PERFORMANCE,
 		.tags = TEST_TAG_SLOW,
 		.timeout_ms = 5000,
-		.description = "PCL perf_pcl tests"
+		.description = "PCONFIG perf_pcl tests"
 	}
 };
 
