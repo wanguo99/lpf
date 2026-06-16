@@ -1,14 +1,11 @@
 /**
  * @file aconfig_api.c
- * @brief ACONFIG 层 API 实现（优化版）
- * @note 优化要点：
- *       1. 适配稀疏数组结构（tc_entries/tm_entries）
- *       2. 失效映射从 TC 配置中内嵌读取
+ * @brief ACONFIG 层 API 实现 - 通用配置管理框架
+ * @note 提供通用的配置注册和查询功能，不包含业务特定逻辑
  */
 
 #include "osal.h"
 #include "aconfig.h"
-#include "aconfig_internal.h"
 
 /* 全局配置表 */
 static const aconfig_config_table_t *g_aconfig_table = NULL;
@@ -17,14 +14,29 @@ static const aconfig_config_table_t *g_aconfig_table = NULL;
 static osal_rwlock_t g_aconfig_rwlock = PTHREAD_RWLOCK_INITIALIZER;
 
 /**
- * @brief 初始化ACONFIG层
+ * @brief 初始化 ACONFIG 层
  */
 int32_t ACONFIG_Init(void)
 {
-    g_aconfig_table = NULL;
+	g_aconfig_table = NULL;
+	LOG_INFO("ACONFIG", "Initialized (generic version)");
+	return OSAL_SUCCESS;
+}
 
-    LOG_INFO("ACONFIG", "Initialized (optimized version)");
-    return OSAL_SUCCESS;
+/**
+ * @brief 清理 ACONFIG 层
+ */
+void ACONFIG_Cleanup(void)
+{
+	int32_t ret;
+
+	ret = OSAL_pthread_rwlock_wrlock(&g_aconfig_rwlock);
+	if (OSAL_SUCCESS == ret) {
+		g_aconfig_table = NULL;
+		OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
+	}
+
+	LOG_INFO("ACONFIG", "Cleaned up");
 }
 
 /**
@@ -32,252 +44,173 @@ int32_t ACONFIG_Init(void)
  */
 int32_t ACONFIG_RegisterTable(const aconfig_config_table_t *table)
 {
-    int32_t ret;
+	int32_t ret;
 
-    if (NULL == table) {
-        LOG_ERROR("ACONFIG", "Invalid table pointer");
-        return OSAL_ERR_INVALID_POINTER;
-    }
+	if (NULL == table) {
+		LOG_ERROR("ACONFIG", "Invalid table pointer");
+		return OSAL_ERR_INVALID_POINTER;
+	}
 
-    /* 获取写锁（独占访问） */
-    ret = OSAL_pthread_rwlock_wrlock(&g_aconfig_rwlock);
-    if (OSAL_SUCCESS != ret) {
-        LOG_ERROR("ACONFIG", "Failed to acquire write lock: %d", ret);
-        return ret;
-    }
+	if (NULL == table->name) {
+		LOG_ERROR("ACONFIG", "Table name is NULL");
+		return OSAL_ERR_INVALID_POINTER;
+	}
 
-    if (NULL != g_aconfig_table) {
-        LOG_WARN("ACONFIG", "Table already registered, overwriting");
-    }
+	/* 获取写锁（独占访问） */
+	ret = OSAL_pthread_rwlock_wrlock(&g_aconfig_rwlock);
+	if (OSAL_SUCCESS != ret) {
+		LOG_ERROR("ACONFIG", "Failed to acquire write lock: %d", ret);
+		return ret;
+	}
 
-    g_aconfig_table = table;
+	if (NULL != g_aconfig_table) {
+		LOG_WARN("ACONFIG", "Table already registered, overwriting");
+	}
 
-    LOG_INFO("ACONFIG", "Registered table '%s' (TC:%u entries, TM:%u entries)",
-               table->name,
-               table->tc_count,
-               table->tm_count);
+	g_aconfig_table = table;
 
-    /* 释放写锁 */
-    OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
+	LOG_INFO("ACONFIG", "Registered table '%s'", table->name);
 
-    return OSAL_SUCCESS;
+	/* 释放写锁 */
+	OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
+
+	return OSAL_SUCCESS;
 }
 
 /**
- * @brief 查询遥控配置（稀疏数组查找）
+ * @brief 注销配置表
  */
-const aconfig_tc_config_t* ACONFIG_GetTcConfig(uint32_t function_id)
+int32_t ACONFIG_UnregisterTable(void)
 {
-    const aconfig_tc_config_t *config = NULL;
-    uint32_t i;
+	int32_t ret;
 
-    /* 获取读锁（允许多个读者） */
-    if (OSAL_SUCCESS != OSAL_pthread_rwlock_rdlock(&g_aconfig_rwlock)) {
-        return NULL;
-    }
+	ret = OSAL_pthread_rwlock_wrlock(&g_aconfig_rwlock);
+	if (OSAL_SUCCESS != ret) {
+		LOG_ERROR("ACONFIG", "Failed to acquire write lock: %d", ret);
+		return ret;
+	}
 
-    /* NULL 检查 */
-    if (NULL == g_aconfig_table || NULL == g_aconfig_table->tc_entries) {
-        OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
-        return NULL;
-    }
+	if (NULL == g_aconfig_table) {
+		LOG_WARN("ACONFIG", "No table registered");
+		OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
+		return OSAL_ERR_NOT_FOUND;
+	}
 
-    /* 查找匹配的 function_id（稀疏数组线性查找）*/
-    for (i = 0; i < g_aconfig_table->tc_count; i++) {
-        if (g_aconfig_table->tc_entries[i].function_id == function_id) {
-            config = &g_aconfig_table->tc_entries[i].config;
-            break;
-        }
-    }
+	LOG_INFO("ACONFIG", "Unregistered table '%s'", g_aconfig_table->name);
+	g_aconfig_table = NULL;
 
-    /* 释放读锁 */
-    OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
+	OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
 
-    return config;
+	return OSAL_SUCCESS;
 }
 
 /**
- * @brief 查询遥测配置（稀疏数组查找）
+ * @brief 获取当前配置表
  */
-const aconfig_tm_config_t* ACONFIG_GetTmConfig(uint32_t function_id)
+const aconfig_config_table_t* ACONFIG_GetTable(void)
 {
-    const aconfig_tm_config_t *config = NULL;
-    uint32_t i;
+	const aconfig_config_table_t *table = NULL;
 
-    /* 获取读锁（允许多个读者） */
-    if (OSAL_SUCCESS != OSAL_pthread_rwlock_rdlock(&g_aconfig_rwlock)) {
-        return NULL;
-    }
+	if (OSAL_SUCCESS == OSAL_pthread_rwlock_rdlock(&g_aconfig_rwlock)) {
+		table = g_aconfig_table;
+		OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
+	}
 
-    /* NULL 检查 */
-    if (NULL == g_aconfig_table || NULL == g_aconfig_table->tm_entries) {
-        OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
-        return NULL;
-    }
-
-    /* 查找匹配的 function_id（稀疏数组线性查找）*/
-    for (i = 0; i < g_aconfig_table->tm_count; i++) {
-        if (g_aconfig_table->tm_entries[i].function_id == function_id) {
-            config = &g_aconfig_table->tm_entries[i].config;
-            break;
-        }
-    }
-
-    /* 释放读锁 */
-    OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
-
-    return config;
+	return table;
 }
 
 /**
- * @brief 检查遥控功能是否使能
+ * @brief 查询功能配置（通用接口）
+ * @note 具体查找逻辑由产品层的 function_map 实现
  */
-bool ACONFIG_IsTcEnabled(uint32_t function_id)
+const void* ACONFIG_GetFunctionConfig(uint32_t function_id)
 {
-    const aconfig_tc_config_t *config = ACONFIG_GetTcConfig(function_id);
-    return (NULL != config) && config->enabled;
+	(void)function_id;
+
+	/* 获取读锁 */
+	if (OSAL_SUCCESS != OSAL_pthread_rwlock_rdlock(&g_aconfig_rwlock)) {
+		return NULL;
+	}
+
+	/* NULL 检查 */
+	if (NULL == g_aconfig_table) {
+		OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
+		return NULL;
+	}
+
+	/* 注意：具体的查找逻辑应由产品层实现
+	 * 这里返回 function_map，由产品层自行查询
+	 */
+	OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
+
+	LOG_WARN("ACONFIG", "GetFunctionConfig: Use product-specific API instead");
+	return NULL;
 }
 
 /**
- * @brief 检查遥测功能是否使能
+ * @brief 检查功能是否启用
+ * @note 具体实现由产品层提供
  */
-bool ACONFIG_IsTmEnabled(uint32_t function_id)
+bool ACONFIG_IsFunctionEnabled(uint32_t function_id)
 {
-    const aconfig_tm_config_t *config = ACONFIG_GetTmConfig(function_id);
-    return (NULL != config) && config->enabled;
+	(void)function_id;
+
+	LOG_WARN("ACONFIG", "IsFunctionEnabled: Use product-specific API instead");
+	return false;
 }
 
 /**
- * @brief 获取失效映射（优化版 - 从 TC 配置中读取）
- * @note 新版本：失效映射已内嵌到 TC 配置中，通过 TC function_id 查找
- */
-int32_t ACONFIG_GetInvalidationMap(uint32_t tc_function_id,
-                                uint32_t *affected_ids,
-                                uint32_t max_count,
-                                uint32_t *actual_count)
-{
-    const aconfig_tc_config_t *tc_config;
-    uint32_t copy_count;
-
-    if (NULL == affected_ids || NULL == actual_count) {
-        return OSAL_ERR_INVALID_POINTER;
-    }
-
-    *actual_count = 0;
-
-    /* 查找对应的 TC 配置 */
-    tc_config = ACONFIG_GetTcConfig(tc_function_id);
-    if (NULL == tc_config) {
-        return OSAL_ERR_NAME_NOT_FOUND;
-    }
-
-    /* 检查是否有失效映射 */
-    if (NULL == tc_config->invalidated_tm_ids || 0 == tc_config->invalidated_tm_count) {
-        return OSAL_SUCCESS;  /* 没有失效映射，不是错误 */
-    }
-
-    /* 复制受影响的 TM ID */
-    copy_count = (tc_config->invalidated_tm_count < max_count) ?
-                  tc_config->invalidated_tm_count : max_count;
-    OSAL_memcpy(affected_ids, tc_config->invalidated_tm_ids,
-                copy_count * OSAL_sizeof(uint32_t));
-    *actual_count = tc_config->invalidated_tm_count;
-
-    return OSAL_SUCCESS;
-}
-
-/**
- * @brief 获取配置统计信息（优化版）
+ * @brief 获取配置统计信息
  */
 int32_t ACONFIG_GetStatistics(aconfig_statistics_t *stats)
 {
-    uint32_t i;
-    uint32_t total_inv_maps = 0;
+	if (NULL == stats) {
+		LOG_ERROR("ACONFIG", "Invalid stats pointer");
+		return OSAL_ERR_INVALID_POINTER;
+	}
 
-    if (NULL == stats) {
-        return OSAL_ERR_INVALID_POINTER;
-    }
+	OSAL_memset(stats, 0, sizeof(aconfig_statistics_t));
 
-    OSAL_memset(stats, 0, OSAL_sizeof(aconfig_statistics_t));
+	/* 获取读锁 */
+	if (OSAL_SUCCESS != OSAL_pthread_rwlock_rdlock(&g_aconfig_rwlock)) {
+		return OSAL_ERR_GENERIC;
+	}
 
-    /* 获取读锁 */
-    if (OSAL_SUCCESS != OSAL_pthread_rwlock_rdlock(&g_aconfig_rwlock)) {
-        return OSAL_ERR_GENERIC;
-    }
+	if (NULL == g_aconfig_table) {
+		OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
+		return OSAL_SUCCESS;
+	}
 
-    if (NULL == g_aconfig_table) {
-        OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
-        return OSAL_SUCCESS;
-    }
+	/* 通用统计信息（产品层可扩展） */
+	LOG_INFO("ACONFIG", "Statistics gathering needs product-specific implementation");
 
-    /* 统计遥控配置 */
-    if (NULL != g_aconfig_table->tc_entries) {
-        for (i = 0; i < g_aconfig_table->tc_count; i++) {
-            if (g_aconfig_table->tc_entries[i].config.enabled) {
-                stats->tc_enabled_count++;
-            } else {
-                stats->tc_disabled_count++;
-            }
+	/* 释放读锁 */
+	OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
 
-            /* 统计失效映射 */
-            if (g_aconfig_table->tc_entries[i].config.invalidated_tm_count > 0) {
-                total_inv_maps++;
-            }
-        }
-    }
-
-    /* 统计遥测配置 */
-    if (NULL != g_aconfig_table->tm_entries) {
-        for (i = 0; i < g_aconfig_table->tm_count; i++) {
-            if (g_aconfig_table->tm_entries[i].config.enabled) {
-                stats->tm_enabled_count++;
-            } else {
-                stats->tm_disabled_count++;
-            }
-        }
-    }
-
-    stats->total_invalidation_maps = total_inv_maps;
-
-    /* 释放读锁 */
-    OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
-
-    return OSAL_SUCCESS;
+	return OSAL_SUCCESS;
 }
 
 /**
- * @brief 打印配置信息（优化版）
+ * @brief 打印配置信息
  */
 void ACONFIG_PrintConfig(void)
 {
-    aconfig_statistics_t stats = {0};
+	/* 获取读锁 */
+	if (OSAL_SUCCESS != OSAL_pthread_rwlock_rdlock(&g_aconfig_rwlock)) {
+		LOG_ERROR("ACONFIG", "Failed to acquire read lock");
+		return;
+	}
 
-    /* 获取读锁 */
-    if (OSAL_SUCCESS != OSAL_pthread_rwlock_rdlock(&g_aconfig_rwlock)) {
-        LOG_ERROR("ACONFIG", "Failed to acquire read lock");
-        return;
-    }
+	if (NULL == g_aconfig_table) {
+		LOG_INFO("ACONFIG", "No table registered");
+		OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
+		return;
+	}
 
-    if (NULL == g_aconfig_table) {
-        LOG_INFO("ACONFIG", "No table registered");
-        OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
-        return;
-    }
+	LOG_INFO("ACONFIG", "Configuration: %s", g_aconfig_table->name);
+	LOG_INFO("ACONFIG", "  Function map: %p", (void *)g_aconfig_table->function_map);
+	LOG_INFO("ACONFIG", "  User data: %p", g_aconfig_table->user_data);
 
-    LOG_INFO("ACONFIG", "Configuration: %s", g_aconfig_table->name);
-    LOG_INFO("ACONFIG", "  TC entries: %u (sparse array)", g_aconfig_table->tc_count);
-    LOG_INFO("ACONFIG", "  TM entries: %u (sparse array)", g_aconfig_table->tm_count);
-
-    /* 释放读锁 */
-    OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
-
-    if (OSAL_SUCCESS == ACONFIG_GetStatistics(&stats)) {
-        LOG_INFO("ACONFIG", "  TC enabled: %u, disabled: %u",
-                   stats.tc_enabled_count, stats.tc_disabled_count);
-        LOG_INFO("ACONFIG", "  TM enabled: %u, disabled: %u",
-                   stats.tm_enabled_count, stats.tm_disabled_count);
-        LOG_INFO("ACONFIG", "  Invalidation maps: %u (embedded in TC)",
-                   stats.total_invalidation_maps);
-    }
+	/* 释放读锁 */
+	OSAL_pthread_rwlock_unlock(&g_aconfig_rwlock);
 }
-

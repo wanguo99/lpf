@@ -1,87 +1,73 @@
 /**
  * @file aconfig.h
- * @brief ACONFIG 对外 API - 核心配置管理接口（优化版）
- * @note 本文件为 ACONFIG 模块的对外 API，提供配置注册和查询功能
- *
- * 优化要点：
- * 1. 核心层只提供框架和通用数据结构，不包含业务功能定义
- * 2. 业务功能枚举（TC/TM）移到产品层（products/ccm/include/ccm/）
- * 3. 采用设备索引引用替代字符串查找
- * 4. 使用稀疏数组替代密集数组，节省内存
+ * @brief ACONFIG 对外 API - 通用配置管理框架
+ * @note 提供通用的配置注册和查询接口，不包含业务特定定义
+ *       业务逻辑由产品层实现（通过 aconfig_function_map_t）
  */
 
 #ifndef ACONFIG_H
 #define ACONFIG_H
 
-/* Core dependencies - types only */
 #include <stdint.h>
 #include <stdbool.h>
-#include "aconfig_types.h"     /* ACONFIG 核心数据结构（优化版） */
+#include "aconfig_types.h"
 
-/* 注意：不再包含 osal.h 和产品特定头文件
- * - 源文件（.c）应该按依赖顺序包含：osal.h → pdl.h → aconfig.h
- * - 产品代码应该包含产品特定的头文件（如 ccm_tc_functions.h）
+/* 注意：源文件应按依赖顺序包含头文件
+ * 示例：
+ *   #include "osal.h"
+ *   #include "aconfig.h"
+ *   #include "ccm_config.h"  // 产品特定配置
  */
 
 /**
  * @brief 初始化 ACONFIG 层
- * @return OSAL_SUCCESS 成功，OSAL_ERR_* 失败
+ * @return 0 成功，负值失败
  */
 int32_t ACONFIG_Init(void);
 
 /**
+ * @brief 清理 ACONFIG 层
+ */
+void ACONFIG_Cleanup(void);
+
+/**
  * @brief 注册配置表
  * @param table 配置表指针
- * @return OSAL_SUCCESS 成功，OSAL_ERR_* 失败
- * @note 通常在项目初始化时调用，注册项目特定的配置
+ * @return 0 成功，负值失败
  */
 int32_t ACONFIG_RegisterTable(const aconfig_config_table_t *table);
 
 /**
- * @brief 查询遥控配置（O(1)）
- * @param function_id 功能 ID
- * @return 配置指针（只读），失败返回 NULL
+ * @brief 注销配置表
+ * @return 0 成功，负值失败
  */
-const aconfig_tc_config_t* ACONFIG_GetTcConfig(uint32_t function_id);
+int32_t ACONFIG_UnregisterTable(void);
 
 /**
- * @brief 查询遥测配置（O(1)）
- * @param function_id 功能 ID
- * @return 配置指针（只读），失败返回 NULL
+ * @brief 获取当前配置表
+ * @return 配置表指针，NULL 表示未注册
  */
-const aconfig_tm_config_t* ACONFIG_GetTmConfig(uint32_t function_id);
+const aconfig_config_table_t* ACONFIG_GetTable(void);
 
 /**
- * @brief 检查遥控功能是否使能
+ * @brief 查询功能配置（通用接口）
  * @param function_id 功能 ID
- * @return true 使能，false 禁用
+ * @return 配置数据指针（不透明），NULL 表示未找到
+ * @note 返回的指针类型由产品层定义
  */
-bool ACONFIG_IsTcEnabled(uint32_t function_id);
+const void* ACONFIG_GetFunctionConfig(uint32_t function_id);
 
 /**
- * @brief 检查遥测功能是否使能
+ * @brief 检查功能是否启用
  * @param function_id 功能 ID
- * @return true 使能，false 禁用
+ * @return true 启用，false 禁用
  */
-bool ACONFIG_IsTmEnabled(uint32_t function_id);
-
-/**
- * @brief 获取失效映射
- * @param source_tm_id 源遥测 ID
- * @param affected_ids 输出：受影响的遥测 ID 数组（调用者分配）
- * @param max_count 数组最大容量
- * @param actual_count 输出：实际受影响的遥测数量
- * @return OSAL_SUCCESS 成功，OSAL_ERR_* 失败
- */
-int32_t ACONFIG_GetInvalidationMap(uint32_t source_tm_id,
-				uint32_t *affected_ids,
-				uint32_t max_count,
-				uint32_t *actual_count);
+bool ACONFIG_IsFunctionEnabled(uint32_t function_id);
 
 /**
  * @brief 获取配置统计信息
  * @param stats 输出：统计信息
- * @return OSAL_SUCCESS 成功，OSAL_ERR_* 失败
+ * @return 0 成功，负值失败
  */
 int32_t ACONFIG_GetStatistics(aconfig_statistics_t *stats);
 
