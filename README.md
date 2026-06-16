@@ -172,6 +172,218 @@ make distclean   # 完全清理（包括配置）
 make help
 ```
 
+## 测试框架
+
+ES-Middleware 提供了一个统一的测试框架（Test Framework），支持单元测试、性能测试、压力测试和系统集成测试。
+
+### 测试层次结构
+
+测试框架采用四层层次结构，从高到低依次是：
+
+#### 1. Layer（层）- 架构层次
+对应项目的架构分层，例如：
+- **OSAL** - 操作系统抽象层
+- **HAL** - 硬件抽象层
+- **PDL** - 外设驱动层
+- **PRL** - 协议层
+- **ACONFIG** - 应用配置层
+- **PCONFIG** - 平台配置层
+- **SYSTEM** - 系统集成层
+- **PERFORMANCE** - 性能测试层
+
+#### 2. Module（模块）- 功能模块
+在某个 Layer 下的具体功能模块，例如在 OSAL 层下：
+- `osal_mutex` - 互斥锁模块
+- `osal_thread` - 线程模块
+- `osal_semaphore` - 信号量模块
+- `osal_clock` - 时钟模块
+
+#### 3. Suite（测试套件）- 测试集合
+针对某个模块的一组相关测试，通常一个模块对应一个测试套件。
+
+#### 4. Test Case（测试用例）- 最小测试单元
+具体的测试函数，每个测试用例测试一个特定的功能点。
+
+### 测试命令
+
+ES-Middleware 测试框架提供了丰富的命令行选项，参考了 pytest、cargo test、go test 等优秀测试框架的设计。
+
+#### 运行测试
+
+```bash
+# 运行所有测试
+./_build/bin/es-middleware-test --all
+./_build/bin/es-middleware-test -a
+
+# 按层运行测试
+./_build/bin/es-middleware-test --layer OSAL
+./_build/bin/es-middleware-test -L HAL
+
+# 按模块运行测试
+./_build/bin/es-middleware-test --module osal_mutex
+./_build/bin/es-middleware-test -m osal_mutex
+
+# 运行特定测试套件
+./_build/bin/es-middleware-test --suite osal_mutex
+./_build/bin/es-middleware-test -s osal_mutex
+
+# 交互式菜单（默认）
+./_build/bin/es-middleware-test
+./_build/bin/es-middleware-test --interactive
+```
+
+#### 浏览测试结构
+
+```bash
+# 列出所有层（概览）
+./_build/bin/es-middleware-test --list-layers
+
+# 列出所有模块
+./_build/bin/es-middleware-test --list-modules
+
+# 列出特定层的模块
+./_build/bin/es-middleware-test --list-modules --layer OSAL
+
+# 列出所有测试套件
+./_build/bin/es-middleware-test --list-suites
+
+# 列出特定层的测试套件
+./_build/bin/es-middleware-test --list-suites --layer OSAL
+
+# 列出特定模块的测试套件
+./_build/bin/es-middleware-test --list-suites --module osal_mutex
+
+# 列出所有测试（含详细测试用例）
+./_build/bin/es-middleware-test --list
+
+# 列出特定层的详细测试
+./_build/bin/es-middleware-test --list --layer OSAL
+
+# 列出特定模块的详细测试
+./_build/bin/es-middleware-test --list --module osal_mutex
+```
+
+#### 过滤测试
+
+```bash
+# 按测试类别过滤
+./_build/bin/es-middleware-test --all --category unit
+./_build/bin/es-middleware-test --all --category performance
+./_build/bin/es-middleware-test --all --category stress
+./_build/bin/es-middleware-test --all --category system
+
+# 按执行速度过滤
+./_build/bin/es-middleware-test --all --fast          # 快速测试 (<100ms)
+./_build/bin/es-middleware-test --all --slow          # 慢速测试 (>1s)
+
+# 按标签过滤
+./_build/bin/es-middleware-test --all --tags fast,memory
+./_build/bin/es-middleware-test --layer OSAL --tags hardware
+
+# 排除特定类型的测试
+./_build/bin/es-middleware-test --all --exclude-hardware
+./_build/bin/es-middleware-test --all --exclude-network
+
+# 组合过滤
+./_build/bin/es-middleware-test --layer OSAL --fast --exclude-hardware
+```
+
+#### 输出格式
+
+```bash
+# 标准文本输出（默认）
+./_build/bin/es-middleware-test --all
+
+# JUnit XML 格式（用于 CI/CD）
+./_build/bin/es-middleware-test --all --format junit --output report.xml
+
+# JSON 格式
+./_build/bin/es-middleware-test --all --format json --output results.json
+
+# 禁用统计信息
+./_build/bin/es-middleware-test --all --no-stats
+```
+
+#### 其他选项
+
+```bash
+# 查看版本信息
+./_build/bin/es-middleware-test --version
+
+# 查看帮助
+./_build/bin/es-middleware-test --help
+
+# 使用符号链接（按层过滤）
+osal-test --all
+hal-test --list-modules
+pdl-test --suite pdl_mcu
+```
+
+### 测试统计示例
+
+运行 `./_build/bin/es-middleware-test -l` 会显示完整的测试统计：
+
+```
+=====================================
+Summary:
+  Layers:      8
+  Modules:     45
+  Suites:      47
+  Test cases:  544
+=====================================
+```
+
+### 测试框架特性
+
+ES-Middleware 测试框架参考了 pytest、cargo test、go test、ctest 等优秀开源项目的设计。
+
+#### 核心特性
+
+- ✅ **四层层次结构**: Layer → Module → Suite → Test Case
+- ✅ **统计信息完整**: 每个列表命令都显示汇总统计
+- ✅ **命令简洁直观**: 支持长短选项，易于记忆
+- ✅ **灵活的过滤**: 按层、模块、类别、标签过滤测试
+- ✅ **多种输出格式**: 支持 text、JUnit XML、JSON
+- ✅ **交互式菜单**: 友好的图形化选择界面
+- ✅ **符号链接支持**: osal-test、hal-test 等快捷方式
+- ✅ **CI/CD 集成**: 完善的测试报告导出
+
+#### 当前测试规模
+
+| 层 | 模块数 | 套件数 | 测试用例数 |
+|----|--------|--------|-----------|
+| OSAL | 22 | 24 | 225 |
+| HAL | 9 | 9 | 143 |
+| PRL | 6 | 6 | 90 |
+| ACONFIG | 4 | 4 | 34 |
+| PCONFIG | 1 | 1 | 38 |
+| 其他 | 3 | 3 | 14 |
+| **总计** | **45** | **47** | **544** |
+
+#### 测试类型
+
+- **单元测试** (Unit Tests): 独立模块功能测试
+- **性能测试** (Performance Tests): 性能基准测试
+- **压力测试** (Stress Tests): 高负载和并发测试
+- **系统测试** (System Tests): 端到端集成测试
+
+#### 命令示例速查
+
+```bash
+# 浏览测试结构
+es-middleware-test --list-layers                    # 查看所有层
+es-middleware-test --list-modules --layer OSAL      # 查看OSAL模块
+es-middleware-test --list-suites --module osal_mutex # 查看模块套件
+
+# 运行测试
+es-middleware-test --all                            # 运行全部
+es-middleware-test --layer OSAL --fast              # OSAL快速测试
+es-middleware-test --all --category unit            # 只运行单元测试
+
+# CI/CD集成
+es-middleware-test --all --format junit --output report.xml
+```
+
 ## 核心模块
 
 ### OSAL (操作系统抽象层)

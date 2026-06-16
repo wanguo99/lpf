@@ -99,6 +99,9 @@ int32_t libutest_run_test(const char *suite_name, const char *test_name);
 void libutest_list_all(void);
 void libutest_list_layer(const char *layer_name);
 void libutest_list_module(const char *module_name);
+void libutest_list_layers(void);
+void libutest_list_modules(const char *layer_name);
+void libutest_list_suites(const char *layer_name, const char *module_name);
 
 /* Core API - Test Case Printing */
 void libutest_print_all(void);

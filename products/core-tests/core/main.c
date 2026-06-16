@@ -51,75 +51,114 @@ static const char *detect_layer_filter(const char *program_name)
  */
 static void print_usage(const char *program_name)
 {
-    OSAL_printf("\nES-Middleware Test Runner (Busybox-style)\n");
-    OSAL_printf("==========================================\n\n");
+    OSAL_printf("\nES-Middleware Test Runner\n");
+    OSAL_printf("==========================\n\n");
 
     if (0 == OSAL_strcmp(program_name, "es-middleware-test")) {
-        OSAL_printf("Usage: %s [options]\n\n", program_name);
-        OSAL_printf("Options:\n");
-        OSAL_printf("  -a, --all              Run all tests\n");
-        OSAL_printf("  -L <layer>             Run tests from specific layer (OSAL, HAL, PCL, PDL)\n");
-        OSAL_printf("  -m <module>            Run tests from specific module\n");
-        OSAL_printf("  -s <suite>             Run specific test suite\n");
-        OSAL_printf("  -l, --list             List all available tests\n");
-        OSAL_printf("  -l, --list -L <layer>  List tests from specific layer\n");
-        OSAL_printf("  -l, --list -m <module> List tests from specific module\n");
-        OSAL_printf("  -i, --interactive      Interactive menu (default)\n");
-        OSAL_printf("  -h, --help             Show this help message\n\n");
-        OSAL_printf("Filtering Options:\n");
-        OSAL_printf("  --fast                 Run only fast tests (<100ms)\n");
-        OSAL_printf("  --slow                 Run only slow tests (>1s)\n");
-        OSAL_printf("  --exclude-hardware     Exclude tests requiring hardware\n");
-        OSAL_printf("  --exclude-network      Exclude tests requiring network\n");
-        OSAL_printf("  --category <cat>       Filter by category (unit/performance/stress/system)\n");
-        OSAL_printf("  --tags <tags>          Filter by tags (comma-separated)\n\n");
-        OSAL_printf("Output and Reporting:\n");
-        OSAL_printf("  --format <fmt>         Output format: text (default), junit, json\n");
-        OSAL_printf("  --output <file>        Output file path (for junit/json formats)\n");
-        OSAL_printf("  --no-stats             Disable per-suite statistics and slowest tests\n\n");
-        OSAL_printf("Examples:\n");
-        OSAL_printf("  %s                     # Interactive menu\n", program_name);
-        OSAL_printf("  %s -a                  # Run all tests\n", program_name);
-        OSAL_printf("  %s -a --fast           # Run all fast tests\n", program_name);
-        OSAL_printf("  %s -a --exclude-hardware  # Run tests without hardware requirement\n", program_name);
-        OSAL_printf("  %s -L OSAL             # Run all OSAL tests\n", program_name);
-        OSAL_printf("  %s -m test_osal_mutex  # Run specific module\n", program_name);
-        OSAL_printf("  %s -s osal_mutex       # Run specific suite\n");
-        OSAL_printf("  %s --list              # List all tests\n", program_name);
-        OSAL_printf("  %s --list -L OSAL      # List tests from OSAL layer\n", program_name);
-        OSAL_printf("  %s --list -m test_osal # List tests from test_osal module\n", program_name);
-        OSAL_printf("  %s --category unit     # Run only unit tests\n", program_name);
-        OSAL_printf("  %s -a --format junit --output report.xml  # CI integration\n", program_name);
-        OSAL_printf("  %s -a --format json --output results.json # JSON export\n\n", program_name);
-        OSAL_printf("Symlink Usage:\n");
-        OSAL_printf("  osal-test --all        # Run all OSAL tests\n");
-        OSAL_printf("  hal-test --list        # List all HAL tests\n");
-        OSAL_printf("  pdl-test -s pdl_mcu    # Run PDL MCU suite\n\n");
+        OSAL_printf("USAGE:\n");
+        OSAL_printf("    %s [OPTIONS] [FILTERS]\n\n", program_name);
+
+        OSAL_printf("RUN OPTIONS:\n");
+        OSAL_printf("    -a, --all                  Run all tests\n");
+        OSAL_printf("    -L, --layer <name>         Run tests from specific layer\n");
+        OSAL_printf("    -m, --module <name>        Run tests from specific module\n");
+        OSAL_printf("    -s, --suite <name>         Run specific test suite\n");
+        OSAL_printf("    -i, --interactive          Interactive menu mode (default)\n\n");
+
+        OSAL_printf("LIST OPTIONS:\n");
+        OSAL_printf("    -l, --list                 List all tests with details\n");
+        OSAL_printf("        --list-layers          List all available layers\n");
+        OSAL_printf("        --list-modules         List all available modules\n");
+        OSAL_printf("        --list-suites          List all available test suites\n\n");
+
+        OSAL_printf("FILTER OPTIONS:\n");
+        OSAL_printf("    -L, --layer <name>         Filter by layer (OSAL, HAL, PDL, PRL, etc.)\n");
+        OSAL_printf("    -M, --module <name>        Filter by module name\n");
+        OSAL_printf("        --category <cat>       Filter by category:\n");
+        OSAL_printf("                               unit, performance, stress, system\n");
+        OSAL_printf("        --fast                 Run only fast tests (<100ms)\n");
+        OSAL_printf("        --slow                 Run only slow tests (>1s)\n");
+        OSAL_printf("        --tags <tags>          Filter by tags (comma-separated)\n");
+        OSAL_printf("        --exclude-hardware     Exclude tests requiring hardware\n");
+        OSAL_printf("        --exclude-network      Exclude tests requiring network\n\n");
+
+        OSAL_printf("OUTPUT OPTIONS:\n");
+        OSAL_printf("    -v, --verbose              Verbose output (show all assertions)\n");
+        OSAL_printf("    -q, --quiet                Quiet mode (errors only)\n");
+        OSAL_printf("        --format <fmt>         Output format: text, junit, json\n");
+        OSAL_printf("        --output <file>        Write output to file\n");
+        OSAL_printf("        --no-stats             Disable statistics summary\n");
+        OSAL_printf("        --color <when>         Colorize output: auto, always, never\n\n");
+
+        OSAL_printf("OTHER OPTIONS:\n");
+        OSAL_printf("    -h, --help                 Show this help message\n");
+        OSAL_printf("        --version              Show version information\n\n");
+
+        OSAL_printf("EXAMPLES:\n");
+        OSAL_printf("    # Run all tests\n");
+        OSAL_printf("    %s --all\n\n", program_name);
+
+        OSAL_printf("    # Run tests from specific layer\n");
+        OSAL_printf("    %s --layer OSAL\n", program_name);
+        OSAL_printf("    %s -L HAL --fast\n\n", program_name);
+
+        OSAL_printf("    # Run specific module or suite\n");
+        OSAL_printf("    %s --module osal_mutex\n", program_name);
+        OSAL_printf("    %s --suite osal_mutex\n\n", program_name);
+
+        OSAL_printf("    # List tests structure\n");
+        OSAL_printf("    %s --list-layers\n", program_name);
+        OSAL_printf("    %s --list-modules --layer OSAL\n", program_name);
+        OSAL_printf("    %s --list-suites --module osal_mutex\n", program_name);
+        OSAL_printf("    %s --list --layer OSAL\n\n", program_name);
+
+        OSAL_printf("    # Filter tests\n");
+        OSAL_printf("    %s --all --category unit\n", program_name);
+        OSAL_printf("    %s --all --fast --exclude-hardware\n", program_name);
+        OSAL_printf("    %s --all --tags fast,memory\n\n", program_name);
+
+        OSAL_printf("    # CI/CD integration\n");
+        OSAL_printf("    %s --all --format junit --output report.xml\n", program_name);
+        OSAL_printf("    %s --all --format json --output results.json\n\n", program_name);
+
+        OSAL_printf("TEST STRUCTURE:\n");
+        OSAL_printf("    Layer → Module → Suite → Test Case\n");
+        OSAL_printf("    Example: OSAL → osal_mutex → osal_mutex → test_mutex_init_success\n\n");
+
+        OSAL_printf("SYMLINKS:\n");
+        OSAL_printf("    osal-test, hal-test, pdl-test\n");
+        OSAL_printf("    These symlinks automatically filter tests by layer.\n\n");
+
+        OSAL_printf("For more information, see: docs/TEST_FRAMEWORK.md\n\n");
     } else {
         /* Invoked via symlink */
         const char *layer = detect_layer_filter(program_name);
-        OSAL_printf("Usage: %s [options]\n\n", program_name);
-        OSAL_printf("This is a symlink to es-middleware-test, filtered for %s layer tests.\n\n", layer);
-        OSAL_printf("Options:\n");
-        OSAL_printf("  -a, --all              Run all %s tests\n", layer);
-        OSAL_printf("  -s <suite>             Run specific test suite\n");
-        OSAL_printf("  -l, --list             List all %s tests\n", layer);
-        OSAL_printf("  -l, --list -m <module> List tests from specific module\n");
-        OSAL_printf("  -i, --interactive      Interactive menu\n");
-        OSAL_printf("  -h, --help             Show this help message\n\n");
-        OSAL_printf("Filtering Options:\n");
-        OSAL_printf("  --fast                 Run only fast tests\n");
-        OSAL_printf("  --exclude-hardware     Exclude hardware tests\n\n");
-        OSAL_printf("Output and Reporting:\n");
-        OSAL_printf("  --format <fmt>         Output format: text, junit, json\n");
-        OSAL_printf("  --output <file>        Output file path\n\n");
-        OSAL_printf("Examples:\n");
-        OSAL_printf("  %s                     # Run all %s tests\n", program_name, layer);
-        OSAL_printf("  %s --list              # List %s tests\n", program_name, layer);
-        OSAL_printf("  %s --list -m <module>  # List tests from specific module\n", program_name);
-        OSAL_printf("  %s -s <suite>          # Run specific suite\n", program_name);
-        OSAL_printf("  %s --fast              # Run fast %s tests\n", program_name, layer);
-        OSAL_printf("  %s --format junit --output report.xml  # CI integration\n\n", program_name);
+        OSAL_printf("USAGE:\n");
+        OSAL_printf("    %s [OPTIONS]\n\n", program_name);
+        OSAL_printf("This symlink filters tests for the %s layer.\n\n", layer);
+
+        OSAL_printf("OPTIONS:\n");
+        OSAL_printf("    -a, --all              Run all %s tests\n", layer);
+        OSAL_printf("    -s, --suite <name>     Run specific test suite\n");
+        OSAL_printf("    -l, --list             List all %s tests\n", layer);
+        OSAL_printf("        --list-modules     List all %s modules\n", layer);
+        OSAL_printf("        --list-suites      List all %s suites\n", layer);
+        OSAL_printf("    -i, --interactive      Interactive menu\n");
+        OSAL_printf("    -h, --help             Show this help message\n\n");
+
+        OSAL_printf("FILTER OPTIONS:\n");
+        OSAL_printf("        --fast             Run only fast tests\n");
+        OSAL_printf("        --exclude-hardware Exclude hardware tests\n\n");
+
+        OSAL_printf("OUTPUT OPTIONS:\n");
+        OSAL_printf("        --format <fmt>     Output format: text, junit, json\n");
+        OSAL_printf("        --output <file>    Write output to file\n\n");
+
+        OSAL_printf("EXAMPLES:\n");
+        OSAL_printf("    %s --all\n", program_name);
+        OSAL_printf("    %s --list-modules\n", program_name);
+        OSAL_printf("    %s --suite osal_mutex\n", program_name);
+        OSAL_printf("    %s --all --fast\n\n", program_name);
     }
 }
 
@@ -342,11 +381,11 @@ int main(int argc, char *argv[])
     }
 
     /* Run tests by layer (only for es-middleware-test) */
-    if (0 == OSAL_strcmp(argv[1], "-L") && argc >= 3) {
+    if ((0 == OSAL_strcmp(argv[1], "-L") || 0 == OSAL_strcmp(argv[1], "--layer")) && argc >= 3) {
         int32_t result;
 
         if (layer_filter) {
-            OSAL_printf("Warning: -L option ignored when invoked via %s\n", program_name);
+            OSAL_printf("Warning: --layer option ignored when invoked via %s\n", program_name);
             OSAL_printf("Running %s tests instead.\n\n", layer_filter);
             if (filter.enabled) {
                 result = libutest_run_layer_filtered(layer_filter, &filter);
@@ -372,7 +411,7 @@ int main(int argc, char *argv[])
     }
 
     /* Run tests by module */
-    if (0 == OSAL_strcmp(argv[1], "-m") && argc >= 3) {
+    if ((0 == OSAL_strcmp(argv[1], "-m") || 0 == OSAL_strcmp(argv[1], "--module")) && argc >= 3) {
         int32_t result;
 
         if (print_mode) {
@@ -392,7 +431,7 @@ int main(int argc, char *argv[])
     }
 
     /* Run specific test suite */
-    if (0 == OSAL_strcmp(argv[1], "-s") && argc >= 3) {
+    if ((0 == OSAL_strcmp(argv[1], "-s") || 0 == OSAL_strcmp(argv[1], "--suite")) && argc >= 3) {
         int32_t result = libutest_run_suite(argv[2]);
 
         /* Export results if requested */
@@ -403,8 +442,33 @@ int main(int argc, char *argv[])
 
     /* List all tests */
     if (0 == OSAL_strcmp(argv[1], "-l") || 0 == OSAL_strcmp(argv[1], "--list")) {
+        /* Check for --layers option */
+        if (argc >= 3 && 0 == OSAL_strcmp(argv[2], "--layers")) {
+            libutest_list_layers();
+        }
+        /* Check for --modules option */
+        else if (argc >= 3 && 0 == OSAL_strcmp(argv[2], "--modules")) {
+            /* Check if layer filter follows */
+            if (argc >= 5 && 0 == OSAL_strcmp(argv[3], "-L")) {
+                libutest_list_modules(argv[4]);
+            } else {
+                libutest_list_modules(NULL);
+            }
+        }
+        /* Check for --suites option */
+        else if (argc >= 3 && 0 == OSAL_strcmp(argv[2], "--suites")) {
+            const char *layer = NULL;
+            const char *module = NULL;
+            /* Check for -L or -M filter */
+            if (argc >= 5 && 0 == OSAL_strcmp(argv[3], "-L")) {
+                layer = argv[4];
+            } else if (argc >= 5 && 0 == OSAL_strcmp(argv[3], "-M")) {
+                module = argv[4];
+            }
+            libutest_list_suites(layer, module);
+        }
         /* Check for -L parameter after --list */
-        if (argc >= 4 && 0 == OSAL_strcmp(argv[2], "-L")) {
+        else if (argc >= 4 && 0 == OSAL_strcmp(argv[2], "-L")) {
             libutest_list_layer(argv[3]);
         }
         /* Check for -m parameter after --list */
@@ -418,6 +482,39 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    /* Standalone --list-layers */
+    if (0 == OSAL_strcmp(argv[1], "--list-layers")) {
+        libutest_list_layers();
+        return 0;
+    }
+
+    /* Standalone --list-modules */
+    if (0 == OSAL_strcmp(argv[1], "--list-modules")) {
+        const char *layer = NULL;
+        /* Check for --layer filter */
+        if (argc >= 4 && (0 == OSAL_strcmp(argv[2], "-L") || 0 == OSAL_strcmp(argv[2], "--layer"))) {
+            layer = argv[3];
+        }
+        libutest_list_modules(layer);
+        return 0;
+    }
+
+    /* Standalone --list-suites */
+    if (0 == OSAL_strcmp(argv[1], "--list-suites")) {
+        const char *layer = NULL;
+        const char *module = NULL;
+        /* Check for --layer or --module filter */
+        if (argc >= 4) {
+            if (0 == OSAL_strcmp(argv[2], "-L") || 0 == OSAL_strcmp(argv[2], "--layer")) {
+                layer = argv[3];
+            } else if (0 == OSAL_strcmp(argv[2], "-M") || 0 == OSAL_strcmp(argv[2], "--module")) {
+                module = argv[3];
+            }
+        }
+        libutest_list_suites(layer, module);
+        return 0;
+    }
+
     /* Interactive menu */
     if (0 == OSAL_strcmp(argv[1], "-i") || 0 == OSAL_strcmp(argv[1], "--interactive")) {
         return libutest_interactive_menu_filtered(&filter);
@@ -426,6 +523,14 @@ int main(int argc, char *argv[])
     /* Help */
     if (0 == OSAL_strcmp(argv[1], "-h") || 0 == OSAL_strcmp(argv[1], "--help")) {
         print_usage(program_name);
+        return 0;
+    }
+
+    /* Version */
+    if (0 == OSAL_strcmp(argv[1], "--version")) {
+        OSAL_printf("ES-Middleware Test Runner\n");
+        OSAL_printf("Version: %s\n", OSAL_get_version());
+        OSAL_printf("Build: %s %s\n", __DATE__, __TIME__);
         return 0;
     }
 

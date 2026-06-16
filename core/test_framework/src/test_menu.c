@@ -164,7 +164,13 @@ void libutest_list_all(void)
     OSAL_printf("=====================================\n");
 
     uint32_t i;
+    uint32_t total_tests = 0;
 
+    /* Get unique layers and modules */
+    const char *layers[MAX_LAYERS];
+    const char *modules[MAX_MODULES];
+    uint32_t layer_count = test_get_layers(layers, MAX_LAYERS);
+    uint32_t module_count = test_get_modules(modules, MAX_MODULES);
 
     for (i = 0; i < suite_count; i++) {
         const test_suite_t *suite = suites[i];
@@ -173,13 +179,21 @@ void libutest_list_all(void)
 
         uint32_t j;
 
-
         for (j = 0; j < suite->case_count; j++) {
             OSAL_printf("  - %s\n", suite->cases[j].name);
         }
+
+        total_tests += suite->case_count;
     }
 
     OSAL_printf("\n");
+    OSAL_printf("=====================================\n");
+    OSAL_printf("Summary:\n");
+    OSAL_printf("  Layers:      %u\n", layer_count);
+    OSAL_printf("  Modules:     %u\n", module_count);
+    OSAL_printf("  Suites:      %u\n", suite_count);
+    OSAL_printf("  Test cases:  %u\n", total_tests);
+    OSAL_printf("=====================================\n\n");
 }
 
 /**
@@ -194,7 +208,11 @@ void libutest_list_layer(const char *layer_name)
     OSAL_printf("=====================================\n");
 
     uint32_t i;
+    uint32_t total_tests = 0;
 
+    /* Get unique modules in this layer */
+    const char *modules[MAX_MODULES];
+    uint32_t module_count = 0;
 
     for (i = 0; i < count; i++) {
         const test_suite_t *suite = suites[i];
@@ -203,13 +221,34 @@ void libutest_list_layer(const char *layer_name)
 
         uint32_t j;
 
-
         for (j = 0; j < suite->case_count; j++) {
             OSAL_printf("  - %s\n", suite->cases[j].name);
+        }
+
+        total_tests += suite->case_count;
+
+        /* Count unique modules */
+        bool found = false;
+        uint32_t k;
+        for (k = 0; k < module_count; k++) {
+            if (0 == OSAL_strcmp(modules[k], suite->module_name)) {
+                found = true;
+                break;
+            }
+        }
+        if (!found && module_count < MAX_MODULES) {
+            modules[module_count++] = suite->module_name;
         }
     }
 
     OSAL_printf("\n");
+    OSAL_printf("=====================================\n");
+    OSAL_printf("Summary:\n");
+    OSAL_printf("  Layer:       %s\n", layer_name);
+    OSAL_printf("  Modules:     %u\n", module_count);
+    OSAL_printf("  Suites:      %u\n", count);
+    OSAL_printf("  Test cases:  %u\n", total_tests);
+    OSAL_printf("=====================================\n\n");
 }
 
 /**
@@ -224,7 +263,11 @@ void libutest_list_module(const char *module_name)
     OSAL_printf("=====================================\n");
 
     uint32_t i;
+    uint32_t total_tests = 0;
 
+    /* Get unique layers in this module */
+    const char *layers[MAX_LAYERS];
+    uint32_t layer_count = 0;
 
     for (i = 0; i < count; i++) {
         const test_suite_t *suite = suites[i];
@@ -232,13 +275,175 @@ void libutest_list_module(const char *module_name)
 
         uint32_t j;
 
-
         for (j = 0; j < suite->case_count; j++) {
             OSAL_printf("  - %s\n", suite->cases[j].name);
+        }
+
+        total_tests += suite->case_count;
+
+        /* Count unique layers */
+        bool found = false;
+        uint32_t k;
+        for (k = 0; k < layer_count; k++) {
+            if (0 == OSAL_strcmp(layers[k], suite->layer_name)) {
+                found = true;
+                break;
+            }
+        }
+        if (!found && layer_count < MAX_LAYERS) {
+            layers[layer_count++] = suite->layer_name;
         }
     }
 
     OSAL_printf("\n");
+    OSAL_printf("=====================================\n");
+    OSAL_printf("Summary:\n");
+    OSAL_printf("  Module:      %s\n", module_name);
+    OSAL_printf("  Layers:      %u\n", layer_count);
+    OSAL_printf("  Suites:      %u\n", count);
+    OSAL_printf("  Test cases:  %u\n", total_tests);
+    OSAL_printf("=====================================\n\n");
+}
+
+/**
+ * List all available layers
+ */
+void libutest_list_layers(void)
+{
+    const char *layers[MAX_LAYERS];
+    uint32_t layer_count = test_get_layers(layers, MAX_LAYERS);
+
+    OSAL_printf("\nAvailable Test Layers (%u total):\n", layer_count);
+    OSAL_printf("=====================================\n");
+
+    uint32_t i;
+    for (i = 0; i < layer_count; i++) {
+        /* Count suites and tests in this layer */
+        const test_suite_t *suites[MAX_SUITES];
+        uint32_t suite_count = test_get_suites_by_layer(layers[i], suites, MAX_SUITES);
+        uint32_t test_count = count_total_tests(suites, suite_count);
+
+        /* Count modules in this layer */
+        const char *modules[MAX_MODULES];
+        uint32_t module_count = 0;
+        uint32_t j;
+        for (j = 0; j < suite_count; j++) {
+            bool found = false;
+            uint32_t k;
+            for (k = 0; k < module_count; k++) {
+                if (0 == OSAL_strcmp(modules[k], suites[j]->module_name)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found && module_count < MAX_MODULES) {
+                modules[module_count++] = suites[j]->module_name;
+            }
+        }
+
+        OSAL_printf("  %-12s  %2u modules, %2u suites, %3u tests\n",
+                   layers[i], module_count, suite_count, test_count);
+    }
+
+    OSAL_printf("=====================================\n\n");
+}
+
+/**
+ * List all available modules (optionally filtered by layer)
+ */
+void libutest_list_modules(const char *layer_name)
+{
+    const char *modules[MAX_MODULES];
+    uint32_t module_count;
+
+    if (layer_name) {
+        /* Get modules in specific layer */
+        const test_suite_t *layer_suites[MAX_SUITES];
+        uint32_t suite_count = test_get_suites_by_layer(layer_name, layer_suites, MAX_SUITES);
+
+        OSAL_printf("\nAvailable Modules in layer %s:\n", layer_name);
+        OSAL_printf("=====================================\n");
+
+        module_count = 0;
+        uint32_t i;
+        for (i = 0; i < suite_count; i++) {
+            bool found = false;
+            uint32_t j;
+            for (j = 0; j < module_count; j++) {
+                if (0 == OSAL_strcmp(modules[j], layer_suites[i]->module_name)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found && module_count < MAX_MODULES) {
+                modules[module_count++] = layer_suites[i]->module_name;
+            }
+        }
+    } else {
+        /* Get all modules */
+        module_count = test_get_modules(modules, MAX_MODULES);
+
+        OSAL_printf("\nAvailable Test Modules (%u total):\n", module_count);
+        OSAL_printf("=====================================\n");
+    }
+
+    uint32_t i;
+    for (i = 0; i < module_count; i++) {
+        /* Count suites and tests in this module */
+        const test_suite_t *suites[MAX_SUITES];
+        uint32_t suite_count = test_get_suites_by_module(modules[i], suites, MAX_SUITES);
+        uint32_t test_count = count_total_tests(suites, suite_count);
+
+        /* Get layer name(s) */
+        const char *layer = (suite_count > 0) ? suites[0]->layer_name : "unknown";
+
+        OSAL_printf("  %-25s  [%s]  %u suites, %3u tests\n",
+                   modules[i], layer, suite_count, test_count);
+    }
+
+    OSAL_printf("=====================================\n\n");
+}
+
+/**
+ * List all available suites (optionally filtered by layer or module)
+ */
+void libutest_list_suites(const char *layer_name, const char *module_name)
+{
+    const test_suite_t *suites[MAX_SUITES];
+    uint32_t suite_count;
+
+    if (module_name) {
+        /* Filter by module */
+        suite_count = test_get_suites_by_module(module_name, suites, MAX_SUITES);
+        OSAL_printf("\nAvailable Test Suites in module %s:\n", module_name);
+    } else if (layer_name) {
+        /* Filter by layer */
+        suite_count = test_get_suites_by_layer(layer_name, suites, MAX_SUITES);
+        OSAL_printf("\nAvailable Test Suites in layer %s:\n", layer_name);
+    } else {
+        /* Get all suites */
+        uint32_t total_count = 0;
+        const test_suite_t **all_suites = test_get_all_suites(&total_count);
+        suite_count = (total_count < MAX_SUITES) ? total_count : MAX_SUITES;
+        uint32_t i;
+        for (i = 0; i < suite_count; i++) {
+            suites[i] = all_suites[i];
+        }
+        OSAL_printf("\nAvailable Test Suites (%u total):\n", suite_count);
+    }
+
+    OSAL_printf("=====================================\n");
+
+    uint32_t i;
+    for (i = 0; i < suite_count; i++) {
+        OSAL_printf("  %-30s  [%s/%s]  %u tests\n",
+                   suites[i]->suite_name,
+                   suites[i]->layer_name,
+                   suites[i]->module_name,
+                   suites[i]->case_count);
+    }
+
+    OSAL_printf("=====================================\n\n");
 }
 
 /**
