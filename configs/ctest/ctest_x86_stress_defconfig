@@ -6,7 +6,7 @@
 # ============================================================================
 
 # Product Selection - All Products
-CONFIG_PRODUCT_CCM=y
+CONFIG_PRODUCT_PMC=y
 
 # Core Components - Full Stack
 CONFIG_OSAL=y
@@ -23,7 +23,7 @@ CONFIG_ARCH_X86_64=y
 # Platform
 CONFIG_PLATFORM_LINUX=y
 
-# CCM Platform
+# PMC Platform
 CONFIG_PROJECT_H200_AM625=y
 
 # Build Configuration - Dynamic Libraries
@@ -70,10 +70,10 @@ CONFIG_PDL_MCU_CAN=y
 CONFIG_PDL_MCU_SERIAL=y
 CONFIG_PDL_MCU_PROTOCOL=y
 
-# CCM Libraries - All Enabled
-CONFIG_LIBCCM=y
+# PMC Libraries - All Enabled
+CONFIG_LIBPMC=y
 
-# CCM Applications - All Enabled
+# PMC Applications - All Enabled
 CONFIG_APP_COLLECTOR=y
 CONFIG_APP_COMM=y
 CONFIG_APP_LOGGER=y

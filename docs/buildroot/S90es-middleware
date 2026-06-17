@@ -2,14 +2,14 @@
 #
 # ES-Middleware init script
 #
-# Start ES-Middleware CCM services
+# Start ES-Middleware PMC services
 #
 
-DAEMON_COLLECTOR=/usr/bin/ccm_collector
-DAEMON_LOGGER=/usr/bin/ccm_logger
-DAEMON_HEALTH=/usr/bin/ccm_health
-DAEMON_SUPERVISOR=/usr/bin/ccm_supervisor
-DAEMON_COMM=/usr/bin/ccm_comm
+DAEMON_COLLECTOR=/usr/bin/pmc_collector
+DAEMON_LOGGER=/usr/bin/pmc_logger
+DAEMON_HEALTH=/usr/bin/pmc_health
+DAEMON_SUPERVISOR=/usr/bin/pmc_supervisor
+DAEMON_COMM=/usr/bin/pmc_comm
 
 PIDFILE_DIR=/var/run/es-middleware
 mkdir -p $PIDFILE_DIR
@@ -19,7 +19,7 @@ start() {
 
 	# Start collector
 	if [ -x "$DAEMON_COLLECTOR" ]; then
-		echo -n "  Starting ccm_collector: "
+		echo -n "  Starting pmc_collector: "
 		start-stop-daemon -S -q -b -m -p $PIDFILE_DIR/collector.pid \
 			--exec $DAEMON_COLLECTOR
 		[ $? = 0 ] && echo "OK" || echo "FAIL"
@@ -27,7 +27,7 @@ start() {
 
 	# Start logger
 	if [ -x "$DAEMON_LOGGER" ]; then
-		echo -n "  Starting ccm_logger: "
+		echo -n "  Starting pmc_logger: "
 		start-stop-daemon -S -q -b -m -p $PIDFILE_DIR/logger.pid \
 			--exec $DAEMON_LOGGER
 		[ $? = 0 ] && echo "OK" || echo "FAIL"
@@ -35,7 +35,7 @@ start() {
 
 	# Start health monitor
 	if [ -x "$DAEMON_HEALTH" ]; then
-		echo -n "  Starting ccm_health: "
+		echo -n "  Starting pmc_health: "
 		start-stop-daemon -S -q -b -m -p $PIDFILE_DIR/health.pid \
 			--exec $DAEMON_HEALTH
 		[ $? = 0 ] && echo "OK" || echo "FAIL"
@@ -43,7 +43,7 @@ start() {
 
 	# Start supervisor
 	if [ -x "$DAEMON_SUPERVISOR" ]; then
-		echo -n "  Starting ccm_supervisor: "
+		echo -n "  Starting pmc_supervisor: "
 		start-stop-daemon -S -q -b -m -p $PIDFILE_DIR/supervisor.pid \
 			--exec $DAEMON_SUPERVISOR
 		[ $? = 0 ] && echo "OK" || echo "FAIL"
@@ -51,7 +51,7 @@ start() {
 
 	# Start communication service
 	if [ -x "$DAEMON_COMM" ]; then
-		echo -n "  Starting ccm_comm: "
+		echo -n "  Starting pmc_comm: "
 		start-stop-daemon -S -q -b -m -p $PIDFILE_DIR/comm.pid \
 			--exec $DAEMON_COMM
 		[ $? = 0 ] && echo "OK" || echo "FAIL"
@@ -64,7 +64,7 @@ stop() {
 	# Stop in reverse order
 	for service in comm supervisor health logger collector; do
 		if [ -f $PIDFILE_DIR/${service}.pid ]; then
-			echo -n "  Stopping ccm_${service}: "
+			echo -n "  Stopping pmc_${service}: "
 			start-stop-daemon -K -q -p $PIDFILE_DIR/${service}.pid
 			[ $? = 0 ] && echo "OK" || echo "FAIL"
 			rm -f $PIDFILE_DIR/${service}.pid

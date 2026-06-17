@@ -98,4 +98,4 @@ CONFIG_TEST_HAL_SPI=y
 # CONFIG_ACONFIG is not set
 
 # Products - Disabled
-# CONFIG_PRODUCT_CCM is not set
+# CONFIG_PRODUCT_PMC is not set

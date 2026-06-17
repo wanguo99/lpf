@@ -614,7 +614,7 @@ help:
 	@echo '  make V=1'
 	@echo ''
 	@echo '  # Cross-compilation for Buildroot'
-	@echo '  make ccm_h200_100p_am625_release_defconfig'
+	@echo '  make pmc_h200_100p_am625_release_defconfig'
 	@echo '  make CMAKE_TOOLCHAIN_FILE=$$BUILDROOT/host/share/buildroot/toolchainfile.cmake'
 	@echo '  make install DESTDIR=$$BUILDROOT/target'
 	@echo ''

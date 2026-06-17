@@ -72,12 +72,12 @@ test_defconfig() {
     fi
 }
 
-# Test all CCM configs
-echo "Testing CCM Configurations:"
+# Test all PMC configs
+echo "Testing PMC Configurations:"
 echo "----------------------------------------"
 while IFS= read -r config; do
     test_defconfig "$config"
-done < <(find configs/ccm -name "*_defconfig" -type f | sort)
+done < <(find configs/pmc -name "*_defconfig" -type f | sort)
 echo ""
 
 # Test all x86 test configs

@@ -2,7 +2,7 @@
 # PMC Product CMakeLists.txt
 # ============================================================================
 # PMC (Central Control Module) product build configuration.
-# This file is included by the root CMakeLists.txt when CONFIG_PRODUCT_CCM=y
+# This file is included by the root CMakeLists.txt when CONFIG_PRODUCT_PMC=y
 # ============================================================================
 
 # Register SDK core components

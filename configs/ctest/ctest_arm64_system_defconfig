@@ -1,12 +1,12 @@
 # ============================================================================
 # System Test Configuration
 # ============================================================================
-# All core modules enabled with one product (CCM) and selected applications.
+# All core modules enabled with one product (PMC) and selected applications.
 # Used for system integration testing.
 # ============================================================================
 
 # Product Selection
-CONFIG_PRODUCT_CCM=y
+CONFIG_PRODUCT_PMC=y
 
 # Core Components - Full Stack
 CONFIG_OSAL=y
@@ -24,7 +24,7 @@ CONFIG_OSAL_OS_POSIX=y
 # Platform
 CONFIG_PLATFORM_LINUX=y
 
-# CCM Platform
+# PMC Platform
 CONFIG_PROJECT_H200_AM625=y
 
 # Build Configuration - Dynamic Libraries
@@ -71,10 +71,10 @@ CONFIG_PDL_MCU_CAN=y
 CONFIG_PDL_MCU_SERIAL=y
 CONFIG_PDL_MCU_PROTOCOL=y
 
-# CCM Libraries
-CONFIG_LIBCCM=y
+# PMC Libraries
+CONFIG_LIBPMC=y
 
-# CCM Applications - Selected for System Test
+# PMC Applications - Selected for System Test
 CONFIG_APP_COLLECTOR=y
 CONFIG_APP_COMM=y
 CONFIG_APP_LOGGER=y

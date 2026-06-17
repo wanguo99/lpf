@@ -1,4 +1,4 @@
-if(NOT CONFIG_CCM)
+if(NOT CONFIG_PMC)
     return()
 endif()
 

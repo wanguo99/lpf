@@ -85,7 +85,7 @@ CONFIG_TEST_OSAL_VERSION=y
 # CONFIG_TEST_SYSTEM is not set
 
 # Products - All Disabled
-# CONFIG_PRODUCT_CCM is not set
+# CONFIG_PRODUCT_PMC is not set
 
 # HAL - Disabled
 # CONFIG_HAL is not set

@@ -30,10 +30,10 @@ include_guard(GLOBAL)
 #   )
 #
 # Examples:
-#   # Standard CCM app
+#   # Standard PMC app
 #   register_app_component(
-#       PRODUCT ccm
-#       REQUIREMENTS osal hal pconfig pdl aconfig libccm
+#       PRODUCT pmc
+#       REQUIREMENTS osal hal pconfig pdl aconfig libpmc
 #   )
 #
 #   # App with explicit sources

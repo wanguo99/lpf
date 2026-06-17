@@ -24,7 +24,7 @@ CONFIG_PRL_BUILD_SHARED=y
 
 # PRL Protocols - All Enabled for Testing
 CONFIG_PRL_MCU=y
-CONFIG_PRL_CCM=y
+CONFIG_PRL_PMC=y
 CONFIG_PRL_PMC=y
 CONFIG_PRL_GSC=y
 CONFIG_PRL_POWER=y
@@ -89,7 +89,7 @@ CONFIG_TEST_PRL_DEVICE=y
 # CONFIG_TEST_SYSTEM is not set
 
 # Products - All Disabled
-# CONFIG_PRODUCT_CCM is not set
+# CONFIG_PRODUCT_PMC is not set
 
 # HAL - Disabled
 # CONFIG_HAL is not set

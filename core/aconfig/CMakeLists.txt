@@ -28,7 +28,7 @@ if(ACONFIG_EXTRA_INCLUDE)
 endif()
 
 # 添加产品层头文件路径（用于包含产品特定的功能定义）
-if(CONFIG_PRODUCT_CCM)
+if(CONFIG_PRODUCT_PMC)
     list(APPEND ADD_INCLUDE "${SDK_PATH}/products/pmc/include")
 endif()
 ###############################################

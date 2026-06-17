@@ -7,7 +7,7 @@
 # ============================================================================
 
 # Product Selection
-CONFIG_PRODUCT_CCM=y
+CONFIG_PRODUCT_PMC=y
 # CONFIG_PRODUCT_CTEST is not set
 
 # Project Identification
@@ -37,7 +37,7 @@ CONFIG_PDL=y
 CONFIG_PRL=y
 CONFIG_PCONFIG=y
 CONFIG_ACONFIG=y
-CONFIG_LIBCCM=y
+CONFIG_LIBPMC=y
 CONFIG_TEST_FRAMEWORK=y
 
 # Build Configuration - Shared Libraries for Development
@@ -70,7 +70,7 @@ CONFIG_HAL_STATISTICS=y
 CONFIG_PDL_MCU_SUPPORT=y
 # CONFIG_PDL_SATELLITE_SUPPORT is not set
 # CONFIG_PDL_BMC_SUPPORT is not set
-# CONFIG_PDL_CCM_SUPPORT is not set
+# CONFIG_PDL_PMC_SUPPORT is not set
 
 # PDL MCU Drivers
 CONFIG_PDL_MCU=y
@@ -83,7 +83,7 @@ CONFIG_PDL_MCU_PROTOCOL=y
 
 # PRL Protocols - PMC Required
 CONFIG_PRL_MCU=y
-CONFIG_PRL_CCM=y
+CONFIG_PRL_PMC=y
 CONFIG_PRL_PMC=y
 CONFIG_PRL_POWER=y
 # CONFIG_PRL_GSC is not set
