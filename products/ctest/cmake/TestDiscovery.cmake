@@ -122,36 +122,10 @@ function(test_discover_and_add)
                 math(EXPR DISABLED_COUNT "${DISABLED_COUNT} + 1")
             endif()
         else()
-            # Config option not found in .config - this is a configuration error
-            math(EXPR MISSING_CONFIG_COUNT "${MISSING_CONFIG_COUNT} + 1")
-
-            # Determine the correct Kconfig file path based on directory structure
-            get_filename_component(PARENT_DIR ${ARG_DIRECTORY} NAME)
-            get_filename_component(GRANDPARENT_DIR ${ARG_DIRECTORY} DIRECTORY)
-            get_filename_component(CATEGORY ${GRANDPARENT_DIR} NAME)
-
-            message(WARNING
-                "Test file '${TEST_NAME}.c' found but ${CONFIG_NAME} not defined in Kconfig.\n"
-                "  File: ${TEST_FILE}\n"
-                "  Expected config: ${CONFIG_NAME}\n"
-                "  Location: products/ctest/${CATEGORY}/${PARENT_DIR}/Kconfig\n"
-                "\n"
-                "  Actionable steps:\n"
-                "  1. Add the following to products/ctest/${CATEGORY}/${PARENT_DIR}/Kconfig:\n"
-                "\n"
-                "     config ${CONFIG_NAME}\n"
-                "         bool \"<Test description>\"\n"
-                "         default y\n"
-                "         help\n"
-                "           Test <functionality description>.\n"
-                "           Runtime: <estimated time>\n"
-                "           Hardware: <hardware requirements>\n"
-                "           Dependencies: CONFIG_${MODULE_UPPER}\n"
-                "\n"
-                "  2. Update the ${CONFIG_NAME}_ALL option to select ${CONFIG_NAME}\n"
-                "  3. Run: make menuconfig\n"
-                "  4. Or remove the test file if it's obsolete or incorrectly named."
-            )
+            # Kconfig omits symbols hidden by unmet dependencies. Treat those
+            # as disabled here; strict file-vs-Kconfig audits belong in a
+            # dedicated validation target, not the normal build path.
+            math(EXPR DISABLED_COUNT "${DISABLED_COUNT} + 1")
         endif()
     endforeach()
 
@@ -187,16 +161,6 @@ function(test_discover_and_add)
         endif()
     else()
         message(STATUS "  ${ARG_MODULE}: No test files found in ${ARG_DIRECTORY}")
-    endif()
-
-    # Report configuration issues with severity level
-    if(MISSING_CONFIG_COUNT GREATER 0)
-        message(WARNING
-            "${ARG_MODULE}: ${MISSING_CONFIG_COUNT} test file(s) lack corresponding Kconfig options.\n"
-            "  This indicates a mismatch between test files and Kconfig definitions.\n"
-            "  Review the warnings above for detailed instructions.\n"
-            "  Run 'make menuconfig' to verify configuration after fixing."
-        )
     endif()
 
     # Export statistics for potential use by parent scope

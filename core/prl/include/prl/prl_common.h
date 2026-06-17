@@ -58,6 +58,10 @@ typedef struct {
  * @return CRC16 校验和
  */
 uint16_t prl_crc16(const uint8_t *data, uint16_t len);
+uint32_t prl_get_next_seq(void);
+uint32_t prl_get_timestamp(void);
+void prl_set_packet_crc(uint8_t *packet, size_t total_len);
+bool prl_verify_packet_crc(const uint8_t *packet, size_t total_len);
 
 /**
  * @brief 验证设备类型是否有效

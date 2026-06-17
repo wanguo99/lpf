@@ -41,6 +41,7 @@ config TEST_OSAL_ALL
 
 config TEST_OSAL_ATOMIC
 	bool "Atomic operations tests"
+	depends on OSAL_IPC_ATOMIC
 	default y
 	help
 	  Test OSAL atomic operations (atomic_load, atomic_store, atomic_add,
@@ -60,6 +61,7 @@ config TEST_OSAL_ATOMIC
 
 config TEST_OSAL_CLOCK
 	bool "Clock and timing tests"
+	depends on OSAL_SYS_CLOCK
 	default y
 	help
 	  Test OSAL clock operations (gettime, monotonic, resolution).
@@ -79,6 +81,7 @@ config TEST_OSAL_CLOCK
 
 config TEST_OSAL_COND
 	bool "Condition variable tests"
+	depends on OSAL_IPC_COND
 	default y
 	help
 	  Test OSAL condition variable (wait, signal, broadcast, timed).
@@ -99,6 +102,7 @@ config TEST_OSAL_COND
 
 config TEST_OSAL_ENV
 	bool "Environment variable tests"
+	depends on OSAL_SYS_ENV
 	default y
 	help
 	  Test OSAL environment variable operations (getenv, setenv, unsetenv).
@@ -118,6 +122,7 @@ config TEST_OSAL_ENV
 
 config TEST_OSAL_ERRNO
 	bool "Error number tests"
+	depends on OSAL_LIB_ERRNO
 	default y
 	help
 	  Test OSAL error number operations (errno handling, error strings).
@@ -137,6 +142,7 @@ config TEST_OSAL_ERRNO
 
 config TEST_OSAL_FILE
 	bool "File operations tests"
+	depends on OSAL_SYS_FILE
 	default y
 	help
 	  Test OSAL file operations (open, close, read, write, seek, stat).
@@ -158,6 +164,7 @@ config TEST_OSAL_FILE
 
 config TEST_OSAL_HEAP
 	bool "Heap memory tests"
+	depends on OSAL_LIB_HEAP
 	default y
 	help
 	  Test OSAL heap memory operations (malloc, calloc, realloc, free).
@@ -179,6 +186,7 @@ config TEST_OSAL_HEAP
 
 config TEST_OSAL_LOG
 	bool "Logging tests"
+	depends on OSAL_UTIL_LOG
 	default y
 	help
 	  Test OSAL logging operations (log levels, log output, formatting).
@@ -199,6 +207,7 @@ config TEST_OSAL_LOG
 
 config TEST_OSAL_MUTEX
 	bool "Mutex tests"
+	depends on OSAL_IPC_MUTEX
 	default y
 	help
 	  Test OSAL mutex operations (create, lock, unlock, trylock, destroy).
@@ -220,6 +229,7 @@ config TEST_OSAL_MUTEX
 
 config TEST_OSAL_PROCESS
 	bool "Process management tests"
+	depends on OSAL_SYS_PROCESS
 	default y
 	help
 	  Test OSAL process operations (exec, fork, waitpid, exit).
@@ -241,6 +251,7 @@ config TEST_OSAL_PROCESS
 
 config TEST_OSAL_SCHED
 	bool "Scheduler tests"
+	depends on OSAL_SYS_SCHED
 	default y
 	help
 	  Test OSAL scheduler operations (priority, affinity, policy).
@@ -261,6 +272,7 @@ config TEST_OSAL_SCHED
 
 config TEST_OSAL_SEMAPHORE
 	bool "Semaphore tests"
+	depends on OSAL_IPC_SEMAPHORE
 	default y
 	help
 	  Test OSAL semaphore operations (create, wait, post, trywait, destroy).
@@ -282,6 +294,7 @@ config TEST_OSAL_SEMAPHORE
 
 config TEST_OSAL_SHM
 	bool "Shared memory tests"
+	depends on OSAL_IPC_SHM
 	default y
 	help
 	  Test OSAL shared memory operations (create, attach, detach, delete).
@@ -303,6 +316,7 @@ config TEST_OSAL_SHM
 
 config TEST_OSAL_SIGNAL
 	bool "Signal handling tests"
+	depends on OSAL_SYS_SIGNAL
 	default y
 	help
 	  Test OSAL signal operations (signal, raise, sigaction).
@@ -324,6 +338,7 @@ config TEST_OSAL_SIGNAL
 
 config TEST_OSAL_STRESS
 	bool "OSAL stress tests"
+	depends on OSAL_SYS_THREAD && OSAL_IPC_MUTEX && OSAL_LIB_HEAP
 	default y
 	help
 	  Test OSAL under stress (high concurrency, memory pressure).
@@ -345,6 +360,7 @@ config TEST_OSAL_STRESS
 
 config TEST_OSAL_STRING
 	bool "String operations tests"
+	depends on OSAL_LIB_STRING
 	default y
 	help
 	  Test OSAL string operations (copy, compare, format, token).
@@ -366,6 +382,7 @@ config TEST_OSAL_STRING
 
 config TEST_OSAL_THREAD
 	bool "Thread management tests"
+	depends on OSAL_SYS_THREAD
 	default y
 	help
 	  Test OSAL thread operations (create, join, detach, self, exit).
@@ -388,6 +405,7 @@ config TEST_OSAL_THREAD
 
 config TEST_OSAL_TIME
 	bool "Time operations tests"
+	depends on OSAL_SYS_TIME
 	default y
 	help
 	  Test OSAL time operations (sleep, usleep, nanosleep, conversions).
@@ -409,6 +427,7 @@ config TEST_OSAL_TIME
 
 config TEST_OSAL_VERSION
 	bool "Version information tests"
+	depends on OSAL
 	default y
 	help
 	  Test OSAL version reporting operations.
@@ -428,6 +447,7 @@ config TEST_OSAL_VERSION
 
 config TEST_OSAL_RWLOCK
 	bool "Read-write lock tests"
+	depends on OSAL_IPC_RWLOCK
 	default y
 	help
 	  Test OSAL read-write lock operations (rdlock, wrlock, trylock, unlock).
@@ -449,6 +469,7 @@ config TEST_OSAL_RWLOCK
 
 config TEST_OSAL_SOCKET
 	bool "Socket operations tests"
+	depends on OSAL_NET_SOCKET
 	default y
 	help
 	  Test OSAL socket operations (create, bind, connect, send, recv).
@@ -473,6 +494,7 @@ config TEST_OSAL_SOCKET
 
 config TEST_OSAL_TERMIOS
 	bool "Terminal control tests"
+	depends on OSAL_NET_TERMIOS
 	default y
 	help
 	  Test OSAL termios operations (serial port configuration).
@@ -495,6 +517,7 @@ config TEST_OSAL_TERMIOS
 
 config TEST_OSAL_CRC
 	bool "CRC checksum tests"
+	depends on OSAL_UTIL_CRC
 	default y
 	help
 	  Test OSAL CRC calculation operations.
@@ -516,6 +539,7 @@ config TEST_OSAL_CRC
 
 config TEST_OSAL_FLOCK
 	bool "File lock tests"
+	depends on OSAL_SYS_FILE
 	default y
 	help
 	  Test OSAL file lock operations (inter-process synchronization).
@@ -538,6 +562,7 @@ config TEST_OSAL_FLOCK
 
 config TEST_OSAL_POLL_SELECT
 	bool "Poll and Select I/O multiplexing tests"
+	depends on OSAL_SYS_SELECT
 	default y
 	help
 	  Test OSAL poll and select operations.

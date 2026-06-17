@@ -59,8 +59,8 @@ int prl_device_encode(prl_encode_ctx_t *ctx)
 	hdr->msg_type = ctx->msg_type;
 	hdr->flags = ctx->flags;
 	hdr->length = OSAL_htons(ctx->payload_len);
-	hdr->seq = 0;
-	hdr->timestamp = OSAL_htonl((uint32_t)(OSAL_get_monotonic_time() / 1000000));  /* 微秒转秒 */
+	hdr->seq = OSAL_htonl(prl_get_next_seq());
+	hdr->timestamp = OSAL_htonl(prl_get_timestamp());
 	hdr->reserved = 0;
 
 	/* 复制payload */
@@ -68,9 +68,7 @@ int prl_device_encode(prl_encode_ctx_t *ctx)
 		OSAL_memcpy(ctx->buffer + PRL_HEADER_SIZE, ctx->payload, ctx->payload_len);
 	}
 
-	/* 计算CRC（覆盖整个包，CRC字段除外） */
-	hdr->crc16 = 0;
-	hdr->crc16 = OSAL_htons(OSAL_crc16_modbus(ctx->buffer, total_len));
+	prl_set_packet_crc(ctx->buffer, total_len);
 
 	return (int)total_len;
 }
@@ -80,8 +78,6 @@ int prl_device_decode(prl_decode_ctx_t *ctx)
 	const prl_header_t *hdr;
 	uint16_t magic;
 	uint16_t payload_len;
-	uint16_t calc_crc;
-	uint16_t recv_crc;
 
 	/* 参数检查 */
 	if (!ctx || !ctx->buffer || ctx->buffer_len < PRL_HEADER_SIZE) {
@@ -112,13 +108,8 @@ int prl_device_decode(prl_decode_ctx_t *ctx)
 		return OSAL_ERR_GENERIC;
 	}
 
-	/* 验证CRC */
-	recv_crc = OSAL_ntohs(hdr->crc16);
-	((prl_header_t *)hdr)->crc16 = 0;  /* 临时清零 */
-	calc_crc = OSAL_crc16_modbus(ctx->buffer, PRL_HEADER_SIZE + payload_len);
-	((prl_header_t *)hdr)->crc16 = OSAL_htons(recv_crc);  /* 恢复 */
-
-	if (calc_crc != recv_crc) {
+	/* 验证CRC：不修改输入缓冲区，避免破坏调用方持有的数据 */
+	if (!prl_verify_packet_crc(ctx->buffer, PRL_HEADER_SIZE + payload_len)) {
 		return OSAL_ERR_GENERIC;
 	}
 
@@ -127,13 +118,14 @@ int prl_device_decode(prl_decode_ctx_t *ctx)
 	ctx->msg_type = hdr->msg_type;
 	ctx->flags = hdr->flags;
 
+	ctx->payload_len = payload_len;
+
 	/* 复制payload */
-	if (ctx->payload && ctx->payload_size > 0 && payload_len > 0) {
-		size_t copy_len = (payload_len < ctx->payload_size) ? payload_len : ctx->payload_size;
-		OSAL_memcpy(ctx->payload, ctx->buffer + PRL_HEADER_SIZE, copy_len);
-		ctx->payload_len = copy_len;
-	} else {
-		ctx->payload_len = payload_len;
+	if (payload_len > 0 && ctx->payload) {
+		if (ctx->payload_size < payload_len) {
+			return OSAL_ERR_NO_MEMORY;
+		}
+		OSAL_memcpy(ctx->payload, ctx->buffer + PRL_HEADER_SIZE, payload_len);
 	}
 
 	return OSAL_SUCCESS;

@@ -14,7 +14,7 @@ if(CONFIG_OSAL)
 endif()
 
 # libpmc 产品库
-list(APPEND COLLECTOR_REQUIREMENTS libpmc)
+list(APPEND COLLECTOR_REQUIREMENTS libpmc pmc_runtime)
 
 # 可选依赖（根据配置启用）
 if(CONFIG_HAL)
@@ -30,7 +30,7 @@ if(CONFIG_PDL)
 endif()
 
 if(CONFIG_ACONFIG)
-    list(APPEND COLLECTOR_REQUIREMENTS aconfig)
+    list(APPEND COLLECTOR_REQUIREMENTS aconfig pmc_aconfig)
 endif()
 
 # Register PMC collector application using simplified API

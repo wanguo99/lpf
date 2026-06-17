@@ -64,6 +64,16 @@ int32_t PCONFIG_register(const pconfig_platform_config_t *config);
 const pconfig_platform_config_t* PCONFIG_GetBoard(void);
 
 /**
+ * @brief 设置当前平台配置
+ *
+ * @param[in] config 已注册的平台配置指针
+ *
+ * @return OSAL_SUCCESS 成功
+ * @return OSAL_ERR_GENERIC 失败
+ */
+int32_t PCONFIG_SetBoard(const pconfig_platform_config_t *config);
+
+/**
  * @brief 根据平台和产品名称查找配置
  *
  * @param[in] platform 平台名称（如"ti/am625"）

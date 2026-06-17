@@ -51,9 +51,6 @@ void PCONFIG_cleanup(void)
     OSAL_memset(&g_registry, 0, OSAL_sizeof(g_registry));
     g_initialized = false;
 
-    /* 销毁互斥锁 */
-    OSAL_pthread_mutex_destroy(&g_registry_mutex);
-
     LOG_INFO("PCONFIG", "Platform configuration library cleaned up");
 }
 
@@ -112,6 +109,9 @@ int32_t PCONFIG_register(const pconfig_platform_config_t *config)
 
     /* 注册配置 */
     g_registry.configs[g_registry.count++] = config;
+    if (NULL == g_registry.current) {
+        g_registry.current = config;
+    }
 
     /* 解锁 */
     OSAL_pthread_mutex_unlock(&g_registry_mutex);
@@ -141,6 +141,32 @@ const pconfig_platform_config_t* PCONFIG_GetBoard(void)
     OSAL_pthread_mutex_unlock(&g_registry_mutex);
 
     return config;
+}
+
+int32_t PCONFIG_SetBoard(const pconfig_platform_config_t *config)
+{
+    uint32_t i;
+    int32_t ret;
+
+    if (!g_initialized || NULL == config) {
+        return OSAL_ERR_GENERIC;
+    }
+
+    ret = OSAL_pthread_mutex_lock(&g_registry_mutex);
+    if (OSAL_SUCCESS != ret) {
+        return ret;
+    }
+
+    for (i = 0; i < g_registry.count; i++) {
+        if (g_registry.configs[i] == config) {
+            g_registry.current = config;
+            OSAL_pthread_mutex_unlock(&g_registry_mutex);
+            return OSAL_SUCCESS;
+        }
+    }
+
+    OSAL_pthread_mutex_unlock(&g_registry_mutex);
+    return OSAL_ERR_GENERIC;
 }
 
 const pconfig_platform_config_t* PCONFIG_Find(const char *platform,

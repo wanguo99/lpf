@@ -25,10 +25,15 @@ if(PLATFORM_PCONFIG_SRCS OR PLATFORM_ACONFIG_SRCS)
     target_include_directories(platform_config_obj PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include         # PMC 产品层头文件（新增）
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pmc     # PMC 产品层头文件子目录
+        ${SDK_PATH}/core/pconfig/include
         ${SDK_PATH}/core/pconfig/include/pconfig
+        ${SDK_PATH}/core/aconfig/include
         ${SDK_PATH}/core/aconfig/include/aconfig
+        ${SDK_PATH}/core/pdl/include
         ${SDK_PATH}/core/pdl/include/pdl
+        ${SDK_PATH}/core/hal/include
         ${SDK_PATH}/core/hal/include/hal
+        ${SDK_PATH}/core/osal/include
         ${SDK_PATH}/core/osal/include/osal
     )
 
@@ -59,6 +64,23 @@ if(CONFIG_PCONFIG)
     # Link platform config objects after pconfig is created
     if(TARGET platform_config_obj AND TARGET pconfig)
         target_sources(pconfig PRIVATE $<TARGET_OBJECTS:platform_config_obj>)
+
+        set(PCONFIG_AUTO_REGISTER_C "${CMAKE_CURRENT_BINARY_DIR}/pconfig_auto_register.c")
+        set(PCONFIG_AUTO_REGISTER_SRC [=[
+#include "osal.h"
+#include "pconfig/pconfig.h"
+extern const pconfig_platform_config_t pconfig_@CONFIG_PROJECT_NAME@;
+__attribute__((constructor)) static void pconfig_auto_register(void)
+{
+    if (PCONFIG_init() == OSAL_SUCCESS) {
+        (void)PCONFIG_register(&pconfig_@CONFIG_PROJECT_NAME@);
+    }
+}
+]=])
+        string(REPLACE "@CONFIG_PROJECT_NAME@" "${CONFIG_PROJECT_NAME}"
+               PCONFIG_AUTO_REGISTER_SRC "${PCONFIG_AUTO_REGISTER_SRC}")
+        file(WRITE ${PCONFIG_AUTO_REGISTER_C} "${PCONFIG_AUTO_REGISTER_SRC}")
+        target_sources(pconfig PRIVATE ${PCONFIG_AUTO_REGISTER_C})
     endif()
 endif()
 
@@ -90,6 +112,11 @@ if(CONFIG_ACONFIG)
     endif()
 endif()
 
+# Product-owned runtime entry for configuration initialization.
+if(CONFIG_PCONFIG OR CONFIG_ACONFIG)
+    add_subdirectory(pmc_runtime ${CMAKE_CURRENT_BINARY_DIR}/pmc_runtime)
+endif()
+
 # Register product-specific libraries
 if(CONFIG_LIBPMC)
     add_subdirectory(libs/libpmc)
@@ -117,8 +144,8 @@ if(CONFIG_APP_SUPERVISOR)
 endif()
 
 # Test application (debug/verification)
-if(CONFIG_APP_TEST)
-    add_subdirectory(apps/app_test)
+if(CONFIG_TEST_CALL_CHAIN)
+    add_subdirectory(apps/test_call_chain)
 endif()
 
 # ============================================================================
@@ -169,15 +196,19 @@ if(CONFIG_APP_SUPERVISOR)
 endif()
 
 # Test application executable
-if(CONFIG_APP_TEST)
-    add_executable(test_call_chain ${CMAKE_CURRENT_BINARY_DIR}/test_main.c)
+if(CONFIG_TEST_CALL_CHAIN)
+    add_executable(test_call_chain_app ${CMAKE_CURRENT_BINARY_DIR}/test_main.c)
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/test_main.c
                        COMMAND ${CMAKE_COMMAND} -E copy
-                       ${CMAKE_CURRENT_SOURCE_DIR}/apps/app_test/src/main.c
+                       ${CMAKE_CURRENT_SOURCE_DIR}/apps/test_call_chain/src/main.c
                        ${CMAKE_CURRENT_BINARY_DIR}/test_main.c
-                       DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/apps/app_test/src/main.c
+                       DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/apps/test_call_chain/src/main.c
                        VERBATIM)
-    target_link_libraries(test_call_chain PRIVATE app_test)
+    target_include_directories(test_call_chain_app PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/apps/test_call_chain/src
+    )
+    target_link_libraries(test_call_chain_app PRIVATE test_call_chain)
+    set_target_properties(test_call_chain_app PROPERTIES OUTPUT_NAME test_call_chain)
 endif()
 
 # ============================================================================
@@ -223,8 +254,8 @@ if(CONFIG_APP_SUPERVISOR)
 endif()
 
 # Test application installation (optional)
-if(CONFIG_APP_TEST)
-    install(TARGETS test_call_chain
+if(CONFIG_TEST_CALL_CHAIN)
+    install(TARGETS test_call_chain_app
         RUNTIME DESTINATION ${INSTALL_BINDIR}
         COMPONENT applications
     )

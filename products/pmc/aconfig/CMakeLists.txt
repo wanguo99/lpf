@@ -1,4 +1,4 @@
-if(NOT CONFIG_PMC)
+if(NOT CONFIG_PRODUCT_PMC)
     return()
 endif()
 
@@ -10,6 +10,7 @@ add_library(pmc_aconfig STATIC
 target_include_directories(pmc_aconfig
     PUBLIC
         ${CMAKE_SOURCE_DIR}/products/pmc/include
+        ${CMAKE_SOURCE_DIR}/products/pmc/include/pmc
 )
 
 target_link_libraries(pmc_aconfig

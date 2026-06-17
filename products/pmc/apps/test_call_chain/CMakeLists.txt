@@ -25,7 +25,11 @@ if(CONFIG_PCONFIG)
 endif()
 
 if(CONFIG_ACONFIG)
-    list(APPEND TEST_REQUIREMENTS aconfig)
+    list(APPEND TEST_REQUIREMENTS aconfig pmc_aconfig)
+endif()
+
+if(TARGET pmc_runtime)
+    list(APPEND TEST_REQUIREMENTS pmc_runtime)
 endif()
 
 # Platform config object

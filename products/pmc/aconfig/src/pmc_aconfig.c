@@ -22,27 +22,101 @@ static const pmc_aconfig_function_map_t* pmc_aconfig_get_map(void)
 	return (const pmc_aconfig_function_map_t *)table->function_map;
 }
 
+static const pmc_tc_config_t* find_tc_config(const pmc_aconfig_function_map_t *map,
+						 uint32_t function_id)
+{
+	uint32_t i;
+	uint32_t left = 0;
+	uint32_t right = map->tc_count;
+	bool sorted = true;
+
+	for (i = 1; i < map->tc_count; i++) {
+		if (map->tc_entries[i - 1].function_id > map->tc_entries[i].function_id) {
+			sorted = false;
+			break;
+		}
+	}
+
+	if (!sorted) {
+		for (i = 0; i < map->tc_count; i++) {
+			if (map->tc_entries[i].function_id == function_id) {
+				return &map->tc_entries[i].config;
+			}
+		}
+		return NULL;
+	}
+
+	while (left < right) {
+		uint32_t mid = left + (right - left) / 2;
+		uint32_t mid_id = map->tc_entries[mid].function_id;
+
+		if (mid_id == function_id) {
+			return &map->tc_entries[mid].config;
+		}
+		if (mid_id < function_id) {
+			left = mid + 1;
+		} else {
+			right = mid;
+		}
+	}
+
+	return NULL;
+}
+
+static const pmc_tm_config_t* find_tm_config(const pmc_aconfig_function_map_t *map,
+						 uint32_t function_id)
+{
+	uint32_t i;
+	uint32_t left = 0;
+	uint32_t right = map->tm_count;
+	bool sorted = true;
+
+	for (i = 1; i < map->tm_count; i++) {
+		if (map->tm_entries[i - 1].function_id > map->tm_entries[i].function_id) {
+			sorted = false;
+			break;
+		}
+	}
+
+	if (!sorted) {
+		for (i = 0; i < map->tm_count; i++) {
+			if (map->tm_entries[i].function_id == function_id) {
+				return &map->tm_entries[i].config;
+			}
+		}
+		return NULL;
+	}
+
+	while (left < right) {
+		uint32_t mid = left + (right - left) / 2;
+		uint32_t mid_id = map->tm_entries[mid].function_id;
+
+		if (mid_id == function_id) {
+			return &map->tm_entries[mid].config;
+		}
+		if (mid_id < function_id) {
+			left = mid + 1;
+		} else {
+			right = mid;
+		}
+	}
+
+	return NULL;
+}
+
 /**
  * @brief 查询遥控配置
  */
 const pmc_tc_config_t* PMC_ACONFIG_GetTcConfig(uint32_t function_id)
 {
 	const pmc_aconfig_function_map_t *map;
-	uint32_t i;
 
 	map = pmc_aconfig_get_map();
 	if (NULL == map || NULL == map->tc_entries) {
 		return NULL;
 	}
 
-	/* 稀疏数组线性查找 */
-	for (i = 0; i < map->tc_count; i++) {
-		if (map->tc_entries[i].function_id == function_id) {
-			return &map->tc_entries[i].config;
-		}
-	}
-
-	return NULL;
+	return find_tc_config(map, function_id);
 }
 
 /**
@@ -51,21 +125,13 @@ const pmc_tc_config_t* PMC_ACONFIG_GetTcConfig(uint32_t function_id)
 const pmc_tm_config_t* PMC_ACONFIG_GetTmConfig(uint32_t function_id)
 {
 	const pmc_aconfig_function_map_t *map;
-	uint32_t i;
 
 	map = pmc_aconfig_get_map();
 	if (NULL == map || NULL == map->tm_entries) {
 		return NULL;
 	}
 
-	/* 稀疏数组线性查找 */
-	for (i = 0; i < map->tm_count; i++) {
-		if (map->tm_entries[i].function_id == function_id) {
-			return &map->tm_entries[i].config;
-		}
-	}
-
-	return NULL;
+	return find_tm_config(map, function_id);
 }
 
 /**

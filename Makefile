@@ -435,7 +435,10 @@ _validate_config:
 
 PHONY += _cmake_configure
 _cmake_configure:
-	$(Q)if [ ! -f "$(BUILD_DIR)/Makefile" ]; then \
+	$(Q)if [ ! -f "$(BUILD_DIR)/Makefile" ] || \
+		[ ! -f "$(BUILD_DIR)/CMakeCache.txt" ] || \
+		[ .config -nt "$(BUILD_DIR)/CMakeCache.txt" ] || \
+		[ include/generated/gen_autoconf.h -nt "$(BUILD_DIR)/CMakeCache.txt" ]; then \
 		echo "  CMAKE    Configuring build system"; \
 		mkdir -p $(BUILD_DIR); \
 		cd $(BUILD_DIR) && $(CMAKE) \

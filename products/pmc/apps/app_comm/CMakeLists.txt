@@ -13,7 +13,7 @@ if(CONFIG_OSAL)
 endif()
 
 # libpmc 产品库
-list(APPEND COMM_REQUIREMENTS libpmc)
+list(APPEND COMM_REQUIREMENTS libpmc pmc_runtime)
 
 # 可选依赖（根据配置启用）
 if(CONFIG_HAL)
@@ -29,7 +29,7 @@ if(CONFIG_PDL)
 endif()
 
 if(CONFIG_ACONFIG)
-    list(APPEND COMM_REQUIREMENTS aconfig)
+    list(APPEND COMM_REQUIREMENTS aconfig pmc_aconfig)
 endif()
 
 # Register PMC comm application using simplified API

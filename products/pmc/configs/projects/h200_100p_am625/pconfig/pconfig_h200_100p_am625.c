@@ -31,14 +31,14 @@ static pconfig_mcu_entry_t pconfig_mcu_array[] = {
         .enabled = true,
         .config = {
             .name = "uart_mcu_0",
-            .interface = PDL_MCU_INTERFACE_SERIAL,
+            .interface = PCONFIG_MCU_INTERFACE_SERIAL,
             .hw.serial = {
                 .device = "/dev/ttyS1",
                 .baudrate = 115200,
                 .data_bits = 8,
                 .stop_bits = 1,
-                .parity = PDL_MCU_PARITY_NONE,
-                .flow_control = PDL_MCU_FLOW_NONE
+                .parity = PCONFIG_MCU_PARITY_NONE,
+                .flow_control = PCONFIG_MCU_FLOW_NONE
             },
             .cmd_timeout_ms = 500,
             .retry_count = 3
@@ -52,7 +52,7 @@ static pconfig_mcu_entry_t pconfig_mcu_array[] = {
         .enabled = true,
         .config = {
             .name = "can_mcu_0",
-            .interface = PDL_MCU_INTERFACE_CAN,
+            .interface = PCONFIG_MCU_INTERFACE_CAN,
             .hw.can = {
                 .device = "can0",
                 .bitrate = 500000,
@@ -73,7 +73,7 @@ static pconfig_mcu_entry_t pconfig_mcu_array[] = {
         .enabled = false,
         .config = {
             .name = "i2c_mcu_0",
-            .interface = PDL_MCU_INTERFACE_I2C,
+            .interface = PCONFIG_MCU_INTERFACE_I2C,
             .hw = {{0}},
             .cmd_timeout_ms = 200,
             .retry_count = 3
@@ -87,7 +87,7 @@ static pconfig_mcu_entry_t pconfig_mcu_array[] = {
         .enabled = false,
         .config = {
             .name = "spi_mcu_0",
-            .interface = PDL_MCU_INTERFACE_SPI,
+            .interface = PCONFIG_MCU_INTERFACE_SPI,
             .hw = {{0}},
             .cmd_timeout_ms = 100,
             .retry_count = 3
@@ -101,7 +101,7 @@ static pconfig_mcu_entry_t pconfig_mcu_array[] = {
         .enabled = false,
         .config = {
             .name = "can_mcu_1",
-            .interface = PDL_MCU_INTERFACE_CAN,
+            .interface = PCONFIG_MCU_INTERFACE_CAN,
             .hw.can = {
                 .device = "can0",
                 .bitrate = 1000000,
@@ -122,118 +122,20 @@ static pconfig_mcu_entry_t pconfig_mcu_array[] = {
         .enabled = false,
         .config = {
             .name = "uart_mcu_1",
-            .interface = PDL_MCU_INTERFACE_SERIAL,
+            .interface = PCONFIG_MCU_INTERFACE_SERIAL,
             .hw.serial = {
                 .device = "/dev/ttyS3",
                 .baudrate = 921600,
                 .data_bits = 8,
                 .stop_bits = 1,
-                .parity = PDL_MCU_PARITY_NONE,
-                .flow_control = PDL_MCU_FLOW_NONE
+                .parity = PCONFIG_MCU_PARITY_NONE,
+                .flow_control = PCONFIG_MCU_FLOW_NONE
             },
             .cmd_timeout_ms = 1000,
             .retry_count = 3
         },
         .reset_gpio = NULL,
         .irq_gpio = NULL
-    }
-};
-
-/*===========================================================================
- * BMC外设配置数组 - 按硬件接口索引，不关心业务角色
- *===========================================================================*/
-
-static pconfig_bmc_entry_t pconfig_bmc_array[] = {
-    /* [0] IPMI Network 192.168.1.100:623 + Serial /dev/ttyS2 */
-    {
-        .description = "BMC at 192.168.1.100:623 (IPMI, Network+Serial)",
-        .enabled = true,
-        .config = {
-            .primary_channel = PDL_BMC_CHANNEL_NETWORK,
-            .primary_config = {
-                .network = {
-                    .ip_addr = "192.168.1.100",
-                    .port = 623,
-                    .username = "admin",
-                    .password = NULL,
-                    .timeout_ms = 2000
-                }
-            },
-            .backup_channel = PDL_BMC_CHANNEL_SERIAL,
-            .backup_config = {
-                .serial = {
-                    .device = "/dev/ttyS2",
-                    .baudrate = 115200,
-                    .data_bits = 8,
-                    .stop_bits = 1,
-                    .parity = PDL_MCU_PARITY_NONE,
-                    .timeout_ms = 2000
-                }
-            },
-            .auto_switch = true,
-            .retry_count = 3,
-            .health_check_interval = 5000
-        },
-        .power_gpio = NULL,
-        .reset_gpio = NULL
-    },
-    /* [1] Redfish Network 192.168.1.101:443 + Serial /dev/ttyS4 */
-    {
-        .description = "BMC at 192.168.1.101:443 (Redfish, Network+Serial)",
-        .enabled = false,
-        .config = {
-            .primary_channel = PDL_BMC_CHANNEL_NETWORK,
-            .primary_config = {
-                .network = {
-                    .ip_addr = "192.168.1.101",
-                    .port = 443,
-                    .username = "root",
-                    .password = NULL,
-                    .timeout_ms = 3000
-                }
-            },
-            .backup_channel = PDL_BMC_CHANNEL_SERIAL,
-            .backup_config = {
-                .serial = {
-                    .device = "/dev/ttyS4",
-                    .baudrate = 115200,
-                    .data_bits = 8,
-                    .stop_bits = 1,
-                    .parity = PDL_MCU_PARITY_NONE,
-                    .timeout_ms = 2000
-                }
-            },
-            .auto_switch = true,
-            .retry_count = 3,
-            .health_check_interval = 10000
-        },
-        .power_gpio = NULL,
-        .reset_gpio = NULL
-    },
-    /* [2] Serial /dev/ttyS5 */
-    {
-        .description = "BMC on /dev/ttyS5 (Serial only)",
-        .enabled = false,
-        .config = {
-            .primary_channel = PDL_BMC_CHANNEL_SERIAL,
-            .primary_config = {
-                .serial = {
-                    .device = "/dev/ttyS5",
-                    .baudrate = 57600,
-                    .data_bits = 8,
-                    .stop_bits = 1,
-                    .parity = PDL_MCU_PARITY_NONE,
-                    .timeout_ms = 1500
-                }
-            },
-            .backup_channel = PDL_BMC_CHANNEL_NETWORK,
-            .backup_config = {{0}},
-            .auto_switch = false,
-            .retry_count = 5,
-            .health_check_interval = 5000
-        },
-        .power_gpio = NULL,
-        .reset_gpio = NULL
     }
 };
 
@@ -287,14 +189,6 @@ const pconfig_platform_config_t pconfig_h200_100p_am625 = {
      */
     .mcu_count = ARRAY_SIZE(pconfig_mcu_array),
     .mcu_array = pconfig_mcu_array,
-
-    /* BMC 外设：
-     * [0] bmc_payload_ipmi     - IPMI Network 192.168.1.100:623 + Serial /dev/ttyS2
-     * [1] bmc_platform_redfish - Redfish Network 192.168.1.101:443 + Serial /dev/ttyS4
-     * [2] bmc_storage_serial   - Serial /dev/ttyS5
-     */
-    .bmc_count = ARRAY_SIZE(pconfig_bmc_array),
-    .bmc_array = pconfig_bmc_array,
 
     /* FPGA 外设 */
     .fpga_count = ARRAY_SIZE(pconfig_fpga_array),
