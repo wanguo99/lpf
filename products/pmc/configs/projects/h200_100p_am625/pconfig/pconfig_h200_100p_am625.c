@@ -4,7 +4,6 @@
  * 说明：
  * 本配置展示所有支持的硬件接口和通信方式
  * - MCU: CAN、UART、I2C（预留）、SPI（预留）
- * - BMC: IPMI/Redfish over Network/Serial
  * - 传感器通过 MCU 的 I2C/SPI 接口连接
  * - PMC 等外设通过 MCU 的 CAN/Ethernet 接口连接
  *

@@ -27,7 +27,6 @@ The test cases query PMC TC mappings through `PMC_ACONFIG_GetTcConfig()` and the
 | `TestCallChain_MCU_Serial` | `PMC_TC_POWER_OFF` | MCU index `1` |
 | `TestCallChain_PowerControl` | `PMC_TC_POWER_ON` | MCU index `0` |
 
-The current platform does not expose a BMC PCONFIG/PDL abstraction. Legacy BMC test references were removed to keep the test aligned with implemented modules.
 
 ## Build Verification
 

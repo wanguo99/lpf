@@ -85,18 +85,18 @@ endfunction()
 #   )
 #
 # Example:
-#   # PDL satellite submodule
+#   # Optional PDL MCU submodule
 #   register_conditional_submodule(
-#       CONFIG CONFIG_PDL_SATELLITE
-#       SUBDIR satellite
-#       DEFINITION CONFIG_PDL_SATELLITE
+#       CONFIG CONFIG_PDL_MCU_SUPPORT
+#       SUBDIR pdl_mcu
+#       DEFINITION PDL_MCU_SUPPORT
 #   )
 #
 #   # Equivalent to:
-#   # if(CONFIG_PDL_SATELLITE)
-#   #     file(GLOB sources satellite/*.c)
+#   # if(CONFIG_PDL_MCU_SUPPORT)
+#   #     file(GLOB sources pdl_mcu/*.c)
 #   #     list(APPEND COMPONENT_SRCS ${sources})
-#   #     list(APPEND ADD_DEFINITIONS -DCONFIG_PDL_SATELLITE=1)
+#   #     list(APPEND ADD_DEFINITIONS -DPDL_MCU_SUPPORT=1)
 #   # endif()
 function(register_conditional_submodule)
     cmake_parse_arguments(

@@ -7,31 +7,6 @@ if TEST_STRESS_PDL
 
 menu "PDL Stress Tests"
 
-config TEST_STRESS_PDL_BMC_CONCURRENT
-	bool "BMC concurrent sensor read stress"
-	default y
-	depends on PDL_BMC_SUPPORT
-	help
-	  BMC sensor concurrent reading stress test.
-
-	  Tests:
-	    - 8 threads concurrently reading sensors
-	    - 5 second duration
-	    - Network/Serial channel operations
-	    - Sensor data integrity under load
-
-	  Verifies:
-	    - Thread-safe sensor access
-	    - No data corruption under concurrent reads
-	    - Success rate > 95%
-	    - Connection stability
-
-	  Runtime: ~5 seconds
-	  Hardware: BMC device or mock
-	  Dependencies: CONFIG_PDL_BMC_SUPPORT
-	  Tags: stress, pdl, concurrency
-	  Test function: test_stress_bmc_concurrent_read
-
 config TEST_STRESS_PDL_MCU_LONG_RUNNING
 	bool "MCU long-running query stress"
 	default y
@@ -56,31 +31,6 @@ config TEST_STRESS_PDL_MCU_LONG_RUNNING
 	  Dependencies: CONFIG_PDL_MCU_SUPPORT
 	  Tags: stress, pdl, duration
 	  Test function: test_stress_mcu_long_running_query
-
-config TEST_STRESS_PDL_SATELLITE_CONCURRENT
-	bool "Satellite concurrent telemetry stress"
-	default y
-	depends on PDL_SATELLITE_SUPPORT
-	help
-	  Satellite telemetry concurrent sending stress test.
-
-	  Tests:
-	    - 4 threads concurrently sending telemetry
-	    - 15 second duration
-	    - Send every 100ms per thread
-	    - CAN bus protocol
-
-	  Verifies:
-	    - Thread-safe telemetry sending
-	    - CAN bus message integrity
-	    - Success rate > 95%
-	    - No message corruption
-
-	  Runtime: ~15 seconds
-	  Hardware: Satellite CAN interface
-	  Dependencies: CONFIG_PDL_SATELLITE_SUPPORT
-	  Tags: stress, pdl, concurrency
-	  Test function: test_stress_satellite_concurrent_telemetry
 
 config TEST_STRESS_PDL_PMC_CONCURRENT
 	bool "PMC concurrent communication stress"

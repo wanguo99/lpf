@@ -42,42 +42,6 @@ config TEST_PERF_PDL_MCU
 	  Tags: performance, pdl
 	  Test file: test_perf_pdl_mcu.c
 
-config TEST_PERF_PDL_BMC
-	bool "BMC device performance tests"
-	default n
-	help
-	  BMC communication performance benchmarks.
-
-	  Measures:
-	    - Health check latency
-	    - Sensor data collection speed
-	    - Configuration update overhead
-	    - Multi-command batching efficiency
-
-	  Runtime: 2-4 seconds
-	  Hardware: Mock BMC device
-	  Dependencies: CONFIG_PDL_BMC
-	  Tags: performance, pdl
-	  Test file: test_perf_pdl_bmc.c
-
-config TEST_PERF_PDL_SATELLITE
-	bool "Satellite device performance tests"
-	default n
-	help
-	  Satellite platform communication performance.
-
-	  Measures:
-	    - Telecommand processing latency
-	    - Telemetry generation throughput
-	    - Large data transfer efficiency
-	    - Protocol state machine overhead
-
-	  Runtime: 3-5 seconds
-	  Hardware: Mock satellite interface
-	  Dependencies: CONFIG_PDL_SATELLITE
-	  Tags: performance, pdl
-	  Test file: test_perf_pdl_satellite.c
-
 config TEST_PERF_PDL_PROTOCOL
 	bool "Protocol encoding/decoding performance tests"
 	default n

@@ -60,8 +60,8 @@ config TEST_INTEGRATION_E2E
 
 	  Tests:
 	    - Application data → ... → Wire → ... → Application data
-	    - Telecommand: Satellite → PMC → Device → Response → Satellite
-	    - Telemetry: Device → PMC → Satellite
+	    - Telecommand: External system → PMC → Device → Response
+	    - Telemetry: Device → PMC → External system
 	    - Large data transfers end-to-end
 	    - Error injection at each layer
 

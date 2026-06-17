@@ -15,12 +15,9 @@
  */
 typedef enum {
 	PMC_DEVICE_MCU = 0,      /* 微控制器 */
-	PMC_DEVICE_BMC,          /* 板级管理控制器 */
 	PMC_DEVICE_FPGA,         /* 可编程逻辑器件 */
 	PMC_DEVICE_SWITCH,       /* 网络交换机 */
-	PMC_DEVICE_SENSOR,       /* 传感器 */
-	PMC_DEVICE_HOST,         /* 主机接口 */
-	PMC_DEVICE_SATELLITE,    /* 卫星设备 */
+	PMC_DEVICE_PMC,          /* PMC 通信管理设备 */
 	PMC_DEVICE_MAX
 } pmc_device_type_t;
 

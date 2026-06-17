@@ -174,16 +174,14 @@ typedef struct {
 
 **支持的外设类型**：
 - **MCU 外设**：微控制器通信
-- **主机接口**：与卫星平台通信
-- **BMC 设备**：基板管理控制器
-- **Linux 设备**：运行操作系统的设备
+- **PMC 外设**：通信管理板内部管理接口
 
 **关键特性**：
-- 多通道冗余（如 BMC 以太网+串口）
+- 配置驱动的设备映射
 - 自动故障切换（5 次连续失败）
-- 心跳机制（主机接口 5 秒心跳）
+- 心跳机制
 
-**内存占用**：~8KB (单模块) ~ 40KB (全模块)
+**内存占用**：~8KB (单模块)
 
 **详细文档**：
 - [PDL README](../core/pdl/README.md)
@@ -205,7 +203,7 @@ typedef struct {
 **核心概念**：
 ```
 业务功能枚举 → AConfig 查找表 → 硬件设备
-TC_POWER_ON  → [device_type, logic_index] → BMC[0]
+TC_POWER_ON  → [device_type, logic_index] → MCU[0]
 ```
 
 **关键特性**：
@@ -229,7 +227,7 @@ TC_POWER_ON  → [device_type, logic_index] → BMC[0]
 **职责**：实现具体产品的业务逻辑。
 
 **当前产品**：
-- **PMC** (通信管理板)：卫星载荷通信管理
+- **PMC** (通信管理板)：载荷通信管理
   - `collector`：数据采集服务
   - `logger`：日志服务
   - `health`：健康监控服务
@@ -278,13 +276,13 @@ TC_POWER_ON  → [device_type, logic_index] → BMC[0]
 PRL (编码协议) → HAL (发送数据) → 硬件设备
 ```
 
-**典型场景**：服务器上电
+**典型场景**：电源控制命令
 1. `collector` 调用 `ACONFIG_GetTcConfig(TC_POWER_ON)`
-2. AConfig 返回 `{device_type: BMC, logic_index: 0}`
-3. 调用 `PDL_BMC_PowerOn(0)`
+2. AConfig 返回 `{device_type: MCU, logic_index: 0}`
+3. 调用 `PDL_MCU_send_command()`
 4. PDL 使用 `PRL_Encode()` 编码协议报文
-5. PDL 调用 `HAL_UART_Send()` 发送数据
-6. BMC 执行上电操作并响应
+5. PDL 调用 HAL 发送数据
+6. MCU 执行控制操作并响应
 7. PDL 使用 `PRL_Decode()` 解码响应
 8. AConfig 失效相关遥测缓存
 9. 返回结果给应用层

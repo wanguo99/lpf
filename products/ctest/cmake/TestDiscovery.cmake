@@ -15,7 +15,7 @@
 # Examples:
 #   test_osal_mutex.c       -->  CONFIG_TEST_OSAL_MUTEX
 #   test_hal_can.c          -->  CONFIG_TEST_HAL_CAN
-#   test_pdl_bmc.c          -->  CONFIG_TEST_PDL_BMC
+#   test_pdl_mcu.c          -->  CONFIG_TEST_PDL_MCU
 #
 # Error Detection and Reporting:
 # - Missing Kconfig options: Warns when test file exists but config is undefined

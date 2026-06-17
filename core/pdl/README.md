@@ -1,353 +1,119 @@
-# PDL (外设驱动层)
+# PDL (Peripheral Driver Layer)
 
-## 模块概述
+## Overview
 
-PDL (Peripheral Driver Layer) 是外设驱动层，统一管理各类外部设备和模块。
+PDL provides protocol-aware peripheral drivers above HAL. It keeps application code away from transport details while still using PCONFIG as the source of board-specific hardware configuration.
 
-**设计理念**：
-- 主控制器为核心，将各类外部设备统一抽象为外设
-- 完全平台无关，通过HAL层访问底层硬件
-- 使用PCONFIG配置外设硬件接口
-- 提供统一的外设管理接口
+Current implemented drivers:
 
-**支持的外设类型**：
-- MCU外设（微控制器）
-- 主机接口（Host Interface）
-- BMC设备（基板管理控制器）
-- Linux设备（运行操作系统的设备）
+- `pdl_mcu`: MCU peripheral driver with CAN and serial transports.
+- `pdl_pmc`: PMC communication driver with CAN and Ethernet transports.
 
-## 主要特性
+## Responsibilities
 
-- **统一外设管理**：各类外部设备统一抽象为外设
-- **多通道冗余**：支持主备双通道（如BMC的以太网+串口）
-- **自动故障切换**：5次连续失败自动切换通道
-- **心跳机制**：主机接口5秒心跳检测
-- **协议支持**：IPMI、Redfish、自定义协议
+- Query runtime hardware configuration from PCONFIG.
+- Convert PCONFIG entries into HAL transport configuration.
+- Encode and decode protocol frames through PRL where required.
+- Provide device-level state management, retries, and error handling.
+- Expose stable APIs for product applications and higher-level configuration flows.
 
-## 支持的外设服务
+PDL must remain platform independent. Product-specific board symbols belong in product runtime/configuration code, not in PDL.
 
-### 主机接口服务 (Host Interface PDL)
-- **通信方式**：CAN总线或1553B
-- **功能**：命令接收、数据上报、心跳检测
-- **接口**：`pdl_satellite.h`
+## Build Configuration
 
-### BMC设备服务 (BMC PDL)
-- **通信方式**：以太网（主）+ 串口（备）
-- **协议**：IPMI over LAN、Redfish
-- **功能**：电源管理、传感器读取、固件升级
-- **接口**：`pdl_bmc.h`
+PDL is enabled through Kconfig:
 
-### MCU外设服务 (MCU PDL)
-- **通信方式**：CAN、UART、I2C、SPI
-- **功能**：版本查询、固件升级、GPIO控制
-- **接口**：`pdl_mcu.h`
+```kconfig
+CONFIG_PDL=y
+CONFIG_PDL_MCU_SUPPORT=y
+CONFIG_PDL_PMC_SUPPORT=y
+```
 
-## 编译说明
-
-### 快速开始
+Typical builds:
 
 ```bash
-# 在项目根目录使用统一构建命令
-make tests_x86_pdl_defconfig  # 加载 PDL 测试配置
+make ctest_x86_pdl_defconfig
 make
 
-# 或使用其他包含 PDL 的配置
 make pmc_h200_100p_am625_debug_defconfig
 make
 ```
 
-PDL 模块会作为核心模块的一部分自动编译。
+The component builds as part of the core module set and exports `es_middleware::pdl_public_api` for headers plus `es_middleware::pdl` for the implementation library.
 
-### 构建配置
+## Module Layout
 
-PDL 模块通过 Config.in 配置启用：
-
-```kconfig
-CONFIG_PDL=y              # 启用 PDL 层
-CONFIG_PDL_MCU=y          # 启用 MCU 外设驱动
-CONFIG_PDL_BMC=y          # 启用 BMC 设备驱动
-CONFIG_PDL_SATELLITE=y    # 启用主机接口驱动
-```
-
-编译输出：
-- 库文件：`_build/lib/libpdl.a`
-- 头文件自动包含在构建路径中
-
-## 模块结构
-
-```
-pdl/
-├── include/                    # 公共接口头文件
-│   ├── pdl_mcu.h               # MCU外设接口
-│   ├── pdl_satellite.h         # 主机接口
-│   ├── pdl_bmc.h               # BMC设备接口
-│   └── pdl_linux.h             # Linux设备接口
+```text
+core/pdl/
+├── include/pdl/
+│   ├── pdl.h
+│   ├── pdl_mcu.h
+│   └── pdl_pmc.h
 └── src/
-    ├── pdl_mcu/                # MCU外设驱动
-    │   ├── pdl_mcu.c           # MCU管理
-    │   ├── pdl_mcu_can.c       # MCU CAN通信
-    │   ├── pdl_mcu_serial.c    # MCU串口通信
-    │   └── pdl_mcu_protocol.c  # MCU协议处理
-    ├── pdl_satellite/          # 主机接口服务
-    │   ├── pdl_satellite.c     # 主机接口管理
-    │   └── pdl_satellite_can.c # 主机CAN通信
-    └── pdl_bmc/                # BMC设备服务
-        ├── pdl_bmc.c           # BMC管理
-        ├── pdl_bmc_redfish.c   # Redfish接口
-        └── pdl_bmc_ipmi.c      # IPMI接口
+    ├── pdl_mcu/
+    │   ├── pdl_mcu.c
+    │   ├── pdl_mcu_can.c
+    │   └── pdl_mcu_serial.c
+    └── pdl_pmc/
+        ├── pdl_pmc.c
+        ├── pdl_pmc_can.c
+        └── pdl_pmc_eth.c
 ```
 
-## 依赖关系
+## Dependencies
 
-**PDL依赖**：
-- OSAL层：操作系统抽象
-- HAL层：硬件驱动
-- PConfig层：硬件配置
+- OSAL: common types, logging, synchronization, and runtime utilities.
+- HAL: hardware transport access such as CAN, serial, and network adapters.
+- PCONFIG: runtime board hardware tables.
+- PRL: protocol framing for MCU/PMC communication paths.
 
-**被依赖**：
-- Apps层：应用层
+Applications depend on PDL; PDL must not depend on product application modules.
 
-**重要**：PDL必须保持完全平台无关，通过HAL层访问硬件。
+## Usage
 
-## 使用示例
-
-### 在应用中使用PDL
-
-**CMakeLists.txt配置**：
 ```cmake
-# 链接PDL接口库（获取头文件路径）
 target_link_libraries(your_app PUBLIC es_middleware::pdl_public_api)
-
-# 链接PDL实现库（运行时链接）
 target_link_libraries(your_app PRIVATE es_middleware::pdl)
 ```
 
-**代码中使用**：
 ```c
-#include <pdl_mcu.h>
-#include <pdl_satellite.h>
-#include <pdl_bmc.h>
+#include "pdl.h"
 
-int main(void)
-{
-    /* 初始化MCU外设 */
-    pdl_mcu_config_t mcu_cfg = {
-        .name = "mcu0",
-        .interface_type = PDL_INTERFACE_CAN,
-        .can_interface = "can0",
-        .baudrate = 500000
+pdl_mcu_handle_t mcu = NULL;
+if (PDL_MCU_init(0, &mcu) == OSAL_SUCCESS) {
+    uint8_t response[32] = {0};
+    pdl_mcu_cmd_t cmd = {
+        .cmd = 0x01,
+        .response = response,
+        .response_max = sizeof(response),
     };
-    pdl_mcu_handle_t mcu_handle;
-    PDL_MCU_Init(&mcu_cfg, &mcu_handle);
-    
-    /* 发送命令到MCU */
-    uint8 cmd_data[] = {0x01, 0x02, 0x03};
-    PDL_MCU_SendCommand(&mcu_handle, 0x100, cmd_data, OSAL_sizeof(cmd_data));
-    
-    /* 初始化主机接口 */
-    pdl_satellite_config_t host_cfg = {
-        .can_interface = "can1",
-        .baudrate = 1000000
-    };
-    pdl_satellite_handle_t host_handle;
-    PDL_Satellite_Init(&host_cfg, &host_handle);
-    
-    /* 接收主机数据 */
-    uint8 telemetry[64];
-    uint32 len;
-    PDL_Satellite_ReceiveTelemetry(&host_handle, telemetry, &len, 1000);
-    
-    /* 初始化BMC设备 */
-    pdl_bmc_config_t bmc_cfg = {
-        .ip_address = "192.168.1.100",
-        .port = 443,
-        .protocol = PDL_BMC_PROTOCOL_REDFISH
-    };
-    pdl_bmc_handle_t bmc_handle;
-    PDL_BMC_Init(&bmc_cfg, &bmc_handle);
-    
-    /* 查询BMC状态 */
-    pdl_bmc_status_t status;
-    PDL_BMC_GetStatus(&bmc_handle, &status);
-    LOG_INFO("APP", "BMC Power: %s", 
-             status.power_state == PDL_BMC_POWER_ON ? "ON" : "OFF");
-    
-    return 0;
+    (void)PDL_MCU_send_cmd(mcu, &cmd);
+    (void)PDL_MCU_deinit(mcu);
 }
 ```
 
-## 开发指南
+`PDL_MCU_init()` and `PDL_PMC_init_from_pconfig()` resolve device indexes through `PCONFIG_GetBoard()` and the typed hardware accessors.
 
-### 添加新的外设类型
+## Development Rules
 
-1. 在 `include/` 添加接口头文件（如 `pdl_sensor.h`）
-2. 在 `src/` 创建实现目录（如 `src/pdl_sensor/`）
-3. 实现外设驱动（如 `pdl_sensor.c`）
-4. 在 `CMakeLists.txt` 的 `PDL_SOURCES` 中添加源文件
-5. 在 `tests/src/pdl/` 添加单元测试
+- Use HAL for all hardware access; do not open devices or sockets directly from PDL when a HAL abstraction exists.
+- Use PCONFIG for board-specific values; do not hard-code device names, bus IDs, or product symbols.
+- Keep protocol handling behind PDL APIs so applications call device-level operations rather than frame builders.
+- Add a Kconfig option, source directory, public header, CMake source inclusion, and tests when introducing a new PDL driver.
+- Keep public headers independent and include them through `pdl.h` only as a convenience aggregation.
 
-### 外设驱动实现模板
+## Testing
 
-```c
-/* pdl_sensor.c */
-#include "pdl_sensor.h"
-#include <hal_i2c.h>
-#include <osal.h>
-
-int32 PDL_Sensor_Init(const pdl_sensor_config_t *config, 
-                      pdl_sensor_handle_t *handle)
-{
-    /* 参数检查 */
-    if (config == NULL || handle == NULL) {
-        return OS_ERROR;
-    }
-    
-    /* 初始化HAL层接口 */
-    hal_i2c_config_t i2c_cfg = {
-        .device = config->i2c_device,
-        .address = config->i2c_address,
-        .speed = 400000
-    };
-    
-    int32 ret = HAL_I2C_Init(&i2c_cfg, &handle->i2c_handle);
-    if (ret != OS_SUCCESS) {
-        LOG_ERROR("PDL_SENSOR", "I2C init failed");
-        return ret;
-    }
-    
-    /* 配置传感器 */
-    uint8 reg_data = 0x01;
-    HAL_I2C_Write(&handle->i2c_handle, 0x00, &reg_data, 1);
-    
-    LOG_INFO("PDL_SENSOR", "Sensor initialized: %s", config->name);
-    return OS_SUCCESS;
-}
-
-int32 PDL_Sensor_Read(pdl_sensor_handle_t *handle, 
-                      pdl_sensor_data_t *data)
-{
-    /* 读取传感器数据 */
-    uint8 raw_data[4];
-    int32 ret = HAL_I2C_Read(&handle->i2c_handle, 0x01, raw_data, 4);
-    if (ret != OS_SUCCESS) {
-        return ret;
-    }
-    
-    /* 解析数据 */
-    data->temperature = (raw_data[0] << 8) | raw_data[1];
-    data->humidity = (raw_data[2] << 8) | raw_data[3];
-    
-    return OS_SUCCESS;
-}
-```
-
-### 编码规范（重要）
-
-**必须遵守**：
-- [正确] 使用HAL层接口访问硬件：`HAL_CAN_*()`, `HAL_Serial_*()`
-- [错误] 禁止直接调用OSAL系统调用：`OSAL_socket()`, `OSAL_open()`
-- [正确] 使用OSAL日志：`LOG_INFO()`, `LOG_ERROR()`
-- [错误] 禁止使用：`printf()`, `fprintf()`
-- [正确] 使用PCONFIG配置：`PCONFIG_GetMCUConfig()`
-- [错误] 禁止硬编码配置
-
-**示例**：
-```c
-/* [正确] 正确 */
-hal_can_config_t can_cfg = {
-    .interface = "can0",
-    .baudrate = 500000
-};
-HAL_CAN_Init(&can_cfg, &handle->can_handle);
-LOG_INFO("PDL_MCU", "MCU initialized");
-
-/* [错误] 错误 */
-int sockfd = OSAL_socket(PF_CAN, SOCK_RAW, CAN_RAW);  // 禁止
-printf("MCU initialized\n");                           // 禁止
-```
-
-## 配置说明
-
-PDL使用PCONFIG配置外设硬件接口：
-
-```c
-/* 从PCONFIG获取MCU配置 */
-const pconfig_mcu_t *mcu_cfg = PCONFIG_GetMCUConfig("mcu0");
-if (mcu_cfg != NULL) {
-    pdl_mcu_config_t pdl_cfg = {
-        .name = mcu_cfg->name,
-        .interface_type = mcu_cfg->interface_type,
-        .can_interface = mcu_cfg->can_interface.device,
-        .baudrate = mcu_cfg->can_interface.baudrate
-    };
-    PDL_MCU_Init(&pdl_cfg, &handle);
-}
-```
-
-## 测试
+Use the ctest product configurations for module-level verification:
 
 ```bash
-# 编译测试
-./build.sh -d
-
-# 运行示例应用（使用PDL）
-./build/bin/sample_app
-
-# 查看PDL日志
-./build/bin/sample_app 2>&1 | grep PDL
+make ctest_x86_pdl_defconfig
+make
 ```
 
-## 常见问题
+PMC runtime paths that depend on PDL should also be checked with the PMC product defconfig:
 
-**Q: PDL和HAL的区别？**
-- HAL：硬件抽象层，封装底层驱动（CAN/串口/网络）
-- PDL：外设驱动层，管理外设（MCU/主机接口/BMC），使用HAL接口
-
-**Q: 如何添加新的通信协议？**
-```c
-// 1. 在 src/pdl_xxx/ 添加协议处理文件
-// 2. 实现协议编解码函数
-// 3. 在主驱动中调用协议处理函数
+```bash
+make pmc_h200_100p_am625_debug_defconfig
+make
 ```
-
-**Q: PDL可以直接调用OSAL系统调用吗？**
-```c
-/* [错误] 禁止 - PDL必须通过HAL层访问硬件 */
-int sockfd = OSAL_socket(...);  // 禁止
-
-/* [正确] 正确 - 使用HAL层接口 */
-HAL_CAN_Init(&can_cfg, &handle);  // 正确
-```
-
-**Q: 如何启用PDL调试日志？**
-```c
-// 在代码中设置日志级别
-OSAL_LogSetLevel(OSAL_LOG_DEBUG);
-```
-
-**Q: 如何处理外设通信错误？**
-```c
-int32 ret = PDL_MCU_SendCommand(&handle, cmd_id, data, len);
-if (ret != OS_SUCCESS) {
-    LOG_ERROR("APP", "MCU command failed: %d", ret);
-    // 重试或错误处理
-}
-```
-
-## 设计原则
-
-1. **平台无关**：PDL层必须保持完全平台无关，通过HAL/OSAL访问底层
-2. **外设抽象**：将各类外部设备统一抽象为外设
-3. **冗余设计**：关键外设支持多通道冗余
-4. **自动恢复**：故障自动切换，无需人工干预
-5. **协议分层**：通信协议与传输层分离
-
-## 参考文档
-
-- [PDL详细文档](docs/README.md)
-- [架构设计](docs/ARCHITECTURE.md)
-- [API参考](docs/API_REFERENCE.md)
-- [使用指南](docs/USAGE_GUIDE.md)
-- [HAL层文档](../hal/README.md)
-- [PCONFIG文档](../pconfig/README.md)
-- [编码规范](../docs/CODING_STANDARDS.md)

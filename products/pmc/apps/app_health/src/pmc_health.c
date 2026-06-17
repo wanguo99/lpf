@@ -8,7 +8,7 @@ static pmc_system_status_t *g_status = NULL;
 static volatile bool g_running = true;
 
 /* 线程ID */
-static osal_thread_t g_satellite_hb_thread = 0;
+static osal_thread_t g_platform_hb_thread = 0;
 static osal_thread_t g_mcu_fpga_hb_thread = 0;
 static osal_thread_t g_cpld_hb_thread = 0;
 
@@ -22,14 +22,14 @@ static void signal_handler(int32_t sig)
     }
 }
 
-/* 线程1: 卫星平台心跳+状态监测（1秒周期） */
-static void *satellite_heartbeat_thread(void *arg)
+/* 线程1: 平台心跳+状态监测（1秒周期） */
+static void *platform_heartbeat_thread(void *arg)
 {
     uint32_t sequence = 0;
 
     (void)arg;
 
-    LOG_INFO("HEALTH", "卫星心跳线程启动");
+    LOG_INFO("HEALTH", "平台心跳线程启动");
 
     while (g_running) {
         pmc_system_status_t status;
@@ -37,8 +37,8 @@ static void *satellite_heartbeat_thread(void *arg)
         /* 更新进程心跳 */
         PMC_Heartbeat_Update(g_heartbeat, PMC_PROCESS_HEALTH);
 
-        /* TODO: 发送心跳到卫星平台（CAN） */
-        LOG_DEBUG("HEALTH", "发送卫星心跳: seq=%u", sequence);
+        /* TODO: 发送心跳到平台（CAN） */
+        LOG_DEBUG("HEALTH", "发送平台心跳: seq=%u", sequence);
 
         /* TODO: 监测外设状态 */
         if (PMC_Status_Read(g_status, &status) == OSAL_SUCCESS) {
@@ -54,7 +54,7 @@ static void *satellite_heartbeat_thread(void *arg)
         OSAL_msleep(1000);  /* 1秒 */
     }
 
-    LOG_INFO("HEALTH", "卫星心跳线程退出");
+    LOG_INFO("HEALTH", "平台心跳线程退出");
     return NULL;
 }
 
@@ -137,10 +137,10 @@ int32_t PMC_Health_Run(void)
 
     LOG_INFO("HEALTH", "Health进程开始运行");
 
-    /* 创建线程1: 卫星心跳 */
-    ret = OSAL_pthread_create(&g_satellite_hb_thread, NULL, satellite_heartbeat_thread, NULL);
+    /* 创建线程1: 平台心跳 */
+    ret = OSAL_pthread_create(&g_platform_hb_thread, NULL, platform_heartbeat_thread, NULL);
     if (ret != OSAL_SUCCESS) {
-        LOG_ERROR("HEALTH", "创建卫星心跳线程失败: %d", ret);
+        LOG_ERROR("HEALTH", "创建平台心跳线程失败: %d", ret);
         return ret;
     }
 
@@ -166,12 +166,12 @@ int32_t PMC_Health_Run(void)
     /* 等待所有线程退出 */
     LOG_INFO("HEALTH", "等待线程退出...");
 
-    if (g_satellite_hb_thread != 0) {
-        ret = OSAL_pthread_join(g_satellite_hb_thread, NULL);
+    if (g_platform_hb_thread != 0) {
+        ret = OSAL_pthread_join(g_platform_hb_thread, NULL);
         if (ret != OSAL_SUCCESS) {
-            LOG_ERROR("HEALTH", "等待卫星心跳线程退出失败: %d", ret);
+            LOG_ERROR("HEALTH", "等待平台心跳线程退出失败: %d", ret);
         }
-        g_satellite_hb_thread = 0;
+        g_platform_hb_thread = 0;
     }
 
     if (g_mcu_fpga_hb_thread != 0) {

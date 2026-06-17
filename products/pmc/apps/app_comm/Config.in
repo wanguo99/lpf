@@ -10,4 +10,4 @@ config APP_COMM
     select LIBPMC
     help
       PMC communication application.
-      Handles communication between satellite platform and ground station.
+      Handles communication between the platform and ground station.

@@ -282,13 +282,6 @@ static void test_pconfig_hw_get_mcu_second_entry(void)
 }
 
 /*===========================================================================
- * BMC Configuration Query Tests
- *===========================================================================*/
-
-
-
-
-/*===========================================================================
  * FPGA Configuration Query Tests
  *===========================================================================*/
 
@@ -512,8 +505,6 @@ static const test_case_t test_cases[] = {
     { .name = "test_pconfig_hw_get_mcu_invalid_id", .func = test_pconfig_hw_get_mcu_invalid_id, .setup = NULL, .teardown = NULL },
     { .name = "test_pconfig_hw_get_mcu_null_platform", .func = test_pconfig_hw_get_mcu_null_platform, .setup = NULL, .teardown = NULL },
     { .name = "test_pconfig_hw_get_mcu_second_entry", .func = test_pconfig_hw_get_mcu_second_entry, .setup = NULL, .teardown = NULL },
-
-    /* BMC Query */
 
     /* FPGA Query */
     { .name = "test_pconfig_hw_get_fpga_by_id", .func = test_pconfig_hw_get_fpga_by_id, .setup = NULL, .teardown = NULL },

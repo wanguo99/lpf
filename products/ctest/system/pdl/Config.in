@@ -14,7 +14,7 @@ config TEST_SYSTEM_PDL_MULTIDEVICE
 	  Concurrent operations across multiple PDL devices.
 
 	  Tests:
-	    - Simultaneous MCU, BMC, Satellite commands
+	    - Simultaneous MCU and PMC commands
 	    - Interleaved command/response sequences
 	    - Device priority handling
 	    - Concurrent telemetry collection
@@ -64,7 +64,7 @@ config TEST_SYSTEM_PDL_BUS_SHARING
 	  Multiple PDL devices sharing same physical bus.
 
 	  Tests:
-	    - CAN bus with MCU + BMC + Satellite
+	    - CAN/Ethernet buses with MCU + PMC
 	    - Serial bus with multiple devices
 	    - Bus arbitration fairness
 	    - Collision detection and recovery

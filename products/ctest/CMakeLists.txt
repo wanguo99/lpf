@@ -145,9 +145,8 @@ if(CONFIG_TEST_UNIT)
             MODULE pdl
             LIBRARY pdl
             INCLUDE_DIRS
-                ${SDK_PATH}/core/pdl/src/pdl_bmc
                 ${SDK_PATH}/core/pdl/src/pdl_mcu
-                ${SDK_PATH}/core/pdl/src/pdl_satellite
+                ${SDK_PATH}/core/pdl/src/pdl_pmc
         )
     endif()
 

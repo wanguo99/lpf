@@ -628,8 +628,6 @@ typedef struct {
 - `PRL_DEV_TYPE_PMC` - 载荷管理器
 - `PRL_DEV_TYPE_GSC` - 地面站控制器
 - `PRL_DEV_TYPE_POWER` - 电源板
-- `PRL_DEV_TYPE_SATELLITE` - 卫星平台（不使用 PRL）
-- `PRL_DEV_TYPE_BMC` - 基板管理控制器（不使用 PRL）
 
 ### 文件组织
 

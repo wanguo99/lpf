@@ -10,4 +10,4 @@ config APP_COLLECTOR
     select LIBPMC
     help
       PMC data collector application.
-      Collects telemetry data from satellite and stores locally.
+      Collects telemetry data from the platform and stores locally.

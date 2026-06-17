@@ -68,8 +68,6 @@ CONFIG_HAL_UART_LINUX=y
 
 # PDL Sub-modules - PMC Required
 CONFIG_PDL_MCU_SUPPORT=y
-# CONFIG_PDL_SATELLITE_SUPPORT is not set
-# CONFIG_PDL_BMC_SUPPORT is not set
 # CONFIG_PDL_PMC_SUPPORT is not set
 
 # PDL MCU Drivers

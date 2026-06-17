@@ -77,7 +77,7 @@ config PRODUCT_PMC
 	help
 	  Build PMC (Central Control Module) product.
 
-	  PMC is a satellite payload control and data management system
+	  PMC is a payload control and data management system
 	  designed for H200 platform with AM625 SoC.
 
 	  This will build:
@@ -1242,16 +1242,6 @@ config SANITY_ERROR_HAL_GPIO_NO_PLATFORM
 # ============================================================================
 # PDL Subsystem Dependency Checks
 # ============================================================================
-
-config SANITY_ERROR_PDL_SATELLITE_NO_HAL_CAN
-	def_bool y
-	depends on PDL_SATELLITE_SUPPORT && !HAL_CAN
-	prompt "ERROR: PDL_SATELLITE_SUPPORT requires HAL_CAN to be enabled"
-
-config SANITY_ERROR_PDL_BMC_NO_HAL_UART
-	def_bool y
-	depends on PDL_BMC_SUPPORT && !HAL_UART
-	prompt "ERROR: PDL_BMC_SUPPORT requires HAL_UART to be enabled"
 
 config SANITY_ERROR_PDL_MCU_CAN_NO_HAL_CAN
 	def_bool y

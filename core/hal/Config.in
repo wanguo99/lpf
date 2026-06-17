@@ -121,7 +121,7 @@ menuconfig HAL_CAN
 	  Use cases:
 	  - Automotive communication
 	  - Industrial automation
-	  - Satellite platform communication (1553B over CAN)
+	  - Embedded platform communication over CAN
 
 	  Platform support:
 	  - Linux: SocketCAN interface

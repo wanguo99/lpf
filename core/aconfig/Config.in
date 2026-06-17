@@ -20,9 +20,9 @@ menuconfig ACONFIG
 	  requests into PDL peripheral operations.
 
 	  Example:
-	  - Application: "Get temperature from thermal sensor #3"
-	  - ACONFIG: Maps sensor #3 to satellite module 0x05, channel 2
-	  - PDL: Reads data from satellite via CAN bus
+	  - Application: "Reset controller #1"
+	  - ACONFIG: Maps the command to MCU index 0, command 0x01
+	  - PDL: Sends the controller command through the MCU driver
 	  - HAL: Performs low-level CAN communication
 
 	  Memory footprint: ~20KB code + configuration tables
@@ -102,11 +102,11 @@ config ACONFIG_MAX_DEVICES
 
 	  Examples:
 	  - Simple sensor node: 8-16 devices
-	  - Satellite payload: 32-64 devices
+	  - Standard payload: 32-64 devices
 	  - Complex industrial system: 128-256 devices
 
 	  Note: Set this to the maximum number of physical devices
-	  (sensors, actuators, etc.) your system will manage.
+	  (controllers, switches, endpoints, etc.) your system will manage.
 
 endmenu
 

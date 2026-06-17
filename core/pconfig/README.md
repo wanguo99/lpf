@@ -36,7 +36,6 @@ PCONFIG_HW_GetSwitch(platform, index);
 PCONFIG_HW_GetPMC(platform, index);
 ```
 
-There is no active BMC PCONFIG/PDL abstraction in the current code. Older BMC examples were removed from runtime product configuration docs to avoid implying support that is not implemented.
 
 ## PMC Runtime Flow
 
