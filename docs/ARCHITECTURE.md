@@ -66,7 +66,6 @@ ES-Middleware 采用经典的分层架构，从下到上依次为：
 - **I2C 总线**：基于 i2c-dev，支持 7/10 位地址
 - **SPI 总线**：基于 spidev，支持 MODE 0-3
 - **GPIO**：数字 I/O 控制
-- **Watchdog**：看门狗服务
 
 **设计特点**：
 - 平台隔离（`src/linux/`、`src/rtems/` 等）

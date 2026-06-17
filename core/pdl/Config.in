@@ -25,7 +25,6 @@ menuconfig PDL
 	  - Satellite modules (CAN-based distributed I/O)
 	  - BMC (Baseboard Management Controller)
 	  - MCU modules (microcontroller peripherals)
-	  - Watchdog management
 
 	  Dependencies: OSAL, HAL, PCONFIG
 

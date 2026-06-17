@@ -24,14 +24,6 @@ static void test_perf_mcu_status_query(void) {
 }
 
 /**
- * 测试Watchdog喂狗性能
- */
-static void test_perf_watchdog_kick(void) {
-    // TODO: 实现Watchdog喂狗性能测试
-    OSAL_printf("[ INFO ] Watchdog kick performance test - not implemented yet\n");
-}
-
-/**
  * 测试卫星遥测采集性能
  */
 static void test_perf_satellite_telemetry(void) {
@@ -52,12 +44,6 @@ static const test_case_t test_cases[] = {
 	{
 		.name = "test_perf_mcu_status_query",
 		.func = test_perf_mcu_status_query,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_perf_watchdog_kick",
-		.func = test_perf_watchdog_kick,
 		.setup = NULL,
 		.teardown = NULL
 	},

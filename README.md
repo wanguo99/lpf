@@ -389,7 +389,7 @@ es-middleware-test --all --format junit --output report.xml
 **内存占用**: ~5KB (最小) ~ 50KB (完整)
 
 ### HAL (硬件抽象层)
-提供统一的硬件驱动接口：CAN、UART、I2C、SPI、GPIO、Watchdog。
+提供统一的硬件驱动接口：CAN、UART、I2C、SPI、GPIO。
 
 **内存占用**: ~5KB (单驱动) ~ 50KB (全驱动)
 

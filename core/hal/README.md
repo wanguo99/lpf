@@ -74,7 +74,6 @@ CONFIG_HAL_UART=y         # 启用 UART 驱动
 CONFIG_HAL_I2C=y          # 启用 I2C 驱动
 CONFIG_HAL_SPI=y          # 启用 SPI 驱动
 CONFIG_HAL_GPIO=y         # 启用 GPIO 驱动
-CONFIG_HAL_WATCHDOG=y     # 启用看门狗驱动
 ```
 
 编译输出：

@@ -37,11 +37,6 @@ if(CONFIG_HAL_GPIO)
     message(STATUS "  [HAL] GPIO driver enabled")
 endif()
 
-if(CONFIG_HAL_WATCHDOG)
-    list(APPEND HAL_SRCS "src/${HAL_PLATFORM_DIR}/hal_watchdog_linux.c")
-    message(STATUS "  [HAL] Watchdog driver enabled")
-endif()
-
 # 验证至少有一个驱动被启用
 if(NOT HAL_SRCS)
     message(FATAL_ERROR "HAL: No drivers enabled. Please enable at least one driver in menuconfig.")

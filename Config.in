@@ -1263,11 +1263,6 @@ config SANITY_ERROR_PDL_MCU_UART_NO_HAL_UART
 	depends on PDL_MCU_UART_SUPPORT && !HAL_UART
 	prompt "ERROR: PDL_MCU_UART_SUPPORT requires HAL_UART to be enabled"
 
-config SANITY_ERROR_PDL_WATCHDOG_NO_HAL
-	def_bool y
-	depends on PDL_WATCHDOG_SUPPORT && !HAL_WATCHDOG
-	prompt "ERROR: PDL_WATCHDOG_SUPPORT requires HAL_WATCHDOG to be enabled"
-
 # ============================================================================
 # PRL Protocol Dependency Checks
 # ============================================================================

@@ -48,18 +48,10 @@ if(CONFIG_PDL_MCU_SUPPORT)
     message(STATUS "  [PDL] MCU peripheral support enabled")
 endif()
 
-# =============================================================================
-# Watchdog 外设支持（根据 Kconfig 配置）
-# =============================================================================
-if(CONFIG_PDL_WATCHDOG_SUPPORT)
-    list(APPEND PDL_SRCS "src/pdl_watchdog.c")
-    message(STATUS "  [PDL] Watchdog peripheral support enabled")
-endif()
-
 # 验证至少有一个外设被启用
 if(NOT PDL_SRCS)
     message(WARNING "PDL: No peripheral support enabled. Skipping PDL build.")
-    message(WARNING "  Enable at least one of: PDL_SATELLITE_SUPPORT, PDL_BMC_SUPPORT, PDL_MCU_SUPPORT, PDL_WATCHDOG_SUPPORT")
+    message(WARNING "  Enable at least one of: PDL_SATELLITE_SUPPORT, PDL_BMC_SUPPORT, PDL_MCU_SUPPORT")
 else()
     list(LENGTH PDL_SRCS PDL_FILE_COUNT)
     message(STATUS "  [PDL] Total ${PDL_FILE_COUNT} source files selected")

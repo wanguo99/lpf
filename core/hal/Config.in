@@ -17,7 +17,6 @@ menuconfig HAL
 	  - I2C (Inter-Integrated Circuit)
 	  - SPI (Serial Peripheral Interface)
 	  - GPIO (General Purpose I/O)
-	  - Watchdog timer
 
 	  Memory footprint: ~5KB (minimal) ~ 50KB (all drivers)
 
@@ -49,7 +48,6 @@ config PLATFORM_LINUX
 	  - /dev/ttyX for UART/serial
 	  - /dev/i2c-X for I2C bus
 	  - /dev/spidevX.Y for SPI bus
-	  - /dev/watchdog for watchdog timer
 
 	  Suitable for: Any Linux system with standard kernel drivers
 	  Examples: AM625, i.MX6/8, Raspberry Pi, x86 Linux
