@@ -9,11 +9,41 @@
 
 #include "osal.h"
 #include "hal.h"
+#include "pconfig.h"
 #include "pdl.h"
 #include "pdl_satellite_internal.h"
 
 /**
- * @brief 初始化卫星CAN通信
+ * @brief 初始化卫星CAN通信（适配 ops 接口）
+ */
+static int32_t satellite_can_init_ops(const void *config, void **handle)
+{
+    const pconfig_satellite_can_config_t *can_cfg = (const pconfig_satellite_can_config_t *)config;
+    hal_can_config_t can_config;
+    hal_can_handle_t can_handle;
+
+    if (NULL == config || NULL == handle)
+    {
+        return OSAL_ERR_GENERIC;
+    }
+
+    /* 打开CAN设备 */
+    can_config.interface = can_cfg->device;
+    can_config.baudrate = can_cfg->bitrate;
+    can_config.rx_timeout = can_cfg->rx_timeout_ms;
+    can_config.tx_timeout = can_cfg->tx_timeout_ms;
+
+    if (OSAL_SUCCESS != HAL_CAN_init(&can_config, &can_handle))
+    {
+        return OSAL_ERR_GENERIC;
+    }
+
+    *handle = can_handle;
+    return OSAL_SUCCESS;
+}
+
+/**
+ * @brief 初始化卫星CAN通信（旧接口，保持向后兼容）
  */
 int32_t satellite_can_init(const char *device, uint32_t bitrate, void **handle)
 {
@@ -164,3 +194,15 @@ int32_t satellite_can_send_response(void *handle, uint8_t seq_num, uint8_t statu
 
     return satellite_can_send(handle, &msg);
 }
+
+/*
+ * CAN 接口的 ops 结构定义（导出供 pdl_satellite.c 使用）
+ */
+const pdl_satellite_ops_t satellite_can_ops = {
+	.init = satellite_can_init_ops,
+	.deinit = satellite_can_deinit,
+	.recv = satellite_can_recv,
+	.send = satellite_can_send,
+	.send_heartbeat = satellite_can_send_heartbeat,
+	.send_response = satellite_can_send_response,
+};

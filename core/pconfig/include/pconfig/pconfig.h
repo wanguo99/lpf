@@ -24,6 +24,9 @@
 #include "pconfig_bmc.h"       /* BMC 配置类型 */
 #include "pconfig_fpga.h"      /* FPGA 配置类型 */
 #include "pconfig_switch.h"    /* Switch 配置类型 */
+#include "pconfig_satellite.h" /* Satellite 配置类型 */
+#include "pconfig_ccm.h"       /* CCM 配置类型 */
+#include "pconfig_watchdog.h"  /* Watchdog 配置类型 */
 #include "pconfig_platform.h"  /* 板级配置类型 */
 
 /*===========================================================================
@@ -156,6 +159,57 @@ PCONFIG_HW_GetSwitch(const pconfig_platform_config_t *platform, uint32_t index)
 		return NULL;
 	}
 	return &platform->switch_array[index];
+}
+
+/**
+ * @brief 根据索引获取Satellite外设配置
+ *
+ * @param[in] platform 平台配置
+ * @param[in] index Satellite索引（数组下标）
+ *
+ * @return Satellite配置条目指针，失败返回NULL
+ */
+static inline const pconfig_satellite_entry_t*
+PCONFIG_HW_GetSatellite(const pconfig_platform_config_t *platform, uint32_t index)
+{
+	if (!platform || !platform->satellite_array || index >= platform->satellite_count) {
+		return NULL;
+	}
+	return &platform->satellite_array[index];
+}
+
+/**
+ * @brief 根据索引获取CCM外设配置
+ *
+ * @param[in] platform 平台配置
+ * @param[in] index CCM索引（数组下标）
+ *
+ * @return CCM配置条目指针，失败返回NULL
+ */
+static inline const pconfig_ccm_entry_t*
+PCONFIG_HW_GetCCM(const pconfig_platform_config_t *platform, uint32_t index)
+{
+	if (!platform || !platform->ccm_array || index >= platform->ccm_count) {
+		return NULL;
+	}
+	return &platform->ccm_array[index];
+}
+
+/**
+ * @brief 根据索引获取Watchdog外设配置
+ *
+ * @param[in] platform 平台配置
+ * @param[in] index Watchdog索引（数组下标）
+ *
+ * @return Watchdog配置条目指针，失败返回NULL
+ */
+static inline const pconfig_watchdog_entry_t*
+PCONFIG_HW_GetWatchdog(const pconfig_platform_config_t *platform, uint32_t index)
+{
+	if (!platform || !platform->watchdog_array || index >= platform->watchdog_count) {
+		return NULL;
+	}
+	return &platform->watchdog_array[index];
 }
 
 /*===========================================================================

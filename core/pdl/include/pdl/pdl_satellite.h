@@ -54,7 +54,7 @@ typedef void* pdl_satellite_handle_t;
 typedef void (*pdl_satellite_cmd_callback_t)(uint8_t cmd_type, uint32_t param, void *user_data);
 
 /**
- * @brief 初始化卫星平台服务
+ * @brief 初始化卫星平台服务（旧接口，保持向后兼容）
  *
  * @param[in] config 配置参数
  * @param[out] handle 服务句柄
@@ -64,6 +64,23 @@ typedef void (*pdl_satellite_cmd_callback_t)(uint8_t cmd_type, uint32_t param, v
  */
 int32_t PDL_SATELLITE_init(const pdl_satellite_config_t *config,
                          pdl_satellite_handle_t *handle);
+
+/**
+ * @brief 初始化卫星平台服务（从 PCONFIG 获取配置）
+ *
+ * @param[in] index Satellite设备索引（从 PCONFIG 获取配置）
+ * @param[out] handle 服务句柄
+ *
+ * @return OSAL_SUCCESS 成功
+ * @return OSAL_ERR_GENERIC 失败
+ *
+ * @note 函数内部会：
+ *       1. 调用 PCONFIG_GetBoard() 获取平台配置
+ *       2. 调用 PCONFIG_HW_GetSatellite(platform, index) 获取 Satellite 配置
+ *       3. 检查配置是否启用
+ *       4. 根据接口类型初始化通信（CAN/Ethernet）
+ */
+int32_t PDL_SATELLITE_init_from_pconfig(uint32_t index, pdl_satellite_handle_t *handle);
 
 /**
  * @brief 反初始化卫星平台服务
