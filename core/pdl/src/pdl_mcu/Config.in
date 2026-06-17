@@ -2,89 +2,29 @@
 
 if PDL_MCU_SUPPORT
 
-config PDL_MCU_CAN_SUPPORT
-	bool "MCU peripheral via CAN"
-	default y
-	select HAL_CAN
-	select OSAL_NETWORK
-	help
-	  Enable MCU peripheral support via CAN bus.
-
-	  CAN-based MCU communication provides:
-	  - Multi-drop network (multiple MCUs on one bus)
-	  - Robust error detection (CRC, bit stuffing)
-	  - Priority-based arbitration
-	  - Up to 1 Mbps data rate
-
-	  Memory footprint: ~6KB
-
-	  Use cases:
-	  - Automotive-style distributed control
-	  - Industrial automation networks
-	  - Systems with multiple MCU modules
-
-	  Dependencies: HAL_CAN, OSAL_NETWORK
-
-	  Recommended: Enable for CAN-based systems
-
-config PDL_MCU_UART_SUPPORT
-	bool "MCU peripheral via UART"
-	default n
-	select HAL_UART
-	select OSAL_NETWORK
-	help
-	  Enable MCU peripheral support via UART.
-
-	  UART-based MCU communication provides:
-	  - Simple point-to-point connection
-	  - Lower cost (no CAN transceiver needed)
-	  - Flexible baud rates
-	  - Easy debugging (can monitor with serial terminal)
-
-	  Memory footprint: ~5KB
-
-	  Use cases:
-	  - Single MCU module systems
-	  - Cost-sensitive designs
-	  - Debug and development
-
-	  Dependencies: HAL_UART, OSAL_NETWORK
-
-	  Recommended: Enable for UART-based systems
-
 menu "MCU Driver Configuration"
 
-config PDL_MCU
-	bool "MCU core driver"
-	default y if PDL_MCU_CAN_SUPPORT || PDL_MCU_UART_SUPPORT
+config PDL_MCU_MAX_DEVICES
+	int "Maximum number of MCU devices"
+	default 4
+	range 1 16
 	help
-	  Enable MCU core driver functions.
-	  Source: src/pdl_mcu/pdl_mcu.c
+	  Maximum number of MCU devices that can be managed simultaneously.
+	  Each device requires approximately 200 bytes of RAM.
 
-	  Automatically enabled when transport is selected.
-
-config PDL_MCU_CAN
-	bool "MCU CAN transport"
-	default y if PDL_MCU_CAN_SUPPORT
-	depends on HAL_CAN
+config PDL_MCU_CMD_TIMEOUT_MS
+	int "Default command timeout (ms)"
+	default 5000
+	range 100 60000
 	help
-	  Enable MCU CAN bus transport.
-	  Source: src/pdl_mcu/pdl_mcu_can.c
+	  Default timeout for MCU command execution in milliseconds.
 
-config PDL_MCU_SERIAL
-	bool "MCU serial transport"
-	default y if PDL_MCU_UART_SUPPORT
-	depends on HAL_UART
+config PDL_MCU_RETRY_COUNT
+	int "Default retry count"
+	default 3
+	range 0 10
 	help
-	  Enable MCU serial (UART) transport.
-	  Source: src/pdl_mcu/pdl_mcu_serial.c
-
-config PDL_MCU_PROTOCOL
-	bool "MCU protocol handler"
-	default y if PDL_MCU_CAN_SUPPORT || PDL_MCU_UART_SUPPORT
-	help
-	  Enable MCU communication protocol handler.
-	  Source: src/pdl_mcu/pdl_mcu_protocol.c
+	  Default number of retries for failed MCU commands.
 
 endmenu
 

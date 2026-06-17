@@ -115,16 +115,12 @@ int32_t PDL_MCU_init(uint32_t mcu_index, pdl_mcu_handle_t *handle)
 
 	/* 选择通信层 */
 	switch (entry->config.interface) {
-#ifdef PDL_MCU_CAN_SUPPORT
 	case PCONFIG_MCU_INTERFACE_CAN:
 		ops = &mcu_can_ops;
 		break;
-#endif
-#ifdef PDL_MCU_UART_SUPPORT
 	case PCONFIG_MCU_INTERFACE_SERIAL:
 		ops = &mcu_serial_ops;
 		break;
-#endif
 	default:
 		return OSAL_ERR_GENERIC;
 	}

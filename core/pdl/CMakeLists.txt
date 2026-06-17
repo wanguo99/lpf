@@ -60,14 +60,6 @@ endif()
 #### Add compile option for this component ####
 if(CONFIG_PDL_MCU_SUPPORT)
     list(APPEND ADD_DEFINITIONS -DPDL_MCU_SUPPORT=1)
-
-    if(CONFIG_PDL_MCU_CAN_SUPPORT)
-        list(APPEND ADD_DEFINITIONS -DPDL_MCU_CAN_SUPPORT=1)
-    endif()
-
-    if(CONFIG_PDL_MCU_UART_SUPPORT)
-        list(APPEND ADD_DEFINITIONS -DPDL_MCU_UART_SUPPORT=1)
-    endif()
 endif()
 
 if(CONFIG_PDL_CCM_SUPPORT)
