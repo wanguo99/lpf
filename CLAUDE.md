@@ -19,12 +19,12 @@ ES-Middleware (Embedded Software - Middleware) 是一个采用 **Kconfig + CMake
 ## 快速开始
 
 ```bash
-# 1. 编译 CCM 产品（调试版本）
-make ccm_h200_100p_am625_debug_defconfig
+# 1. 编译 PMC 产品（调试版本）
+make pmc_h200_100p_am625_debug_defconfig
 make
 
 # 2. 运行应用
-./_build/bin/ccm_collector
+./_build/bin/pmc_collector
 
 # 3. 运行测试（统一测试程序）
 make tests_x86_full_defconfig  # 或其他 tests_* 配置
@@ -38,7 +38,7 @@ make
 
 ```bash
 # 1. 加载预定义配置
-make tests_x86_minimal_defconfig    # 或其他配置，例如：ccm_h200_100p_am625_debug_defconfig
+make tests_x86_minimal_defconfig    # 或其他配置，例如：pmc_h200_100p_am625_debug_defconfig
 
 # 2. 编译项目（自动并行构建）
 make
@@ -82,14 +82,14 @@ ES-Middleware/
 │   ├── pdl/               # 外设驱动层
 │   └── prl/               # 协议层（统一设备协议）
 ├── products/              # 产品应用（特定产品的实现）
-│   └── ccm/              # CCM 产品（通信管理板）
+│   └── pmc/              # PMC 产品（通信管理板）
 │       ├── apps/         # 应用程序（collector、logger、health、supervisor、comm）
-│       ├── libs/         # 产品库（libccm）
-│       ├── osal/         # CCM 特定的 OSAL 实现
-│       ├── hal/          # CCM 特定的 HAL 实现
-│       ├── pdl/          # CCM 特定的 PDL 实现
-│       ├── prl/          # CCM 特定的 PRL 实现
-│       ├── pconfig/      # CCM 特定的 PCONFIG 实现
+│       ├── libs/         # 产品库（libpmc）
+│       ├── osal/         # PMC 特定的 OSAL 实现
+│       ├── hal/          # PMC 特定的 HAL 实现
+│       ├── pdl/          # PMC 特定的 PDL 实现
+│       ├── prl/          # PMC 特定的 PRL 实现
+│       ├── pconfig/      # PMC 特定的 PCONFIG 实现
 │       └── configs/      # 平台配置（H200 AM625）
 ├── tests/                 # 测试代码
 │   └── core/             # 核心模块测试
@@ -108,7 +108,7 @@ ES-Middleware/
 ### 模块依赖关系
 
 ```
-products/ccm/apps/*  →  libccm  →  core/aconfig  →  core/pconfig  →  core/pdl  →  core/prl  →  core/hal  →  core/osal
+products/pmc/apps/*  →  libpmc  →  core/aconfig  →  core/pconfig  →  core/pdl  →  core/prl  →  core/hal  →  core/osal
 ```
 
 **重要规则**:
@@ -155,9 +155,9 @@ products/ccm/apps/*  →  libccm  →  core/aconfig  →  core/pconfig  →  cor
 
 ### 可用配置
 
-#### 产品配置（configs/ccm/）
-- `ccm_h200_100p_am625_debug_defconfig` - CCM H200-100P-AM625 调试版本（包含所有调试功能）
-- `ccm_h200_100p_am625_release_defconfig` - CCM H200-100P-AM625 发布版本（优化配置，禁用测试）
+#### 产品配置（configs/pmc/）
+- `pmc_h200_100p_am625_debug_defconfig` - PMC H200-100P-AM625 调试版本（包含所有调试功能）
+- `pmc_h200_100p_am625_release_defconfig` - PMC H200-100P-AM625 发布版本（优化配置，禁用测试）
 
 #### x86_64 测试配置（configs/tests/）
 - `tests_x86_full_defconfig` - 全栈测试（所有模块、所有功能）
@@ -256,7 +256,7 @@ CONFIG_ACONFIG=y           # 应用配置层
 
 # PRL 协议层（按设备类型组织）
 CONFIG_PRL_MCU=y           # MCU 设备协议
-CONFIG_PRL_CCM=y           # CCM 设备协议
+CONFIG_PRL_PMC=y           # PMC 设备协议
 CONFIG_PRL_PMC=y           # PMC 设备协议
 CONFIG_PRL_GSC=y           # GSC 设备协议
 CONFIG_PRL_POWER=y         # POWER 设备协议
@@ -390,7 +390,7 @@ CONFIG_HAL=y
 CONFIG_PDL=y
 CONFIG_PRL=y
 CONFIG_PRL_MCU=y
-CONFIG_PRL_CCM=y
+CONFIG_PRL_PMC=y
 CONFIG_BUILD_TESTING=y
 CONFIG_ARCH_X86_64=y
 CONFIG_BUILD_TYPE="debug"
@@ -400,13 +400,13 @@ CONFIG_BUILD_TYPE="debug"
 
 ```bash
 # 加载配置
-make ccm_h200_100p_am625_debug_defconfig
+make pmc_h200_100p_am625_debug_defconfig
 
 # 修改配置（图形界面）
 make menuconfig
 
 # 保存配置（覆盖原 defconfig）
-make savedefconfig ccm_h200_100p_am625_debug_defconfig
+make savedefconfig pmc_h200_100p_am625_debug_defconfig
 
 # 或保存为新配置
 make savedefconfig my_variant_defconfig
@@ -624,7 +624,7 @@ typedef struct {
 ### 设备类型
 
 - `PRL_DEV_TYPE_MCU` - 微控制器
-- `PRL_DEV_TYPE_CCM` - 通信管理板
+- `PRL_DEV_TYPE_PMC` - 通信管理板
 - `PRL_DEV_TYPE_PMC` - 载荷管理器
 - `PRL_DEV_TYPE_GSC` - 地面站控制器
 - `PRL_DEV_TYPE_POWER` - 电源板
@@ -642,7 +642,7 @@ core/prl/
 │   ├── prl_common.h       # 通用定义（内部）
 │   ├── prl_device.h       # 设备消息定义（内部）
 │   ├── prl_mcu.h          # MCU 设备协议定义
-│   ├── prl_ccm.h          # CCM 设备协议定义
+│   ├── prl_pmc.h          # PMC 设备协议定义
 │   ├── prl_pmc.h          # PMC 设备协议定义
 │   ├── prl_gsc.h          # GSC 设备协议定义
 │   └── prl_power.h        # POWER 设备协议定义
@@ -847,19 +847,19 @@ int main(void)
 
 ### 添加新的产品应用程序
 
-示例：在 CCM 产品下添加新的应用程序
+示例：在 PMC 产品下添加新的应用程序
 
 **1. 创建应用目录**
 ```bash
-mkdir -p products/ccm/apps/myapp
+mkdir -p products/pmc/apps/myapp
 ```
 
 **2. 添加 Config.in 配置**
 ```bash
-# 编辑 products/ccm/apps/Kconfig
-config CCM_APP_MYAPP
+# 编辑 products/pmc/apps/Kconfig
+config PMC_APP_MYAPP
     bool "MyApp application"
-    depends on CCM
+    depends on PMC
     default n
     help
       Description of MyApp.
@@ -867,19 +867,19 @@ config CCM_APP_MYAPP
 
 **3. 创建 CMakeLists.txt**
 ```cmake
-# products/ccm/apps/myapp/CMakeLists.txt
-if(NOT CONFIG_CCM_APP_MYAPP)
+# products/pmc/apps/myapp/CMakeLists.txt
+if(NOT CONFIG_PMC_APP_MYAPP)
     return()
 endif()
 
-add_executable(ccm_myapp
+add_executable(pmc_myapp
     main.c
     myapp_task.c
 )
 
 # 链接依赖库
-target_link_libraries(ccm_myapp PRIVATE
-    ccm          # CCM 产品库
+target_link_libraries(pmc_myapp PRIVATE
+    pmc          # PMC 产品库
     aconfig      # 应用配置层
     pconfig      # 平台配置层
     pdl          # 外设驱动层
@@ -889,40 +889,40 @@ target_link_libraries(ccm_myapp PRIVATE
 )
 
 # 头文件路径
-target_include_directories(ccm_myapp PRIVATE
+target_include_directories(pmc_myapp PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 # 安装
-install(TARGETS ccm_myapp
+install(TARGETS pmc_myapp
     RUNTIME DESTINATION bin
 )
 ```
 
 **4. 在父 CMakeLists.txt 中添加**
 ```cmake
-# 编辑 products/ccm/apps/CMakeLists.txt，添加：
+# 编辑 products/pmc/apps/CMakeLists.txt，添加：
 add_subdirectory(myapp)
 ```
 
 **5. 实现应用程序**
 ```c
-/* products/ccm/apps/myapp/main.c */
+/* products/pmc/apps/myapp/main.c */
 #include "autoconf.h"
 #include "osal.h"
-#include "ccm.h"
+#include "pmc.h"
 
 int main(int argc, char *argv[])
 {
     /* 初始化 */
     OSAL_Init();
-    CCM_Init();
+    PMC_Init();
     
     /* 应用逻辑 */
     printf("MyApp running...\n");
     
     /* 清理 */
-    CCM_Cleanup();
+    PMC_Cleanup();
     OSAL_Cleanup();
     
     return 0;
@@ -932,11 +932,11 @@ int main(int argc, char *argv[])
 **6. 配置并构建**
 ```bash
 make menuconfig
-# 导航到 "Products" -> "CCM Applications" -> "MyApp"
+# 导航到 "Products" -> "PMC Applications" -> "MyApp"
 # 启用后保存
 
 make
-./_build/bin/ccm_myapp
+./_build/bin/pmc_myapp
 ```
 
 ### 添加单元测试
@@ -1088,15 +1088,15 @@ endif()
 # 完整配置
 make tests_x86_full_defconfig
 make
-ls -lh _build/bin/ccm_collector
+ls -lh _build/bin/pmc_collector
 
 # 最小化配置
 make minimal_defconfig
 make
-ls -lh _build/bin/ccm_collector
+ls -lh _build/bin/pmc_collector
 
 # 分析符号大小
-nm --size-sort --radix=d _build/bin/ccm_collector | tail -20
+nm --size-sort --radix=d _build/bin/pmc_collector | tail -20
 ```
 
 ### 交叉编译（ARM64 目标）
@@ -1127,7 +1127,7 @@ set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 **3. 配置交叉编译**
 ```bash
 # 加载 ARM64 配置
-make ccm_h200_100p_am625_release_defconfig
+make pmc_h200_100p_am625_release_defconfig
 
 # 使用工具链文件构建
 cmake -B _build-arm64 \
@@ -1135,17 +1135,17 @@ cmake -B _build-arm64 \
 cmake --build _build-arm64 -j$(nproc)
 
 # 检查二进制架构
-file _build-arm64/bin/ccm_collector
+file _build-arm64/bin/pmc_collector
 # 输出：ELF 64-bit LSB executable, ARM aarch64, ...
 ```
 
 **4. 部署到目标**
 ```bash
 # 通过 scp 传输
-scp _build-arm64/bin/ccm_collector root@target:/usr/bin/
+scp _build-arm64/bin/pmc_collector root@target:/usr/bin/
 
 # 或打包为 tarball
-tar -czf ccm-arm64.tar.gz -C _build-arm64/bin .
+tar -czf pmc-arm64.tar.gz -C _build-arm64/bin .
 ```
 
 ### 调试构建问题
@@ -1253,7 +1253,7 @@ grep "kconfig_load" CMakeLists.txt
 
 1. **未运行配置命令**
    ```bash
-   make ccm_h200_100p_am625_debug_defconfig
+   make pmc_h200_100p_am625_debug_defconfig
    ```
 
 2. **CMakeLists.txt 未调用 kconfig_load()**
@@ -1446,7 +1446,7 @@ make -- VERBOSE=1
 make 2>&1 | grep "undefined reference"
 
 # 3. 检查是否缺少依赖库
-ldd _build/bin/ccm_collector
+ldd _build/bin/pmc_collector
 ```
 
 **可能原因和解决方案**：
@@ -1546,7 +1546,7 @@ make menuconfig
 
 # 3. 选择配置
 # - 开发测试: tests_arm64_full_defconfig
-# - 生产部署: ccm_h200_100p_am625_release_defconfig
+# - 生产部署: pmc_h200_100p_am625_release_defconfig
 
 # 4. 构建
 make es-middleware

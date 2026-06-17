@@ -132,15 +132,15 @@ config TEST_SYSTEM_PDL_TELEMETRY
 	  Tags: integration, telemetry
 	  Test file: test_system_pdl_telemetry.c
 
-config TEST_SYSTEM_PDL_CCM
-	bool "CCM device integration tests"
+config TEST_SYSTEM_PDL_PMC
+	bool "PMC device integration tests"
 	default y
-	depends on PDL_CCM_SUPPORT
+	depends on PDL_PMC_SUPPORT
 	help
-	  Comprehensive CCM communication driver integration tests.
+	  Comprehensive PMC communication driver integration tests.
 
 	  Tests:
-	    - CCM initialization and basic communication
+	    - PMC initialization and basic communication
 	    - Telemetry data transmission
 	    - Telecommand handling
 	    - Node management operations
@@ -150,7 +150,7 @@ config TEST_SYSTEM_PDL_CCM
 	    - Callback registration and invocation
 
 	  Verifies:
-	    - CCM driver initialization with Ethernet interface
+	    - PMC driver initialization with Ethernet interface
 	    - Telemetry/command callback mechanism
 	    - Node start/stop/restart operations
 	    - Power on/off/query commands
@@ -160,10 +160,10 @@ config TEST_SYSTEM_PDL_CCM
 	    - Proper cleanup and deinitialization
 
 	  Runtime: 5-10 seconds
-	  Hardware: CCM device or mock interface
-	  Dependencies: CONFIG_PDL_CCM_SUPPORT
-	  Tags: integration, ccm, telemetry, command
-	  Test file: test_system_pdl_ccm.c
+	  Hardware: PMC device or mock interface
+	  Dependencies: CONFIG_PDL_PMC_SUPPORT
+	  Tags: integration, pmc, telemetry, command
+	  Test file: test_system_pdl_pmc.c
 
 endmenu
 

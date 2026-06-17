@@ -272,11 +272,11 @@ void PCONFIG_print(const pconfig_platform_config_t *config)
         }
     }
 
-    /* 打印CCM配置 */
-    if (config->ccm_array) {
-        for (i = 0; i < config->ccm_count; i++) {
-            LOG_INFO("PCONFIG", "  CCM[%u]: %s", i,
-                     config->ccm_array[i].description ? config->ccm_array[i].description : "N/A");
+    /* 打印PMC配置 */
+    if (config->pmc_array) {
+        for (i = 0; i < config->pmc_count; i++) {
+            LOG_INFO("PCONFIG", "  PMC[%u]: %s", i,
+                     config->pmc_array[i].description ? config->pmc_array[i].description : "N/A");
         }
     }
 }

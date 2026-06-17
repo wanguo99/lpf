@@ -14,7 +14,7 @@
 #include "pconfig_mcu.h"
 #include "pconfig_fpga.h"
 #include "pconfig_switch.h"
-#include "pconfig_ccm.h"
+#include "pconfig_pmc.h"
 
 /*===========================================================================
  * 板级配置（顶层）
@@ -24,7 +24,7 @@
  * @brief 板级硬件配置
  *
  * 这是顶层配置结构，以外设为单位描述整个板子的硬件配置
- * 只包含纯硬件外设：MCU、FPGA、Switch、CCM
+ * 只包含纯硬件外设：MCU、FPGA、Switch、PMC
  *
  * 设计说明：
  * - 使用计数器+直接数组指针模式
@@ -48,8 +48,8 @@ typedef struct {
 	uint32_t switch_count;		/* Switch外设数量 */
 	pconfig_switch_cfg_t *switch_array; /* Switch外设数组 */
 
-	uint32_t ccm_count;		/* CCM外设数量 */
-	pconfig_ccm_entry_t *ccm_array;	/* CCM外设数组 */
+	uint32_t pmc_count;		/* PMC外设数量 */
+	pconfig_pmc_entry_t *pmc_array;	/* PMC外设数组 */
 } pconfig_platform_config_t;
 
 #endif /* PCONFIG_PLATFORM_H */

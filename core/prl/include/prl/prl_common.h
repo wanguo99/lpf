@@ -28,8 +28,7 @@
 
 typedef enum {
 	PRL_DEV_TYPE_MCU = 0x01,
-	PRL_DEV_TYPE_CCM = 0x02,
-	PRL_DEV_TYPE_PMC = 0x03,
+	PRL_DEV_TYPE_PMC = 0x02,
 	PRL_DEV_TYPE_GSC = 0x04,
 	PRL_DEV_TYPE_POWER = 0x05
 } prl_dev_type_t;

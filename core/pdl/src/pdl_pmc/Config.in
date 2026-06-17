@@ -1,0 +1,64 @@
+# PDL_PMC (Communication Control Module) Configuration
+
+if PDL_PMC_SUPPORT
+
+config PDL_PMC_MAX_MSG_SIZE
+	int "Maximum PMC message size (bytes)"
+	default 4096
+	range 256 65536
+	help
+	  Maximum size of a single PMC message payload.
+
+	  This defines the buffer size for sending and receiving messages.
+	  Larger values allow bigger messages but consume more memory.
+
+	  Typical values:
+	  - 1024: Small control messages
+	  - 4096: Standard messages (default)
+	  - 16384: Large data transfers
+
+	  Memory impact: 2 * MAX_MSG_SIZE per PMC instance
+	  (one buffer for TX, one for RX)
+
+config PDL_PMC_DEFAULT_TIMEOUT_MS
+	int "Default PMC timeout (milliseconds)"
+	default 5000
+	range 100 60000
+	help
+	  Default timeout for PMC send/receive operations.
+
+	  This timeout applies to both TCP connect and data transfer.
+	  Can be overridden per-instance via configuration.
+
+	  Typical values:
+	  - 1000: Fast local network
+	  - 5000: Standard network (default)
+	  - 10000: Slow or congested network
+
+config PDL_PMC_AUTO_RECONNECT
+	bool "Enable automatic reconnection"
+	default y
+	help
+	  Automatically attempt to reconnect when connection is lost.
+
+	  When enabled, PMC will periodically try to re-establish
+	  connection to the PMC if the link goes down.
+
+	  Reconnection interval: 5 seconds
+
+	  Recommended: Enable for production systems
+
+config PDL_PMC_DEBUG
+	bool "Enable PMC debug logging"
+	default n
+	help
+	  Enable verbose debug logging for PMC operations.
+
+	  This logs all message send/receive operations, connection
+	  state changes, and protocol details.
+
+	  Warning: Generates significant log output
+
+	  Recommended: Enable only for debugging
+
+endif # PDL_PMC_SUPPORT

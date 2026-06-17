@@ -6,7 +6,7 @@ config PRL
       Enable Protocol Layer for unified device communication.
       PRL provides protocol encoding/decoding for all internal devices:
       - MCU: Microcontroller
-      - CCM: Communication Controller Management
+      - PMC: Communication Controller Management
       - PMC: Payload Management Controller
       - GSC: Ground Station Controller
       - POWER: Power Management Board
@@ -28,11 +28,11 @@ config PRL_MCU
       Enable protocol for Microcontroller (MCU) devices.
       Supports version query, status query, reset, power control, etc.
 
-config PRL_CCM
-    bool "Enable CCM Device Protocol"
+config PRL_PMC
+    bool "Enable PMC Device Protocol"
     default y
     help
-      Enable protocol for Communication Controller Management (CCM) devices.
+      Enable protocol for Communication Controller Management (PMC) devices.
       Supports telemetry, telecommand, time sync, orbit/attitude data, etc.
 
 config PRL_PMC

@@ -1,0 +1,14 @@
+config LIBPMC
+    bool "Enable libpmc (PMC Product Library)"
+    default y
+    select OSAL
+    help
+      PMC product library providing IPC and protocol support.
+      This is a product-specific component for PMC applications.
+
+config LIBPMC_BUILD_SHARED
+    bool "Build libpmc as shared library"
+    depends on LIBPMC
+    default n
+    help
+      Build libpmc as a shared library (.so) instead of static library (.a).

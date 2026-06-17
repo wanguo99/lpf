@@ -142,7 +142,7 @@ typedef struct {
 
 **支持的设备类型**：
 - MCU (微控制器)
-- CCM (通信管理板)
+- PMC (通信管理板)
 - PMC (载荷管理器)
 - GSC (地面站控制器)
 - POWER (电源板)
@@ -229,7 +229,7 @@ TC_POWER_ON  → [device_type, logic_index] → BMC[0]
 **职责**：实现具体产品的业务逻辑。
 
 **当前产品**：
-- **CCM** (通信管理板)：卫星载荷通信管理
+- **PMC** (通信管理板)：卫星载荷通信管理
   - `collector`：数据采集服务
   - `logger`：日志服务
   - `health`：健康监控服务
@@ -242,7 +242,7 @@ TC_POWER_ON  → [device_type, logic_index] → BMC[0]
 - 调用 PDL 进行设备操作
 
 **详细文档**：
-- [CCM README](../products/ccm/README.md)
+- [PMC README](../products/pmc/README.md)
 
 ## 模块依赖关系
 
@@ -331,8 +331,8 @@ ES-Middleware 使用 **Kconfig + CMake** 混合构建系统：
 ### 配置类型
 
 **产品配置**：
-- `ccm_h200_100p_am625_debug_defconfig` - CCM 调试版本
-- `ccm_h200_100p_am625_release_defconfig` - CCM 发布版本
+- `pmc_h200_100p_am625_debug_defconfig` - PMC 调试版本
+- `pmc_h200_100p_am625_release_defconfig` - PMC 发布版本
 
 **测试配置**：
 - `tests_x86_full_defconfig` - 全栈测试

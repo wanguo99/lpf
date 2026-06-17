@@ -10,7 +10,7 @@ menu "Products"
 # Source individual product Config.in files
 # Each product defines its own menuconfig entry for a collapsible submenu
 
-source "products/ccm/Config.in"
+source "products/pmc/Config.in"
 # source "products/samples/Config.in"  # Not yet implemented
 
 endmenu

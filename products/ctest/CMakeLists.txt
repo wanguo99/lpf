@@ -2,7 +2,7 @@
 # Core Modules Test Suite CMakeLists.txt
 # ============================================================================
 # This is a special "product" dedicated to testing ES-Middleware core modules.
-# Unlike regular products (e.g., CCM), this product's sole purpose is to
+# Unlike regular products (e.g., PMC), this product's sole purpose is to
 # provide comprehensive testing coverage for:
 #   - OSAL, HAL, PDL, PRL, PCONFIG, ACONFIG
 #
@@ -89,8 +89,8 @@ target_include_directories(es-middleware-test PRIVATE
     ${SDK_PATH}/core/pdl/include/pdl
     ${SDK_PATH}/core/prl/include/prl
     ${SDK_PATH}/core/aconfig/include/aconfig
-    ${SDK_PATH}/products/ccm/include
-    ${SDK_PATH}/products/ccm/include/ccm
+    ${SDK_PATH}/products/pmc/include
+    ${SDK_PATH}/products/pmc/include/pmc
 )
 
 # Add test framework headers if enabled
@@ -161,7 +161,7 @@ if(CONFIG_TEST_UNIT)
         )
     endif()
 
-    # ACONFIG Unit Tests - 只测试核心 API 功能（不依赖 CCM）
+    # ACONFIG Unit Tests - 只测试核心 API 功能（不依赖 PMC）
     if(CONFIG_TEST_ACONFIG)
         test_discover_and_add(
             TARGET es-middleware-test

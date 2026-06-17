@@ -26,7 +26,7 @@ config PROJECT_NAME
 
 	  Naming convention: <product>_<project>_defconfig
 	  - ctest_x86_full_defconfig → project name: x86_full
-	  - ccm_h200_100p_am625_debug_defconfig → project name: h200_100p_am625_debug
+	  - pmc_h200_100p_am625_debug_defconfig → project name: h200_100p_am625_debug
 
 	  Can be overridden in defconfig file by setting CONFIG_PROJECT_NAME.
 
@@ -72,17 +72,17 @@ config PRODUCT_CTEST
 	  - Performance analysis
 	  - Quality assurance
 
-config PRODUCT_CCM
-	bool "CCM Product"
+config PRODUCT_PMC
+	bool "PMC Product"
 	help
-	  Build CCM (Central Control Module) product.
+	  Build PMC (Central Control Module) product.
 
-	  CCM is a satellite payload control and data management system
+	  PMC is a satellite payload control and data management system
 	  designed for H200 platform with AM625 SoC.
 
 	  This will build:
-	  - CCM libraries (libccm)
-	  - CCM applications (collector, comm, health, logger, supervisor)
+	  - PMC libraries (libpmc)
+	  - PMC applications (collector, comm, health, logger, supervisor)
 	  - Platform-specific configurations for AM625
 
 endchoice
@@ -1138,8 +1138,8 @@ source "core/Config.in"
 
 menu "Product Configuration"
 
-if PRODUCT_CCM
-	source "products/ccm/Config.in"
+if PRODUCT_PMC
+	source "products/pmc/Config.in"
 endif
 
 endmenu
@@ -1401,14 +1401,14 @@ config SANITY_ERROR_RTOS_WITH_UNSUPPORTED_FEATURES
 # Product Configuration Checks
 # ============================================================================
 
-config SANITY_ERROR_CCM_NO_DEPS
+config SANITY_ERROR_PMC_NO_DEPS
 	def_bool y
-	depends on PRODUCT_CCM && (!OSAL || !HAL || !PCONFIG || !PDL || !ACONFIG)
-	prompt "ERROR: CCM product requires OSAL, HAL, PCONFIG, PDL, and ACONFIG"
+	depends on PRODUCT_PMC && (!OSAL || !HAL || !PCONFIG || !PDL || !ACONFIG)
+	prompt "ERROR: PMC product requires OSAL, HAL, PCONFIG, PDL, and ACONFIG"
 
 config SANITY_WARN_TEST_PRODUCT_CONFLICT
 	def_bool y
-	depends on PRODUCT_CCM && BUILD_TESTING
+	depends on PRODUCT_PMC && BUILD_TESTING
 	prompt "WARNING: Building product and tests together (use separate configs)"
 
 # ============================================================================
@@ -1425,7 +1425,7 @@ config SANITY_CHECK_PASSED
 	           !SANITY_ERROR_PIE_NO_PIC && \
 	           !SANITY_ERROR_SANITIZER_CONFLICT && \
 	           !SANITY_ERROR_BARE_METAL_WITH_OS_FEATURES && \
-	           !SANITY_ERROR_CCM_NO_DEPS
+	           !SANITY_ERROR_PMC_NO_DEPS
 	help
 	  This symbol is set when all sanity checks pass.
 	  If this is not set, review error messages above.

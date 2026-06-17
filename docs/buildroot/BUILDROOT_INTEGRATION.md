@@ -10,7 +10,7 @@ ES-Middleware is packaged as a Buildroot external package that can be integrated
 
 - **es-middleware.mk** - Buildroot package makefile (build rules)
 - **Config.in** - Kconfig configuration options for menuconfig
-- **S90es-middleware** - SysV init script for CCM services
+- **S90es-middleware** - SysV init script for PMC services
 - **local.mk.example** - Example configuration for local development
 - **README.md** - This file
 
@@ -116,7 +116,7 @@ make menuconfig
 
 # Navigate to: Target packages -> CSPD Packages -> ES-Middleware
 # Enable: BR2_PACKAGE_ES_MIDDLEWARE=y
-# Select defconfig: ccm_h200_100p_am625_release_defconfig
+# Select defconfig: pmc_h200_100p_am625_release_defconfig
 # Set build type: Release
 ```
 
@@ -147,20 +147,20 @@ Available in `make menuconfig` under "ES-Middleware":
 
 ### Default Configuration
 
-The default configuration is `ccm_h200_100p_am625_release_defconfig`, which provides:
-- All CCM applications (collector, comm, health, logger, supervisor)
+The default configuration is `pmc_h200_100p_am625_release_defconfig`, which provides:
+- All PMC applications (collector, comm, health, logger, supervisor)
 - Complete middleware stack (OSAL, HAL, PCONFIG, ACONFIG, PDL, PRL)
 - Optimized for production deployment
 - Release build with minimal debugging overhead
 
-For development and testing, use `ccm_h200_100p_am625_debug_defconfig` or one of the test configurations.
+For development and testing, use `pmc_h200_100p_am625_debug_defconfig` or one of the test configurations.
 
 ### Available Defconfigs (21 total)
 
-#### CCM Product Configurations (2)
-Production configurations for CCM board:
-- `ccm_h200_100p_am625_release_defconfig` - **Recommended for production** (optimized)
-- `ccm_h200_100p_am625_debug_defconfig` - Debug build for development
+#### PMC Product Configurations (2)
+Production configurations for PMC board:
+- `pmc_h200_100p_am625_release_defconfig` - **Recommended for production** (optimized)
+- `pmc_h200_100p_am625_debug_defconfig` - Debug build for development
 
 #### Test Configurations - ARM64 (10)
 For ARM64 cross-compilation testing:
@@ -187,7 +187,7 @@ For x86_64 development and testing:
 - `tests_x86_system_defconfig` - System integration tests
 - `tests_x86_stress_defconfig` - Stress tests
 
-**Note:** Defconfig names are used directly without directory prefix (e.g., `ccm_h200_100p_am625_release_defconfig`, not `ccm/ccm_h200_100p_am625_release_defconfig`).
+**Note:** Defconfig names are used directly without directory prefix (e.g., `pmc_h200_100p_am625_release_defconfig`, not `pmc/pmc_h200_100p_am625_release_defconfig`).
 
 ## Build Process
 
@@ -199,7 +199,7 @@ The build follows Buildroot's standard workflow:
 
 2. **Configure**: 
    ```bash
-   make <defconfig>           # e.g., make ccm_h200_100p_am625_release_defconfig
+   make <defconfig>           # e.g., make pmc_h200_100p_am625_release_defconfig
    # Generates: .config, include/generated/autoconf.h, include/generated/version.h
    ```
 
@@ -229,11 +229,11 @@ After `make es-middleware`, files are installed to target filesystem:
 $(TARGET_DIR)/
 ├── usr/
 │   ├── bin/
-│   │   ├── ccm_collector          # CCM applications
-│   │   ├── ccm_comm
-│   │   ├── ccm_health
-│   │   ├── ccm_logger
-│   │   ├── ccm_supervisor
+│   │   ├── pmc_collector          # PMC applications
+│   │   ├── pmc_comm
+│   │   ├── pmc_health
+│   │   ├── pmc_logger
+│   │   ├── pmc_supervisor
 │   │   └── es-middleware-test     # Test runner (if enabled)
 │   └── lib/
 │       ├── libosal.a              # Static libraries
@@ -276,7 +276,7 @@ $(STAGING_DIR)/
 When `BR2_PACKAGE_ES_MIDDLEWARE_INSTALL_INIT=y`:
 
 - Installs `/etc/init.d/S90es-middleware`
-- Auto-starts CCM applications on boot
+- Auto-starts PMC applications on boot
 - Manages service lifecycle
 
 ## Troubleshooting
@@ -316,8 +316,8 @@ make menuconfig
 ```
 
 The defconfig name should NOT include the directory prefix:
-- ✓ Correct: `ccm_h200_100p_am625_release_defconfig`
-- ✗ Wrong: `ccm/ccm_h200_100p_am625_release_defconfig`
+- ✓ Correct: `pmc_h200_100p_am625_release_defconfig`
+- ✗ Wrong: `pmc/pmc_h200_100p_am625_release_defconfig`
 
 ## Development Workflow
 

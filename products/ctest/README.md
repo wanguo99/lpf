@@ -250,7 +250,7 @@ make
 
 ```bash
 # 使用不包含测试的配置
-make ccm_h200_100p_am625_release_defconfig
+make pmc_h200_100p_am625_release_defconfig
 make
 
 # 或通过 menuconfig 禁用

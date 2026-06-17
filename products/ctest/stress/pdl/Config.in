@@ -82,12 +82,12 @@ config TEST_STRESS_PDL_SATELLITE_CONCURRENT
 	  Tags: stress, pdl, concurrency
 	  Test function: test_stress_satellite_concurrent_telemetry
 
-config TEST_STRESS_PDL_CCM_CONCURRENT
-	bool "CCM concurrent communication stress"
+config TEST_STRESS_PDL_PMC_CONCURRENT
+	bool "PMC concurrent communication stress"
 	default y
-	depends on PDL_CCM_SUPPORT
+	depends on PDL_PMC_SUPPORT
 	help
-	  CCM communication concurrent stress test.
+	  PMC communication concurrent stress test.
 
 	  Tests:
 	    - 6 threads concurrently sending commands
@@ -102,10 +102,10 @@ config TEST_STRESS_PDL_CCM_CONCURRENT
 	    - Connection management under load
 
 	  Runtime: ~10 seconds
-	  Hardware: CCM Ethernet interface
-	  Dependencies: CONFIG_PDL_CCM_SUPPORT
+	  Hardware: PMC Ethernet interface
+	  Dependencies: CONFIG_PDL_PMC_SUPPORT
 	  Tags: stress, pdl, concurrency, network
-	  Test function: test_stress_ccm_concurrent_communication
+	  Test function: test_stress_pmc_concurrent_communication
 
 config TEST_STRESS_PDL_MULTIDEVICE
 	bool "Multi-device mixed operations stress"

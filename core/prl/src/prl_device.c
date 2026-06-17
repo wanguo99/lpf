@@ -13,7 +13,7 @@
 static const char *device_type_names[] = {
 	"UNKNOWN",      /* 0x00 */
 	"MCU",          /* 0x01 */
-	"CCM",          /* 0x02 */
+	"PMC",          /* 0x02 */
 	"PMC",          /* 0x03 */
 	"GSC",          /* 0x04 */
 	"POWER",        /* 0x05 */

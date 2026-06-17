@@ -10,7 +10,7 @@ menuconfig PDL
 
 	  PDL sits above HAL and provides:
 	  - Protocol-aware peripheral drivers
-	  - Device abstraction (MCU modules, CCM)
+	  - Device abstraction (MCU modules, PMC)
 	  - State management and error handling
 	  - Unified API for complex peripherals
 
@@ -23,7 +23,7 @@ menuconfig PDL
 
 	  Supported peripherals:
 	  - MCU modules (microcontroller peripherals)
-	  - CCM (Communication Control Module)
+	  - PMC (Communication Control Module)
 
 	  Dependencies: OSAL, HAL, PCONFIG
 
@@ -93,14 +93,14 @@ menuconfig PDL_MCU_SUPPORT
 
 source "core/pdl/src/pdl_mcu/Config.in"
 
-menuconfig PDL_CCM_SUPPORT
-	bool "CCM (Communication Control Module) support"
+menuconfig PDL_PMC_SUPPORT
+	bool "PMC (Communication Control Module) support"
 	default n
 	select OSAL_NETWORK
 	help
-	  Enable CCM (Communication Control Module) for PMC communication.
+	  Enable PMC (Communication Control Module) for PMC communication.
 
-	  CCM provides high-level interface with PMC (Power Management
+	  PMC provides high-level interface with PMC (Power Management
 	  Controller) over Ethernet, handling:
 	  - TCP/IP socket communication
 	  - Message framing and CRC validation
@@ -129,6 +129,6 @@ menuconfig PDL_CCM_SUPPORT
 
 	  If unsure, say N.
 
-source "core/pdl/src/pdl_ccm/Config.in"
+source "core/pdl/src/pdl_pmc/Config.in"
 
 endif # PDL

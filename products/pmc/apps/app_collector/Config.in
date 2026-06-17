@@ -1,0 +1,13 @@
+config APP_COLLECTOR
+    bool "Enable PMC Collector Application"
+    default n
+    select OSAL
+    select HAL
+    select PCONFIG
+    select PDL
+    select ACONFIG
+    select H200_AM625
+    select LIBPMC
+    help
+      PMC data collector application.
+      Collects telemetry data from satellite and stores locally.

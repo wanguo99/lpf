@@ -25,9 +25,9 @@ config BR2_PACKAGE_ES_MIDDLEWARE_DEFCONFIG
 	  - tests_arm64_hal_defconfig             (HAL development)
 	  - tests_arm64_minimal_defconfig         (Minimal footprint)
 
-	  Production configurations (configs/ccm/):
-	  - ccm_h200_100p_am625_release_defconfig (Production, optimized)
-	  - ccm_h200_100p_am625_debug_defconfig   (Development, with debug)
+	  Production configurations (configs/pmc/):
+	  - pmc_h200_100p_am625_release_defconfig (Production, optimized)
+	  - pmc_h200_100p_am625_debug_defconfig   (Development, with debug)
 
 	  See ES-Middleware/configs/ for all 21 available configurations.
 
@@ -58,7 +58,7 @@ config BR2_PACKAGE_ES_MIDDLEWARE_INSTALL_INIT
 	bool "Install init scripts"
 	default n
 	help
-	  Install SysV init scripts for CCM applications.
+	  Install SysV init scripts for PMC applications.
 
 config BR2_PACKAGE_ES_MIDDLEWARE_INSTALL_HEADERS
 	bool "Install development headers"

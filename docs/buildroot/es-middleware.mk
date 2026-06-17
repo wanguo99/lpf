@@ -91,7 +91,7 @@ define ES_MIDDLEWARE_INSTALL_STAGING_CMDS
 endef
 endif
 
-# Optional: Install init scripts for CCM applications
+# Optional: Install init scripts for PMC applications
 ifeq ($(BR2_PACKAGE_ES_MIDDLEWARE_INSTALL_INIT),y)
 define ES_MIDDLEWARE_INSTALL_INIT_SYSV
 	@echo "ES-Middleware: Installing init scripts"

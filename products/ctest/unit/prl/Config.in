@@ -44,11 +44,11 @@ config TEST_PRL_DEVICE
 	bool "PRL device protocol tests"
 	default y
 	help
-	  Test PRL device protocol operations (MCU, CCM, PMC, GSC, POWER).
+	  Test PRL device protocol operations (MCU, PMC, PMC, GSC, POWER).
 
 	  Coverage:
 	    - MCU device protocol (commands, responses, telemetry)
-	    - CCM device protocol (system management)
+	    - PMC device protocol (system management)
 	    - PMC device protocol (payload management)
 	    - GSC device protocol (ground station communication)
 	    - POWER device protocol (power control)

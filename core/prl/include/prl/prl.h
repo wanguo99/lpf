@@ -15,9 +15,9 @@
 #include "prl_mcu.h"
 #endif /* CONFIG_PRL_MCU */
 
-#ifdef CONFIG_PRL_CCM
-#include "prl_ccm.h"
-#endif /* CONFIG_PRL_CCM */
+#ifdef CONFIG_PRL_PMC
+#include "prl_pmc.h"
+#endif /* CONFIG_PRL_PMC */
 
 #ifdef CONFIG_PRL_PMC
 #include "prl_pmc.h"

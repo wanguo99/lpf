@@ -1,0 +1,67 @@
+# ============================================================================
+# PMC Product Configuration
+# ============================================================================
+# PMC (Central Control Module) is a satellite payload control and data
+# management system designed for H200 platform with AM625 SoC.
+# ============================================================================
+
+menu "PMC Product"
+
+# ============================================================================
+# Platform Configuration
+# ============================================================================
+
+menu "Platform Configuration"
+
+choice
+    prompt "Select Platform"
+    default PROJECT_H200_100P_AM625
+    help
+      Select the hardware platform for PMC product.
+
+config PROJECT_H200_100P_AM625
+    bool "H200 100P AM625 Platform"
+    help
+      TI AM625 SoC based H200 100P carrier board.
+      Provides ACONFIG and PCONFIG configuration for AM625 platform.
+
+config PROJECT_H200_200P
+    bool "H200 200P Platform"
+    help
+      H200 200P platform configuration.
+
+endchoice
+
+# Note: PROJECT_NAME is defined globally in the root Config.in
+# It automatically derives the correct value based on the platform choice above.
+
+endmenu
+
+# ============================================================================
+# Product Components
+# ============================================================================
+
+menu "Product Libraries"
+
+source "products/pmc/libs/libpmc/Config.in"
+
+endmenu
+
+# ============================================================================
+# Applications
+# ============================================================================
+
+menu "Applications"
+
+source "products/pmc/apps/app_collector/Config.in"
+source "products/pmc/apps/app_comm/Config.in"
+source "products/pmc/apps/app_health/Config.in"
+source "products/pmc/apps/app_logger/Config.in"
+source "products/pmc/apps/app_supervisor/Config.in"
+
+# Test Application (Debug/Verification)
+source "products/pmc/apps/test_call_chain/Config.in"
+
+endmenu
+
+endmenu

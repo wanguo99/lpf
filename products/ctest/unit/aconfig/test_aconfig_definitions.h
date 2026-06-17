@@ -1,7 +1,7 @@
 /**
  * @file test_aconfig_definitions.h
  * @brief AConfig 测试专用定义
- * @note 测试数据，不依赖具体产品（如 CCM）
+ * @note 测试数据，不依赖具体产品（如 PMC）
  */
 
 #ifndef TEST_ACONFIG_DEFINITIONS_H

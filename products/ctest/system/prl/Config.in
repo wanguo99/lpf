@@ -14,8 +14,8 @@ config TEST_SYSTEM_PRL_REQUEST_RESPONSE
 	  End-to-end request-response communication scenarios.
 
 	  Tests:
-	    - CCM → MCU request with response
-	    - PMC → CCM telemetry request
+	    - PMC → MCU request with response
+	    - PMC → PMC telemetry request
 	    - GSC → Multiple devices queries
 	    - ACK flag handling in request-response
 	    - Sequence number correlation
@@ -65,7 +65,7 @@ config TEST_SYSTEM_PRL_MULTIDEVICE
 	  Concurrent communication between multiple devices.
 
 	  Tests:
-	    - Simultaneous MCU, CCM, PMC, GSC communication
+	    - Simultaneous MCU, PMC, PMC, GSC communication
 	    - Interleaved encode/decode operations
 	    - Device type isolation
 	    - Concurrent sequence number generation

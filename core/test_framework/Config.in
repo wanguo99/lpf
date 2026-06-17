@@ -9,7 +9,7 @@ menuconfig TEST_FRAMEWORK
 	  Provides test registration, assertions, mocking, and reporting.
 
 	  This is a core testing infrastructure that can be used by
-	  all products (CCM, etc.) for writing various types of tests:
+	  all products (PMC, etc.) for writing various types of tests:
 	  - Unit tests
 	  - Integration tests
 	  - Performance tests

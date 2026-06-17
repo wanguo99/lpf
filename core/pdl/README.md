@@ -52,7 +52,7 @@ make tests_x86_pdl_defconfig  # 加载 PDL 测试配置
 make
 
 # 或使用其他包含 PDL 的配置
-make ccm_h200_100p_am625_debug_defconfig
+make pmc_h200_100p_am625_debug_defconfig
 make
 ```
 

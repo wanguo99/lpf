@@ -34,9 +34,9 @@
 #endif /* CONFIG_OSAL */
 
 /* 设备驱动 - 按字母顺序 */
-#ifdef CONFIG_PDL_CCM_SUPPORT
-#include "pdl_ccm.h"         /* CCM（通信管理板）驱动 */
-#endif /* CONFIG_PDL_CCM_SUPPORT */
+#ifdef CONFIG_PDL_PMC_SUPPORT
+#include "pdl_pmc.h"         /* PMC（通信管理板）驱动 */
+#endif /* CONFIG_PDL_PMC_SUPPORT */
 
 #ifdef CONFIG_PDL_MCU_SUPPORT
 #include "pdl_mcu.h"         /* MCU（微控制器）驱动 */

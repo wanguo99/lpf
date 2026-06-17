@@ -77,7 +77,7 @@ ES-Middleware/
 │   ├── prl/                 # 协议层（统一设备协议）
 │   └── aconfig/             # 应用配置层
 ├── products/                 # 产品应用
-│   └── ccm/                 # CCM 产品（通信管理板）
+│   └── pmc/                 # PMC 产品（通信管理板）
 │       ├── apps/            # 应用程序
 │       ├── libs/            # 产品库
 │       └── configs/         # 平台配置
@@ -87,12 +87,12 @@ ES-Middleware/
 
 ## 可用配置
 
-### 产品配置（位于 configs/ccm/）
+### 产品配置（位于 configs/pmc/）
 
 | 配置 | 平台 | 用途 |
 |------|------|------|
-| `ccm_h200_100p_am625_debug_defconfig` | ARM64 | CCM H200-100P-AM625 调试版本，包含所有调试功能 |
-| `ccm_h200_100p_am625_release_defconfig` | ARM64 | CCM H200-100P-AM625 发布版本，优化配置 |
+| `pmc_h200_100p_am625_debug_defconfig` | ARM64 | PMC H200-100P-AM625 调试版本，包含所有调试功能 |
+| `pmc_h200_100p_am625_release_defconfig` | ARM64 | PMC H200-100P-AM625 发布版本，优化配置 |
 
 ### 测试配置（位于 configs/tests/）
 
@@ -404,7 +404,7 @@ es-middleware-test --all --format junit --output report.xml
 **内存占用**: ~8KB (单模块) ~ 40KB (全模块)
 
 ### PRL (协议层)
-统一设备协议，支持 MCU、CCM、PMC、GSC、POWER 等设备间通信。
+统一设备协议，支持 MCU、PMC、PMC、GSC、POWER 等设备间通信。
 
 **特点**：
 - 统一协议格式（20 字节协议头）
@@ -432,7 +432,7 @@ make
 阅读 [架构概述](docs/ARCHITECTURE.md)，了解模块关系和设计理念。
 
 ### 第三步：查看示例代码
-浏览 `products/ccm/apps/`，学习 API 使用。
+浏览 `products/pmc/apps/`，学习 API 使用。
 
 ### 第四步：修改配置
 ```bash
@@ -459,8 +459,8 @@ make             # 重新编译
 
 **使用建议**: 
 - 首次使用建议从 `tests_x86_minimal_defconfig` 配置开始
-- 开发和调试使用 `tests_x86_full_defconfig` 或 `ccm_h200_100p_am625_debug_defconfig`
-- 生产部署使用 `ccm_h200_100p_am625_release_defconfig`
+- 开发和调试使用 `tests_x86_full_defconfig` 或 `pmc_h200_100p_am625_debug_defconfig`
+- 生产部署使用 `pmc_h200_100p_am625_release_defconfig`
 
 **文档**: 完整文档请访问 [docs/](docs/) 目录
 

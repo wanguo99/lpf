@@ -15,7 +15,7 @@
  * 示例：
  *   #include "osal.h"
  *   #include "aconfig.h"
- *   #include "ccm_config.h"  // 产品特定配置
+ *   #include "pmc_config.h"  // 产品特定配置
  */
 
 /*===========================================================================

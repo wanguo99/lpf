@@ -80,7 +80,7 @@ make tests_x86_pconfig_defconfig  # 加载 PCONFIG 测试配置
 make
 
 # 或使用其他包含 PCONFIG 的配置
-make ccm_h200_100p_am625_debug_defconfig
+make pmc_h200_100p_am625_debug_defconfig
 make
 ```
 

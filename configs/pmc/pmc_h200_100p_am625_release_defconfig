@@ -1,0 +1,172 @@
+# ============================================================================
+# PMC H200 Production Configuration (Release)
+# ============================================================================
+# PMC (Communication Controller Management) 生产环境配置
+# 平台: H200-100P AM625
+# 用途: 生产部署，优化性能，禁用调试功能
+# ============================================================================
+
+# Product Selection
+CONFIG_PRODUCT_CCM=y
+# CONFIG_PRODUCT_CTEST is not set
+
+# Project Identification
+CONFIG_PROJECT_NAME="h200_100p_am625"
+CONFIG_PROJECT_VERSION="1.0.0"
+
+# Architecture and OS
+CONFIG_OS_LINUX=y
+# CONFIG_OS_WINDOWS is not set
+# CONFIG_OS_RTOS is not set
+# CONFIG_OS_MACOS is not set
+# CONFIG_OS_BARE is not set
+CONFIG_ARCH_ARM64=y
+# CONFIG_ARCH_X86_64 is not set
+# CONFIG_ARCH_ARM32 is not set
+# CONFIG_ARCH_RISCV64 is not set
+
+# Platform
+CONFIG_PLATFORM_LINUX=y
+CONFIG_PROJECT_H200_100P_AM625=y
+# CONFIG_PROJECT_H200_200P is not set
+
+# Core Components
+CONFIG_OSAL=y
+CONFIG_HAL=y
+CONFIG_PDL=y
+CONFIG_PRL=y
+CONFIG_PCONFIG=y
+CONFIG_ACONFIG=y
+CONFIG_LIBCCM=y
+CONFIG_TEST_FRAMEWORK=y
+
+# Build Configuration - Shared Libraries for Production
+CONFIG_OSAL_BUILD_SHARED=y
+CONFIG_HAL_BUILD_SHARED=y
+CONFIG_PDL_BUILD_SHARED=y
+CONFIG_PRL_BUILD_SHARED=y
+CONFIG_PCONFIG_BUILD_SHARED=y
+CONFIG_ACONFIG_BUILD_SHARED=y
+
+# HAL Drivers - Production Required
+CONFIG_HAL_CAN=y
+CONFIG_HAL_UART=y
+CONFIG_HAL_I2C=y
+CONFIG_HAL_SPI=y
+CONFIG_HAL_GPIO=y
+
+# HAL Linux Drivers
+CONFIG_HAL_CAN_LINUX=y
+CONFIG_HAL_GPIO_LINUX=y
+CONFIG_HAL_I2C_LINUX=y
+CONFIG_HAL_SPI_LINUX=y
+CONFIG_HAL_UART_LINUX=y
+
+# HAL Debug and Statistics - Disabled in Production
+# CONFIG_HAL_DEBUG is not set
+# CONFIG_HAL_STATISTICS is not set
+
+# PDL Sub-modules - PMC Required
+CONFIG_PDL_MCU_SUPPORT=y
+# CONFIG_PDL_SATELLITE_SUPPORT is not set
+# CONFIG_PDL_BMC_SUPPORT is not set
+# CONFIG_PDL_CCM_SUPPORT is not set
+
+# PDL MCU Drivers
+CONFIG_PDL_MCU=y
+CONFIG_PDL_MCU_CAN_SUPPORT=y
+CONFIG_PDL_MCU_UART_SUPPORT=y
+CONFIG_PDL_MCU_CAN=y
+CONFIG_PDL_MCU_SERIAL=y
+CONFIG_PDL_MCU_PROTOCOL=y
+
+
+# PRL Protocols - PMC Required
+CONFIG_PRL_MCU=y
+CONFIG_PRL_CCM=y
+CONFIG_PRL_PMC=y
+CONFIG_PRL_POWER=y
+# CONFIG_PRL_GSC is not set
+
+# PRL Features
+CONFIG_PRL_CRC_CHECK=y
+CONFIG_PRL_SEQUENCE_CHECK=y
+CONFIG_PRL_MAX_PAYLOAD_SIZE=4096
+
+# PMC Applications - Production
+CONFIG_APP_COLLECTOR=y
+CONFIG_APP_COMM=y
+CONFIG_APP_LOGGER=y
+CONFIG_APP_HEALTH=y
+CONFIG_APP_SUPERVISOR=y
+
+# OSAL Features - Production Required
+CONFIG_OSAL_IPC=y
+CONFIG_OSAL_FILE=y
+CONFIG_OSAL_THREAD=y
+CONFIG_OSAL_NETWORK=y
+CONFIG_OSAL_SIGNAL=y
+
+# OSAL IPC
+CONFIG_OSAL_IPC_ATOMIC=y
+CONFIG_OSAL_IPC_MUTEX=y
+CONFIG_OSAL_IPC_RWLOCK=y
+CONFIG_OSAL_IPC_SEMAPHORE=y
+CONFIG_OSAL_IPC_COND=y
+CONFIG_OSAL_IPC_SHM=y
+CONFIG_OSAL_IPC_SHM_CACHE=y
+
+# OSAL Library
+CONFIG_OSAL_LIB_ERRNO=y
+CONFIG_OSAL_LIB_HEAP=y
+CONFIG_OSAL_LIB_STDIO=y
+CONFIG_OSAL_LIB_STRING=y
+
+# OSAL System
+CONFIG_OSAL_SYS_CLOCK=y
+CONFIG_OSAL_SYS_ENV=y
+CONFIG_OSAL_SYS_FILE=y
+CONFIG_OSAL_SYS_PROCESS=y
+CONFIG_OSAL_SYS_SCHED=y
+CONFIG_OSAL_SYS_SELECT=y
+CONFIG_OSAL_SYS_SIGNAL=y
+CONFIG_OSAL_SYS_THREAD=y
+CONFIG_OSAL_SYS_TIME=y
+CONFIG_OSAL_SYS_POLL=y
+
+# OSAL Network
+CONFIG_OSAL_NET_SOCKET=y
+CONFIG_OSAL_NET_TERMIOS=y
+
+# OSAL Utility
+CONFIG_OSAL_UTIL_LOG=y
+CONFIG_OSAL_UTIL_VERSION=y
+CONFIG_OSAL_UTIL_CRC=y
+
+# Testing - Disabled in Production
+# CONFIG_BUILD_TESTING is not set
+
+# ============================================================================
+# Debug Features - Disabled in Production
+# ============================================================================
+# CONFIG_DEBUG_MEMORY_TRACKING is not set
+# CONFIG_DEBUG_BUFFER_OVERFLOW is not set
+# CONFIG_DEBUG_USE_AFTER_FREE is not set
+# CONFIG_DEBUG_DOUBLE_FREE is not set
+# CONFIG_DEBUG_UNINITIALIZED_MEMORY is not set
+# CONFIG_DEBUG_POSTCONDITION_CHECKS is not set
+# CONFIG_DEBUG_INVARIANT_CHECKS is not set
+# CONFIG_DEBUG_PERFORMANCE_COUNTERS is not set
+# CONFIG_DEBUG_CALL_TRACING is not set
+# CONFIG_DEBUG_RESOURCE_TRACKING is not set
+# CONFIG_DEBUG_DUMP_STACK_ON_ERROR is not set
+# CONFIG_DEBUG_CORE_DUMP_ON_FATAL is not set
+# CONFIG_DEBUG_DUMP_ON_SIGNAL is not set
+
+# ============================================================================
+# Logging - Minimal in Production
+# ============================================================================
+# CONFIG_LOG_FUNCTION_NAME is not set
+# CONFIG_LOG_FILE_LINE is not set
+CONFIG_LOG_THREAD_ID=y
+CONFIG_LOG_TIMESTAMP=y

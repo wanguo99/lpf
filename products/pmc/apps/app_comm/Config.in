@@ -1,0 +1,13 @@
+config APP_COMM
+    bool "Enable PMC Communication Application"
+    default n
+    select OSAL
+    select HAL
+    select PCONFIG
+    select PDL
+    select ACONFIG
+    select H200_AM625
+    select LIBPMC
+    help
+      PMC communication application.
+      Handles communication between satellite platform and ground station.
