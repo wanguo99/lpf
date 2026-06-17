@@ -60,7 +60,7 @@ source "products/ccm/apps/app_logger/Config.in"
 source "products/ccm/apps/app_supervisor/Config.in"
 
 # Test Application (Debug/Verification)
-source "products/ccm/apps/app_test/Config.in"
+source "products/ccm/apps/test_call_chain/Config.in"
 
 endmenu
 

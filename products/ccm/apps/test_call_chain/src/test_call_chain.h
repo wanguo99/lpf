@@ -17,24 +17,24 @@
  * @brief 测试 MCU CAN 调用链
  * @return 0 成功，负值失败
  */
-int32_t APP_TestCallChain_MCU_CAN(void);
+int32_t TestCallChain_MCU_CAN(void);
 
 /**
  * @brief 测试 MCU Serial 调用链
  * @return 0 成功，负值失败
  */
-int32_t APP_TestCallChain_MCU_Serial(void);
+int32_t TestCallChain_MCU_Serial(void);
 
 /**
  * @brief 测试 BMC 调用链
  * @return 0 成功，负值失败
  */
-int32_t APP_TestCallChain_BMC(void);
+int32_t TestCallChain_BMC(void);
 
 /**
  * @brief 运行所有测试
  * @return 0 全部通过，负值有失败
  */
-int32_t APP_RunAllTests(void);
+int32_t TestCallChain_RunAll(void);
 
 #endif /* TEST_CALL_CHAIN_H */

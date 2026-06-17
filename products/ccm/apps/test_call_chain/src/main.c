@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 	/* 运行测试 */
 	OSAL_printf("\nStarting call chain tests...\n\n");
 
-	ret = APP_RunAllTests();
+	ret = TestCallChain_RunAll();
 
 	/* 清理 */
 	ACONFIG_cleanup();
