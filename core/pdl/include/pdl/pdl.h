@@ -46,10 +46,6 @@
 #include "pdl_mcu.h"         /* MCU（微控制器）驱动 */
 #endif /* CONFIG_PDL_MCU_SUPPORT */
 
-#ifdef CONFIG_PDL_MISC_SUPPORT
-#include "pdl_misc.h"        /* MISC（杂项服务）- HWID、分区表等 */
-#endif /* CONFIG_PDL_MISC_SUPPORT */
-
 #ifdef CONFIG_PDL_SATELLITE_SUPPORT
 #include "pdl_satellite.h"   /* Satellite（卫星平台）驱动 */
 #endif /* CONFIG_PDL_SATELLITE_SUPPORT */

@@ -86,7 +86,6 @@ CONFIG_HAL_CAN=y
 CONFIG_HAL_UART=y
 
 # PDL - Minimal (required by ACONFIG for hwid types)
-CONFIG_PDL_MISC_SUPPORT=y
 
 # PRL - Disabled
 # CONFIG_PRL is not set
