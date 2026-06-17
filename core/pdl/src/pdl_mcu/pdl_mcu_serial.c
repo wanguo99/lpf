@@ -189,7 +189,7 @@ static int32_t mcu_serial_pack_frame(uint8_t cmd_code,
     }
 
     /* CRC校验（强制启用） */
-    crc = mcu_protocol_calc_crc16(&frame[FRAME_HEADER_SIZE], pos - FRAME_HEADER_SIZE);
+    crc = OSAL_crc16_modbus(&frame[FRAME_HEADER_SIZE], pos - FRAME_HEADER_SIZE);
     frame[pos++] = (uint8_t)(crc >> 8);
     frame[pos++] = (uint8_t)(crc & 0xFF);
 
@@ -226,7 +226,7 @@ static int32_t mcu_serial_unpack_frame(const uint8_t *frame,
 
     /* CRC校验（强制启用） */
     crc_recv = (frame[frame_len - 2] << 8) | frame[frame_len - 1];
-    crc_calc = mcu_protocol_calc_crc16(&frame[FRAME_HEADER_SIZE], frame_len - FRAME_OVERHEAD);
+    crc_calc = OSAL_crc16_modbus(&frame[FRAME_HEADER_SIZE], frame_len - FRAME_OVERHEAD);
     if (crc_recv != crc_calc)
     {
         return OSAL_ERR_GENERIC;  /* CRC 校验失败 */
