@@ -1,0 +1,778 @@
+# OSAL (Operating System Abstraction Layer) Configuration
+
+menuconfig OSAL
+	bool "OSAL (Operating System Abstraction Layer)"
+	default n
+	help
+	  Operating System Abstraction Layer provides unified OS interfaces.
+	  OSAL is the foundation layer required by all other modules.
+
+	  Memory footprint: 30KB (minimal) ~ 200KB (full)
+
+	  If unsure, say Y.
+
+if OSAL
+
+# =============================================================================
+# Configuration Profile (Quick Setup)
+# =============================================================================
+
+menu "Configuration Profile"
+
+choice
+	prompt "OSAL Configuration Profile"
+	default OSAL_PROFILE_STANDARD
+	help
+	  Select a predefined OSAL configuration profile.
+
+	  Profiles automatically configure all OSAL features based on
+	  typical usage scenarios. You can override individual settings
+	  in the sections below.
+
+config OSAL_PROFILE_MINIMAL
+	bool "Minimal - Linux basic (~30KB)"
+	help
+	  Minimal OSAL for small Linux user-space deployments.
+
+	  Includes:
+	  - Basic IPC (mutex + semaphore)
+	  - Essential file operations
+	  - Thread support
+	  - Basic library functions
+
+	  Excludes:
+	  - Network support
+	  - Signal handling
+	  - Advanced IPC (condition variables, shared memory)
+	  - Process management
+
+	  Memory: ~30KB
+	  Suitable for: small Linux services and fast bring-up builds
+
+config OSAL_PROFILE_STANDARD
+	bool "Standard - Linux balanced (~80KB) [Recommended]"
+	help
+	  Balanced OSAL configuration for typical Linux systems.
+
+	  Includes:
+	  - Standard IPC (mutex, semaphore, condition, shared memory)
+	  - Complete file operations
+	  - Thread support
+	  - Network support (socket, termios)
+	  - Signal handling
+	  - All library functions
+
+	  Excludes:
+	  - Debug features
+	  - Statistics collection
+	  - Some advanced system calls
+
+	  Memory: ~80KB
+	  Suitable for: Embedded Linux, AM625, i.MX6/8
+
+	  This is the recommended profile for most projects.
+
+config OSAL_PROFILE_FULL
+	bool "Full - Linux feature set (~200KB)"
+	help
+	  All OSAL features enabled.
+
+	  Includes:
+	  - All IPC features
+	  - All file and system operations
+	  - All network features
+	  - Debug logging
+	  - Statistics collection
+	  - All utility functions
+
+	  Memory: ~200KB
+	  Suitable for: Development, testing, feature-rich products
+
+config OSAL_PROFILE_CUSTOM
+	bool "Custom - Manual Configuration"
+	help
+	  Configure OSAL features manually.
+
+	  Choose this if you need precise control over which features
+	  to include, or if the predefined profiles don't match your needs.
+
+endchoice
+
+endmenu
+
+# =============================================================================
+# Platform-specific OSAL Configuration
+# =============================================================================
+# Platform and architecture are configured in root Config.in.
+# OSAL now exposes the Linux user-space backend only.
+# =============================================================================
+
+# Linux user-space backend based on POSIX/Linux libc APIs.
+config OSAL_OS_POSIX
+	bool
+	default y if OS_LINUX
+
+# Auto-detect architecture bitness
+config OSAL_ARCH_32BIT
+	bool
+	default y if ARCH_ARM32
+
+config OSAL_ARCH_64BIT
+	bool
+	default y if ARCH_X86_64 || ARCH_ARM64 || ARCH_RISCV64
+
+
+# =============================================================================
+# Build Configuration
+# =============================================================================
+
+menu "Build Configuration"
+
+config OSAL_BUILD_STATIC
+	bool "Build static library"
+	default y
+	help
+	  Build libosal.a static library.
+
+	  Static libraries are linked directly into the executable.
+
+	  Advantages:
+	  - No runtime dependencies
+	  - Slightly faster (no dynamic linking overhead)
+	  - Easier deployment (single binary)
+
+	  Disadvantages:
+	  - Larger executable size
+	  - Cannot share code between processes
+	  - Must recompile to update library
+
+	  Recommended: Enable for embedded systems and single-application
+
+config OSAL_BUILD_SHARED
+	bool "Build shared library"
+	default n
+	help
+	  Build libosal.so shared library.
+
+	  Shared libraries are loaded at runtime, shared between processes.
+
+	  Advantages:
+	  - Smaller executable size
+	  - Code sharing between processes
+	  - Can update library without recompiling applications
+
+	  Disadvantages:
+	  - Runtime dependency (library must be present)
+	  - Slightly slower (dynamic linking overhead)
+	  - More complex deployment
+
+	  Recommended: Enable for multi-application systems or when
+	  library updates are needed without recompiling applications
+
+	  Note: Requires the Linux dynamic linker/runtime loader.
+
+endmenu
+
+# =============================================================================
+# Feature Configuration (Fine-grained per-file control)
+# =============================================================================
+
+menu "Feature Configuration"
+
+menuconfig OSAL_IPC
+	bool "IPC (Inter-Process Communication)"
+	default n
+	help
+	  Enable inter-process communication primitives.
+
+	  Provides:
+	  - Mutex (mutual exclusion locks)
+	  - Semaphore (counting and binary)
+	  - Condition variables (thread synchronization)
+	  - Shared memory (inter-process data sharing)
+	  - Message queues (async communication)
+
+	  Memory footprint: ~15KB (minimal: mutex+semaphore only ~5KB)
+
+	  Required by: Multi-threaded applications, process synchronization
+	  Disable if: Single-threaded, no concurrency control needed
+
+	  Recommended: Enable for Standard/Full profiles
+
+menuconfig OSAL_FILE
+	bool "File and System Operations"
+	default n
+	help
+	  Enable file I/O and system-level operations.
+
+	  Provides:
+	  - File open/close/read/write
+	  - Directory operations (mkdir, rmdir, readdir)
+	  - File status and attributes
+	  - Path manipulation
+	  - System information queries
+
+	  Memory footprint: ~20KB (minimal: basic file ops only ~8KB)
+
+	  Required by: Applications that access filesystem, configuration files
+	  Disable if: No filesystem access is needed
+
+	  Recommended: Enable for all Linux profiles
+
+menuconfig OSAL_THREAD
+	bool "Thread Support"
+	default n
+	help
+	  Enable thread creation and management.
+
+	  Provides:
+	  - Thread creation and termination
+	  - Thread attributes (priority, stack size, affinity)
+	  - Thread-local storage
+	  - Scheduler control (yield, sleep)
+
+	  Memory footprint: ~10KB + per-thread stack (typically 8KB-1MB each)
+
+	  Required by: Multi-threaded applications
+	  Depends on: OSAL_IPC (for thread synchronization)
+
+	  Recommended: Enable for Standard/Full profiles
+
+	  Note: Each thread consumes additional memory for its stack.
+	  For small deployments, consider a single-threaded design.
+
+menuconfig OSAL_NETWORK
+	bool "Network Support"
+	default n
+	help
+	  Enable network and serial communication.
+
+	  Provides:
+	  - Socket operations (TCP/UDP)
+	  - Network interface queries
+	  - Serial port control (termios)
+	  - Address resolution
+
+	  Memory footprint: ~12KB
+
+	  Required by: Network applications, serial communication
+	  Disable if: No network or serial I/O needed
+
+	  Platform notes:
+	  - Linux: Full socket API support
+
+	  Recommended: Enable for Standard/Full profiles, optional for Minimal
+
+menuconfig OSAL_SIGNAL
+	bool "Signal Support"
+	default n
+	help
+	  Enable POSIX signal handling.
+
+	  Provides:
+	  - Signal registration and handling
+	  - Signal masking and blocking
+	  - Signal sending (kill, raise)
+	  - Timer signals (SIGALRM)
+
+	  Memory footprint: ~3KB
+
+	  Required by: Applications using signals for IPC or async events
+	  Disable if: No signal handling needed
+
+	  Platform notes:
+	  - Linux/POSIX: Full signal support
+
+	  Recommended: Enable for Standard/Full profiles, optional for Minimal
+
+# Linux user-space fine-grained configuration
+source "core/user/osal/src/Config.in"
+
+endmenu
+
+# =============================================================================
+# Resource Limits
+# =============================================================================
+
+menu "Resource Limits"
+
+config OSAL_MAX_TASKS
+	int "Maximum number of tasks"
+	default 256
+	range 1 1024
+	help
+	  Maximum number of concurrent tasks/threads that can be created.
+
+	  Memory impact: ~32 bytes per task slot (for task table)
+	  Runtime impact: Linear search overhead for task lookup
+
+	  Recommended values:
+	  - Linux Minimal: 32-64
+	  - Linux Standard: 128-256
+	  - Linux Full: 256-512
+
+	  Note: Each task also requires stack memory (typically 8KB-1MB).
+
+config OSAL_MAX_QUEUES
+	int "Maximum number of queues"
+	default 128
+	range 1 512
+	help
+	  Maximum number of message queues that can be created.
+
+	  Memory impact: ~48 bytes per queue slot
+	  Runtime impact: Linear search overhead for queue lookup
+
+	  Recommended values:
+	  - Linux Minimal: 16-32
+	  - Linux Standard: 64-128
+	  - Linux Full: 128-256
+
+	  Note: Each queue also requires buffer memory for messages.
+
+config OSAL_MAX_MUTEXES
+	int "Maximum number of mutexes"
+	default 128
+	range 1 512
+	help
+	  Maximum number of mutexes that can be created.
+
+	  Memory impact: ~40 bytes per mutex slot
+	  Runtime impact: Linear search overhead for mutex lookup
+
+	  Recommended values:
+	  - Linux Minimal: 32-64
+	  - Linux Standard: 64-128
+	  - Linux Full: 128-256
+
+	  Note: Mutexes are lightweight. Prefer mutexes over semaphores
+	  for mutual exclusion when possible.
+
+endmenu
+
+# =============================================================================
+# Utility Functions
+# =============================================================================
+
+menu "Utility Functions"
+
+config OSAL_UTIL_LOG
+	bool "Logging utilities"
+	default y
+	help
+	  Enable OSAL logging utilities.
+
+config OSAL_UTIL_VERSION
+	bool "Version utilities"
+	default y
+	help
+	  Enable OSAL version query utilities.
+
+config OSAL_UTIL_CRC
+	bool "CRC checksum algorithms"
+	default y
+	help
+	  Enable CRC checksum algorithms.
+
+	  Provides:
+	  - CRC16-CCITT: Fast table-based implementation
+	  - CRC32: For file integrity checking (reserved)
+
+	  Features:
+	  - Thread-safe (stateless functions)
+	  - Incremental calculation support
+	  - Optimized with lookup tables
+
+	  Memory impact: ~1KB (CRC16 lookup table)
+	  Performance: ~10-20 cycles per byte
+
+	  Use cases:
+	  - Protocol packet checksums (PRL, PDL)
+	  - Hardware ID validation (HWID)
+	  - Configuration integrity checking
+	  - Firmware update verification
+
+	  Recommended: Enable for most systems
+
+endmenu
+
+# =============================================================================
+# Logging Configuration
+# =============================================================================
+# Global logging system implemented in OSAL
+# =============================================================================
+
+menu "Logging Configuration"
+
+config LOGGING_ENABLE
+	bool "Enable logging system"
+	default y
+	help
+	  Enable global logging system.
+
+	  When disabled, all logging calls become no-ops (compiled out).
+	  This minimizes code size and runtime overhead.
+
+	  Recommended: Enable for all builds except ultra-minimal Linux services.
+
+if LOGGING_ENABLE
+
+choice
+	prompt "Default log level"
+	default LOG_LEVEL_INFO if BUILD_TYPE_DEBUG
+	default LOG_LEVEL_WARN if BUILD_TYPE_RELEASE
+	help
+	  Select the default log level for all modules.
+
+	  Log levels (from least to most verbose):
+	  - FATAL: Only fatal errors that cause program termination
+	  - ERROR: Errors that affect functionality
+	  - WARN:  Warnings about potential issues
+	  - INFO:  Informational messages about normal operation
+	  - DEBUG: Detailed debugging information
+	  - TRACE: Very verbose trace information
+
+	  Messages below the selected level are compiled out.
+
+config LOG_LEVEL_FATAL
+	bool "FATAL - Fatal errors only"
+	help
+	  Only log fatal errors that cause program termination.
+
+	  Memory impact: Minimal (~2KB)
+	  Use case: Production systems with strict size constraints
+
+config LOG_LEVEL_ERROR
+	bool "ERROR - Errors and above"
+	help
+	  Log errors and fatal messages.
+
+	  Memory impact: ~5KB
+	  Use case: Production systems, minimal logging
+
+config LOG_LEVEL_WARN
+	bool "WARN - Warnings and above"
+	help
+	  Log warnings, errors, and fatal messages.
+
+	  Memory impact: ~8KB
+	  Use case: Production systems, standard logging
+
+	  This is the recommended level for production.
+
+config LOG_LEVEL_INFO
+	bool "INFO - Informational and above"
+	help
+	  Log informational messages, warnings, errors, and fatal.
+
+	  Memory impact: ~15KB
+	  Use case: Development, testing, verbose production logging
+
+	  This is the recommended level for development.
+
+config LOG_LEVEL_DEBUG
+	bool "DEBUG - Debug and above"
+	help
+	  Log debug information and all higher priority messages.
+
+	  Memory impact: ~30KB
+	  Performance impact: 5-10%
+	  Use case: Active debugging, troubleshooting
+
+config LOG_LEVEL_TRACE
+	bool "TRACE - All messages"
+	help
+	  Log all messages including very verbose trace information.
+
+	  Memory impact: ~50KB
+	  Performance impact: 10-20%
+	  Use case: Deep debugging, performance analysis
+
+	  Warning: Very high overhead, use only for debugging.
+
+endchoice
+
+config LOG_LEVEL
+	int
+	default 0 if LOG_LEVEL_FATAL
+	default 1 if LOG_LEVEL_ERROR
+	default 2 if LOG_LEVEL_WARN
+	default 3 if LOG_LEVEL_INFO
+	default 4 if LOG_LEVEL_DEBUG
+	default 5 if LOG_LEVEL_TRACE
+
+menu "Log Output Configuration"
+
+config LOG_OUTPUT_CONSOLE
+	bool "Log to console (stdout/stderr)"
+	default y
+	help
+	  Output log messages to console (stdout for INFO/DEBUG, stderr for WARN/ERROR).
+
+	  This is the most common logging output method.
+
+config LOG_OUTPUT_FILE
+	bool "Log to file"
+	default n
+	help
+	  Output log messages to a file.
+
+	  Requires filesystem support (CONFIG_OSAL_FILE).
+
+if LOG_OUTPUT_FILE
+
+config LOG_FILE_PATH
+	string "Log file path"
+	default "/var/log/es-middleware.log"
+	help
+	  Path to the log file.
+
+	  The directory must exist and be writable.
+
+config LOG_FILE_MAX_SIZE
+	int "Maximum log file size (KB)"
+	default 1024
+	range 64 102400
+	help
+	  Maximum log file size in kilobytes.
+
+	  When the log file exceeds this size, it is rotated
+	  (renamed to .log.1, .log.2, etc.).
+
+config LOG_FILE_MAX_BACKUPS
+	int "Maximum number of log file backups"
+	default 3
+	range 0 10
+	help
+	  Maximum number of rotated log files to keep.
+
+	  Set to 0 to disable log rotation (file grows indefinitely).
+
+endif # LOG_OUTPUT_FILE
+
+config LOG_OUTPUT_SYSLOG
+	bool "Log to syslog"
+	default n
+	depends on OS_LINUX
+	help
+	  Output log messages to system syslog daemon.
+
+	  Requires syslog support in the operating system.
+
+	  Use cases:
+	  - Centralized logging
+	  - Integration with system monitoring
+	  - Remote logging
+
+if LOG_OUTPUT_SYSLOG
+
+config LOG_SYSLOG_IDENT
+	string "Syslog identifier"
+	default "es-middleware"
+	help
+	  Identifier string for syslog messages.
+
+	  This appears as the program name in syslog output.
+
+config LOG_SYSLOG_FACILITY
+	string "Syslog facility"
+	default "LOG_USER"
+	help
+	  Syslog facility for log messages.
+
+	  Common values:
+	  - LOG_USER (default)
+	  - LOG_DAEMON
+	  - LOG_LOCAL0 through LOG_LOCAL7
+
+endif # LOG_OUTPUT_SYSLOG
+
+endmenu
+
+menu "Log Format Configuration"
+
+config LOG_TIMESTAMP
+	bool "Include timestamp in log messages"
+	default y
+	help
+	  Prefix log messages with timestamp.
+
+	  Format: [YYYY-MM-DD HH:MM:SS.mmm]
+
+config LOG_LEVEL_PREFIX
+	bool "Include log level in messages"
+	default y
+	help
+	  Prefix log messages with level indicator.
+
+	  Examples: [ERROR], [WARN], [INFO], [DEBUG]
+
+config LOG_MODULE_NAME
+	bool "Include module name in messages"
+	default y
+	help
+	  Include the source module name in log messages.
+
+	  Examples: [OSAL], [HAL], [PDL], [PRL]
+
+config LOG_FUNCTION_NAME
+	bool "Include function name in messages"
+	default n
+	help
+	  Include the function name in log messages.
+
+	  Useful for debugging, but increases log verbosity.
+
+config LOG_FILE_LINE
+	bool "Include file and line number in messages"
+	default n
+	help
+	  Include source file name and line number in log messages.
+
+	  Useful for debugging, but increases log verbosity significantly.
+
+	  Example: [osal_mutex.c:123]
+
+config LOG_THREAD_ID
+	bool "Include thread ID in messages"
+	default n
+	help
+	  Include thread ID in log messages.
+
+	  Useful for debugging multi-threaded applications.
+
+config LOG_COLORIZED
+	bool "Colorize console output"
+	default y if BUILD_TYPE_DEBUG
+	default n
+	depends on LOG_OUTPUT_CONSOLE
+	help
+	  Use ANSI color codes to colorize log output on console.
+
+	  - ERROR/FATAL: Red
+	  - WARN: Yellow
+	  - INFO: Green
+	  - DEBUG: Cyan
+	  - TRACE: Blue
+
+	  Improves readability on terminals that support ANSI colors.
+
+	  Disable for log files or systems without color terminal support.
+
+endmenu
+
+menu "Advanced Logging Options"
+
+config LOG_BUFFER_SIZE
+	int "Log message buffer size (bytes)"
+	default 256
+	range 64 4096
+	help
+	  Maximum size of a single log message.
+
+	  Messages longer than this will be truncated.
+
+	  Recommended values:
+	  - Minimal: 128 bytes
+	  - Standard: 256 bytes
+	  - Verbose: 512-1024 bytes
+
+config LOG_ASYNC
+	bool "Enable asynchronous logging"
+	default n
+	depends on OSAL_THREAD
+	help
+	  Enable asynchronous logging using a background thread.
+
+	  Log messages are queued and written by a dedicated thread,
+	  reducing the impact on application performance.
+
+	  Benefits:
+	  - Lower latency for logging calls
+	  - Non-blocking I/O
+	  - Better performance under high load
+
+	  Drawbacks:
+	  - Additional thread overhead
+	  - Log messages may be lost on crash
+	  - Requires thread support
+
+	  Recommended: Enable for performance-critical applications.
+
+if LOG_ASYNC
+
+config LOG_ASYNC_QUEUE_SIZE
+	int "Asynchronous log queue size"
+	default 1024
+	range 64 16384
+	help
+	  Number of log messages that can be queued.
+
+	  If the queue fills up, logging calls will block until
+	  space becomes available.
+
+endif # LOG_ASYNC
+
+config LOG_RATE_LIMIT
+	bool "Enable rate limiting"
+	default n
+	help
+	  Enable rate limiting to prevent log flooding.
+
+	  Limits the number of identical log messages per time period.
+
+if LOG_RATE_LIMIT
+
+config LOG_RATE_LIMIT_PERIOD
+	int "Rate limit period (seconds)"
+	default 60
+	range 1 3600
+	help
+	  Time period for rate limiting, in seconds.
+
+config LOG_RATE_LIMIT_COUNT
+	int "Maximum messages per period"
+	default 100
+	range 1 10000
+	help
+	  Maximum number of identical messages allowed per period.
+
+endif # LOG_RATE_LIMIT
+
+endmenu
+
+endif # LOGGING_ENABLE
+
+endmenu
+
+# =============================================================================
+# Debug Options
+# =============================================================================
+
+menu "Debug Options"
+
+config OSAL_DEBUG_LOGGING
+	bool "Enable debug logging"
+	default n
+	help
+	  Enable verbose debug logging in OSAL.
+
+	  When enabled, OSAL will output detailed debug messages including:
+	  - Function entry/exit traces
+	  - Parameter validation failures
+	  - Resource allocation/deallocation
+	  - Error conditions and warnings
+
+	  Memory impact: ~5KB code + runtime log buffer
+	  Performance impact: 5-10% overhead due to logging calls
+
+	  Recommended:
+	  - Enable for: Development, debugging, troubleshooting
+	  - Disable for: Production, performance-critical, memory-constrained
+
+	  Note: Debug logging significantly increases code size and reduces
+	  performance. Always disable for production builds.
+
+endmenu
+
+endif # OSAL

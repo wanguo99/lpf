@@ -1,0 +1,323 @@
+# HAL (Hardware Abstraction Layer) Configuration
+
+menuconfig HAL
+	bool "HAL (Hardware Abstraction Layer)"
+	default n
+	depends on OSAL
+	help
+	  Hardware Abstraction Layer provides unified hardware interfaces.
+
+	  HAL abstracts platform-specific hardware details and provides
+	  a consistent API for accessing peripherals across different
+	  hardware platforms (Linux, RTOS, bare-metal).
+
+	  Provides drivers for:
+	  - CAN bus (Controller Area Network)
+	  - UART/Serial (RS-232, RS-485)
+	  - I2C (Inter-Integrated Circuit)
+	  - SPI (Serial Peripheral Interface)
+	  - GPIO (General Purpose I/O)
+
+	  Memory footprint: ~5KB (minimal) ~ 50KB (all drivers)
+
+	  Required by: Applications that access hardware peripherals
+	  Dependencies: OSAL (for OS abstraction)
+
+	  Note: Enable OSAL first in "Core Modules" menu.
+
+	  If unsure, say Y.
+
+if HAL
+
+# =============================================================================
+# Platform Configuration
+# =============================================================================
+
+menu "Platform Configuration"
+
+config PLATFORM_LINUX
+	bool "Linux platform"
+	default n
+	depends on OS_LINUX
+	help
+	  Enable Linux platform support.
+
+	  Uses standard Linux kernel interfaces:
+	  - SocketCAN for CAN bus
+	  - sysfs GPIO for GPIO control
+	  - /dev/ttyX for UART/serial
+	  - /dev/i2c-X for I2C bus
+	  - /dev/spidevX.Y for SPI bus
+
+	  Suitable for: Any Linux system with standard kernel drivers
+	  Examples: AM625, i.MX6/8, Raspberry Pi, x86 Linux
+
+	  Memory: ~10KB driver code
+
+	  Note: Requires appropriate kernel drivers and device nodes.
+	  Some embedded systems may need custom platform support.
+
+endmenu
+
+# =============================================================================
+# Build Configuration
+# =============================================================================
+
+menu "Build Configuration"
+
+config HAL_BUILD_STATIC
+	bool "Build static library"
+	default n
+	help
+	  Build libhal.a static library.
+
+	  Static linking advantages:
+	  - No runtime dependencies
+	  - Slightly faster (no dynamic linking)
+	  - Easier deployment
+
+	  Recommended: Enable for embedded systems
+
+config HAL_BUILD_SHARED
+	bool "Build shared library"
+	default n
+	help
+	  Build libhal.so shared library.
+
+	  Shared library advantages:
+	  - Smaller executable size
+	  - Can update HAL without recompiling apps
+	  - Code sharing between processes
+
+	  Recommended: Enable for multi-application systems
+
+	  Note: Not available for bare-metal targets
+
+endmenu
+
+# =============================================================================
+# Driver Configuration (Fine-grained per-driver control)
+# =============================================================================
+
+menu "Driver Configuration"
+
+menuconfig HAL_CAN
+	bool "CAN bus support"
+	default n
+	help
+	  Enable CAN (Controller Area Network) bus driver.
+
+	  CAN is a robust vehicle bus standard designed for microcontrollers
+	  and devices to communicate without a host computer.
+
+	  Features:
+	  - Send/receive CAN frames (standard and extended ID)
+	  - Configure bit rate and timing
+	  - Hardware filtering support
+	  - Error handling and bus-off recovery
+
+	  Memory footprint: ~8KB
+
+	  Use cases:
+	  - Automotive communication
+	  - Industrial automation
+	  - Embedded platform communication over CAN
+
+	  Platform support:
+	  - Linux: SocketCAN interface
+	  - RTOS: Depends on RTOS CAN driver
+	  - Bare-metal: Direct register access
+
+menuconfig HAL_UART
+	bool "UART support"
+	default n
+	help
+	  Enable UART/serial port driver.
+
+	  UART (Universal Asynchronous Receiver-Transmitter) provides
+	  serial communication for RS-232, RS-485, and TTL interfaces.
+
+	  Features:
+	  - Configurable baud rate (9600 - 921600+)
+	  - Data bits, stop bits, parity control
+	  - Hardware/software flow control
+	  - Non-blocking I/O
+
+	  Memory footprint: ~6KB
+
+	  Use cases:
+	  - Debug console
+	  - GPS receivers
+	  - Sensor communication
+	  - Modem control
+
+	  Platform support:
+	  - Linux: /dev/ttyX devices
+	  - RTOS: UART peripheral driver
+	  - Bare-metal: Direct UART register access
+
+menuconfig HAL_I2C
+	bool "I2C support"
+	default n
+	help
+	  Enable I2C (Inter-Integrated Circuit) bus driver.
+
+	  I2C is a multi-master, multi-slave serial communication bus
+	  for connecting low-speed peripherals.
+
+	  Features:
+	  - Master mode operation
+	  - 7-bit and 10-bit addressing
+	  - Standard (100kHz) and Fast (400kHz) modes
+	  - Read/write transactions
+
+	  Memory footprint: ~5KB
+
+	  Use cases:
+	  - Temperature sensors
+	  - EEPROMs
+	  - Real-time clocks (RTC)
+	  - ADC/DAC converters
+
+	  Platform support:
+	  - Linux: /dev/i2c-X devices
+	  - RTOS: I2C peripheral driver
+	  - Bare-metal: Direct I2C register access
+
+menuconfig HAL_SPI
+	bool "SPI support"
+	default n
+	help
+	  Enable SPI (Serial Peripheral Interface) bus driver.
+
+	  SPI is a synchronous serial communication interface for
+	  high-speed short-distance communication.
+
+	  Features:
+	  - Master mode operation
+	  - Configurable clock polarity and phase
+	  - Multiple chip select support
+	  - Full-duplex communication
+
+	  Memory footprint: ~5KB
+
+	  Use cases:
+	  - Flash memory (NOR/NAND)
+	  - SD cards
+	  - Display controllers
+	  - High-speed ADCs
+
+	  Platform support:
+	  - Linux: /dev/spidevX.Y devices
+	  - RTOS: SPI peripheral driver
+	  - Bare-metal: Direct SPI register access
+
+menuconfig HAL_GPIO
+	bool "GPIO support"
+	default n
+	help
+	  Enable GPIO (General Purpose I/O) driver.
+
+	  GPIO provides digital input/output control for pins.
+
+	  Features:
+	  - Input/output direction control
+	  - Read/write pin state
+	  - Pull-up/pull-down configuration
+	  - Interrupt support (edge/level triggered)
+
+	  Memory footprint: ~4KB
+
+	  Use cases:
+	  - LED control
+	  - Button input
+	  - Chip select signals
+	  - Hardware reset control
+
+	  Platform support:
+	  - Linux: sysfs GPIO (/sys/class/gpio)
+	  - RTOS: GPIO peripheral driver
+	  - Bare-metal: Direct GPIO register access
+
+endmenu
+
+# Linux user-space fine-grained configuration
+source "core/kernel/hal/src/Config.in"
+
+# =============================================================================
+# Advanced Features
+# =============================================================================
+
+menu "Advanced Features"
+
+config HAL_DEBUG
+	bool "Enable debug logging"
+	default n
+	help
+	  Enable verbose debug logging in HAL drivers.
+
+	  When enabled, HAL will output detailed debug messages including:
+	  - Driver initialization and configuration
+	  - Hardware register access
+	  - Data transfer operations
+	  - Error conditions and warnings
+
+	  Memory impact: ~3KB code + runtime log buffer
+	  Performance impact: 5-10% overhead
+
+	  Recommended:
+	  - Enable for: Driver development, hardware debugging
+	  - Disable for: Production, performance-critical applications
+
+config HAL_STATISTICS
+	bool "Enable statistics"
+	default n
+	help
+	  Enable HAL statistics collection.
+
+	  Collects runtime statistics for each driver:
+	  - Number of operations (read/write/ioctl)
+	  - Success/failure counts
+	  - Data transfer volumes
+	  - Error rates
+
+	  Memory impact: ~2KB code + ~1KB per driver for counters
+	  Performance impact: <1% overhead
+
+	  Use cases:
+	  - Performance monitoring
+	  - Reliability analysis
+	  - Debugging intermittent issues
+
+	  Recommended: Enable for development and testing
+
+config HAL_POWER_MANAGEMENT
+	bool "Enable power management"
+	default n
+	help
+	  Enable power management features in HAL drivers.
+
+	  Provides:
+	  - Driver suspend/resume support
+	  - Low-power mode configuration
+	  - Clock gating control
+	  - Dynamic frequency scaling
+
+	  Memory impact: ~4KB code
+	  Power savings: 10-50% depending on usage pattern
+
+	  Use cases:
+	  - Battery-powered devices
+	  - Thermal management
+	  - Energy-efficient operation
+
+	  Platform support:
+	  - Linux: Uses kernel PM framework
+	  - RTOS: Depends on RTOS PM support
+	  - Bare-metal: Direct peripheral control
+
+	  Recommended: Enable for battery-powered or constrained systems
+
+endmenu
+
+endif # HAL

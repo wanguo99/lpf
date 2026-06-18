@@ -1,0 +1,31 @@
+# PDM MCU 驱动配置
+
+if PDM_MCU_SUPPORT
+
+menu "MCU Driver Configuration"
+
+config PDM_MCU_MAX_DEVICES
+	int "Maximum number of MCU devices"
+	default 4
+	range 1 16
+	help
+	  Maximum number of MCU devices that can be managed simultaneously.
+	  Each device requires approximately 200 bytes of RAM.
+
+config PDM_MCU_CMD_TIMEOUT_MS
+	int "Default command timeout (ms)"
+	default 5000
+	range 100 60000
+	help
+	  Default timeout for MCU command execution in milliseconds.
+
+config PDM_MCU_RETRY_COUNT
+	int "Default retry count"
+	default 3
+	range 0 10
+	help
+	  Default number of retries for failed MCU commands.
+
+endmenu
+
+endif # PDM_MCU_SUPPORT

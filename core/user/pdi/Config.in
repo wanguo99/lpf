@@ -1,0 +1,23 @@
+# PDI (Peripheral Driver Interface) Configuration
+
+menuconfig PDI
+	bool "PDI (Peripheral Driver Interface)"
+	default n
+	help
+	  Userspace API library for the kernel PDM module.
+
+	  PDI owns the userspace API surface and wraps open/ioctl/close for
+	  /dev/es-middleware-pdm. It does not implement peripheral business
+	  logic directly.
+
+if PDI
+
+config PDI_BUILD_STATIC
+	bool "Build static library (.a)"
+	default y
+
+config PDI_BUILD_SHARED
+	bool "Build shared library (.so)"
+	default n
+
+endif # PDI

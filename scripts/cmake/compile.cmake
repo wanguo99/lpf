@@ -183,15 +183,20 @@ function(register_component)
         )
     endif()
 
-    # Install public headers as a separate component
-    # Use: cmake --install . --component headers
-    # Or via Buildroot: make install_headers
-    # Headers are NOT installed by default 'make install'
-    foreach(include_dir ${ADD_INCLUDE})
-        get_filename_component(abs_dir ${include_dir} ABSOLUTE BASE_DIR ${component_dir})
+    # Install public headers as a separate component. Compile include paths can
+    # contain parent/source directories, so only install explicit public trees.
+    set(public_header_dirs "")
+    if(IS_DIRECTORY "${component_dir}/include")
+        list(APPEND public_header_dirs "${component_dir}/include")
+    endif()
+    list(APPEND public_header_dirs ${ADD_PUBLIC_HEADER_DIRS})
+    list(REMOVE_DUPLICATES public_header_dirs)
+
+    foreach(header_dir ${public_header_dirs})
+        get_filename_component(abs_dir ${header_dir} ABSOLUTE BASE_DIR ${component_dir})
         if(IS_DIRECTORY ${abs_dir})
             install(DIRECTORY ${abs_dir}/
-                DESTINATION ${INSTALL_INCLUDEDIR}/${component_name}
+                DESTINATION ${INSTALL_INCLUDEDIR}
                 COMPONENT headers
                 EXCLUDE_FROM_ALL
                 FILES_MATCHING PATTERN "*.h"
@@ -490,6 +495,5 @@ macro(project name)
     endif()
 
 endmacro()
-
 
 

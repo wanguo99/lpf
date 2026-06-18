@@ -1,0 +1,95 @@
+# PDM (Peripheral Driver Module) Configuration
+
+menuconfig PDM
+	bool "PDM (Peripheral Driver Module)"
+	default n
+	depends on OSAL && HAL && PCONFIG
+	help
+	  Peripheral Driver Module provides high-level peripheral management
+	  and protocol handling.
+
+	  PDM sits above HAL and provides:
+	  - Protocol-aware peripheral drivers
+	  - Device abstraction (current MCU peripheral type)
+	  - State management and error handling
+	  - Unified API for complex peripherals
+
+	  Architecture:
+	  PDM uses HAL for low-level hardware access and PCONFIG for
+	  hardware configuration, providing application-level APIs
+	  for managing peripheral subsystems.
+
+	  Memory footprint: ~15KB base + per-peripheral drivers
+
+	  Supported peripherals:
+	  - MCU peripherals
+
+	  Dependencies: OSAL, HAL, PCONFIG
+
+	  Note: Enable OSAL, HAL, PCONFIG, and TYPES first in "Core Modules" menu.
+
+	  Recommended: Enable for systems with peripheral management
+
+	  If unsure, say Y.
+
+if PDM
+
+menu "PDM Build Configuration"
+
+config PDM_BUILD_STATIC
+	bool "Build static library (.a)"
+	default y
+	help
+	  Build PDM as a static library (libpdm.a).
+
+	  Static linking advantages:
+	  - No runtime dependencies
+	  - Peripheral drivers embedded in executable
+	  - Slightly faster
+
+	  Recommended: Enable for embedded systems
+
+config PDM_BUILD_SHARED
+	bool "Build shared library (.so)"
+	default n
+	help
+	  Build PDM as a shared library (libpdm.so).
+
+	  Shared library advantages:
+	  - Can update peripheral drivers without recompiling apps
+	  - Smaller executable size
+	  - Code sharing between processes
+
+	  Recommended: Enable for multi-application systems
+
+endmenu
+
+menuconfig PDM_MCU_SUPPORT
+	bool "MCU peripheral support"
+	default n
+	help
+	  Enable MCU (Microcontroller) peripheral support.
+
+	  MCU peripherals are microcontroller-based modules that provide
+	  specialized control and monitoring functions, offloading tasks
+	  from the main processor.
+
+	  Typical MCU functions:
+	  - Real-time sensor data acquisition
+	  - PWM control for motors/actuators
+	  - Analog signal processing
+	  - Low-level protocol handling
+
+	  Communication options:
+	  - CAN bus (for robust, multi-drop networks)
+	  - UART (for point-to-point connections)
+
+	  Memory footprint: ~8KB base + protocol overhead
+
+	  You can enable CAN-based or UART-based MCU support in the submenu.
+
+	  If unsure, say Y.
+
+source "core/kernel/pdm/src/pdm_mcu/Config.in"
+
+endif # PDM

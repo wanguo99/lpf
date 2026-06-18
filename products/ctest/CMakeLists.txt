@@ -46,19 +46,19 @@ endif()
 # when tests are built alongside products
 
 if(CONFIG_OSAL AND NOT TARGET osal)
-    add_subdirectory(${SDK_PATH}/core/osal ${CMAKE_CURRENT_BINARY_DIR}/osal)
+    add_subdirectory(${SDK_PATH}/core/user/osal ${CMAKE_CURRENT_BINARY_DIR}/osal)
 endif()
 
 if(CONFIG_HAL AND NOT TARGET hal)
-    add_subdirectory(${SDK_PATH}/core/hal ${CMAKE_CURRENT_BINARY_DIR}/hal)
+    add_subdirectory(${SDK_PATH}/core/kernel/hal ${CMAKE_CURRENT_BINARY_DIR}/hal)
 endif()
 
 if(CONFIG_PCONFIG AND NOT TARGET pconfig)
-    add_subdirectory(${SDK_PATH}/core/pconfig ${CMAKE_CURRENT_BINARY_DIR}/pconfig)
+    add_subdirectory(${SDK_PATH}/core/kernel/pconfig ${CMAKE_CURRENT_BINARY_DIR}/pconfig)
 endif()
 
-if(CONFIG_PDL AND NOT TARGET pdl)
-    add_subdirectory(${SDK_PATH}/core/pdl ${CMAKE_CURRENT_BINARY_DIR}/pdl)
+if(CONFIG_PDI AND NOT TARGET pdi)
+    add_subdirectory(${SDK_PATH}/core/user/pdi ${CMAKE_CURRENT_BINARY_DIR}/pdi)
 endif()
 
 if(CONFIG_PRL AND NOT TARGET prl)
@@ -66,7 +66,7 @@ if(CONFIG_PRL AND NOT TARGET prl)
 endif()
 
 if(CONFIG_ACONFIG AND NOT TARGET aconfig)
-    add_subdirectory(${SDK_PATH}/core/aconfig ${CMAKE_CURRENT_BINARY_DIR}/aconfig)
+    add_subdirectory(${SDK_PATH}/core/user/aconfig ${CMAKE_CURRENT_BINARY_DIR}/aconfig)
 endif()
 
 # ============================================================================
@@ -100,12 +100,13 @@ endif()
 
 # Add include directories for test cases
 target_include_directories(es-middleware-test PRIVATE
-    ${SDK_PATH}/core/osal/include/osal
-    ${SDK_PATH}/core/hal/include/hal
-    ${SDK_PATH}/core/pconfig/include/pconfig
-    ${SDK_PATH}/core/pdl/include/pdl
+    ${SDK_PATH}/core/user/osal/include/osal
+    ${SDK_PATH}/core/kernel/include/hal
+    ${SDK_PATH}/core/kernel/include/pconfig
+    ${SDK_PATH}/core/user/pdi/include/pdi
+    ${SDK_PATH}/core/uapi
     ${SDK_PATH}/core/prl/include/prl
-    ${SDK_PATH}/core/aconfig/include/aconfig
+    ${SDK_PATH}/core/user/aconfig/include/aconfig
 )
 
 # Add test framework headers if enabled
@@ -160,7 +161,7 @@ if(CONFIG_TEST_UNIT)
             MODULE pdl
             LIBRARY pdl
             INCLUDE_DIRS
-                ${SDK_PATH}/core/pdl/src/pdl_mcu
+                ${SDK_PATH}/core/kernel/pdm/src/pdm_mcu
         )
     endif()
 

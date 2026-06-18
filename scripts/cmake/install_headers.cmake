@@ -67,12 +67,23 @@ function(install_module_headers module_name module_path)
     endif()
 endfunction()
 
+function(install_header_tree module_name header_path)
+    if(CONFIG_${module_name})
+        set(header_src "${SDK_PATH}/${header_path}")
+        if(EXISTS ${header_src})
+            message(STATUS "  Installing ${module_name} headers: ${header_src}")
+            file(COPY ${header_src}/
+                 DESTINATION ${INSTALL_PATH}
+                 FILES_MATCHING PATTERN "*.h")
+        endif()
+    endif()
+endfunction()
+
 # Install core module headers based on Kconfig
-install_module_headers(OSAL "core/osal")
-install_module_headers(HAL "core/hal")
-install_module_headers(PCONFIG "core/pconfig")
-install_module_headers(ACONFIG "core/aconfig")
-install_module_headers(PDL "core/pdl")
+install_module_headers(OSAL "core/user/osal")
+install_module_headers(ACONFIG "core/user/aconfig")
+install_module_headers(PDI "core/user/pdi")
+install_header_tree(PDI "core/uapi")
 install_module_headers(PRL "core/prl")
 
 message(STATUS "Headers installation complete")

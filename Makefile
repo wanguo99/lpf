@@ -65,12 +65,12 @@ DESTDIR ?=
 
 # Kernel module build configuration
 KERNEL_SRC ?= /lib/modules/$(shell uname -r)/build
-KO_BUILD_DIR ?= _build/ko
-override KO_BUILD_DIR := $(patsubst %/,%,$(KO_BUILD_DIR))
-KO_MODULE_DIR ?= $(srctree)/kernel/demo
-KO_MODULE_OUTPUT_DIR ?= $(KO_BUILD_DIR)/demo
-KO_DEMO_MODULE_NAME ?= es_middleware_ko_demo
-KO_ARTIFACT ?= $(KO_MODULE_OUTPUT_DIR)/$(KO_DEMO_MODULE_NAME).ko
+MODULES_BUILD_DIR ?= _build/modules
+override MODULES_BUILD_DIR := $(patsubst %/,%,$(MODULES_BUILD_DIR))
+MODULES_SRC_DIR ?= $(srctree)/core/kernel
+MODULES_OUTPUT_DIR ?= $(MODULES_BUILD_DIR)
+MODULES_LIST ?= osal pdm
+MODULES_ARTIFACTS := $(addprefix $(MODULES_OUTPUT_DIR)/,$(addsuffix .ko,$(MODULES_LIST)))
 
 # Parallel build auto-detection
 ifeq ($(filter -j%,$(MAKEFLAGS)),)
@@ -405,31 +405,33 @@ all: _check_config _validate_config include/generated/gen_autoconf.h include/gen
 	@echo "  make install DESTDIR=/tmp - Stage installation"
 	@echo ""
 
-PHONY += ko
-ko: _ko_check_environment _ko_prepare
+PHONY += modules
+modules: _modules_check_environment _modules_prepare
 	@echo ""
 	@echo "==================================================================="
 	@echo "ES-Middleware Kernel Module Build"
 	@echo "==================================================================="
 	@echo ""
 	@echo "Kernel source: $(KERNEL_SRC)"
-	@echo "Module source: $(abspath $(KO_MODULE_DIR))"
-	@echo "Output dir:    $(abspath $(KO_MODULE_OUTPUT_DIR))"
+	@echo "Module source: $(abspath $(MODULES_SRC_DIR))"
+	@echo "Output dir:    $(abspath $(MODULES_OUTPUT_DIR))"
 	@echo ""
-	@echo "  KBUILD   $(KO_DEMO_MODULE_NAME).ko"
+	@echo "  KBUILD   $(addsuffix .ko,$(MODULES_LIST))"
 	$(Q)$(MAKE) -C $(KERNEL_SRC) \
-		M=$(abspath $(KO_MODULE_DIR)) \
-		MO=$(abspath $(KO_MODULE_OUTPUT_DIR)) \
+		M=$(abspath $(MODULES_SRC_DIR)) \
+		MO=$(abspath $(MODULES_OUTPUT_DIR)) \
 		modules
 	@echo ""
 	@echo "==================================================================="
 	@echo "Kernel module build completed successfully!"
-	@echo "Artifact: $(abspath $(KO_ARTIFACT))"
+	@for artifact in $(MODULES_ARTIFACTS); do \
+		echo "Artifact: $$(readlink -f $$artifact)"; \
+	done
 	@echo "==================================================================="
 	@echo ""
 
-PHONY += _ko_check_environment
-_ko_check_environment:
+PHONY += _modules_check_environment
+_modules_check_environment:
 	@if [ ! -f "$(KERNEL_SRC)/Makefile" ]; then \
 		echo ""; \
 		echo "==================================================================="; \
@@ -439,28 +441,28 @@ _ko_check_environment:
 		echo "Kernel source/build dir: $(KERNEL_SRC)"; \
 		echo "Expected: a kernel tree with a top-level Makefile"; \
 		echo ""; \
-		echo "Set KERNEL_SRC=/path/to/linux-build-tree when invoking make ko."; \
+		echo "Set KERNEL_SRC=/path/to/linux-build-tree when invoking make modules."; \
 		echo "==================================================================="; \
 		echo ""; \
 		exit 1; \
 	fi
-	@if [ ! -f "$(KO_MODULE_DIR)/Makefile" ]; then \
+	@if [ ! -f "$(MODULES_SRC_DIR)/Makefile" ]; then \
 		echo ""; \
 		echo "==================================================================="; \
-		echo "ERROR: Kernel demo module Makefile missing!"; \
+		echo "ERROR: Kernel module Makefile missing!"; \
 		echo "==================================================================="; \
 		echo ""; \
-		echo "Module directory: $(KO_MODULE_DIR)"; \
+		echo "Module directory: $(MODULES_SRC_DIR)"; \
 		echo ""; \
-		echo "The kernel demo source tree has not been created correctly."; \
+		echo "The kernel module source tree has not been created correctly."; \
 		echo "==================================================================="; \
 		echo ""; \
 		exit 1; \
 	fi
 
-PHONY += _ko_prepare
-_ko_prepare:
-	$(Q)mkdir -p $(KO_MODULE_OUTPUT_DIR)
+PHONY += _modules_prepare
+_modules_prepare:
+	$(Q)mkdir -p $(MODULES_OUTPUT_DIR)
 
 PHONY += _check_config
 _check_config:
@@ -640,7 +642,7 @@ help:
 	@echo '  all             - Build all configured targets (default)'
 	@echo '  install         - Install binaries and libraries'
 	@echo '  install_headers - Install development headers only'
-	@echo '  ko              - Build the kernel module demo via kbuild'
+	@echo '  modules         - Build kernel modules via kbuild'
 	@echo '  clean           - Remove build artifacts'
 	@echo '  distclean       - Remove build artifacts and configuration'
 	@echo '  mrproper        - Same as distclean'
@@ -653,8 +655,10 @@ help:
 	@echo 'Build options:'
 	@echo '  V=0|1           - 0: quiet build (default), 1: verbose'
 	@echo '  BUILD_DIR=<dir> - Use custom build directory (default: _build)'
-	@echo '  KERNEL_SRC=<dir> - Kernel build tree for ko target'
-	@echo '  KO_BUILD_DIR=<dir> - Output directory for ko artifacts'
+	@echo '  KERNEL_SRC=<dir> - Kernel build tree for modules target'
+	@echo '  MODULES_BUILD_DIR=<dir> - Output directory for module artifacts'
+	@echo '  MODULES_SRC_DIR=<dir> - Kernel module source directory'
+	@echo '  MODULES_LIST="<list>" - Expected modules (default: osal pdm)'
 	@echo '  CMAKE_BUILD_TYPE=<type>'
 	@echo '                  - Set build type: Debug, Release, RelWithDebInfo, MinSizeRel'
 	@echo '  CMAKE_INSTALL_PREFIX=<path>'
