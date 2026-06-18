@@ -63,7 +63,7 @@ int64_t osal_get_boot_time(void)
 	return (int64_t)ts.tv_sec * OSAL_USEC_PER_SEC +
 		   ts.tv_nsec / OSAL_NSEC_PER_USEC;
 #else
-	/* macOS不支持CLOCK_BOOTTIME，降级到CLOCK_MONOTONIC */
+	/* 内核或 C 库未提供 CLOCK_BOOTTIME 时降级到 CLOCK_MONOTONIC */
 	return osal_get_monotonic_time();
 #endif
 }

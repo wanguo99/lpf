@@ -99,6 +99,31 @@ include(${SDK_PATH}/scripts/cmake/compile.cmake)
 include(${SDK_PATH}/scripts/cmake/ComponentAPI.cmake)
 
 # ==============================================================================
+# Build Core Modules Directly
+# ==============================================================================
+
+function(_es_middleware_add_core_component config_var target_name subdir)
+    if(DEFINED ${config_var} AND ${config_var} AND NOT TARGET ${target_name})
+        add_subdirectory(
+            ${SDK_PATH}/core/${subdir}
+            ${CMAKE_BINARY_DIR}/core/${subdir}
+        )
+    endif()
+endfunction()
+
+if(CONFIG_LINUX_ONLY)
+    message(STATUS "Building Linux-only core modules")
+
+    _es_middleware_add_core_component(CONFIG_OSAL osal osal)
+    _es_middleware_add_core_component(CONFIG_PCONFIG pconfig pconfig)
+    _es_middleware_add_core_component(CONFIG_PRL prl prl)
+    _es_middleware_add_core_component(CONFIG_HAL hal hal)
+    _es_middleware_add_core_component(CONFIG_PDL pdl pdl)
+    _es_middleware_add_core_component(CONFIG_ACONFIG aconfig aconfig)
+    _es_middleware_add_core_component(CONFIG_TEST_FRAMEWORK test_framework test_framework)
+endif()
+
+# ==============================================================================
 # Build Tests
 # ==============================================================================
 
@@ -120,10 +145,13 @@ message(STATUS "Git Commit:     ${GIT_COMMIT_HASH}")
 message(STATUS "Build Type:     ${CMAKE_BUILD_TYPE}")
 message(STATUS "Install Prefix: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "")
-message(STATUS "Products:")
-message(STATUS "  Tests:        ${CONFIG_BUILD_TESTING}")
-message(STATUS "")
+if(NOT CONFIG_LINUX_ONLY)
+    message(STATUS "Products:")
+    message(STATUS "  Tests:        ${CONFIG_BUILD_TESTING}")
+    message(STATUS "")
+endif()
 message(STATUS "Core Modules:")
+message(STATUS "  Linux-only:    ${CONFIG_LINUX_ONLY}")
 message(STATUS "  OSAL:         ${CONFIG_OSAL}")
 message(STATUS "  HAL:          ${CONFIG_HAL}")
 message(STATUS "  PDL:          ${CONFIG_PDL}")

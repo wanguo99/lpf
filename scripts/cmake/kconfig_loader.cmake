@@ -80,7 +80,10 @@ function(_kconfig_validate)
     endif()
 
     # Validate architecture is set
-    if(NOT CONFIG_ARCH_X86_64 AND NOT CONFIG_ARCH_ARM64 AND NOT CONFIG_ARCH_ARM32)
+    if(NOT CONFIG_ARCH_X86_64 AND
+       NOT CONFIG_ARCH_ARM64 AND
+       NOT CONFIG_ARCH_ARM32 AND
+       NOT CONFIG_ARCH_RISCV64)
         if(NOT BUILD_QUIET_MODE)
             message(WARNING "No architecture selected (CONFIG_ARCH_*)")
         endif()
@@ -233,10 +236,12 @@ function(kconfig_print_summary)
     set(important_configs
         PROJECT_NAME
         PROJECT_VERSION
+        LINUX_ONLY
         BUILD_TYPE
         ARCH_X86_64
         ARCH_ARM64
-        ARCH_ARM
+        ARCH_ARM32
+        ARCH_RISCV64
         OS_LINUX
         PRODUCT_FRAMEWORK
         PRODUCT_SAMPLE

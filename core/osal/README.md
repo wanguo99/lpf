@@ -116,12 +116,12 @@ int main(void)
 └─────────────────────────┬─────────────────────────────┘
                           │
 ┌─────────────────────────▼─────────────────────────────┐
-│            POSIX Implementation Layer                  │
-│              (平台相关实现: src/posix/)                │
+│         Linux User-Space Implementation Layer           │
+│              (实现代码: src/)                           │
 └─────────────────────────┬─────────────────────────────┘
                           │
 ┌─────────────────────────▼─────────────────────────────┐
-│              Linux Kernel / POSIX OS                   │
+│              Linux libc / Linux syscalls               │
 └───────────────────────────────────────────────────────┘
 ```
 
@@ -221,21 +221,20 @@ make
 ./_build/bin/es-middleware-test
 ```
 
-## 移植到 RTOS
+## 源码布局
 
-OSAL 设计为易于移植，只需实现平台相关的接口：
+当前 OSAL 面向 Linux-only 用户态实现，源码按能力域组织：
 
 ```
 osal/
 ├── include/           # 接口层（平台无关）
-├── src/posix/         # POSIX 实现
-├── src/freertos/      # FreeRTOS 实现（待添加）
-└── src/vxworks/       # VxWorks 实现（待添加）
+└── src/
+    ├── ipc/           # IPC 与同步
+    ├── lib/           # libc/工具封装
+    ├── net/           # socket/termios/pty
+    ├── sys/           # 系统调用封装
+    └── util/          # log/version/crc
 ```
-
-**移植步骤**：
-1. 创建 `src/<rtos_name>/` 目录
-2. 实现所有 OSAL 接口
 3. 修改 CMakeLists.txt 选择实现
 4. 运行测试验证
 

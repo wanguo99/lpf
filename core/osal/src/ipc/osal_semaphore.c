@@ -6,7 +6,6 @@
 #include <semaphore.h>
 #include <errno.h>
 #include <time.h>
-#include <sys/time.h>
 
 int32_t osal_sem_init(osal_sem_t *sem, int32_t pshared, uint32_t value)
 {
@@ -62,36 +61,6 @@ int32_t osal_sem_timed_wait(osal_sem_t *sem, uint32_t timeout_ms)
 		return sem_trywait(sem);
 	}
 
-#ifdef __APPLE__
-	/* macOS 不支持 sem_timedwait，使用轮询模拟 */
-	struct timeval start, now;
-	uint32_t elapsed_ms;
-
-	gettimeofday(&start, NULL);
-
-	while (1) {
-		if (sem_trywait(sem) == 0) {
-			return 0;
-		}
-
-		if (errno != EAGAIN && errno != EWOULDBLOCK) {
-			return -1;
-		}
-
-		gettimeofday(&now, NULL);
-		elapsed_ms = (now.tv_sec - start.tv_sec) * 1000 +
-					 (now.tv_usec - start.tv_usec) / 1000;
-
-		if (elapsed_ms >= timeout_ms) {
-			errno = ETIMEDOUT;
-			return -1;
-		}
-
-		/* 短暂休眠避免 CPU 占用过高 */
-		usleep(1000); /* 1ms */
-	}
-#else
-	/* Linux 使用 sem_timedwait */
 	if (clock_gettime(CLOCK_REALTIME, &ts) != 0) {
 		return -1;
 	}
@@ -104,7 +73,6 @@ int32_t osal_sem_timed_wait(osal_sem_t *sem, uint32_t timeout_ms)
 	}
 
 	return sem_timedwait(sem, &ts);
-#endif
 }
 
 int32_t osal_sem_post(osal_sem_t *sem)

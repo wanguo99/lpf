@@ -17,6 +17,7 @@ source "core/test_framework/Config.in"
 # Core Modules Testing
 # ============================================================================
 
+if !LINUX_ONLY
 menuconfig BUILD_TESTING
 	bool "Build test suite"
 	default n
@@ -42,6 +43,7 @@ menuconfig BUILD_TESTING
 
 if BUILD_TESTING
 	source "products/ctest/Config.in"
+endif
 endif
 
 endmenu

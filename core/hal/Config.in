@@ -241,8 +241,8 @@ menuconfig HAL_GPIO
 
 endmenu
 
-# Platform-specific fine-grained configuration
-source "core/hal/src/linux/Config.in"
+# Linux user-space fine-grained configuration
+source "core/hal/src/Config.in"
 
 # =============================================================================
 # Advanced Features

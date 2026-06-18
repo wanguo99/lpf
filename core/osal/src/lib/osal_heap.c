@@ -76,7 +76,7 @@ int32_t osal_heap_get_info(uint32_t *free_bytes, uint32_t *total_bytes)
 
 	pthread_mutex_lock(&g_heap_monitor.lock);
 
-	/* 如果无法从/proc读取（如macOS），使用内部统计 */
+	/* 如果无法从 /proc 读取，使用内部统计 */
 	if (vm_rss == 0 && vm_peak == 0) {
 		vm_rss = g_heap_monitor.current_usage;
 		vm_peak = g_heap_monitor.peak_usage;

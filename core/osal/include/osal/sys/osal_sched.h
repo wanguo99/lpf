@@ -21,7 +21,6 @@ extern "C" {
  * 调度类型定义
  *===========================================================================*/
 
-#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 #define OSAL_SCHED_OTHER SCHED_OTHER
 #define OSAL_SCHED_FIFO SCHED_FIFO
 #define OSAL_SCHED_RR SCHED_RR
@@ -29,10 +28,6 @@ extern "C" {
 #ifndef OSAL_SCHED_PARAM_T_DEFINED
 #define OSAL_SCHED_PARAM_T_DEFINED
 typedef struct sched_param osal_sched_param_t;
-#endif
-#else
-/* 其他平台（RTOS 等）- 需要提供对应的类型定义 */
-#error "Unsupported platform - please define sched types for your platform"
 #endif
 
 /*===========================================================================

@@ -17,12 +17,7 @@ extern "C" {
  * 信号量类型定义
  *===========================================================================*/
 
-#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 typedef sem_t osal_sem_t;
-#else
-/* 其他平台（RTOS 等）- 需要提供对应的类型定义 */
-#error "Unsupported platform - please define semaphore types for your platform"
-#endif
 
 /*===========================================================================
  * 信号量接口

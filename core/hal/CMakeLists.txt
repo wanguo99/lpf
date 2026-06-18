@@ -12,26 +12,26 @@ list(APPEND ADD_INCLUDE "include")
 # ============================================================================
 
 if(CONFIG_PLATFORM_LINUX)
-    # Linux platform drivers
+    # Linux user-space drivers
 
     if(CONFIG_HAL_CAN_LINUX)
-        list(APPEND ADD_SRCS "src/linux/can/hal_can_linux.c")
+        list(APPEND ADD_SRCS "src/can/hal_can_linux.c")
     endif()
 
     if(CONFIG_HAL_GPIO_LINUX)
-        list(APPEND ADD_SRCS "src/linux/gpio/hal_gpio_linux.c")
+        list(APPEND ADD_SRCS "src/gpio/hal_gpio_linux.c")
     endif()
 
     if(CONFIG_HAL_I2C_LINUX)
-        list(APPEND ADD_SRCS "src/linux/i2c/hal_i2c_linux.c")
+        list(APPEND ADD_SRCS "src/i2c/hal_i2c_linux.c")
     endif()
 
     if(CONFIG_HAL_SPI_LINUX)
-        list(APPEND ADD_SRCS "src/linux/spi/hal_spi_linux.c")
+        list(APPEND ADD_SRCS "src/spi/hal_spi_linux.c")
     endif()
 
     if(CONFIG_HAL_UART_LINUX)
-        list(APPEND ADD_SRCS "src/linux/serial/hal_serial_linux.c")
+        list(APPEND ADD_SRCS "src/serial/hal_serial_linux.c")
     endif()
 
 else()

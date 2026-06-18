@@ -30,9 +30,9 @@ choice
 	  in the sections below.
 
 config OSAL_PROFILE_MINIMAL
-	bool "Minimal - RTOS/Embedded (~30KB)"
+	bool "Minimal - Linux basic (~30KB)"
 	help
-	  Minimal OSAL for resource-constrained environments.
+	  Minimal OSAL for small Linux user-space deployments.
 
 	  Includes:
 	  - Basic IPC (mutex + semaphore)
@@ -47,10 +47,10 @@ config OSAL_PROFILE_MINIMAL
 	  - Process management
 
 	  Memory: ~30KB
-	  Suitable for: RTOS, Cortex-M MCUs
+	  Suitable for: small Linux services and fast bring-up builds
 
 config OSAL_PROFILE_STANDARD
-	bool "Standard - Linux Balanced (~80KB) [Recommended]"
+	bool "Standard - Linux balanced (~80KB) [Recommended]"
 	help
 	  Balanced OSAL configuration for typical Linux systems.
 
@@ -73,7 +73,7 @@ config OSAL_PROFILE_STANDARD
 	  This is the recommended profile for most projects.
 
 config OSAL_PROFILE_FULL
-	bool "Full - All Features (~200KB)"
+	bool "Full - Linux feature set (~200KB)"
 	help
 	  All OSAL features enabled.
 
@@ -103,26 +103,14 @@ endmenu
 # =============================================================================
 # Platform-specific OSAL Configuration
 # =============================================================================
-# Platform (OS and Architecture) is configured in root Config.in.platform
-# Here we only define OSAL-specific derived configurations
+# Platform and architecture are configured in root Config.in.
+# OSAL now exposes the Linux user-space backend only.
 # =============================================================================
 
-# Auto-detect OS implementation based on platform choice
+# Linux user-space backend based on POSIX/Linux libc APIs.
 config OSAL_OS_POSIX
 	bool
 	default y if OS_LINUX
-
-config OSAL_OS_WIN32
-	bool
-	default y if OS_WINDOWS
-
-config OSAL_OS_RTOS
-	bool
-	default y if OS_RTOS
-
-config OSAL_OS_BARE
-	bool
-	default y if OS_BARE
 
 # Auto-detect architecture bitness
 config OSAL_ARCH_32BIT
@@ -164,7 +152,7 @@ config OSAL_BUILD_SHARED
 	bool "Build shared library"
 	default n
 	help
-	  Build libosal.so shared library (Linux) or libosal.dll (Windows).
+	  Build libosal.so shared library.
 
 	  Shared libraries are loaded at runtime, shared between processes.
 
@@ -181,7 +169,7 @@ config OSAL_BUILD_SHARED
 	  Recommended: Enable for multi-application systems or when
 	  library updates are needed without recompiling applications
 
-	  Note: Not available for bare-metal or some RTOS targets
+	  Note: Requires the Linux dynamic linker/runtime loader.
 
 endmenu
 
@@ -227,9 +215,9 @@ menuconfig OSAL_FILE
 	  Memory footprint: ~20KB (minimal: basic file ops only ~8KB)
 
 	  Required by: Applications that access filesystem, configuration files
-	  Disable if: No filesystem access needed (e.g., bare-metal sensors)
+	  Disable if: No filesystem access is needed
 
-	  Recommended: Enable for all Linux profiles, optional for RTOS
+	  Recommended: Enable for all Linux profiles
 
 menuconfig OSAL_THREAD
 	bool "Thread Support"
@@ -251,7 +239,7 @@ menuconfig OSAL_THREAD
 	  Recommended: Enable for Standard/Full profiles
 
 	  Note: Each thread consumes additional memory for its stack.
-	  For 30KB RTOS targets, consider single-threaded design.
+	  For small deployments, consider a single-threaded design.
 
 menuconfig OSAL_NETWORK
 	bool "Network Support"
@@ -272,8 +260,6 @@ menuconfig OSAL_NETWORK
 
 	  Platform notes:
 	  - Linux: Full socket API support
-	  - RTOS: Limited socket support (depends on TCP/IP stack)
-	  - Bare-metal: Not available
 
 	  Recommended: Enable for Standard/Full profiles, optional for Minimal
 
@@ -296,13 +282,11 @@ menuconfig OSAL_SIGNAL
 
 	  Platform notes:
 	  - Linux/POSIX: Full signal support
-	  - RTOS: Limited or no signal support
-	  - Windows: Not available (use events instead)
 
 	  Recommended: Enable for Standard/Full profiles, optional for Minimal
 
-# Platform-specific fine-grained configuration
-source "core/osal/src/Config.in.posix"
+# Linux user-space fine-grained configuration
+source "core/osal/src/Config.in"
 
 endmenu
 
@@ -323,13 +307,11 @@ config OSAL_MAX_TASKS
 	  Runtime impact: Linear search overhead for task lookup
 
 	  Recommended values:
-	  - RTOS Minimal: 8-16 (saves ~7KB)
 	  - Linux Minimal: 32-64
 	  - Linux Standard: 128-256
 	  - Linux Full: 256-512
 
 	  Note: Each task also requires stack memory (typically 8KB-1MB).
-	  For 30KB RTOS targets, use 4-8 tasks with small stacks (1-2KB).
 
 config OSAL_MAX_QUEUES
 	int "Maximum number of queues"
@@ -342,7 +324,6 @@ config OSAL_MAX_QUEUES
 	  Runtime impact: Linear search overhead for queue lookup
 
 	  Recommended values:
-	  - RTOS Minimal: 4-8 (saves ~5KB)
 	  - Linux Minimal: 16-32
 	  - Linux Standard: 64-128
 	  - Linux Full: 128-256
@@ -360,7 +341,6 @@ config OSAL_MAX_MUTEXES
 	  Runtime impact: Linear search overhead for mutex lookup
 
 	  Recommended values:
-	  - RTOS Minimal: 8-16 (saves ~4KB)
 	  - Linux Minimal: 32-64
 	  - Linux Standard: 64-128
 	  - Linux Full: 128-256
@@ -433,7 +413,7 @@ config LOGGING_ENABLE
 	  When disabled, all logging calls become no-ops (compiled out).
 	  This minimizes code size and runtime overhead.
 
-	  Recommended: Enable for all builds except ultra-minimal RTOS.
+	  Recommended: Enable for all builds except ultra-minimal Linux services.
 
 if LOGGING_ENABLE
 

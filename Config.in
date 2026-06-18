@@ -37,10 +37,26 @@ config PROJECT_VERSION
 	  Project version string.
 
 # ============================================================================
+# Build Profile
+# ============================================================================
+
+config LINUX_ONLY
+	bool "Linux-only profile"
+	default n
+	help
+	  Restrict the SDK to Linux development only.
+
+	  This profile hides product-test menus and non-Linux operating
+	  system options. It is intended for the current kernel-centric
+	  middleware direction.
+
+# ============================================================================
 # Product Configuration
 # ============================================================================
 
+if !LINUX_ONLY
 source "products/Config.in"
+endif
 
 # ============================================================================
 # Build System Configuration
@@ -75,6 +91,7 @@ config OS_LINUX
 	  Suitable for: Embedded Linux (AM625, i.MX6/8, Zynq), Desktop Linux
 	  Memory: Requires MMU, typically 32MB+ RAM
 
+if !LINUX_ONLY
 config OS_WINDOWS
 	bool "Windows"
 	help
@@ -121,15 +138,16 @@ config OS_BARE
 
 	  Note: Most OSAL features unavailable. Only basic library
 	  functions (heap, string) are provided.
+endif
 
 endchoice
 
 config OS
 	string
 	default "linux" if OS_LINUX
-	default "windows" if OS_WINDOWS
-	default "rtos" if OS_RTOS
-	default "bare" if OS_BARE
+	default "windows" if OS_WINDOWS && !LINUX_ONLY
+	default "rtos" if OS_RTOS && !LINUX_ONLY
+	default "bare" if OS_BARE && !LINUX_ONLY
 
 choice
 	prompt "Target architecture"
@@ -1173,18 +1191,18 @@ config SANITY_ERROR_TEST_ACONFIG_NO_MODULE
 
 config SANITY_ERROR_HAL_CAN_NO_PLATFORM
 	def_bool y
-	depends on HAL_CAN && !PLATFORM_LINUX && !OS_RTOS
-	prompt "ERROR: HAL_CAN requires platform support (PLATFORM_LINUX or OS_RTOS)"
+	depends on HAL_CAN && !PLATFORM_LINUX
+	prompt "ERROR: HAL_CAN requires Linux platform support (PLATFORM_LINUX)"
 
 config SANITY_ERROR_HAL_UART_NO_PLATFORM
 	def_bool y
-	depends on HAL_UART && !PLATFORM_LINUX && !OS_RTOS
-	prompt "ERROR: HAL_UART requires platform support (PLATFORM_LINUX or OS_RTOS)"
+	depends on HAL_UART && !PLATFORM_LINUX
+	prompt "ERROR: HAL_UART requires Linux platform support (PLATFORM_LINUX)"
 
 config SANITY_ERROR_HAL_GPIO_NO_PLATFORM
 	def_bool y
-	depends on HAL_GPIO && !PLATFORM_LINUX && !OS_RTOS
-	prompt "ERROR: HAL_GPIO requires platform support (PLATFORM_LINUX or OS_RTOS)"
+	depends on HAL_GPIO && !PLATFORM_LINUX
+	prompt "ERROR: HAL_GPIO requires Linux platform support (PLATFORM_LINUX)"
 
 # ============================================================================
 # PDL Subsystem Dependency Checks
@@ -1324,6 +1342,8 @@ config SANITY_ERROR_SANITIZER_CONFLICT
 	depends on COMPILER_SANITIZER_ADDRESS && COMPILER_SANITIZER_THREAD
 	prompt "ERROR: AddressSanitizer and ThreadSanitizer cannot be used together"
 
+if !LINUX_ONLY
+
 config SANITY_ERROR_BARE_METAL_WITH_OS_FEATURES
 	def_bool y
 	depends on OS_BARE && (OSAL_THREAD || OSAL_IPC || OSAL_NETWORK)
@@ -1333,6 +1353,8 @@ config SANITY_ERROR_RTOS_WITH_UNSUPPORTED_FEATURES
 	def_bool y
 	depends on OS_RTOS && (LOG_OUTPUT_SYSLOG || DEBUG_DUMP_STACK_ON_ERROR)
 	prompt "ERROR: Selected features not available on RTOS"
+
+endif
 
 # ============================================================================
 # Product Configuration Checks

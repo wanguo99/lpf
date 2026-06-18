@@ -17,7 +17,6 @@ extern "C" {
  * 互斥锁类型定义
  *===========================================================================*/
 
-#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 #define OSAL_MUTEX_INITIALIZER PTHREAD_MUTEX_INITIALIZER
 #define OSAL_MUTEX_NORMAL PTHREAD_MUTEX_NORMAL
 #define OSAL_MUTEX_RECURSIVE PTHREAD_MUTEX_RECURSIVE
@@ -25,10 +24,6 @@ extern "C" {
 
 typedef pthread_mutex_t osal_mutex_t;
 typedef pthread_mutexattr_t osal_mutex_attr_t;
-#else
-/* 其他平台（RTOS 等）- 需要提供对应的类型定义 */
-#error "Unsupported platform - please define mutex types for your platform"
-#endif
 
 /*===========================================================================
  * 互斥锁接口

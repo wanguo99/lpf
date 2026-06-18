@@ -1,8 +1,7 @@
 /************************************************************************
  * 通用类型定义
  *
- * 跨平台基础类型定义
- * 支持多平台：Linux/RTOS/VxWorks/FreeRTOS等
+ * Linux OSAL 基础类型定义
  ************************************************************************/
 
 #ifndef OSAL_TYPES_H
@@ -19,20 +18,18 @@
 
 /*
  * 平台位宽检测
- * 支持：16位(MSP430/AVR), 32位(ARM32/RISC-V32), 64位(x86_64/ARM64/RISC-V64)
+ * 支持：32位(ARM32/RISC-V32), 64位(x86_64/ARM64/RISC-V64)
  */
-#if defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || \
-	defined(__amd64__) || defined(__aarch64__) ||                  \
-	(defined(__riscv) && (__riscv_xlen == 64))
+#ifdef OSAL_ARCH_BITS
+#define OSAL_PLATFORM_BITS OSAL_ARCH_BITS
+#elif defined(__LP64__) || defined(__x86_64__) || defined(__amd64__) || \
+	defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
 #define OSAL_PLATFORM_BITS 0x40
-#elif defined(__ILP32__) || defined(_WIN32) || defined(__arm__) || \
-	defined(__i386__) || (defined(__riscv) && (__riscv_xlen == 32))
+#elif defined(__ILP32__) || defined(__arm__) || defined(__i386__) || \
+	(defined(__riscv) && (__riscv_xlen == 32))
 #define OSAL_PLATFORM_BITS 0x20
-#elif defined(__MSP430__) || defined(__AVR__)
-#define OSAL_PLATFORM_BITS 0x10
 #else
-/* 默认假设32位平台 */
-#define OSAL_PLATFORM_BITS 0x20
+#error "Unsupported Linux architecture width"
 #endif
 
 /*
@@ -215,7 +212,7 @@ typedef int32_t osal_off_t;
 #endif
 
 /*===========================================================================
- * 时间类型（跨平台时间表示）
+ * 时间类型（Linux 时间表示）
  *===========================================================================*/
 
 /*
@@ -359,7 +356,7 @@ typedef int64_t osal_nsec_t;
 #endif
 
 /*
- * 类型大小验证（确保跨平台一致性）
+ * 类型大小验证（确保 Linux 架构一致性）
  */
 OSAL_STATIC_ASSERT(sizeof(int8_t) == 0x1, "int8_must_be_1_byte");
 OSAL_STATIC_ASSERT(sizeof(int16_t) == 0x2, "int16_must_be_2_bytes");
@@ -405,7 +402,7 @@ OSAL_STATIC_ASSERT(sizeof(osal_size_t) == 0x2, "size_must_be_2_bytes_on_16bit");
 /*
  * OSAL_sizeof 包装宏
  * - 提供统一的大小查询接口
- * - 返回 osal_size_t 类型以保证跨平台一致性
+ * - 返回 osal_size_t 类型以保证 Linux 架构一致性
  */
 #define OSAL_sizeof(x) ((osal_size_t)sizeof(x))
 

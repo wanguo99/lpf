@@ -17,14 +17,8 @@ extern "C" {
  * 条件变量类型定义
  *===========================================================================*/
 
-#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 typedef pthread_cond_t osal_cond_t;
 typedef pthread_condattr_t osal_cond_attr_t;
-#else
-/* 其他平台（RTOS 等）- 需要提供对应的类型定义 */
-#error \
-	"Unsupported platform - please define condition variable types for your platform"
-#endif
 
 /*===========================================================================
  * 条件变量接口

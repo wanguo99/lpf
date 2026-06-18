@@ -1,7 +1,7 @@
 # ============================================================================
-# OSAL POSIX Implementation Configuration
+# OSAL Linux User-Space Backend Configuration
 # ============================================================================
-# Fine-grained per-file configuration for POSIX platform (Linux/macOS)
+# Fine-grained per-file configuration for the Linux user-space backend
 # ============================================================================
 
 if OSAL_OS_POSIX
@@ -17,14 +17,14 @@ config OSAL_IPC_ATOMIC
 	default n
 	help
 	  Enable atomic operations support.
-	  Source: src/posix/ipc/osal_atomic.c
+	  Source: inline header implementation
 
 config OSAL_IPC_MUTEX
 	bool "Mutex support"
 	default n
 	help
 	  Enable mutex (mutual exclusion) support.
-	  Source: src/posix/ipc/osal_mutex.c
+	  Source: src/ipc/osal_mutex.c
 
 config OSAL_IPC_RWLOCK
 	bool "Read-write lock support"
@@ -32,14 +32,14 @@ config OSAL_IPC_RWLOCK
 	help
 	  Enable read-write lock support for read-heavy scenarios.
 	  Allows multiple readers or single writer.
-	  Source: src/posix/ipc/osal_rwlock.c
+	  Source: src/ipc/osal_rwlock.c
 
 config OSAL_IPC_SEMAPHORE
 	bool "Semaphore support"
 	default n
 	help
 	  Enable semaphore support.
-	  Source: src/posix/ipc/osal_semaphore.c
+	  Source: src/ipc/osal_semaphore.c
 
 config OSAL_IPC_COND
 	bool "Condition variable support"
@@ -48,14 +48,14 @@ config OSAL_IPC_COND
 	help
 	  Enable condition variable support.
 	  Requires mutex support.
-	  Source: src/posix/ipc/osal_cond.c
+	  Source: src/ipc/osal_cond.c
 
 config OSAL_IPC_SHM
 	bool "Shared memory support"
 	default n
 	help
 	  Enable shared memory support.
-	  Source: src/posix/ipc/osal_shm.c
+	  Source: src/ipc/osal_shm.c
 
 config OSAL_IPC_SHM_CACHE
 	bool "Shared memory cache"
@@ -64,7 +64,7 @@ config OSAL_IPC_SHM_CACHE
 	help
 	  Enable shared memory cache optimization.
 	  Requires shared memory support.
-	  Source: src/posix/ipc/osal_shm_cache.c
+	  Source: src/ipc/osal_shm_cache.c
 
 endif # OSAL_IPC
 
@@ -79,28 +79,28 @@ config OSAL_LIB_ERRNO
 	default n
 	help
 	  Enable errno operations.
-	  Source: src/posix/lib/osal_errno.c
+	  Source: src/lib/osal_errno.c
 
 config OSAL_LIB_HEAP
 	bool "Heap memory management"
 	default n
 	help
 	  Enable heap memory operations (malloc/free wrappers).
-	  Source: src/posix/lib/osal_heap.c
+	  Source: src/lib/osal_heap.c
 
 config OSAL_LIB_STDIO
 	bool "Standard I/O"
 	default n
 	help
 	  Enable standard I/O operations (printf wrappers).
-	  Source: src/posix/lib/osal_stdio.c
+	  Source: src/lib/osal_stdio.c
 
 config OSAL_LIB_STRING
 	bool "String operations"
 	default n
 	help
 	  Enable string operations (safe string functions).
-	  Source: src/posix/lib/osal_string.c
+	  Source: src/lib/osal_string.c
 
 endmenu
 
@@ -115,42 +115,42 @@ config OSAL_SYS_CLOCK
 	default n
 	help
 	  Enable clock operations (clock_gettime, etc).
-	  Source: src/posix/sys/osal_clock.c
+	  Source: src/sys/osal_clock.c
 
 config OSAL_SYS_ENV
 	bool "Environment variables"
 	default n
 	help
 	  Enable environment variable operations.
-	  Source: src/posix/sys/osal_env.c
+	  Source: src/sys/osal_env.c
 
 config OSAL_SYS_FILE
 	bool "File operations"
 	default n
 	help
 	  Enable file I/O operations.
-	  Source: src/posix/sys/osal_file.c
+	  Source: src/sys/osal_file.c
 
 config OSAL_SYS_PROCESS
 	bool "Process management"
 	default n
 	help
 	  Enable process management (fork, exec, etc).
-	  Source: src/posix/sys/osal_process.c
+	  Source: src/sys/osal_process.c
 
 config OSAL_SYS_SCHED
 	bool "Scheduler operations"
 	default n
 	help
 	  Enable scheduler operations (priority, affinity).
-	  Source: src/posix/sys/osal_sched.c
+	  Source: src/sys/osal_sched.c
 
 config OSAL_SYS_SELECT
 	bool "Select/poll operations"
 	default n
 	help
 	  Enable select/poll I/O multiplexing.
-	  Source: src/posix/sys/osal_select.c
+	  Source: src/sys/osal_select.c
 
 endif # OSAL_FILE
 
@@ -165,14 +165,14 @@ config OSAL_SYS_THREAD
 	default n
 	help
 	  Enable thread creation and management.
-	  Source: src/posix/sys/osal_thread.c
+	  Source: src/sys/osal_thread.c
 
 config OSAL_SYS_TIME
 	bool "Time operations"
 	default n
 	help
 	  Enable time operations (sleep, delay, etc).
-	  Source: src/posix/sys/osal_time.c
+	  Source: src/sys/osal_time.c
 
 endif # OSAL_THREAD
 
@@ -187,7 +187,7 @@ config OSAL_SYS_SIGNAL
 	default n
 	help
 	  Enable signal handling operations.
-	  Source: src/posix/sys/osal_signal.c
+	  Source: src/sys/osal_signal.c
 
 endif # OSAL_SIGNAL
 
@@ -202,21 +202,21 @@ config OSAL_NET_SOCKET
 	default n
 	help
 	  Enable socket operations (TCP/UDP).
-	  Source: src/posix/net/osal_socket.c
+	  Source: src/net/osal_socket.c
 
 config OSAL_NET_TERMIOS
 	bool "Terminal I/O (termios)"
 	default n
 	help
 	  Enable terminal I/O control.
-	  Source: src/posix/net/osal_termios.c
+	  Source: src/net/osal_termios.c
 
 config OSAL_NET_PTY
 	bool "Pseudo-terminal support"
 	default n
 	help
 	  Enable pseudo-terminal creation support.
-	  Source: src/posix/net/osal_pty.c
+	  Source: src/net/osal_pty.c
 
 endif # OSAL_NETWORK
 
@@ -231,14 +231,14 @@ config OSAL_UTIL_LOG
 	default n
 	help
 	  Enable logging utilities.
-	  Source: src/posix/util/osal_log.c
+	  Source: src/util/osal_log.c
 
 config OSAL_UTIL_VERSION
 	bool "Version information"
 	default n
 	help
 	  Enable version information.
-	  Source: src/posix/util/osal_version.c
+	  Source: src/util/osal_version.c
 
 endmenu
 
