@@ -13,6 +13,7 @@
 #include "osal.h"
 #include "hal.h"
 #include "hal_can_internal.h"
+#include "../hal_linux_lock.h"
 
 #ifndef IFNAMSIZ
 #define IFNAMSIZ IF_NAMESIZE
@@ -127,10 +128,10 @@ int32_t hal_can_init(const hal_can_config_t *config, hal_can_handle_t *handle)
 	impl->initialized = true;
 	*handle = (hal_can_handle_t)impl;
 
-	LOG_INFO(
-		"HAL_CAN",
-		"Initialized successfully: %s @ %u bps (with dual-lock protection)",
-		config->interface, config->baudrate);
+	LOG_INFO("HAL_CAN",
+			 "Initialized successfully: %s @ %u bps (with process/thread "
+			 "protection)",
+			 config->interface, config->baudrate);
 	return OSAL_SUCCESS;
 }
 
@@ -178,21 +179,10 @@ int32_t hal_can_send(hal_can_handle_t handle, const hal_can_frame_t *frame)
 		return OSAL_ERR_GENERIC;
 	}
 
-	/* 第一层：文件锁（进程间保护） */
-	ret = osal_flock_timed_lock(impl->flock, OSAL_FLOCK_EXCLUSIVE,
-								HAL_CAN_LOCK_TIMEOUT_MS);
-	if (ret != OSAL_SUCCESS) {
-		LOG_ERROR("HAL_CAN", "Failed to acquire file lock (timeout or error)");
+	ret = _hal_linux_lock_device(impl->flock, &impl->mutex,
+								 HAL_CAN_LOCK_TIMEOUT_MS, "HAL_CAN");
+	if (ret != OSAL_SUCCESS)
 		return ret;
-	}
-
-	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_mutex_lock(&impl->mutex);
-	if (ret != OSAL_SUCCESS) {
-		LOG_ERROR("HAL_CAN", "Failed to acquire mutex");
-		osal_flock_unlock(impl->flock);
-		return ret;
-	}
 
 	/* 临界区：硬件访问 */
 	osal_memset(&can_frame, 0, OSAL_sizeof(can_frame));
@@ -207,9 +197,7 @@ int32_t hal_can_send(hal_can_handle_t handle, const hal_can_frame_t *frame)
 		result = err;
 	}
 
-	/* 释放锁（逆序） */
-	osal_mutex_unlock(&impl->mutex);
-	osal_flock_unlock(impl->flock);
+	_hal_linux_unlock_device(impl->flock, &impl->mutex);
 
 	return result;
 }
@@ -249,21 +237,10 @@ int32_t hal_can_recv(hal_can_handle_t handle, hal_can_frame_t *frame,
 		}
 	}
 
-	/* 第一层：文件锁（进程间保护） */
-	ret = osal_flock_timed_lock(impl->flock, OSAL_FLOCK_EXCLUSIVE,
-								HAL_CAN_LOCK_TIMEOUT_MS);
-	if (ret != OSAL_SUCCESS) {
-		LOG_ERROR("HAL_CAN", "Failed to acquire file lock (timeout or error)");
+	ret = _hal_linux_lock_device(impl->flock, &impl->mutex,
+								 HAL_CAN_LOCK_TIMEOUT_MS, "HAL_CAN");
+	if (ret != OSAL_SUCCESS)
 		return ret;
-	}
-
-	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_mutex_lock(&impl->mutex);
-	if (ret != OSAL_SUCCESS) {
-		LOG_ERROR("HAL_CAN", "Failed to acquire mutex");
-		osal_flock_unlock(impl->flock);
-		return ret;
-	}
 
 	/* 临界区：读取数据 */
 	ret = osal_read(impl->sockfd, &can_frame, OSAL_sizeof(struct can_frame));
@@ -289,9 +266,7 @@ int32_t hal_can_recv(hal_can_handle_t handle, hal_can_frame_t *frame,
 		result = OSAL_SUCCESS;
 	}
 
-	/* 释放锁（逆序） */
-	osal_mutex_unlock(&impl->mutex);
-	osal_flock_unlock(impl->flock);
+	_hal_linux_unlock_device(impl->flock, &impl->mutex);
 
 	return result;
 }
@@ -310,21 +285,10 @@ int32_t hal_can_set_filter(hal_can_handle_t handle, uint32_t filter_id,
 	if (!impl->initialized || impl->sockfd < 0)
 		return OSAL_ERR_INVALID_ID;
 
-	/* 第一层：文件锁（进程间保护） */
-	ret = osal_flock_timed_lock(impl->flock, OSAL_FLOCK_EXCLUSIVE,
-								HAL_CAN_LOCK_TIMEOUT_MS);
-	if (ret != OSAL_SUCCESS) {
-		LOG_ERROR("HAL_CAN", "Failed to acquire file lock (timeout or error)");
+	ret = _hal_linux_lock_device(impl->flock, &impl->mutex,
+								 HAL_CAN_LOCK_TIMEOUT_MS, "HAL_CAN");
+	if (ret != OSAL_SUCCESS)
 		return ret;
-	}
-
-	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_mutex_lock(&impl->mutex);
-	if (ret != OSAL_SUCCESS) {
-		LOG_ERROR("HAL_CAN", "Failed to acquire mutex");
-		osal_flock_unlock(impl->flock);
-		return ret;
-	}
 
 	/* 临界区：设置过滤器 */
 	rfilter.can_id = filter_id;
@@ -341,9 +305,7 @@ int32_t hal_can_set_filter(hal_can_handle_t handle, uint32_t filter_id,
 				 filter_mask);
 	}
 
-	/* 释放锁（逆序） */
-	osal_mutex_unlock(&impl->mutex);
-	osal_flock_unlock(impl->flock);
+	_hal_linux_unlock_device(impl->flock, &impl->mutex);
 
 	return result;
 }

@@ -13,6 +13,7 @@
 #include "osal.h"
 #include "hal.h"
 #include "hal_i2c_internal.h"
+#include "../hal_linux_lock.h"
 
 /**
  * @brief 打开I2C设备
@@ -94,7 +95,8 @@ int32_t hal_i2c_open(const hal_i2c_config_t *config, hal_i2c_handle_t *handle)
 	impl->initialized = true;
 	*handle = (hal_i2c_handle_t)impl;
 
-	LOG_INFO("HAL_I2C", "Opened device %s (fd=%d, with dual-lock protection)",
+	LOG_INFO("HAL_I2C",
+			 "Opened device %s (fd=%d, with process/thread protection)",
 			 config->device, impl->fd);
 	return OSAL_SUCCESS;
 }
@@ -148,21 +150,10 @@ int32_t hal_i2c_write(hal_i2c_handle_t handle, uint16_t slave_addr,
 	if (!impl->initialized || size == 0)
 		return OSAL_ERR_GENERIC;
 
-	/* 第一层：文件锁（进程间保护） */
-	ret = osal_flock_timed_lock(impl->flock, OSAL_FLOCK_EXCLUSIVE,
-								HAL_I2C_LOCK_TIMEOUT_MS);
-	if (ret != OSAL_SUCCESS) {
-		LOG_ERROR("HAL_I2C", "Failed to acquire file lock (timeout or error)");
+	ret = _hal_linux_lock_device(impl->flock, &impl->mutex,
+								 HAL_I2C_LOCK_TIMEOUT_MS, "HAL_I2C");
+	if (ret != OSAL_SUCCESS)
 		return ret;
-	}
-
-	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_mutex_lock(&impl->mutex);
-	if (ret != OSAL_SUCCESS) {
-		LOG_ERROR("HAL_I2C", "Failed to acquire mutex");
-		osal_flock_unlock(impl->flock);
-		return ret;
-	}
 
 	/* 临界区：硬件访问 */
 	/* 设置从设备地址 (参考: Linux内核文档 i2c-dev.txt) */
@@ -190,9 +181,7 @@ int32_t hal_i2c_write(hal_i2c_handle_t handle, uint16_t slave_addr,
 	}
 
 unlock:
-	/* 释放锁（逆序） */
-	osal_mutex_unlock(&impl->mutex);
-	osal_flock_unlock(impl->flock);
+	_hal_linux_unlock_device(impl->flock, &impl->mutex);
 
 	return result;
 }
@@ -213,21 +202,10 @@ int32_t hal_i2c_read(hal_i2c_handle_t handle, uint16_t slave_addr,
 	if (!impl->initialized || size == 0)
 		return OSAL_ERR_GENERIC;
 
-	/* 第一层：文件锁（进程间保护） */
-	ret = osal_flock_timed_lock(impl->flock, OSAL_FLOCK_EXCLUSIVE,
-								HAL_I2C_LOCK_TIMEOUT_MS);
-	if (ret != OSAL_SUCCESS) {
-		LOG_ERROR("HAL_I2C", "Failed to acquire file lock (timeout or error)");
+	ret = _hal_linux_lock_device(impl->flock, &impl->mutex,
+								 HAL_I2C_LOCK_TIMEOUT_MS, "HAL_I2C");
+	if (ret != OSAL_SUCCESS)
 		return ret;
-	}
-
-	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_mutex_lock(&impl->mutex);
-	if (ret != OSAL_SUCCESS) {
-		LOG_ERROR("HAL_I2C", "Failed to acquire mutex");
-		osal_flock_unlock(impl->flock);
-		return ret;
-	}
 
 	/* 临界区：硬件访问 */
 	/* 设置从设备地址 */
@@ -255,9 +233,7 @@ int32_t hal_i2c_read(hal_i2c_handle_t handle, uint16_t slave_addr,
 	}
 
 unlock:
-	/* 释放锁（逆序） */
-	osal_mutex_unlock(&impl->mutex);
-	osal_flock_unlock(impl->flock);
+	_hal_linux_unlock_device(impl->flock, &impl->mutex);
 
 	return result;
 }
@@ -314,21 +290,10 @@ int32_t hal_i2c_read_reg(hal_i2c_handle_t handle, uint16_t slave_addr,
 	if (!impl->initialized || size == 0)
 		return OSAL_ERR_GENERIC;
 
-	/* 第一层：文件锁（进程间保护） */
-	ret = osal_flock_timed_lock(impl->flock, OSAL_FLOCK_EXCLUSIVE,
-								HAL_I2C_LOCK_TIMEOUT_MS);
-	if (ret != OSAL_SUCCESS) {
-		LOG_ERROR("HAL_I2C", "Failed to acquire file lock (timeout or error)");
+	ret = _hal_linux_lock_device(impl->flock, &impl->mutex,
+								 HAL_I2C_LOCK_TIMEOUT_MS, "HAL_I2C");
+	if (ret != OSAL_SUCCESS)
 		return ret;
-	}
-
-	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_mutex_lock(&impl->mutex);
-	if (ret != OSAL_SUCCESS) {
-		LOG_ERROR("HAL_I2C", "Failed to acquire mutex");
-		osal_flock_unlock(impl->flock);
-		return ret;
-	}
 
 	/* 临界区：硬件访问 */
 	/* 组合传输: 先写寄存器地址，再读数据 (参考: Linux内核 i2c.h) */
@@ -353,9 +318,7 @@ int32_t hal_i2c_read_reg(hal_i2c_handle_t handle, uint16_t slave_addr,
 		result = err;
 	}
 
-	/* 释放锁（逆序） */
-	osal_mutex_unlock(&impl->mutex);
-	osal_flock_unlock(impl->flock);
+	_hal_linux_unlock_device(impl->flock, &impl->mutex);
 
 	return result;
 }
@@ -395,20 +358,9 @@ int32_t hal_i2c_transfer(hal_i2c_handle_t handle, hal_i2c_msg_t *msgs,
 		kernel_msgs[i].buf = msgs[i].buf;
 	}
 
-	/* 第一层：文件锁（进程间保护） */
-	ret = osal_flock_timed_lock(impl->flock, OSAL_FLOCK_EXCLUSIVE,
-								HAL_I2C_LOCK_TIMEOUT_MS);
+	ret = _hal_linux_lock_device(impl->flock, &impl->mutex,
+								 HAL_I2C_LOCK_TIMEOUT_MS, "HAL_I2C");
 	if (ret != OSAL_SUCCESS) {
-		LOG_ERROR("HAL_I2C", "Failed to acquire file lock (timeout or error)");
-		osal_free(kernel_msgs);
-		return ret;
-	}
-
-	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_mutex_lock(&impl->mutex);
-	if (ret != OSAL_SUCCESS) {
-		LOG_ERROR("HAL_I2C", "Failed to acquire mutex");
-		osal_flock_unlock(impl->flock);
 		osal_free(kernel_msgs);
 		return ret;
 	}
@@ -426,9 +378,7 @@ int32_t hal_i2c_transfer(hal_i2c_handle_t handle, hal_i2c_msg_t *msgs,
 		result = err;
 	}
 
-	/* 释放锁（逆序） */
-	osal_mutex_unlock(&impl->mutex);
-	osal_flock_unlock(impl->flock);
+	_hal_linux_unlock_device(impl->flock, &impl->mutex);
 
 	osal_free(kernel_msgs);
 	return result;

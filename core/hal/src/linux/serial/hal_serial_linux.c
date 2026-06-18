@@ -7,6 +7,7 @@
 #include "osal.h"
 #include "hal.h"
 #include "hal_serial_internal.h"
+#include "../hal_linux_lock.h"
 #include <termios.h> /* 系统波特率常量 B9600 等 */
 
 static uint32_t _hal_serial_get_baudrate(uint32_t baudrate)
@@ -59,7 +60,7 @@ int32_t hal_serial_open(const char *device, const hal_serial_config_t *config,
 	hal_serial_context_t *ctx;
 	osal_termios_t tty;
 	uint32_t speed;
-	int32_t ret; /* 添加缺失的变量声明 */
+	int32_t ret;
 
 	if (NULL == device || NULL == handle) {
 		return OSAL_ERR_INVALID_POINTER;
@@ -215,7 +216,7 @@ int32_t hal_serial_open(const char *device, const hal_serial_config_t *config,
 
 	LOG_INFO("HAL_Serial",
 			 "Opened %s (baudrate=%u, databits=%u, stopbits=%u, parity=%u) "
-			 "with dual-lock protection",
+			 "with process/thread protection",
 			 device, config->baud_rate, config->data_bits, config->stop_bits,
 			 config->parity);
 
@@ -292,22 +293,10 @@ int32_t hal_serial_write(hal_serial_handle_t handle, const void *buffer,
 		}
 	}
 
-	/* 第一层：文件锁（进程间保护） */
-	ret = osal_flock_timed_lock(ctx->flock, OSAL_FLOCK_EXCLUSIVE,
-								HAL_SERIAL_LOCK_TIMEOUT_MS);
-	if (ret != OSAL_SUCCESS) {
-		LOG_ERROR("HAL_Serial",
-				  "Failed to acquire file lock (timeout or error)");
+	ret = _hal_linux_lock_device(ctx->flock, &ctx->mutex,
+								 HAL_SERIAL_LOCK_TIMEOUT_MS, "HAL_Serial");
+	if (ret != OSAL_SUCCESS)
 		return ret;
-	}
-
-	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_mutex_lock(&ctx->mutex);
-	if (ret != OSAL_SUCCESS) {
-		LOG_ERROR("HAL_Serial", "Failed to acquire mutex");
-		osal_flock_unlock(ctx->flock);
-		return ret;
-	}
 
 	/* 临界区：发送数据 */
 	written = osal_write(ctx->fd, buffer, size);
@@ -320,9 +309,7 @@ int32_t hal_serial_write(hal_serial_handle_t handle, const void *buffer,
 		result = (int32_t)written;
 	}
 
-	/* 释放锁（逆序） */
-	osal_mutex_unlock(&ctx->mutex);
-	osal_flock_unlock(ctx->flock);
+	_hal_linux_unlock_device(ctx->flock, &ctx->mutex);
 
 	return result;
 }
@@ -370,22 +357,10 @@ int32_t hal_serial_read(hal_serial_handle_t handle, void *buffer, uint32_t size,
 		}
 	}
 
-	/* 第一层：文件锁（进程间保护） */
-	ret = osal_flock_timed_lock(ctx->flock, OSAL_FLOCK_EXCLUSIVE,
-								HAL_SERIAL_LOCK_TIMEOUT_MS);
-	if (ret != OSAL_SUCCESS) {
-		LOG_ERROR("HAL_Serial",
-				  "Failed to acquire file lock (timeout or error)");
+	ret = _hal_linux_lock_device(ctx->flock, &ctx->mutex,
+								 HAL_SERIAL_LOCK_TIMEOUT_MS, "HAL_Serial");
+	if (ret != OSAL_SUCCESS)
 		return ret;
-	}
-
-	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_mutex_lock(&ctx->mutex);
-	if (ret != OSAL_SUCCESS) {
-		LOG_ERROR("HAL_Serial", "Failed to acquire mutex");
-		osal_flock_unlock(ctx->flock);
-		return ret;
-	}
 
 	/* 临界区：读取数据 */
 	nread = osal_read(ctx->fd, buffer, size);
@@ -397,9 +372,7 @@ int32_t hal_serial_read(hal_serial_handle_t handle, void *buffer, uint32_t size,
 		result = (int32_t)nread;
 	}
 
-	/* 释放锁（逆序） */
-	osal_mutex_unlock(&ctx->mutex);
-	osal_flock_unlock(ctx->flock);
+	_hal_linux_unlock_device(ctx->flock, &ctx->mutex);
 
 	return result;
 }
@@ -421,22 +394,10 @@ int32_t hal_serial_flush(hal_serial_handle_t handle)
 		return OSAL_ERR_INVALID_ID;
 	}
 
-	/* 第一层：文件锁（进程间保护） */
-	ret = osal_flock_timed_lock(ctx->flock, OSAL_FLOCK_EXCLUSIVE,
-								HAL_SERIAL_LOCK_TIMEOUT_MS);
-	if (ret != OSAL_SUCCESS) {
-		LOG_ERROR("HAL_Serial",
-				  "Failed to acquire file lock (timeout or error)");
+	ret = _hal_linux_lock_device(ctx->flock, &ctx->mutex,
+								 HAL_SERIAL_LOCK_TIMEOUT_MS, "HAL_Serial");
+	if (ret != OSAL_SUCCESS)
 		return ret;
-	}
-
-	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_mutex_lock(&ctx->mutex);
-	if (ret != OSAL_SUCCESS) {
-		LOG_ERROR("HAL_Serial", "Failed to acquire mutex");
-		osal_flock_unlock(ctx->flock);
-		return ret;
-	}
 
 	/* 临界区：清空输入输出缓冲区 */
 	if (0 != osal_tcflush(ctx->fd, OSAL_TCIOFLUSH)) {
@@ -446,9 +407,7 @@ int32_t hal_serial_flush(hal_serial_handle_t handle)
 		result = err;
 	}
 
-	/* 释放锁（逆序） */
-	osal_mutex_unlock(&ctx->mutex);
-	osal_flock_unlock(ctx->flock);
+	_hal_linux_unlock_device(ctx->flock, &ctx->mutex);
 
 	return result;
 }
@@ -473,22 +432,10 @@ int32_t hal_serial_set_config(hal_serial_handle_t handle,
 		return OSAL_ERR_INVALID_ID;
 	}
 
-	/* 第一层：文件锁（进程间保护） */
-	ret = osal_flock_timed_lock(ctx->flock, OSAL_FLOCK_EXCLUSIVE,
-								HAL_SERIAL_LOCK_TIMEOUT_MS);
-	if (ret != OSAL_SUCCESS) {
-		LOG_ERROR("HAL_Serial",
-				  "Failed to acquire file lock (timeout or error)");
+	ret = _hal_linux_lock_device(ctx->flock, &ctx->mutex,
+								 HAL_SERIAL_LOCK_TIMEOUT_MS, "HAL_Serial");
+	if (ret != OSAL_SUCCESS)
 		return ret;
-	}
-
-	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_mutex_lock(&ctx->mutex);
-	if (ret != OSAL_SUCCESS) {
-		LOG_ERROR("HAL_Serial", "Failed to acquire mutex");
-		osal_flock_unlock(ctx->flock);
-		return ret;
-	}
 
 	/* 临界区：配置串口参数 */
 	/* 获取当前配置 */
@@ -552,9 +499,7 @@ int32_t hal_serial_set_config(hal_serial_handle_t handle,
 			 config->parity);
 
 unlock:
-	/* 释放锁（逆序） */
-	osal_mutex_unlock(&ctx->mutex);
-	osal_flock_unlock(ctx->flock);
+	_hal_linux_unlock_device(ctx->flock, &ctx->mutex);
 
 	return result;
 }
