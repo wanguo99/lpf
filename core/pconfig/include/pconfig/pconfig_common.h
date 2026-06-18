@@ -26,11 +26,11 @@
  * - 实际 GPIO 操作通过 HAL 层实现
  */
 typedef struct {
-	uint32_t gpio_num;		/* GPIO编号 */
-	uint32_t pin_mux;		/* 引脚复用配置 */
-	bool	active_low;		/* 低电平有效 */
-	bool	pull_up;		/* 上拉使能 */
-	bool	pull_down;		/* 下拉使能 */
+    uint32_t gpio_num; /* GPIO编号 */
+    uint32_t pin_mux;  /* 引脚复用配置 */
+    bool active_low;   /* 低电平有效 */
+    bool pull_up;      /* 上拉使能 */
+    bool pull_down;    /* 下拉使能 */
 } pconfig_gpio_config_t;
 
 #endif /* PCONFIG_COMMON_H */

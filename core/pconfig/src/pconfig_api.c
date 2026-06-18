@@ -9,35 +9,39 @@
 #include "osal.h"
 #include "pconfig/pconfig.h"
 
-__attribute__((weak)) const pconfig_platform_table_t g_pconfig_platform_table = {
-    .configs = NULL,
-    .count = 0,
-    .current_index = 0
-};
+__attribute__((weak))
+const pconfig_platform_table_t g_pconfig_platform_table = { .configs = NULL,
+                                                            .count = 0,
+                                                            .current_index =
+                                                                0 };
 
 /*===========================================================================
  * 平台配置查询
  *===========================================================================*/
 
-const pconfig_platform_config_t* PCONFIG_GetBoard(void)
+const pconfig_platform_config_t *PCONFIG_GetBoard(void)
 {
     if (NULL == g_pconfig_platform_table.configs ||
         0u == g_pconfig_platform_table.count ||
-        g_pconfig_platform_table.current_index >= g_pconfig_platform_table.count) {
+        g_pconfig_platform_table.current_index >=
+            g_pconfig_platform_table.count) {
         return NULL;
     }
 
-    return g_pconfig_platform_table.configs[g_pconfig_platform_table.current_index];
+    return g_pconfig_platform_table
+        .configs[g_pconfig_platform_table.current_index];
 }
 
-const pconfig_platform_config_t* PCONFIG_Find(const char *platform,
-                                       const char *product,
-                                       const char *version __attribute__((unused)))
+const pconfig_platform_config_t *PCONFIG_Find(const char *platform,
+                                              const char *product,
+                                              const char *version
+                                              __attribute__((unused)))
 {
     uint32_t i;
     const pconfig_platform_config_t *config;
 
-    if (NULL == platform || NULL == product || NULL == g_pconfig_platform_table.configs) {
+    if (NULL == platform || NULL == product ||
+        NULL == g_pconfig_platform_table.configs) {
         return NULL;
     }
 
@@ -81,8 +85,9 @@ int32_t PCONFIG_list(const pconfig_platform_config_t **configs, uint32_t *count)
     }
 
     max_count = *count;
-    actual_count = (g_pconfig_platform_table.count < max_count) ?
-                   g_pconfig_platform_table.count : max_count;
+    actual_count = (g_pconfig_platform_table.count < max_count)
+                       ? g_pconfig_platform_table.count
+                       : max_count;
 
     for (i = 0; i < actual_count; i++) {
         configs[i] = g_pconfig_platform_table.configs[i];
@@ -131,9 +136,12 @@ void PCONFIG_print(const pconfig_platform_config_t *config)
     /* 打印MCU配置 */
     if (config->mcu_array) {
         for (i = 0; i < config->mcu_count; i++) {
-            LOG_INFO("PCONFIG", "  MCU[%u]: %s", i,
-                     config->mcu_array[i].description ? config->mcu_array[i].description : "N/A");
+            LOG_INFO("PCONFIG",
+                     "  MCU[%u]: %s",
+                     i,
+                     config->mcu_array[i].description
+                         ? config->mcu_array[i].description
+                         : "N/A");
         }
     }
-
 }
