@@ -12,7 +12,8 @@
 static void test_socket_create_close(void)
 {
     /* 测试创建TCP socket */
-    int32_t sockfd = OSAL_socket(OSAL_AF_INET, OSAL_SOCK_STREAM, OSAL_IPPROTO_TCP);
+    int32_t sockfd =
+        OSAL_socket(OSAL_AF_INET, OSAL_SOCK_STREAM, OSAL_IPPROTO_TCP);
     TEST_ASSERT(sockfd >= 0);
 
     /* 关闭socket */
@@ -23,7 +24,8 @@ static void test_socket_create_close(void)
 static void test_socket_create_udp(void)
 {
     /* 测试创建UDP socket */
-    int32_t sockfd = OSAL_socket(OSAL_AF_INET, OSAL_SOCK_DGRAM, OSAL_IPPROTO_UDP);
+    int32_t sockfd =
+        OSAL_socket(OSAL_AF_INET, OSAL_SOCK_DGRAM, OSAL_IPPROTO_UDP);
     TEST_ASSERT(sockfd >= 0);
 
     OSAL_close(sockfd);
@@ -49,7 +51,7 @@ static void test_socket_bind(void)
     OSAL_memset(&addr, 0, sizeof(addr));
     addr.sin_family = OSAL_AF_INET;
     addr.sin_addr = OSAL_htonl(0x7F000001); /* 127.0.0.1 */
-    addr.sin_port = OSAL_htons(0); /* 任意端口 */
+    addr.sin_port = OSAL_htons(0);          /* 任意端口 */
 
     /* 绑定地址 */
     ret = OSAL_bind(sockfd, (osal_sockaddr_t *)&addr, sizeof(addr));
@@ -107,8 +109,11 @@ static void test_socket_setsockopt_reuseaddr(void)
     TEST_ASSERT(sockfd >= 0);
 
     /* 设置SO_REUSEADDR */
-    ret = OSAL_setsockopt(sockfd, OSAL_SOL_SOCKET, OSAL_SO_REUSEADDR,
-                          &optval, sizeof(optval));
+    ret = OSAL_setsockopt(sockfd,
+                          OSAL_SOL_SOCKET,
+                          OSAL_SO_REUSEADDR,
+                          &optval,
+                          sizeof(optval));
     TEST_ASSERT_EQUAL(0, ret);
 
     OSAL_close(sockfd);
@@ -125,8 +130,11 @@ static void test_socket_getsockopt(void)
     TEST_ASSERT(sockfd >= 0);
 
     /* 获取SO_ERROR */
-    ret = OSAL_getsockopt(sockfd, OSAL_SOL_SOCKET, OSAL_SO_ERROR,
-                          &optval, &optlen);
+    ret = OSAL_getsockopt(sockfd,
+                          OSAL_SOL_SOCKET,
+                          OSAL_SO_ERROR,
+                          &optval,
+                          &optlen);
     TEST_ASSERT_EQUAL(0, ret);
     TEST_ASSERT_EQUAL(sizeof(optval), optlen);
 
@@ -305,15 +313,19 @@ static void *tcp_server_thread(void *arg)
     char buffer[64];
 
     /* 创建监听socket */
-    ctx->server_fd = OSAL_socket(OSAL_AF_INET, OSAL_SOCK_STREAM, OSAL_IPPROTO_TCP);
+    ctx->server_fd =
+        OSAL_socket(OSAL_AF_INET, OSAL_SOCK_STREAM, OSAL_IPPROTO_TCP);
     if (ctx->server_fd < 0) {
         return NULL;
     }
 
     /* 设置SO_REUSEADDR */
     int32_t optval = 1;
-    OSAL_setsockopt(ctx->server_fd, OSAL_SOL_SOCKET, OSAL_SO_REUSEADDR,
-                    &optval, sizeof(optval));
+    OSAL_setsockopt(ctx->server_fd,
+                    OSAL_SOL_SOCKET,
+                    OSAL_SO_REUSEADDR,
+                    &optval,
+                    sizeof(optval));
 
     /* 绑定地址 */
     OSAL_memset(&addr, 0, sizeof(addr));
@@ -423,15 +435,23 @@ static void test_socket_udp_sendto_recvfrom(void)
     TEST_ASSERT_EQUAL(0, ret);
 
     /* 发送数据到自己 */
-    osal_ssize_t n = OSAL_sendto(sockfd, send_buf, OSAL_strlen(send_buf), 0,
-                                  (osal_sockaddr_t *)&addr, sizeof(addr));
+    osal_ssize_t n = OSAL_sendto(sockfd,
+                                 send_buf,
+                                 OSAL_strlen(send_buf),
+                                 0,
+                                 (osal_sockaddr_t *)&addr,
+                                 sizeof(addr));
     TEST_ASSERT_EQUAL((osal_ssize_t)OSAL_strlen(send_buf), n);
 
     /* 接收数据 */
     osal_sockaddr_in_t from_addr;
     osal_size_t from_len = sizeof(from_addr);
-    n = OSAL_recvfrom(sockfd, recv_buf, sizeof(recv_buf) - 1, 0,
-                      (osal_sockaddr_t *)&from_addr, &from_len);
+    n = OSAL_recvfrom(sockfd,
+                      recv_buf,
+                      sizeof(recv_buf) - 1,
+                      0,
+                      (osal_sockaddr_t *)&from_addr,
+                      &from_len);
     TEST_ASSERT(n > 0);
     recv_buf[n] = '\0';
     TEST_ASSERT_EQUAL_STRING(send_buf, recv_buf);
@@ -510,5 +530,4 @@ void test_osal_socket(void)
     /* 网络接口测试 */
     test_if_nametoindex();
     test_if_indextoname();
-
 }

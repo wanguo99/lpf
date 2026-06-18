@@ -118,76 +118,57 @@ static void test_osal_env_empty_value(void)
 
 /* 测试用例数组 - 使用函数指针数组 */
 static const test_case_t test_cases[] = {
-	{
-		.name = "test_osal_getenv_existing",
-		.func = test_osal_getenv_existing,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_getenv_nonexistent",
-		.func = test_osal_getenv_nonexistent,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_setenv_new_variable",
-		.func = test_osal_setenv_new_variable,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_setenv_overwrite",
-		.func = test_osal_setenv_overwrite,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_setenv_no_overwrite",
-		.func = test_osal_setenv_no_overwrite,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_unsetenv_existing",
-		.func = test_osal_unsetenv_existing,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_unsetenv_nonexistent",
-		.func = test_osal_unsetenv_nonexistent,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_env_empty_value",
-		.func = test_osal_env_empty_value,
-		.setup = NULL,
-		.teardown = NULL
-	},
+    { .name = "test_osal_getenv_existing",
+      .func = test_osal_getenv_existing,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_getenv_nonexistent",
+      .func = test_osal_getenv_nonexistent,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_setenv_new_variable",
+      .func = test_osal_setenv_new_variable,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_setenv_overwrite",
+      .func = test_osal_setenv_overwrite,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_setenv_no_overwrite",
+      .func = test_osal_setenv_no_overwrite,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_unsetenv_existing",
+      .func = test_osal_unsetenv_existing,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_unsetenv_nonexistent",
+      .func = test_osal_unsetenv_nonexistent,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_env_empty_value",
+      .func = test_osal_env_empty_value,
+      .setup = NULL,
+      .teardown = NULL },
 };
 
 /* 测试套件定义 */
 static const test_suite_t test_suite = {
-	.suite_name = "osal_env",
-	.module_name = "osal_env",
-	.layer_name = "OSAL",
-	.cases = test_cases,
-	.case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
-	.suite_setup = NULL,
-	.suite_teardown = NULL,
-	.metadata = {
-		.category = TEST_CATEGORY_UNIT,
-		.tags = TEST_TAG_FAST,
-		.timeout_ms = 100,
-		.description = "OSAL osal_env tests"
-	}
+    .suite_name = "osal_env",
+    .module_name = "osal_env",
+    .layer_name = "OSAL",
+    .cases = test_cases,
+    .case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
+    .suite_setup = NULL,
+    .suite_teardown = NULL,
+    .metadata = { .category = TEST_CATEGORY_UNIT,
+                  .tags = TEST_TAG_FAST,
+                  .timeout_ms = 100,
+                  .description = "OSAL osal_env tests" }
 };
 
 /* 测试套件注册函数 */
-__attribute__((constructor))
-static void register_osal_env_tests(void)
+__attribute__((constructor)) static void register_osal_env_tests(void)
 {
-	libutest_register_suite(&test_suite);
+    libutest_register_suite(&test_suite);
 }

@@ -146,7 +146,7 @@ static void test_semaphore_destroy_nullpointer(void)
 }
 
 /* 生产者线程 */
-static void* producer_thread(void *arg)
+static void *producer_thread(void *arg)
 {
     osal_sem_t *sem = (osal_sem_t *)arg;
 
@@ -162,7 +162,7 @@ static void* producer_thread(void *arg)
 }
 
 /* 消费者线程 */
-static void* consumer_thread(void *arg)
+static void *consumer_thread(void *arg)
 {
     osal_sem_t *sem = (osal_sem_t *)arg;
 
@@ -203,106 +203,78 @@ static void test_semaphore_producer_consumer(void)
 
 /* 测试用例数组 - 使用函数指针数组 */
 static const test_case_t test_cases[] = {
-	{
-		.name = "test_semaphore_init_success",
-		.func = test_semaphore_init_success,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_semaphore_init_nullpointer",
-		.func = test_semaphore_init_nullpointer,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_semaphore_wait_post_success",
-		.func = test_semaphore_wait_post_success,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_semaphore_wait_nullpointer",
-		.func = test_semaphore_wait_nullpointer,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_semaphore_post_nullpointer",
-		.func = test_semaphore_post_nullpointer,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_semaphore_timedwait_timeout",
-		.func = test_semaphore_timedwait_timeout,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_semaphore_timedwait_success",
-		.func = test_semaphore_timedwait_success,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_semaphore_trywait_fail",
-		.func = test_semaphore_trywait_fail,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_semaphore_trywait_success",
-		.func = test_semaphore_trywait_success,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_semaphore_getvalue",
-		.func = test_semaphore_getvalue,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_semaphore_destroy_success",
-		.func = test_semaphore_destroy_success,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_semaphore_destroy_nullpointer",
-		.func = test_semaphore_destroy_nullpointer,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_semaphore_producer_consumer",
-		.func = test_semaphore_producer_consumer,
-		.setup = NULL,
-		.teardown = NULL
-	},
+    { .name = "test_semaphore_init_success",
+      .func = test_semaphore_init_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_semaphore_init_nullpointer",
+      .func = test_semaphore_init_nullpointer,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_semaphore_wait_post_success",
+      .func = test_semaphore_wait_post_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_semaphore_wait_nullpointer",
+      .func = test_semaphore_wait_nullpointer,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_semaphore_post_nullpointer",
+      .func = test_semaphore_post_nullpointer,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_semaphore_timedwait_timeout",
+      .func = test_semaphore_timedwait_timeout,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_semaphore_timedwait_success",
+      .func = test_semaphore_timedwait_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_semaphore_trywait_fail",
+      .func = test_semaphore_trywait_fail,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_semaphore_trywait_success",
+      .func = test_semaphore_trywait_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_semaphore_getvalue",
+      .func = test_semaphore_getvalue,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_semaphore_destroy_success",
+      .func = test_semaphore_destroy_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_semaphore_destroy_nullpointer",
+      .func = test_semaphore_destroy_nullpointer,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_semaphore_producer_consumer",
+      .func = test_semaphore_producer_consumer,
+      .setup = NULL,
+      .teardown = NULL },
 };
 
 /* 测试套件定义 */
 static const test_suite_t test_suite = {
-	.suite_name = "osal_semaphore",
-	.module_name = "osal_semaphore",
-	.layer_name = "OSAL",
-	.cases = test_cases,
-	.case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
-	.suite_setup = NULL,
-	.suite_teardown = NULL,
-	.metadata = {
-		.category = TEST_CATEGORY_UNIT,
-		.tags = TEST_TAG_FAST,
-		.timeout_ms = 100,
-		.description = "OSAL semaphore tests (POSIX thin wrapper)"
-	}
+    .suite_name = "osal_semaphore",
+    .module_name = "osal_semaphore",
+    .layer_name = "OSAL",
+    .cases = test_cases,
+    .case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
+    .suite_setup = NULL,
+    .suite_teardown = NULL,
+    .metadata = { .category = TEST_CATEGORY_UNIT,
+                  .tags = TEST_TAG_FAST,
+                  .timeout_ms = 100,
+                  .description =
+                      "OSAL semaphore tests (POSIX thin wrapper)" }
 };
 
 /* 测试套件注册函数 */
-__attribute__((constructor))
-static void register_osal_semaphore_tests(void)
+__attribute__((constructor)) static void register_osal_semaphore_tests(void)
 {
-	libutest_register_suite(&test_suite);
+    libutest_register_suite(&test_suite);
 }

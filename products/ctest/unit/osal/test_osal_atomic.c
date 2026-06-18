@@ -141,8 +141,8 @@ static void test_atomic_compare_exchange(void)
     expected = 42;
     result = OSAL_atomic_compare_exchange_strong(&atomic, &expected, 200);
     TEST_ASSERT_FALSE(result);
-    TEST_ASSERT_EQUAL(100, OSAL_atomic_load(&atomic));  /* 值不变 */
-    TEST_ASSERT_EQUAL(100, expected);  /* expected被更新为实际值 */
+    TEST_ASSERT_EQUAL(100, OSAL_atomic_load(&atomic)); /* 值不变 */
+    TEST_ASSERT_EQUAL(100, expected); /* expected被更新为实际值 */
 
     /* 测试CAS成功（交换为0） */
     expected = 100;
@@ -163,7 +163,7 @@ typedef struct {
     uint32_t iterations;
 } atomic_thread_data_t;
 
-static void* atomic_increment_thread(void *arg)
+static void *atomic_increment_thread(void *arg)
 {
     atomic_thread_data_t *data = (atomic_thread_data_t *)arg;
 
@@ -191,8 +191,10 @@ static void test_atomic_multithread_increment(void)
         thread_data[i].counter = &counter;
         thread_data[i].iterations = ITERATIONS_PER_THREAD;
 
-        int32_t ret = OSAL_pthread_create(&threads[i], NULL,
-                                       atomic_increment_thread, &thread_data[i]);
+        int32_t ret = OSAL_pthread_create(&threads[i],
+                                          NULL,
+                                          atomic_increment_thread,
+                                          &thread_data[i]);
         TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
     }
 
@@ -211,7 +213,7 @@ static void test_atomic_multithread_increment(void)
     }
 }
 
-static void* atomic_cas_thread(void *arg)
+static void *atomic_cas_thread(void *arg)
 {
     atomic_thread_data_t *data = (atomic_thread_data_t *)arg;
 
@@ -224,7 +226,9 @@ static void* atomic_cas_thread(void *arg)
         do {
             expected = OSAL_atomic_load(data->counter);
             new_value = expected + 1;
-            success = OSAL_atomic_compare_exchange_strong(data->counter, &expected, new_value);
+            success = OSAL_atomic_compare_exchange_strong(data->counter,
+                                                          &expected,
+                                                          new_value);
         } while (!success);
     }
 
@@ -246,8 +250,10 @@ static void test_atomic_multithread_cas(void)
         thread_data[i].counter = &counter;
         thread_data[i].iterations = ITERATIONS_PER_THREAD;
 
-        int32_t ret = OSAL_pthread_create(&threads[i], NULL,
-                                       atomic_cas_thread, &thread_data[i]);
+        int32_t ret = OSAL_pthread_create(&threads[i],
+                                          NULL,
+                                          atomic_cas_thread,
+                                          &thread_data[i]);
         TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
     }
 
@@ -277,12 +283,12 @@ static void test_atomic_overflow(void)
     /* 测试上溢 */
     OSAL_atomic_init(&atomic, 0xFFFFFFFF);
     OSAL_atomic_inc(&atomic);
-    TEST_ASSERT_EQUAL(0, OSAL_atomic_load(&atomic));  /* 溢出回0 */
+    TEST_ASSERT_EQUAL(0, OSAL_atomic_load(&atomic)); /* 溢出回0 */
 
     /* 测试下溢 */
     OSAL_atomic_init(&atomic, 0);
     OSAL_atomic_dec(&atomic);
-    TEST_ASSERT_EQUAL(0xFFFFFFFF, OSAL_atomic_load(&atomic));  /* 下溢到最大值 */
+    TEST_ASSERT_EQUAL(0xFFFFFFFF, OSAL_atomic_load(&atomic)); /* 下溢到最大值 */
 }
 
 static void test_atomic_boundary_values(void)
@@ -377,16 +383,21 @@ static void test_atomic64_compare_exchange(void)
 
     /* 测试CAS成功 */
     uint64_t expected = 0x123456789ABCDEF0ULL;
-    bool result = OSAL_atomic_compare_exchange_strong_u64(&atomic, &expected, 0xFEDCBA9876543210ULL);
+    bool result =
+        OSAL_atomic_compare_exchange_strong_u64(&atomic,
+                                                &expected,
+                                                0xFEDCBA9876543210ULL);
     TEST_ASSERT_TRUE(result);
     TEST_ASSERT_EQUAL(0xFEDCBA9876543210ULL, OSAL_atomic_load_u64(&atomic));
 
     /* 测试CAS失败，expected应被更新为实际值 */
     expected = 0x123456789ABCDEF0ULL;
-    result = OSAL_atomic_compare_exchange_strong_u64(&atomic, &expected, 0x1111111111111111ULL);
+    result = OSAL_atomic_compare_exchange_strong_u64(&atomic,
+                                                     &expected,
+                                                     0x1111111111111111ULL);
     TEST_ASSERT_FALSE(result);
     TEST_ASSERT_EQUAL(0xFEDCBA9876543210ULL, OSAL_atomic_load_u64(&atomic));
-    TEST_ASSERT_EQUAL(0xFEDCBA9876543210ULL, expected);  /* expected被更新 */
+    TEST_ASSERT_EQUAL(0xFEDCBA9876543210ULL, expected); /* expected被更新 */
 }
 
 static void test_atomic64_overflow(void)
@@ -410,7 +421,7 @@ typedef struct {
     uint32_t iterations;
 } atomic64_thread_data_t;
 
-static void* atomic64_increment_thread(void *arg)
+static void *atomic64_increment_thread(void *arg)
 {
     atomic64_thread_data_t *data = (atomic64_thread_data_t *)arg;
 
@@ -438,8 +449,10 @@ static void test_atomic64_multithread_timestamp(void)
         thread_data[i].timestamp = &timestamp;
         thread_data[i].iterations = ITERATIONS_PER_THREAD;
 
-        int32_t ret = OSAL_pthread_create(&threads[i], NULL,
-                                       atomic64_increment_thread, &thread_data[i]);
+        int32_t ret = OSAL_pthread_create(&threads[i],
+                                          NULL,
+                                          atomic64_increment_thread,
+                                          &thread_data[i]);
         TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
     }
 
@@ -463,140 +476,101 @@ static void test_atomic64_multithread_timestamp(void)
  *===========================================================================*/
 
 /* 32位原子操作测试 */
-    /* 64位原子操作测试 */
+/* 64位原子操作测试 */
 
 /* 测试用例数组 - 使用函数指针数组 */
 static const test_case_t test_cases[] = {
-	{
-		.name = "test_atomic_init_and_load",
-		.func = test_atomic_init_and_load,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_atomic_store",
-		.func = test_atomic_store,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_atomic_increment",
-		.func = test_atomic_increment,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_atomic_decrement",
-		.func = test_atomic_decrement,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_atomic_fetch_add",
-		.func = test_atomic_fetch_add,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_atomic_fetch_sub",
-		.func = test_atomic_fetch_sub,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_atomic_compare_exchange",
-		.func = test_atomic_compare_exchange,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_atomic_multithread_increment",
-		.func = test_atomic_multithread_increment,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_atomic_multithread_cas",
-		.func = test_atomic_multithread_cas,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_atomic_overflow",
-		.func = test_atomic_overflow,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_atomic_boundary_values",
-		.func = test_atomic_boundary_values,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_atomic64_init_and_load",
-		.func = test_atomic64_init_and_load,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_atomic64_store",
-		.func = test_atomic64_store,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_atomic64_increment_decrement",
-		.func = test_atomic64_increment_decrement,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_atomic64_fetch_add_sub",
-		.func = test_atomic64_fetch_add_sub,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_atomic64_compare_exchange",
-		.func = test_atomic64_compare_exchange,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_atomic64_overflow",
-		.func = test_atomic64_overflow,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_atomic64_multithread_timestamp",
-		.func = test_atomic64_multithread_timestamp,
-		.setup = NULL,
-		.teardown = NULL
-	},
+    { .name = "test_atomic_init_and_load",
+      .func = test_atomic_init_and_load,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_atomic_store",
+      .func = test_atomic_store,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_atomic_increment",
+      .func = test_atomic_increment,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_atomic_decrement",
+      .func = test_atomic_decrement,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_atomic_fetch_add",
+      .func = test_atomic_fetch_add,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_atomic_fetch_sub",
+      .func = test_atomic_fetch_sub,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_atomic_compare_exchange",
+      .func = test_atomic_compare_exchange,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_atomic_multithread_increment",
+      .func = test_atomic_multithread_increment,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_atomic_multithread_cas",
+      .func = test_atomic_multithread_cas,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_atomic_overflow",
+      .func = test_atomic_overflow,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_atomic_boundary_values",
+      .func = test_atomic_boundary_values,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_atomic64_init_and_load",
+      .func = test_atomic64_init_and_load,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_atomic64_store",
+      .func = test_atomic64_store,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_atomic64_increment_decrement",
+      .func = test_atomic64_increment_decrement,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_atomic64_fetch_add_sub",
+      .func = test_atomic64_fetch_add_sub,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_atomic64_compare_exchange",
+      .func = test_atomic64_compare_exchange,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_atomic64_overflow",
+      .func = test_atomic64_overflow,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_atomic64_multithread_timestamp",
+      .func = test_atomic64_multithread_timestamp,
+      .setup = NULL,
+      .teardown = NULL },
 };
 
 /* 测试套件定义 */
 static const test_suite_t test_suite = {
-	.suite_name = "osal_atomic",
-	.module_name = "osal_atomic",
-	.layer_name = "OSAL",
-	.cases = test_cases,
-	.case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
-	.suite_setup = NULL,
-	.suite_teardown = NULL,
-	.metadata = {
-		.category = TEST_CATEGORY_UNIT,
-		.tags = TEST_TAG_FAST,
-		.timeout_ms = 100,
-		.description = "OSAL osal_atomic tests"
-	}
+    .suite_name = "osal_atomic",
+    .module_name = "osal_atomic",
+    .layer_name = "OSAL",
+    .cases = test_cases,
+    .case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
+    .suite_setup = NULL,
+    .suite_teardown = NULL,
+    .metadata = { .category = TEST_CATEGORY_UNIT,
+                  .tags = TEST_TAG_FAST,
+                  .timeout_ms = 100,
+                  .description = "OSAL osal_atomic tests" }
 };
 
 /* 测试套件注册函数 */
-__attribute__((constructor))
-static void register_osal_atomic_tests(void)
+__attribute__((constructor)) static void register_osal_atomic_tests(void)
 {
-	libutest_register_suite(&test_suite);
+    libutest_register_suite(&test_suite);
 }

@@ -42,7 +42,10 @@ static void test_stress_mutex_high_contention(void)
 
     /* 创建多个线程 */
     for (int32_t i = 0; i < NUM_THREADS; i++) {
-        ret = OSAL_pthread_create(&threads[i], NULL, mutex_stress_thread, &iterations);
+        ret = OSAL_pthread_create(&threads[i],
+                                  NULL,
+                                  mutex_stress_thread,
+                                  &iterations);
         TEST_ASSERT_EQUAL(0, ret);
     }
 
@@ -114,7 +117,8 @@ static void test_stress_memory_multithread(void)
 
     /* 创建多个线程 */
     for (int32_t i = 0; i < NUM_THREADS; i++) {
-        int32_t ret = OSAL_pthread_create(&threads[i], NULL, memory_stress_thread, NULL);
+        int32_t ret =
+            OSAL_pthread_create(&threads[i], NULL, memory_stress_thread, NULL);
         TEST_ASSERT_EQUAL(0, ret);
     }
 
@@ -159,7 +163,10 @@ static void test_stress_semaphore_contention(void)
 
     /* 创建多个线程 */
     for (int32_t i = 0; i < NUM_THREADS; i++) {
-        ret = OSAL_pthread_create(&threads[i], NULL, semaphore_stress_thread, &iterations);
+        ret = OSAL_pthread_create(&threads[i],
+                                  NULL,
+                                  semaphore_stress_thread,
+                                  &iterations);
         TEST_ASSERT_EQUAL(0, ret);
     }
 
@@ -193,7 +200,8 @@ static void test_stress_thread_creation(void)
         osal_thread_t thread;
 
         /* 创建线程 */
-        int32_t ret = OSAL_pthread_create(&thread, NULL, dummy_thread_func, NULL);
+        int32_t ret =
+            OSAL_pthread_create(&thread, NULL, dummy_thread_func, NULL);
         TEST_ASSERT_EQUAL(0, ret);
 
         /* 等待线程结束 */
@@ -230,7 +238,10 @@ static void test_stress_atomic_operations(void)
 
     /* 创建多个线程 */
     for (int32_t i = 0; i < NUM_THREADS; i++) {
-        int32_t ret = OSAL_pthread_create(&threads[i], NULL, atomic_stress_thread, &iterations);
+        int32_t ret = OSAL_pthread_create(&threads[i],
+                                          NULL,
+                                          atomic_stress_thread,
+                                          &iterations);
         TEST_ASSERT_EQUAL(0, ret);
     }
 
@@ -249,42 +260,30 @@ static void test_stress_atomic_operations(void)
  *===========================================================================*/
 
 static const test_case_t test_cases[] = {
-    {
-        .name = "test_stress_mutex_high_contention",
-        .func = test_stress_mutex_high_contention,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_stress_memory_allocation",
-        .func = test_stress_memory_allocation,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_stress_memory_multithread",
-        .func = test_stress_memory_multithread,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_stress_semaphore_contention",
-        .func = test_stress_semaphore_contention,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_stress_thread_creation",
-        .func = test_stress_thread_creation,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_stress_atomic_operations",
-        .func = test_stress_atomic_operations,
-        .setup = NULL,
-        .teardown = NULL
-    },
+    { .name = "test_stress_mutex_high_contention",
+      .func = test_stress_mutex_high_contention,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_stress_memory_allocation",
+      .func = test_stress_memory_allocation,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_stress_memory_multithread",
+      .func = test_stress_memory_multithread,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_stress_semaphore_contention",
+      .func = test_stress_semaphore_contention,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_stress_thread_creation",
+      .func = test_stress_thread_creation,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_stress_atomic_operations",
+      .func = test_stress_atomic_operations,
+      .setup = NULL,
+      .teardown = NULL },
 };
 
 static const test_suite_t test_suite = {
@@ -295,16 +294,13 @@ static const test_suite_t test_suite = {
     .case_count = sizeof(test_cases) / sizeof(test_case_t),
     .suite_setup = NULL,
     .suite_teardown = NULL,
-    .metadata = {
-        .category = TEST_CATEGORY_STRESS,
-        .tags = TEST_TAG_SLOW,
-        .timeout_ms = 10000,
-        .description = "OSAL stress tests"
-    }
+    .metadata = { .category = TEST_CATEGORY_STRESS,
+                  .tags = TEST_TAG_SLOW,
+                  .timeout_ms = 10000,
+                  .description = "OSAL stress tests" }
 };
 
-__attribute__((constructor))
-static void register_osal_stress_tests(void)
+__attribute__((constructor)) static void register_osal_stress_tests(void)
 {
     libutest_register_suite(&test_suite);
 }

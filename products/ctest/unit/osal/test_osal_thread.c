@@ -35,7 +35,8 @@ static void test_thread_create_join_success(void)
     void *retval = NULL;
 
     /* 创建线程 */
-    int32_t ret = OSAL_pthread_create(&thread, NULL, simple_thread_func, &result);
+    int32_t ret =
+        OSAL_pthread_create(&thread, NULL, simple_thread_func, &result);
     TEST_ASSERT_EQUAL(0, ret);
 
     /* 等待线程结束 */
@@ -125,7 +126,8 @@ static void test_thread_attr_detachstate(void)
     OSAL_pthread_attr_init(&attr);
 
     /* 设置为分离状态 */
-    int32_t ret = OSAL_pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    int32_t ret =
+        OSAL_pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
     TEST_ASSERT_EQUAL(0, ret);
 
     /* 获取状态 */
@@ -162,7 +164,10 @@ static void test_thread_multithread_execution(void)
 
     /* 创建多个线程 */
     for (int32_t i = 0; i < NUM_THREADS; i++) {
-        int32_t ret = OSAL_pthread_create(&threads[i], NULL, increment_thread_func, &count);
+        int32_t ret = OSAL_pthread_create(&threads[i],
+                                          NULL,
+                                          increment_thread_func,
+                                          &count);
         TEST_ASSERT_EQUAL(0, ret);
     }
 
@@ -180,54 +185,38 @@ static void test_thread_multithread_execution(void)
  *===========================================================================*/
 
 static const test_case_t test_cases[] = {
-    {
-        .name = "test_thread_create_join_success",
-        .func = test_thread_create_join_success,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_thread_create_null_pointer",
-        .func = test_thread_create_null_pointer,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_thread_detach_success",
-        .func = test_thread_detach_success,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_thread_self",
-        .func = test_thread_self,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_thread_equal",
-        .func = test_thread_equal,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_thread_attr_init_destroy",
-        .func = test_thread_attr_init_destroy,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_thread_attr_detachstate",
-        .func = test_thread_attr_detachstate,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_thread_multithread_execution",
-        .func = test_thread_multithread_execution,
-        .setup = NULL,
-        .teardown = NULL
-    },
+    { .name = "test_thread_create_join_success",
+      .func = test_thread_create_join_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_thread_create_null_pointer",
+      .func = test_thread_create_null_pointer,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_thread_detach_success",
+      .func = test_thread_detach_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_thread_self",
+      .func = test_thread_self,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_thread_equal",
+      .func = test_thread_equal,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_thread_attr_init_destroy",
+      .func = test_thread_attr_init_destroy,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_thread_attr_detachstate",
+      .func = test_thread_attr_detachstate,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_thread_multithread_execution",
+      .func = test_thread_multithread_execution,
+      .setup = NULL,
+      .teardown = NULL },
 };
 
 static const test_suite_t test_suite = {
@@ -238,16 +227,13 @@ static const test_suite_t test_suite = {
     .case_count = sizeof(test_cases) / sizeof(test_case_t),
     .suite_setup = NULL,
     .suite_teardown = NULL,
-    .metadata = {
-        .category = TEST_CATEGORY_UNIT,
-        .tags = TEST_TAG_FAST,
-        .timeout_ms = 1000,
-        .description = "OSAL thread management tests"
-    }
+    .metadata = { .category = TEST_CATEGORY_UNIT,
+                  .tags = TEST_TAG_FAST,
+                  .timeout_ms = 1000,
+                  .description = "OSAL thread management tests" }
 };
 
-__attribute__((constructor))
-static void register_osal_thread_tests(void)
+__attribute__((constructor)) static void register_osal_thread_tests(void)
 {
     libutest_register_suite(&test_suite);
 }

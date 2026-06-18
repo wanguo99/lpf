@@ -206,7 +206,8 @@ static void *reader_thread(void *arg)
     for (uint32_t i = 0; i < 100; i++) {
         OSAL_pthread_rwlock_rdlock(ctx->rwlock);
         local_data = *(ctx->shared_data);
-        (void)local_data;  /* Suppress unused warning - we're just testing read access */
+        (void)local_data; /* Suppress unused warning - we're just testing read
+                             access */
         ctx->read_count++;
         OSAL_pthread_rwlock_unlock(ctx->rwlock);
         OSAL_usleep(1000); /* 1ms */
@@ -277,12 +278,18 @@ static void test_rwlock_readers_and_writers(void)
         reader_ctx[i].rwlock = &rwlock;
         reader_ctx[i].shared_data = &shared_data;
         reader_ctx[i].read_count = 0;
-        OSAL_pthread_create(&reader_threads[i], NULL, reader_thread, &reader_ctx[i]);
+        OSAL_pthread_create(&reader_threads[i],
+                            NULL,
+                            reader_thread,
+                            &reader_ctx[i]);
 
         writer_ctx[i].rwlock = &rwlock;
         writer_ctx[i].shared_data = &shared_data;
         writer_ctx[i].read_count = 0;
-        OSAL_pthread_create(&writer_threads[i], NULL, writer_thread, &writer_ctx[i]);
+        OSAL_pthread_create(&writer_threads[i],
+                            NULL,
+                            writer_thread,
+                            &writer_ctx[i]);
     }
 
     /* 等待所有线程完成 */
@@ -319,5 +326,4 @@ void test_osal_rwlock(void)
     /* 多线程测试 */
     test_rwlock_multiple_readers();
     test_rwlock_readers_and_writers();
-
 }

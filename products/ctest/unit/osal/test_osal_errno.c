@@ -75,52 +75,41 @@ static void test_osal_get_status_name(void)
 
 /* 测试用例数组 - 使用函数指针数组 */
 static const test_case_t test_cases[] = {
-	{
-		.name = "test_osal_get_errno",
-		.func = test_osal_get_errno,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_set_errno",
-		.func = test_osal_set_errno,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_strerror",
-		.func = test_osal_strerror,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_get_status_name",
-		.func = test_osal_get_status_name,
-		.setup = NULL,
-		.teardown = NULL
-	},
+    { .name = "test_osal_get_errno",
+      .func = test_osal_get_errno,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_set_errno",
+      .func = test_osal_set_errno,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_strerror",
+      .func = test_osal_strerror,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_get_status_name",
+      .func = test_osal_get_status_name,
+      .setup = NULL,
+      .teardown = NULL },
 };
 
 /* 测试套件定义 */
 static const test_suite_t test_suite = {
-	.suite_name = "osal_errno",
-	.module_name = "osal_errno",
-	.layer_name = "OSAL",
-	.cases = test_cases,
-	.case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
-	.suite_setup = NULL,
-	.suite_teardown = NULL,
-	.metadata = {
-		.category = TEST_CATEGORY_UNIT,
-		.tags = TEST_TAG_FAST,
-		.timeout_ms = 100,
-		.description = "OSAL osal_errno tests"
-	}
+    .suite_name = "osal_errno",
+    .module_name = "osal_errno",
+    .layer_name = "OSAL",
+    .cases = test_cases,
+    .case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
+    .suite_setup = NULL,
+    .suite_teardown = NULL,
+    .metadata = { .category = TEST_CATEGORY_UNIT,
+                  .tags = TEST_TAG_FAST,
+                  .timeout_ms = 100,
+                  .description = "OSAL osal_errno tests" }
 };
 
 /* 测试套件注册函数 */
-__attribute__((constructor))
-static void register_osal_errno_tests(void)
+__attribute__((constructor)) static void register_osal_errno_tests(void)
 {
-	libutest_register_suite(&test_suite);
+    libutest_register_suite(&test_suite);
 }

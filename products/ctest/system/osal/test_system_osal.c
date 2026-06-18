@@ -19,8 +19,9 @@ typedef struct {
 } thread_coord_ctx_t;
 
 /* 生产者线程 */
-static void* producer_thread(void *arg) {
-    thread_coord_ctx_t *ctx = (thread_coord_ctx_t*)arg;
+static void *producer_thread(void *arg)
+{
+    thread_coord_ctx_t *ctx = (thread_coord_ctx_t *)arg;
     uint32_t i;
 
     for (i = 0; i < 100; i++) {
@@ -35,8 +36,9 @@ static void* producer_thread(void *arg) {
 }
 
 /* 消费者线程 */
-static void* consumer_thread(void *arg) {
-    thread_coord_ctx_t *ctx = (thread_coord_ctx_t*)arg;
+static void *consumer_thread(void *arg)
+{
+    thread_coord_ctx_t *ctx = (thread_coord_ctx_t *)arg;
     uint32_t consumed = 0;
 
     while (consumed < 100) {
@@ -57,7 +59,8 @@ static void* consumer_thread(void *arg) {
 /**
  * 测试多线程协同工作
  */
-static void test_system_multi_thread_coordination(void) {
+static void test_system_multi_thread_coordination(void)
+{
     OSAL_printf("[ TEST     ] Multi-thread coordination system test\n");
 
     thread_coord_ctx_t ctx;
@@ -111,8 +114,9 @@ typedef struct {
 } ipc_e2e_ctx_t;
 
 /* 写入线程 */
-static void* writer_thread(void *arg) {
-    ipc_e2e_ctx_t *ctx = (ipc_e2e_ctx_t*)arg;
+static void *writer_thread(void *arg)
+{
+    ipc_e2e_ctx_t *ctx = (ipc_e2e_ctx_t *)arg;
     uint32_t i;
 
     for (i = 0; i < 10; i++) {
@@ -120,7 +124,7 @@ static void* writer_thread(void *arg) {
 
         /* 写入数据到共享内存 */
         if (ctx->shm_ptr) {
-            uint32_t *data = (uint32_t*)ctx->shm_ptr;
+            uint32_t *data = (uint32_t *)ctx->shm_ptr;
             *data = i * 100;
         }
 
@@ -132,8 +136,9 @@ static void* writer_thread(void *arg) {
 }
 
 /* 读取线程 */
-static void* reader_thread(void *arg) {
-    ipc_e2e_ctx_t *ctx = (ipc_e2e_ctx_t*)arg;
+static void *reader_thread(void *arg)
+{
+    ipc_e2e_ctx_t *ctx = (ipc_e2e_ctx_t *)arg;
     uint32_t i;
 
     for (i = 0; i < 10; i++) {
@@ -142,9 +147,11 @@ static void* reader_thread(void *arg) {
 
         /* 从共享内存读取数据 */
         if (ctx->shm_ptr) {
-            uint32_t *data = (uint32_t*)ctx->shm_ptr;
+            uint32_t *data = (uint32_t *)ctx->shm_ptr;
             if (*data != i * 100) {
-                OSAL_printf("[  FAILED  ] Data mismatch: expected %u, got %u\n", i * 100, *data);
+                OSAL_printf("[  FAILED  ] Data mismatch: expected %u, got %u\n",
+                            i * 100,
+                            *data);
                 g_test_failed = true;
             }
         }
@@ -156,7 +163,8 @@ static void* reader_thread(void *arg) {
 /**
  * 测试进程间通信端到端
  */
-static void test_system_ipc_end_to_end(void) {
+static void test_system_ipc_end_to_end(void)
+{
     OSAL_printf("[ TEST     ] IPC end-to-end system test\n");
 
     ipc_e2e_ctx_t ctx;
@@ -171,18 +179,26 @@ static void test_system_ipc_end_to_end(void) {
     TEST_ASSERT_EQUAL(0, ret);
 
     /* 创建共享内存 */
-    OSAL_snprintf(ctx.shm_name, sizeof(ctx.shm_name), "/test_shm_%d", OSAL_getpid());
+    OSAL_snprintf(ctx.shm_name,
+                  sizeof(ctx.shm_name),
+                  "/test_shm_%d",
+                  OSAL_getpid());
     ctx.shm_size = 4096;
 
     ctx.shm_fd = OSAL_shm_open(ctx.shm_name, O_CREAT | O_RDWR, 0666);
     if (ctx.shm_fd >= 0) {
         OSAL_ftruncate(ctx.shm_fd, ctx.shm_size);
-        ctx.shm_ptr = OSAL_mmap(NULL, ctx.shm_size, PROT_READ | PROT_WRITE,
-                                MAP_SHARED, ctx.shm_fd, 0);
+        ctx.shm_ptr = OSAL_mmap(NULL,
+                                ctx.shm_size,
+                                PROT_READ | PROT_WRITE,
+                                MAP_SHARED,
+                                ctx.shm_fd,
+                                0);
         TEST_ASSERT_NOT_NULL(ctx.shm_ptr);
     } else {
         ctx.shm_ptr = NULL;
-        OSAL_printf("[ WARN     ] Shared memory not available, skipping SHM test\n");
+        OSAL_printf(
+            "[ WARN     ] Shared memory not available, skipping SHM test\n");
     }
 
     /* 创建读写线程 */
@@ -224,7 +240,8 @@ typedef struct {
 /**
  * 测试资源管理完整流程
  */
-static void test_system_resource_management_full_flow(void) {
+static void test_system_resource_management_full_flow(void)
+{
     OSAL_printf("[ TEST     ] Resource management full flow system test\n");
 
     resource_mgmt_ctx_t ctx;
@@ -241,7 +258,7 @@ static void test_system_resource_management_full_flow(void) {
     ctx.semaphores = OSAL_malloc(ctx.num_resources * sizeof(osal_sem_t));
     TEST_ASSERT_NOT_NULL(ctx.semaphores);
 
-    ctx.memory_blocks = OSAL_malloc(ctx.num_resources * sizeof(void*));
+    ctx.memory_blocks = OSAL_malloc(ctx.num_resources * sizeof(void *));
     TEST_ASSERT_NOT_NULL(ctx.memory_blocks);
 
     /* 阶段2: 初始化资源 */
@@ -295,7 +312,8 @@ static void test_system_resource_management_full_flow(void) {
     ret = OSAL_heap_get_info(&free_bytes, &total_bytes);
     if (ret == 0) {
         OSAL_printf("[ INFO     ] Heap free: %u bytes, total: %u bytes\n",
-                   free_bytes, total_bytes);
+                    free_bytes,
+                    total_bytes);
     }
 
     OSAL_printf("[ PASS     ] Resource management full flow test passed\n");
@@ -314,13 +332,16 @@ typedef struct {
 static lifecycle_ctx_t g_lifecycle_ctx;
 
 /* 工作线程 */
-static void* lifecycle_worker_thread(void *arg) {
+static void *lifecycle_worker_thread(void *arg)
+{
     uint32_t thread_id = (uint32_t)(uintptr_t)arg;
     uint32_t flag = (1U << thread_id);
 
     /* 标记已启动 */
     uint32_t old_val = OSAL_atomic_load(&g_lifecycle_ctx.init_flags);
-    while (!OSAL_atomic_compare_exchange_strong(&g_lifecycle_ctx.init_flags, &old_val, old_val | flag)) {
+    while (!OSAL_atomic_compare_exchange_strong(&g_lifecycle_ctx.init_flags,
+                                                &old_val,
+                                                old_val | flag)) {
         old_val = OSAL_atomic_load(&g_lifecycle_ctx.init_flags);
     }
 
@@ -334,7 +355,9 @@ static void* lifecycle_worker_thread(void *arg) {
 
     /* 标记已关闭 */
     old_val = OSAL_atomic_load(&g_lifecycle_ctx.shutdown_flags);
-    while (!OSAL_atomic_compare_exchange_strong(&g_lifecycle_ctx.shutdown_flags, &old_val, old_val | flag)) {
+    while (!OSAL_atomic_compare_exchange_strong(&g_lifecycle_ctx.shutdown_flags,
+                                                &old_val,
+                                                old_val | flag)) {
         old_val = OSAL_atomic_load(&g_lifecycle_ctx.shutdown_flags);
     }
 
@@ -344,7 +367,8 @@ static void* lifecycle_worker_thread(void *arg) {
 /**
  * 测试系统启动关闭流程
  */
-static void test_system_startup_shutdown_flow(void) {
+static void test_system_startup_shutdown_flow(void)
+{
     OSAL_printf("[ TEST     ] Startup/shutdown flow system test\n");
 
     uint32_t i;
@@ -366,8 +390,10 @@ static void test_system_startup_shutdown_flow(void) {
 
     /* 阶段2: 启动工作线程 */
     for (i = 0; i < 5; i++) {
-        ret = OSAL_pthread_create(&g_lifecycle_ctx.worker_threads[i], NULL,
-                                  lifecycle_worker_thread, (void*)(uintptr_t)i);
+        ret = OSAL_pthread_create(&g_lifecycle_ctx.worker_threads[i],
+                                  NULL,
+                                  lifecycle_worker_thread,
+                                  (void *)(uintptr_t)i);
         TEST_ASSERT_EQUAL(0, ret);
     }
 
@@ -375,7 +401,7 @@ static void test_system_startup_shutdown_flow(void) {
     OSAL_msleep(100);
     TEST_ASSERT_EQUAL(0x1F, OSAL_atomic_load(&g_lifecycle_ctx.init_flags));
     OSAL_printf("[ INFO     ] All worker threads started (flags: 0x%X)\n",
-               OSAL_atomic_load(&g_lifecycle_ctx.init_flags));
+                OSAL_atomic_load(&g_lifecycle_ctx.init_flags));
 
     /* 阶段3: 运行系统 */
     for (i = 0; i < 5; i++) {
@@ -393,7 +419,7 @@ static void test_system_startup_shutdown_flow(void) {
 
     TEST_ASSERT_EQUAL(0x1F, OSAL_atomic_load(&g_lifecycle_ctx.shutdown_flags));
     OSAL_printf("[ INFO     ] All worker threads shutdown (flags: 0x%X)\n",
-               OSAL_atomic_load(&g_lifecycle_ctx.shutdown_flags));
+                OSAL_atomic_load(&g_lifecycle_ctx.shutdown_flags));
 
     /* 阶段5: 清理系统 */
     OSAL_sem_destroy(&g_lifecycle_ctx.lifecycle_sem);
@@ -404,55 +430,43 @@ static void test_system_startup_shutdown_flow(void) {
 
 /* 注册系统测试模块 */
 
-
 /* 测试用例数组 - 使用函数指针数组 */
 static const test_case_t test_cases[] = {
-	{
-		.name = "test_system_multi_thread_coordination",
-		.func = test_system_multi_thread_coordination,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_system_ipc_end_to_end",
-		.func = test_system_ipc_end_to_end,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_system_resource_management_full_flow",
-		.func = test_system_resource_management_full_flow,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_system_startup_shutdown_flow",
-		.func = test_system_startup_shutdown_flow,
-		.setup = NULL,
-		.teardown = NULL
-	},
+    { .name = "test_system_multi_thread_coordination",
+      .func = test_system_multi_thread_coordination,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_system_ipc_end_to_end",
+      .func = test_system_ipc_end_to_end,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_system_resource_management_full_flow",
+      .func = test_system_resource_management_full_flow,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_system_startup_shutdown_flow",
+      .func = test_system_startup_shutdown_flow,
+      .setup = NULL,
+      .teardown = NULL },
 };
 
 /* 测试套件定义 */
 static const test_suite_t test_suite = {
-	.suite_name = "system_osal",
-	.module_name = "system_osal",
-	.layer_name = "OSAL",
-	.cases = test_cases,
-	.case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
-	.suite_setup = NULL,
-	.suite_teardown = NULL,
-	.metadata = {
-		.category = TEST_CATEGORY_SYSTEM,
-		.tags = TEST_TAG_SLOW | TEST_TAG_HARDWARE,
-		.timeout_ms = 10000,
-		.description = "OSAL system integration tests"
-	}
+    .suite_name = "system_osal",
+    .module_name = "system_osal",
+    .layer_name = "OSAL",
+    .cases = test_cases,
+    .case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
+    .suite_setup = NULL,
+    .suite_teardown = NULL,
+    .metadata = { .category = TEST_CATEGORY_SYSTEM,
+                  .tags = TEST_TAG_SLOW | TEST_TAG_HARDWARE,
+                  .timeout_ms = 10000,
+                  .description = "OSAL system integration tests" }
 };
 
 /* 测试套件注册函数 */
-__attribute__((constructor))
-static void register_system_osal_tests(void)
+__attribute__((constructor)) static void register_system_osal_tests(void)
 {
-	libutest_register_suite(&test_suite);
+    libutest_register_suite(&test_suite);
 }

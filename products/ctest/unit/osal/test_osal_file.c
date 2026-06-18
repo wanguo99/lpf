@@ -20,7 +20,8 @@ static void test_osal_file_open_close_success(void)
     int32_t fd;
 
     /* 创建新文件 */
-    fd = OSAL_open(TEST_FILE_PATH, OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
+    fd = OSAL_open(TEST_FILE_PATH,
+                   OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
                    OSAL_S_IRUSR | OSAL_S_IWUSR);
     TEST_ASSERT_TRUE(fd >= 0);
 
@@ -38,7 +39,8 @@ static void test_osal_file_open_readonly(void)
     int32_t fd;
 
     /* 先创建文件 */
-    fd = OSAL_open(TEST_FILE_PATH, OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
+    fd = OSAL_open(TEST_FILE_PATH,
+                   OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
                    OSAL_S_IRUSR | OSAL_S_IWUSR);
     TEST_ASSERT_TRUE(fd >= 0);
     OSAL_close(fd);
@@ -73,13 +75,15 @@ static void test_osal_file_open_excl(void)
     OSAL_unlink(TEST_FILE_PATH);
 
     /* 创建新文件 */
-    fd1 = OSAL_open(TEST_FILE_PATH, OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_EXCL,
+    fd1 = OSAL_open(TEST_FILE_PATH,
+                    OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_EXCL,
                     OSAL_S_IRUSR | OSAL_S_IWUSR);
     TEST_ASSERT_TRUE(fd1 >= 0);
     OSAL_close(fd1);
 
     /* 尝试再次创建（应该失败） */
-    fd2 = OSAL_open(TEST_FILE_PATH, OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_EXCL,
+    fd2 = OSAL_open(TEST_FILE_PATH,
+                    OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_EXCL,
                     OSAL_S_IRUSR | OSAL_S_IWUSR);
     TEST_ASSERT_TRUE(fd2 < 0);
 
@@ -99,7 +103,8 @@ static void test_osal_file_write_read_success(void)
     char read_buffer[64];
 
     /* 创建并写入文件 */
-    fd = OSAL_open(TEST_FILE_PATH, OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
+    fd = OSAL_open(TEST_FILE_PATH,
+                   OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
                    OSAL_S_IRUSR | OSAL_S_IWUSR);
     TEST_ASSERT_TRUE(fd >= 0);
 
@@ -114,7 +119,9 @@ static void test_osal_file_write_read_success(void)
     OSAL_memset(read_buffer, 0, OSAL_sizeof(read_buffer));
     ret = OSAL_read(fd, read_buffer, OSAL_sizeof(read_buffer));
     TEST_ASSERT_EQUAL((osal_ssize_t)OSAL_strlen(write_data), ret);
-    TEST_ASSERT_EQUAL(0, OSAL_strncmp(read_buffer, write_data, OSAL_strlen(write_data)));
+    TEST_ASSERT_EQUAL(
+        0,
+        OSAL_strncmp(read_buffer, write_data, OSAL_strlen(write_data)));
 
     OSAL_close(fd);
     OSAL_unlink(TEST_FILE_PATH);
@@ -130,7 +137,8 @@ static void test_osal_file_write_append(void)
     char read_buffer[128];
 
     /* 创建文件并写入第一行 */
-    fd = OSAL_open(TEST_FILE_PATH, OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
+    fd = OSAL_open(TEST_FILE_PATH,
+                   OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
                    OSAL_S_IRUSR | OSAL_S_IWUSR);
     TEST_ASSERT_TRUE(fd >= 0);
     ret = OSAL_write(fd, data1, OSAL_strlen(data1));
@@ -149,7 +157,8 @@ static void test_osal_file_write_append(void)
     TEST_ASSERT_TRUE(fd >= 0);
     OSAL_memset(read_buffer, 0, OSAL_sizeof(read_buffer));
     ret = OSAL_read(fd, read_buffer, OSAL_sizeof(read_buffer));
-    TEST_ASSERT_EQUAL((osal_ssize_t)(OSAL_strlen(data1) + OSAL_strlen(data2)), ret);
+    TEST_ASSERT_EQUAL((osal_ssize_t)(OSAL_strlen(data1) + OSAL_strlen(data2)),
+                      ret);
 
     OSAL_close(fd);
     OSAL_unlink(TEST_FILE_PATH);
@@ -164,7 +173,8 @@ static void test_osal_file_read_eof(void)
     char buffer[64];
 
     /* 创建文件 */
-    fd = OSAL_open(TEST_FILE_PATH, OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
+    fd = OSAL_open(TEST_FILE_PATH,
+                   OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
                    OSAL_S_IRUSR | OSAL_S_IWUSR);
     TEST_ASSERT_TRUE(fd >= 0);
     OSAL_write(fd, data, OSAL_strlen(data));
@@ -195,7 +205,8 @@ static void test_osal_file_lseek_set(void)
     char buffer[2];
 
     /* 创建文件 */
-    fd = OSAL_open(TEST_FILE_PATH, OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
+    fd = OSAL_open(TEST_FILE_PATH,
+                   OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
                    OSAL_S_IRUSR | OSAL_S_IWUSR);
     TEST_ASSERT_TRUE(fd >= 0);
     OSAL_write(fd, data, OSAL_strlen(data));
@@ -222,7 +233,8 @@ static void test_osal_file_lseek_cur(void)
     char buffer[2];
 
     /* 创建文件 */
-    fd = OSAL_open(TEST_FILE_PATH, OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
+    fd = OSAL_open(TEST_FILE_PATH,
+                   OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
                    OSAL_S_IRUSR | OSAL_S_IWUSR);
     TEST_ASSERT_TRUE(fd >= 0);
     OSAL_write(fd, data, OSAL_strlen(data));
@@ -256,7 +268,8 @@ static void test_osal_file_lseek_end(void)
     const char *data = "0123456789";
 
     /* 创建文件 */
-    fd = OSAL_open(TEST_FILE_PATH, OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
+    fd = OSAL_open(TEST_FILE_PATH,
+                   OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
                    OSAL_S_IRUSR | OSAL_S_IWUSR);
     TEST_ASSERT_TRUE(fd >= 0);
     OSAL_write(fd, data, OSAL_strlen(data));
@@ -284,7 +297,8 @@ static void test_osal_file_fcntl_flags(void)
     int32_t flags;
 
     /* 创建文件 */
-    fd = OSAL_open(TEST_FILE_PATH, OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
+    fd = OSAL_open(TEST_FILE_PATH,
+                   OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
                    OSAL_S_IRUSR | OSAL_S_IWUSR);
     TEST_ASSERT_TRUE(fd >= 0);
 
@@ -314,7 +328,8 @@ static void test_osal_file_write_empty(void)
     int32_t fd;
     osal_ssize_t ret;
 
-    fd = OSAL_open(TEST_FILE_PATH, OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
+    fd = OSAL_open(TEST_FILE_PATH,
+                   OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
                    OSAL_S_IRUSR | OSAL_S_IWUSR);
     TEST_ASSERT_TRUE(fd >= 0);
 
@@ -333,7 +348,8 @@ static void test_osal_file_read_empty(void)
     osal_ssize_t ret;
     char buffer[64];
 
-    fd = OSAL_open(TEST_FILE_PATH, OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
+    fd = OSAL_open(TEST_FILE_PATH,
+                   OSAL_O_RDWR | OSAL_O_CREAT | OSAL_O_TRUNC,
                    OSAL_S_IRUSR | OSAL_S_IWUSR);
     TEST_ASSERT_TRUE(fd >= 0);
     OSAL_write(fd, "test", 4);
@@ -365,120 +381,89 @@ static void test_osal_file_close_invalid_fd(void)
  *===========================================================================*/
 
 // OSAL文件I/O操作测试
-    /* 文件打开/关闭 */
-    /* 文件读写 */
-    /* 文件定位 */
-    /* 文件控制 */
-    /* 边界条件 */
+/* 文件打开/关闭 */
+/* 文件读写 */
+/* 文件定位 */
+/* 文件控制 */
+/* 边界条件 */
 
 /* 测试用例数组 - 使用函数指针数组 */
 static const test_case_t test_cases[] = {
-	{
-		.name = "test_osal_file_open_close_success",
-		.func = test_osal_file_open_close_success,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_file_open_readonly",
-		.func = test_osal_file_open_readonly,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_file_open_not_exist",
-		.func = test_osal_file_open_not_exist,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_file_open_excl",
-		.func = test_osal_file_open_excl,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_file_write_read_success",
-		.func = test_osal_file_write_read_success,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_file_write_append",
-		.func = test_osal_file_write_append,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_file_read_eof",
-		.func = test_osal_file_read_eof,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_file_lseek_set",
-		.func = test_osal_file_lseek_set,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_file_lseek_cur",
-		.func = test_osal_file_lseek_cur,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_file_lseek_end",
-		.func = test_osal_file_lseek_end,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_file_fcntl_flags",
-		.func = test_osal_file_fcntl_flags,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_file_write_empty",
-		.func = test_osal_file_write_empty,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_file_read_empty",
-		.func = test_osal_file_read_empty,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_file_close_invalid_fd",
-		.func = test_osal_file_close_invalid_fd,
-		.setup = NULL,
-		.teardown = NULL
-	},
+    { .name = "test_osal_file_open_close_success",
+      .func = test_osal_file_open_close_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_file_open_readonly",
+      .func = test_osal_file_open_readonly,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_file_open_not_exist",
+      .func = test_osal_file_open_not_exist,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_file_open_excl",
+      .func = test_osal_file_open_excl,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_file_write_read_success",
+      .func = test_osal_file_write_read_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_file_write_append",
+      .func = test_osal_file_write_append,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_file_read_eof",
+      .func = test_osal_file_read_eof,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_file_lseek_set",
+      .func = test_osal_file_lseek_set,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_file_lseek_cur",
+      .func = test_osal_file_lseek_cur,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_file_lseek_end",
+      .func = test_osal_file_lseek_end,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_file_fcntl_flags",
+      .func = test_osal_file_fcntl_flags,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_file_write_empty",
+      .func = test_osal_file_write_empty,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_file_read_empty",
+      .func = test_osal_file_read_empty,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_file_close_invalid_fd",
+      .func = test_osal_file_close_invalid_fd,
+      .setup = NULL,
+      .teardown = NULL },
 };
 
 /* 测试套件定义 */
 static const test_suite_t test_suite = {
-	.suite_name = "osal_file",
-	.module_name = "osal_file",
-	.layer_name = "OSAL",
-	.cases = test_cases,
-	.case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
-	.suite_setup = NULL,
-	.suite_teardown = NULL,
-	.metadata = {
-		.category = TEST_CATEGORY_UNIT,
-		.tags = TEST_TAG_FAST,
-		.timeout_ms = 100,
-		.description = "OSAL osal_file tests"
-	}
+    .suite_name = "osal_file",
+    .module_name = "osal_file",
+    .layer_name = "OSAL",
+    .cases = test_cases,
+    .case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
+    .suite_setup = NULL,
+    .suite_teardown = NULL,
+    .metadata = { .category = TEST_CATEGORY_UNIT,
+                  .tags = TEST_TAG_FAST,
+                  .timeout_ms = 100,
+                  .description = "OSAL osal_file tests" }
 };
 
 /* 测试套件注册函数 */
-__attribute__((constructor))
-static void register_osal_file_tests(void)
+__attribute__((constructor)) static void register_osal_file_tests(void)
 {
-	libutest_register_suite(&test_suite);
+    libutest_register_suite(&test_suite);
 }

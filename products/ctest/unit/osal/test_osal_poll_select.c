@@ -57,8 +57,8 @@ static void test_poll_timeout(void)
     uint64_t elapsed = OSAL_get_tick_count() - start_time;
 
     TEST_ASSERT_EQUAL(0, ret);  /* 超时返回0 */
-    TEST_ASSERT(elapsed >= 90);  /* 至少接近100ms */
-    TEST_ASSERT(elapsed < 200);  /* 不应该等太久 */
+    TEST_ASSERT(elapsed >= 90); /* 至少接近100ms */
+    TEST_ASSERT(elapsed < 200); /* 不应该等太久 */
 
     close(pipe_fds[0]);
     close(pipe_fds[1]);
@@ -260,7 +260,7 @@ static void test_select_timeout(void)
     ret = OSAL_select(pipe_fds[0] + 1, &readfds, NULL, NULL, &timeout);
     uint64_t elapsed = OSAL_get_tick_count() - start_time;
 
-    TEST_ASSERT_EQUAL(0, ret);  /* 超时返回0 */
+    TEST_ASSERT_EQUAL(0, ret); /* 超时返回0 */
     TEST_ASSERT(elapsed >= 90);
     TEST_ASSERT(elapsed < 200);
 
@@ -369,7 +369,7 @@ static void test_select_null_sets(void)
 
     /* 所有fd_set都是NULL，只用于延时 */
     timeout.tv_sec = 0;
-    timeout.tv_usec = 10000;  /* 10ms */
+    timeout.tv_usec = 10000; /* 10ms */
 
     uint64_t start_time = OSAL_get_tick_count();
     ret = OSAL_select(0, NULL, NULL, NULL, &timeout);
@@ -419,7 +419,7 @@ static void test_pselect_basic(void)
 
     /* pselect使用纳秒精度 */
     timeout.tv_sec = 0;
-    timeout.tv_nsec = 100000000;  /* 100ms */
+    timeout.tv_nsec = 100000000; /* 100ms */
 
     ret = OSAL_pselect(pipe_fds[0] + 1, &readfds, NULL, NULL, &timeout, NULL);
     TEST_ASSERT_EQUAL(1, ret);
@@ -498,5 +498,4 @@ void test_osal_poll_select(void)
     /* 边界测试 */
     test_fd_set_large_fd();
     test_fd_set_boundary();
-
 }

@@ -174,16 +174,9 @@ static void test_baudrate_common_values(void)
     OSAL_memset(&term, 0, sizeof(term));
 
     /* 测试常用波特率 */
-    uint32_t baud_rates[] = {
-        OSAL_B9600,
-        OSAL_B19200,
-        OSAL_B38400,
-        OSAL_B57600,
-        OSAL_B115200,
-        OSAL_B230400,
-        OSAL_B460800,
-        OSAL_B921600
-    };
+    uint32_t baud_rates[] = { OSAL_B9600,   OSAL_B19200,  OSAL_B38400,
+                              OSAL_B57600,  OSAL_B115200, OSAL_B230400,
+                              OSAL_B460800, OSAL_B921600 };
 
     for (size_t i = 0; i < sizeof(baud_rates) / sizeof(baud_rates[0]); i++) {
         ret = OSAL_cfsetispeed(&term, baud_rates[i]);
@@ -240,7 +233,8 @@ static void test_set_raw_mode(void)
     term.c_iflag &= ~(OSAL_IGNBRK | OSAL_BRKINT | OSAL_PARMRK | OSAL_ISTRIP |
                       OSAL_INLCR | OSAL_IGNCR | OSAL_ICRNL | OSAL_IXON);
     term.c_oflag &= ~OSAL_OPOST;
-    term.c_lflag &= ~(OSAL_ECHO | OSAL_ECHONL | OSAL_ICANON | OSAL_ISIG | OSAL_IEXTEN);
+    term.c_lflag &=
+        ~(OSAL_ECHO | OSAL_ECHONL | OSAL_ICANON | OSAL_ISIG | OSAL_IEXTEN);
     term.c_cflag &= ~(OSAL_CSIZE | OSAL_PARENB);
     term.c_cflag |= OSAL_CS8;
 
@@ -274,10 +268,10 @@ static void test_set_8n1_mode(void)
     TEST_ASSERT_EQUAL(0, ret);
 
     /* 设置8N1: 8位数据位，无奇偶校验，1个停止位 */
-    term.c_cflag &= ~OSAL_PARENB;        /* 无奇偶校验 */
-    term.c_cflag &= ~OSAL_CSTOPB;        /* 1个停止位 */
+    term.c_cflag &= ~OSAL_PARENB; /* 无奇偶校验 */
+    term.c_cflag &= ~OSAL_CSTOPB; /* 1个停止位 */
     term.c_cflag &= ~OSAL_CSIZE;
-    term.c_cflag |= OSAL_CS8;            /* 8位数据位 */
+    term.c_cflag |= OSAL_CS8; /* 8位数据位 */
 
     ret = OSAL_tcsetattr(slave_fd, OSAL_TCSANOW, &term);
     TEST_ASSERT_EQUAL(0, ret);
@@ -435,10 +429,10 @@ static void test_configure_serial_115200_8n1(void)
     OSAL_cfsetispeed(&term, OSAL_B115200);
     OSAL_cfsetospeed(&term, OSAL_B115200);
 
-    term.c_cflag &= ~OSAL_PARENB;        /* 无校验 */
-    term.c_cflag &= ~OSAL_CSTOPB;        /* 1个停止位 */
+    term.c_cflag &= ~OSAL_PARENB; /* 无校验 */
+    term.c_cflag &= ~OSAL_CSTOPB; /* 1个停止位 */
     term.c_cflag &= ~OSAL_CSIZE;
-    term.c_cflag |= OSAL_CS8;            /* 8位数据位 */
+    term.c_cflag |= OSAL_CS8; /* 8位数据位 */
     term.c_cflag |= OSAL_CREAD | OSAL_CLOCAL;
 
     term.c_lflag &= ~(OSAL_ICANON | OSAL_ECHO | OSAL_ECHOE | OSAL_ISIG);
@@ -478,11 +472,11 @@ static void test_configure_serial_9600_7e1(void)
     OSAL_cfsetispeed(&term, OSAL_B9600);
     OSAL_cfsetospeed(&term, OSAL_B9600);
 
-    term.c_cflag |= OSAL_PARENB;         /* 启用校验 */
-    term.c_cflag &= ~OSAL_PARODD;        /* 偶校验 */
-    term.c_cflag &= ~OSAL_CSTOPB;        /* 1个停止位 */
+    term.c_cflag |= OSAL_PARENB;  /* 启用校验 */
+    term.c_cflag &= ~OSAL_PARODD; /* 偶校验 */
+    term.c_cflag &= ~OSAL_CSTOPB; /* 1个停止位 */
     term.c_cflag &= ~OSAL_CSIZE;
-    term.c_cflag |= OSAL_CS7;            /* 7位数据位 */
+    term.c_cflag |= OSAL_CS7; /* 7位数据位 */
 
     ret = OSAL_tcsetattr(slave_fd, OSAL_TCSANOW, &term);
     TEST_ASSERT_EQUAL(0, ret);
@@ -534,5 +528,4 @@ void test_osal_termios(void)
     /* 串口配置场景测试 */
     test_configure_serial_115200_8n1();
     test_configure_serial_9600_7e1();
-
 }

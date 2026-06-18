@@ -182,7 +182,7 @@ static void test_osal_time_monotonic(void)
     int32_t i;
 
     for (i = 0; i < 10; i++) {
-        OSAL_usleep(1000);  /* 1毫秒 */
+        OSAL_usleep(1000); /* 1毫秒 */
         OSAL_get_local_time(&curr_time);
 
         /* 验证时间递增 */
@@ -288,131 +288,96 @@ static void test_osal_time_get_performance(void)
  *===========================================================================*/
 
 // OSAL时间操作测试
-    /* 延时函数 */
-    /* 时间获取 */
-    /* 边界条件 */
-    /* 性能测试 */
+/* 延时函数 */
+/* 时间获取 */
+/* 边界条件 */
+/* 性能测试 */
 
 /* 测试用例数组 - 使用函数指针数组 */
 static const test_case_t test_cases[] = {
-	{
-		.name = "test_osal_msleep_success",
-		.func = test_osal_msleep_success,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_usleep_success",
-		.func = test_osal_usleep_success,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_sleep_success",
-		.func = test_osal_sleep_success,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_nanosleep_success",
-		.func = test_osal_nanosleep_success,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_task_delay_success",
-		.func = test_osal_task_delay_success,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_get_local_time_success",
-		.func = test_osal_get_local_time_success,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_get_local_time_null_pointer",
-		.func = test_osal_get_local_time_null_pointer,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_get_tick_count",
-		.func = test_osal_get_tick_count,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_time_monotonic",
-		.func = test_osal_time_monotonic,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_msleep_zero",
-		.func = test_osal_msleep_zero,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_usleep_zero",
-		.func = test_osal_usleep_zero,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_sleep_zero",
-		.func = test_osal_sleep_zero,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_task_delay_zero",
-		.func = test_osal_task_delay_zero,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_short_delay_precision",
-		.func = test_osal_short_delay_precision,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_long_delay_precision",
-		.func = test_osal_long_delay_precision,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_time_get_performance",
-		.func = test_osal_time_get_performance,
-		.setup = NULL,
-		.teardown = NULL
-	},
+    { .name = "test_osal_msleep_success",
+      .func = test_osal_msleep_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_usleep_success",
+      .func = test_osal_usleep_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_sleep_success",
+      .func = test_osal_sleep_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_nanosleep_success",
+      .func = test_osal_nanosleep_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_task_delay_success",
+      .func = test_osal_task_delay_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_get_local_time_success",
+      .func = test_osal_get_local_time_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_get_local_time_null_pointer",
+      .func = test_osal_get_local_time_null_pointer,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_get_tick_count",
+      .func = test_osal_get_tick_count,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_time_monotonic",
+      .func = test_osal_time_monotonic,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_msleep_zero",
+      .func = test_osal_msleep_zero,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_usleep_zero",
+      .func = test_osal_usleep_zero,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_sleep_zero",
+      .func = test_osal_sleep_zero,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_task_delay_zero",
+      .func = test_osal_task_delay_zero,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_short_delay_precision",
+      .func = test_osal_short_delay_precision,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_long_delay_precision",
+      .func = test_osal_long_delay_precision,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_time_get_performance",
+      .func = test_osal_time_get_performance,
+      .setup = NULL,
+      .teardown = NULL },
 };
 
 /* 测试套件定义 */
 static const test_suite_t test_suite = {
-	.suite_name = "osal_time",
-	.module_name = "osal_time",
-	.layer_name = "OSAL",
-	.cases = test_cases,
-	.case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
-	.suite_setup = NULL,
-	.suite_teardown = NULL,
-	.metadata = {
-		.category = TEST_CATEGORY_UNIT,
-		.tags = TEST_TAG_FAST,
-		.timeout_ms = 100,
-		.description = "OSAL osal_time tests"
-	}
+    .suite_name = "osal_time",
+    .module_name = "osal_time",
+    .layer_name = "OSAL",
+    .cases = test_cases,
+    .case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
+    .suite_setup = NULL,
+    .suite_teardown = NULL,
+    .metadata = { .category = TEST_CATEGORY_UNIT,
+                  .tags = TEST_TAG_FAST,
+                  .timeout_ms = 100,
+                  .description = "OSAL osal_time tests" }
 };
 
 /* 测试套件注册函数 */
-__attribute__((constructor))
-static void register_osal_time_tests(void)
+__attribute__((constructor)) static void register_osal_time_tests(void)
 {
-	libutest_register_suite(&test_suite);
+    libutest_register_suite(&test_suite);
 }

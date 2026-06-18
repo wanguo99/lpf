@@ -92,7 +92,12 @@ static void test_shm_mmap_munmap_success(void)
     TEST_ASSERT_EQUAL(0, ret);
 
     /* 映射到内存 */
-    void *addr = OSAL_mmap(NULL, TEST_SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    void *addr = OSAL_mmap(NULL,
+                           TEST_SHM_SIZE,
+                           PROT_READ | PROT_WRITE,
+                           MAP_SHARED,
+                           fd,
+                           0);
     TEST_ASSERT_NOT_EQUAL(MAP_FAILED, addr);
 
     /* 解除映射 */
@@ -117,7 +122,12 @@ static void test_shm_write_read_data(void)
     TEST_ASSERT_EQUAL(0, ret);
 
     /* 映射到内存 */
-    void *addr = OSAL_mmap(NULL, TEST_SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    void *addr = OSAL_mmap(NULL,
+                           TEST_SHM_SIZE,
+                           PROT_READ | PROT_WRITE,
+                           MAP_SHARED,
+                           fd,
+                           0);
     TEST_ASSERT_NOT_EQUAL(MAP_FAILED, addr);
 
     /* 写入数据 */
@@ -145,11 +155,21 @@ static void test_shm_multiple_mappings(void)
     TEST_ASSERT_EQUAL(0, ret);
 
     /* 第一次映射 */
-    int32_t *addr1 = OSAL_mmap(NULL, TEST_SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    int32_t *addr1 = OSAL_mmap(NULL,
+                               TEST_SHM_SIZE,
+                               PROT_READ | PROT_WRITE,
+                               MAP_SHARED,
+                               fd,
+                               0);
     TEST_ASSERT_NOT_EQUAL(MAP_FAILED, addr1);
 
     /* 第二次映射 */
-    int32_t *addr2 = OSAL_mmap(NULL, TEST_SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    int32_t *addr2 = OSAL_mmap(NULL,
+                               TEST_SHM_SIZE,
+                               PROT_READ | PROT_WRITE,
+                               MAP_SHARED,
+                               fd,
+                               0);
     TEST_ASSERT_NOT_EQUAL(MAP_FAILED, addr2);
 
     /* 通过第一个映射写入 */
@@ -181,13 +201,19 @@ static void test_shm_readonly_mapping(void)
     TEST_ASSERT_EQUAL(0, ret);
 
     /* 先用读写映射写入数据 */
-    int32_t *write_addr = OSAL_mmap(NULL, TEST_SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    int32_t *write_addr = OSAL_mmap(NULL,
+                                    TEST_SHM_SIZE,
+                                    PROT_READ | PROT_WRITE,
+                                    MAP_SHARED,
+                                    fd,
+                                    0);
     TEST_ASSERT_NOT_EQUAL(MAP_FAILED, write_addr);
     *write_addr = test_value;
     OSAL_munmap(write_addr, TEST_SHM_SIZE);
 
     /* 用只读映射读取数据 */
-    int32_t *read_addr = OSAL_mmap(NULL, TEST_SHM_SIZE, PROT_READ, MAP_SHARED, fd, 0);
+    int32_t *read_addr =
+        OSAL_mmap(NULL, TEST_SHM_SIZE, PROT_READ, MAP_SHARED, fd, 0);
     TEST_ASSERT_NOT_EQUAL(MAP_FAILED, read_addr);
     TEST_ASSERT_EQUAL(test_value, *read_addr);
 
@@ -202,48 +228,34 @@ static void test_shm_readonly_mapping(void)
  *===========================================================================*/
 
 static const test_case_t test_cases[] = {
-    {
-        .name = "test_shm_open_close_success",
-        .func = test_shm_open_close_success,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_shm_unlink_success",
-        .func = test_shm_unlink_success,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_shm_open_existing",
-        .func = test_shm_open_existing,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_shm_mmap_munmap_success",
-        .func = test_shm_mmap_munmap_success,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_shm_write_read_data",
-        .func = test_shm_write_read_data,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_shm_multiple_mappings",
-        .func = test_shm_multiple_mappings,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_shm_readonly_mapping",
-        .func = test_shm_readonly_mapping,
-        .setup = NULL,
-        .teardown = NULL
-    },
+    { .name = "test_shm_open_close_success",
+      .func = test_shm_open_close_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_shm_unlink_success",
+      .func = test_shm_unlink_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_shm_open_existing",
+      .func = test_shm_open_existing,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_shm_mmap_munmap_success",
+      .func = test_shm_mmap_munmap_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_shm_write_read_data",
+      .func = test_shm_write_read_data,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_shm_multiple_mappings",
+      .func = test_shm_multiple_mappings,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_shm_readonly_mapping",
+      .func = test_shm_readonly_mapping,
+      .setup = NULL,
+      .teardown = NULL },
 };
 
 static const test_suite_t test_suite = {
@@ -254,16 +266,13 @@ static const test_suite_t test_suite = {
     .case_count = sizeof(test_cases) / sizeof(test_case_t),
     .suite_setup = NULL,
     .suite_teardown = NULL,
-    .metadata = {
-        .category = TEST_CATEGORY_UNIT,
-        .tags = TEST_TAG_FAST,
-        .timeout_ms = 500,
-        .description = "OSAL shared memory tests"
-    }
+    .metadata = { .category = TEST_CATEGORY_UNIT,
+                  .tags = TEST_TAG_FAST,
+                  .timeout_ms = 500,
+                  .description = "OSAL shared memory tests" }
 };
 
-__attribute__((constructor))
-static void register_osal_shm_tests(void)
+__attribute__((constructor)) static void register_osal_shm_tests(void)
 {
     libutest_register_suite(&test_suite);
 }

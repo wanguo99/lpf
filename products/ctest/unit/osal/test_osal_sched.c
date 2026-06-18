@@ -23,7 +23,8 @@ static void test_sched_set_get_policy(void)
     TEST_ASSERT_EQUAL(0, ret);
 
     /* 策略应该是有效值 */
-    TEST_ASSERT_TRUE(policy == SCHED_OTHER || policy == SCHED_FIFO || policy == SCHED_RR);
+    TEST_ASSERT_TRUE(policy == SCHED_OTHER || policy == SCHED_FIFO ||
+                     policy == SCHED_RR);
 }
 
 static void test_sched_priority_range(void)
@@ -200,60 +201,42 @@ static void test_sched_yield(void)
  *===========================================================================*/
 
 static const test_case_t test_cases[] = {
-    {
-        .name = "test_sched_set_get_policy",
-        .func = test_sched_set_get_policy,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_sched_priority_range",
-        .func = test_sched_priority_range,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_sched_set_priority_other",
-        .func = test_sched_set_priority_other,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_sched_cpu_affinity",
-        .func = test_sched_cpu_affinity,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_sched_process_cpu_affinity",
-        .func = test_sched_process_cpu_affinity,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_sched_process_affinity_with_pid",
-        .func = test_sched_process_affinity_with_pid,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_sched_attr_set_policy",
-        .func = test_sched_attr_set_policy,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_sched_attr_set_param",
-        .func = test_sched_attr_set_param,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_sched_yield",
-        .func = test_sched_yield,
-        .setup = NULL,
-        .teardown = NULL
-    },
+    { .name = "test_sched_set_get_policy",
+      .func = test_sched_set_get_policy,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_sched_priority_range",
+      .func = test_sched_priority_range,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_sched_set_priority_other",
+      .func = test_sched_set_priority_other,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_sched_cpu_affinity",
+      .func = test_sched_cpu_affinity,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_sched_process_cpu_affinity",
+      .func = test_sched_process_cpu_affinity,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_sched_process_affinity_with_pid",
+      .func = test_sched_process_affinity_with_pid,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_sched_attr_set_policy",
+      .func = test_sched_attr_set_policy,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_sched_attr_set_param",
+      .func = test_sched_attr_set_param,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_sched_yield",
+      .func = test_sched_yield,
+      .setup = NULL,
+      .teardown = NULL },
 };
 
 static const test_suite_t test_suite = {
@@ -264,16 +247,13 @@ static const test_suite_t test_suite = {
     .case_count = sizeof(test_cases) / sizeof(test_case_t),
     .suite_setup = NULL,
     .suite_teardown = NULL,
-    .metadata = {
-        .category = TEST_CATEGORY_UNIT,
-        .tags = TEST_TAG_FAST,
-        .timeout_ms = 500,
-        .description = "OSAL scheduler tests"
-    }
+    .metadata = { .category = TEST_CATEGORY_UNIT,
+                  .tags = TEST_TAG_FAST,
+                  .timeout_ms = 500,
+                  .description = "OSAL scheduler tests" }
 };
 
-__attribute__((constructor))
-static void register_osal_sched_tests(void)
+__attribute__((constructor)) static void register_osal_sched_tests(void)
 {
     libutest_register_suite(&test_suite);
 }

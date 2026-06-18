@@ -198,48 +198,34 @@ static void test_sigaction_basic(void)
  *===========================================================================*/
 
 static const test_case_t test_cases[] = {
-    {
-        .name = "test_signal_raise_and_handle",
-        .func = test_signal_raise_and_handle,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_signal_kill_self",
-        .func = test_signal_kill_self,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_signal_ignore",
-        .func = test_signal_ignore,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_sigset_empty_and_add",
-        .func = test_sigset_empty_and_add,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_sigset_fill_and_delete",
-        .func = test_sigset_fill_and_delete,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_sigprocmask_block_unblock",
-        .func = test_sigprocmask_block_unblock,
-        .setup = NULL,
-        .teardown = NULL
-    },
-    {
-        .name = "test_sigaction_basic",
-        .func = test_sigaction_basic,
-        .setup = NULL,
-        .teardown = NULL
-    },
+    { .name = "test_signal_raise_and_handle",
+      .func = test_signal_raise_and_handle,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_signal_kill_self",
+      .func = test_signal_kill_self,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_signal_ignore",
+      .func = test_signal_ignore,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_sigset_empty_and_add",
+      .func = test_sigset_empty_and_add,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_sigset_fill_and_delete",
+      .func = test_sigset_fill_and_delete,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_sigprocmask_block_unblock",
+      .func = test_sigprocmask_block_unblock,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_sigaction_basic",
+      .func = test_sigaction_basic,
+      .setup = NULL,
+      .teardown = NULL },
 };
 
 static const test_suite_t test_suite = {
@@ -250,16 +236,13 @@ static const test_suite_t test_suite = {
     .case_count = sizeof(test_cases) / sizeof(test_case_t),
     .suite_setup = NULL,
     .suite_teardown = NULL,
-    .metadata = {
-        .category = TEST_CATEGORY_UNIT,
-        .tags = TEST_TAG_FAST,
-        .timeout_ms = 500,
-        .description = "OSAL signal handling tests"
-    }
+    .metadata = { .category = TEST_CATEGORY_UNIT,
+                  .tags = TEST_TAG_FAST,
+                  .timeout_ms = 500,
+                  .description = "OSAL signal handling tests" }
 };
 
-__attribute__((constructor))
-static void register_osal_signal_tests(void)
+__attribute__((constructor)) static void register_osal_signal_tests(void)
 {
     libutest_register_suite(&test_suite);
 }

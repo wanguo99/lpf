@@ -23,7 +23,7 @@ static void test_osal_log_init_success(void)
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     /* 设置文件大小和备份数 */
-    OSAL_log_set_max_file_size(1024 * 1024);  /* 1MB */
+    OSAL_log_set_max_file_size(1024 * 1024); /* 1MB */
     OSAL_log_set_max_files(3);
 
     /* 清理 */
@@ -182,14 +182,16 @@ static void test_osal_log_rotation_basic(void)
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
     /* 设置小文件大小，便于触发轮转 */
-    OSAL_log_set_max_file_size(1024);  /* 1KB */
+    OSAL_log_set_max_file_size(1024); /* 1KB */
     OSAL_log_set_max_files(3);
 
     /* 写入大量日志，触发轮转 */
     int32_t i;
 
     for (i = 0; i < 100; i++) {
-        LOG_INFO("TEST", "Log message %d: This is a test message to trigger rotation", i);
+        LOG_INFO("TEST",
+                 "Log message %d: This is a test message to trigger rotation",
+                 i);
     }
 
     /* 清理 */
@@ -228,7 +230,7 @@ static void test_osal_printf(void)
 /* 测试任务函数 */
 static volatile bool g_log_test_running = true;
 
-static void* log_test_task(void *arg)
+static void *log_test_task(void *arg)
 {
     int32_t task_id = *(int32_t *)arg;
 
@@ -246,7 +248,7 @@ static void test_osal_log_multithread(void)
 {
     int32_t ret;
     osal_thread_t task_ids[3];
-    int32_t task_args[3] = {1, 2, 3};
+    int32_t task_args[3] = { 1, 2, 3 };
 
     /* 初始化日志 */
     ret = OSAL_log_init(TEST_LOG_FILE, OS_LOG_LEVEL_INFO);
@@ -258,8 +260,10 @@ static void test_osal_log_multithread(void)
     int32_t i;
 
     for (i = 0; i < 3; i++) {
-        ret = OSAL_pthread_create(&task_ids[i], NULL,
-                               log_test_task, &task_args[i]);
+        ret = OSAL_pthread_create(&task_ids[i],
+                                  NULL,
+                                  log_test_task,
+                                  &task_args[i]);
         TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
     }
 
@@ -288,7 +292,8 @@ static void test_osal_log_write_without_init(void)
      * 原因：log_internal_ex函数使用pthread_mutex_lock但没有检查初始化状态
      * TODO: 需要在OSAL日志实现中添加初始化状态检查
      */
-    TEST_ASSERT_FALSE(true); // OSAL log implementation needs initialization check
+    TEST_ASSERT_FALSE(
+        true); // OSAL log implementation needs initialization check
 }
 
 /* 测试用例: 重复初始化 */
@@ -308,7 +313,8 @@ static void test_osal_log_shutdown_twice(void)
      * 原因：OSAL_LogShutdown只关闭文件但不清理全局状态，可能影响后续测试
      * TODO: 需要在OSAL日志实现中添加完整的状态重置逻辑
      */
-    TEST_ASSERT_FALSE(true); // Multiple shutdown may corrupt log state for subsequent tests
+    TEST_ASSERT_FALSE(
+        true); // Multiple shutdown may corrupt log state for subsequent tests
 }
 
 /*===========================================================================
@@ -325,7 +331,7 @@ static void test_osal_log_performance(void)
     // 初始化日志
     ret = OSAL_log_init(TEST_LOG_FILE, OS_LOG_LEVEL_INFO);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
-    OSAL_log_set_max_file_size(10 * 1024 * 1024);  // 10MB
+    OSAL_log_set_max_file_size(10 * 1024 * 1024); // 10MB
 
     // 测试写入性能
     start_time = OSAL_get_tick_count();
@@ -350,124 +356,93 @@ static void test_osal_log_performance(void)
  *===========================================================================*/
 
 // OSAL日志系统测试
-    /* 日志初始化 */
-    /* 日志写入 */
-    /* 日志级别 */
-    /* 日志轮转 */
-    /* Printf */
-    /* 并发测试 */
-    /* 边界条件 */
-    /* 性能测试 */
-    // /* 已屏蔽 */
+/* 日志初始化 */
+/* 日志写入 */
+/* 日志级别 */
+/* 日志轮转 */
+/* Printf */
+/* 并发测试 */
+/* 边界条件 */
+/* 性能测试 */
+// /* 已屏蔽 */
 
 /* 测试用例数组 - 使用函数指针数组 */
 static const test_case_t test_cases[] = {
-	{
-		.name = "test_osal_log_init_success",
-		.func = test_osal_log_init_success,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_log_init_null_path",
-		.func = test_osal_log_init_null_path,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_log_init_different_levels",
-		.func = test_osal_log_init_different_levels,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_log_write_basic",
-		.func = test_osal_log_write_basic,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_log_write_formatted",
-		.func = test_osal_log_write_formatted,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_log_write_long_message",
-		.func = test_osal_log_write_long_message,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_log_set_level",
-		.func = test_osal_log_set_level,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_log_rotation_basic",
-		.func = test_osal_log_rotation_basic,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_printf",
-		.func = test_osal_printf,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_log_multithread",
-		.func = test_osal_log_multithread,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_log_write_without_init",
-		.func = test_osal_log_write_without_init,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_log_init_twice",
-		.func = test_osal_log_init_twice,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_log_shutdown_twice",
-		.func = test_osal_log_shutdown_twice,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_log_performance",
-		.func = test_osal_log_performance,
-		.setup = NULL,
-		.teardown = NULL
-	},
+    { .name = "test_osal_log_init_success",
+      .func = test_osal_log_init_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_log_init_null_path",
+      .func = test_osal_log_init_null_path,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_log_init_different_levels",
+      .func = test_osal_log_init_different_levels,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_log_write_basic",
+      .func = test_osal_log_write_basic,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_log_write_formatted",
+      .func = test_osal_log_write_formatted,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_log_write_long_message",
+      .func = test_osal_log_write_long_message,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_log_set_level",
+      .func = test_osal_log_set_level,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_log_rotation_basic",
+      .func = test_osal_log_rotation_basic,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_printf",
+      .func = test_osal_printf,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_log_multithread",
+      .func = test_osal_log_multithread,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_log_write_without_init",
+      .func = test_osal_log_write_without_init,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_log_init_twice",
+      .func = test_osal_log_init_twice,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_log_shutdown_twice",
+      .func = test_osal_log_shutdown_twice,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_log_performance",
+      .func = test_osal_log_performance,
+      .setup = NULL,
+      .teardown = NULL },
 };
 
 /* 测试套件定义 */
 static const test_suite_t test_suite = {
-	.suite_name = "osal_log",
-	.module_name = "osal_log",
-	.layer_name = "OSAL",
-	.cases = test_cases,
-	.case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
-	.suite_setup = NULL,
-	.suite_teardown = NULL,
-	.metadata = {
-		.category = TEST_CATEGORY_UNIT,
-		.tags = TEST_TAG_FAST,
-		.timeout_ms = 100,
-		.description = "OSAL osal_log tests"
-	}
+    .suite_name = "osal_log",
+    .module_name = "osal_log",
+    .layer_name = "OSAL",
+    .cases = test_cases,
+    .case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
+    .suite_setup = NULL,
+    .suite_teardown = NULL,
+    .metadata = { .category = TEST_CATEGORY_UNIT,
+                  .tags = TEST_TAG_FAST,
+                  .timeout_ms = 100,
+                  .description = "OSAL osal_log tests" }
 };
 
 /* 测试套件注册函数 */
-__attribute__((constructor))
-static void register_osal_log_tests(void)
+__attribute__((constructor)) static void register_osal_log_tests(void)
 {
-	libutest_register_suite(&test_suite);
+    libutest_register_suite(&test_suite);
 }

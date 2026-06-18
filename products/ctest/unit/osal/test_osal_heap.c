@@ -26,7 +26,7 @@ static void test_osal_malloc_success(void)
     OSAL_free(ptr);
 
     /* 分配大块内存 */
-    ptr = OSAL_malloc(1024 * 1024);  /* 1MB */
+    ptr = OSAL_malloc(1024 * 1024); /* 1MB */
     TEST_ASSERT_NOT_NULL(ptr);
     OSAL_free(ptr);
 }
@@ -256,7 +256,7 @@ static void test_osal_malloc_free_interleaved(void)
 static void test_osal_malloc_large(void)
 {
     void *ptr;
-    osal_size_t large_size = 10 * 1024 * 1024;  /* 10MB */
+    osal_size_t large_size = 10 * 1024 * 1024; /* 10MB */
 
     /* 尝试分配大块内存 */
     ptr = OSAL_malloc(large_size);
@@ -364,151 +364,110 @@ static void test_osal_malloc_performance(void)
  *===========================================================================*/
 
 // OSAL内存管理测试
-    /* 内存分配 */
-    /* 堆信息 */
-    /* 内存对齐 */
-    /* 内存泄漏检测 */
-    /* 边界条件 */
-    /* 性能测试 */
+/* 内存分配 */
+/* 堆信息 */
+/* 内存对齐 */
+/* 内存泄漏检测 */
+/* 边界条件 */
+/* 性能测试 */
 
 /* 测试用例数组 - 使用函数指针数组 */
 static const test_case_t test_cases[] = {
-	{
-		.name = "test_osal_malloc_success",
-		.func = test_osal_malloc_success,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_malloc_zero_size",
-		.func = test_osal_malloc_zero_size,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_free_success",
-		.func = test_osal_free_success,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_free_null_pointer",
-		.func = test_osal_free_null_pointer,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_heap_get_info_success",
-		.func = test_osal_heap_get_info_success,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_heap_get_info_null_pointer",
-		.func = test_osal_heap_get_info_null_pointer,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_heap_get_stats_success",
-		.func = test_osal_heap_get_stats_success,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_heap_get_stats_null_pointer",
-		.func = test_osal_heap_get_stats_null_pointer,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_heap_set_threshold_success",
-		.func = test_osal_heap_set_threshold_success,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_heap_set_threshold_invalid",
-		.func = test_osal_heap_set_threshold_invalid,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_heap_check_threshold_success",
-		.func = test_osal_heap_check_threshold_success,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_heap_check_threshold_null_pointer",
-		.func = test_osal_heap_check_threshold_null_pointer,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_malloc_alignment",
-		.func = test_osal_malloc_alignment,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_malloc_free_multiple",
-		.func = test_osal_malloc_free_multiple,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_malloc_free_interleaved",
-		.func = test_osal_malloc_free_interleaved,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_malloc_large",
-		.func = test_osal_malloc_large,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_malloc_write_verify",
-		.func = test_osal_malloc_write_verify,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_heap_stats_verify",
-		.func = test_osal_heap_stats_verify,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_malloc_performance",
-		.func = test_osal_malloc_performance,
-		.setup = NULL,
-		.teardown = NULL
-	},
+    { .name = "test_osal_malloc_success",
+      .func = test_osal_malloc_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_malloc_zero_size",
+      .func = test_osal_malloc_zero_size,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_free_success",
+      .func = test_osal_free_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_free_null_pointer",
+      .func = test_osal_free_null_pointer,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_heap_get_info_success",
+      .func = test_osal_heap_get_info_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_heap_get_info_null_pointer",
+      .func = test_osal_heap_get_info_null_pointer,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_heap_get_stats_success",
+      .func = test_osal_heap_get_stats_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_heap_get_stats_null_pointer",
+      .func = test_osal_heap_get_stats_null_pointer,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_heap_set_threshold_success",
+      .func = test_osal_heap_set_threshold_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_heap_set_threshold_invalid",
+      .func = test_osal_heap_set_threshold_invalid,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_heap_check_threshold_success",
+      .func = test_osal_heap_check_threshold_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_heap_check_threshold_null_pointer",
+      .func = test_osal_heap_check_threshold_null_pointer,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_malloc_alignment",
+      .func = test_osal_malloc_alignment,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_malloc_free_multiple",
+      .func = test_osal_malloc_free_multiple,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_malloc_free_interleaved",
+      .func = test_osal_malloc_free_interleaved,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_malloc_large",
+      .func = test_osal_malloc_large,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_malloc_write_verify",
+      .func = test_osal_malloc_write_verify,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_heap_stats_verify",
+      .func = test_osal_heap_stats_verify,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_malloc_performance",
+      .func = test_osal_malloc_performance,
+      .setup = NULL,
+      .teardown = NULL },
 };
 
 /* 测试套件定义 */
 static const test_suite_t test_suite = {
-	.suite_name = "osal_heap",
-	.module_name = "osal_heap",
-	.layer_name = "OSAL",
-	.cases = test_cases,
-	.case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
-	.suite_setup = NULL,
-	.suite_teardown = NULL,
-	.metadata = {
-		.category = TEST_CATEGORY_UNIT,
-		.tags = TEST_TAG_FAST,
-		.timeout_ms = 100,
-		.description = "OSAL osal_heap tests"
-	}
+    .suite_name = "osal_heap",
+    .module_name = "osal_heap",
+    .layer_name = "OSAL",
+    .cases = test_cases,
+    .case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
+    .suite_setup = NULL,
+    .suite_teardown = NULL,
+    .metadata = { .category = TEST_CATEGORY_UNIT,
+                  .tags = TEST_TAG_FAST,
+                  .timeout_ms = 100,
+                  .description = "OSAL osal_heap tests" }
 };
 
 /* 测试套件注册函数 */
-__attribute__((constructor))
-static void register_osal_heap_tests(void)
+__attribute__((constructor)) static void register_osal_heap_tests(void)
 {
-	libutest_register_suite(&test_suite);
+    libutest_register_suite(&test_suite);
 }

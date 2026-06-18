@@ -308,8 +308,8 @@ static void test_flock_timed_lock_timeout(void)
     uint64_t elapsed = OSAL_get_tick_count() - start_time;
 
     TEST_ASSERT_EQUAL(OSAL_ERR_TIMEOUT, ret);
-    TEST_ASSERT(elapsed >= 90);  /* 至少接近100ms */
-    TEST_ASSERT(elapsed < 200);  /* 不应该等太久 */
+    TEST_ASSERT(elapsed >= 90); /* 至少接近100ms */
+    TEST_ASSERT(elapsed < 200); /* 不应该等太久 */
 
     ret = OSAL_flock_unlock(flock1);
     TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
@@ -513,5 +513,4 @@ void test_osal_flock(void)
     /* 实际场景测试 */
     test_flock_upgrade_lock();
     test_flock_different_files();
-
 }

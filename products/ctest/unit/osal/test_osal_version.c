@@ -26,7 +26,8 @@ static void test_osal_version_format(void)
     const char *version = OSAL_get_version_string();
 
     /* Version should contain version number pattern */
-    bool has_v = (OSAL_strstr(version, "v") != NULL || OSAL_strstr(version, "V") != NULL);
+    bool has_v = (OSAL_strstr(version, "v") != NULL ||
+                  OSAL_strstr(version, "V") != NULL);
     bool has_dot = false;
 
     /* Check for dot manually */
@@ -55,46 +56,37 @@ static void test_osal_version_consistency(void)
 
 /* 测试用例数组 - 使用函数指针数组 */
 static const test_case_t test_cases[] = {
-	{
-		.name = "test_osal_get_version_string",
-		.func = test_osal_get_version_string,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_version_format",
-		.func = test_osal_version_format,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_version_consistency",
-		.func = test_osal_version_consistency,
-		.setup = NULL,
-		.teardown = NULL
-	},
+    { .name = "test_osal_get_version_string",
+      .func = test_osal_get_version_string,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_version_format",
+      .func = test_osal_version_format,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_version_consistency",
+      .func = test_osal_version_consistency,
+      .setup = NULL,
+      .teardown = NULL },
 };
 
 /* 测试套件定义 */
 static const test_suite_t test_suite = {
-	.suite_name = "osal_version",
-	.module_name = "osal_version",
-	.layer_name = "OSAL",
-	.cases = test_cases,
-	.case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
-	.suite_setup = NULL,
-	.suite_teardown = NULL,
-	.metadata = {
-		.category = TEST_CATEGORY_UNIT,
-		.tags = TEST_TAG_FAST,
-		.timeout_ms = 100,
-		.description = "OSAL osal_version tests"
-	}
+    .suite_name = "osal_version",
+    .module_name = "osal_version",
+    .layer_name = "OSAL",
+    .cases = test_cases,
+    .case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
+    .suite_setup = NULL,
+    .suite_teardown = NULL,
+    .metadata = { .category = TEST_CATEGORY_UNIT,
+                  .tags = TEST_TAG_FAST,
+                  .timeout_ms = 100,
+                  .description = "OSAL osal_version tests" }
 };
 
 /* 测试套件注册函数 */
-__attribute__((constructor))
-static void register_osal_version_tests(void)
+__attribute__((constructor)) static void register_osal_version_tests(void)
 {
-	libutest_register_suite(&test_suite);
+    libutest_register_suite(&test_suite);
 }

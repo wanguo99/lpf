@@ -47,7 +47,7 @@ static void test_osal_get_local_time_null_pointer(void)
 /* 测试用例: SetLocalTime - 未实现 */
 static void test_osal_set_local_time_not_implemented(void)
 {
-    OS_time_t time = {1234567890, 0};
+    OS_time_t time = { 1234567890, 0 };
     /* Function has been removed from API */
     (void)time;
     TEST_SKIP("OSAL_set_local_time has been removed from API");
@@ -126,70 +126,55 @@ static void test_osal_time_precision(void)
  *===========================================================================*/
 
 /* OSAL_get_local_time 测试 */
-    /* OSAL_set_local_time 测试 */
-    /* OSAL_get_tick_count 测试 */
-    /* 综合测试 */
+/* OSAL_set_local_time 测试 */
+/* OSAL_get_tick_count 测试 */
+/* 综合测试 */
 
 /* 测试用例数组 - 使用函数指针数组 */
 static const test_case_t test_cases[] = {
-	{
-		.name = "test_osal_get_local_time_success",
-		.func = test_osal_get_local_time_success,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_get_local_time_null_pointer",
-		.func = test_osal_get_local_time_null_pointer,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_set_local_time_not_implemented",
-		.func = test_osal_set_local_time_not_implemented,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_get_tick_count_monotonic",
-		.func = test_osal_get_tick_count_monotonic,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_get_tick_count_multiple_calls",
-		.func = test_osal_get_tick_count_multiple_calls,
-		.setup = NULL,
-		.teardown = NULL
-	},
-	{
-		.name = "test_osal_time_precision",
-		.func = test_osal_time_precision,
-		.setup = NULL,
-		.teardown = NULL
-	},
+    { .name = "test_osal_get_local_time_success",
+      .func = test_osal_get_local_time_success,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_get_local_time_null_pointer",
+      .func = test_osal_get_local_time_null_pointer,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_set_local_time_not_implemented",
+      .func = test_osal_set_local_time_not_implemented,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_get_tick_count_monotonic",
+      .func = test_osal_get_tick_count_monotonic,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_get_tick_count_multiple_calls",
+      .func = test_osal_get_tick_count_multiple_calls,
+      .setup = NULL,
+      .teardown = NULL },
+    { .name = "test_osal_time_precision",
+      .func = test_osal_time_precision,
+      .setup = NULL,
+      .teardown = NULL },
 };
 
 /* 测试套件定义 */
 static const test_suite_t test_suite = {
-	.suite_name = "osal_clock",
-	.module_name = "osal_clock",
-	.layer_name = "OSAL",
-	.cases = test_cases,
-	.case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
-	.suite_setup = NULL,
-	.suite_teardown = NULL,
-	.metadata = {
-		.category = TEST_CATEGORY_UNIT,
-		.tags = TEST_TAG_FAST,
-		.timeout_ms = 100,
-		.description = "OSAL osal_clock tests"
-	}
+    .suite_name = "osal_clock",
+    .module_name = "osal_clock",
+    .layer_name = "OSAL",
+    .cases = test_cases,
+    .case_count = OSAL_sizeof(test_cases) / OSAL_sizeof(test_case_t),
+    .suite_setup = NULL,
+    .suite_teardown = NULL,
+    .metadata = { .category = TEST_CATEGORY_UNIT,
+                  .tags = TEST_TAG_FAST,
+                  .timeout_ms = 100,
+                  .description = "OSAL osal_clock tests" }
 };
 
 /* 测试套件注册函数 */
-__attribute__((constructor))
-static void register_osal_clock_tests(void)
+__attribute__((constructor)) static void register_osal_clock_tests(void)
 {
-	libutest_register_suite(&test_suite);
+    libutest_register_suite(&test_suite);
 }
