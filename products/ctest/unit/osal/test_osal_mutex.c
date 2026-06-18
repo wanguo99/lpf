@@ -147,7 +147,7 @@ static void _test_mutex_recursive(void)
 
 	/* 设置递归锁属性 */
 	osal_pthread_mutexattr_init(&attr);
-	osal_pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+	osal_pthread_mutexattr_settype(&attr, OSAL_PTHREAD_MUTEX_RECURSIVE);
 	osal_pthread_mutex_init(&mutex, &attr);
 
 	/* 多次加锁（递归锁允许） */
@@ -252,7 +252,7 @@ static const test_suite_t test_suite = {
 };
 
 /* 测试套件注册函数 */
-__attribute__((constructor)) static void register_osal_mutex_tests(void)
+void register_osal_mutex_tests(void)
 {
 	libutest_register_suite(&test_suite);
 }

@@ -16,17 +16,20 @@
 #define OSAL_STDIO_H
 
 /*
+ * 标准流访问宏
+ */
+#define OSAL_stdin osal_stdio_stdin()
+#define OSAL_stdout osal_stdio_stdout()
+#define OSAL_stderr osal_stdio_stderr()
+
+/*
  * 标准输入输出
  */
 int32_t osal_getchar(void);
+void *osal_stdio_stdin(void);
+void *osal_stdio_stdout(void);
+void *osal_stdio_stderr(void);
 char *osal_fgets(char *str, osal_size_t size, void *stream);
 int32_t osal_fflush(void *stream);
-
-/*
- * 标准流定义
- */
-extern void *OSAL_stdin;
-extern void *OSAL_stdout;
-extern void *OSAL_stderr;
 
 #endif /* OSAL_STDIO_H */

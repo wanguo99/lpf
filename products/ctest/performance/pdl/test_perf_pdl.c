@@ -43,7 +43,7 @@ static const test_suite_t test_suite = {
 };
 
 /* 测试套件注册函数 */
-__attribute__((constructor)) static void register_perf_pdl_tests(void)
+void register_perf_pdl_tests(void)
 {
 	libutest_register_suite(&test_suite);
 }

@@ -401,8 +401,7 @@ static const test_suite_t test_suite = {
 				  .description = "HAL concurrent multi-driver stress tests" }
 };
 
-__attribute__((constructor)) static void
-register_stress_hal_concurrent_tests(void)
+void register_stress_hal_concurrent_tests(void)
 {
 	libutest_register_suite(&test_suite);
 }

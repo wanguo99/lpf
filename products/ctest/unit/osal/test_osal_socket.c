@@ -513,3 +513,29 @@ void test_osal_socket(void)
 	_test_if_nametoindex();
 	_test_if_indextoname();
 }
+
+static const test_case_t test_cases[] = {
+	{ .name = "test_osal_socket",
+	  .func = test_osal_socket,
+	  .setup = NULL,
+	  .teardown = NULL },
+};
+
+static const test_suite_t test_suite = {
+	.suite_name = "osal_socket",
+	.module_name = "osal_socket",
+	.layer_name = "OSAL",
+	.cases = test_cases,
+	.case_count = sizeof(test_cases) / sizeof(test_cases[0]),
+	.suite_setup = NULL,
+	.suite_teardown = NULL,
+	.metadata = { .category = TEST_CATEGORY_UNIT,
+				  .tags = TEST_TAG_NETWORK,
+				  .timeout_ms = 5000,
+				  .description = "OSAL socket tests" }
+};
+
+void register_osal_socket_tests(void)
+{
+	libutest_register_suite(&test_suite);
+}

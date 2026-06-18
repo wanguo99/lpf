@@ -514,3 +514,29 @@ void test_osal_flock(void)
 	_test_flock_upgrade_lock();
 	_test_flock_different_files();
 }
+
+static const test_case_t test_cases[] = {
+	{ .name = "test_osal_flock",
+	  .func = test_osal_flock,
+	  .setup = NULL,
+	  .teardown = NULL },
+};
+
+static const test_suite_t test_suite = {
+	.suite_name = "osal_flock",
+	.module_name = "osal_flock",
+	.layer_name = "OSAL",
+	.cases = test_cases,
+	.case_count = sizeof(test_cases) / sizeof(test_cases[0]),
+	.suite_setup = NULL,
+	.suite_teardown = NULL,
+	.metadata = { .category = TEST_CATEGORY_UNIT,
+				  .tags = TEST_TAG_FILESYSTEM,
+				  .timeout_ms = 3000,
+				  .description = "OSAL file lock tests" }
+};
+
+void register_osal_flock_tests(void)
+{
+	libutest_register_suite(&test_suite);
+}

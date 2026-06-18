@@ -40,7 +40,7 @@ static const test_suite_t test_suite = {
 				  .description = "ACONFIG API unit tests" }
 };
 
-__attribute__((constructor)) static void register_aconfig_api_tests(void)
+void register_aconfig_api_tests(void)
 {
 	libutest_register_suite(&test_suite);
 }

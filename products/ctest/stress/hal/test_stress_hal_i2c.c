@@ -403,7 +403,7 @@ static const test_suite_t test_suite = {
 				  .description = "HAL I2C stress tests" }
 };
 
-__attribute__((constructor)) static void register_stress_hal_i2c_tests(void)
+void register_stress_hal_i2c_tests(void)
 {
 	libutest_register_suite(&test_suite);
 }

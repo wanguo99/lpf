@@ -322,3 +322,29 @@ void test_osal_rwlock(void)
 	_test_rwlock_multiple_readers();
 	_test_rwlock_readers_and_writers();
 }
+
+static const test_case_t test_cases[] = {
+	{ .name = "test_osal_rwlock",
+	  .func = test_osal_rwlock,
+	  .setup = NULL,
+	  .teardown = NULL },
+};
+
+static const test_suite_t test_suite = {
+	.suite_name = "osal_rwlock",
+	.module_name = "osal_rwlock",
+	.layer_name = "OSAL",
+	.cases = test_cases,
+	.case_count = sizeof(test_cases) / sizeof(test_cases[0]),
+	.suite_setup = NULL,
+	.suite_teardown = NULL,
+	.metadata = { .category = TEST_CATEGORY_UNIT,
+				  .tags = TEST_TAG_FAST,
+				  .timeout_ms = 3000,
+				  .description = "OSAL rwlock tests" }
+};
+
+void register_osal_rwlock_tests(void)
+{
+	libutest_register_suite(&test_suite);
+}

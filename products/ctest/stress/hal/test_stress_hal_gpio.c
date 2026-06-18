@@ -496,7 +496,7 @@ static const test_suite_t test_suite = {
 				  .description = "HAL GPIO stress tests" }
 };
 
-__attribute__((constructor)) static void register_stress_hal_gpio_tests(void)
+void register_stress_hal_gpio_tests(void)
 {
 	libutest_register_suite(&test_suite);
 }

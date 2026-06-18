@@ -122,7 +122,7 @@ static const test_suite_t test_suite = {
 				  .description = "PCONFIG API unit tests" }
 };
 
-__attribute__((constructor)) static void register_pconfig_api_tests(void)
+void register_pconfig_api_tests(void)
 {
 	libutest_register_suite(&test_suite);
 }

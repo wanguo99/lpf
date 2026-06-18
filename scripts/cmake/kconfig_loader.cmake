@@ -80,7 +80,7 @@ function(_kconfig_validate)
     endif()
 
     # Validate architecture is set
-    if(NOT CONFIG_ARCH_X86_64 AND NOT CONFIG_ARCH_ARM64 AND NOT CONFIG_ARCH_ARM)
+    if(NOT CONFIG_ARCH_X86_64 AND NOT CONFIG_ARCH_ARM64 AND NOT CONFIG_ARCH_ARM32)
         if(NOT BUILD_QUIET_MODE)
             message(WARNING "No architecture selected (CONFIG_ARCH_*)")
         endif()

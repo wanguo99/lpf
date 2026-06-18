@@ -528,3 +528,29 @@ void test_osal_termios(void)
 	_test_configure_serial_115200_8n1();
 	_test_configure_serial_9600_7e1();
 }
+
+static const test_case_t test_cases[] = {
+	{ .name = "test_osal_termios",
+	  .func = test_osal_termios,
+	  .setup = NULL,
+	  .teardown = NULL },
+};
+
+static const test_suite_t test_suite = {
+	.suite_name = "osal_termios",
+	.module_name = "osal_termios",
+	.layer_name = "OSAL",
+	.cases = test_cases,
+	.case_count = sizeof(test_cases) / sizeof(test_cases[0]),
+	.suite_setup = NULL,
+	.suite_teardown = NULL,
+	.metadata = { .category = TEST_CATEGORY_UNIT,
+				  .tags = TEST_TAG_FAST,
+				  .timeout_ms = 3000,
+				  .description = "OSAL termios tests" }
+};
+
+void register_osal_termios_tests(void)
+{
+	libutest_register_suite(&test_suite);
+}

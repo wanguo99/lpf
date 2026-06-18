@@ -9,6 +9,8 @@
 #include <test_framework/test_framework.h>
 #include "osal.h"
 
+extern void ctest_register_all_suites(void);
+
 /**
  * Extract program name from argv[0] (handles both full path and basename)
  */
@@ -294,6 +296,8 @@ int main(int argc, char *argv[])
 {
 	const char *program_name = _get_program_name(argv[0]);
 	const char *layer_filter = _detect_layer_filter(program_name);
+
+	ctest_register_all_suites();
 
 	/* Initialize filter */
 	test_filter_t filter = { .category_mask = 0,

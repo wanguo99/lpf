@@ -4,7 +4,7 @@ list(APPEND ADD_INCLUDE "include")
 list(APPEND ADD_INCLUDE "include/pconfig")
 
 # 私有头文件目录（仅内部使用）
-list(APPEND ADD_PRIV_INCLUDE "src")
+list(APPEND ADD_PRIVATE_INCLUDE "src")
 
 # 添加平台配置头文件路径（如果有）
 if(PCONFIG_EXTRA_INCLUDE)
@@ -25,23 +25,15 @@ endif()
 ###############################################
 
 ###### Add required/dependent components ######
-# PCONFIG 定义所有硬件配置类型，PDL 使用这些类型
-# 依赖关系：PDL→PCONFIG（使用配置类型 + 查询配置）
-# 无循环依赖：PCONFIG 不再依赖 PDL
+# PCONFIG 定义硬件配置类型并提供只读查询，业务驱动层依赖它。
+# 依赖关系保持单向：PDL/产品代码 -> PCONFIG -> OSAL。
 
-# OSAL 是必须的（Kconfig: select OSAL）
+# OSAL 是必须的（Kconfig: depends on OSAL）
 if(CONFIG_OSAL)
     list(APPEND ADD_REQUIREMENTS osal)
 else()
     message(FATAL_ERROR "PCONFIG requires OSAL but CONFIG_OSAL is not enabled")
 endif()
-
-# HAL 是 Kconfig 强制依赖的（Kconfig: select HAL）
-if(CONFIG_HAL)
-    list(APPEND ADD_REQUIREMENTS hal)
-endif()
-
-# PCONFIG 不再依赖 PDL（配置类型已在 PCONFIG 中定义）
 ###############################################
 
 #### Add compile option for this component ####

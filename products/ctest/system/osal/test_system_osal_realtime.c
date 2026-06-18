@@ -59,8 +59,8 @@ static void _test_rt_thread_priority_enforcement(void)
 	osal_pthread_attr_init(&low_attr);
 
 	/* Try to set RT scheduling policy and priority */
-	struct sched_param high_param = { .sched_priority = 80 };
-	struct sched_param low_param = { .sched_priority = 20 };
+	osal_sched_param_t high_param = { .sched_priority = 80 };
+	osal_sched_param_t low_param = { .sched_priority = 20 };
 
 	osal_pthread_attr_setschedpolicy(&high_attr, OSAL_SCHED_FIFO);
 	osal_pthread_attr_setschedparam(&high_attr, &high_param);
@@ -288,7 +288,7 @@ static void _test_scheduler_policy_interactions(void)
 	void *sched_thread_func(void *arg)
 	{
 		sched_ctx_t *ctx = (sched_ctx_t *)arg;
-		struct sched_param param;
+		osal_sched_param_t param;
 		int32_t ret;
 
 		/* Try to set scheduler policy */
@@ -371,8 +371,7 @@ static const test_suite_t test_suite = {
 };
 
 /* Register test suite */
-__attribute__((constructor)) static void
-register_system_osal_realtime_tests(void)
+void register_system_osal_realtime_tests(void)
 {
 	libutest_register_suite(&test_suite);
 }

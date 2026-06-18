@@ -179,3 +179,29 @@ void test_pdl_mcu(void)
 	_test_pdl_mcu_get_status_null_handle();
 	_test_pdl_mcu_get_status_null_output();
 }
+
+static const test_case_t test_cases[] = {
+	{ .name = "test_pdl_mcu",
+	  .func = test_pdl_mcu,
+	  .setup = NULL,
+	  .teardown = NULL },
+};
+
+static const test_suite_t test_suite = {
+	.suite_name = "pdl_mcu",
+	.module_name = "pdl_mcu",
+	.layer_name = "PDL",
+	.cases = test_cases,
+	.case_count = sizeof(test_cases) / sizeof(test_cases[0]),
+	.suite_setup = NULL,
+	.suite_teardown = NULL,
+	.metadata = { .category = TEST_CATEGORY_UNIT,
+				  .tags = TEST_TAG_HARDWARE,
+				  .timeout_ms = 5000,
+				  .description = "PDL MCU tests" }
+};
+
+void register_pdl_mcu_tests(void)
+{
+	libutest_register_suite(&test_suite);
+}

@@ -5,9 +5,6 @@
 #include "osal.h"
 #include <test_framework/test_framework.h>
 
-#include <pthread.h>
-#include <sched.h>
-
 /*===========================================================================
  * 调度策略测试
  *===========================================================================*/
@@ -23,29 +20,29 @@ static void _test_sched_set_get_policy(void)
 	TEST_ASSERT_EQUAL(0, ret);
 
 	/* 策略应该是有效值 */
-	TEST_ASSERT_TRUE(policy == SCHED_OTHER || policy == SCHED_FIFO ||
-					 policy == SCHED_RR);
+	TEST_ASSERT_TRUE(policy == OSAL_SCHED_OTHER || policy == OSAL_SCHED_FIFO ||
+					 policy == OSAL_SCHED_RR);
 }
 
 static void _test_sched_priority_range(void)
 {
-	/* 获取SCHED_OTHER的优先级范围 */
-	int32_t min = sched_get_priority_min(SCHED_OTHER);
-	int32_t max = sched_get_priority_max(SCHED_OTHER);
+	/* 获取 OSAL_SCHED_OTHER 的优先级范围 */
+	int32_t min = osal_sched_get_priority_min(OSAL_SCHED_OTHER);
+	int32_t max = osal_sched_get_priority_max(OSAL_SCHED_OTHER);
 
 	TEST_ASSERT_TRUE(min >= 0);
 	TEST_ASSERT_TRUE(max >= min);
 
-	/* 获取SCHED_FIFO的优先级范围 */
-	min = sched_get_priority_min(SCHED_FIFO);
-	max = sched_get_priority_max(SCHED_FIFO);
+	/* 获取 OSAL_SCHED_FIFO 的优先级范围 */
+	min = osal_sched_get_priority_min(OSAL_SCHED_FIFO);
+	max = osal_sched_get_priority_max(OSAL_SCHED_FIFO);
 
 	TEST_ASSERT_TRUE(min > 0);
 	TEST_ASSERT_TRUE(max > min);
 
-	/* 获取SCHED_RR的优先级范围 */
-	min = sched_get_priority_min(SCHED_RR);
-	max = sched_get_priority_max(SCHED_RR);
+	/* 获取 OSAL_SCHED_RR 的优先级范围 */
+	min = osal_sched_get_priority_min(OSAL_SCHED_RR);
+	max = osal_sched_get_priority_max(OSAL_SCHED_RR);
 
 	TEST_ASSERT_TRUE(min > 0);
 	TEST_ASSERT_TRUE(max > min);
@@ -65,14 +62,14 @@ static void _test_sched_set_priority_other(void)
 	int32_t ret = osal_pthread_getschedparam(thread, &policy, &priority);
 	TEST_ASSERT_EQUAL(0, ret);
 
-	/* 设置新的优先级（SCHED_OTHER通常只支持0） */
-	ret = osal_pthread_setschedparam(thread, SCHED_OTHER, 0);
+	/* 设置新的优先级（OSAL_SCHED_OTHER 通常只支持 0） */
+	ret = osal_pthread_setschedparam(thread, OSAL_SCHED_OTHER, 0);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	/* 验证设置成功 */
 	ret = osal_pthread_getschedparam(thread, &policy, &priority);
 	TEST_ASSERT_EQUAL(0, ret);
-	TEST_ASSERT_EQUAL(SCHED_OTHER, policy);
+	TEST_ASSERT_EQUAL(OSAL_SCHED_OTHER, policy);
 }
 
 /*===========================================================================
@@ -154,7 +151,7 @@ static void _test_sched_attr_set_policy(void)
 	TEST_ASSERT_EQUAL(0, ret);
 
 	/* 设置调度策略 */
-	ret = osal_pthread_attr_setschedpolicy(&attr, SCHED_OTHER);
+	ret = osal_pthread_attr_setschedpolicy(&attr, OSAL_SCHED_OTHER);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	/* 清理 */
@@ -253,7 +250,7 @@ static const test_suite_t test_suite = {
 				  .description = "OSAL scheduler tests" }
 };
 
-__attribute__((constructor)) static void register_osal_sched_tests(void)
+void register_osal_sched_tests(void)
 {
 	libutest_register_suite(&test_suite);
 }

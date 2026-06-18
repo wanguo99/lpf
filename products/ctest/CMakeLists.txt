@@ -184,26 +184,6 @@ if(CONFIG_TEST_UNIT)
         )
     endif()
 
-    # PCONFIG Unit Tests - Auto-discover all test_pconfig_*.c files
-    if(CONFIG_TEST_PCONFIG)
-        test_discover_and_add(
-            TARGET es-middleware-test
-            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/pconfig
-            MODULE pconfig
-            LIBRARY pconfig
-        )
-    endif()
-
-    # ACONFIG Unit Tests - Auto-discover all test_aconfig_*.c files
-    if(CONFIG_TEST_ACONFIG)
-        test_discover_and_add(
-            TARGET es-middleware-test
-            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/aconfig
-            MODULE aconfig
-            LIBRARY aconfig
-        )
-    endif()
-
 endif() # CONFIG_TEST_UNIT
 
 # ============================================================================
@@ -392,6 +372,7 @@ if(CONFIG_TEST_SYSTEM)
         file(GLOB HAL_SYSTEM_TEST_FILES "${CMAKE_CURRENT_SOURCE_DIR}/system/hal/test_*.c")
         if(HAL_SYSTEM_TEST_FILES)
             target_sources(es-middleware-test PRIVATE ${HAL_SYSTEM_TEST_FILES})
+            test_collect_registration_functions(${HAL_SYSTEM_TEST_FILES})
         endif()
     endif()
 
@@ -446,6 +427,12 @@ if(CONFIG_TEST_SYSTEM)
     endif()
 
 endif() # CONFIG_TEST_SYSTEM
+
+# Generate explicit test suite registration source after all discovery is done.
+test_generate_registry(
+    TARGET es-middleware-test
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/ctest_autoregistry.c
+)
 
 # ============================================================================
 # Additional test dependencies

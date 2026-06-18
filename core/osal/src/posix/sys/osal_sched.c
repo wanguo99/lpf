@@ -164,6 +164,16 @@ int32_t osal_sched_getscheduler(osal_pid_t pid)
 	return sched_getscheduler(pid);
 }
 
+int32_t osal_sched_get_priority_min(int32_t policy)
+{
+	return sched_get_priority_min(policy);
+}
+
+int32_t osal_sched_get_priority_max(int32_t policy)
+{
+	return sched_get_priority_max(policy);
+}
+
 int32_t osal_sched_yield(void)
 {
 	return sched_yield();

@@ -125,6 +125,22 @@ int32_t osal_sched_setscheduler(osal_pid_t pid, int32_t policy,
 int32_t osal_sched_getscheduler(osal_pid_t pid);
 
 /**
+ * @brief 获取调度策略的最低优先级
+ *
+ * @param[in] policy 调度策略
+ * @return 最低优先级，失败返回 -1
+ */
+int32_t osal_sched_get_priority_min(int32_t policy);
+
+/**
+ * @brief 获取调度策略的最高优先级
+ *
+ * @param[in] policy 调度策略
+ * @return 最高优先级，失败返回 -1
+ */
+int32_t osal_sched_get_priority_max(int32_t policy);
+
+/**
  * @brief 让出 CPU 时间片
  *
  * @return 0 成功

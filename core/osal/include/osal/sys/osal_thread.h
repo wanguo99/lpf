@@ -9,6 +9,7 @@
 
 #include <pthread.h>
 #include <sched.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,6 +29,9 @@ typedef struct sched_param osal_sched_param_t;
 
 typedef pthread_t osal_thread_t;
 typedef pthread_attr_t osal_threadattr_t;
+
+#define OSAL_PTHREAD_CREATE_JOINABLE PTHREAD_CREATE_JOINABLE
+#define OSAL_PTHREAD_CREATE_DETACHED PTHREAD_CREATE_DETACHED
 #else
 /* 其他平台（RTOS 等）- 需要提供对应的类型定义 */
 #error "Unsupported platform - please define thread types for your platform"
@@ -69,6 +73,15 @@ int32_t osal_pthread_join(osal_thread_t thread, void **retval);
  * @return -1 失败
  */
 int32_t osal_pthread_detach(osal_thread_t thread);
+
+/**
+ * @brief 比较两个线程 ID 是否相同
+ *
+ * @param[in] thread1 线程 ID
+ * @param[in] thread2 线程 ID
+ * @return true 相同，false 不同
+ */
+bool osal_pthread_equal(osal_thread_t thread1, osal_thread_t thread2);
 
 /**
  * @brief 获取当前线程 ID
@@ -142,7 +155,7 @@ int32_t osal_pthread_attr_getstacksize(const osal_threadattr_t *attr,
  *
  * @param[in] attr 属性指针
  * @param[in] detachstate
- * 分离状态（PTHREAD_CREATE_JOINABLE/PTHREAD_CREATE_DETACHED）
+ * 分离状态（OSAL_PTHREAD_CREATE_JOINABLE/OSAL_PTHREAD_CREATE_DETACHED）
  * @return 0 成功
  * @return -1 失败
  */
@@ -164,7 +177,8 @@ int32_t osal_pthread_attr_getdetachstate(const osal_threadattr_t *attr,
  * @brief 设置线程调度策略
  *
  * @param[in] attr 属性指针
- * @param[in] policy 调度策略（SCHED_OTHER/SCHED_FIFO/SCHED_RR）
+ * @param[in] policy 调度策略（OSAL_SCHED_OTHER/OSAL_SCHED_FIFO/
+ * OSAL_SCHED_RR）
  * @return 0 成功
  * @return -1 失败
  */

@@ -5,8 +5,6 @@
 #include "osal.h"
 #include <test_framework/test_framework.h>
 
-#include <pthread.h>
-
 /*===========================================================================
  * 测试辅助函数
  *===========================================================================*/
@@ -78,7 +76,7 @@ static void _test_thread_self(void)
 
 	/* 再次获取应该相同 */
 	osal_thread_t self2 = osal_pthread_self();
-	TEST_ASSERT_TRUE(pthread_equal(self, self2));
+	TEST_ASSERT_TRUE(osal_pthread_equal(self, self2));
 }
 
 static void _test_thread_equal(void)
@@ -93,10 +91,10 @@ static void _test_thread_equal(void)
 	TEST_ASSERT_EQUAL(0, ret);
 
 	/* 两个线程ID应该不同 */
-	TEST_ASSERT_FALSE(pthread_equal(self, thread));
+	TEST_ASSERT_FALSE(osal_pthread_equal(self, thread));
 
 	/* 同一个线程ID应该相等 */
-	TEST_ASSERT_TRUE(pthread_equal(self, self));
+	TEST_ASSERT_TRUE(osal_pthread_equal(self, self));
 
 	/* 清理 */
 	osal_pthread_detach(thread);
@@ -129,13 +127,13 @@ static void _test_thread_attr_detachstate(void)
 
 	/* 设置为分离状态 */
 	int32_t ret =
-		osal_pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+		osal_pthread_attr_setdetachstate(&attr, OSAL_PTHREAD_CREATE_DETACHED);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	/* 获取状态 */
 	ret = osal_pthread_attr_getdetachstate(&attr, &state);
 	TEST_ASSERT_EQUAL(0, ret);
-	TEST_ASSERT_EQUAL(PTHREAD_CREATE_DETACHED, state);
+	TEST_ASSERT_EQUAL(OSAL_PTHREAD_CREATE_DETACHED, state);
 
 	osal_pthread_attr_destroy(&attr);
 }
@@ -233,7 +231,7 @@ static const test_suite_t test_suite = {
 				  .description = "OSAL thread management tests" }
 };
 
-__attribute__((constructor)) static void register_osal_thread_tests(void)
+void register_osal_thread_tests(void)
 {
 	libutest_register_suite(&test_suite);
 }

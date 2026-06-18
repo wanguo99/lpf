@@ -13,7 +13,7 @@
  * 操作系统检测（优先使用 Kconfig 配置）
  * ========================================================================
  */
-#if defined(OSAL_OS_POSIX)
+#if defined(CONFIG_OSAL_OS_POSIX)
 /* POSIX 平台（Linux、macOS 等） */
 #define OSAL_PLATFORM_POSIX
 #if defined(__linux__)
@@ -21,10 +21,10 @@
 #elif defined(__APPLE__)
 #define OSAL_PLATFORM_MACOS
 #endif
-#elif defined(OSAL_OS_WIN32)
+#elif defined(CONFIG_OSAL_OS_WIN32)
 /* Windows 平台 */
 #define OSAL_PLATFORM_WINDOWS
-#elif defined(OSAL_OS_RTOS)
+#elif defined(CONFIG_OSAL_OS_RTOS)
 /* RTOS 平台 */
 #define OSAL_PLATFORM_RTOS
 #if defined(__FREERTOS__)
@@ -32,7 +32,7 @@
 #elif defined(__RTEMS__)
 #define OSAL_PLATFORM_RTEMS
 #endif
-#elif defined(OSAL_OS_BARE)
+#elif defined(CONFIG_OSAL_OS_BARE)
 /* 裸机平台 */
 #define OSAL_PLATFORM_BARE
 #else
@@ -62,7 +62,7 @@
  * 架构检测（优先使用 Kconfig 配置）
  * ========================================================================
  */
-#if defined(OSAL_ARCH_32BIT)
+#if defined(CONFIG_OSAL_ARCH_32BIT)
 /* 32 位架构 */
 #define OSAL_ARCH_BITS 0x20
 #if defined(__arm__) || defined(_M_ARM)
@@ -72,7 +72,7 @@
 #elif defined(__riscv) && (__riscv_xlen == 32)
 #define OSAL_ARCH_RISCV32
 #endif
-#elif defined(OSAL_ARCH_64BIT)
+#elif defined(CONFIG_OSAL_ARCH_64BIT)
 /* 64 位架构 */
 #define OSAL_ARCH_BITS 0x40
 #if defined(__x86_64__) || defined(_M_X64)

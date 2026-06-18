@@ -419,8 +419,7 @@ static const test_suite_t test_suite = {
 };
 
 /* Register test suite */
-__attribute__((constructor)) static void
-register_system_osal_file_thread_tests(void)
+void register_system_osal_file_thread_tests(void)
 {
 	libutest_register_suite(&test_suite);
 }

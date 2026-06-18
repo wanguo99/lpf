@@ -47,9 +47,24 @@
 /*
  * 配置常量
  */
+#ifdef CONFIG_OSAL_MAX_TASKS
+#define OS_MAX_TASKS CONFIG_OSAL_MAX_TASKS
+#else
 #define OS_MAX_TASKS 0x40
+#endif
+
+#ifdef CONFIG_OSAL_MAX_QUEUES
+#define OS_MAX_QUEUES CONFIG_OSAL_MAX_QUEUES
+#else
 #define OS_MAX_QUEUES 0x40
+#endif
+
+#ifdef CONFIG_OSAL_MAX_MUTEXES
+#define OS_MAX_MUTEXES CONFIG_OSAL_MAX_MUTEXES
+#else
 #define OS_MAX_MUTEXES 0x40
+#endif
+
 #define OS_MAX_API_NAME 0x14
 
 /*

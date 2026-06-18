@@ -242,7 +242,7 @@ static const test_suite_t test_suite = {
 				  .description = "OSAL signal handling tests" }
 };
 
-__attribute__((constructor)) static void register_osal_signal_tests(void)
+void register_osal_signal_tests(void)
 {
 	libutest_register_suite(&test_suite);
 }

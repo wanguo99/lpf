@@ -19,6 +19,9 @@ extern "C" {
 
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 /* POSIX 平台 */
+#define OSAL_MUTEX_INITIALIZER PTHREAD_MUTEX_INITIALIZER
+#define OSAL_PTHREAD_MUTEX_NORMAL PTHREAD_MUTEX_NORMAL
+#define OSAL_PTHREAD_MUTEX_RECURSIVE PTHREAD_MUTEX_RECURSIVE
 #define OSAL_PTHREAD_PRIO_INHERIT PTHREAD_PRIO_INHERIT
 
 typedef pthread_mutex_t osal_mutex_t;
@@ -115,7 +118,8 @@ int32_t osal_pthread_mutexattr_destroy(osal_mutexattr_t *attr);
  * @brief 设置互斥锁类型
  *
  * @param[in] attr 属性指针
- * @param[in] type 互斥锁类型（PTHREAD_MUTEX_NORMAL/PTHREAD_MUTEX_RECURSIVE等）
+ * @param[in] type 互斥锁类型（OSAL_PTHREAD_MUTEX_NORMAL/
+ * OSAL_PTHREAD_MUTEX_RECURSIVE 等）
  * @return 0 成功
  * @return -1 失败
  */
@@ -125,7 +129,7 @@ int32_t osal_pthread_mutexattr_settype(osal_mutexattr_t *attr, int32_t type);
  * @brief 设置互斥锁协议
  *
  * @param[in] attr 属性指针
- * @param[in] protocol 协议（PTHREAD_PRIO_INHERIT 等）
+ * @param[in] protocol 协议（OSAL_PTHREAD_PRIO_INHERIT 等）
  * @return 0 成功
  * @return -1 失败
  */

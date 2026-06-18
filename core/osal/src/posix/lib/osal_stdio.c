@@ -6,29 +6,27 @@
 #include <stdio.h>
 
 /*
- * 标准流定义
- */
-void *OSAL_stdin = NULL;
-void *OSAL_stdout = NULL;
-void *OSAL_stderr = NULL;
-
-/*
- * 初始化标准流（构造函数自动调用）
- */
-__attribute__((constructor)) static void init_stdio_streams(void)
-{
-	OSAL_stdin = stdin;
-	OSAL_stdout = stdout;
-	OSAL_stderr = stderr;
-}
-
-/*
  * 标准输入输出
  */
 
 int32_t osal_getchar(void)
 {
 	return getchar();
+}
+
+void *osal_stdio_stdin(void)
+{
+	return stdin;
+}
+
+void *osal_stdio_stdout(void)
+{
+	return stdout;
+}
+
+void *osal_stdio_stderr(void)
+{
+	return stderr;
 }
 
 char *osal_fgets(char *str, osal_size_t size, void *stream)

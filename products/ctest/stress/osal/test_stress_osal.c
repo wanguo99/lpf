@@ -747,7 +747,7 @@ static const test_suite_t test_suite = {
 					  "resource exhaustion, performance benchmarks" }
 };
 
-__attribute__((constructor)) static void register_stress_osal_tests(void)
+void register_stress_osal_tests(void)
 {
 	libutest_register_suite(&test_suite);
 }

@@ -32,7 +32,13 @@
 #define OSAL_LOG_PATH_SIZE 0x100U /* 日志路径缓冲区大小 */
 #define OSAL_LOG_FILENAME_SIZE 0x200U /* 日志文件名缓冲区大小 */
 #define OSAL_LOG_TIMESTAMP_SIZE 0x40U /* 时间戳缓冲区大小 */
+
+#ifdef CONFIG_LOG_BUFFER_SIZE
+#define OSAL_LOG_MESSAGE_SIZE CONFIG_LOG_BUFFER_SIZE
+#else
 #define OSAL_LOG_MESSAGE_SIZE 0x400U /* 日志消息缓冲区大小 */
+#endif
+
 #define OSAL_LOG_MAX_MODULES 0x20U /* 最大模块数 */
 #define OSAL_LOG_MAX_KV_PAIRS 0x8U /* 结构化日志最大键值对数 */
 
@@ -42,7 +48,19 @@
  * 低于此级别的日志在编译时被完全优化掉（零开销）
  */
 #ifndef OSAL_LOG_COMPILE_LEVEL
-#define OSAL_LOG_COMPILE_LEVEL OS_LOG_LEVEL_DEBUG /* 默认编译所有级别 */
+#if !defined(CONFIG_LOGGING_ENABLE)
+#define OSAL_LOG_COMPILE_LEVEL (OS_LOG_LEVEL_FATAL + 1)
+#elif defined(CONFIG_LOG_LEVEL_FATAL)
+#define OSAL_LOG_COMPILE_LEVEL OS_LOG_LEVEL_FATAL
+#elif defined(CONFIG_LOG_LEVEL_ERROR)
+#define OSAL_LOG_COMPILE_LEVEL OS_LOG_LEVEL_ERROR
+#elif defined(CONFIG_LOG_LEVEL_WARN)
+#define OSAL_LOG_COMPILE_LEVEL OS_LOG_LEVEL_WARN
+#elif defined(CONFIG_LOG_LEVEL_INFO)
+#define OSAL_LOG_COMPILE_LEVEL OS_LOG_LEVEL_INFO
+#else
+#define OSAL_LOG_COMPILE_LEVEL OS_LOG_LEVEL_DEBUG
+#endif
 #endif
 
 /*

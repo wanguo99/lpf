@@ -28,6 +28,11 @@ int32_t osal_pthread_detach(osal_thread_t thread)
 	return pthread_detach(thread);
 }
 
+bool osal_pthread_equal(osal_thread_t thread1, osal_thread_t thread2)
+{
+	return pthread_equal(thread1, thread2) != 0;
+}
+
 osal_thread_t osal_pthread_self(void)
 {
 	return pthread_self();

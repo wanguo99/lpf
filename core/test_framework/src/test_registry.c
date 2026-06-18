@@ -2,9 +2,9 @@
  * @file test_registry.c
  * @brief Test suite registry implementation
  *
- * Maintains a global registry of all test suites registered via
- * constructor attributes. Provides lookup, enumeration, and filtering
- * functions. Supports dynamic allocation to avoid hardcoded limits.
+ * Maintains a global registry of all test suites registered explicitly by
+ * the test runner. Provides lookup, enumeration, and filtering functions.
+ * Supports dynamic allocation to avoid hardcoded limits.
  */
 
 #include "test_core.h"
@@ -61,7 +61,7 @@ static bool _expand_registry(void)
 
 /**
  * Register a test suite
- * Called automatically by constructor attributes
+ * Called by the generated ctest registration unit at process startup.
  */
 void libutest_register_suite(const test_suite_t *suite)
 {

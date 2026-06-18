@@ -29,11 +29,17 @@ static heap_monitor_t g_heap_monitor = {
 	.peak_usage = 0,
 	.current_usage = 0,
 	.alert_triggered = false,
+	.lock = PTHREAD_MUTEX_INITIALIZER,
 };
 
 void OS_HeapInit(void)
 {
-	pthread_mutex_init(&g_heap_monitor.lock, NULL);
+	pthread_mutex_lock(&g_heap_monitor.lock);
+	g_heap_monitor.threshold_percent = OSAL_HEAP_THRESHOLD_DEFAULT;
+	g_heap_monitor.peak_usage = 0;
+	g_heap_monitor.current_usage = 0;
+	g_heap_monitor.alert_triggered = false;
+	pthread_mutex_unlock(&g_heap_monitor.lock);
 }
 
 static uint32_t _read_memory_from_proc(const char *field)
