@@ -10,6 +10,7 @@
 #include "osal.h"
 #include "hal.h"
 #include "hal_can.h"
+#include "../hal_linux_lock.h"
 
 #ifndef IFNAMSIZ
 #define IFNAMSIZ 0x10
@@ -39,19 +40,15 @@
 /**
  * @brief CAN 设备上下文（内部实现）
  *
- * 采用双重保护机制：
- * - flock: 文件锁，保护进程间并发访问
- * - mutex: 互斥锁，保护线程间并发访问
+ * 通过 hal_linux_lock_t 统一封装进程间文件锁和线程互斥锁。
  */
 typedef struct {
-	int32_t sockfd; /* SocketCAN 套接字文件描述符 */
-	char interface[IFNAMSIZ]; /* CAN接口名 */
-	uint32_t baudrate; /* 波特率 */
-	bool initialized; /* 初始化标志 */
+    int32_t sockfd; /* SocketCAN 套接字文件描述符 */
+    char interface[IFNAMSIZ]; /* CAN接口名 */
+    uint32_t baudrate; /* 波特率 */
+    bool initialized; /* 初始化标志 */
 
-	/* 双重保护机制 */
-	osal_flock_t *flock; /* 文件锁（进程间保护） */
-	osal_mutex_t mutex; /* 互斥锁（线程间保护） */
+    hal_linux_lock_t lock; /* 进程/线程保护 */
 } hal_can_context_t;
 
 #endif /* HAL_CAN_INTERNAL_H */

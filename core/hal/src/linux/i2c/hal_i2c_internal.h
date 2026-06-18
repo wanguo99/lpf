@@ -10,6 +10,7 @@
 #include "osal.h"
 #include "hal.h"
 #include "hal_i2c.h"
+#include "../hal_linux_lock.h"
 
 /*===========================================================================
  * 锁配置
@@ -35,19 +36,15 @@
 /**
  * @brief I2C 设备上下文（内部实现）
  *
- * 采用双重保护机制：
- * - flock: 文件锁，保护进程间并发访问
- * - mutex: 互斥锁，保护线程间并发访问
+ * 通过 hal_linux_lock_t 统一封装进程间文件锁和线程互斥锁。
  */
 typedef struct {
-	int32_t fd; /* I2C设备文件描述符 */
-	char device[256]; /* 设备路径 */
-	uint32_t timeout; /* 传输超时时间（ms） */
-	bool initialized; /* 初始化标志 */
+    int32_t fd; /* I2C设备文件描述符 */
+    char device[256]; /* 设备路径 */
+    uint32_t timeout; /* 传输超时时间（ms） */
+    bool initialized; /* 初始化标志 */
 
-	/* 双重保护机制 */
-	osal_flock_t *flock; /* 文件锁（进程间保护） */
-	osal_mutex_t mutex; /* 互斥锁（线程间保护） */
+    hal_linux_lock_t lock; /* 进程/线程保护 */
 } hal_i2c_context_t;
 
 #endif /* HAL_I2C_INTERNAL_H */

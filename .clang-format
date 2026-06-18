@@ -118,5 +118,5 @@ StatementMacros:
   - STRESS_TEST_CASE
   - SYSTEM_TEST_CASE
 TabWidth: 4
-UseTab: Always
+UseTab: Never
 ...
