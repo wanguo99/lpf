@@ -25,69 +25,64 @@
 /**
  * @brief MCU服务句柄
  */
-typedef void* pdl_mcu_handle_t;
+typedef void *pdl_mcu_handle_t;
 
 /**
  * @brief MCU设备状态枚举
  */
-typedef enum
-{
-	PDL_MCU_STATE_UNINITIALIZED = 0x00,  /* 未初始化 */
-	PDL_MCU_STATE_INIT          = 0x01,  /* 已初始化 */
-	PDL_MCU_STATE_READY         = 0x02,  /* 就绪（通信正常） */
-	PDL_MCU_STATE_BUSY          = 0x03,  /* 忙碌（命令执行中） */
-	PDL_MCU_STATE_ERROR         = 0x04,  /* 错误状态 */
-	PDL_MCU_STATE_OFFLINE       = 0x05   /* 离线（通信失败） */
+typedef enum {
+    PDL_MCU_STATE_UNINITIALIZED = 0x00, /* 未初始化 */
+    PDL_MCU_STATE_INIT = 0x01,          /* 已初始化 */
+    PDL_MCU_STATE_READY = 0x02,         /* 就绪（通信正常） */
+    PDL_MCU_STATE_BUSY = 0x03,          /* 忙碌（命令执行中） */
+    PDL_MCU_STATE_ERROR = 0x04,         /* 错误状态 */
+    PDL_MCU_STATE_OFFLINE = 0x05        /* 离线（通信失败） */
 } pdl_mcu_state_t;
 
 /**
  * @brief MCU版本信息
  */
-typedef struct
-{
-	uint8_t major;
-	uint8_t minor;
-	uint8_t patch;
-	uint8_t build;
-	char version_string[32];
+typedef struct {
+    uint8_t major;
+    uint8_t minor;
+    uint8_t patch;
+    uint8_t build;
+    char version_string[32];
 } pdl_mcu_version_t;
 
 /**
  * @brief MCU状态信息
  */
-typedef struct
-{
-	bool online;                      /* 在线状态 */
-	pdl_mcu_state_t state;            /* 设备状态 */
-	uint32_t uptime_sec;              /* 运行时间 */
-	uint8_t error_code;               /* 错误码 */
-	float temperature;                /* 温度 */
-	uint16_t voltage_mv;              /* 电压（mV） */
-	uint64_t timestamp_us;            /* 数据采集时间戳（微秒） */
+typedef struct {
+    bool online;           /* 在线状态 */
+    pdl_mcu_state_t state; /* 设备状态 */
+    uint32_t uptime_sec;   /* 运行时间 */
+    uint8_t error_code;    /* 错误码 */
+    float temperature;     /* 温度 */
+    uint16_t voltage_mv;   /* 电压（mV） */
+    uint64_t timestamp_us; /* 数据采集时间戳（微秒） */
 } pdl_mcu_status_t;
 
 /**
  * @brief MCU 简单命令参数（无发送数据）
  */
-typedef struct
-{
-	uint8_t cmd;                      /* 命令字 */
-	uint8_t *response;                /* 响应缓冲区 */
-	uint32_t response_max;            /* 响应缓冲区大小 */
-	uint32_t response_len;            /* 实际响应长度（输出） */
+typedef struct {
+    uint8_t cmd;           /* 命令字 */
+    uint8_t *response;     /* 响应缓冲区 */
+    uint32_t response_max; /* 响应缓冲区大小 */
+    uint32_t response_len; /* 实际响应长度（输出） */
 } pdl_mcu_cmd_t;
 
 /**
  * @brief MCU 数据命令参数（带发送数据）
  */
-typedef struct
-{
-	uint8_t cmd;                      /* 命令字 */
-	const uint8_t *data;              /* 发送数据 */
-	uint32_t data_len;                /* 发送数据长度 */
-	uint8_t *response;                /* 响应缓冲区 */
-	uint32_t response_max;            /* 响应缓冲区大小 */
-	uint32_t response_len;            /* 实际响应长度（输出） */
+typedef struct {
+    uint8_t cmd;           /* 命令字 */
+    const uint8_t *data;   /* 发送数据 */
+    uint32_t data_len;     /* 发送数据长度 */
+    uint8_t *response;     /* 响应缓冲区 */
+    uint32_t response_max; /* 响应缓冲区大小 */
+    uint32_t response_len; /* 实际响应长度（输出） */
 } pdl_mcu_data_t;
 
 /*===========================================================================
@@ -128,7 +123,8 @@ int32_t PDL_MCU_deinit(pdl_mcu_handle_t handle);
  *
  * @return OSAL_SUCCESS 成功
  */
-int32_t PDL_MCU_get_version(pdl_mcu_handle_t handle, pdl_mcu_version_t *version);
+int32_t PDL_MCU_get_version(pdl_mcu_handle_t handle,
+                            pdl_mcu_version_t *version);
 
 /**
  * @brief 获取MCU状态
@@ -180,12 +176,12 @@ int32_t PDL_MCU_send_data(pdl_mcu_handle_t handle, pdl_mcu_data_t *data);
  * @return OSAL_SUCCESS 成功
  */
 int32_t PDL_MCU_send_command(pdl_mcu_handle_t handle,
-			  uint8_t cmd,
-			  const uint8_t *data,
-			  uint32_t data_len,
-			  uint8_t *response,
-			  uint32_t response_max,
-			  uint32_t *response_len);
+                             uint8_t cmd,
+                             const uint8_t *data,
+                             uint32_t data_len,
+                             uint8_t *response,
+                             uint32_t response_max,
+                             uint32_t *response_len);
 
 /**
  * @brief 复位MCU

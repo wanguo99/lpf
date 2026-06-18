@@ -21,39 +21,39 @@
  * @brief MCU通信层操作函数表
  */
 typedef struct {
-	/**
-	 * @brief 初始化通信层
-	 * @param[in] config 配置参数
-	 * @param[out] handle 返回通信句柄
-	 * @return OSAL_SUCCESS 成功
-	 */
-	int32_t (*init)(const void *config, void **handle);
+    /**
+     * @brief 初始化通信层
+     * @param[in] config 配置参数
+     * @param[out] handle 返回通信句柄
+     * @return OSAL_SUCCESS 成功
+     */
+    int32_t (*init)(const void *config, void **handle);
 
-	/**
-	 * @brief 反初始化通信层
-	 * @param[in] handle 通信句柄
-	 * @return OSAL_SUCCESS 成功
-	 */
-	int32_t (*deinit)(void *handle);
+    /**
+     * @brief 反初始化通信层
+     * @param[in] handle 通信句柄
+     * @return OSAL_SUCCESS 成功
+     */
+    int32_t (*deinit)(void *handle);
 
-	/**
-	 * @brief 发送 PRL 报文并接收响应
-	 * @param[in] handle 通信句柄
-	 * @param[in] packet PRL 报文数据
-	 * @param[in] packet_len 报文长度
-	 * @param[out] response 响应缓冲区
-	 * @param[in] resp_size 响应缓冲区大小
-	 * @param[out] actual_size 实际响应长度
-	 * @param[in] timeout_ms 超时时间（毫秒）
-	 * @return OSAL_SUCCESS 成功
-	 */
-	int32_t (*send_packet)(void *handle,
-	                       const uint8_t *packet,
-	                       uint32_t packet_len,
-	                       uint8_t *response,
-	                       uint32_t resp_size,
-	                       uint32_t *actual_size,
-	                       uint32_t timeout_ms);
+    /**
+     * @brief 发送 PRL 报文并接收响应
+     * @param[in] handle 通信句柄
+     * @param[in] packet PRL 报文数据
+     * @param[in] packet_len 报文长度
+     * @param[out] response 响应缓冲区
+     * @param[in] resp_size 响应缓冲区大小
+     * @param[out] actual_size 实际响应长度
+     * @param[in] timeout_ms 超时时间（毫秒）
+     * @return OSAL_SUCCESS 成功
+     */
+    int32_t (*send_packet)(void *handle,
+                           const uint8_t *packet,
+                           uint32_t packet_len,
+                           uint8_t *response,
+                           uint32_t resp_size,
+                           uint32_t *actual_size,
+                           uint32_t timeout_ms);
 } pdl_mcu_ops_t;
 
 /*===========================================================================

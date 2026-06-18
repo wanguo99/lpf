@@ -21,10 +21,10 @@
  * @brief CAN通信上下文
  */
 typedef struct {
-	hal_can_handle_t can_handle;
-	uint32_t tx_id;
-	uint32_t rx_id;
-	osal_mutex_t rx_mutex;
+    hal_can_handle_t can_handle;
+    uint32_t tx_id;
+    uint32_t rx_id;
+    osal_mutex_t rx_mutex;
 } mcu_can_context_t;
 
 /**
@@ -32,45 +32,45 @@ typedef struct {
  */
 int32_t mcu_can_init(const void *config, void **handle)
 {
-	const pconfig_mcu_config_t *mcu_cfg;
-	mcu_can_context_t *ctx;
-	hal_can_config_t can_config;
+    const pconfig_mcu_config_t *mcu_cfg;
+    mcu_can_context_t *ctx;
+    hal_can_config_t can_config;
 
-	if (!config || !handle) {
-		return OSAL_ERR_INVALID_PARAM;
-	}
+    if (!config || !handle) {
+        return OSAL_ERR_INVALID_PARAM;
+    }
 
-	mcu_cfg = (const pconfig_mcu_config_t *)config;
-	ctx = (mcu_can_context_t *)OSAL_malloc(sizeof(mcu_can_context_t));
-	if (!ctx) {
-		return OSAL_ERR_NO_MEMORY;
-	}
+    mcu_cfg = (const pconfig_mcu_config_t *)config;
+    ctx = (mcu_can_context_t *)OSAL_malloc(sizeof(mcu_can_context_t));
+    if (!ctx) {
+        return OSAL_ERR_NO_MEMORY;
+    }
 
-	OSAL_memset(ctx, 0, sizeof(mcu_can_context_t));
+    OSAL_memset(ctx, 0, sizeof(mcu_can_context_t));
 
-	/* 配置CAN参数 */
-	can_config.interface = mcu_cfg->hw.can.device;
-	can_config.baudrate = mcu_cfg->hw.can.bitrate;
-	can_config.rx_timeout = mcu_cfg->hw.can.rx_timeout;
-	can_config.tx_timeout = mcu_cfg->hw.can.tx_timeout;
+    /* 配置CAN参数 */
+    can_config.interface = mcu_cfg->hw.can.device;
+    can_config.baudrate = mcu_cfg->hw.can.bitrate;
+    can_config.rx_timeout = mcu_cfg->hw.can.rx_timeout;
+    can_config.tx_timeout = mcu_cfg->hw.can.tx_timeout;
 
-	if (OSAL_SUCCESS != HAL_CAN_init(&can_config, &ctx->can_handle)) {
-		OSAL_free(ctx);
-		return OSAL_ERR_GENERIC;
-	}
+    if (OSAL_SUCCESS != HAL_CAN_init(&can_config, &ctx->can_handle)) {
+        OSAL_free(ctx);
+        return OSAL_ERR_GENERIC;
+    }
 
-	ctx->tx_id = mcu_cfg->hw.can.tx_id;
-	ctx->rx_id = mcu_cfg->hw.can.rx_id;
+    ctx->tx_id = mcu_cfg->hw.can.tx_id;
+    ctx->rx_id = mcu_cfg->hw.can.rx_id;
 
-	/* 创建接收互斥锁 */
-	if (OSAL_SUCCESS != OSAL_pthread_mutex_init(&ctx->rx_mutex, NULL)) {
-		HAL_CAN_deinit(ctx->can_handle);
-		OSAL_free(ctx);
-		return OSAL_ERR_GENERIC;
-	}
+    /* 创建接收互斥锁 */
+    if (OSAL_SUCCESS != OSAL_pthread_mutex_init(&ctx->rx_mutex, NULL)) {
+        HAL_CAN_deinit(ctx->can_handle);
+        OSAL_free(ctx);
+        return OSAL_ERR_GENERIC;
+    }
 
-	*handle = ctx;
-	return OSAL_SUCCESS;
+    *handle = ctx;
+    return OSAL_SUCCESS;
 }
 
 /**
@@ -78,19 +78,19 @@ int32_t mcu_can_init(const void *config, void **handle)
  */
 int32_t mcu_can_deinit(void *handle)
 {
-	mcu_can_context_t *ctx;
+    mcu_can_context_t *ctx;
 
-	if (!handle) {
-		return OSAL_ERR_INVALID_PARAM;
-	}
+    if (!handle) {
+        return OSAL_ERR_INVALID_PARAM;
+    }
 
-	ctx = (mcu_can_context_t *)handle;
+    ctx = (mcu_can_context_t *)handle;
 
-	HAL_CAN_deinit(ctx->can_handle);
-	OSAL_pthread_mutex_destroy(&ctx->rx_mutex);
-	OSAL_free(ctx);
+    HAL_CAN_deinit(ctx->can_handle);
+    OSAL_pthread_mutex_destroy(&ctx->rx_mutex);
+    OSAL_free(ctx);
 
-	return OSAL_SUCCESS;
+    return OSAL_SUCCESS;
 }
 
 /**
@@ -104,106 +104,108 @@ int32_t mcu_can_send_packet(void *handle,
                             uint32_t *actual_size,
                             uint32_t timeout_ms)
 {
-	mcu_can_context_t *ctx;
-	hal_can_frame_t can_frame;
-	hal_can_frame_t rx_frame;
-	int32_t ret;
-	uint64_t start_time_us;
-	uint64_t elapsed_us;
-	uint32_t remaining_timeout_ms;
-	uint32_t sent_bytes = 0;
-	uint32_t recv_bytes = 0;
+    mcu_can_context_t *ctx;
+    hal_can_frame_t can_frame;
+    hal_can_frame_t rx_frame;
+    int32_t ret;
+    uint64_t start_time_us;
+    uint64_t elapsed_us;
+    uint32_t remaining_timeout_ms;
+    uint32_t sent_bytes = 0;
+    uint32_t recv_bytes = 0;
 
-	if (!handle || !packet) {
-		return OSAL_ERR_INVALID_PARAM;
-	}
+    if (!handle || !packet) {
+        return OSAL_ERR_INVALID_PARAM;
+    }
 
-	ctx = (mcu_can_context_t *)handle;
+    ctx = (mcu_can_context_t *)handle;
 
-	/* 记录起始时间 */
-	start_time_us = OSAL_get_monotonic_time();
+    /* 记录起始时间 */
+    start_time_us = OSAL_get_monotonic_time();
 
-	/* 分片发送 PRL 报文（CAN 每帧最多 8 字节） */
-	while (sent_bytes < packet_len) {
-		uint32_t chunk_size = (packet_len - sent_bytes > 8) ? 8 : (packet_len - sent_bytes);
+    /* 分片发送 PRL 报文（CAN 每帧最多 8 字节） */
+    while (sent_bytes < packet_len) {
+        uint32_t chunk_size =
+            (packet_len - sent_bytes > 8) ? 8 : (packet_len - sent_bytes);
 
-		can_frame.can_id = ctx->tx_id;
-		can_frame.dlc = chunk_size;
-		OSAL_memcpy(can_frame.data, &packet[sent_bytes], chunk_size);
+        can_frame.can_id = ctx->tx_id;
+        can_frame.dlc = chunk_size;
+        OSAL_memcpy(can_frame.data, &packet[sent_bytes], chunk_size);
 
-		ret = HAL_CAN_send(ctx->can_handle, &can_frame);
-		if (ret != OSAL_SUCCESS) {
-			return ret;
-		}
+        ret = HAL_CAN_send(ctx->can_handle, &can_frame);
+        if (ret != OSAL_SUCCESS) {
+            return ret;
+        }
 
-		sent_bytes += chunk_size;
+        sent_bytes += chunk_size;
 
-		/* 检查超时 */
-		elapsed_us = OSAL_get_monotonic_time() - start_time_us;
-		if (elapsed_us / 1000 >= timeout_ms) {
-			return OSAL_ERR_TIMEOUT;
-		}
-	}
+        /* 检查超时 */
+        elapsed_us = OSAL_get_monotonic_time() - start_time_us;
+        if (elapsed_us / 1000 >= timeout_ms) {
+            return OSAL_ERR_TIMEOUT;
+        }
+    }
 
-	/* 计算剩余超时时间 */
-	elapsed_us = OSAL_get_monotonic_time() - start_time_us;
-	if (elapsed_us / 1000 >= timeout_ms) {
-		return OSAL_ERR_TIMEOUT;
-	}
-	remaining_timeout_ms = timeout_ms - (uint32_t)(elapsed_us / 1000);
+    /* 计算剩余超时时间 */
+    elapsed_us = OSAL_get_monotonic_time() - start_time_us;
+    if (elapsed_us / 1000 >= timeout_ms) {
+        return OSAL_ERR_TIMEOUT;
+    }
+    remaining_timeout_ms = timeout_ms - (uint32_t)(elapsed_us / 1000);
 
-	/* 接收响应报文（可能多帧） */
-	OSAL_pthread_mutex_lock(&ctx->rx_mutex);
+    /* 接收响应报文（可能多帧） */
+    OSAL_pthread_mutex_lock(&ctx->rx_mutex);
 
-	while (recv_bytes < resp_size) {
-		ret = HAL_CAN_recv(ctx->can_handle, &rx_frame, remaining_timeout_ms);
-		if (ret != OSAL_SUCCESS) {
-			OSAL_pthread_mutex_unlock(&ctx->rx_mutex);
-			return ret;
-		}
+    while (recv_bytes < resp_size) {
+        ret = HAL_CAN_recv(ctx->can_handle, &rx_frame, remaining_timeout_ms);
+        if (ret != OSAL_SUCCESS) {
+            OSAL_pthread_mutex_unlock(&ctx->rx_mutex);
+            return ret;
+        }
 
-		/* 检查 CAN ID */
-		if (rx_frame.can_id != ctx->rx_id) {
-			OSAL_pthread_mutex_unlock(&ctx->rx_mutex);
-			return OSAL_ERR_GENERIC;
-		}
+        /* 检查 CAN ID */
+        if (rx_frame.can_id != ctx->rx_id) {
+            OSAL_pthread_mutex_unlock(&ctx->rx_mutex);
+            return OSAL_ERR_GENERIC;
+        }
 
-		/* 复制数据 */
-		uint32_t copy_len = (resp_size - recv_bytes > rx_frame.dlc) ?
-		                    rx_frame.dlc : (resp_size - recv_bytes);
-		if (response) {
-			OSAL_memcpy(&response[recv_bytes], rx_frame.data, copy_len);
-		}
-		recv_bytes += copy_len;
+        /* 复制数据 */
+        uint32_t copy_len = (resp_size - recv_bytes > rx_frame.dlc)
+                                ? rx_frame.dlc
+                                : (resp_size - recv_bytes);
+        if (response) {
+            OSAL_memcpy(&response[recv_bytes], rx_frame.data, copy_len);
+        }
+        recv_bytes += copy_len;
 
-		/* 简单判断：如果收到的数据少于 8 字节，说明是最后一帧 */
-		if (rx_frame.dlc < 8) {
-			break;
-		}
+        /* 简单判断：如果收到的数据少于 8 字节，说明是最后一帧 */
+        if (rx_frame.dlc < 8) {
+            break;
+        }
 
-		/* 更新剩余超时 */
-		elapsed_us = OSAL_get_monotonic_time() - start_time_us;
-		if (elapsed_us / 1000 >= timeout_ms) {
-			OSAL_pthread_mutex_unlock(&ctx->rx_mutex);
-			return OSAL_ERR_TIMEOUT;
-		}
-		remaining_timeout_ms = timeout_ms - (uint32_t)(elapsed_us / 1000);
-	}
+        /* 更新剩余超时 */
+        elapsed_us = OSAL_get_monotonic_time() - start_time_us;
+        if (elapsed_us / 1000 >= timeout_ms) {
+            OSAL_pthread_mutex_unlock(&ctx->rx_mutex);
+            return OSAL_ERR_TIMEOUT;
+        }
+        remaining_timeout_ms = timeout_ms - (uint32_t)(elapsed_us / 1000);
+    }
 
-	OSAL_pthread_mutex_unlock(&ctx->rx_mutex);
+    OSAL_pthread_mutex_unlock(&ctx->rx_mutex);
 
-	if (actual_size) {
-		*actual_size = recv_bytes;
-	}
+    if (actual_size) {
+        *actual_size = recv_bytes;
+    }
 
-	return OSAL_SUCCESS;
+    return OSAL_SUCCESS;
 }
 
 /**
  * @brief CAN接口的ops结构定义（导出供pdl_mcu.c使用）
  */
 const pdl_mcu_ops_t mcu_can_ops = {
-	.init = mcu_can_init,
-	.deinit = mcu_can_deinit,
-	.send_packet = mcu_can_send_packet,
+    .init = mcu_can_init,
+    .deinit = mcu_can_deinit,
+    .send_packet = mcu_can_send_packet,
 };

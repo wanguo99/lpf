@@ -24,9 +24,9 @@
 /*
  * PDL 版本信息
  */
-#define PDL_VERSION_MAJOR  0x1
-#define PDL_VERSION_MINOR  0x0
-#define PDL_VERSION_PATCH  0x0
+#define PDL_VERSION_MAJOR 0x1
+#define PDL_VERSION_MINOR 0x0
+#define PDL_VERSION_PATCH 0x0
 
 /* 依赖的基础库 */
 #ifdef CONFIG_OSAL
@@ -35,7 +35,7 @@
 
 /* 设备驱动 - 当前仅保留 MCU 外设类型 */
 #ifdef CONFIG_PDL_MCU_SUPPORT
-#include "pdl_mcu.h"         /* MCU（微控制器）驱动 */
-#endif /* CONFIG_PDL_MCU_SUPPORT */
+#include "pdl_mcu.h" /* MCU（微控制器）驱动 */
+#endif               /* CONFIG_PDL_MCU_SUPPORT */
 
 #endif /* PDL_H */

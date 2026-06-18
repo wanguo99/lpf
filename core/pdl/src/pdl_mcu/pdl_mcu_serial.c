@@ -22,16 +22,16 @@
  */
 static uint8_t pdl_to_hal_parity(pconfig_mcu_parity_t pdl_parity)
 {
-	switch (pdl_parity) {
-	case PCONFIG_MCU_PARITY_NONE:
-		return HAL_SERIAL_PARITY_NONE;
-	case PCONFIG_MCU_PARITY_ODD:
-		return HAL_SERIAL_PARITY_ODD;
-	case PCONFIG_MCU_PARITY_EVEN:
-		return HAL_SERIAL_PARITY_EVEN;
-	default:
-		return HAL_SERIAL_PARITY_NONE;
-	}
+    switch (pdl_parity) {
+    case PCONFIG_MCU_PARITY_NONE:
+        return HAL_SERIAL_PARITY_NONE;
+    case PCONFIG_MCU_PARITY_ODD:
+        return HAL_SERIAL_PARITY_ODD;
+    case PCONFIG_MCU_PARITY_EVEN:
+        return HAL_SERIAL_PARITY_EVEN;
+    default:
+        return HAL_SERIAL_PARITY_NONE;
+    }
 }
 
 /**
@@ -39,16 +39,16 @@ static uint8_t pdl_to_hal_parity(pconfig_mcu_parity_t pdl_parity)
  */
 static uint8_t pdl_to_hal_flow_control(pconfig_mcu_flow_control_t pdl_flow)
 {
-	switch (pdl_flow) {
-	case PCONFIG_MCU_FLOW_NONE:
-		return HAL_SERIAL_FLOW_NONE;
-	case PCONFIG_MCU_FLOW_HW:
-		return HAL_SERIAL_FLOW_HW;
-	case PCONFIG_MCU_FLOW_SW:
-		return HAL_SERIAL_FLOW_SW;
-	default:
-		return HAL_SERIAL_FLOW_NONE;
-	}
+    switch (pdl_flow) {
+    case PCONFIG_MCU_FLOW_NONE:
+        return HAL_SERIAL_FLOW_NONE;
+    case PCONFIG_MCU_FLOW_HW:
+        return HAL_SERIAL_FLOW_HW;
+    case PCONFIG_MCU_FLOW_SW:
+        return HAL_SERIAL_FLOW_SW;
+    default:
+        return HAL_SERIAL_FLOW_NONE;
+    }
 }
 
 /*===========================================================================
@@ -58,10 +58,9 @@ static uint8_t pdl_to_hal_flow_control(pconfig_mcu_flow_control_t pdl_flow)
 /**
  * @brief 串口通信上下文
  */
-typedef struct
-{
-	hal_serial_handle_t serial_handle;
-	osal_mutex_t rx_mutex;
+typedef struct {
+    hal_serial_handle_t serial_handle;
+    osal_mutex_t rx_mutex;
 } mcu_serial_context_t;
 
 /**
@@ -69,43 +68,46 @@ typedef struct
  */
 int32_t mcu_serial_init(const void *config, void **handle)
 {
-	const pconfig_mcu_config_t *mcu_cfg;
-	mcu_serial_context_t *ctx;
-	hal_serial_config_t serial_config;
+    const pconfig_mcu_config_t *mcu_cfg;
+    mcu_serial_context_t *ctx;
+    hal_serial_config_t serial_config;
 
-	if (!config || !handle) {
-		return OSAL_ERR_INVALID_PARAM;
-	}
+    if (!config || !handle) {
+        return OSAL_ERR_INVALID_PARAM;
+    }
 
-	mcu_cfg = (const pconfig_mcu_config_t *)config;
-	ctx = (mcu_serial_context_t *)OSAL_malloc(sizeof(mcu_serial_context_t));
-	if (!ctx) {
-		return OSAL_ERR_NO_MEMORY;
-	}
+    mcu_cfg = (const pconfig_mcu_config_t *)config;
+    ctx = (mcu_serial_context_t *)OSAL_malloc(sizeof(mcu_serial_context_t));
+    if (!ctx) {
+        return OSAL_ERR_NO_MEMORY;
+    }
 
-	OSAL_memset(ctx, 0, sizeof(mcu_serial_context_t));
+    OSAL_memset(ctx, 0, sizeof(mcu_serial_context_t));
 
-	/* 配置串口参数 */
-	serial_config.baud_rate = mcu_cfg->hw.serial.baudrate;
-	serial_config.data_bits = mcu_cfg->hw.serial.data_bits;
-	serial_config.stop_bits = mcu_cfg->hw.serial.stop_bits;
-	serial_config.parity = pdl_to_hal_parity(mcu_cfg->hw.serial.parity);
-	serial_config.flow_control = pdl_to_hal_flow_control(mcu_cfg->hw.serial.flow_control);
+    /* 配置串口参数 */
+    serial_config.baud_rate = mcu_cfg->hw.serial.baudrate;
+    serial_config.data_bits = mcu_cfg->hw.serial.data_bits;
+    serial_config.stop_bits = mcu_cfg->hw.serial.stop_bits;
+    serial_config.parity = pdl_to_hal_parity(mcu_cfg->hw.serial.parity);
+    serial_config.flow_control =
+        pdl_to_hal_flow_control(mcu_cfg->hw.serial.flow_control);
 
-	if (OSAL_SUCCESS != HAL_SERIAL_open(mcu_cfg->hw.serial.device, &serial_config, &ctx->serial_handle)) {
-		OSAL_free(ctx);
-		return OSAL_ERR_GENERIC;
-	}
+    if (OSAL_SUCCESS != HAL_SERIAL_open(mcu_cfg->hw.serial.device,
+                                        &serial_config,
+                                        &ctx->serial_handle)) {
+        OSAL_free(ctx);
+        return OSAL_ERR_GENERIC;
+    }
 
-	/* 创建接收互斥锁 */
-	if (OSAL_SUCCESS != OSAL_pthread_mutex_init(&ctx->rx_mutex, NULL)) {
-		HAL_SERIAL_close(ctx->serial_handle);
-		OSAL_free(ctx);
-		return OSAL_ERR_GENERIC;
-	}
+    /* 创建接收互斥锁 */
+    if (OSAL_SUCCESS != OSAL_pthread_mutex_init(&ctx->rx_mutex, NULL)) {
+        HAL_SERIAL_close(ctx->serial_handle);
+        OSAL_free(ctx);
+        return OSAL_ERR_GENERIC;
+    }
 
-	*handle = ctx;
-	return OSAL_SUCCESS;
+    *handle = ctx;
+    return OSAL_SUCCESS;
 }
 
 /**
@@ -113,19 +115,19 @@ int32_t mcu_serial_init(const void *config, void **handle)
  */
 int32_t mcu_serial_deinit(void *handle)
 {
-	mcu_serial_context_t *ctx;
+    mcu_serial_context_t *ctx;
 
-	if (!handle) {
-		return OSAL_ERR_INVALID_PARAM;
-	}
+    if (!handle) {
+        return OSAL_ERR_INVALID_PARAM;
+    }
 
-	ctx = (mcu_serial_context_t *)handle;
+    ctx = (mcu_serial_context_t *)handle;
 
-	HAL_SERIAL_close(ctx->serial_handle);
-	OSAL_pthread_mutex_destroy(&ctx->rx_mutex);
-	OSAL_free(ctx);
+    HAL_SERIAL_close(ctx->serial_handle);
+    OSAL_pthread_mutex_destroy(&ctx->rx_mutex);
+    OSAL_free(ctx);
 
-	return OSAL_SUCCESS;
+    return OSAL_SUCCESS;
 }
 
 /**
@@ -139,60 +141,63 @@ int32_t mcu_serial_send_packet(void *handle,
                                uint32_t *actual_size,
                                uint32_t timeout_ms)
 {
-	mcu_serial_context_t *ctx;
-	int32_t ret;
-	int32_t rx_len;
-	uint64_t start_time_us;
-	uint64_t elapsed_us;
-	uint32_t remaining_timeout_ms;
+    mcu_serial_context_t *ctx;
+    int32_t ret;
+    int32_t rx_len;
+    uint64_t start_time_us;
+    uint64_t elapsed_us;
+    uint32_t remaining_timeout_ms;
 
-	if (!handle || !packet) {
-		return OSAL_ERR_INVALID_PARAM;
-	}
+    if (!handle || !packet) {
+        return OSAL_ERR_INVALID_PARAM;
+    }
 
-	ctx = (mcu_serial_context_t *)handle;
+    ctx = (mcu_serial_context_t *)handle;
 
-	/* 记录起始时间 */
-	start_time_us = OSAL_get_monotonic_time();
+    /* 记录起始时间 */
+    start_time_us = OSAL_get_monotonic_time();
 
-	/* 发送 PRL 报文（完整报文，包含协议头和 CRC） */
-	ret = HAL_SERIAL_write(ctx->serial_handle, packet, packet_len, timeout_ms);
-	if (ret != (int32_t)packet_len) {
-		return OSAL_ERR_GENERIC;
-	}
+    /* 发送 PRL 报文（完整报文，包含协议头和 CRC） */
+    ret = HAL_SERIAL_write(ctx->serial_handle, packet, packet_len, timeout_ms);
+    if (ret != (int32_t)packet_len) {
+        return OSAL_ERR_GENERIC;
+    }
 
-	/* 计算剩余超时时间 */
-	elapsed_us = OSAL_get_monotonic_time() - start_time_us;
-	if (elapsed_us / 1000 >= timeout_ms) {
-		return OSAL_ERR_TIMEOUT;
-	}
-	remaining_timeout_ms = timeout_ms - (uint32_t)(elapsed_us / 1000);
+    /* 计算剩余超时时间 */
+    elapsed_us = OSAL_get_monotonic_time() - start_time_us;
+    if (elapsed_us / 1000 >= timeout_ms) {
+        return OSAL_ERR_TIMEOUT;
+    }
+    remaining_timeout_ms = timeout_ms - (uint32_t)(elapsed_us / 1000);
 
-	/* 接收响应报文 */
-	OSAL_pthread_mutex_lock(&ctx->rx_mutex);
+    /* 接收响应报文 */
+    OSAL_pthread_mutex_lock(&ctx->rx_mutex);
 
-	rx_len = HAL_SERIAL_read(ctx->serial_handle, response, resp_size, remaining_timeout_ms);
+    rx_len = HAL_SERIAL_read(ctx->serial_handle,
+                             response,
+                             resp_size,
+                             remaining_timeout_ms);
 
-	OSAL_pthread_mutex_unlock(&ctx->rx_mutex);
+    OSAL_pthread_mutex_unlock(&ctx->rx_mutex);
 
-	if (rx_len < 0) {
-		return OSAL_ERR_GENERIC;
-	} else if (rx_len == 0) {
-		return OSAL_ERR_TIMEOUT;
-	}
+    if (rx_len < 0) {
+        return OSAL_ERR_GENERIC;
+    } else if (rx_len == 0) {
+        return OSAL_ERR_TIMEOUT;
+    }
 
-	if (actual_size) {
-		*actual_size = (uint32_t)rx_len;
-	}
+    if (actual_size) {
+        *actual_size = (uint32_t)rx_len;
+    }
 
-	return OSAL_SUCCESS;
+    return OSAL_SUCCESS;
 }
 
 /**
  * @brief Serial接口的ops结构定义（导出供pdl_mcu.c使用）
  */
 const pdl_mcu_ops_t mcu_serial_ops = {
-	.init = mcu_serial_init,
-	.deinit = mcu_serial_deinit,
-	.send_packet = mcu_serial_send_packet,
+    .init = mcu_serial_init,
+    .deinit = mcu_serial_deinit,
+    .send_packet = mcu_serial_send_packet,
 };
