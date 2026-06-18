@@ -118,28 +118,6 @@
 
 /*
  * ========================================================================
- * 平台相关类型定义
- * ========================================================================
- */
-
-/* 指针大小 */
-#if OSAL_ARCH_BITS == 64
-typedef unsigned long long osal_ptr_t;
-typedef long long osal_sptr_t;
-#else
-typedef unsigned long osal_ptr_t;
-typedef long osal_sptr_t;
-#endif
-
-/* 原子类型 */
-#if OSAL_ARCH_BITS == 64
-typedef long long osal_atomic_t;
-#else
-typedef int osal_atomic_t;
-#endif
-
-/*
- * ========================================================================
  * 平台相关宏
  * ========================================================================
  */
@@ -159,15 +137,12 @@ typedef int osal_atomic_t;
 #define OSAL_BIG_ENDIAN 0x0
 #endif
 
-/* 对齐宏 */
+/* 打包属性宏 */
 #if defined(OSAL_COMPILER_GCC)
-#define OSAL_ALIGNED(x) __attribute__((aligned(x)))
 #define OSAL_PACKED __attribute__((packed))
 #elif defined(OSAL_COMPILER_MSVC)
-#define OSAL_ALIGNED(x) __declspec(align(x))
 #define OSAL_PACKED
 #else
-#define OSAL_ALIGNED(x)
 #define OSAL_PACKED
 #endif
 
@@ -191,6 +166,37 @@ typedef int osal_atomic_t;
 #define OSAL_API __attribute__((visibility("default")))
 #else
 #define OSAL_API
+#endif
+
+/*
+ * ========================================================================
+ * 平台相关类型定义
+ * ========================================================================
+ */
+
+/* 指针大小 */
+#if OSAL_ARCH_BITS == 64
+typedef unsigned long long osal_ptr_t;
+typedef long long osal_sptr_t;
+#else
+typedef unsigned long osal_ptr_t;
+typedef long osal_sptr_t;
+#endif
+
+/* 原子类型 */
+#if OSAL_ARCH_BITS == 64
+typedef long long osal_atomic_t;
+#else
+typedef int osal_atomic_t;
+#endif
+
+/* 对齐宏 */
+#if defined(OSAL_COMPILER_GCC)
+#define OSAL_ALIGNED(x) __attribute__((aligned(x)))
+#elif defined(OSAL_COMPILER_MSVC)
+#define OSAL_ALIGNED(x) __declspec(align(x))
+#else
+#define OSAL_ALIGNED(x)
 #endif
 
 #endif /* OSAL_PLATFORM_H */

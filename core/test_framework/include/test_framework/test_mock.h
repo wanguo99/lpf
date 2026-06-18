@@ -62,6 +62,17 @@
 extern "C" {
 #endif
 
+#define TEST_MOCK_MAX_FUNCS 32
+
+/*
+ * 声明弱符号，允许 mock 替换。
+ */
+#ifdef __GNUC__
+#define TEST_MOCKABLE __attribute__((weak))
+#else
+#define TEST_MOCKABLE
+#endif
+
 /* Mock 状态跟踪 */
 typedef struct {
 	const char *func_name; /* 函数名称 */
@@ -78,41 +89,10 @@ typedef struct {
 } test_mock_state_t;
 
 /* Mock 注册表 */
-#define TEST_MOCK_MAX_FUNCS 32
-
 typedef struct {
 	test_mock_state_t mocks[TEST_MOCK_MAX_FUNCS];
 	uint32_t mock_count;
 } test_mock_registry_t;
-
-/* 全局 mock 注册表 */
-extern test_mock_registry_t g_mock_registry;
-
-/**
- * @brief 初始化 mock 系统
- */
-void test_mock_init(void);
-
-/**
- * @brief 重置所有 mock 状态
- */
-void test_mock_reset_all(void);
-
-/**
- * @brief 注册一个 mock 函数
- *
- * @param func_name 函数名称
- * @return mock 状态指针
- */
-test_mock_state_t *test_mock_register(const char *func_name);
-
-/**
- * @brief 获取 mock 状态
- *
- * @param func_name 函数名称
- * @return mock 状态指针，如果未找到则返回 NULL
- */
-test_mock_state_t *test_mock_get(const char *func_name);
 
 /**
  * @brief 记录函数被调用
@@ -250,24 +230,6 @@ test_mock_state_t *test_mock_get(const char *func_name);
 #define TEST_MOCK_RESTORE_ALL() test_mock_reset_all()
 
 /**
- * @brief 声明一个函数为弱符号（用于允许 mock 替换）
- *
- * 使用示例：
- * @code
- * // 在 HAL 实现文件中
- * TEST_MOCKABLE
- * int32_t hal_can_init(const hal_can_config_t *cfg, hal_can_handle_t *hdl) {
- *     // 真实实现...
- * }
- * @endcode
- */
-#ifdef __GNUC__
-#define TEST_MOCKABLE __attribute__((weak))
-#else
-#define TEST_MOCKABLE
-#endif
-
-/**
  * @brief 简化的 mock 替换宏（需要链接器支持）
  *
  * 注意：这是一个占位符宏，实际的函数替换需要在编译时使用弱符号或链接器脚本
@@ -279,6 +241,35 @@ test_mock_state_t *test_mock_get(const char *func_name);
 		osal_printf("[   INFO   ] Mock registered: %s -> %s\n", \
 					#original_func, #mock_func);                \
 	} while (0)
+
+/* 全局 mock 注册表 */
+extern test_mock_registry_t g_mock_registry;
+
+/**
+ * @brief 初始化 mock 系统
+ */
+void test_mock_init(void);
+
+/**
+ * @brief 重置所有 mock 状态
+ */
+void test_mock_reset_all(void);
+
+/**
+ * @brief 注册一个 mock 函数
+ *
+ * @param func_name 函数名称
+ * @return mock 状态指针
+ */
+test_mock_state_t *test_mock_register(const char *func_name);
+
+/**
+ * @brief 获取 mock 状态
+ *
+ * @param func_name 函数名称
+ * @return mock 状态指针，如果未找到则返回 NULL
+ */
+test_mock_state_t *test_mock_get(const char *func_name);
 
 #ifdef __cplusplus
 }

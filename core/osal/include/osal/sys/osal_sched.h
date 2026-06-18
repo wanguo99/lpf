@@ -23,13 +23,14 @@ extern "C" {
 
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 /* POSIX 平台 */
+#define OSAL_SCHED_OTHER SCHED_OTHER
+#define OSAL_SCHED_FIFO SCHED_FIFO
+#define OSAL_SCHED_RR SCHED_RR
+
 #ifndef OSAL_SCHED_PARAM_T_DEFINED
 #define OSAL_SCHED_PARAM_T_DEFINED
 typedef struct sched_param osal_sched_param_t;
 #endif
-#define OSAL_SCHED_OTHER SCHED_OTHER
-#define OSAL_SCHED_FIFO SCHED_FIFO
-#define OSAL_SCHED_RR SCHED_RR
 #else
 /* 其他平台（RTOS 等）- 需要提供对应的类型定义 */
 #error "Unsupported platform - please define sched types for your platform"

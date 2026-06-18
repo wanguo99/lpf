@@ -56,65 +56,6 @@ typedef struct stress_context stress_context_t;
 /* 压力测试工作函数 */
 typedef int32_t (*stress_worker_func_t)(void *user_data, uint32_t iteration);
 
-/**
- * 创建压力测试上下文
- * @param name 测试名称
- * @param config 测试配置
- * @return 压力测试上下文，失败返回NULL
- */
-stress_context_t *stress_context_create(const char *name,
-										const stress_config_t *config);
-
-/**
- * 销毁压力测试上下文
- * @param ctx 压力测试上下文
- */
-void stress_context_destroy(stress_context_t *ctx);
-
-/**
- * 运行压力测试
- * @param ctx 压力测试上下文
- * @param worker 工作函数
- * @param user_data 用户数据
- * @return 0成功，负数失败
- */
-int32_t stress_run(stress_context_t *ctx, stress_worker_func_t worker,
-				   void *user_data);
-
-/**
- * 停止压力测试
- * @param ctx 压力测试上下文
- */
-void stress_stop(stress_context_t *ctx);
-
-/**
- * 获取压力测试统计
- * @param ctx 压力测试上下文
- * @param stats 输出统计数据
- * @return 0成功，负数失败
- */
-int32_t stress_get_stats(stress_context_t *ctx, stress_stats_t *stats);
-
-/**
- * 打印压力测试报告
- * @param ctx 压力测试上下文
- */
-void stress_print_report(stress_context_t *ctx);
-
-/**
- * 记录压力测试错误
- * @param ctx 压力测试上下文
- * @param error_msg 错误消息
- */
-void stress_record_error(stress_context_t *ctx, const char *error_msg);
-
-/**
- * 检查是否应该停止
- * @param ctx 压力测试上下文
- * @return true应该停止，false继续运行
- */
-bool stress_should_stop(stress_context_t *ctx);
-
 /* 便捷宏 */
 
 /**
@@ -191,5 +132,64 @@ bool stress_should_stop(stress_context_t *ctx);
 			TEST_FAIL();                                     \
 		}                                                    \
 	} while (0)
+
+/**
+ * 创建压力测试上下文
+ * @param name 测试名称
+ * @param config 测试配置
+ * @return 压力测试上下文，失败返回NULL
+ */
+stress_context_t *stress_context_create(const char *name,
+										const stress_config_t *config);
+
+/**
+ * 销毁压力测试上下文
+ * @param ctx 压力测试上下文
+ */
+void stress_context_destroy(stress_context_t *ctx);
+
+/**
+ * 运行压力测试
+ * @param ctx 压力测试上下文
+ * @param worker 工作函数
+ * @param user_data 用户数据
+ * @return 0成功，负数失败
+ */
+int32_t stress_run(stress_context_t *ctx, stress_worker_func_t worker,
+				   void *user_data);
+
+/**
+ * 停止压力测试
+ * @param ctx 压力测试上下文
+ */
+void stress_stop(stress_context_t *ctx);
+
+/**
+ * 获取压力测试统计
+ * @param ctx 压力测试上下文
+ * @param stats 输出统计数据
+ * @return 0成功，负数失败
+ */
+int32_t stress_get_stats(stress_context_t *ctx, stress_stats_t *stats);
+
+/**
+ * 打印压力测试报告
+ * @param ctx 压力测试上下文
+ */
+void stress_print_report(stress_context_t *ctx);
+
+/**
+ * 记录压力测试错误
+ * @param ctx 压力测试上下文
+ * @param error_msg 错误消息
+ */
+void stress_record_error(stress_context_t *ctx, const char *error_msg);
+
+/**
+ * 检查是否应该停止
+ * @param ctx 压力测试上下文
+ * @return true应该停止，false继续运行
+ */
+bool stress_should_stop(stress_context_t *ctx);
 
 #endif /* TEST_STRESS_H */

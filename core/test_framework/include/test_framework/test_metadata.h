@@ -15,6 +15,17 @@
 
 /* 注意：源文件需要包含 osal.h 以使用 OSAL API */
 
+#define TEST_CATEGORY_ALL ((1u << TEST_CATEGORY_MAX) - 1)
+
+/*
+ * Default metadata (no special attributes)
+ */
+#define TEST_METADATA_DEFAULT                                  \
+	{                                                          \
+		.category = TEST_CATEGORY_UNIT, .tags = TEST_TAG_NONE, \
+		.timeout_ms = 0, .description = ""                     \
+	}
+
 /**
  * Test category enumeration
  * Defines the primary classification of test suites
@@ -78,7 +89,6 @@ typedef struct {
  * Helper macros for category mask operations
  */
 #define TEST_CATEGORY_MASK(cat) (1u << (cat))
-#define TEST_CATEGORY_ALL ((1u << TEST_CATEGORY_MAX) - 1)
 
 /**
  * Helper macro to create metadata initializer
@@ -89,15 +99,6 @@ typedef struct {
 	{                                                               \
 		.category = (cat), .tags = (tags), .timeout_ms = (timeout), \
 		.description = (desc)                                       \
-	}
-
-/**
- * Default metadata (no special attributes)
- */
-#define TEST_METADATA_DEFAULT                                  \
-	{                                                          \
-		.category = TEST_CATEGORY_UNIT, .tags = TEST_TAG_NONE, \
-		.timeout_ms = 0, .description = ""                     \
 	}
 
 /**

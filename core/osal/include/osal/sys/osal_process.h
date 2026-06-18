@@ -17,10 +17,12 @@
 
 #include <sys/types.h>
 
+/* 等待选项 */
+#define OSAL_WNOHANG 0x01 /* 非阻塞等待 */
+
 /*===========================================================================
  * 进程类型定义
  *===========================================================================*/
-
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 /* POSIX 平台 */
 typedef pid_t osal_pid_t; /* 进程ID */
@@ -46,8 +48,5 @@ int32_t osal_execvp(const char *file, char *const argv[]);
 int32_t osal_waitpid(osal_pid_t pid, int32_t *status, int32_t options);
 int32_t osal_setpgid(osal_pid_t pid, osal_pid_t pgid);
 osal_pid_t osal_getpgid(osal_pid_t pid);
-
-/* 等待选项 */
-#define OSAL_WNOHANG 0x01 /* 非阻塞等待 */
 
 #endif /* OSAL_PROCESS_H */

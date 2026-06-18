@@ -15,26 +15,8 @@
 #ifndef OSAL_TERMIOS_H
 #define OSAL_TERMIOS_H
 
-/*===========================================================================
- * termios结构体
- *===========================================================================*/
-
 /* 控制字符数组大小 */
 #define OSAL_NCCS 0x20
-
-/**
- * @brief termios结构体
- */
-typedef struct {
-	uint32_t c_iflag; /* 输入模式标志 */
-	uint32_t c_oflag; /* 输出模式标志 */
-	uint32_t c_cflag; /* 控制模式标志 */
-	uint32_t c_lflag; /* 本地模式标志 */
-	uint8_t c_line; /* 线路规程 */
-	uint8_t c_cc[OSAL_NCCS]; /* 控制字符 */
-	uint32_t c_ispeed; /* 输入波特率 */
-	uint32_t c_ospeed; /* 输出波特率 */
-} osal_termios_t;
 
 /*===========================================================================
  * c_iflag - 输入模式标志
@@ -157,6 +139,24 @@ typedef struct {
 #define OSAL_B3000000 0010015 /* 3000000 baud */
 #define OSAL_B3500000 0010016 /* 3500000 baud */
 #define OSAL_B4000000 0010017 /* 4000000 baud */
+
+/*===========================================================================
+ * termios结构体
+ *===========================================================================*/
+
+/**
+ * @brief termios结构体
+ */
+typedef struct {
+	uint32_t c_iflag; /* 输入模式标志 */
+	uint32_t c_oflag; /* 输出模式标志 */
+	uint32_t c_cflag; /* 控制模式标志 */
+	uint32_t c_lflag; /* 本地模式标志 */
+	uint8_t c_line; /* 线路规程 */
+	uint8_t c_cc[OSAL_NCCS]; /* 控制字符 */
+	uint32_t c_ispeed; /* 输入波特率 */
+	uint32_t c_ospeed; /* 输出波特率 */
+} osal_termios_t;
 
 /*===========================================================================
  * termios函数

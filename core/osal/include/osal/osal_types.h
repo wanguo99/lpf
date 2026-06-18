@@ -12,6 +12,59 @@
 #include "osal_platform.h"
 
 /*===========================================================================
+ * 基础常量宏
+ *===========================================================================*/
+
+#define OS_OBJECT_ID_UNDEFINED ((osal_id_t)0)
+
+/*
+ * 平台位宽检测
+ * 支持：16位(MSP430/AVR), 32位(ARM32/RISC-V32), 64位(x86_64/ARM64/RISC-V64)
+ */
+#if defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || \
+	defined(__amd64__) || defined(__aarch64__) ||                  \
+	(defined(__riscv) && (__riscv_xlen == 64))
+#define OSAL_PLATFORM_BITS 0x40
+#elif defined(__ILP32__) || defined(_WIN32) || defined(__arm__) || \
+	defined(__i386__) || (defined(__riscv) && (__riscv_xlen == 32))
+#define OSAL_PLATFORM_BITS 0x20
+#elif defined(__MSP430__) || defined(__AVR__)
+#define OSAL_PLATFORM_BITS 0x10
+#else
+/* 默认假设32位平台 */
+#define OSAL_PLATFORM_BITS 0x20
+#endif
+
+/*
+ * 缓存行大小（用于避免伪共享）
+ * - x86/ARM: 通常64字节
+ * - 某些ARM: 128字节
+ */
+#ifndef OSAL_CACHE_LINE_SIZE
+#define OSAL_CACHE_LINE_SIZE 0x40
+#endif
+
+/*
+ * 配置常量
+ */
+#define OS_MAX_TASKS 0x40
+#define OS_MAX_QUEUES 0x40
+#define OS_MAX_MUTEXES 0x40
+#define OS_MAX_API_NAME 0x14
+
+/*
+ * 超时常量
+ */
+#define OS_PEND 0x0
+#define OS_CHECK (-1)
+
+/*
+ * 任务优先级
+ */
+#define OS_TASK_PRIORITY_MIN 0x1
+#define OS_TASK_PRIORITY_MAX 0xFF
+
+/*===========================================================================
  * 平台兼容性处理：C99标准类型
  *===========================================================================*/
 
@@ -31,6 +84,25 @@
 #else
 /* 平台不支持stdint.h，手动定义固定宽度类型 */
 
+#ifndef __cplusplus
+#ifndef bool
+#define true 0x1
+#define false 0x0
+#define OSAL_TYPES_NEED_BOOL_TYPE
+#endif
+#endif
+
+#ifndef NULL
+#define NULL ((void *)0)
+#endif
+
+#ifndef _SIZE_T_DEFINED
+#define _SIZE_T_DEFINED
+#define OSAL_TYPES_NEED_SIZE_T_TYPE
+#endif
+
+#define OSAL_TYPES_NEED_BUILTIN_VA_LIST
+
 /* 有符号整数类型 */
 typedef signed char int8_t;
 typedef signed short int16_t;
@@ -44,30 +116,17 @@ typedef unsigned int uint32_t;
 typedef unsigned long long uint64_t;
 
 /* 布尔类型 */
-#ifndef __cplusplus
-#ifndef bool
+#ifdef OSAL_TYPES_NEED_BOOL_TYPE
 typedef unsigned char bool;
-#define true 0x1
-#define false 0x0
-#endif
 #endif
 
 /* osal_size_t和NULL */
-#ifndef NULL
-#define NULL ((void *)0)
-#endif
-
-#ifndef _SIZE_T_DEFINED
-#define _SIZE_T_DEFINED
+#ifdef OSAL_TYPES_NEED_SIZE_T_TYPE
 typedef unsigned long osal_size_t;
 #endif
 
 /* va_list 类型（编译器内建支持） */
 typedef __builtin_va_list va_list;
-#define va_start(ap, last) __builtin_va_start(ap, last)
-#define va_end(ap) __builtin_va_end(ap)
-#define va_arg(ap, type) __builtin_va_arg(ap, type)
-#define va_copy(dest, src) __builtin_va_copy(dest, src)
 #endif
 
 /*===========================================================================
@@ -75,30 +134,6 @@ typedef __builtin_va_list va_list;
  *===========================================================================*/
 
 typedef uint32_t osal_id_t;
-
-#define OS_OBJECT_ID_UNDEFINED ((osal_id_t)0)
-
-/*===========================================================================
- * 平台相关的大小类型
- *===========================================================================*/
-
-/*
- * 平台位宽检测
- * 支持：16位(MSP430/AVR), 32位(ARM32/RISC-V32), 64位(x86_64/ARM64/RISC-V64)
- */
-#if defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || \
-	defined(__amd64__) || defined(__aarch64__) ||                  \
-	(defined(__riscv) && (__riscv_xlen == 64))
-#define OSAL_PLATFORM_BITS 0x40
-#elif defined(__ILP32__) || defined(_WIN32) || defined(__arm__) || \
-	defined(__i386__) || (defined(__riscv) && (__riscv_xlen == 32))
-#define OSAL_PLATFORM_BITS 0x20
-#elif defined(__MSP430__) || defined(__AVR__)
-#define OSAL_PLATFORM_BITS 0x10
-#else
-/* 默认假设32位平台 */
-#define OSAL_PLATFORM_BITS 0x20
-#endif
 
 /*
  * osal_size_t / osal_ssize_t: 平台相关的大小类型
@@ -224,17 +259,15 @@ typedef int64_t osal_nsec_t;
  */
 
 /*
- * 缓存行大小（用于避免伪共享）
- * - x86/ARM: 通常64字节
- * - 某些ARM: 128字节
- */
-#ifndef OSAL_CACHE_LINE_SIZE
-#define OSAL_CACHE_LINE_SIZE 0x40
-#endif
-
-/*
  * 对齐辅助宏
  */
+#ifdef OSAL_TYPES_NEED_BUILTIN_VA_LIST
+#define va_start(ap, last) __builtin_va_start(ap, last)
+#define va_end(ap) __builtin_va_end(ap)
+#define va_arg(ap, type) __builtin_va_arg(ap, type)
+#define va_copy(dest, src) __builtin_va_copy(dest, src)
+#endif
+
 #define OSAL_ALIGN_UP(x, align) (((x) + ((align) - 1)) & ~((align) - 1))
 #define OSAL_ALIGN_DOWN(x, align) ((x) & ~((align) - 1))
 #define OSAL_IS_ALIGNED(x, align) (((osal_uintptr_t)(x) & ((align) - 1)) == 0)
@@ -290,26 +323,6 @@ typedef int64_t osal_nsec_t;
  * 返回值类型
  * 注意：错误码定义已移至 osal_errno.h
  *===========================================================================*/
-
-/*
- * 配置常量
- */
-#define OS_MAX_TASKS 0x40
-#define OS_MAX_QUEUES 0x40
-#define OS_MAX_MUTEXES 0x40
-#define OS_MAX_API_NAME 0x14
-
-/*
- * 超时常量
- */
-#define OS_PEND 0x0
-#define OS_CHECK (-1)
-
-/*
- * 任务优先级
- */
-#define OS_TASK_PRIORITY_MIN 0x1
-#define OS_TASK_PRIORITY_MAX 0xFF
 
 /*===========================================================================
  * 编译时断言（类型安全检查）
@@ -406,6 +419,18 @@ OSAL_STATIC_ASSERT(sizeof(osal_size_t) == 0x2, "size_must_be_2_bytes_on_16bit");
 #define OSAL_BIT_CLR(val, bit) ((val) &= ~OSAL_BIT(bit))
 #define OSAL_BIT_TEST(val, bit) (((val) & OSAL_BIT(bit)) != 0)
 #define OSAL_BIT_TOGGLE(val, bit) ((val) ^= OSAL_BIT(bit))
+
+#ifdef OSAL_TYPES_NEED_BOOL_TYPE
+#undef OSAL_TYPES_NEED_BOOL_TYPE
+#endif
+
+#ifdef OSAL_TYPES_NEED_SIZE_T_TYPE
+#undef OSAL_TYPES_NEED_SIZE_T_TYPE
+#endif
+
+#ifdef OSAL_TYPES_NEED_BUILTIN_VA_LIST
+#undef OSAL_TYPES_NEED_BUILTIN_VA_LIST
+#endif
 
 /*
  * 注意：

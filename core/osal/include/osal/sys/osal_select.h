@@ -47,6 +47,14 @@ typedef struct {
 	int32_t tv_usec; /* 微秒 */
 } osal_timeval_t;
 
+/**
+ * @brief 高精度时间值结构
+ */
+typedef struct {
+	int32_t tv_sec; /* 秒 */
+	int32_t tv_nsec; /* 纳秒 */
+} osal_timespec_t;
+
 /*===========================================================================
  * fd_set操作宏
  *===========================================================================*/
@@ -117,11 +125,6 @@ int32_t osal_select(int32_t nfds, osal_fd_set_t *readfds,
  * - timeout使用timespec结构（秒+纳秒），不会被修改
  * - sigmask在等待期间临时替换进程的信号屏蔽字
  */
-typedef struct {
-	int32_t tv_sec; /* 秒 */
-	int32_t tv_nsec; /* 纳秒 */
-} osal_timespec_t;
-
 int32_t osal_pselect(int32_t nfds, osal_fd_set_t *readfds,
 					 osal_fd_set_t *writefds, osal_fd_set_t *exceptfds,
 					 const osal_timespec_t *timeout, const void *sigmask);

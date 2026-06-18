@@ -62,6 +62,54 @@ typedef struct {
 	double baseline_diff_percent; /* 与基准的差异百分比 */
 } perf_result_t;
 
+/* 便捷宏 */
+
+/**
+ * 性能测试用例定义
+ * @param name 测试名称
+ */
+#define PERF_TEST_CASE(name) static void perf_test_##name(void)
+
+/**
+ * 性能测量块
+ * @param ctx 性能上下文
+ */
+#define PERF_MEASURE(ctx) \
+	for (perf_begin(ctx); ctx != NULL; perf_end(ctx), ctx = NULL)
+
+/**
+ * 性能断言：延迟必须小于阈值
+ * @param ctx 性能上下文
+ * @param threshold_us 阈值（微秒）
+ */
+#define PERF_ASSERT_LATENCY_LT(ctx, threshold_us)                             \
+	do {                                                                      \
+		perf_stats_t stats;                                                   \
+		perf_calculate_stats(ctx, &stats);                                    \
+		if (stats.mean > (threshold_us)) {                                    \
+			osal_printf("[ PERF FAIL ] Latency %.2f us > threshold %lu us\n", \
+						stats.mean, (unsigned long)(threshold_us));           \
+			TEST_FAIL();                                                      \
+		}                                                                     \
+	} while (0)
+
+/**
+ * 性能断言：吞吐量必须大于阈值
+ * @param ctx 性能上下文
+ * @param threshold_ops 阈值（ops/s）
+ */
+#define PERF_ASSERT_THROUGHPUT_GT(ctx, threshold_ops)                          \
+	do {                                                                       \
+		perf_stats_t stats;                                                    \
+		perf_calculate_stats(ctx, &stats);                                     \
+		if (stats.mean < (threshold_ops)) {                                    \
+			osal_printf(                                                       \
+				"[ PERF FAIL ] Throughput %.2f ops/s < threshold %lu ops/s\n", \
+				stats.mean, (unsigned long)(threshold_ops));                   \
+			TEST_FAIL();                                                       \
+		}                                                                      \
+	} while (0)
+
 /**
  * 创建性能测量上下文
  * @param name 测试名称
@@ -144,53 +192,5 @@ int32_t perf_export_csv(perf_context_t *ctx, const char *filename);
  * @return 0成功，负数失败
  */
 int32_t perf_export_json(perf_context_t *ctx, const char *filename);
-
-/* 便捷宏 */
-
-/**
- * 性能测试用例定义
- * @param name 测试名称
- */
-#define PERF_TEST_CASE(name) static void perf_test_##name(void)
-
-/**
- * 性能测量块
- * @param ctx 性能上下文
- */
-#define PERF_MEASURE(ctx) \
-	for (perf_begin(ctx); ctx != NULL; perf_end(ctx), ctx = NULL)
-
-/**
- * 性能断言：延迟必须小于阈值
- * @param ctx 性能上下文
- * @param threshold_us 阈值（微秒）
- */
-#define PERF_ASSERT_LATENCY_LT(ctx, threshold_us)                             \
-	do {                                                                      \
-		perf_stats_t stats;                                                   \
-		perf_calculate_stats(ctx, &stats);                                    \
-		if (stats.mean > (threshold_us)) {                                    \
-			osal_printf("[ PERF FAIL ] Latency %.2f us > threshold %lu us\n", \
-						stats.mean, (unsigned long)(threshold_us));           \
-			TEST_FAIL();                                                      \
-		}                                                                     \
-	} while (0)
-
-/**
- * 性能断言：吞吐量必须大于阈值
- * @param ctx 性能上下文
- * @param threshold_ops 阈值（ops/s）
- */
-#define PERF_ASSERT_THROUGHPUT_GT(ctx, threshold_ops)                          \
-	do {                                                                       \
-		perf_stats_t stats;                                                    \
-		perf_calculate_stats(ctx, &stats);                                     \
-		if (stats.mean < (threshold_ops)) {                                    \
-			osal_printf(                                                       \
-				"[ PERF FAIL ] Throughput %.2f ops/s < threshold %lu ops/s\n", \
-				stats.mean, (unsigned long)(threshold_ops));                   \
-			TEST_FAIL();                                                       \
-		}                                                                      \
-	} while (0)
 
 #endif /* TEST_PERFORMANCE_H */

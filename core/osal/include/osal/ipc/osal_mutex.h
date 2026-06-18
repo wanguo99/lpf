@@ -19,9 +19,10 @@ extern "C" {
 
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 /* POSIX 平台 */
+#define OSAL_PTHREAD_PRIO_INHERIT PTHREAD_PRIO_INHERIT
+
 typedef pthread_mutex_t osal_mutex_t;
 typedef pthread_mutexattr_t osal_mutexattr_t;
-#define OSAL_PTHREAD_PRIO_INHERIT PTHREAD_PRIO_INHERIT
 #else
 /* 其他平台（RTOS 等）- 需要提供对应的类型定义 */
 #error "Unsupported platform - please define mutex types for your platform"

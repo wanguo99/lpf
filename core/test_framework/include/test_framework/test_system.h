@@ -47,6 +47,53 @@ typedef void (*system_env_teardown_func_t)(system_test_env_t *env);
 /* 系统测试函数 */
 typedef int32_t (*system_test_func_t)(system_test_env_t *env);
 
+/* 便捷宏 */
+
+/**
+ * 系统测试用例定义
+ * @param name 测试名称
+ */
+#define SYSTEM_TEST_CASE(name) \
+	static int32_t system_test_##name(system_test_env_t *env)
+
+/**
+ * 系统测试环境初始化
+ * @param name 环境名称
+ */
+#define SYSTEM_ENV_SETUP(name) \
+	static int32_t system_env_setup_##name(system_test_env_t *env)
+
+/**
+ * 系统测试环境清理
+ * @param name 环境名称
+ */
+#define SYSTEM_ENV_TEARDOWN(name) \
+	static void system_env_teardown_##name(system_test_env_t *env)
+
+/**
+ * 系统测试检查点
+ * @param ctx 系统测试上下文
+ * @param name 检查点名称
+ * @param condition 条件表达式
+ */
+#define SYSTEM_CHECKPOINT(ctx, name, condition)                            \
+	do {                                                                   \
+		bool _passed = (condition);                                        \
+		system_test_checkpoint(ctx, name, _passed);                        \
+		if (!_passed) {                                                    \
+			osal_printf("[ CHECKPOINT FAIL ] %s: %s\n", name, #condition); \
+		}                                                                  \
+	} while (0)
+
+/**
+ * 系统测试断言：检查点必须全部通过
+ * @param ctx 系统测试上下文
+ */
+#define SYSTEM_ASSERT_ALL_CHECKPOINTS_PASSED(ctx) \
+	do {                                          \
+		/* 实现由框架提供 */               \
+	} while (0)
+
 /**
  * 创建系统测试上下文
  * @param name 测试名称
@@ -102,52 +149,5 @@ void system_test_checkpoint(system_test_context_t *ctx,
  * @param ctx 系统测试上下文
  */
 void system_test_print_report(system_test_context_t *ctx);
-
-/* 便捷宏 */
-
-/**
- * 系统测试用例定义
- * @param name 测试名称
- */
-#define SYSTEM_TEST_CASE(name) \
-	static int32_t system_test_##name(system_test_env_t *env)
-
-/**
- * 系统测试环境初始化
- * @param name 环境名称
- */
-#define SYSTEM_ENV_SETUP(name) \
-	static int32_t system_env_setup_##name(system_test_env_t *env)
-
-/**
- * 系统测试环境清理
- * @param name 环境名称
- */
-#define SYSTEM_ENV_TEARDOWN(name) \
-	static void system_env_teardown_##name(system_test_env_t *env)
-
-/**
- * 系统测试检查点
- * @param ctx 系统测试上下文
- * @param name 检查点名称
- * @param condition 条件表达式
- */
-#define SYSTEM_CHECKPOINT(ctx, name, condition)                            \
-	do {                                                                   \
-		bool _passed = (condition);                                        \
-		system_test_checkpoint(ctx, name, _passed);                        \
-		if (!_passed) {                                                    \
-			osal_printf("[ CHECKPOINT FAIL ] %s: %s\n", name, #condition); \
-		}                                                                  \
-	} while (0)
-
-/**
- * 系统测试断言：检查点必须全部通过
- * @param ctx 系统测试上下文
- */
-#define SYSTEM_ASSERT_ALL_CHECKPOINTS_PASSED(ctx) \
-	do {                                          \
-		/* 实现由框架提供 */               \
-	} while (0)
 
 #endif /* TEST_SYSTEM_H */

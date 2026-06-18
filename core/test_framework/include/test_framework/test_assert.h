@@ -20,6 +20,9 @@
 extern bool g_test_failed;
 extern const char *g_current_test;
 
+/* Legacy alias */
+#define TEST_ASSERT_EQUAL_STRING TEST_ASSERT_STRING_EQUAL
+
 /* Fail test immediately */
 #define TEST_FAIL()                                              \
 	do {                                                         \
@@ -221,9 +224,6 @@ extern const char *g_current_test;
 			return;                                                          \
 		}                                                                    \
 	} while (0)
-
-/* Legacy alias */
-#define TEST_ASSERT_EQUAL_STRING TEST_ASSERT_STRING_EQUAL
 
 /* Floating point assertions - using simple integer-based comparison */
 #define TEST_ASSERT_FLOAT_EQUAL(expected, actual, tolerance)           \

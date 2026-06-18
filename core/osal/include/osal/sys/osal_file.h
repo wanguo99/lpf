@@ -14,21 +14,6 @@ extern "C" {
 #endif
 
 /*===========================================================================
- * 文件类型定义
- *===========================================================================*/
-
-#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
-/* POSIX 平台 */
-#ifndef OSAL_MODE_T_DEFINED
-#define OSAL_MODE_T_DEFINED
-typedef mode_t osal_mode_t;
-#endif
-#else
-/* 其他平台（RTOS 等）- 需要提供对应的类型定义 */
-#error "Unsupported platform - please define file types for your platform"
-#endif
-
-/*===========================================================================
  * 文件操作标志（对应fcntl.h中的O_*标志）
  *===========================================================================*/
 
@@ -79,6 +64,21 @@ typedef mode_t osal_mode_t;
 #define OSAL_R_OK 0x04 /* 可读 */
 #define OSAL_W_OK 0x02 /* 可写 */
 #define OSAL_X_OK 0x01 /* 可执行 */
+
+/*===========================================================================
+ * 文件类型定义
+ *===========================================================================*/
+
+#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+/* POSIX 平台 */
+#ifndef OSAL_MODE_T_DEFINED
+#define OSAL_MODE_T_DEFINED
+typedef mode_t osal_mode_t;
+#endif
+#else
+/* 其他平台（RTOS 等）- 需要提供对应的类型定义 */
+#error "Unsupported platform - please define file types for your platform"
+#endif
 
 /*===========================================================================
  * 文件I/O操作 API

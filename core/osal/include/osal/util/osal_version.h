@@ -14,6 +14,62 @@ extern "C" {
 #endif
 
 /* ========================================================================
+ * Convenience Macros (similar to kernel's __FILE__, __LINE__, etc.)
+ * ======================================================================== */
+
+/**
+ * @brief 当前软件版本号
+ * 可在任何模块中使用，获取ES-Middleware版本
+ */
+#define OSAL_VERSION osal_get_version()
+
+/**
+ * @brief 当前软件完整版本（版本号+Git）
+ */
+#define OSAL_VERSION_FULL osal_get_version_full()
+
+/**
+ * @brief 当前Git commit
+ */
+#define OSAL_GIT_COMMIT osal_get_git_commit()
+
+/**
+ * @brief 构建时间戳
+ */
+#define OSAL_BUILD_TIME osal_get_build_time()
+
+/**
+ * @brief 当前文件名（内核风格）
+ */
+#define OSAL_FILE __FILE__
+
+/**
+ * @brief 当前行号（内核风格）
+ */
+#define OSAL_LINE __LINE__
+
+/**
+ * @brief 当前函数名（内核风格）
+ */
+#define OSAL_FUNC __func__
+
+/**
+ * @brief 格式化位置信息宏
+ * 输出格式："文件名:行号:函数名"
+ */
+#define OSAL_LOCATION __FILE__ ":" OSAL_STRINGIFY(__LINE__) ":" __func__
+
+/**
+ * @brief 带版本信息的位置宏
+ * 输出格式："[版本号] 文件名:行号:函数名"
+ */
+#define OSAL_VERSION_LOCATION "[" OSAL_VERSION "] " OSAL_LOCATION
+
+/* Helper macro for stringification */
+#define OSAL_STRINGIFY(x) OSAL_STRINGIFY_HELPER(x)
+#define OSAL_STRINGIFY_HELPER(x) #x
+
+/* ========================================================================
  * Version Query APIs
  * ======================================================================== */
 
@@ -82,62 +138,6 @@ const char *osal_get_banner(void);
  * 使用OSAL_printf输出所有版本和构建信息
  */
 void osal_print_version_info(void);
-
-/* ========================================================================
- * Convenience Macros (similar to kernel's __FILE__, __LINE__, etc.)
- * ======================================================================== */
-
-/**
- * @brief 当前软件版本号
- * 可在任何模块中使用，获取ES-Middleware版本
- */
-#define OSAL_VERSION osal_get_version()
-
-/**
- * @brief 当前软件完整版本（版本号+Git）
- */
-#define OSAL_VERSION_FULL osal_get_version_full()
-
-/**
- * @brief 当前Git commit
- */
-#define OSAL_GIT_COMMIT osal_get_git_commit()
-
-/**
- * @brief 构建时间戳
- */
-#define OSAL_BUILD_TIME osal_get_build_time()
-
-/**
- * @brief 当前文件名（内核风格）
- */
-#define OSAL_FILE __FILE__
-
-/**
- * @brief 当前行号（内核风格）
- */
-#define OSAL_LINE __LINE__
-
-/**
- * @brief 当前函数名（内核风格）
- */
-#define OSAL_FUNC __func__
-
-/**
- * @brief 格式化位置信息宏
- * 输出格式："文件名:行号:函数名"
- */
-#define OSAL_LOCATION __FILE__ ":" OSAL_STRINGIFY(__LINE__) ":" __func__
-
-/**
- * @brief 带版本信息的位置宏
- * 输出格式："[版本号] 文件名:行号:函数名"
- */
-#define OSAL_VERSION_LOCATION "[" OSAL_VERSION "] " OSAL_LOCATION
-
-/* Helper macro for stringification */
-#define OSAL_STRINGIFY(x) OSAL_STRINGIFY_HELPER(x)
-#define OSAL_STRINGIFY_HELPER(x) #x
 
 #ifdef __cplusplus
 }

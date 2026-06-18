@@ -20,14 +20,14 @@ extern "C" {
 
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 /* POSIX 平台 */
-typedef pthread_t osal_thread_t;
-typedef pthread_attr_t osal_threadattr_t;
-
 /* 调度参数类型（与 osal_sched.h 共享） */
 #ifndef OSAL_SCHED_PARAM_T_DEFINED
 #define OSAL_SCHED_PARAM_T_DEFINED
 typedef struct sched_param osal_sched_param_t;
 #endif
+
+typedef pthread_t osal_thread_t;
+typedef pthread_attr_t osal_threadattr_t;
 #else
 /* 其他平台（RTOS 等）- 需要提供对应的类型定义 */
 #error "Unsupported platform - please define thread types for your platform"
