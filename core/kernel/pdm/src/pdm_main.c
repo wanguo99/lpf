@@ -205,3 +205,4 @@ module_exit(pdm_exit);
 MODULE_AUTHOR("ES-Middleware");
 MODULE_DESCRIPTION("ES-Middleware PDM kernel module");
 MODULE_LICENSE("GPL");
+MODULE_SOFTDEP("pre: can can_raw");
