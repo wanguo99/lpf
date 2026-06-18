@@ -1,7 +1,7 @@
 /************************************************************************
- * OSAL 条件变量接口 - POSIX 薄封装
+ * OSAL 条件变量接口
  *
- * 直接暴露 POSIX osal_cond_t 类型
+ * 面向调用方提供统一条件变量接口；平台相关类型由当前 OSAL 后端映射。
  ************************************************************************/
 
 #ifndef OSAL_COND_H
@@ -18,9 +18,8 @@ extern "C" {
  *===========================================================================*/
 
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
-/* POSIX 平台 */
 typedef pthread_cond_t osal_cond_t;
-typedef pthread_condattr_t osal_condattr_t;
+typedef pthread_condattr_t osal_cond_attr_t;
 #else
 /* 其他平台（RTOS 等）- 需要提供对应的类型定义 */
 #error \
@@ -28,7 +27,7 @@ typedef pthread_condattr_t osal_condattr_t;
 #endif
 
 /*===========================================================================
- * POSIX 条件变量薄封装
+ * 条件变量接口
  *===========================================================================*/
 
 /**
@@ -39,7 +38,7 @@ typedef pthread_condattr_t osal_condattr_t;
  * @return 0 成功
  * @return -1 失败
  */
-int32_t osal_pthread_cond_init(osal_cond_t *cond, const osal_condattr_t *attr);
+int32_t osal_cond_init(osal_cond_t *cond, const osal_cond_attr_t *attr);
 
 /**
  * @brief 销毁条件变量
@@ -48,7 +47,7 @@ int32_t osal_pthread_cond_init(osal_cond_t *cond, const osal_condattr_t *attr);
  * @return 0 成功
  * @return -1 失败
  */
-int32_t osal_pthread_cond_destroy(osal_cond_t *cond);
+int32_t osal_cond_destroy(osal_cond_t *cond);
 
 /**
  * @brief 等待条件变量（阻塞）
@@ -58,7 +57,7 @@ int32_t osal_pthread_cond_destroy(osal_cond_t *cond);
  * @return 0 成功
  * @return -1 失败
  */
-int32_t osal_pthread_cond_wait(osal_cond_t *cond, osal_mutex_t *mutex);
+int32_t osal_cond_wait(osal_cond_t *cond, osal_mutex_t *mutex);
 
 /**
  * @brief 等待条件变量（超时）
@@ -69,8 +68,8 @@ int32_t osal_pthread_cond_wait(osal_cond_t *cond, osal_mutex_t *mutex);
  * @return 0 成功
  * @return -1 失败（ETIMEDOUT 表示超时）
  */
-int32_t osal_pthread_cond_timedwait(osal_cond_t *cond, osal_mutex_t *mutex,
-									uint32_t timeout_ms);
+int32_t osal_cond_timed_wait(osal_cond_t *cond, osal_mutex_t *mutex,
+							 uint32_t timeout_ms);
 
 /**
  * @brief 唤醒一个等待线程
@@ -79,7 +78,7 @@ int32_t osal_pthread_cond_timedwait(osal_cond_t *cond, osal_mutex_t *mutex,
  * @return 0 成功
  * @return -1 失败
  */
-int32_t osal_pthread_cond_signal(osal_cond_t *cond);
+int32_t osal_cond_signal(osal_cond_t *cond);
 
 /**
  * @brief 唤醒所有等待线程
@@ -88,7 +87,7 @@ int32_t osal_pthread_cond_signal(osal_cond_t *cond);
  * @return 0 成功
  * @return -1 失败
  */
-int32_t osal_pthread_cond_broadcast(osal_cond_t *cond);
+int32_t osal_cond_broadcast(osal_cond_t *cond);
 
 #ifdef __cplusplus
 }

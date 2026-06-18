@@ -102,10 +102,10 @@ static void *_pty_responder_thread(void *arg)
 	uint8_t tx_buffer[512];
 	(void)arg;
 
-	osal_pthread_mutex_lock(&g_responder_mutex);
+	osal_mutex_lock(&g_responder_mutex);
 	g_responder_ready = true;
-	osal_pthread_cond_signal(&g_responder_cond);
-	osal_pthread_mutex_unlock(&g_responder_mutex);
+	osal_cond_signal(&g_responder_cond);
+	osal_mutex_unlock(&g_responder_mutex);
 
 	while (g_responder_running) {
 		osal_pollfd_t pfd;
@@ -211,28 +211,28 @@ static void _setup_full_stack(void)
 	osal_memset(&g_responder_mutex, 0, sizeof(g_responder_mutex));
 	osal_memset(&g_responder_cond, 0, sizeof(g_responder_cond));
 
-	ret = osal_pthread_mutex_init(&g_responder_mutex, NULL);
+	ret = osal_mutex_init(&g_responder_mutex, NULL);
 	if (ret != OSAL_SUCCESS) {
 		return;
 	}
-	ret = osal_pthread_cond_init(&g_responder_cond, NULL);
+	ret = osal_cond_init(&g_responder_cond, NULL);
 	if (ret != OSAL_SUCCESS) {
-		osal_pthread_mutex_destroy(&g_responder_mutex);
+		osal_mutex_destroy(&g_responder_mutex);
 		return;
 	}
 
 	ret = _create_pty_pair();
 	if (ret != OSAL_SUCCESS) {
-		osal_pthread_cond_destroy(&g_responder_cond);
-		osal_pthread_mutex_destroy(&g_responder_mutex);
+		osal_cond_destroy(&g_responder_cond);
+		osal_mutex_destroy(&g_responder_mutex);
 		return;
 	}
 
 	ret = _bind_test_serial_device();
 	if (ret != OSAL_SUCCESS) {
 		_destroy_pty_pair();
-		osal_pthread_cond_destroy(&g_responder_cond);
-		osal_pthread_mutex_destroy(&g_responder_mutex);
+		osal_cond_destroy(&g_responder_cond);
+		osal_mutex_destroy(&g_responder_mutex);
 		return;
 	}
 
@@ -240,29 +240,29 @@ static void _setup_full_stack(void)
 	if (ret != OSAL_SUCCESS) {
 		osal_unlink(TEST_PCONFIG_SERIAL_LINK);
 		_destroy_pty_pair();
-		osal_pthread_cond_destroy(&g_responder_cond);
-		osal_pthread_mutex_destroy(&g_responder_mutex);
+		osal_cond_destroy(&g_responder_cond);
+		osal_mutex_destroy(&g_responder_mutex);
 		return;
 	}
 
 	g_responder_running = true;
-	ret = osal_pthread_create(&g_responder_thread, NULL, _pty_responder_thread,
-							  NULL);
+	ret = osal_thread_create(&g_responder_thread, NULL, _pty_responder_thread,
+							 NULL);
 	if (ret != OSAL_SUCCESS) {
 		g_responder_running = false;
 		prl_deinit();
 		osal_unlink(TEST_PCONFIG_SERIAL_LINK);
 		_destroy_pty_pair();
-		osal_pthread_cond_destroy(&g_responder_cond);
-		osal_pthread_mutex_destroy(&g_responder_mutex);
+		osal_cond_destroy(&g_responder_cond);
+		osal_mutex_destroy(&g_responder_mutex);
 		return;
 	}
 
-	osal_pthread_mutex_lock(&g_responder_mutex);
+	osal_mutex_lock(&g_responder_mutex);
 	while (!g_responder_ready) {
-		osal_pthread_cond_wait(&g_responder_cond, &g_responder_mutex);
+		osal_cond_wait(&g_responder_cond, &g_responder_mutex);
 	}
-	osal_pthread_mutex_unlock(&g_responder_mutex);
+	osal_mutex_unlock(&g_responder_mutex);
 }
 
 static void _teardown_full_stack(void)
@@ -271,13 +271,13 @@ static void _teardown_full_stack(void)
 	if (g_pty_master_fd >= 0) {
 		(void)osal_write(g_pty_master_fd, "\0", 1);
 	}
-	(void)osal_pthread_join(g_responder_thread, NULL);
+	(void)osal_thread_join(g_responder_thread, NULL);
 
 	prl_deinit();
 	osal_unlink(TEST_PCONFIG_SERIAL_LINK);
 	_destroy_pty_pair();
-	osal_pthread_cond_destroy(&g_responder_cond);
-	osal_pthread_mutex_destroy(&g_responder_mutex);
+	osal_cond_destroy(&g_responder_cond);
+	osal_mutex_destroy(&g_responder_mutex);
 }
 
 static void _test_full_stack_configuration_path(void)

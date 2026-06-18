@@ -25,10 +25,10 @@ static void *_producer_thread(void *arg)
 	uint32_t i;
 
 	for (i = 0; i < 100; i++) {
-		osal_pthread_mutex_lock(&ctx->mutex);
+		osal_mutex_lock(&ctx->mutex);
 		osal_atomic_inc(&ctx->counter);
-		osal_pthread_cond_signal(&ctx->cond);
-		osal_pthread_mutex_unlock(&ctx->mutex);
+		osal_cond_signal(&ctx->cond);
+		osal_mutex_unlock(&ctx->mutex);
 		osal_usleep(1000);
 	}
 
@@ -42,15 +42,15 @@ static void *_consumer_thread(void *arg)
 	uint32_t consumed = 0;
 
 	while (consumed < 100) {
-		osal_pthread_mutex_lock(&ctx->mutex);
+		osal_mutex_lock(&ctx->mutex);
 		while (osal_atomic_load(&ctx->counter) == 0 && !ctx->shutdown) {
-			osal_pthread_cond_wait(&ctx->cond, &ctx->mutex);
+			osal_cond_wait(&ctx->cond, &ctx->mutex);
 		}
 		if (osal_atomic_load(&ctx->counter) > 0) {
 			osal_atomic_dec(&ctx->counter);
 			consumed++;
 		}
-		osal_pthread_mutex_unlock(&ctx->mutex);
+		osal_mutex_unlock(&ctx->mutex);
 	}
 
 	return NULL;
@@ -68,10 +68,10 @@ static void _test_system_multi_thread_coordination(void)
 	int32_t ret;
 
 	/* 初始化同步原语 */
-	ret = osal_pthread_mutex_init(&ctx.mutex, NULL);
+	ret = osal_mutex_init(&ctx.mutex, NULL);
 	TEST_ASSERT_EQUAL(0, ret);
 
-	ret = osal_pthread_cond_init(&ctx.cond, NULL);
+	ret = osal_cond_init(&ctx.cond, NULL);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	osal_atomic_store(&ctx.counter, 0);
@@ -79,26 +79,26 @@ static void _test_system_multi_thread_coordination(void)
 	ctx.shutdown = 0;
 
 	/* 创建生产者和消费者线程 */
-	ret = osal_pthread_create(&producer, NULL, _producer_thread, &ctx);
+	ret = osal_thread_create(&producer, NULL, _producer_thread, &ctx);
 	TEST_ASSERT_EQUAL(0, ret);
 
-	ret = osal_pthread_create(&consumer1, NULL, _consumer_thread, &ctx);
+	ret = osal_thread_create(&consumer1, NULL, _consumer_thread, &ctx);
 	TEST_ASSERT_EQUAL(0, ret);
 
-	ret = osal_pthread_create(&consumer2, NULL, _consumer_thread, &ctx);
+	ret = osal_thread_create(&consumer2, NULL, _consumer_thread, &ctx);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	/* 等待完成 */
-	osal_pthread_join(producer, NULL);
-	osal_pthread_join(consumer1, NULL);
-	osal_pthread_join(consumer2, NULL);
+	osal_thread_join(producer, NULL);
+	osal_thread_join(consumer1, NULL);
+	osal_thread_join(consumer2, NULL);
 
 	/* 验证最终状态 */
 	TEST_ASSERT_EQUAL(0, osal_atomic_load(&ctx.counter));
 
 	/* 清理 */
-	osal_pthread_cond_destroy(&ctx.cond);
-	osal_pthread_mutex_destroy(&ctx.mutex);
+	osal_cond_destroy(&ctx.cond);
+	osal_mutex_destroy(&ctx.mutex);
 
 	osal_printf("[ PASS     ] Multi-thread coordination test passed\n");
 }
@@ -195,15 +195,15 @@ static void _test_system_ipc_end_to_end(void)
 	}
 
 	/* 创建读写线程 */
-	ret = osal_pthread_create(&writer, NULL, _writer_thread, &ctx);
+	ret = osal_thread_create(&writer, NULL, _writer_thread, &ctx);
 	TEST_ASSERT_EQUAL(0, ret);
 
-	ret = osal_pthread_create(&reader, NULL, _reader_thread, &ctx);
+	ret = osal_thread_create(&reader, NULL, _reader_thread, &ctx);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	/* 等待完成 */
-	osal_pthread_join(writer, NULL);
-	osal_pthread_join(reader, NULL);
+	osal_thread_join(writer, NULL);
+	osal_thread_join(reader, NULL);
 
 	/* 清理 */
 	if (ctx.shm_ptr && ctx.shm_ptr != MAP_FAILED) {
@@ -256,7 +256,7 @@ static void _test_system_resource_management_full_flow(void)
 
 	/* 阶段2: 初始化资源 */
 	for (i = 0; i < ctx.num_resources; i++) {
-		ret = osal_pthread_mutex_init(&ctx.mutexes[i], NULL);
+		ret = osal_mutex_init(&ctx.mutexes[i], NULL);
 		TEST_ASSERT_EQUAL(0, ret);
 
 		ret = osal_sem_init(&ctx.semaphores[i], 0, 1);
@@ -272,7 +272,7 @@ static void _test_system_resource_management_full_flow(void)
 
 	/* 阶段3: 使用资源 */
 	for (i = 0; i < ctx.num_resources; i++) {
-		ret = osal_pthread_mutex_lock(&ctx.mutexes[i]);
+		ret = osal_mutex_lock(&ctx.mutexes[i]);
 		TEST_ASSERT_EQUAL(0, ret);
 
 		osal_sem_wait(&ctx.semaphores[i]);
@@ -282,7 +282,7 @@ static void _test_system_resource_management_full_flow(void)
 
 		osal_sem_post(&ctx.semaphores[i]);
 
-		ret = osal_pthread_mutex_unlock(&ctx.mutexes[i]);
+		ret = osal_mutex_unlock(&ctx.mutexes[i]);
 		TEST_ASSERT_EQUAL(0, ret);
 	}
 
@@ -290,7 +290,7 @@ static void _test_system_resource_management_full_flow(void)
 	for (i = 0; i < ctx.num_resources; i++) {
 		osal_free(ctx.memory_blocks[i]);
 		osal_sem_destroy(&ctx.semaphores[i]);
-		osal_pthread_mutex_destroy(&ctx.mutexes[i]);
+		osal_mutex_destroy(&ctx.mutexes[i]);
 		osal_atomic_dec(&ctx.active_count);
 	}
 
@@ -370,7 +370,7 @@ static void _test_system_startup_shutdown_flow(void)
 	osal_atomic_store(&g_lifecycle_ctx.shutdown_flags, 0);
 	g_lifecycle_ctx.worker_should_exit = 0;
 
-	ret = osal_pthread_mutex_init(&g_lifecycle_ctx.lifecycle_mutex, NULL);
+	ret = osal_mutex_init(&g_lifecycle_ctx.lifecycle_mutex, NULL);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	ret = osal_sem_init(&g_lifecycle_ctx.lifecycle_sem, 0, 0);
@@ -380,9 +380,9 @@ static void _test_system_startup_shutdown_flow(void)
 
 	/* 阶段2: 启动工作线程 */
 	for (i = 0; i < 5; i++) {
-		ret = osal_pthread_create(&g_lifecycle_ctx.worker_threads[i], NULL,
-								  _lifecycle_worker_thread,
-								  (void *)(uintptr_t)i);
+		ret = osal_thread_create(&g_lifecycle_ctx.worker_threads[i], NULL,
+								 _lifecycle_worker_thread,
+								 (void *)(uintptr_t)i);
 		TEST_ASSERT_EQUAL(0, ret);
 	}
 
@@ -403,7 +403,7 @@ static void _test_system_startup_shutdown_flow(void)
 	g_lifecycle_ctx.worker_should_exit = 1;
 
 	for (i = 0; i < 5; i++) {
-		osal_pthread_join(g_lifecycle_ctx.worker_threads[i], NULL);
+		osal_thread_join(g_lifecycle_ctx.worker_threads[i], NULL);
 	}
 
 	TEST_ASSERT_EQUAL(0x1F, osal_atomic_load(&g_lifecycle_ctx.shutdown_flags));
@@ -412,7 +412,7 @@ static void _test_system_startup_shutdown_flow(void)
 
 	/* 阶段5: 清理系统 */
 	osal_sem_destroy(&g_lifecycle_ctx.lifecycle_sem);
-	osal_pthread_mutex_destroy(&g_lifecycle_ctx.lifecycle_mutex);
+	osal_mutex_destroy(&g_lifecycle_ctx.lifecycle_mutex);
 
 	osal_printf("[ PASS     ] Startup/shutdown flow test passed\n");
 }

@@ -191,7 +191,7 @@ static void _test_atomic_multithread_increment(void)
 		thread_data[i].counter = &counter;
 		thread_data[i].iterations = ITERATIONS_PER_THREAD;
 
-		int32_t ret = osal_pthread_create(
+		int32_t ret = osal_thread_create(
 			&threads[i], NULL, _atomic_increment_thread, &thread_data[i]);
 		TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 	}
@@ -207,7 +207,7 @@ static void _test_atomic_multithread_increment(void)
 	/* 清理线程 */
 
 	for (i = 0; i < THREAD_COUNT; i++) {
-		osal_pthread_join(threads[i], NULL);
+		osal_thread_join(threads[i], NULL);
 	}
 }
 
@@ -247,8 +247,8 @@ static void _test_atomic_multithread_cas(void)
 		thread_data[i].counter = &counter;
 		thread_data[i].iterations = ITERATIONS_PER_THREAD;
 
-		int32_t ret = osal_pthread_create(&threads[i], NULL, _atomic_cas_thread,
-										  &thread_data[i]);
+		int32_t ret = osal_thread_create(&threads[i], NULL, _atomic_cas_thread,
+										 &thread_data[i]);
 		TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 	}
 
@@ -263,7 +263,7 @@ static void _test_atomic_multithread_cas(void)
 	/* 清理线程 */
 
 	for (i = 0; i < THREAD_COUNT; i++) {
-		osal_pthread_join(threads[i], NULL);
+		osal_thread_join(threads[i], NULL);
 	}
 }
 
@@ -441,7 +441,7 @@ static void _test_atomic64_multithread_timestamp(void)
 		thread_data[i].timestamp = &timestamp;
 		thread_data[i].iterations = ITERATIONS_PER_THREAD;
 
-		int32_t ret = osal_pthread_create(
+		int32_t ret = osal_thread_create(
 			&threads[i], NULL, _atomic64_increment_thread, &thread_data[i]);
 		TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 	}
@@ -457,7 +457,7 @@ static void _test_atomic64_multithread_timestamp(void)
 	/* 清理线程 */
 
 	for (i = 0; i < THREAD_COUNT; i++) {
-		osal_pthread_join(threads[i], NULL);
+		osal_thread_join(threads[i], NULL);
 	}
 }
 

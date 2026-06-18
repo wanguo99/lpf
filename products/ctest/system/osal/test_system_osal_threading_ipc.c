@@ -27,11 +27,11 @@ static void *_producer_func(void *arg)
 	int i;
 
 	for (i = 0; i < 50; i++) {
-		osal_pthread_mutex_lock(&pc->mutex);
+		osal_mutex_lock(&pc->mutex);
 
 		/* Wait if buffer is full */
 		while (pc->count == 10) {
-			osal_pthread_cond_wait(&pc->cond_not_full, &pc->mutex);
+			osal_cond_wait(&pc->cond_not_full, &pc->mutex);
 		}
 
 		/* Produce item */
@@ -39,16 +39,16 @@ static void *_producer_func(void *arg)
 		pc->write_pos = (pc->write_pos + 1) % 10;
 		pc->count++;
 
-		osal_pthread_cond_signal(&pc->cond_not_empty);
-		osal_pthread_mutex_unlock(&pc->mutex);
+		osal_cond_signal(&pc->cond_not_empty);
+		osal_mutex_unlock(&pc->mutex);
 
 		osal_usleep(100);
 	}
 
-	osal_pthread_mutex_lock(&pc->mutex);
+	osal_mutex_lock(&pc->mutex);
 	pc->done = 1;
-	osal_pthread_cond_broadcast(&pc->cond_not_empty);
-	osal_pthread_mutex_unlock(&pc->mutex);
+	osal_cond_broadcast(&pc->cond_not_empty);
+	osal_mutex_unlock(&pc->mutex);
 
 	return NULL;
 }
@@ -59,11 +59,11 @@ static void *_consumer_func(void *arg)
 	int consumed = 0;
 
 	while (consumed < 25) {
-		osal_pthread_mutex_lock(&pc->mutex);
+		osal_mutex_lock(&pc->mutex);
 
 		/* Wait if buffer is empty */
 		while (pc->count == 0 && !pc->done) {
-			osal_pthread_cond_wait(&pc->cond_not_empty, &pc->mutex);
+			osal_cond_wait(&pc->cond_not_empty, &pc->mutex);
 		}
 
 		if (pc->count > 0) {
@@ -73,10 +73,10 @@ static void *_consumer_func(void *arg)
 			pc->count--;
 			consumed++;
 
-			osal_pthread_cond_signal(&pc->cond_not_full);
+			osal_cond_signal(&pc->cond_not_full);
 		}
 
-		osal_pthread_mutex_unlock(&pc->mutex);
+		osal_mutex_unlock(&pc->mutex);
 	}
 
 	return NULL;
@@ -95,34 +95,34 @@ static void _test_producer_consumer_pattern(void)
 
 	/* Initialize */
 	osal_memset(&pc, 0, sizeof(pc));
-	ret = osal_pthread_mutex_init(&pc.mutex, NULL);
+	ret = osal_mutex_init(&pc.mutex, NULL);
 	TEST_ASSERT_EQUAL(0, ret);
 
-	ret = osal_pthread_cond_init(&pc.cond_not_full, NULL);
+	ret = osal_cond_init(&pc.cond_not_full, NULL);
 	TEST_ASSERT_EQUAL(0, ret);
 
-	ret = osal_pthread_cond_init(&pc.cond_not_empty, NULL);
+	ret = osal_cond_init(&pc.cond_not_empty, NULL);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	/* Create threads */
-	ret = osal_pthread_create(&producer, NULL, _producer_func, &pc);
+	ret = osal_thread_create(&producer, NULL, _producer_func, &pc);
 	TEST_ASSERT_EQUAL(0, ret);
 
-	ret = osal_pthread_create(&consumer1, NULL, _consumer_func, &pc);
+	ret = osal_thread_create(&consumer1, NULL, _consumer_func, &pc);
 	TEST_ASSERT_EQUAL(0, ret);
 
-	ret = osal_pthread_create(&consumer2, NULL, _consumer_func, &pc);
+	ret = osal_thread_create(&consumer2, NULL, _consumer_func, &pc);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	/* Wait for completion */
-	osal_pthread_join(producer, NULL);
-	osal_pthread_join(consumer1, NULL);
-	osal_pthread_join(consumer2, NULL);
+	osal_thread_join(producer, NULL);
+	osal_thread_join(consumer1, NULL);
+	osal_thread_join(consumer2, NULL);
 
 	/* Cleanup */
-	osal_pthread_cond_destroy(&pc.cond_not_empty);
-	osal_pthread_cond_destroy(&pc.cond_not_full);
-	osal_pthread_mutex_destroy(&pc.mutex);
+	osal_cond_destroy(&pc.cond_not_empty);
+	osal_cond_destroy(&pc.cond_not_full);
+	osal_mutex_destroy(&pc.mutex);
 
 	osal_printf("[ PASS     ] Producer-consumer pattern test passed\n");
 }
@@ -173,7 +173,7 @@ static void _test_thread_pool_semaphore(void)
 	ret = osal_sem_init(&pool.work_sem, 0, 0);
 	TEST_ASSERT_EQUAL(0, ret);
 
-	ret = osal_pthread_mutex_init(&pool.queue_mutex, NULL);
+	ret = osal_mutex_init(&pool.queue_mutex, NULL);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	osal_atomic_store(&pool.tasks_completed, 0);
@@ -181,7 +181,7 @@ static void _test_thread_pool_semaphore(void)
 
 	/* Create worker threads */
 	for (i = 0; i < 4; i++) {
-		ret = osal_pthread_create(&workers[i], NULL, _worker_func, &pool);
+		ret = osal_thread_create(&workers[i], NULL, _worker_func, &pool);
 		TEST_ASSERT_EQUAL(0, ret);
 	}
 
@@ -204,11 +204,11 @@ static void _test_thread_pool_semaphore(void)
 	}
 
 	for (i = 0; i < 4; i++) {
-		osal_pthread_join(workers[i], NULL);
+		osal_thread_join(workers[i], NULL);
 	}
 
 	/* Cleanup */
-	osal_pthread_mutex_destroy(&pool.queue_mutex);
+	osal_mutex_destroy(&pool.queue_mutex);
 	osal_sem_destroy(&pool.work_sem);
 
 	osal_printf("[ PASS     ] Thread pool test passed\n");
@@ -233,9 +233,9 @@ static void *_shm_writer_func(void *arg)
 		return NULL;
 
 	for (i = 0; i < 100; i++) {
-		osal_pthread_mutex_lock(ctx->shm_mutex);
+		osal_mutex_lock(ctx->shm_mutex);
 		osal_atomic_inc(ctx->shm_counter);
-		osal_pthread_mutex_unlock(ctx->shm_mutex);
+		osal_mutex_unlock(ctx->shm_mutex);
 		osal_usleep(100);
 	}
 
@@ -276,27 +276,27 @@ static void _test_shared_memory_multithread(void)
 	ctx.shm_counter =
 		(osal_atomic_uint32_t *)((char *)ctx.shm_ptr + sizeof(osal_mutex_t));
 
-	ret = osal_pthread_mutex_init(ctx.shm_mutex, NULL);
+	ret = osal_mutex_init(ctx.shm_mutex, NULL);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	osal_atomic_store(ctx.shm_counter, 0);
 
 	/* Create writer threads */
 	for (i = 0; i < 3; i++) {
-		ret = osal_pthread_create(&threads[i], NULL, _shm_writer_func, &ctx);
+		ret = osal_thread_create(&threads[i], NULL, _shm_writer_func, &ctx);
 		TEST_ASSERT_EQUAL(0, ret);
 	}
 
 	/* Wait for completion */
 	for (i = 0; i < 3; i++) {
-		osal_pthread_join(threads[i], NULL);
+		osal_thread_join(threads[i], NULL);
 	}
 
 	/* Verify result */
 	TEST_ASSERT_EQUAL(300, osal_atomic_load(ctx.shm_counter));
 
 	/* Cleanup */
-	osal_pthread_mutex_destroy(ctx.shm_mutex);
+	osal_mutex_destroy(ctx.shm_mutex);
 	osal_munmap(ctx.shm_ptr, ctx.shm_size);
 	osal_close(ctx.shm_fd);
 	osal_shm_unlink(ctx.shm_name);
@@ -319,10 +319,10 @@ static void _test_condition_wakeup_patterns(void)
 	int32_t ret;
 
 	/* Initialize */
-	ret = osal_pthread_mutex_init(&mutex, NULL);
+	ret = osal_mutex_init(&mutex, NULL);
 	TEST_ASSERT_EQUAL(0, ret);
 
-	ret = osal_pthread_cond_init(&cond, NULL);
+	ret = osal_cond_init(&cond, NULL);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	osal_atomic_store(&wakeup_count, 0);
@@ -339,16 +339,16 @@ static void _test_condition_wakeup_patterns(void)
 	void *waiter_func(void *arg)
 	{
 		waiter_ctx_t *ctx = (waiter_ctx_t *)arg;
-		osal_pthread_mutex_lock(ctx->mutex);
-		osal_pthread_cond_wait(ctx->cond, ctx->mutex);
+		osal_mutex_lock(ctx->mutex);
+		osal_cond_wait(ctx->cond, ctx->mutex);
 		osal_atomic_inc(ctx->counter);
-		osal_pthread_mutex_unlock(ctx->mutex);
+		osal_mutex_unlock(ctx->mutex);
 		return NULL;
 	}
 
 	for (i = 0; i < 5; i++) {
-		ret = osal_pthread_create(&waiter_threads[i], NULL, waiter_func,
-								  &waiter_ctx);
+		ret = osal_thread_create(&waiter_threads[i], NULL, waiter_func,
+								 &waiter_ctx);
 		TEST_ASSERT_EQUAL(0, ret);
 	}
 
@@ -356,21 +356,21 @@ static void _test_condition_wakeup_patterns(void)
 	osal_msleep(100);
 
 	/* Test broadcast wakeup */
-	osal_pthread_mutex_lock(&mutex);
-	osal_pthread_cond_broadcast(&cond);
-	osal_pthread_mutex_unlock(&mutex);
+	osal_mutex_lock(&mutex);
+	osal_cond_broadcast(&cond);
+	osal_mutex_unlock(&mutex);
 
 	/* Wait for all threads */
 	for (i = 0; i < 5; i++) {
-		osal_pthread_join(waiter_threads[i], NULL);
+		osal_thread_join(waiter_threads[i], NULL);
 	}
 
 	/* Verify all threads woke up */
 	TEST_ASSERT_EQUAL(5, osal_atomic_load(&wakeup_count));
 
 	/* Cleanup */
-	osal_pthread_cond_destroy(&cond);
-	osal_pthread_mutex_destroy(&mutex);
+	osal_cond_destroy(&cond);
+	osal_mutex_destroy(&mutex);
 
 	osal_printf("[ PASS     ] Condition wakeup patterns test passed\n");
 }

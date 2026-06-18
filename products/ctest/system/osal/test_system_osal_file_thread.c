@@ -72,13 +72,13 @@ static void _test_concurrent_file_read(void)
 
 	/* Create reader threads */
 	for (i = 0; i < 5; i++) {
-		ret = osal_pthread_create(&threads[i], NULL, _file_reader_func, &ctx);
+		ret = osal_thread_create(&threads[i], NULL, _file_reader_func, &ctx);
 		TEST_ASSERT_EQUAL(0, ret);
 	}
 
 	/* Wait for completion */
 	for (i = 0; i < 5; i++) {
-		osal_pthread_join(threads[i], NULL);
+		osal_thread_join(threads[i], NULL);
 	}
 
 	/* Verify results */
@@ -107,7 +107,7 @@ static void *_file_writer_func(void *arg)
 
 	/* Each thread writes to its own file */
 	osal_snprintf(filename, sizeof(filename), "/tmp/test_write_%lu.txt",
-				  (unsigned long)osal_pthread_self());
+				  (unsigned long)osal_thread_self());
 
 	fd = osal_open(filename, OSAL_O_CREAT | OSAL_O_WRONLY | OSAL_O_TRUNC, 0644);
 	if (fd < 0) {
@@ -116,7 +116,7 @@ static void *_file_writer_func(void *arg)
 	}
 
 	osal_snprintf(buffer, sizeof(buffer), "Thread %lu data\n",
-				  (unsigned long)osal_pthread_self());
+				  (unsigned long)osal_thread_self());
 
 	bytes_written = osal_write(fd, buffer, osal_strlen(buffer));
 	if (bytes_written > 0) {
@@ -151,13 +151,13 @@ static void _test_concurrent_file_write(void)
 
 	/* Create writer threads */
 	for (i = 0; i < 5; i++) {
-		ret = osal_pthread_create(&threads[i], NULL, _file_writer_func, &ctx);
+		ret = osal_thread_create(&threads[i], NULL, _file_writer_func, &ctx);
 		TEST_ASSERT_EQUAL(0, ret);
 	}
 
 	/* Wait for completion */
 	for (i = 0; i < 5; i++) {
-		osal_pthread_join(threads[i], NULL);
+		osal_thread_join(threads[i], NULL);
 	}
 
 	/* Verify results */
@@ -182,19 +182,19 @@ static void *_file_lock_worker_func(void *arg)
 
 	for (i = 0; i < 10; i++) {
 		/* Lock before file access */
-		osal_pthread_mutex_lock(&ctx->file_mutex);
+		osal_mutex_lock(&ctx->file_mutex);
 
 		/* Critical section: file I/O */
 		(void)osal_lseek(ctx->shared_fd, 0, OSAL_SEEK_END);
 		char buffer[64];
 		osal_snprintf(buffer, sizeof(buffer), "Thread %lu entry %u\n",
-					  (unsigned long)osal_pthread_self(), i);
+					  (unsigned long)osal_thread_self(), i);
 		osal_write(ctx->shared_fd, buffer, osal_strlen(buffer));
 
 		osal_atomic_inc(&ctx->access_count);
 
 		/* Unlock */
-		osal_pthread_mutex_unlock(&ctx->file_mutex);
+		osal_mutex_unlock(&ctx->file_mutex);
 
 		osal_usleep(100);
 	}
@@ -225,21 +225,21 @@ static void _test_file_locking_coordination(void)
 	}
 
 	/* Initialize */
-	ret = osal_pthread_mutex_init(&ctx.file_mutex, NULL);
+	ret = osal_mutex_init(&ctx.file_mutex, NULL);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	osal_atomic_store(&ctx.access_count, 0);
 
 	/* Create worker threads */
 	for (i = 0; i < 3; i++) {
-		ret = osal_pthread_create(&threads[i], NULL, _file_lock_worker_func,
-								  &ctx);
+		ret =
+			osal_thread_create(&threads[i], NULL, _file_lock_worker_func, &ctx);
 		TEST_ASSERT_EQUAL(0, ret);
 	}
 
 	/* Wait for completion */
 	for (i = 0; i < 3; i++) {
-		osal_pthread_join(threads[i], NULL);
+		osal_thread_join(threads[i], NULL);
 	}
 
 	/* Verify all accesses completed */
@@ -247,7 +247,7 @@ static void _test_file_locking_coordination(void)
 
 	/* Cleanup */
 	osal_close(ctx.shared_fd);
-	osal_pthread_mutex_destroy(&ctx.file_mutex);
+	osal_mutex_destroy(&ctx.file_mutex);
 	osal_unlink(test_file);
 
 	osal_printf("[ PASS     ] File locking coordination test passed\n");
@@ -329,14 +329,14 @@ static void _test_file_position_tracking(void)
 
 	/* Create worker threads */
 	for (i = 0; i < 4; i++) {
-		ret = osal_pthread_create(&threads[i], NULL, _file_position_worker_func,
-								  &ctx);
+		ret = osal_thread_create(&threads[i], NULL, _file_position_worker_func,
+								 &ctx);
 		TEST_ASSERT_EQUAL(0, ret);
 	}
 
 	/* Wait for completion */
 	for (i = 0; i < 4; i++) {
-		osal_pthread_join(threads[i], NULL);
+		osal_thread_join(threads[i], NULL);
 	}
 
 	/* Verify no position errors */

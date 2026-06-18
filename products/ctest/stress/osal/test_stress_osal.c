@@ -81,7 +81,7 @@ static int32_t _mutex_contention_worker(void *user_data, uint32_t iteration)
 	(void)iteration;
 
 	/* 加锁 */
-	int32_t ret = osal_pthread_mutex_lock(&data->mutex);
+	int32_t ret = osal_mutex_lock(&data->mutex);
 	if (ret != 0) {
 		osal_atomic_inc(&data->lock_failures);
 		return ret;
@@ -92,7 +92,7 @@ static int32_t _mutex_contention_worker(void *user_data, uint32_t iteration)
 	osal_atomic_store(&data->counter, val + 1);
 
 	/* 解锁 */
-	osal_pthread_mutex_unlock(&data->mutex);
+	osal_mutex_unlock(&data->mutex);
 
 	return 0;
 }
@@ -103,7 +103,7 @@ static void _test_stress_mutex_contention(void)
 	const uint32_t thread_count = 50;
 	const uint32_t duration_sec = 10;
 
-	TEST_ASSERT_EQUAL(osal_pthread_mutex_init(&data.mutex, NULL), 0);
+	TEST_ASSERT_EQUAL(osal_mutex_init(&data.mutex, NULL), 0);
 	osal_atomic_init(&data.counter, 0);
 	osal_atomic_init(&data.lock_failures, 0);
 
@@ -124,7 +124,7 @@ static void _test_stress_mutex_contention(void)
 	TEST_ASSERT_EQUAL(osal_atomic_load(&data.lock_failures), 0);
 
 	stress_context_destroy(ctx);
-	osal_pthread_mutex_destroy(&data.mutex);
+	osal_mutex_destroy(&data.mutex);
 }
 
 /* ==================== 信号量压力测试 ==================== */
@@ -216,11 +216,11 @@ static int32_t _cond_signal_worker(void *user_data, uint32_t iteration)
 	cond_stress_data_t *data = (cond_stress_data_t *)user_data;
 	(void)iteration;
 
-	osal_pthread_mutex_lock(&data->mutex);
+	osal_mutex_lock(&data->mutex);
 	osal_atomic_store(&data->ready, 1);
-	osal_pthread_cond_signal(&data->cond);
+	osal_cond_signal(&data->cond);
 	osal_atomic_inc(&data->signal_count);
-	osal_pthread_mutex_unlock(&data->mutex);
+	osal_mutex_unlock(&data->mutex);
 
 	return 0;
 }
@@ -230,13 +230,13 @@ static int32_t _cond_wait_worker(void *user_data, uint32_t iteration)
 	cond_stress_data_t *data = (cond_stress_data_t *)user_data;
 	(void)iteration;
 
-	osal_pthread_mutex_lock(&data->mutex);
+	osal_mutex_lock(&data->mutex);
 	while (osal_atomic_load(&data->ready) == 0) {
-		osal_pthread_cond_wait(&data->cond, &data->mutex);
+		osal_cond_wait(&data->cond, &data->mutex);
 	}
 	osal_atomic_store(&data->ready, 0);
 	osal_atomic_inc(&data->wait_count);
-	osal_pthread_mutex_unlock(&data->mutex);
+	osal_mutex_unlock(&data->mutex);
 
 	return 0;
 }
@@ -247,8 +247,8 @@ static void _test_stress_condition_variable(void)
 	const uint32_t thread_count = 10;
 	const uint32_t duration_sec = 5;
 
-	TEST_ASSERT_EQUAL(osal_pthread_mutex_init(&data.mutex, NULL), 0);
-	TEST_ASSERT_EQUAL(osal_pthread_cond_init(&data.cond, NULL), 0);
+	TEST_ASSERT_EQUAL(osal_mutex_init(&data.mutex, NULL), 0);
+	TEST_ASSERT_EQUAL(osal_cond_init(&data.cond, NULL), 0);
 	osal_atomic_init(&data.ready, 0);
 	osal_atomic_init(&data.signal_count, 0);
 	osal_atomic_init(&data.wait_count, 0);
@@ -269,8 +269,8 @@ static void _test_stress_condition_variable(void)
 
 	stress_context_destroy(signal_ctx);
 	stress_context_destroy(wait_ctx);
-	osal_pthread_cond_destroy(&data.cond);
-	osal_pthread_mutex_destroy(&data.mutex);
+	osal_cond_destroy(&data.cond);
+	osal_mutex_destroy(&data.mutex);
 }
 
 /* ==================== 线程创建压力测试 ==================== */
@@ -296,14 +296,14 @@ static void _test_stress_thread_creation(void)
 
 	/* 快速创建大量线程 */
 	for (uint32_t i = 0; i < thread_count; i++) {
-		int32_t ret = osal_pthread_create(&threads[i], NULL,
-										  _thread_stress_func, &counter);
+		int32_t ret = osal_thread_create(&threads[i], NULL, _thread_stress_func,
+										 &counter);
 		TEST_ASSERT_EQUAL(ret, 0);
 	}
 
 	/* 等待所有线程完成 */
 	for (uint32_t i = 0; i < thread_count; i++) {
-		osal_pthread_join(threads[i], NULL);
+		osal_thread_join(threads[i], NULL);
 	}
 
 	uint32_t elapsed_ms = osal_get_tick_count() - start_time;
@@ -490,7 +490,7 @@ static int32_t _file_ops_worker(void *user_data, uint32_t iteration)
 
 	/* 生成唯一文件名 */
 	osal_snprintf(filename, sizeof(filename), "/tmp/%s_%lu_%u.tmp",
-				  data->prefix, (unsigned long)osal_pthread_self(), iteration);
+				  data->prefix, (unsigned long)osal_thread_self(), iteration);
 
 	/* 创建文件 */
 	fd = osal_open(filename, O_CREAT | O_RDWR | O_TRUNC, 0644);
@@ -613,9 +613,9 @@ static int32_t _mixed_ops_worker(void *user_data, uint32_t iteration)
 	switch (iteration % 5) {
 	case 0:
 		/* 互斥锁操作 */
-		osal_pthread_mutex_lock(&data->mutex);
+		osal_mutex_lock(&data->mutex);
 		osal_atomic_inc(&data->operations);
-		osal_pthread_mutex_unlock(&data->mutex);
+		osal_mutex_unlock(&data->mutex);
 		break;
 
 	case 1:
@@ -660,7 +660,7 @@ static void _test_stress_mixed_operations(void)
 	const uint32_t thread_count = 30;
 	const uint32_t duration_sec = 10;
 
-	TEST_ASSERT_EQUAL(osal_pthread_mutex_init(&data.mutex, NULL), 0);
+	TEST_ASSERT_EQUAL(osal_mutex_init(&data.mutex, NULL), 0);
 	TEST_ASSERT_EQUAL(osal_sem_init(&data.sem, 0, 10), 0);
 	osal_atomic_init(&data.operations, 0);
 
@@ -679,7 +679,7 @@ static void _test_stress_mixed_operations(void)
 
 	stress_context_destroy(ctx);
 	osal_sem_destroy(&data.sem);
-	osal_pthread_mutex_destroy(&data.mutex);
+	osal_mutex_destroy(&data.mutex);
 }
 
 /* ==================== 测试套件注册 ==================== */

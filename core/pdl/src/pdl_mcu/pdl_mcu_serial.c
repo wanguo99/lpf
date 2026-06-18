@@ -99,7 +99,7 @@ int32_t mcu_serial_init(const void *config, void **handle)
 	}
 
 	/* 创建接收互斥锁 */
-	if (OSAL_SUCCESS != osal_pthread_mutex_init(&ctx->rx_mutex, NULL)) {
+	if (OSAL_SUCCESS != osal_mutex_init(&ctx->rx_mutex, NULL)) {
 		hal_serial_close(ctx->serial_handle);
 		osal_free(ctx);
 		return OSAL_ERR_GENERIC;
@@ -123,7 +123,7 @@ int32_t mcu_serial_deinit(void *handle)
 	ctx = (mcu_serial_context_t *)handle;
 
 	hal_serial_close(ctx->serial_handle);
-	osal_pthread_mutex_destroy(&ctx->rx_mutex);
+	osal_mutex_destroy(&ctx->rx_mutex);
 	osal_free(ctx);
 
 	return OSAL_SUCCESS;
@@ -167,12 +167,12 @@ int32_t mcu_serial_send_packet(void *handle, const uint8_t *packet,
 	remaining_timeout_ms = timeout_ms - (uint32_t)(elapsed_us / 1000);
 
 	/* 接收响应报文 */
-	osal_pthread_mutex_lock(&ctx->rx_mutex);
+	osal_mutex_lock(&ctx->rx_mutex);
 
 	rx_len = hal_serial_read(ctx->serial_handle, response, resp_size,
 							 remaining_timeout_ms);
 
-	osal_pthread_mutex_unlock(&ctx->rx_mutex);
+	osal_mutex_unlock(&ctx->rx_mutex);
 
 	if (rx_len < 0) {
 		return OSAL_ERR_GENERIC;

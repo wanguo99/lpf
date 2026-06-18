@@ -63,7 +63,7 @@ int32_t mcu_can_init(const void *config, void **handle)
 	ctx->rx_id = mcu_cfg->hw.can.rx_id;
 
 	/* 创建接收互斥锁 */
-	if (OSAL_SUCCESS != osal_pthread_mutex_init(&ctx->rx_mutex, NULL)) {
+	if (OSAL_SUCCESS != osal_mutex_init(&ctx->rx_mutex, NULL)) {
 		hal_can_deinit(ctx->can_handle);
 		osal_free(ctx);
 		return OSAL_ERR_GENERIC;
@@ -87,7 +87,7 @@ int32_t mcu_can_deinit(void *handle)
 	ctx = (mcu_can_context_t *)handle;
 
 	hal_can_deinit(ctx->can_handle);
-	osal_pthread_mutex_destroy(&ctx->rx_mutex);
+	osal_mutex_destroy(&ctx->rx_mutex);
 	osal_free(ctx);
 
 	return OSAL_SUCCESS;
@@ -151,18 +151,18 @@ int32_t mcu_can_send_packet(void *handle, const uint8_t *packet,
 	remaining_timeout_ms = timeout_ms - (uint32_t)(elapsed_us / 1000);
 
 	/* 接收响应报文（可能多帧） */
-	osal_pthread_mutex_lock(&ctx->rx_mutex);
+	osal_mutex_lock(&ctx->rx_mutex);
 
 	while (recv_bytes < resp_size) {
 		ret = hal_can_recv(ctx->can_handle, &rx_frame, remaining_timeout_ms);
 		if (ret != OSAL_SUCCESS) {
-			osal_pthread_mutex_unlock(&ctx->rx_mutex);
+			osal_mutex_unlock(&ctx->rx_mutex);
 			return ret;
 		}
 
 		/* 检查 CAN ID */
 		if (rx_frame.can_id != ctx->rx_id) {
-			osal_pthread_mutex_unlock(&ctx->rx_mutex);
+			osal_mutex_unlock(&ctx->rx_mutex);
 			return OSAL_ERR_GENERIC;
 		}
 
@@ -183,13 +183,13 @@ int32_t mcu_can_send_packet(void *handle, const uint8_t *packet,
 		/* 更新剩余超时 */
 		elapsed_us = osal_get_monotonic_time() - start_time_us;
 		if (elapsed_us / 1000 >= timeout_ms) {
-			osal_pthread_mutex_unlock(&ctx->rx_mutex);
+			osal_mutex_unlock(&ctx->rx_mutex);
 			return OSAL_ERR_TIMEOUT;
 		}
 		remaining_timeout_ms = timeout_ms - (uint32_t)(elapsed_us / 1000);
 	}
 
-	osal_pthread_mutex_unlock(&ctx->rx_mutex);
+	osal_mutex_unlock(&ctx->rx_mutex);
 
 	if (actual_size) {
 		*actual_size = recv_bytes;

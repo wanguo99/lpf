@@ -1,5 +1,5 @@
 /************************************************************************
- * OSAL POSIX实现 - 信号量薄封装
+ * OSAL POSIX 后端 - 信号量
  ************************************************************************/
 
 #include "osal.h"
@@ -38,7 +38,7 @@ int32_t osal_sem_wait(osal_sem_t *sem)
 	return sem_wait(sem);
 }
 
-int32_t osal_sem_trywait(osal_sem_t *sem)
+int32_t osal_sem_try_wait(osal_sem_t *sem)
 {
 	if (sem == NULL) {
 		errno = EINVAL;
@@ -48,7 +48,7 @@ int32_t osal_sem_trywait(osal_sem_t *sem)
 	return sem_trywait(sem);
 }
 
-int32_t osal_sem_timedwait(osal_sem_t *sem, uint32_t timeout_ms)
+int32_t osal_sem_timed_wait(osal_sem_t *sem, uint32_t timeout_ms)
 {
 	struct timespec ts;
 
@@ -117,7 +117,7 @@ int32_t osal_sem_post(osal_sem_t *sem)
 	return sem_post(sem);
 }
 
-int32_t osal_sem_getvalue(osal_sem_t *sem, int32_t *value)
+int32_t osal_sem_get_value(osal_sem_t *sem, int32_t *value)
 {
 	int val;
 

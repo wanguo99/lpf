@@ -184,16 +184,14 @@ void osal_queue_release(queue_impl_t *impl)
 5 秒超时机制：
 
 ```c
-int32_t OSAL_MutexLock(osal_id_t mutex_id, int32_t timeout)
+int32_t osal_task_lock(osal_mutex_t *mutex, uint32_t timeout_ms)
 {
-    struct timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
-    ts.tv_sec += timeout / 1000;
-    
-    int ret = pthread_mutex_timedlock(&mutex, &ts);
-    if (ret == ETIMEDOUT) {
+    int ret = osal_mutex_timed_lock(mutex, timeout_ms);
+
+    if (ret == OSAL_ETIMEDOUT) {
         return OS_SEM_TIMEOUT;  /* 死锁检测 */
     }
+
     return OS_SUCCESS;
 }
 ```
@@ -207,7 +205,7 @@ int32_t OSAL_MutexLock(osal_id_t mutex_id, int32_t timeout)
 static osal_task_record_t g_osal_task_table[OS_MAX_TASKS] = {0};
 
 /* 互斥锁静态初始化 */
-static pthread_mutex_t g_task_table_mutex = PTHREAD_MUTEX_INITIALIZER;
+static osal_mutex_t g_task_table_mutex = OSAL_MUTEX_INITIALIZER;
 
 /* 无需 Init 函数，直接使用 */
 ```

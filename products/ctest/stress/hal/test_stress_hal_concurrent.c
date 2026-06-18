@@ -276,24 +276,24 @@ static void _test_stress_hal_all_drivers_concurrent(void)
 	uint32_t thread_idx = 0;
 
 	if (ctx.can_handle) {
-		osal_pthread_create(&threads[thread_idx++], NULL, _can_worker_thread,
-							&ctx);
+		osal_thread_create(&threads[thread_idx++], NULL, _can_worker_thread,
+						   &ctx);
 	}
 	if (ctx.serial_handle) {
-		osal_pthread_create(&threads[thread_idx++], NULL, _serial_worker_thread,
-							&ctx);
+		osal_thread_create(&threads[thread_idx++], NULL, _serial_worker_thread,
+						   &ctx);
 	}
 	if (ctx.spi_handle) {
-		osal_pthread_create(&threads[thread_idx++], NULL, _spi_worker_thread,
-							&ctx);
+		osal_thread_create(&threads[thread_idx++], NULL, _spi_worker_thread,
+						   &ctx);
 	}
 	if (ctx.i2c_handle) {
-		osal_pthread_create(&threads[thread_idx++], NULL, _i2c_worker_thread,
-							&ctx);
+		osal_thread_create(&threads[thread_idx++], NULL, _i2c_worker_thread,
+						   &ctx);
 	}
 	if (ctx.gpio_pin) {
-		osal_pthread_create(&threads[thread_idx++], NULL, _gpio_worker_thread,
-							&ctx);
+		osal_thread_create(&threads[thread_idx++], NULL, _gpio_worker_thread,
+						   &ctx);
 	}
 
 	osal_printf(
@@ -317,7 +317,7 @@ static void _test_stress_hal_all_drivers_concurrent(void)
 
 	/* Wait for threads to finish */
 	for (uint32_t i = 0; i < thread_idx; i++) {
-		osal_pthread_join(threads[i], NULL);
+		osal_thread_join(threads[i], NULL);
 	}
 
 	/* Print statistics */

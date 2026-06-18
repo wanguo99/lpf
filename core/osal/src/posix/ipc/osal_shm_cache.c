@@ -100,7 +100,7 @@ int32_t osal_cache_create(const char *name, uint32_t max_entries,
 	int shm_fd;
 	void *shm_ptr;
 	shm_cache_header_t *header;
-	osal_mutexattr_t mutex_attr;
+	osal_mutex_attr_t mutex_attr;
 	uint32_t i;
 
 	if (name == NULL || max_entries == 0 || cache_id == NULL) {

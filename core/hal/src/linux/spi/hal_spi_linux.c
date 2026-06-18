@@ -65,7 +65,7 @@ int32_t hal_spi_open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
 	}
 
 	/* 创建互斥锁（线程间保护） */
-	ret = osal_pthread_mutex_init(&impl->mutex, NULL);
+	ret = osal_mutex_init(&impl->mutex, NULL);
 	if (ret != OSAL_SUCCESS) {
 		LOG_ERROR("HAL_SPI", "Failed to create mutex");
 		osal_flock_destroy(impl->flock);
@@ -79,7 +79,7 @@ int32_t hal_spi_open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
 		int32_t err = osal_get_errno();
 		LOG_ERROR("HAL_SPI", "Failed to open device %s: %s (%d)",
 				  config->device, osal_strerror(err), err);
-		osal_pthread_mutex_destroy(&impl->mutex);
+		osal_mutex_destroy(&impl->mutex);
 		osal_flock_destroy(impl->flock);
 		osal_free(impl);
 		return err;
@@ -92,7 +92,7 @@ int32_t hal_spi_open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
 		LOG_ERROR("HAL_SPI", "Failed to set SPI mode: %s (%d)",
 				  osal_strerror(err), err);
 		osal_close(impl->fd);
-		osal_pthread_mutex_destroy(&impl->mutex);
+		osal_mutex_destroy(&impl->mutex);
 		osal_flock_destroy(impl->flock);
 		osal_free(impl);
 		return err;
@@ -105,7 +105,7 @@ int32_t hal_spi_open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
 		LOG_ERROR("HAL_SPI", "Failed to set bits per word: %s (%d)",
 				  osal_strerror(err), err);
 		osal_close(impl->fd);
-		osal_pthread_mutex_destroy(&impl->mutex);
+		osal_mutex_destroy(&impl->mutex);
 		osal_flock_destroy(impl->flock);
 		osal_free(impl);
 		return err;
@@ -118,7 +118,7 @@ int32_t hal_spi_open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
 		LOG_ERROR("HAL_SPI", "Failed to set max speed: %s (%d)",
 				  osal_strerror(err), err);
 		osal_close(impl->fd);
-		osal_pthread_mutex_destroy(&impl->mutex);
+		osal_mutex_destroy(&impl->mutex);
 		osal_flock_destroy(impl->flock);
 		osal_free(impl);
 		return err;
@@ -154,7 +154,7 @@ int32_t hal_spi_close(hal_spi_handle_t handle)
 	}
 
 	/* 销毁锁 */
-	osal_pthread_mutex_destroy(&impl->mutex);
+	osal_mutex_destroy(&impl->mutex);
 
 	if (impl->flock) {
 		osal_flock_destroy(impl->flock);
@@ -192,7 +192,7 @@ int32_t hal_spi_write(hal_spi_handle_t handle, const uint8_t *buffer,
 	}
 
 	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_pthread_mutex_lock(&impl->mutex);
+	ret = osal_mutex_lock(&impl->mutex);
 	if (ret != OSAL_SUCCESS) {
 		LOG_ERROR("HAL_SPI", "Failed to acquire mutex");
 		osal_flock_unlock(impl->flock);
@@ -211,7 +211,7 @@ int32_t hal_spi_write(hal_spi_handle_t handle, const uint8_t *buffer,
 	}
 
 	/* 释放锁（逆序） */
-	osal_pthread_mutex_unlock(&impl->mutex);
+	osal_mutex_unlock(&impl->mutex);
 	osal_flock_unlock(impl->flock);
 
 	return result;
@@ -241,7 +241,7 @@ int32_t hal_spi_read(hal_spi_handle_t handle, uint8_t *buffer, uint32_t size)
 	}
 
 	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_pthread_mutex_lock(&impl->mutex);
+	ret = osal_mutex_lock(&impl->mutex);
 	if (ret != OSAL_SUCCESS) {
 		LOG_ERROR("HAL_SPI", "Failed to acquire mutex");
 		osal_flock_unlock(impl->flock);
@@ -260,7 +260,7 @@ int32_t hal_spi_read(hal_spi_handle_t handle, uint8_t *buffer, uint32_t size)
 	}
 
 	/* 释放锁（逆序） */
-	osal_pthread_mutex_unlock(&impl->mutex);
+	osal_mutex_unlock(&impl->mutex);
 	osal_flock_unlock(impl->flock);
 
 	return result;
@@ -292,7 +292,7 @@ int32_t hal_spi_transfer(hal_spi_handle_t handle, const uint8_t *tx_buffer,
 	}
 
 	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_pthread_mutex_lock(&impl->mutex);
+	ret = osal_mutex_lock(&impl->mutex);
 	if (ret != OSAL_SUCCESS) {
 		LOG_ERROR("HAL_SPI", "Failed to acquire mutex");
 		osal_flock_unlock(impl->flock);
@@ -322,7 +322,7 @@ int32_t hal_spi_transfer(hal_spi_handle_t handle, const uint8_t *tx_buffer,
 	}
 
 	/* 释放锁（逆序） */
-	osal_pthread_mutex_unlock(&impl->mutex);
+	osal_mutex_unlock(&impl->mutex);
 	osal_flock_unlock(impl->flock);
 
 	return result;
@@ -380,7 +380,7 @@ int32_t hal_spi_transfer_multi(hal_spi_handle_t handle,
 	}
 
 	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_pthread_mutex_lock(&impl->mutex);
+	ret = osal_mutex_lock(&impl->mutex);
 	if (ret != OSAL_SUCCESS) {
 		LOG_ERROR("HAL_SPI", "Failed to acquire mutex");
 		osal_flock_unlock(impl->flock);
@@ -398,7 +398,7 @@ int32_t hal_spi_transfer_multi(hal_spi_handle_t handle,
 	}
 
 	/* 释放锁（逆序） */
-	osal_pthread_mutex_unlock(&impl->mutex);
+	osal_mutex_unlock(&impl->mutex);
 	osal_flock_unlock(impl->flock);
 
 	osal_free(xfers);
@@ -430,7 +430,7 @@ int32_t hal_spi_set_config(hal_spi_handle_t handle,
 	}
 
 	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_pthread_mutex_lock(&impl->mutex);
+	ret = osal_mutex_lock(&impl->mutex);
 	if (ret != OSAL_SUCCESS) {
 		LOG_ERROR("HAL_SPI", "Failed to acquire mutex");
 		osal_flock_unlock(impl->flock);
@@ -488,7 +488,7 @@ int32_t hal_spi_set_config(hal_spi_handle_t handle,
 
 unlock:
 	/* 释放锁（逆序） */
-	osal_pthread_mutex_unlock(&impl->mutex);
+	osal_mutex_unlock(&impl->mutex);
 	osal_flock_unlock(impl->flock);
 
 	return result;

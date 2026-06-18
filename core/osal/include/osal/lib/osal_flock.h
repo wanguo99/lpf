@@ -10,11 +10,11 @@
  *
  * 使用场景：
  * - 多进程访问同一硬件资源
- * - 配合 osal_pthread_mutex_lock 实现进程间 + 线程间双重保护
+ * - 配合 osal_mutex_lock 实现进程间 + 线程间双重保护
  *
  * 注意：
  * - fcntl 文件锁是进程级别的，不能解决同一进程内的线程并发
- * - 必须配合 pthread_mutex 使用才能完整保护
+ * - 必须配合 osal_mutex_lock 使用才能完整保护
  */
 
 #ifndef OSAL_FLOCK_H

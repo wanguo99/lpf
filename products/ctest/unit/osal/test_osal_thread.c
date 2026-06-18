@@ -34,11 +34,11 @@ static void _test_thread_create_join_success(void)
 
 	/* 创建线程 */
 	int32_t ret =
-		osal_pthread_create(&thread, NULL, _simple_thread_func, &result);
+		osal_thread_create(&thread, NULL, _simple_thread_func, &result);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	/* 等待线程结束 */
-	ret = osal_pthread_join(thread, &retval);
+	ret = osal_thread_join(thread, &retval);
 	TEST_ASSERT_EQUAL(0, ret);
 	TEST_ASSERT_EQUAL(42, result);
 	TEST_ASSERT_EQUAL(&result, retval);
@@ -47,7 +47,7 @@ static void _test_thread_create_join_success(void)
 static void _test_thread_create_null_pointer(void)
 {
 	/* 线程指针为NULL应该失败 */
-	int32_t ret = osal_pthread_create(NULL, NULL, _simple_thread_func, NULL);
+	int32_t ret = osal_thread_create(NULL, NULL, _simple_thread_func, NULL);
 	TEST_ASSERT_NOT_EQUAL(0, ret);
 }
 
@@ -57,12 +57,11 @@ static void _test_thread_detach_success(void)
 	int32_t dummy = 0;
 
 	/* 创建线程 */
-	int32_t ret =
-		osal_pthread_create(&thread, NULL, _sleep_thread_func, &dummy);
+	int32_t ret = osal_thread_create(&thread, NULL, _sleep_thread_func, &dummy);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	/* 分离线程 */
-	ret = osal_pthread_detach(thread);
+	ret = osal_thread_detach(thread);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	/* 等待线程完成 */
@@ -72,32 +71,31 @@ static void _test_thread_detach_success(void)
 static void _test_thread_self(void)
 {
 	/* 获取当前线程ID */
-	osal_thread_t self = osal_pthread_self();
+	osal_thread_t self = osal_thread_self();
 
 	/* 再次获取应该相同 */
-	osal_thread_t self2 = osal_pthread_self();
-	TEST_ASSERT_TRUE(osal_pthread_equal(self, self2));
+	osal_thread_t self2 = osal_thread_self();
+	TEST_ASSERT_TRUE(osal_thread_equal(self, self2));
 }
 
 static void _test_thread_equal(void)
 {
-	osal_thread_t self = osal_pthread_self();
+	osal_thread_t self = osal_thread_self();
 	osal_thread_t thread;
 	int32_t dummy = 0;
 
 	/* 创建另一个线程 */
-	int32_t ret =
-		osal_pthread_create(&thread, NULL, _sleep_thread_func, &dummy);
+	int32_t ret = osal_thread_create(&thread, NULL, _sleep_thread_func, &dummy);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	/* 两个线程ID应该不同 */
-	TEST_ASSERT_FALSE(osal_pthread_equal(self, thread));
+	TEST_ASSERT_FALSE(osal_thread_equal(self, thread));
 
 	/* 同一个线程ID应该相等 */
-	TEST_ASSERT_TRUE(osal_pthread_equal(self, self));
+	TEST_ASSERT_TRUE(osal_thread_equal(self, self));
 
 	/* 清理 */
-	osal_pthread_detach(thread);
+	osal_thread_detach(thread);
 	osal_msleep(200);
 }
 
@@ -107,35 +105,35 @@ static void _test_thread_equal(void)
 
 static void _test_thread_attr_init_destroy(void)
 {
-	osal_threadattr_t attr;
+	osal_thread_attr_t attr;
 
 	/* 初始化属性 */
-	int32_t ret = osal_pthread_attr_init(&attr);
+	int32_t ret = osal_thread_attr_init(&attr);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	/* 销毁属性 */
-	ret = osal_pthread_attr_destroy(&attr);
+	ret = osal_thread_attr_destroy(&attr);
 	TEST_ASSERT_EQUAL(0, ret);
 }
 
 static void _test_thread_attr_detachstate(void)
 {
-	osal_threadattr_t attr;
+	osal_thread_attr_t attr;
 	int32_t state;
 
-	osal_pthread_attr_init(&attr);
+	osal_thread_attr_init(&attr);
 
 	/* 设置为分离状态 */
 	int32_t ret =
-		osal_pthread_attr_setdetachstate(&attr, OSAL_PTHREAD_CREATE_DETACHED);
+		osal_thread_attr_set_detach_state(&attr, OSAL_THREAD_CREATE_DETACHED);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	/* 获取状态 */
-	ret = osal_pthread_attr_getdetachstate(&attr, &state);
+	ret = osal_thread_attr_get_detach_state(&attr, &state);
 	TEST_ASSERT_EQUAL(0, ret);
-	TEST_ASSERT_EQUAL(OSAL_PTHREAD_CREATE_DETACHED, state);
+	TEST_ASSERT_EQUAL(OSAL_THREAD_CREATE_DETACHED, state);
 
-	osal_pthread_attr_destroy(&attr);
+	osal_thread_attr_destroy(&attr);
 }
 
 /*===========================================================================
@@ -164,14 +162,14 @@ static void _test_thread_multithread_execution(void)
 
 	/* 创建多个线程 */
 	for (int32_t i = 0; i < NUM_THREADS; i++) {
-		int32_t ret = osal_pthread_create(&threads[i], NULL,
-										  _increment_thread_func, &count);
+		int32_t ret = osal_thread_create(&threads[i], NULL,
+										 _increment_thread_func, &count);
 		TEST_ASSERT_EQUAL(0, ret);
 	}
 
 	/* 等待所有线程完成 */
 	for (int32_t i = 0; i < NUM_THREADS; i++) {
-		osal_pthread_join(threads[i], NULL);
+		osal_thread_join(threads[i], NULL);
 	}
 
 	/* 验证结果 */

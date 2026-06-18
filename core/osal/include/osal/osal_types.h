@@ -450,10 +450,10 @@ OSAL_STATIC_ASSERT(sizeof(osal_size_t) == 0x2, "size_must_be_2_bytes_on_16bit");
 /*
  * 注意：
  * 1. IPC和线程类型（osal_mutex_t, osal_thread_t等）定义在各自的模块头文件中
- *    - osal_thread_t, osal_threadattr_t -> osal/sys/osal_thread.h
- *    - osal_mutex_t, osal_mutexattr_t -> osal/ipc/osal_mutex.h
- *    - osal_cond_t, osal_condattr_t -> osal/ipc/osal_cond.h
- *    - osal_rwlock_t, osal_rwlockattr_t -> osal/ipc/osal_rwlock.h
+ *    - osal_thread_t, osal_thread_attr_t -> osal/sys/osal_thread.h
+ *    - osal_mutex_t, osal_mutex_attr_t -> osal/ipc/osal_mutex.h
+ *    - osal_cond_t, osal_cond_attr_t -> osal/ipc/osal_cond.h
+ *    - osal_rwlock_t, osal_rwlock_attr_t -> osal/ipc/osal_rwlock.h
  *    - osal_sem_t -> osal/ipc/osal_semaphore.h
  * 2. 系统类型定义在各自的模块头文件中
  *    - osal_pid_t, osal_uid_t, osal_gid_t -> osal/sys/osal_process.h

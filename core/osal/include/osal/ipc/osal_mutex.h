@@ -1,7 +1,7 @@
 /************************************************************************
- * OSAL Mutex API - POSIX 薄封装
+ * OSAL Mutex API
  *
- * 直接暴露 POSIX osal_mutex_t 类型
+ * 面向调用方提供统一互斥锁接口；平台相关类型由当前 OSAL 后端映射。
  ************************************************************************/
 
 #ifndef OSAL_MUTEX_H
@@ -18,21 +18,20 @@ extern "C" {
  *===========================================================================*/
 
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
-/* POSIX 平台 */
 #define OSAL_MUTEX_INITIALIZER PTHREAD_MUTEX_INITIALIZER
-#define OSAL_PTHREAD_MUTEX_NORMAL PTHREAD_MUTEX_NORMAL
-#define OSAL_PTHREAD_MUTEX_RECURSIVE PTHREAD_MUTEX_RECURSIVE
-#define OSAL_PTHREAD_PRIO_INHERIT PTHREAD_PRIO_INHERIT
+#define OSAL_MUTEX_NORMAL PTHREAD_MUTEX_NORMAL
+#define OSAL_MUTEX_RECURSIVE PTHREAD_MUTEX_RECURSIVE
+#define OSAL_MUTEX_PRIO_INHERIT PTHREAD_PRIO_INHERIT
 
 typedef pthread_mutex_t osal_mutex_t;
-typedef pthread_mutexattr_t osal_mutexattr_t;
+typedef pthread_mutexattr_t osal_mutex_attr_t;
 #else
 /* 其他平台（RTOS 等）- 需要提供对应的类型定义 */
 #error "Unsupported platform - please define mutex types for your platform"
 #endif
 
 /*===========================================================================
- * POSIX 互斥锁薄封装
+ * 互斥锁接口
  *===========================================================================*/
 
 /**
@@ -43,8 +42,7 @@ typedef pthread_mutexattr_t osal_mutexattr_t;
  * @return 0 成功
  * @return -1 失败
  */
-int32_t osal_pthread_mutex_init(osal_mutex_t *mutex,
-								const osal_mutexattr_t *attr);
+int32_t osal_mutex_init(osal_mutex_t *mutex, const osal_mutex_attr_t *attr);
 
 /**
  * @brief 销毁互斥锁
@@ -53,7 +51,7 @@ int32_t osal_pthread_mutex_init(osal_mutex_t *mutex,
  * @return 0 成功
  * @return -1 失败
  */
-int32_t osal_pthread_mutex_destroy(osal_mutex_t *mutex);
+int32_t osal_mutex_destroy(osal_mutex_t *mutex);
 
 /**
  * @brief 获取互斥锁（阻塞）
@@ -62,7 +60,7 @@ int32_t osal_pthread_mutex_destroy(osal_mutex_t *mutex);
  * @return 0 成功
  * @return -1 失败
  */
-int32_t osal_pthread_mutex_lock(osal_mutex_t *mutex);
+int32_t osal_mutex_lock(osal_mutex_t *mutex);
 
 /**
  * @brief 尝试获取互斥锁（非阻塞）
@@ -71,7 +69,7 @@ int32_t osal_pthread_mutex_lock(osal_mutex_t *mutex);
  * @return 0 成功获取锁
  * @return -1 失败（EBUSY 表示锁已被占用）
  */
-int32_t osal_pthread_mutex_trylock(osal_mutex_t *mutex);
+int32_t osal_mutex_try_lock(osal_mutex_t *mutex);
 
 /**
  * @brief 带超时的获取互斥锁
@@ -81,7 +79,7 @@ int32_t osal_pthread_mutex_trylock(osal_mutex_t *mutex);
  * @return 0 成功获取锁
  * @return -1 失败（ETIMEDOUT 表示超时）
  */
-int32_t osal_pthread_mutex_timedlock(osal_mutex_t *mutex, uint32_t timeout_ms);
+int32_t osal_mutex_timed_lock(osal_mutex_t *mutex, uint32_t timeout_ms);
 
 /**
  * @brief 释放互斥锁
@@ -90,7 +88,7 @@ int32_t osal_pthread_mutex_timedlock(osal_mutex_t *mutex, uint32_t timeout_ms);
  * @return 0 成功
  * @return -1 失败
  */
-int32_t osal_pthread_mutex_unlock(osal_mutex_t *mutex);
+int32_t osal_mutex_unlock(osal_mutex_t *mutex);
 
 /*===========================================================================
  * 互斥锁属性管理（可选）
@@ -103,7 +101,7 @@ int32_t osal_pthread_mutex_unlock(osal_mutex_t *mutex);
  * @return 0 成功
  * @return -1 失败
  */
-int32_t osal_pthread_mutexattr_init(osal_mutexattr_t *attr);
+int32_t osal_mutex_attr_init(osal_mutex_attr_t *attr);
 
 /**
  * @brief 销毁互斥锁属性
@@ -112,29 +110,28 @@ int32_t osal_pthread_mutexattr_init(osal_mutexattr_t *attr);
  * @return 0 成功
  * @return -1 失败
  */
-int32_t osal_pthread_mutexattr_destroy(osal_mutexattr_t *attr);
+int32_t osal_mutex_attr_destroy(osal_mutex_attr_t *attr);
 
 /**
  * @brief 设置互斥锁类型
  *
  * @param[in] attr 属性指针
- * @param[in] type 互斥锁类型（OSAL_PTHREAD_MUTEX_NORMAL/
- * OSAL_PTHREAD_MUTEX_RECURSIVE 等）
+ * @param[in] type 互斥锁类型（OSAL_MUTEX_NORMAL/
+ * OSAL_MUTEX_RECURSIVE 等）
  * @return 0 成功
  * @return -1 失败
  */
-int32_t osal_pthread_mutexattr_settype(osal_mutexattr_t *attr, int32_t type);
+int32_t osal_mutex_attr_set_type(osal_mutex_attr_t *attr, int32_t type);
 
 /**
  * @brief 设置互斥锁协议
  *
  * @param[in] attr 属性指针
- * @param[in] protocol 协议（OSAL_PTHREAD_PRIO_INHERIT 等）
+ * @param[in] protocol 协议（OSAL_MUTEX_PRIO_INHERIT 等）
  * @return 0 成功
  * @return -1 失败
  */
-int32_t osal_pthread_mutexattr_setprotocol(osal_mutexattr_t *attr,
-										   int32_t protocol);
+int32_t osal_mutex_attr_set_protocol(osal_mutex_attr_t *attr, int32_t protocol);
 
 /**
  * @brief 获取互斥锁类型
@@ -144,8 +141,7 @@ int32_t osal_pthread_mutexattr_setprotocol(osal_mutexattr_t *attr,
  * @return 0 成功
  * @return -1 失败
  */
-int32_t osal_pthread_mutexattr_gettype(const osal_mutexattr_t *attr,
-									   int32_t *type);
+int32_t osal_mutex_attr_get_type(const osal_mutex_attr_t *attr, int32_t *type);
 
 #ifdef __cplusplus
 }

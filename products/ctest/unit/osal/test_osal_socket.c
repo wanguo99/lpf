@@ -369,7 +369,7 @@ static void _test_socket_tcp_client_server(void)
 	ctx.port = 19999;
 
 	/* 启动服务器线程 */
-	ret = osal_pthread_create(&server_thread, NULL, _tcp_server_thread, &ctx);
+	ret = osal_thread_create(&server_thread, NULL, _tcp_server_thread, &ctx);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	/* 等待服务器启动 */
@@ -398,7 +398,7 @@ static void _test_socket_tcp_client_server(void)
 	TEST_ASSERT_EQUAL_STRING(send_buf, recv_buf);
 
 	osal_close(client_fd);
-	osal_pthread_join(server_thread, NULL);
+	osal_thread_join(server_thread, NULL);
 }
 
 /*===========================================================================

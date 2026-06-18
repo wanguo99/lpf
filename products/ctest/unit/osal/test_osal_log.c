@@ -260,8 +260,8 @@ static void _test_osal_log_multithread(void)
 	int32_t i;
 
 	for (i = 0; i < 3; i++) {
-		ret = osal_pthread_create(&task_ids[i], NULL, _log_test_task,
-								  &task_args[i]);
+		ret = osal_thread_create(&task_ids[i], NULL, _log_test_task,
+								 &task_args[i]);
 		TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 	}
 
@@ -271,7 +271,7 @@ static void _test_osal_log_multithread(void)
 	/* 等待线程退出 */
 
 	for (i = 0; i < 3; i++) {
-		osal_pthread_join(task_ids[i], NULL);
+		osal_thread_join(task_ids[i], NULL);
 	}
 
 	/* 清理 */
@@ -287,9 +287,9 @@ static void _test_osal_log_multithread(void)
 static void _test_osal_log_write_without_init(void)
 {
 	/* 跳过此测试：当前OSAL日志实现在未初始化时调用LOG_INFO会导致段错误
-     * 原因：log_internal_ex函数使用pthread_mutex_lock但没有检查初始化状态
-     * TODO: 需要在OSAL日志实现中添加初始化状态检查
-     */
+	 * 原因：log_internal_ex函数使用互斥锁但没有检查初始化状态
+	 * TODO: 需要在OSAL日志实现中添加初始化状态检查
+	 */
 	TEST_ASSERT_FALSE(
 		true); // OSAL log implementation needs initialization check
 }

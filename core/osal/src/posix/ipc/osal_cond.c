@@ -1,5 +1,5 @@
 /************************************************************************
- * OSAL 条件变量实现（POSIX 薄封装）
+ * OSAL POSIX 后端 - 条件变量
  ************************************************************************/
 
 #include "osal.h"
@@ -7,7 +7,7 @@
 #include <errno.h>
 #include <time.h>
 
-int32_t osal_pthread_cond_init(osal_cond_t *cond, const osal_condattr_t *attr)
+int32_t osal_cond_init(osal_cond_t *cond, const osal_cond_attr_t *attr)
 {
 	if (cond == NULL) {
 		errno = EINVAL;
@@ -17,7 +17,7 @@ int32_t osal_pthread_cond_init(osal_cond_t *cond, const osal_condattr_t *attr)
 	return pthread_cond_init(cond, attr);
 }
 
-int32_t osal_pthread_cond_destroy(osal_cond_t *cond)
+int32_t osal_cond_destroy(osal_cond_t *cond)
 {
 	if (cond == NULL) {
 		errno = EINVAL;
@@ -27,7 +27,7 @@ int32_t osal_pthread_cond_destroy(osal_cond_t *cond)
 	return pthread_cond_destroy(cond);
 }
 
-int32_t osal_pthread_cond_wait(osal_cond_t *cond, osal_mutex_t *mutex)
+int32_t osal_cond_wait(osal_cond_t *cond, osal_mutex_t *mutex)
 {
 	if (cond == NULL || mutex == NULL) {
 		errno = EINVAL;
@@ -37,8 +37,8 @@ int32_t osal_pthread_cond_wait(osal_cond_t *cond, osal_mutex_t *mutex)
 	return pthread_cond_wait(cond, mutex);
 }
 
-int32_t osal_pthread_cond_timedwait(osal_cond_t *cond, osal_mutex_t *mutex,
-									uint32_t timeout_ms)
+int32_t osal_cond_timed_wait(osal_cond_t *cond, osal_mutex_t *mutex,
+							 uint32_t timeout_ms)
 {
 	struct timespec ts;
 
@@ -61,7 +61,7 @@ int32_t osal_pthread_cond_timedwait(osal_cond_t *cond, osal_mutex_t *mutex,
 	return pthread_cond_timedwait(cond, mutex, &ts);
 }
 
-int32_t osal_pthread_cond_signal(osal_cond_t *cond)
+int32_t osal_cond_signal(osal_cond_t *cond)
 {
 	if (cond == NULL) {
 		errno = EINVAL;
@@ -71,7 +71,7 @@ int32_t osal_pthread_cond_signal(osal_cond_t *cond)
 	return pthread_cond_signal(cond);
 }
 
-int32_t osal_pthread_cond_broadcast(osal_cond_t *cond)
+int32_t osal_cond_broadcast(osal_cond_t *cond)
 {
 	if (cond == NULL) {
 		errno = EINVAL;

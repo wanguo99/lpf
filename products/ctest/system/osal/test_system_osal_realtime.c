@@ -54,23 +54,23 @@ static void _test_rt_thread_priority_enforcement(void)
 	}
 
 	/* Create threads with different priorities */
-	osal_threadattr_t high_attr, low_attr;
-	osal_pthread_attr_init(&high_attr);
-	osal_pthread_attr_init(&low_attr);
+	osal_thread_attr_t high_attr, low_attr;
+	osal_thread_attr_init(&high_attr);
+	osal_thread_attr_init(&low_attr);
 
 	/* Try to set RT scheduling policy and priority */
 	osal_sched_param_t high_param = { .sched_priority = 80 };
 	osal_sched_param_t low_param = { .sched_priority = 20 };
 
-	osal_pthread_attr_setschedpolicy(&high_attr, OSAL_SCHED_FIFO);
-	osal_pthread_attr_setschedparam(&high_attr, &high_param);
+	osal_thread_attr_set_sched_policy(&high_attr, OSAL_SCHED_FIFO);
+	osal_thread_attr_set_sched_param(&high_attr, &high_param);
 
-	osal_pthread_attr_setschedpolicy(&low_attr, OSAL_SCHED_FIFO);
-	osal_pthread_attr_setschedparam(&low_attr, &low_param);
+	osal_thread_attr_set_sched_policy(&low_attr, OSAL_SCHED_FIFO);
+	osal_thread_attr_set_sched_param(&low_attr, &low_param);
 
 	/* Create threads */
-	ret = osal_pthread_create(&low_prio_thread, &low_attr, priority_thread_func,
-							  &low_ctx);
+	ret = osal_thread_create(&low_prio_thread, &low_attr, priority_thread_func,
+							 &low_ctx);
 	if (ret != 0) {
 		osal_printf("[ SKIP     ] Cannot create low priority thread (need root "
 					"for RT)\n");
@@ -78,12 +78,12 @@ static void _test_rt_thread_priority_enforcement(void)
 		return;
 	}
 
-	ret = osal_pthread_create(&high_prio_thread, &high_attr,
-							  priority_thread_func, &high_ctx);
+	ret = osal_thread_create(&high_prio_thread, &high_attr,
+							 priority_thread_func, &high_ctx);
 	if (ret != 0) {
 		osal_printf("[ SKIP     ] Cannot create high priority thread\n");
-		osal_pthread_cancel(low_prio_thread);
-		osal_pthread_join(low_prio_thread, NULL);
+		osal_thread_cancel(low_prio_thread);
+		osal_thread_join(low_prio_thread, NULL);
 		osal_sem_destroy(&start_sem);
 		return;
 	}
@@ -94,15 +94,15 @@ static void _test_rt_thread_priority_enforcement(void)
 	osal_sem_post(&start_sem);
 
 	/* Wait for completion */
-	osal_pthread_join(high_prio_thread, NULL);
-	osal_pthread_join(low_prio_thread, NULL);
+	osal_thread_join(high_prio_thread, NULL);
+	osal_thread_join(low_prio_thread, NULL);
 
 	/* Verify execution */
 	TEST_ASSERT_EQUAL(2, osal_atomic_load(&execution_order));
 
 	/* Cleanup */
-	osal_pthread_attr_destroy(&high_attr);
-	osal_pthread_attr_destroy(&low_attr);
+	osal_thread_attr_destroy(&high_attr);
+	osal_thread_attr_destroy(&low_attr);
 	osal_sem_destroy(&start_sem);
 
 	osal_printf("[ PASS     ] RT thread priority enforcement test passed\n");
@@ -116,33 +116,33 @@ static void _test_priority_inheritance_mutex(void)
 	osal_printf("[ TEST     ] Priority inheritance mutex\n");
 
 	osal_mutex_t mutex;
-	osal_mutexattr_t attr;
+	osal_mutex_attr_t attr;
 	int32_t ret;
 
 	/* Initialize mutex with priority inheritance protocol */
-	ret = osal_pthread_mutexattr_init(&attr);
+	ret = osal_mutex_attr_init(&attr);
 	TEST_ASSERT_EQUAL(0, ret);
 
-	ret = osal_pthread_mutexattr_setprotocol(&attr, OSAL_PTHREAD_PRIO_INHERIT);
+	ret = osal_mutex_attr_set_protocol(&attr, OSAL_MUTEX_PRIO_INHERIT);
 	if (ret != 0) {
 		osal_printf("[ SKIP     ] Priority inheritance not supported\n");
-		osal_pthread_mutexattr_destroy(&attr);
+		osal_mutex_attr_destroy(&attr);
 		return;
 	}
 
-	ret = osal_pthread_mutex_init(&mutex, &attr);
+	ret = osal_mutex_init(&mutex, &attr);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	/* Test mutex operations */
-	ret = osal_pthread_mutex_lock(&mutex);
+	ret = osal_mutex_lock(&mutex);
 	TEST_ASSERT_EQUAL(0, ret);
 
-	ret = osal_pthread_mutex_unlock(&mutex);
+	ret = osal_mutex_unlock(&mutex);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	/* Cleanup */
-	osal_pthread_mutex_destroy(&mutex);
-	osal_pthread_mutexattr_destroy(&attr);
+	osal_mutex_destroy(&mutex);
+	osal_mutex_attr_destroy(&attr);
 
 	osal_printf("[ PASS     ] Priority inheritance mutex test passed\n");
 }
@@ -165,13 +165,13 @@ static void _test_cpu_affinity_rt_threads(void)
 		int32_t current_cpu;
 
 		/* Set CPU affinity */
-		ret = osal_sched_setaffinity(0, 0);
+		ret = osal_sched_set_affinity(0, 0);
 		if (ret != 0) {
 			return (void *)-1;
 		}
 
 		/* Verify affinity */
-		ret = osal_sched_getaffinity(0, &current_cpu);
+		ret = osal_sched_get_affinity(0, &current_cpu);
 		if (ret != 0) {
 			return (void *)-1;
 		}
@@ -184,12 +184,12 @@ static void _test_cpu_affinity_rt_threads(void)
 		return NULL;
 	}
 
-	ret = osal_pthread_create(&thread, NULL, affinity_thread_func, NULL);
+	ret = osal_thread_create(&thread, NULL, affinity_thread_func, NULL);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	/* Wait for completion */
 	void *thread_ret;
-	osal_pthread_join(thread, &thread_ret);
+	osal_thread_join(thread, &thread_ret);
 
 	if (thread_ret == (void *)-1) {
 		osal_printf("[ SKIP     ] CPU affinity not available\n");
@@ -250,12 +250,12 @@ static void _test_rt_thread_timer_interaction(void)
 	}
 
 	/* Create timer thread */
-	ret = osal_pthread_create(&thread, NULL, timer_thread_func, &ctx);
+	ret = osal_thread_create(&thread, NULL, timer_thread_func, &ctx);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	/* Wait for completion */
 	void *thread_ret;
-	osal_pthread_join(thread, &thread_ret);
+	osal_thread_join(thread, &thread_ret);
 	TEST_ASSERT_NULL(thread_ret);
 
 	/* Verify timer ticks */
@@ -293,10 +293,10 @@ static void _test_scheduler_policy_interactions(void)
 
 		/* Try to set scheduler policy */
 		param.sched_priority = ctx->priority;
-		ret = osal_sched_setscheduler(0, ctx->policy, &param);
+		ret = osal_sched_set_scheduler(0, ctx->policy, &param);
 
 		/* Get current policy */
-		ret = osal_sched_getscheduler(0);
+		ret = osal_sched_get_scheduler(0);
 		(void)ret;
 
 		/* Do some work */
@@ -310,14 +310,14 @@ static void _test_scheduler_policy_interactions(void)
 
 	/* Create threads with different policies */
 	for (i = 0; i < 3; i++) {
-		ret = osal_pthread_create(&threads[i], NULL, sched_thread_func,
-								  &contexts[i]);
+		ret = osal_thread_create(&threads[i], NULL, sched_thread_func,
+								 &contexts[i]);
 		if (ret != 0) {
 			osal_printf("[ SKIP     ] Cannot create thread %u\n", i);
 			/* Clean up already created threads */
 			uint32_t j;
 			for (j = 0; j < i; j++) {
-				osal_pthread_join(threads[j], NULL);
+				osal_thread_join(threads[j], NULL);
 			}
 			return;
 		}
@@ -325,7 +325,7 @@ static void _test_scheduler_policy_interactions(void)
 
 	/* Wait for all threads */
 	for (i = 0; i < 3; i++) {
-		osal_pthread_join(threads[i], NULL);
+		osal_thread_join(threads[i], NULL);
 	}
 
 	osal_printf("[ PASS     ] Scheduler policy interactions test passed\n");

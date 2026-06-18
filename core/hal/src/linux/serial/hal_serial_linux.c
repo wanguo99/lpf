@@ -197,7 +197,7 @@ int32_t hal_serial_open(const char *device, const hal_serial_config_t *config,
 	}
 
 	/* 创建互斥锁（线程间保护） */
-	ret = osal_pthread_mutex_init(&ctx->mutex, NULL);
+	ret = osal_mutex_init(&ctx->mutex, NULL);
 	if (ret != OSAL_SUCCESS) {
 		LOG_ERROR("HAL_Serial", "Failed to create mutex");
 		osal_flock_destroy(ctx->flock);
@@ -239,7 +239,7 @@ int32_t hal_serial_close(hal_serial_handle_t handle)
 	}
 
 	/* 销毁锁 */
-	osal_pthread_mutex_destroy(&ctx->mutex);
+	osal_mutex_destroy(&ctx->mutex);
 
 	if (ctx->flock) {
 		osal_flock_destroy(ctx->flock);
@@ -302,7 +302,7 @@ int32_t hal_serial_write(hal_serial_handle_t handle, const void *buffer,
 	}
 
 	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_pthread_mutex_lock(&ctx->mutex);
+	ret = osal_mutex_lock(&ctx->mutex);
 	if (ret != OSAL_SUCCESS) {
 		LOG_ERROR("HAL_Serial", "Failed to acquire mutex");
 		osal_flock_unlock(ctx->flock);
@@ -321,7 +321,7 @@ int32_t hal_serial_write(hal_serial_handle_t handle, const void *buffer,
 	}
 
 	/* 释放锁（逆序） */
-	osal_pthread_mutex_unlock(&ctx->mutex);
+	osal_mutex_unlock(&ctx->mutex);
 	osal_flock_unlock(ctx->flock);
 
 	return result;
@@ -380,7 +380,7 @@ int32_t hal_serial_read(hal_serial_handle_t handle, void *buffer, uint32_t size,
 	}
 
 	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_pthread_mutex_lock(&ctx->mutex);
+	ret = osal_mutex_lock(&ctx->mutex);
 	if (ret != OSAL_SUCCESS) {
 		LOG_ERROR("HAL_Serial", "Failed to acquire mutex");
 		osal_flock_unlock(ctx->flock);
@@ -398,7 +398,7 @@ int32_t hal_serial_read(hal_serial_handle_t handle, void *buffer, uint32_t size,
 	}
 
 	/* 释放锁（逆序） */
-	osal_pthread_mutex_unlock(&ctx->mutex);
+	osal_mutex_unlock(&ctx->mutex);
 	osal_flock_unlock(ctx->flock);
 
 	return result;
@@ -431,7 +431,7 @@ int32_t hal_serial_flush(hal_serial_handle_t handle)
 	}
 
 	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_pthread_mutex_lock(&ctx->mutex);
+	ret = osal_mutex_lock(&ctx->mutex);
 	if (ret != OSAL_SUCCESS) {
 		LOG_ERROR("HAL_Serial", "Failed to acquire mutex");
 		osal_flock_unlock(ctx->flock);
@@ -447,7 +447,7 @@ int32_t hal_serial_flush(hal_serial_handle_t handle)
 	}
 
 	/* 释放锁（逆序） */
-	osal_pthread_mutex_unlock(&ctx->mutex);
+	osal_mutex_unlock(&ctx->mutex);
 	osal_flock_unlock(ctx->flock);
 
 	return result;
@@ -483,7 +483,7 @@ int32_t hal_serial_set_config(hal_serial_handle_t handle,
 	}
 
 	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_pthread_mutex_lock(&ctx->mutex);
+	ret = osal_mutex_lock(&ctx->mutex);
 	if (ret != OSAL_SUCCESS) {
 		LOG_ERROR("HAL_Serial", "Failed to acquire mutex");
 		osal_flock_unlock(ctx->flock);
@@ -553,7 +553,7 @@ int32_t hal_serial_set_config(hal_serial_handle_t handle,
 
 unlock:
 	/* 释放锁（逆序） */
-	osal_pthread_mutex_unlock(&ctx->mutex);
+	osal_mutex_unlock(&ctx->mutex);
 	osal_flock_unlock(ctx->flock);
 
 	return result;

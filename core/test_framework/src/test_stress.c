@@ -50,7 +50,7 @@ stress_context_t *stress_context_create(const char *name,
 	ctx->config = *config;
 	ctx->should_stop = false;
 
-	if (osal_pthread_mutex_init(&ctx->stats_mutex, NULL) != 0) {
+	if (osal_mutex_init(&ctx->stats_mutex, NULL) != 0) {
 		free(ctx);
 		return NULL;
 	}
@@ -67,7 +67,7 @@ void stress_context_destroy(stress_context_t *ctx)
 		return;
 	}
 
-	osal_pthread_mutex_destroy(&ctx->stats_mutex);
+	osal_mutex_destroy(&ctx->stats_mutex);
 	free(ctx);
 }
 
@@ -109,7 +109,7 @@ static void *_worker_thread(void *arg)
 		uint64_t latency = end - start;
 
 		/* 更新统计 */
-		osal_pthread_mutex_lock(&ctx->stats_mutex);
+		osal_mutex_lock(&ctx->stats_mutex);
 		ctx->stats.total_operations++;
 		if (result == 0) {
 			ctx->stats.successful_ops++;
@@ -128,7 +128,7 @@ static void *_worker_thread(void *arg)
 		ctx->stats.avg_latency_us =
 			(ctx->stats.avg_latency_us * (n - 1) + latency) / n;
 
-		osal_pthread_mutex_unlock(&ctx->stats_mutex);
+		osal_mutex_unlock(&ctx->stats_mutex);
 
 		/* 检查是否遇错停止 */
 		if (ctx->config.stop_on_error && result != 0) {
@@ -181,12 +181,12 @@ int32_t stress_run(stress_context_t *ctx, stress_worker_func_t worker,
 		thread_data[i].user_data = user_data;
 		thread_data[i].thread_id = i;
 
-		if (osal_pthread_create(&threads[i], NULL, _worker_thread,
-								&thread_data[i]) != 0) {
+		if (osal_thread_create(&threads[i], NULL, _worker_thread,
+							   &thread_data[i]) != 0) {
 			/* 启动失败，停止已启动的线程 */
 			ctx->should_stop = true;
 			for (uint32_t j = 0; j < i; j++) {
-				osal_pthread_join(threads[j], NULL);
+				osal_thread_join(threads[j], NULL);
 			}
 			free(threads);
 			free(thread_data);
@@ -204,7 +204,7 @@ int32_t stress_run(stress_context_t *ctx, stress_worker_func_t worker,
 
 	/* 等待所有线程完成 */
 	for (uint32_t i = 0; i < thread_count; i++) {
-		osal_pthread_join(threads[i], NULL);
+		osal_thread_join(threads[i], NULL);
 	}
 
 	/* 计算最终统计 */
@@ -241,9 +241,9 @@ int32_t stress_get_stats(stress_context_t *ctx, stress_stats_t *stats)
 		return -1;
 	}
 
-	osal_pthread_mutex_lock(&ctx->stats_mutex);
+	osal_mutex_lock(&ctx->stats_mutex);
 	*stats = ctx->stats;
-	osal_pthread_mutex_unlock(&ctx->stats_mutex);
+	osal_mutex_unlock(&ctx->stats_mutex);
 
 	return 0;
 }
@@ -298,9 +298,9 @@ void stress_record_error(stress_context_t *ctx, const char *error_msg)
 		return;
 	}
 
-	osal_pthread_mutex_lock(&ctx->stats_mutex);
+	osal_mutex_lock(&ctx->stats_mutex);
 	ctx->stats.error_count++;
-	osal_pthread_mutex_unlock(&ctx->stats_mutex);
+	osal_mutex_unlock(&ctx->stats_mutex);
 
 	if (error_msg) {
 		osal_printf("[ STRESS ERROR ] %s\n", error_msg);

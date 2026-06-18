@@ -1,7 +1,7 @@
 #include <test_framework/test_framework.h>
 /**
  * @file test_osal_semaphore.c
- * @brief OSAL信号量单元测试 - 使用新的 POSIX 薄封装 API
+ * @brief OSAL信号量单元测试 - 使用统一 OSAL API
  *
  * 使用新的libtest框架，测试自动注册
  */
@@ -68,7 +68,7 @@ static void _test_semaphore_timedwait_timeout(void)
 	osal_sem_t sem;
 	osal_sem_init(&sem, 0, 0);
 
-	int32_t ret = osal_sem_timedwait(&sem, 100);
+	int32_t ret = osal_sem_timed_wait(&sem, 100);
 	TEST_ASSERT_EQUAL(-1, ret);
 	TEST_ASSERT_EQUAL(ETIMEDOUT, errno);
 
@@ -81,7 +81,7 @@ static void _test_semaphore_timedwait_success(void)
 	osal_sem_t sem;
 	osal_sem_init(&sem, 0, 1);
 
-	int32_t ret = osal_sem_timedwait(&sem, 100);
+	int32_t ret = osal_sem_timed_wait(&sem, 100);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	osal_sem_destroy(&sem);
@@ -93,7 +93,7 @@ static void _test_semaphore_trywait_fail(void)
 	osal_sem_t sem;
 	osal_sem_init(&sem, 0, 0);
 
-	int32_t ret = osal_sem_trywait(&sem);
+	int32_t ret = osal_sem_try_wait(&sem);
 	TEST_ASSERT_EQUAL(-1, ret);
 	TEST_ASSERT_TRUE(errno == EAGAIN || errno == EWOULDBLOCK);
 
@@ -106,7 +106,7 @@ static void _test_semaphore_trywait_success(void)
 	osal_sem_t sem;
 	osal_sem_init(&sem, 0, 1);
 
-	int32_t ret = osal_sem_trywait(&sem);
+	int32_t ret = osal_sem_try_wait(&sem);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	osal_sem_destroy(&sem);
@@ -120,7 +120,7 @@ static void _test_semaphore_getvalue(void)
 
 	osal_sem_init(&sem, 0, 5);
 
-	int32_t ret = osal_sem_getvalue(&sem, &value);
+	int32_t ret = osal_sem_get_value(&sem, &value);
 	TEST_ASSERT_EQUAL(0, ret);
 	TEST_ASSERT_EQUAL(5, value);
 
@@ -186,12 +186,12 @@ static void _test_semaphore_producer_consumer(void)
 	osal_thread_t producer, consumer;
 
 	/* 创建生产者和消费者线程 */
-	osal_pthread_create(&producer, NULL, _producer_thread, &sem);
-	osal_pthread_create(&consumer, NULL, _consumer_thread, &sem);
+	osal_thread_create(&producer, NULL, _producer_thread, &sem);
+	osal_thread_create(&consumer, NULL, _consumer_thread, &sem);
 
 	/* 等待线程完成 */
-	osal_pthread_join(producer, NULL);
-	osal_pthread_join(consumer, NULL);
+	osal_thread_join(producer, NULL);
+	osal_thread_join(consumer, NULL);
 
 	/* 验证计数器归零 */
 	TEST_ASSERT_EQUAL(0, shared_counter);

@@ -71,7 +71,7 @@ int32_t hal_i2c_open(const hal_i2c_config_t *config, hal_i2c_handle_t *handle)
 	}
 
 	/* 创建互斥锁（线程间保护） */
-	ret = osal_pthread_mutex_init(&impl->mutex, NULL);
+	ret = osal_mutex_init(&impl->mutex, NULL);
 	if (ret != OSAL_SUCCESS) {
 		LOG_ERROR("HAL_I2C", "Failed to create mutex");
 		osal_flock_destroy(impl->flock);
@@ -85,7 +85,7 @@ int32_t hal_i2c_open(const hal_i2c_config_t *config, hal_i2c_handle_t *handle)
 		int32_t err = osal_get_errno();
 		LOG_ERROR("HAL_I2C", "Failed to open device %s: %s (%d)",
 				  config->device, osal_strerror(err), err);
-		osal_pthread_mutex_destroy(&impl->mutex);
+		osal_mutex_destroy(&impl->mutex);
 		osal_flock_destroy(impl->flock);
 		osal_free(impl);
 		return err;
@@ -120,7 +120,7 @@ int32_t hal_i2c_close(hal_i2c_handle_t handle)
 	impl->initialized = false;
 
 	/* 销毁锁 */
-	osal_pthread_mutex_destroy(&impl->mutex);
+	osal_mutex_destroy(&impl->mutex);
 
 	if (impl->flock) {
 		osal_flock_destroy(impl->flock);
@@ -157,7 +157,7 @@ int32_t hal_i2c_write(hal_i2c_handle_t handle, uint16_t slave_addr,
 	}
 
 	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_pthread_mutex_lock(&impl->mutex);
+	ret = osal_mutex_lock(&impl->mutex);
 	if (ret != OSAL_SUCCESS) {
 		LOG_ERROR("HAL_I2C", "Failed to acquire mutex");
 		osal_flock_unlock(impl->flock);
@@ -191,7 +191,7 @@ int32_t hal_i2c_write(hal_i2c_handle_t handle, uint16_t slave_addr,
 
 unlock:
 	/* 释放锁（逆序） */
-	osal_pthread_mutex_unlock(&impl->mutex);
+	osal_mutex_unlock(&impl->mutex);
 	osal_flock_unlock(impl->flock);
 
 	return result;
@@ -222,7 +222,7 @@ int32_t hal_i2c_read(hal_i2c_handle_t handle, uint16_t slave_addr,
 	}
 
 	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_pthread_mutex_lock(&impl->mutex);
+	ret = osal_mutex_lock(&impl->mutex);
 	if (ret != OSAL_SUCCESS) {
 		LOG_ERROR("HAL_I2C", "Failed to acquire mutex");
 		osal_flock_unlock(impl->flock);
@@ -256,7 +256,7 @@ int32_t hal_i2c_read(hal_i2c_handle_t handle, uint16_t slave_addr,
 
 unlock:
 	/* 释放锁（逆序） */
-	osal_pthread_mutex_unlock(&impl->mutex);
+	osal_mutex_unlock(&impl->mutex);
 	osal_flock_unlock(impl->flock);
 
 	return result;
@@ -323,7 +323,7 @@ int32_t hal_i2c_read_reg(hal_i2c_handle_t handle, uint16_t slave_addr,
 	}
 
 	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_pthread_mutex_lock(&impl->mutex);
+	ret = osal_mutex_lock(&impl->mutex);
 	if (ret != OSAL_SUCCESS) {
 		LOG_ERROR("HAL_I2C", "Failed to acquire mutex");
 		osal_flock_unlock(impl->flock);
@@ -354,7 +354,7 @@ int32_t hal_i2c_read_reg(hal_i2c_handle_t handle, uint16_t slave_addr,
 	}
 
 	/* 释放锁（逆序） */
-	osal_pthread_mutex_unlock(&impl->mutex);
+	osal_mutex_unlock(&impl->mutex);
 	osal_flock_unlock(impl->flock);
 
 	return result;
@@ -405,7 +405,7 @@ int32_t hal_i2c_transfer(hal_i2c_handle_t handle, hal_i2c_msg_t *msgs,
 	}
 
 	/* 第二层：互斥锁（线程间保护） */
-	ret = osal_pthread_mutex_lock(&impl->mutex);
+	ret = osal_mutex_lock(&impl->mutex);
 	if (ret != OSAL_SUCCESS) {
 		LOG_ERROR("HAL_I2C", "Failed to acquire mutex");
 		osal_flock_unlock(impl->flock);
@@ -427,7 +427,7 @@ int32_t hal_i2c_transfer(hal_i2c_handle_t handle, hal_i2c_msg_t *msgs,
 	}
 
 	/* 释放锁（逆序） */
-	osal_pthread_mutex_unlock(&impl->mutex);
+	osal_mutex_unlock(&impl->mutex);
 	osal_flock_unlock(impl->flock);
 
 	osal_free(kernel_msgs);

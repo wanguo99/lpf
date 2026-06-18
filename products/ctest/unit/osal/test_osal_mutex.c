@@ -22,17 +22,17 @@ static void _test_mutex_init_success(void)
 {
 	osal_mutex_t mutex;
 
-	int32_t ret = osal_pthread_mutex_init(&mutex, NULL);
+	int32_t ret = osal_mutex_init(&mutex, NULL);
 
 	TEST_ASSERT_EQUAL(0, ret);
 
-	osal_pthread_mutex_destroy(&mutex);
+	osal_mutex_destroy(&mutex);
 }
 
 /* 测试用例2: 互斥锁初始化失败 - 空指针 */
 static void _test_mutex_init_nullpointer(void)
 {
-	int32_t ret = osal_pthread_mutex_init(NULL, NULL);
+	int32_t ret = osal_mutex_init(NULL, NULL);
 	TEST_ASSERT_EQUAL(-1, ret);
 	TEST_ASSERT_EQUAL(EINVAL, errno);
 }
@@ -41,21 +41,21 @@ static void _test_mutex_init_nullpointer(void)
 static void _test_mutex_lockunlock_success(void)
 {
 	osal_mutex_t mutex;
-	osal_pthread_mutex_init(&mutex, NULL);
+	osal_mutex_init(&mutex, NULL);
 
-	int32_t ret = osal_pthread_mutex_lock(&mutex);
+	int32_t ret = osal_mutex_lock(&mutex);
 	TEST_ASSERT_EQUAL(0, ret);
 
-	ret = osal_pthread_mutex_unlock(&mutex);
+	ret = osal_mutex_unlock(&mutex);
 	TEST_ASSERT_EQUAL(0, ret);
 
-	osal_pthread_mutex_destroy(&mutex);
+	osal_mutex_destroy(&mutex);
 }
 
 /* 测试用例4: 互斥锁加锁失败 - 空指针 */
 static void _test_mutex_lock_nullpointer(void)
 {
-	int32_t ret = osal_pthread_mutex_lock(NULL);
+	int32_t ret = osal_mutex_lock(NULL);
 	TEST_ASSERT_EQUAL(-1, ret);
 	TEST_ASSERT_EQUAL(EINVAL, errno);
 }
@@ -63,7 +63,7 @@ static void _test_mutex_lock_nullpointer(void)
 /* 测试用例5: 互斥锁解锁失败 - 空指针 */
 static void _test_mutex_unlock_nullpointer(void)
 {
-	int32_t ret = osal_pthread_mutex_unlock(NULL);
+	int32_t ret = osal_mutex_unlock(NULL);
 	TEST_ASSERT_EQUAL(-1, ret);
 	TEST_ASSERT_EQUAL(EINVAL, errno);
 }
@@ -72,16 +72,16 @@ static void _test_mutex_unlock_nullpointer(void)
 static void _test_mutex_destroy_success(void)
 {
 	osal_mutex_t mutex;
-	osal_pthread_mutex_init(&mutex, NULL);
+	osal_mutex_init(&mutex, NULL);
 
-	int32_t ret = osal_pthread_mutex_destroy(&mutex);
+	int32_t ret = osal_mutex_destroy(&mutex);
 	TEST_ASSERT_EQUAL(0, ret);
 }
 
 /* 测试用例7: 互斥锁销毁失败 - 空指针 */
 static void _test_mutex_destroy_nullpointer(void)
 {
-	int32_t ret = osal_pthread_mutex_destroy(NULL);
+	int32_t ret = osal_mutex_destroy(NULL);
 	TEST_ASSERT_EQUAL(-1, ret);
 	TEST_ASSERT_EQUAL(EINVAL, errno);
 }
@@ -93,9 +93,9 @@ static void *_producer_thread(void *arg)
 	int32_t i;
 
 	for (i = 0; i < 1000; i++) {
-		osal_pthread_mutex_lock(mutex);
+		osal_mutex_lock(mutex);
 		shared_counter++;
-		osal_pthread_mutex_unlock(mutex);
+		osal_mutex_unlock(mutex);
 	}
 
 	return NULL;
@@ -108,9 +108,9 @@ static void *_consumer_thread(void *arg)
 	int32_t i;
 
 	for (i = 0; i < 1000; i++) {
-		osal_pthread_mutex_lock(mutex);
+		osal_mutex_lock(mutex);
 		shared_counter--;
-		osal_pthread_mutex_unlock(mutex);
+		osal_mutex_unlock(mutex);
 	}
 
 	return NULL;
@@ -121,72 +121,72 @@ static void _test_mutex_multithread(void)
 {
 	shared_counter = 0;
 	osal_mutex_t mutex;
-	osal_pthread_mutex_init(&mutex, NULL);
+	osal_mutex_init(&mutex, NULL);
 
 	osal_thread_t producer, consumer;
 
 	/* 创建生产者和消费者线程 */
-	osal_pthread_create(&producer, NULL, _producer_thread, &mutex);
-	osal_pthread_create(&consumer, NULL, _consumer_thread, &mutex);
+	osal_thread_create(&producer, NULL, _producer_thread, &mutex);
+	osal_thread_create(&consumer, NULL, _consumer_thread, &mutex);
 
 	/* 等待线程完成 */
-	osal_pthread_join(producer, NULL);
-	osal_pthread_join(consumer, NULL);
+	osal_thread_join(producer, NULL);
+	osal_thread_join(consumer, NULL);
 
 	/* 验证计数器归零（如果互斥锁工作正常）*/
 	TEST_ASSERT_EQUAL(0, shared_counter);
 
-	osal_pthread_mutex_destroy(&mutex);
+	osal_mutex_destroy(&mutex);
 }
 
 /* 测试用例9: 递归锁 */
 static void _test_mutex_recursive(void)
 {
 	osal_mutex_t mutex;
-	osal_mutexattr_t attr;
+	osal_mutex_attr_t attr;
 
 	/* 设置递归锁属性 */
-	osal_pthread_mutexattr_init(&attr);
-	osal_pthread_mutexattr_settype(&attr, OSAL_PTHREAD_MUTEX_RECURSIVE);
-	osal_pthread_mutex_init(&mutex, &attr);
+	osal_mutex_attr_init(&attr);
+	osal_mutex_attr_set_type(&attr, OSAL_MUTEX_RECURSIVE);
+	osal_mutex_init(&mutex, &attr);
 
 	/* 多次加锁（递归锁允许） */
-	int32_t ret = osal_pthread_mutex_lock(&mutex);
+	int32_t ret = osal_mutex_lock(&mutex);
 	TEST_ASSERT_EQUAL(0, ret);
 
-	ret = osal_pthread_mutex_lock(&mutex);
+	ret = osal_mutex_lock(&mutex);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	/* 对应解锁 */
-	ret = osal_pthread_mutex_unlock(&mutex);
+	ret = osal_mutex_unlock(&mutex);
 	TEST_ASSERT_EQUAL(0, ret);
 
-	ret = osal_pthread_mutex_unlock(&mutex);
+	ret = osal_mutex_unlock(&mutex);
 	TEST_ASSERT_EQUAL(0, ret);
 
-	osal_pthread_mutex_destroy(&mutex);
-	osal_pthread_mutexattr_destroy(&attr);
+	osal_mutex_destroy(&mutex);
+	osal_mutex_attr_destroy(&attr);
 }
 
 /* 测试用例10: trylock 非阻塞 */
 static void _test_mutex_trylock(void)
 {
 	osal_mutex_t mutex;
-	osal_pthread_mutex_init(&mutex, NULL);
+	osal_mutex_init(&mutex, NULL);
 
 	/* 第一次 trylock 应该成功 */
-	int32_t ret = osal_pthread_mutex_trylock(&mutex);
+	int32_t ret = osal_mutex_try_lock(&mutex);
 	TEST_ASSERT_EQUAL(0, ret);
 
 	/* 第二次 trylock 应该失败（锁已被占用）*/
-	ret = osal_pthread_mutex_trylock(&mutex);
+	ret = osal_mutex_try_lock(&mutex);
 	TEST_ASSERT_EQUAL(-1, ret);
 	TEST_ASSERT_EQUAL(EBUSY, errno);
 
 	/* 解锁 */
-	osal_pthread_mutex_unlock(&mutex);
+	osal_mutex_unlock(&mutex);
 
-	osal_pthread_mutex_destroy(&mutex);
+	osal_mutex_destroy(&mutex);
 }
 
 /* 注册测试套件 */

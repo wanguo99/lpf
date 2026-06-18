@@ -96,12 +96,12 @@ int32_t pdl_mcu_send_cmd(pdl_mcu_handle_t handle, pdl_mcu_cmd_t *cmd)
 		return OSAL_ERR_INVALID_PARAM;
 	}
 
-	osal_pthread_mutex_lock(&ctx->mutex);
+	osal_mutex_lock(&ctx->mutex);
 
 	ret = _mcu_send_packet(ctx, cmd->cmd, NULL, 0, cmd->response,
 						   cmd->response_max, &cmd->response_len);
 
-	osal_pthread_mutex_unlock(&ctx->mutex);
+	osal_mutex_unlock(&ctx->mutex);
 
 	return ret;
 }
@@ -118,13 +118,13 @@ int32_t pdl_mcu_send_data(pdl_mcu_handle_t handle, pdl_mcu_data_t *data)
 		return OSAL_ERR_INVALID_PARAM;
 	}
 
-	osal_pthread_mutex_lock(&ctx->mutex);
+	osal_mutex_lock(&ctx->mutex);
 
 	ret = _mcu_send_packet(ctx, data->cmd, data->data, data->data_len,
 						   data->response, data->response_max,
 						   &data->response_len);
 
-	osal_pthread_mutex_unlock(&ctx->mutex);
+	osal_mutex_unlock(&ctx->mutex);
 
 	return ret;
 }
@@ -150,7 +150,7 @@ int32_t pdl_mcu_init(uint32_t mcu_index, pdl_mcu_handle_t *handle)
 
 	/* 初始化全局注册表互斥锁 */
 	if (!g_registry_initialized) {
-		if (OSAL_SUCCESS != osal_pthread_mutex_init(&g_registry_mutex, NULL)) {
+		if (OSAL_SUCCESS != osal_mutex_init(&g_registry_mutex, NULL)) {
 			return OSAL_ERR_GENERIC;
 		}
 		g_registry_initialized = true;
@@ -197,18 +197,18 @@ int32_t pdl_mcu_init(uint32_t mcu_index, pdl_mcu_handle_t *handle)
 	}
 
 	/* 创建互斥锁 */
-	if (OSAL_SUCCESS != osal_pthread_mutex_init(&ctx->mutex, NULL)) {
+	if (OSAL_SUCCESS != osal_mutex_init(&ctx->mutex, NULL)) {
 		ops->deinit(ctx->transport_handle);
 		osal_free(ctx);
 		return OSAL_ERR_GENERIC;
 	}
 
 	/* 注册上下文 */
-	osal_pthread_mutex_lock(&g_registry_mutex);
+	osal_mutex_lock(&g_registry_mutex);
 	if (mcu_index < sizeof(g_mcu_contexts) / sizeof(g_mcu_contexts[0])) {
 		g_mcu_contexts[mcu_index] = ctx;
 	}
-	osal_pthread_mutex_unlock(&g_registry_mutex);
+	osal_mutex_unlock(&g_registry_mutex);
 
 	*handle = ctx;
 	return OSAL_SUCCESS;
@@ -227,18 +227,18 @@ int32_t pdl_mcu_deinit(pdl_mcu_handle_t handle)
 	}
 
 	/* 从注册表移除 */
-	osal_pthread_mutex_lock(&g_registry_mutex);
+	osal_mutex_lock(&g_registry_mutex);
 	for (i = 0; i < sizeof(g_mcu_contexts) / sizeof(g_mcu_contexts[0]); i++) {
 		if (g_mcu_contexts[i] == ctx) {
 			g_mcu_contexts[i] = NULL;
 			break;
 		}
 	}
-	osal_pthread_mutex_unlock(&g_registry_mutex);
+	osal_mutex_unlock(&g_registry_mutex);
 
 	/* 清理资源 */
 	ctx->ops->deinit(ctx->transport_handle);
-	osal_pthread_mutex_destroy(&ctx->mutex);
+	osal_mutex_destroy(&ctx->mutex);
 	osal_free(ctx);
 
 	return OSAL_SUCCESS;

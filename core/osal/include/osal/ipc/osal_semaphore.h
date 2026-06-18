@@ -1,7 +1,7 @@
 /************************************************************************
- * OSAL Semaphore API - POSIX 薄封装
+ * OSAL Semaphore API
  *
- * 直接暴露 POSIX osal_sem_t 类型，提供标准 POSIX 信号量接口的薄封装
+ * 面向调用方提供统一信号量接口；平台相关类型由当前 OSAL 后端映射。
  ************************************************************************/
 
 #ifndef OSAL_SEMAPHORE_H
@@ -18,7 +18,6 @@ extern "C" {
  *===========================================================================*/
 
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
-/* POSIX 平台 */
 typedef sem_t osal_sem_t;
 #else
 /* 其他平台（RTOS 等）- 需要提供对应的类型定义 */
@@ -26,7 +25,7 @@ typedef sem_t osal_sem_t;
 #endif
 
 /*===========================================================================
- * POSIX 信号量薄封装
+ * 信号量接口
  *===========================================================================*/
 
 /**
@@ -65,7 +64,7 @@ int32_t osal_sem_wait(osal_sem_t *sem);
  * @return 0 成功
  * @return -1 失败（EAGAIN 表示信号量不可用）
  */
-int32_t osal_sem_trywait(osal_sem_t *sem);
+int32_t osal_sem_try_wait(osal_sem_t *sem);
 
 /**
  * @brief 超时等待信号量
@@ -75,7 +74,7 @@ int32_t osal_sem_trywait(osal_sem_t *sem);
  * @return 0 成功
  * @return -1 失败（ETIMEDOUT 表示超时）
  */
-int32_t osal_sem_timedwait(osal_sem_t *sem, uint32_t timeout_ms);
+int32_t osal_sem_timed_wait(osal_sem_t *sem, uint32_t timeout_ms);
 
 /**
  * @brief 释放信号量
@@ -94,7 +93,7 @@ int32_t osal_sem_post(osal_sem_t *sem);
  * @return 0 成功
  * @return -1 失败
  */
-int32_t osal_sem_getvalue(osal_sem_t *sem, int32_t *value);
+int32_t osal_sem_get_value(osal_sem_t *sem, int32_t *value);
 
 #ifdef __cplusplus
 }

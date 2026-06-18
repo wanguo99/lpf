@@ -471,8 +471,8 @@ static void _test_stress_serial_long_running(void)
 	ctx.stop_flag = false;
 
 	/* Create worker thread */
-	ret = osal_pthread_create(&_worker_thread, NULL, _serial_longrun_worker,
-							  &ctx);
+	ret =
+		osal_thread_create(&_worker_thread, NULL, _serial_longrun_worker, &ctx);
 	TEST_ASSERT_EQUAL(OSAL_SUCCESS, ret);
 
 	/* Let it run */
@@ -480,7 +480,7 @@ static void _test_stress_serial_long_running(void)
 
 	/* Stop worker */
 	ctx.stop_flag = true;
-	osal_pthread_join(_worker_thread, NULL);
+	osal_thread_join(_worker_thread, NULL);
 
 	/* Print final statistics */
 	osal_printf("\n[ INFO ] Final Statistics:\n");

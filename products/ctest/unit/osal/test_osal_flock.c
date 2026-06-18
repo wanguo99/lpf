@@ -397,13 +397,12 @@ static void _test_flock_multiple_threads_exclusive(void)
 		ctx[i].flock = flock;
 		ctx[i].shared_counter = &shared_counter;
 		ctx[i].iterations = 100;
-		osal_pthread_create(&threads[i], NULL, _flock_exclusive_thread,
-							&ctx[i]);
+		osal_thread_create(&threads[i], NULL, _flock_exclusive_thread, &ctx[i]);
 	}
 
 	/* 等待所有线程完成 */
 	for (int i = 0; i < 3; i++) {
-		osal_pthread_join(threads[i], NULL);
+		osal_thread_join(threads[i], NULL);
 	}
 
 	/* 验证计数正确（无竞态条件） */
