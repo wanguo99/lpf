@@ -6,7 +6,6 @@
 #include "pdm.h"
 #include "pdm_internal.h"
 #include "pdm_led_internal.h"
-#include "pdm_proc.h"
 
 typedef struct {
 	const pconfig_led_config_t *config;
@@ -20,7 +19,6 @@ typedef struct {
 static pdm_led_context_t *g_led_contexts[PDM_LED_MAX_DEVICES];
 static osal_mutex_t g_led_registry_lock;
 static bool g_led_registry_ready;
-static pdm_proc_entry_t g_pdm_led_proc;
 
 static uint32_t pdm_led_clamp_brightness(const pdm_led_context_t *ctx,
 					 uint32_t brightness)
@@ -90,56 +88,6 @@ static int32_t pdm_led_registry_init(void)
 
 	g_led_registry_ready = true;
 	return OSAL_SUCCESS;
-}
-
-static const char *pdm_led_control_name(pconfig_led_control_t control)
-{
-	switch (control) {
-	case PCONFIG_LED_CONTROL_GPIO:
-		return "gpio";
-	case PCONFIG_LED_CONTROL_PWM:
-		return "pwm";
-	default:
-		return "unknown";
-	}
-}
-
-static int pdm_led_proc_show(struct seq_file *seq, void *data)
-{
-	uint32_t i;
-
-	(void)data;
-
-	seq_puts(seq, "PDM LED\n");
-	seq_printf(seq, "max_devices=%u\n", PDM_LED_MAX_DEVICES);
-	seq_puts(seq, "devices:\n");
-
-	if (!g_led_registry_ready) {
-		seq_puts(seq, "  registry=uninitialized\n");
-		return 0;
-	}
-
-	osal_mutex_lock(&g_led_registry_lock);
-	for (i = 0; i < OSAL_ARRAY_SIZE(g_led_contexts); i++) {
-		pdm_led_context_t *ctx = g_led_contexts[i];
-
-		if (!ctx) {
-			seq_printf(seq, "  [%u] present=0\n", i);
-			continue;
-		}
-
-		osal_mutex_lock(&ctx->lock);
-		seq_printf(seq,
-			   "  [%u] present=1 name=%s control=%s enabled=%u brightness=%u max_brightness=%u\n",
-			   i, ctx->config->name,
-			   pdm_led_control_name(ctx->config->control),
-			   ctx->enabled ? 1U : 0U, ctx->brightness,
-			   ctx->config->max_brightness);
-		osal_mutex_unlock(&ctx->lock);
-	}
-	osal_mutex_unlock(&g_led_registry_lock);
-
-	return 0;
 }
 
 static int32_t pdm_led_init_gpio(pdm_led_context_t *ctx)
@@ -305,6 +253,37 @@ pdm_led_handle_t pdm_led_get(uint32_t index)
 	return handle;
 }
 
+int32_t pdm_led_debug_get(uint32_t index, pdm_led_debug_info_t *info)
+{
+	pdm_led_context_t *ctx;
+
+	if (!info || index >= OSAL_ARRAY_SIZE(g_led_contexts))
+		return OSAL_ERR_INVALID_PARAM;
+
+	osal_memset(info, 0, sizeof(*info));
+
+	if (!g_led_registry_ready)
+		return OSAL_ERR_INVALID_STATE;
+
+	osal_mutex_lock(&g_led_registry_lock);
+	ctx = g_led_contexts[index];
+	if (ctx) {
+		osal_mutex_lock(&ctx->lock);
+		info->present = true;
+		osal_strncpy(info->name, ctx->config->name,
+			     sizeof(info->name));
+		info->name[sizeof(info->name) - 1] = '\0';
+		info->control = ctx->config->control;
+		info->enabled = ctx->enabled;
+		info->brightness = ctx->brightness;
+		info->max_brightness = ctx->config->max_brightness;
+		osal_mutex_unlock(&ctx->lock);
+	}
+	osal_mutex_unlock(&g_led_registry_lock);
+
+	return OSAL_SUCCESS;
+}
+
 static void pdm_led_remove_index(uint32_t index)
 {
 	pdm_led_context_t *ctx;
@@ -428,8 +407,7 @@ static int pdm_led_driver_init(void)
 	if (ret)
 		return ret;
 
-	ret = pdm_proc_register(&g_pdm_led_proc, "led", pdm_led_proc_show,
-				NULL);
+	ret = pdm_led_proc_register();
 	if (ret) {
 		pdm_led_chrdev_unregister();
 		return ret;
@@ -442,7 +420,7 @@ static int pdm_led_driver_init(void)
 static void pdm_led_driver_exit(void)
 {
 	pdm_led_registry_deinit();
-	pdm_proc_unregister(&g_pdm_led_proc);
+	pdm_led_proc_unregister();
 	pdm_led_chrdev_unregister();
 	LOG_INFO("PDM_LED", "unregistered");
 }

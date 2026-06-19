@@ -60,6 +60,7 @@ kernel/pdm/
     │   ├── Config.in
     │   ├── pdm_mcu.c
     │   ├── pdm_mcu_chrdev.c
+    │   ├── pdm_mcu_proc.c
     │   ├── pdm_mcu_can.c
     │   ├── pdm_mcu_serial.c
     │   └── pdm_mcu_internal.h
@@ -67,6 +68,7 @@ kernel/pdm/
         ├── Config.in
         ├── pdm_led.c
         ├── pdm_led_chrdev.c
+        ├── pdm_led_proc.c
         └── pdm_led_internal.h
 
 kernel/include/pdm/

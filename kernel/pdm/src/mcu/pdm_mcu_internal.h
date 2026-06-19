@@ -11,6 +11,7 @@
 
 #include "osal.h"
 #include "pconfig.h"
+#include "pdm_mcu.h"
 #include "pdm_protocol.h"
 
 #ifndef CONFIG_PDM_MCU_MAX_DEVICES
@@ -59,6 +60,13 @@ typedef struct {
 						   uint32_t timeout_ms);
 } pdm_mcu_ops_t;
 
+typedef struct {
+	bool present;
+	char name[64];
+	pconfig_mcu_interface_t interface;
+	uint32_t cmd_timeout_ms;
+} pdm_mcu_debug_info_t;
+
 /*===========================================================================
  * CAN通信层接口
  *===========================================================================*/
@@ -88,8 +96,11 @@ extern const pdm_mcu_ops_t mcu_serial_ops;
 int32_t pdm_mcu_probe(const pconfig_device_config_t *device);
 void pdm_mcu_remove(const pconfig_device_config_t *device);
 pdm_mcu_handle_t pdm_mcu_get(uint32_t index);
+int32_t pdm_mcu_debug_get(uint32_t index, pdm_mcu_debug_info_t *info);
 
 int pdm_mcu_chrdev_register(void);
 void pdm_mcu_chrdev_unregister(void);
+int pdm_mcu_proc_register(void);
+void pdm_mcu_proc_unregister(void);
 
 #endif /* PDM_MCU_INTERNAL_H */

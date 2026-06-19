@@ -14,9 +14,11 @@ pdm-$(CONFIG_PDM_PROTOCOL) += pdm/src/protocol/pdm_protocol.o
 pdm-$(CONFIG_PDM_PROTOCOL) += pdm/src/protocol/pdm_protocol_common.o
 pdm-$(CONFIG_PDM_MCU_SUPPORT) += pdm/src/mcu/pdm_mcu.o
 pdm-$(CONFIG_PDM_MCU_SUPPORT) += pdm/src/mcu/pdm_mcu_chrdev.o
+pdm-$(CONFIG_PDM_MCU_SUPPORT) += pdm/src/mcu/pdm_mcu_proc.o
 pdm-$(CONFIG_PDM_MCU_SUPPORT) += pdm/src/mcu/pdm_mcu_can.o
 pdm-$(CONFIG_PDM_MCU_SUPPORT) += pdm/src/mcu/pdm_mcu_serial.o
 pdm-$(CONFIG_PDM_LED_SUPPORT) += pdm/src/led/pdm_led.o
 pdm-$(CONFIG_PDM_LED_SUPPORT) += pdm/src/led/pdm_led_chrdev.o
+pdm-$(CONFIG_PDM_LED_SUPPORT) += pdm/src/led/pdm_led_proc.o
 pdm-y += pdm/src/base/pdm_driver_end.o
 endif

@@ -32,6 +32,7 @@ if(CONFIG_PDM_MCU_SUPPORT AND TARGET hal)
     list(APPEND ADD_SRCS
         "src/mcu/pdm_mcu.c"
         "src/mcu/pdm_mcu_chrdev.c"
+        "src/mcu/pdm_mcu_proc.c"
         "src/mcu/pdm_mcu_can.c"
         "src/mcu/pdm_mcu_serial.c"
     )
@@ -41,6 +42,7 @@ if(CONFIG_PDM_LED_SUPPORT AND TARGET hal)
     list(APPEND ADD_SRCS
         "src/led/pdm_led.c"
         "src/led/pdm_led_chrdev.c"
+        "src/led/pdm_led_proc.c"
     )
 endif()
 

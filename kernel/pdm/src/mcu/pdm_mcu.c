@@ -14,7 +14,6 @@
 #include "pdm_internal.h"
 #include "pdm_protocol.h"
 #include "pdm_mcu_internal.h"
-#include "pdm_proc.h"
 
 /*===========================================================================
  * MCU上下文
@@ -30,7 +29,6 @@ typedef struct {
 static pdm_mcu_context_t *g_mcu_contexts[PDM_MCU_MAX_DEVICES] = { NULL };
 static osal_mutex_t g_registry_mutex;
 static bool g_registry_initialized = false;
-static pdm_proc_entry_t g_pdm_mcu_proc;
 
 static const pdm_driver_t g_pdm_mcu_driver;
 
@@ -107,53 +105,6 @@ static int32_t pdm_mcu_registry_init(void)
 
 	g_registry_initialized = true;
 	return OSAL_SUCCESS;
-}
-
-static const char *pdm_mcu_interface_name(pconfig_mcu_interface_t interface)
-{
-	switch (interface) {
-	case PCONFIG_MCU_INTERFACE_CAN:
-		return "can";
-	case PCONFIG_MCU_INTERFACE_SERIAL:
-		return "serial";
-	default:
-		return "unknown";
-	}
-}
-
-static int pdm_mcu_proc_show(struct seq_file *seq, void *data)
-{
-	uint32_t i;
-
-	(void)data;
-
-	seq_puts(seq, "PDM MCU\n");
-	seq_printf(seq, "max_devices=%u\n", PDM_MCU_MAX_DEVICES);
-	seq_puts(seq, "devices:\n");
-
-	if (!g_registry_initialized) {
-		seq_puts(seq, "  registry=uninitialized\n");
-		return 0;
-	}
-
-	osal_mutex_lock(&g_registry_mutex);
-	for (i = 0; i < OSAL_ARRAY_SIZE(g_mcu_contexts); i++) {
-		const pdm_mcu_context_t *ctx = g_mcu_contexts[i];
-
-		if (!ctx) {
-			seq_printf(seq, "  [%u] present=0\n", i);
-			continue;
-		}
-
-		seq_printf(seq,
-			   "  [%u] present=1 name=%s interface=%s timeout_ms=%u\n",
-			   i, ctx->config->name,
-			   pdm_mcu_interface_name(ctx->config->interface),
-			   ctx->config->cmd_timeout_ms);
-	}
-	osal_mutex_unlock(&g_registry_mutex);
-
-	return 0;
 }
 
 /*===========================================================================
@@ -336,6 +287,33 @@ pdm_mcu_handle_t pdm_mcu_get(uint32_t index)
 	osal_mutex_unlock(&g_registry_mutex);
 
 	return handle;
+}
+
+int32_t pdm_mcu_debug_get(uint32_t index, pdm_mcu_debug_info_t *info)
+{
+	pdm_mcu_context_t *ctx;
+
+	if (!info || index >= OSAL_ARRAY_SIZE(g_mcu_contexts))
+		return OSAL_ERR_INVALID_PARAM;
+
+	osal_memset(info, 0, sizeof(*info));
+
+	if (!g_registry_initialized)
+		return OSAL_ERR_INVALID_STATE;
+
+	osal_mutex_lock(&g_registry_mutex);
+	ctx = g_mcu_contexts[index];
+	if (ctx) {
+		info->present = true;
+		osal_strncpy(info->name, ctx->config->name,
+			     sizeof(info->name));
+		info->name[sizeof(info->name) - 1] = '\0';
+		info->interface = ctx->config->interface;
+		info->cmd_timeout_ms = ctx->config->cmd_timeout_ms;
+	}
+	osal_mutex_unlock(&g_registry_mutex);
+
+	return OSAL_SUCCESS;
 }
 
 static void pdm_mcu_remove_index(uint32_t index)
@@ -631,8 +609,7 @@ static int pdm_mcu_driver_init(void)
 	if (ret)
 		return ret;
 
-	ret = pdm_proc_register(&g_pdm_mcu_proc, "mcu",
-				pdm_mcu_proc_show, NULL);
+	ret = pdm_mcu_proc_register();
 	if (ret) {
 		pdm_mcu_chrdev_unregister();
 		return ret;
@@ -645,7 +622,7 @@ static int pdm_mcu_driver_init(void)
 static void pdm_mcu_driver_exit(void)
 {
 	pdm_mcu_registry_deinit();
-	pdm_proc_unregister(&g_pdm_mcu_proc);
+	pdm_mcu_proc_unregister();
 	pdm_mcu_chrdev_unregister();
 	LOG_INFO("PDM_MCU", "unregistered");
 }
