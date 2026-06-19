@@ -79,6 +79,10 @@ int32_t mcu_serial_send_packet(void *handle, const uint8_t *packet,
 
 extern const pdm_mcu_ops_t mcu_serial_ops;
 
+int32_t pdm_mcu_probe(const pconfig_device_config_t *device);
+void pdm_mcu_remove_all(void);
+pdm_mcu_handle_t pdm_mcu_get(uint32_t index);
+
 int pdm_mcu_chrdev_register(void);
 void pdm_mcu_chrdev_unregister(void);
 

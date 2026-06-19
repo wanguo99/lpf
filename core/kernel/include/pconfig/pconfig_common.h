@@ -15,6 +15,21 @@
 #include "osal.h"
 
 /*===========================================================================
+ * Device list
+ *===========================================================================*/
+
+typedef enum {
+	PCONFIG_DEVICE_TYPE_INVALID = 0x00,
+	PCONFIG_DEVICE_TYPE_MCU = 0x01,
+} pconfig_device_type_t;
+
+typedef struct {
+	pconfig_device_type_t device_type;
+	uint32_t index;
+	const void *entry;
+} pconfig_device_config_t;
+
+/*===========================================================================
  * GPIO配置（PCONFIG 层扩展）
  *===========================================================================*/
 

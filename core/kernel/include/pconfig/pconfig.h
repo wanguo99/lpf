@@ -48,6 +48,9 @@ extern const pconfig_platform_table_t g_pconfig_platform_table;
  * @return 平台配置指针，失败返回NULL
  */
 const pconfig_platform_config_t *pconfig_get_board(void);
+const pconfig_device_config_t *pconfig_get(void);
+int32_t pconfig_init(void);
+void pconfig_deinit(void);
 
 /**
  * @brief 根据平台和产品名称查找配置

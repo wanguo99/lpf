@@ -12,11 +12,16 @@
 
 #include <linux/module.h>
 
+#define PCONFIG_MAX_DEVICES 32U
+
 __attribute__((weak))
 const pconfig_platform_table_t g_pconfig_platform_table = { .configs = NULL,
 															.count = 0,
 															.current_index =
 																0 };
+
+static pconfig_device_config_t g_pconfig_devices[PCONFIG_MAX_DEVICES + 1U];
+static bool g_pconfig_initialized;
 
 void pconfig_print_version(void)
 {
@@ -30,6 +35,71 @@ void pconfig_print_version(void)
 		 ES_MIDDLEWARE_BUILD_KERNEL);
 }
 EXPORT_SYMBOL_GPL(pconfig_print_version);
+
+const pconfig_device_config_t *pconfig_get(void)
+{
+	return g_pconfig_initialized ? g_pconfig_devices : NULL;
+}
+EXPORT_SYMBOL_GPL(pconfig_get);
+
+int32_t pconfig_init(void)
+{
+	const pconfig_platform_config_t *platform;
+	uint32_t out_index = 0;
+	uint32_t i;
+	int32_t ret;
+
+	pconfig_print_version();
+
+	platform = pconfig_get_board();
+	if (NULL == platform) {
+		LOG_ERROR("PCONFIG", "No active platform config");
+		return OSAL_ERR_GENERIC;
+	}
+
+	ret = pconfig_validate(platform);
+	if (ret != OSAL_SUCCESS) {
+		LOG_ERROR("PCONFIG", "Invalid platform config");
+		return ret;
+	}
+
+	osal_memset(g_pconfig_devices, 0, sizeof(g_pconfig_devices));
+
+	for (i = 0; i < platform->mcu_count; i++) {
+		const pconfig_mcu_entry_t *entry;
+
+		if (out_index >= PCONFIG_MAX_DEVICES) {
+			LOG_ERROR("PCONFIG", "Device list capacity exceeded");
+			return OSAL_ERR_RESOURCE_LIMIT;
+		}
+
+		entry = pconfig_hw_get_mcu(platform, i);
+		if (NULL == entry || !entry->enabled) {
+			continue;
+		}
+
+		g_pconfig_devices[out_index].device_type =
+			PCONFIG_DEVICE_TYPE_MCU;
+		g_pconfig_devices[out_index].index = i;
+		g_pconfig_devices[out_index].entry = entry;
+		out_index++;
+	}
+
+	g_pconfig_devices[out_index].device_type = PCONFIG_DEVICE_TYPE_INVALID;
+	g_pconfig_initialized = true;
+
+	LOG_INFO("PCONFIG", "Initialized %u device configs", out_index);
+	return OSAL_SUCCESS;
+}
+EXPORT_SYMBOL_GPL(pconfig_init);
+
+void pconfig_deinit(void)
+{
+	osal_memset(g_pconfig_devices, 0, sizeof(g_pconfig_devices));
+	g_pconfig_initialized = false;
+	LOG_INFO("PCONFIG", "Deinitialized");
+}
+EXPORT_SYMBOL_GPL(pconfig_deinit);
 
 /*===========================================================================
  * 平台配置查询

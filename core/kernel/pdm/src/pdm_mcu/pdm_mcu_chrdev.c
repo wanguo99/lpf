@@ -56,17 +56,10 @@ static void pdm_mcu_fill_info(struct pdi_mcu_info *info)
 
 static pdm_mcu_handle_t pdm_mcu_open_index(u32 index)
 {
-	pdm_mcu_handle_t handle = NULL;
-	int32_t ret;
-
 	if (index >= CONFIG_PDM_MCU_MAX_DEVICES)
 		return NULL;
 
-	ret = pdm_mcu_init(index, &handle);
-	if (ret != OSAL_SUCCESS)
-		return NULL;
-
-	return handle;
+	return pdm_mcu_get(index);
 }
 
 static long pdm_mcu_ioctl_get_info(unsigned long arg)
@@ -99,7 +92,6 @@ static long pdm_mcu_ioctl_get_version(unsigned long arg)
 
 	osal_memset(&version, 0, sizeof(version));
 	ret = pdm_mcu_get_version(handle, &version);
-	pdm_mcu_deinit(handle);
 	if (ret != OSAL_SUCCESS)
 		return pdm_mcu_status_to_errno(ret);
 
@@ -132,7 +124,6 @@ static long pdm_mcu_ioctl_get_status(unsigned long arg)
 
 	osal_memset(&status, 0, sizeof(status));
 	ret = pdm_mcu_get_status(handle, &status);
-	pdm_mcu_deinit(handle);
 	if (ret != OSAL_SUCCESS)
 		return pdm_mcu_status_to_errno(ret);
 
@@ -164,7 +155,6 @@ static long pdm_mcu_ioctl_reset(unsigned long arg)
 		return -ENODEV;
 
 	ret = pdm_mcu_reset(handle);
-	pdm_mcu_deinit(handle);
 	return pdm_mcu_status_to_errno(ret);
 }
 
@@ -191,7 +181,6 @@ static long pdm_mcu_ioctl_command(unsigned long arg)
 	ret = pdm_mcu_send_command(handle, (uint8_t)request.command,
 				   request.tx_data, request.tx_len,
 				   request.rx_data, request.rx_len, &actual_len);
-	pdm_mcu_deinit(handle);
 	if (ret != OSAL_SUCCESS)
 		return pdm_mcu_status_to_errno(ret);
 
@@ -220,7 +209,6 @@ static long pdm_mcu_ioctl_read_data(unsigned long arg)
 
 	ret = pdm_mcu_read_data(handle, request.address, request.data,
 				request.len);
-	pdm_mcu_deinit(handle);
 	if (ret != OSAL_SUCCESS)
 		return pdm_mcu_status_to_errno(ret);
 
@@ -248,7 +236,6 @@ static long pdm_mcu_ioctl_write_data(unsigned long arg)
 
 	ret = pdm_mcu_write_data(handle, request.address, request.data,
 				 request.len);
-	pdm_mcu_deinit(handle);
 	return pdm_mcu_status_to_errno(ret);
 }
 

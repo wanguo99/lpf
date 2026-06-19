@@ -92,6 +92,18 @@ out_free:
 	return ret;
 }
 
+static int32_t pdm_mcu_registry_init(void)
+{
+	if (g_registry_initialized)
+		return OSAL_SUCCESS;
+
+	if (OSAL_SUCCESS != osal_mutex_init(&g_registry_mutex, NULL))
+		return OSAL_ERR_GENERIC;
+
+	g_registry_initialized = true;
+	return OSAL_SUCCESS;
+}
+
 /*===========================================================================
  * 基础 API 实现
  *===========================================================================*/
@@ -148,10 +160,10 @@ int32_t pdm_mcu_send_data(pdm_mcu_handle_t handle, pdm_mcu_data_t *data)
 /**
  * @brief 初始化 MCU 驱动
  */
-int32_t pdm_mcu_init(uint32_t mcu_index, pdm_mcu_handle_t *handle)
+static int32_t pdm_mcu_init_from_entry(uint32_t mcu_index,
+				       const pconfig_mcu_entry_t *entry,
+				       pdm_mcu_handle_t *handle)
 {
-	const pconfig_platform_config_t *platform;
-	const pconfig_mcu_entry_t *entry;
 	pdm_mcu_context_t *ctx;
 	const pdm_mcu_ops_t *ops;
 	int32_t ret;
@@ -160,24 +172,16 @@ int32_t pdm_mcu_init(uint32_t mcu_index, pdm_mcu_handle_t *handle)
 		return OSAL_ERR_INVALID_PARAM;
 	}
 
-	/* 初始化全局注册表互斥锁 */
-	if (!g_registry_initialized) {
-		if (OSAL_SUCCESS != osal_mutex_init(&g_registry_mutex, NULL)) {
-			return OSAL_ERR_GENERIC;
-		}
-		g_registry_initialized = true;
-	}
-
-	/* 获取配置 */
-	platform = pconfig_get_board();
-	if (!platform) {
-		return OSAL_ERR_GENERIC;
-	}
-
-	entry = pconfig_hw_get_mcu(platform, mcu_index);
 	if (!entry || !entry->enabled) {
 		return OSAL_ERR_GENERIC;
 	}
+
+	if (mcu_index >= OSAL_ARRAY_SIZE(g_mcu_contexts))
+		return OSAL_ERR_INVALID_PARAM;
+
+	/* 初始化全局注册表互斥锁 */
+	if (pdm_mcu_registry_init() != OSAL_SUCCESS)
+		return OSAL_ERR_GENERIC;
 
 	/* 选择通信层 */
 	switch (entry->config.interface) {
@@ -190,6 +194,14 @@ int32_t pdm_mcu_init(uint32_t mcu_index, pdm_mcu_handle_t *handle)
 	default:
 		return OSAL_ERR_GENERIC;
 	}
+
+	osal_mutex_lock(&g_registry_mutex);
+	if (g_mcu_contexts[mcu_index]) {
+		*handle = g_mcu_contexts[mcu_index];
+		osal_mutex_unlock(&g_registry_mutex);
+		return OSAL_SUCCESS;
+	}
+	osal_mutex_unlock(&g_registry_mutex);
 
 	/* 分配上下文 */
 	ctx = (pdm_mcu_context_t *)osal_malloc(sizeof(pdm_mcu_context_t));
@@ -217,13 +229,88 @@ int32_t pdm_mcu_init(uint32_t mcu_index, pdm_mcu_handle_t *handle)
 
 	/* 注册上下文 */
 	osal_mutex_lock(&g_registry_mutex);
-	if (mcu_index < sizeof(g_mcu_contexts) / sizeof(g_mcu_contexts[0])) {
-		g_mcu_contexts[mcu_index] = ctx;
+	if (g_mcu_contexts[mcu_index]) {
+		*handle = g_mcu_contexts[mcu_index];
+		osal_mutex_unlock(&g_registry_mutex);
+		osal_mutex_destroy(&ctx->mutex);
+		ops->deinit(ctx->transport_handle);
+		osal_free(ctx);
+		return OSAL_SUCCESS;
 	}
+	g_mcu_contexts[mcu_index] = ctx;
 	osal_mutex_unlock(&g_registry_mutex);
 
 	*handle = ctx;
 	return OSAL_SUCCESS;
+}
+
+int32_t pdm_mcu_init(uint32_t mcu_index, pdm_mcu_handle_t *handle)
+{
+	const pconfig_platform_config_t *platform;
+	const pconfig_mcu_entry_t *entry;
+
+	platform = pconfig_get_board();
+	if (!platform)
+		return OSAL_ERR_GENERIC;
+
+	entry = pconfig_hw_get_mcu(platform, mcu_index);
+	return pdm_mcu_init_from_entry(mcu_index, entry, handle);
+}
+
+int32_t pdm_mcu_probe(const pconfig_device_config_t *device)
+{
+	const pconfig_mcu_entry_t *entry;
+	pdm_mcu_handle_t handle = NULL;
+
+	if (!device || device->device_type != PCONFIG_DEVICE_TYPE_MCU)
+		return OSAL_ERR_INVALID_PARAM;
+
+	entry = (const pconfig_mcu_entry_t *)device->entry;
+	return pdm_mcu_init_from_entry(device->index, entry, &handle);
+}
+
+pdm_mcu_handle_t pdm_mcu_get(uint32_t index)
+{
+	pdm_mcu_handle_t handle = NULL;
+
+	if (pdm_mcu_registry_init() != OSAL_SUCCESS)
+		return NULL;
+
+	if (index >= OSAL_ARRAY_SIZE(g_mcu_contexts))
+		return NULL;
+
+	osal_mutex_lock(&g_registry_mutex);
+	handle = g_mcu_contexts[index];
+	osal_mutex_unlock(&g_registry_mutex);
+
+	return handle;
+}
+
+void pdm_mcu_remove_all(void)
+{
+	uint32_t i;
+
+	if (!g_registry_initialized)
+		return;
+
+	for (i = 0; i < OSAL_ARRAY_SIZE(g_mcu_contexts); i++) {
+		pdm_mcu_context_t *ctx;
+
+		osal_mutex_lock(&g_registry_mutex);
+		ctx = g_mcu_contexts[i];
+		g_mcu_contexts[i] = NULL;
+		osal_mutex_unlock(&g_registry_mutex);
+
+		if (!ctx)
+			continue;
+
+		ctx->ops->deinit(ctx->transport_handle);
+		osal_mutex_destroy(&ctx->mutex);
+		osal_free(ctx);
+	}
+
+	osal_mutex_destroy(&g_registry_mutex);
+	g_registry_initialized = false;
 }
 
 /**
