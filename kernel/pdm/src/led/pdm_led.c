@@ -227,16 +227,16 @@ out_free_success:
 	return OSAL_SUCCESS;
 }
 
-int32_t pdm_led_probe(const pconfig_device_config_t *device)
+int32_t pdm_led_probe(const lpf_device_t *device)
 {
 	const pconfig_led_entry_t *entry;
 	pdm_led_handle_t handle = NULL;
 
-	if (!device || device->device_type != PCONFIG_DEVICE_TYPE_LED)
+	if (!device || device->config.type != LPF_DEVICE_TYPE_LED)
 		return OSAL_ERR_INVALID_PARAM;
 
-	entry = (const pconfig_led_entry_t *)device->entry;
-	return pdm_led_init_from_entry(device->index, entry, &handle);
+	entry = (const pconfig_led_entry_t *)device->config.entry;
+	return pdm_led_init_from_entry(device->config.index, entry, &handle);
 }
 
 pdm_led_handle_t pdm_led_get(uint32_t index)
@@ -306,12 +306,12 @@ static void pdm_led_remove_index(uint32_t index)
 	osal_free(ctx);
 }
 
-void pdm_led_remove(const pconfig_device_config_t *device)
+void pdm_led_remove(const lpf_device_t *device)
 {
-	if (!device || device->device_type != PCONFIG_DEVICE_TYPE_LED)
+	if (!device || device->config.type != LPF_DEVICE_TYPE_LED)
 		return;
 
-	pdm_led_remove_index(device->index);
+	pdm_led_remove_index(device->config.index);
 }
 
 static void pdm_led_registry_deinit(void)
@@ -427,11 +427,20 @@ static void pdm_led_driver_exit(void)
 
 static const pdm_driver_t g_pdm_led_driver = {
 	.name = "led",
-	.type = PCONFIG_DEVICE_TYPE_LED,
+	.type = LPF_DEVICE_TYPE_LED,
+	.capabilities = LPF_DEVICE_CAP_USER_IOCTL | LPF_DEVICE_CAP_DEBUG_PROCFS,
 	.init = pdm_led_driver_init,
 	.exit = pdm_led_driver_exit,
 	.probe = pdm_led_probe,
 	.remove = pdm_led_remove,
 };
 
-pdm_driver_register(&g_pdm_led_driver);
+int32_t pdm_led_driver_register(void)
+{
+	return lpf_driver_register(&g_pdm_led_driver);
+}
+
+void pdm_led_driver_unregister(void)
+{
+	lpf_driver_unregister(&g_pdm_led_driver);
+}

@@ -260,16 +260,16 @@ int32_t pdm_mcu_init(uint32_t mcu_index, pdm_mcu_handle_t *handle)
 	return pdm_mcu_init_from_entry(mcu_index, entry, handle);
 }
 
-int32_t pdm_mcu_probe(const pconfig_device_config_t *device)
+int32_t pdm_mcu_probe(const lpf_device_t *device)
 {
 	const pconfig_mcu_entry_t *entry;
 	pdm_mcu_handle_t handle = NULL;
 
-	if (!device || device->device_type != PCONFIG_DEVICE_TYPE_MCU)
+	if (!device || device->config.type != LPF_DEVICE_TYPE_MCU)
 		return OSAL_ERR_INVALID_PARAM;
 
-	entry = (const pconfig_mcu_entry_t *)device->entry;
-	return pdm_mcu_init_from_entry(device->index, entry, &handle);
+	entry = (const pconfig_mcu_entry_t *)device->config.entry;
+	return pdm_mcu_init_from_entry(device->config.index, entry, &handle);
 }
 
 pdm_mcu_handle_t pdm_mcu_get(uint32_t index)
@@ -337,12 +337,12 @@ static void pdm_mcu_remove_index(uint32_t index)
 	osal_free(ctx);
 }
 
-void pdm_mcu_remove(const pconfig_device_config_t *device)
+void pdm_mcu_remove(const lpf_device_t *device)
 {
-	if (!device || device->device_type != PCONFIG_DEVICE_TYPE_MCU)
+	if (!device || device->config.type != LPF_DEVICE_TYPE_MCU)
 		return;
 
-	pdm_mcu_remove_index(device->index);
+	pdm_mcu_remove_index(device->config.index);
 }
 
 static void pdm_mcu_registry_deinit(void)
@@ -629,11 +629,20 @@ static void pdm_mcu_driver_exit(void)
 
 static const pdm_driver_t g_pdm_mcu_driver = {
 	.name = "mcu",
-	.type = PCONFIG_DEVICE_TYPE_MCU,
+	.type = LPF_DEVICE_TYPE_MCU,
+	.capabilities = LPF_DEVICE_CAP_USER_IOCTL | LPF_DEVICE_CAP_DEBUG_PROCFS,
 	.init = pdm_mcu_driver_init,
 	.exit = pdm_mcu_driver_exit,
 	.probe = pdm_mcu_probe,
 	.remove = pdm_mcu_remove,
 };
 
-pdm_driver_register(&g_pdm_mcu_driver);
+int32_t pdm_mcu_driver_register(void)
+{
+	return lpf_driver_register(&g_pdm_mcu_driver);
+}
+
+void pdm_mcu_driver_unregister(void)
+{
+	lpf_driver_unregister(&g_pdm_mcu_driver);
+}

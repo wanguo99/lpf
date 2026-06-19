@@ -10,6 +10,7 @@
 #define PDM_MCU_INTERNAL_H
 
 #include "osal.h"
+#include "lpf/lpf_core.h"
 #include "pconfig.h"
 #include "pdm_mcu.h"
 #include "pdm_protocol.h"
@@ -93,8 +94,10 @@ int32_t mcu_serial_send_packet(void *handle, const uint8_t *packet,
 
 extern const pdm_mcu_ops_t mcu_serial_ops;
 
-int32_t pdm_mcu_probe(const pconfig_device_config_t *device);
-void pdm_mcu_remove(const pconfig_device_config_t *device);
+int32_t pdm_mcu_probe(const lpf_device_t *device);
+void pdm_mcu_remove(const lpf_device_t *device);
+int32_t pdm_mcu_driver_register(void);
+void pdm_mcu_driver_unregister(void);
 pdm_mcu_handle_t pdm_mcu_get(uint32_t index);
 int32_t pdm_mcu_debug_get(uint32_t index, pdm_mcu_debug_info_t *info);
 

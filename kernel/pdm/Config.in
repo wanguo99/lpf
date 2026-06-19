@@ -3,7 +3,7 @@
 menuconfig PDM
 	bool "PDM (Peripheral Driver Module)"
 	default n
-	depends on OSAL && HAL && PCONFIG
+	depends on OSAL && LPF_CORE && HAL && PCONFIG
 	help
 	  Peripheral Driver Module provides high-level peripheral management
 	  and protocol handling.
@@ -25,9 +25,10 @@ menuconfig PDM
 	  - MCU peripherals
 	  - LED peripherals
 
-	  Dependencies: OSAL, HAL, PCONFIG
+	  Dependencies: OSAL, LPF Core, HAL, PCONFIG
 
-	  Note: Enable OSAL, HAL, PCONFIG, and TYPES first in "Core Modules" menu.
+	  Note: Enable OSAL, LPF Core, HAL, and PCONFIG first in
+	  "Core Modules" menu.
 
 	  Recommended: Enable for systems with peripheral management
 

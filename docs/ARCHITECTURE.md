@@ -21,11 +21,15 @@ PDI (userspace API)
         ↓
 ioctl / UAPI
         ↓
-PDM + PDM protocol
+PDM peripheral services + PDM protocol
         ↓
-PCONFIG
+LPF Core + PCONFIG mapping
         ↓
 HAL
+        ↓
+LPF SoC Adapter
+        ↓
+LPF Kernel Compat
         ↓
 OSAL
         ↓
@@ -36,9 +40,14 @@ Linux kernel / hardware
 
 - User OSAL provides libc/POSIX wrappers for userspace libraries and tests.
 - Kernel OSAL wraps Linux kernel APIs used by kernel modules.
+- LPF Core owns the framework device and driver registry, lifecycle, device
+  names, capability metadata, and the active SoC adapter.
 - HAL provides kernel-side hardware access helpers.
+- LPF SoC Adapter isolates SoC or vendor BSP differences below HAL.
+- LPF Kernel Compat isolates Linux kernel API differences below the generic
+  Linux SoC adapter.
 - PCONFIG stores kernel-side platform hardware configuration tables.
-- PDM provides kernel-side peripheral driver modules.
+- PDM provides kernel-side peripheral service modules.
 - PDM protocol helpers provide kernel-side packet framing owned by PDM.
 - PDI provides userspace APIs over the PDM ioctl ABI.
 - ACONFIG stores userspace application-facing configuration mappings.
@@ -53,21 +62,46 @@ where the semantics are equivalent.
 
 ### HAL
 
-HAL owns Linux hardware subsystem access in kernel mode. Current HAL support
-includes CAN, serial, GPIO, PWM, I2C, and SPI. PDM calls exported HAL symbols;
+HAL owns LPF hardware-capability APIs in kernel mode. Current HAL support
+includes CAN, serial, GPIO, PWM, I2C, and SPI. HAL calls the LPF SoC Adapter
+instead of Linux subsystem APIs directly. PDM calls exported HAL symbols;
 userspace does not include or call HAL directly.
+
+### LPF Core
+
+LPF Core owns the framework-level device model. Peripheral services register as
+LPF drivers, and configured device instances are registered as LPF devices. LPF
+Core handles bind, probe, remove ordering, stable device names, and capability
+metadata. It does not depend on PCONFIG; callers map configuration backends into
+LPF device configs before registration. LPF Core also initializes the default
+SoC adapter path used by HAL.
+
+### LPF SoC Adapter
+
+The SoC adapter layer owns hardware backend differences below HAL. The current
+default backend is `generic-linux`, which calls LPF kernel compat wrappers for
+CAN, serial, GPIO, PWM, I2C, and SPI. Future SoC-specific adapters should live
+under `kernel/lpf/soc/` and must keep vendor BSP calls out of HAL and PDM.
+
+### LPF Kernel Compat
+
+The compat layer wraps Linux kernel API details that may vary across kernel
+versions. GPIO, PWM, I2C, and SPI wrappers currently live under
+`kernel/lpf/compat/`, along with CAN and serial wrappers. Peripheral services
+and HAL business-facing APIs should not use `LINUX_VERSION_CODE` or vendor BSP
+APIs directly.
 
 ### PCONFIG
 
-PCONFIG owns kernel-side platform hardware configuration tables. PDM queries
-typed PCONFIG accessors during probe and binding. Product hardware tables live
-outside core logic and are compiled into the selected configuration.
+PCONFIG owns kernel-side platform hardware configuration tables. PDM loads
+PCONFIG and maps enabled entries into LPF device configs. Product hardware
+tables live outside core logic and are compiled into the selected configuration.
 
 ### PDM
 
-PDM owns kernel-side peripheral devices, driver registration, configured-device
-binding, ioctl dispatch, procfs debug nodes, and protocol helpers. Concrete
-peripheral drivers such as MCU and LED live under PDM.
+PDM owns kernel-side peripheral business behavior, ioctl dispatch, procfs debug
+nodes, and protocol helpers. Concrete peripheral services such as MCU and LED
+live under PDM and register with LPF Core for device lifecycle handling.
 
 ### UAPI
 
@@ -116,20 +150,23 @@ Load kernel modules in dependency order:
 
 ```text
 osal.ko
+lpf_core.ko
 pconfig.ko
 hal.ko
 pdm.ko
 ```
 
-`pdm.ko` consumes PConfig entries and HAL symbols, then probes linked PDM
-drivers for each configured peripheral.
+`pdm.ko` consumes PConfig entries and HAL symbols, maps enabled PConfig entries
+to LPF devices, and lets LPF Core probe linked peripheral services for each
+configured peripheral.
 
 ## Adding A Peripheral
 
 Add the following pieces together:
 
 - PCONFIG type and platform config array entry.
-- PDM driver object registered with `pdm_driver_register`.
+- LPF device type and capability mapping for the PCONFIG entry.
+- PDM service driver object registered with `lpf_driver_register`.
 - Optional PDM character device `/dev/pdm_<peripheral>` when userspace access
   is needed.
 - UAPI header `uapi/pdi/pdi_<peripheral>.h` following
@@ -151,6 +188,8 @@ and build configuration remain consistent.
 - Dependencies point downward through the layer stack.
 - Product-specific behavior belongs outside shared framework module directories.
 - Kernel hardware tables are compiled through PCONFIG and consumed by PDM
-  through typed accessors.
+  through typed accessors, then mapped into LPF Core device configs.
+- HAL should call LPF SoC Adapter APIs for SoC-backed hardware capabilities.
+- Kernel-version conditionals belong in `kernel/lpf/compat/`.
 - Userspace code must use PDI/UAPI rather than including kernel-internal HAL,
   PCONFIG, or PDM headers.

@@ -86,7 +86,7 @@ void osal_free(void *ptr)
 
 	header = osal_heap_header_from_ptr(ptr);
 	if (header->magic != OSAL_HEAP_MAGIC) {
-		pr_err("ESMW:OSAL: invalid heap block %p\n", ptr);
+		pr_err("LPF:OSAL: invalid heap block %p\n", ptr);
 		return;
 	}
 
@@ -171,7 +171,7 @@ int32_t osal_heap_check_threshold(bool *exceeded)
 	*exceeded = usage_percent >= g_heap_threshold;
 	if (*exceeded && !g_heap_alert_triggered) {
 		g_heap_alert_triggered = true;
-		pr_warn("ESMW:OSAL: heap threshold exceeded: %u%% >= %u%%\n",
+		pr_warn("LPF:OSAL: heap threshold exceeded: %u%% >= %u%%\n",
 			usage_percent, g_heap_threshold);
 	} else if (!*exceeded) {
 		g_heap_alert_triggered = false;

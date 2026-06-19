@@ -105,4 +105,4 @@ module_exit(hal_exit);
 MODULE_AUTHOR("LPF");
 MODULE_DESCRIPTION("LPF HAL kernel module");
 MODULE_LICENSE("GPL");
-MODULE_SOFTDEP("pre: osal can can_raw");
+MODULE_SOFTDEP("pre: osal lpf_core can can_raw");

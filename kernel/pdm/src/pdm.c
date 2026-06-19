@@ -6,10 +6,87 @@
 #include "osal.h"
 #include "pdm/pdm.h"
 #include "pconfig/pconfig.h"
-#include "pdm_bus.h"
 #include "pdm_driver.h"
 #include "pdm_status.h"
 #include "generated/gen_version.h"
+
+static int32_t pdm_make_lpf_mcu_config(const pconfig_device_config_t *device,
+				       lpf_device_config_t *config)
+{
+	const pconfig_mcu_entry_t *entry;
+	lpf_capability_t capabilities;
+
+	entry = (const pconfig_mcu_entry_t *)device->entry;
+	if (!entry)
+		return OSAL_ERR_INVALID_PARAM;
+
+	capabilities = LPF_DEVICE_CAP_USER_IOCTL | LPF_DEVICE_CAP_DEBUG_PROCFS;
+	switch (entry->config.interface) {
+	case PCONFIG_MCU_INTERFACE_CAN:
+		capabilities |= LPF_DEVICE_CAP_TRANSPORT_CAN;
+		break;
+	case PCONFIG_MCU_INTERFACE_SERIAL:
+		capabilities |= LPF_DEVICE_CAP_TRANSPORT_UART;
+		break;
+	default:
+		return OSAL_ERR_NOT_SUPPORTED;
+	}
+
+	config->type = LPF_DEVICE_TYPE_MCU;
+	config->index = device->index;
+	config->entry = entry;
+	config->name = entry->config.name;
+	config->capabilities = capabilities;
+	return OSAL_SUCCESS;
+}
+
+static int32_t pdm_make_lpf_led_config(const pconfig_device_config_t *device,
+				       lpf_device_config_t *config)
+{
+	const pconfig_led_entry_t *entry;
+	lpf_capability_t capabilities;
+
+	entry = (const pconfig_led_entry_t *)device->entry;
+	if (!entry)
+		return OSAL_ERR_INVALID_PARAM;
+
+	capabilities = LPF_DEVICE_CAP_USER_IOCTL | LPF_DEVICE_CAP_DEBUG_PROCFS;
+	switch (entry->config.control) {
+	case PCONFIG_LED_CONTROL_GPIO:
+		capabilities |= LPF_DEVICE_CAP_CONTROL_GPIO;
+		break;
+	case PCONFIG_LED_CONTROL_PWM:
+		capabilities |= LPF_DEVICE_CAP_CONTROL_PWM;
+		break;
+	default:
+		return OSAL_ERR_NOT_SUPPORTED;
+	}
+
+	config->type = LPF_DEVICE_TYPE_LED;
+	config->index = device->index;
+	config->entry = entry;
+	config->name = entry->config.name;
+	config->capabilities = capabilities;
+	return OSAL_SUCCESS;
+}
+
+static int32_t pdm_make_lpf_device_config(
+	const pconfig_device_config_t *device, lpf_device_config_t *config)
+{
+	if (!device || !config)
+		return OSAL_ERR_INVALID_PARAM;
+
+	osal_memset(config, 0, sizeof(*config));
+
+	switch (device->device_type) {
+	case PCONFIG_DEVICE_TYPE_MCU:
+		return pdm_make_lpf_mcu_config(device, config);
+	case PCONFIG_DEVICE_TYPE_LED:
+		return pdm_make_lpf_led_config(device, config);
+	default:
+		return OSAL_ERR_NOT_SUPPORTED;
+	}
+}
 
 static int pdm_probe_devices(void)
 {
@@ -25,7 +102,15 @@ static int pdm_probe_devices(void)
 		return -ENODEV;
 
 	for (; device->device_type != PCONFIG_DEVICE_TYPE_INVALID; device++) {
-		ret = pdm_bus_register_device(device);
+		lpf_device_config_t config;
+
+		ret = pdm_make_lpf_device_config(device, &config);
+		if (ret != OSAL_SUCCESS) {
+			ret = pdm_status_to_errno(ret);
+			goto out_error;
+		}
+
+		ret = lpf_device_register(&config);
 		if (ret != OSAL_SUCCESS) {
 			ret = pdm_status_to_errno(ret);
 			goto out_error;
@@ -35,7 +120,7 @@ static int pdm_probe_devices(void)
 	return 0;
 
 out_error:
-	pdm_bus_remove_devices();
+	lpf_device_unregister_all();
 	return ret;
 }
 
@@ -81,7 +166,7 @@ out_registry_deinit:
 
 static void __exit pdm_exit(void)
 {
-	pdm_bus_remove_devices();
+	lpf_device_unregister_all();
 	pdm_drivers_exit();
 	pdm_driver_registry_deinit();
 	LOG_INFO("PDM", "unloaded");
@@ -93,4 +178,4 @@ module_exit(pdm_exit);
 MODULE_AUTHOR("LPF");
 MODULE_DESCRIPTION("LPF PDM kernel module");
 MODULE_LICENSE("GPL");
-MODULE_SOFTDEP("pre: osal pconfig hal can can_raw");
+MODULE_SOFTDEP("pre: osal lpf_core pconfig hal can can_raw");

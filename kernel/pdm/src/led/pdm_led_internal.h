@@ -4,6 +4,7 @@
 #define PDM_LED_INTERNAL_H
 
 #include "pconfig.h"
+#include "lpf/lpf_core.h"
 #include "pdm_led.h"
 
 #ifndef CONFIG_PDM_LED_MAX_DEVICES
@@ -21,8 +22,10 @@ typedef struct {
 	uint32_t max_brightness;
 } pdm_led_debug_info_t;
 
-int32_t pdm_led_probe(const pconfig_device_config_t *device);
-void pdm_led_remove(const pconfig_device_config_t *device);
+int32_t pdm_led_probe(const lpf_device_t *device);
+void pdm_led_remove(const lpf_device_t *device);
+int32_t pdm_led_driver_register(void);
+void pdm_led_driver_unregister(void);
 pdm_led_handle_t pdm_led_get(uint32_t index);
 int32_t pdm_led_debug_get(uint32_t index, pdm_led_debug_info_t *info);
 

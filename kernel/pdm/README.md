@@ -1,7 +1,8 @@
 # PDM
 
-PDM is the Peripheral Driver Module. It contains high-level peripheral drivers
-built on top of PCONFIG, HAL, OSAL, and the PDM-owned internal protocol helpers.
+PDM is the Peripheral Driver Module. It contains high-level peripheral services
+built on top of LPF Core, PCONFIG, HAL, OSAL, and the PDM-owned internal
+protocol helpers.
 
 ## Current Scope
 
@@ -12,8 +13,8 @@ The kernel module currently provides:
 - PDM protocol package/parse helpers linked into `pdm.ko`; peripheral drivers
   pass a device type, message type, and payload to produce or parse standard
   protocol frames
-- PDM-local bus logic for built-in driver registration, configured device
-  binding, and device removal ordering
+- built-in peripheral-service registration through LPF Core
+- configured-device binding and device removal ordering owned by LPF Core
 - PDM MCU core, `/dev/pdm_mcu` ioctl dispatch, and CAN/Serial transport glue
   linked into `pdm.ko`
 - PDM LED core and `/dev/pdm_led` ioctl dispatch for GPIO/PWM controlled LEDs
@@ -27,6 +28,7 @@ hardware access.
 
 ```text
 CONFIG_PDM=y
+CONFIG_LPF_CORE=y
 CONFIG_PCONFIG=y
 CONFIG_PDM_MCU_SUPPORT=y
 CONFIG_PDM_LED_SUPPORT=y
@@ -42,19 +44,16 @@ kernel/pdm/
 ├── CMakeLists.txt
 ├── include/
 │   ├── pdm_chrdev.h
-│   ├── pdm_bus.h
 │   ├── pdm_driver.h
 │   ├── pdm_internal.h
 │   ├── pdm_proc.h
 │   └── pdm_status.h
 └── src/
     ├── base/
-    │   ├── pdm_bus.c
     │   ├── pdm_chrdev.c
     │   ├── pdm_driver.c
     │   ├── pdm_proc.c
-    │   ├── pdm_driver_start.c
-    │   └── pdm_driver_end.c
+    │   └── pdm_status.c
     ├── pdm.c
     ├── mcu/
     │   ├── Config.in
@@ -79,11 +78,12 @@ kernel/include/pdm/
 
 ## Layering
 
-`pdm.ko` owns userspace boundaries per peripheral. Built-in PDM drivers register
-through `pdm_driver_register`; during module initialization PDM loads PConfig,
-registers each configured device on its internal bus, and the bus binds each
-device to the matching driver `probe`. On unload, bus devices are removed before
-driver global resources are released.
+`pdm.ko` owns userspace boundaries per peripheral. Built-in PDM peripheral
+services register as LPF drivers through LPF Core; during module initialization
+PDM loads PConfig, maps each enabled PConfig entry into an `lpf_device_config_t`,
+and registers it with LPF Core. LPF Core then binds the configured device to the
+matching service `probe`. On unload, LPF Core removes devices before driver
+global resources are released.
 
 Each PDM peripheral exposes
 its own character device, such as `/dev/pdm_mcu`, and each PDI peripheral API
@@ -104,8 +104,8 @@ results through the kernel log. For example:
 - `echo "enable 0" > /proc/pdm/led`
 
 MCU transport APIs are linked into `pdm.ko`, but hardware access remains behind
-HAL. `pdm.ko` depends on `hal.ko` and calls the HAL transport symbols exported
-by that module.
+HAL. `pdm.ko` depends on `lpf_core.ko` and `hal.ko`, and calls the HAL transport
+symbols exported by `hal.ko`.
 
 The protocol layer under `src/protocol/` is a common PDM-internal peripheral
 communication protocol. It does not own module lifecycle; concrete peripheral

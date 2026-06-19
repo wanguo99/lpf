@@ -1,0 +1,17 @@
+# LPF Core Configuration
+
+menuconfig LPF_CORE
+	bool "LPF core device model"
+	default n
+	depends on OSAL
+	help
+	  LPF Core owns the framework device and driver registry used by
+	  peripheral services. It provides a stable LPF device model above
+	  kernel-version and SoC-specific adapter layers.
+
+	  It also contains the initial kernel compatibility wrappers and
+	  default generic-Linux SoC adapter used by HAL backends.
+
+	  Required by PDM and future LPF peripheral service modules.
+
+	  If unsure, say Y when enabling LPF peripheral services.

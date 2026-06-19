@@ -1,68 +1,41 @@
 // SPDX-License-Identifier: GPL-2.0
 
-#include <linux/i2c.h>
 #include <linux/module.h>
 
 #include "osal.h"
 #include "hal_i2c.h"
+#include "lpf/lpf_soc_adapter.h"
 
 typedef struct {
-	struct i2c_adapter *adapter;
+	lpf_i2c_handle_t adapter;
 	osal_mutex_t lock;
 	uint32_t timeout;
 	bool initialized;
 } hal_i2c_context_t;
 
-static int32_t hal_i2c_errno_to_status(int ret)
+static uint16_t hal_i2c_to_lpf_flags(uint16_t flags)
 {
-	int err;
+	uint16_t lpf_flags = 0;
 
-	if (ret >= 0)
-		return OSAL_SUCCESS;
+	if (flags & I2C_M_RD)
+		lpf_flags |= LPF_I2C_M_RD;
+	if (flags & I2C_M_TEN)
+		lpf_flags |= LPF_I2C_M_TEN;
+	if (flags & I2C_M_NOSTART)
+		lpf_flags |= LPF_I2C_M_NOSTART;
 
-	err = -ret;
-	if (err == EAGAIN || err == ETIMEDOUT)
-		return OSAL_ERR_TIMEOUT;
-	if (err == ENODEV || err == ENOENT)
-		return OSAL_ENOENT;
-	if (err == EOPNOTSUPP || err == ENOSYS)
-		return OSAL_ERR_NOT_SUPPORTED;
-
-	return err;
-}
-
-static bool hal_i2c_parse_adapter_id(const char *device, int *adapter_id)
-{
-	const char *name;
-
-	if (!device || !adapter_id)
-		return false;
-
-	name = strrchr(device, '/');
-	name = name ? name + 1 : device;
-
-	if (sscanf(name, "i2c-%d", adapter_id) == 1)
-		return true;
-
-	if (sscanf(name, "%d", adapter_id) == 1)
-		return true;
-
-	return false;
+	return lpf_flags;
 }
 
 int32_t hal_i2c_open(const hal_i2c_config_t *config, hal_i2c_handle_t *handle)
 {
 	hal_i2c_context_t *ctx;
-	int adapter_id;
-	int ret;
+	int32_t ret;
 
 	if (!config || !handle || !config->device)
 		return OSAL_ERR_INVALID_PARAM;
 
 	*handle = NULL;
-
-	if (!hal_i2c_parse_adapter_id(config->device, &adapter_id))
-		return OSAL_ERR_INVALID_PARAM;
 
 	ctx = osal_zalloc(sizeof(*ctx));
 	if (!ctx)
@@ -72,17 +45,15 @@ int32_t hal_i2c_open(const hal_i2c_config_t *config, hal_i2c_handle_t *handle)
 	if (ret != OSAL_SUCCESS)
 		goto err_free;
 
-	ctx->adapter = i2c_get_adapter(adapter_id);
-	if (!ctx->adapter) {
-		ret = OSAL_ENOENT;
+	ret = lpf_soc_i2c_open(config->device, &ctx->adapter);
+	if (ret != OSAL_SUCCESS)
 		goto err_mutex;
-	}
 
 	ctx->timeout = config->timeout;
 	ctx->initialized = true;
 	*handle = ctx;
 
-	LOG_INFO("HAL_I2C", "opened adapter i2c-%d", adapter_id);
+	LOG_INFO("HAL_I2C", "opened adapter %s", config->device);
 	return OSAL_SUCCESS;
 
 err_mutex:
@@ -96,7 +67,7 @@ EXPORT_SYMBOL_GPL(hal_i2c_open);
 int32_t hal_i2c_close(hal_i2c_handle_t handle)
 {
 	hal_i2c_context_t *ctx = handle;
-	struct i2c_adapter *adapter;
+	lpf_i2c_handle_t adapter;
 
 	if (!handle)
 		return OSAL_ERR_INVALID_PARAM;
@@ -108,7 +79,7 @@ int32_t hal_i2c_close(hal_i2c_handle_t handle)
 	osal_mutex_unlock(&ctx->lock);
 
 	if (adapter)
-		i2c_put_adapter(adapter);
+		lpf_soc_i2c_close(adapter);
 
 	osal_mutex_destroy(&ctx->lock);
 	osal_free(ctx);
@@ -119,7 +90,7 @@ EXPORT_SYMBOL_GPL(hal_i2c_close);
 int32_t hal_i2c_write(hal_i2c_handle_t handle, uint16_t slave_addr,
 		      const uint8_t *buffer, uint32_t size)
 {
-	struct i2c_msg msg;
+	hal_i2c_msg_t msg;
 	int ret;
 
 	if (!handle || !buffer || size == 0 || size > U16_MAX)
@@ -138,7 +109,7 @@ EXPORT_SYMBOL_GPL(hal_i2c_write);
 int32_t hal_i2c_read(hal_i2c_handle_t handle, uint16_t slave_addr,
 		     uint8_t *buffer, uint32_t size)
 {
-	struct i2c_msg msg;
+	hal_i2c_msg_t msg;
 	int ret;
 
 	if (!handle || !buffer || size == 0 || size > U16_MAX)
@@ -203,46 +174,44 @@ int32_t hal_i2c_transfer(hal_i2c_handle_t handle, hal_i2c_msg_t *msgs,
 			 uint32_t num)
 {
 	hal_i2c_context_t *ctx = handle;
-	struct i2c_msg *kernel_msgs;
+	lpf_i2c_msg_t *lpf_msgs;
 	uint32_t i;
-	int ret;
+	int32_t ret;
 
 	if (!ctx || !msgs || num == 0 || num > 64)
 		return OSAL_ERR_INVALID_PARAM;
 
-	kernel_msgs = osal_zalloc(sizeof(*kernel_msgs) * num);
-	if (!kernel_msgs)
+	lpf_msgs = osal_zalloc(sizeof(*lpf_msgs) * num);
+	if (!lpf_msgs)
 		return OSAL_ERR_NO_MEMORY;
 
 	for (i = 0; i < num; i++) {
 		if (!msgs[i].buf || msgs[i].len == 0) {
-			osal_free(kernel_msgs);
+			osal_free(lpf_msgs);
 			return OSAL_ERR_INVALID_PARAM;
 		}
 
-		kernel_msgs[i].addr = msgs[i].addr;
-		kernel_msgs[i].flags = msgs[i].flags;
-		kernel_msgs[i].len = msgs[i].len;
-		kernel_msgs[i].buf = msgs[i].buf;
+		lpf_msgs[i].addr = msgs[i].addr;
+		lpf_msgs[i].flags = hal_i2c_to_lpf_flags(msgs[i].flags);
+		lpf_msgs[i].len = msgs[i].len;
+		lpf_msgs[i].buf = msgs[i].buf;
 	}
 
 	osal_mutex_lock(&ctx->lock);
 	if (!ctx->initialized || !ctx->adapter) {
 		osal_mutex_unlock(&ctx->lock);
-		osal_free(kernel_msgs);
+		osal_free(lpf_msgs);
 		return OSAL_ERR_INVALID_ID;
 	}
 
-	ret = i2c_transfer(ctx->adapter, kernel_msgs, (int)num);
+	ret = lpf_soc_i2c_transfer(ctx->adapter, lpf_msgs, num);
 	osal_mutex_unlock(&ctx->lock);
-	osal_free(kernel_msgs);
+	osal_free(lpf_msgs);
 
-	if (ret == (int)num)
+	if (ret == OSAL_SUCCESS)
 		return OSAL_SUCCESS;
-	if (ret >= 0)
-		return OSAL_ERR_GENERIC;
 
 	LOG_ERROR("HAL_I2C", "transfer failed: %d", ret);
-	return hal_i2c_errno_to_status(ret);
+	return ret;
 }
 EXPORT_SYMBOL_GPL(hal_i2c_transfer);

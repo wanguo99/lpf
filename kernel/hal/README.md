@@ -11,18 +11,18 @@ HAL is the kernel-mode Hardware Abstraction Layer used by PDM.
 
 Current kernel implementations:
 
-- CAN uses Linux kernel SocketCAN APIs.
-- Serial uses Linux kernel TTY APIs plus kernel file I/O for `/dev/tty*`
-  devices.
-- GPIO uses Linux kernel GPIO and IRQ APIs.
-- PWM uses Linux kernel PWM consumer APIs.
-- I2C uses Linux kernel I2C adapter transfer APIs.
-- SPI uses Linux kernel SPI device and transfer APIs.
+- CAN uses LPF SoC Adapter APIs.
+- Serial uses LPF SoC Adapter APIs.
+- GPIO uses LPF SoC Adapter APIs.
+- PWM uses LPF SoC Adapter APIs.
+- I2C uses LPF SoC Adapter APIs.
+- SPI uses LPF SoC Adapter APIs.
 
 ## Configuration
 
 ```text
 CONFIG_OSAL=y
+CONFIG_LPF_CORE=y
 CONFIG_HAL=y
 CONFIG_HAL_CAN=y
 CONFIG_HAL_UART=y
@@ -43,6 +43,7 @@ Expected module artifacts include:
 
 ```text
 _build/modules/osal.ko
+_build/modules/lpf_core.ko
 _build/modules/hal.ko
 _build/modules/pdm.ko
 ```
@@ -67,4 +68,6 @@ kernel/hal/
 ## Layering
 
 PDM includes HAL headers and calls exported HAL symbols. HAL owns hardware
-access details and must use Linux kernel APIs or the small kernel OSAL wrapper.
+capability APIs. New HAL paths should call LPF SoC Adapter APIs instead of
+calling Linux or vendor BSP APIs directly. Current HAL CAN, serial, GPIO, PWM,
+I2C, and SPI implementations all follow this rule.

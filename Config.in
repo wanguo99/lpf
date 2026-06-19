@@ -526,6 +526,7 @@ endmenu
 menu "Modules"
 
 source "user/osal/Config.in"
+source "kernel/lpf/Config.in"
 source "kernel/hal/Config.in"
 source "kernel/pconfig/Config.in"
 source "kernel/pdm/Config.in"
@@ -555,10 +556,10 @@ menu "Configuration Validation"
 # Dependency Checks
 # ============================================================================
 
-config SANITY_ERROR_HAL_NO_OSAL
+config SANITY_ERROR_HAL_NO_DEPS
 	def_bool y
-	depends on HAL && !OSAL
-	prompt "ERROR: HAL requires OSAL to be enabled"
+	depends on HAL && (!OSAL || !LPF_CORE)
+	prompt "ERROR: HAL requires OSAL and LPF Core to be enabled"
 
 config SANITY_ERROR_PCONFIG_NO_DEPS
 	def_bool y
@@ -567,8 +568,8 @@ config SANITY_ERROR_PCONFIG_NO_DEPS
 
 config SANITY_ERROR_PDM_NO_DEPS
 	def_bool y
-	depends on PDM && (!OSAL || !HAL || !PCONFIG)
-	prompt "ERROR: PDM requires OSAL, HAL, and PCONFIG to be enabled"
+	depends on PDM && (!OSAL || !LPF_CORE || !HAL || !PCONFIG)
+	prompt "ERROR: PDM requires OSAL, LPF Core, HAL, and PCONFIG to be enabled"
 
 config SANITY_ERROR_ACONFIG_NO_OSAL
 	def_bool y
@@ -623,7 +624,7 @@ config SANITY_ERROR_SANITIZER_CONFLICT
 
 config SANITY_CHECK_PASSED
 	def_bool y
-	depends on !SANITY_ERROR_HAL_NO_OSAL && \
+	depends on !SANITY_ERROR_HAL_NO_DEPS && \
 	           !SANITY_ERROR_PCONFIG_NO_DEPS && \
 	           !SANITY_ERROR_PDM_NO_DEPS && \
 	           !SANITY_ERROR_ACONFIG_NO_OSAL && \

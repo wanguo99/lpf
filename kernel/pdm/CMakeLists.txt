@@ -12,10 +12,8 @@ list(APPEND ADD_PRIVATE_INCLUDE "src/protocol")
 ############## Add source files ###############
 list(APPEND ADD_SRCS
     "src/pdm.c"
-    "src/base/pdm_bus.c"
     "src/base/pdm_chrdev.c"
     "src/base/pdm_driver.c"
-    "src/base/pdm_driver_start.c"
     "src/base/pdm_proc.c"
     "src/base/pdm_status.c"
 )
@@ -46,11 +44,10 @@ if(CONFIG_PDM_LED_SUPPORT AND TARGET hal)
     )
 endif()
 
-list(APPEND ADD_SRCS "src/base/pdm_driver_end.c")
 ###############################################
 
 ###### Add required/dependent components ######
-# PDM 依赖 OSAL、HAL 和 PCONFIG
+# PDM 依赖 OSAL、LPF Core、HAL 和 PCONFIG
 # PDM 从 PCONFIG 获取配置类型和运行时配置
 # PCONFIG 定义配置类型，PDM 使用
 # 依赖关系：PDM→PCONFIG（单向依赖，无循环）
@@ -60,6 +57,12 @@ if(CONFIG_OSAL)
     list(APPEND ADD_REQUIREMENTS osal)
 else()
     message(FATAL_ERROR "PDM requires OSAL but CONFIG_OSAL is not enabled")
+endif()
+
+if(CONFIG_LPF_CORE)
+    list(APPEND ADD_REQUIREMENTS lpf_core)
+else()
+    message(FATAL_ERROR "PDM requires LPF Core but CONFIG_LPF_CORE is not enabled")
 endif()
 
 # HAL is kernel-module-only. CMake host builds link the HAL-dependent MCU

@@ -1,16 +1,18 @@
-ESMW_ROOT := $(abspath $(src)/..)
-ESMW_AUTOCONF := $(ESMW_ROOT)/include/config/auto.conf
-ESMW_AUTOCONF_H := $(ESMW_ROOT)/include/generated/gen_autoconf.h
+LPF_ROOT := $(abspath $(src)/..)
+LPF_AUTOCONF := $(LPF_ROOT)/include/config/auto.conf
+LPF_AUTOCONF_H := $(LPF_ROOT)/include/generated/gen_autoconf.h
 
--include $(ESMW_AUTOCONF)
+-include $(LPF_AUTOCONF)
 
 include $(src)/osal/Makefile
+include $(src)/lpf/Makefile
 include $(src)/pconfig/Makefile
 include $(src)/hal/Makefile
 include $(src)/pdm/Makefile
 
 ccflags-y += -I$(src)/include
-ccflags-y += -I$(ESMW_ROOT)/include
+ccflags-y += -I$(LPF_ROOT)/include
+ccflags-y += -I$(src)/include/lpf
 ccflags-y += -I$(src)/include/osal
 ccflags-y += -I$(src)/include/hal
 ccflags-y += -I$(src)/include/hal/config
@@ -22,6 +24,6 @@ ccflags-y += -I$(src)/pdm/src
 ccflags-y += -I$(src)/pdm/src/protocol
 ccflags-y += -I$(src)/../uapi
 
-ifneq ($(wildcard $(ESMW_AUTOCONF_H)),)
-ccflags-y += -include $(ESMW_AUTOCONF_H)
+ifneq ($(wildcard $(LPF_AUTOCONF_H)),)
+ccflags-y += -include $(LPF_AUTOCONF_H)
 endif

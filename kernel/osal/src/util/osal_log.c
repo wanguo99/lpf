@@ -135,7 +135,7 @@ void osal_log(int32_t level, const char *module, const char *format, ...)
 	va_end(args);
 
 	atomic64_inc(&g_log_total);
-	printk("%sESMW:%s:%s: %s\n", osal_log_level_prefix(level),
+	printk("%sLPF:%s:%s: %s\n", osal_log_level_prefix(level),
 	       module ? module : "APP", osal_log_level_name(level), message);
 }
 EXPORT_SYMBOL_GPL(osal_log);
@@ -194,7 +194,7 @@ void osal_log_emit(int32_t level, const char *module, const char *file,
 	va_end(args);
 
 	atomic64_inc(&g_log_total);
-	printk("%sESMW:%s:%s:%s:%d:%s: %s\n",
+	printk("%sLPF:%s:%s:%s:%d:%s: %s\n",
 	       osal_log_level_prefix(level), module ? module : "APP",
 	       osal_log_level_name(level), file ? file : "", line,
 	       func ? func : "", message);

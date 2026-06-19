@@ -108,6 +108,16 @@ Acceptance criteria:
 - Global arrays are no longer the primary device model.
 - Device lifecycle has one consistent framework entry.
 
+Current status:
+
+- Started. `lpf_core.ko` now owns the LPF driver and device registry.
+- `kernel/include/lpf/lpf_device.h` and `lpf_driver.h` define the first device,
+  driver, and capability model.
+- PDM maps PCONFIG entries into `lpf_device_config_t` and registers MCU/LED
+  services through LPF Core.
+- Remaining work: add reference-safe device lookup, event notification, and
+  userspace capability discovery.
+
 ## Phase 3: Kernel Compat Layer
 
 Goal: isolate Linux kernel API differences behind explicit compatibility
@@ -139,6 +149,13 @@ Acceptance criteria:
 - Selected target kernels compile through the compat layer. Suggested initial
   targets: 4.19, 5.10, and 6.1.
 
+Current status:
+
+- Started. CAN, serial, GPIO, PWM, I2C, and SPI Linux API wrappers now live
+  under `kernel/lpf/compat/`.
+- Remaining work: add explicit kernel-version feature detection and migrate
+  procfs/debugfs/sysfs, workqueue, and usercopy differences.
+
 ## Phase 4: SoC Adapter Layer
 
 Goal: isolate SoC and vendor BSP differences behind adapter implementations.
@@ -163,6 +180,14 @@ Acceptance criteria:
 
 - The same LED or MCU business code can compile against different SoC adapters.
 - SoC-specific code is limited to adapter implementations.
+
+Current status:
+
+- Started. `kernel/include/lpf/lpf_soc_adapter.h` defines the initial CAN,
+  serial, GPIO, PWM, I2C, and SPI adapter interfaces.
+- `kernel/lpf/soc/generic_linux/` provides the default Linux backend.
+- Remaining work: extend the interface to pinctrl, clocks, resets, and SoC
+  identity, then add target SoC adapters.
 
 ## Phase 5: HAL Layering
 
@@ -194,6 +219,13 @@ Acceptance criteria:
 
 - Peripheral business code depends only on HAL APIs.
 - HAL behavior stays consistent across supported kernel and SoC backends.
+
+Current status:
+
+- Started. HAL CAN, serial, GPIO, PWM, I2C, and SPI now call LPF SoC Adapter
+  APIs instead of Linux subsystem APIs directly.
+- Remaining work: remove hard-coded GPIO table limits; add mock HAL or mock SoC
+  backends for tests.
 
 ## Phase 6: PCONFIG Multi-Backend Model
 

@@ -3,7 +3,7 @@
 menuconfig HAL
 	bool "HAL (Hardware Abstraction Layer)"
 	default n
-	depends on OSAL
+	depends on OSAL && LPF_CORE
 	help
 	  Hardware Abstraction Layer provides kernel-mode hardware interfaces.
 
@@ -21,9 +21,9 @@ menuconfig HAL
 	  Memory footprint: ~5KB (minimal) ~ 50KB (all drivers)
 
 	  Required by: PDM kernel-side peripheral drivers
-	  Dependencies: OSAL
+	  Dependencies: OSAL, LPF Core
 
-	  Note: Enable OSAL first in "Core Modules" menu.
+	  Note: Enable OSAL and LPF Core first in "Core Modules" menu.
 
 	  If unsure, say Y.
 

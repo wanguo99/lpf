@@ -4,17 +4,24 @@ This document tracks the remaining work for moving LPF HAL/PConfig/PDM
 to the kernel-module architecture. Update the checkboxes as each part is
 implemented and verified.
 
+Note: this is the historical kernel-module refactor tracker. The long-term LPF
+architecture is now tracked in `docs/LPF_LONG_TERM_OPTIMIZATION_PLAN.md`. PDM's
+local bus has been promoted into LPF Core, so new work should use LPF Core for
+device and driver lifecycle instead of adding new PDM-local bus code.
+
 ## Target Architecture
 
 - HAL is a kernel-only module built as `hal.ko`.
 - PConfig is a standalone kernel module built as `pconfig.ko`.
 - Concrete platform configs are compiled directly into `pconfig.ko` under
   `kernel/pconfig/configs/<product>/<project>/<version>/`.
-- PDM is a kernel module built as `pdm.ko`; peripheral drivers are linked into
-  `pdm.ko` and registered through built-in driver registration.
-- PDM owns a lightweight internal bus that keeps registered drivers and probed
-  devices in kernel lists. PConfig supplies device instances; the bus matches
-  each instance to a PDM driver and owns remove ordering.
+- LPF Core is a standalone kernel module built as `lpf_core.ko`; it owns the
+  framework device and driver registry.
+- PDM is a kernel module built as `pdm.ko`; peripheral services are linked into
+  `pdm.ko` and registered as LPF drivers.
+- PConfig supplies device instances; PDM maps those instances into LPF device
+  configs, and LPF Core matches each instance to a driver and owns remove
+  ordering.
 - PDI remains a userspace library, but it only talks to per-peripheral character
   devices and UAPI headers.
 - Each peripheral owns its own PConfig type, PDM driver, PDI UAPI header, PDI
@@ -44,8 +51,9 @@ implemented and verified.
 - [x] Add `/dev/pdm_mcu` character-device ioctl boundary.
 - [x] Change PDM startup to initialize built-in drivers, load PConfig, iterate
       configured devices, and call matching driver `probe`.
-- [x] Add PDM built-in driver registration through `pdm_driver_register`.
-- [x] Add a PDM-local virtual bus/list manager for driver and device binding.
+- [x] Add PDM built-in driver registration through LPF Core.
+- [x] Replace the PDM-local virtual bus/list manager with LPF Core for driver
+      and device binding.
 - [x] Keep PDM peripheral drivers linked into `pdm.ko` instead of adding one
       kernel module per peripheral.
 - [x] Add HAL built-in initialization table for HAL subdrivers that need global
@@ -69,7 +77,7 @@ implemented and verified.
   - Acceptance: unloading `pdm.ko` does not invalidate a loaded `pconfig.ko`
     unexpectedly.
 - [ ] Add a basic module load/unload smoke path.
-  - Target order: `osal.ko`, `pconfig.ko`, `hal.ko`, `pdm.ko`.
+  - Target order: `osal.ko`, `lpf_core.ko`, `pconfig.ko`, `hal.ko`, `pdm.ko`.
   - Acceptance: all modules load and unload cleanly on the target kernel with
     the selected defconfig.
 
@@ -105,11 +113,11 @@ implemented and verified.
     status codes consistently.
 - [x] Define a reusable PDM peripheral driver template.
   - Driver object.
-  - `pdm_driver_register`.
+  - `lpf_driver_register`.
   - Per-device context table.
   - `probe`.
   - `remove`.
-  - Bus-owned device removal.
+  - LPF Core-owned device removal.
   - Character-device registration if userspace access is needed.
 - [x] Decide whether protocol support is global or per-driver.
   - PDM protocol is a common peripheral communication protocol library under
@@ -120,7 +128,7 @@ implemented and verified.
 - [x] Revisit PDM device removal.
   - PDM should remove devices before driver exit.
   - PConfig state should remain owned by PConfig.
-  - Implemented with the PDM-local bus: device nodes are removed before driver
+  - Implemented with LPF Core: device nodes are removed before driver
     unregister/exit, and each bound device calls its driver's `remove`.
 - [x] Add LED peripheral support using the established model.
   - Add `pdm_led` implementation.
@@ -223,10 +231,12 @@ implemented and verified.
 - [x] Remove outdated references to ctest and old userspace HAL/PDM behavior.
 - [x] Document module load order and dependencies.
   - OSAL before PConfig/HAL.
-  - PConfig and HAL before PDM.
+  - OSAL before LPF Core.
+  - LPF Core, PConfig, and HAL before PDM.
 - [x] Document how to add a new peripheral.
   - PConfig type and platform entry.
-  - PDM driver object and registration.
+  - LPF device type/capability mapping.
+  - PDM service driver object and LPF Core registration.
   - PDI UAPI header and userspace wrapper.
   - Kbuild object selection.
 - [x] Document the feature-selection rule.
