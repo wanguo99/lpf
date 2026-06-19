@@ -53,7 +53,7 @@ core/kernel/hal/
 ├── Makefile
 ├── CMakeLists.txt      # header-only interface for host-side consumers
 └── src/
-    ├── hal_main.c
+    ├── hal.c
     ├── hal_can.c
     ├── hal_serial.c
     ├── hal_gpio.c

@@ -3,7 +3,7 @@
 # Kbuild fragment for hal.ko.
 ifeq ($(CONFIG_HAL),y)
 obj-m += hal.o
-hal-y := hal/src/hal_main.o
+hal-y := hal/src/hal.o
 hal-$(CONFIG_HAL_CAN) += hal/src/hal_can.o
 hal-$(CONFIG_HAL_UART) += hal/src/hal_serial.o
 hal-$(CONFIG_HAL_GPIO) += hal/src/hal_gpio.o

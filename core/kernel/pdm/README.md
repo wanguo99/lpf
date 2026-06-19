@@ -7,7 +7,7 @@ built on top of PCONFIG, HAL, OSAL, and the PDM-owned internal protocol helpers.
 
 The kernel module currently provides:
 
-- ioctl device-node dispatch in `pdm/src/pdm_main.c`
+- ioctl device-node dispatch in `pdm/src/pdm.c`
 - PCONFIG query logic linked into `pdm.ko`
 - PDM protocol encode/decode logic linked into `pdm.ko`
 - PDM MCU core and CAN/Serial transport glue linked into `pdm.ko`
@@ -32,7 +32,7 @@ core/kernel/pdm/
 ├── Config.in
 ├── CMakeLists.txt
 └── src/
-    ├── pdm_main.c
+    ├── pdm.c
     └── pdm_mcu/
         ├── Config.in
         ├── pdm_mcu.c
