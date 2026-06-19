@@ -360,8 +360,10 @@ Current status:
 - Done. UAPI headers now live under the final `uapi/lpf/` namespace with
   `LPF_*` ABI types and ioctl constants. MCU and LED UAPI headers are ABI-only,
   while SDK declarations live under `user/pdi/include/pdi/`.
-- Remaining work: add instance-aware device nodes and standardize PDI error
-  mapping.
+- Done. PDI now uses internal error helpers to standardize its public return
+  convention: success returns `0`, failures return `-1` with `errno` set, and
+  system-call failures preserve the kernel/libc errno value.
+- Remaining work: add instance-aware device nodes.
 
 ## Phase 9: Device Nodes And Observability
 

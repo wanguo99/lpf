@@ -3,8 +3,8 @@
  ************************************************************************/
 
 #include "pdi/pdi_discovery.h"
+#include "pdi_error.h"
 
-#include <errno.h>
 #include <fcntl.h>
 #include <string.h>
 #include <sys/ioctl.h>
@@ -13,48 +13,47 @@
 static int32_t pdi_ctl_ioctl_checked(pdi_ctl_context_t *ctx,
 				     unsigned long request, void *arg)
 {
-	if (ctx == NULL || ctx->fd < 0) {
-		errno = EINVAL;
-		return -1;
-	}
+	if (pdi_check_ptr(ctx) < 0)
+		return PDI_FAILURE;
+	if (pdi_check_fd(ctx->fd) < 0)
+		return PDI_FAILURE;
 
-	return ioctl(ctx->fd, request, arg);
+	return pdi_result_from_syscall(ioctl(ctx->fd, request, arg));
 }
 
 int32_t pdi_ctl_open(pdi_ctl_context_t *ctx, const char *device_path)
 {
 	const char *path;
 
-	if (ctx == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	if (pdi_check_ptr(ctx) < 0)
+		return PDI_FAILURE;
 
 	path = (device_path != NULL) ? device_path : LPF_CTL_DEFAULT_DEVICE;
 	ctx->fd = open(path, O_RDWR | O_CLOEXEC);
-	return (ctx->fd < 0) ? -1 : 0;
+	if (ctx->fd < 0)
+		return PDI_FAILURE;
+
+	return PDI_SUCCESS;
 }
 
 int32_t pdi_ctl_close(pdi_ctl_context_t *ctx)
 {
 	int ret;
 
-	if (ctx == NULL || ctx->fd < 0) {
-		errno = EINVAL;
-		return -1;
-	}
+	if (pdi_check_ptr(ctx) < 0)
+		return PDI_FAILURE;
+	if (pdi_check_fd(ctx->fd) < 0)
+		return PDI_FAILURE;
 
 	ret = close(ctx->fd);
 	ctx->fd = -1;
-	return ret;
+	return pdi_result_from_syscall(ret);
 }
 
 int32_t pdi_ctl_get_info(pdi_ctl_context_t *ctx, struct lpf_ctl_info *info)
 {
-	if (info == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	if (pdi_check_ptr(info) < 0)
+		return PDI_FAILURE;
 
 	return pdi_ctl_ioctl_checked(ctx, LPF_CTL_IOC_GET_INFO, info);
 }
@@ -68,10 +67,8 @@ int32_t pdi_list_devices(pdi_ctl_context_t *ctx,
 	uint32_t i;
 	int32_t ret;
 
-	if (count == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	if (pdi_check_ptr(count) < 0)
+		return PDI_FAILURE;
 
 	requested = *count;
 	for (i = 0; i < requested; i++) {
@@ -90,7 +87,7 @@ int32_t pdi_list_devices(pdi_ctl_context_t *ctx,
 	}
 
 	*count = i;
-	return 0;
+	return PDI_SUCCESS;
 }
 
 int32_t pdi_get_device_by_name(pdi_ctl_context_t *ctx, const char *name,
@@ -99,10 +96,10 @@ int32_t pdi_get_device_by_name(pdi_ctl_context_t *ctx, const char *name,
 	struct lpf_ctl_device_name_query query;
 	int32_t ret;
 
-	if (name == NULL || info == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	if (pdi_check_ptr(name) < 0)
+		return PDI_FAILURE;
+	if (pdi_check_ptr(info) < 0)
+		return PDI_FAILURE;
 
 	memset(&query, 0, sizeof(query));
 	strncpy(query.name, name, sizeof(query.name) - 1U);
@@ -113,7 +110,7 @@ int32_t pdi_get_device_by_name(pdi_ctl_context_t *ctx, const char *name,
 		return ret;
 
 	*info = query.info;
-	return 0;
+	return PDI_SUCCESS;
 }
 
 int32_t pdi_get_device_by_capability(pdi_ctl_context_t *ctx,
@@ -124,10 +121,10 @@ int32_t pdi_get_device_by_capability(pdi_ctl_context_t *ctx,
 	struct lpf_ctl_device_query query;
 	int32_t ret;
 
-	if (info == NULL || required_capabilities == LPF_CTL_DEVICE_CAP_NONE) {
-		errno = EINVAL;
-		return -1;
-	}
+	if (pdi_check_ptr(info) < 0)
+		return PDI_FAILURE;
+	if (required_capabilities == LPF_CTL_DEVICE_CAP_NONE)
+		return pdi_fail_invalid_arg();
 
 	memset(&query, 0, sizeof(query));
 	query.match_index = match_index;
@@ -140,5 +137,5 @@ int32_t pdi_get_device_by_capability(pdi_ctl_context_t *ctx,
 		return ret;
 
 	*info = query.info;
-	return 0;
+	return PDI_SUCCESS;
 }

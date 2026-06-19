@@ -26,6 +26,11 @@ peripheral node.
 Applications should include `pdi/pdi.h` or the SDK headers under
 `user/pdi/include/pdi/`. UAPI headers under `uapi/lpf/` are ABI-only.
 
+All PDI APIs return `0` on success and `-1` on failure with `errno` set.
+Internal validation maps null pointers to `EINVAL`, invalid or closed contexts
+to `EBADF`, and stable-name type mismatches to `ENODEV`. System call failures
+from `open`, `ioctl`, and `close` preserve the kernel/libc `errno` value.
+
 UAPI and ABI rules for new peripherals are documented in
 `docs/LPF_UAPI_ABI.md`.
 
