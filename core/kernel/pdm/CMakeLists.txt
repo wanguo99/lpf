@@ -11,7 +11,7 @@ list(APPEND ADD_PRIVATE_INCLUDE "src/protocol")
 ############## Add source files ###############
 list(APPEND ADD_SRCS
     "src/pdm.c"
-    "src/pdm_builtin_start.c"
+    "src/pdm_driver_start.c"
 )
 
 # 根据配置添加子模块源文件
@@ -29,7 +29,7 @@ if(CONFIG_PDM_MCU_SUPPORT AND TARGET hal)
     )
 endif()
 
-list(APPEND ADD_SRCS "src/pdm_builtin_end.c")
+list(APPEND ADD_SRCS "src/pdm_driver_end.c")
 ###############################################
 
 ###### Add required/dependent components ######

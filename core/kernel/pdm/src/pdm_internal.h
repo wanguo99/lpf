@@ -6,34 +6,26 @@
 #include "osal.h"
 #include "pconfig/pconfig_common.h"
 
-#define PDM_BUILTIN_DRIVER_SECTION ".pdm_builtin_driver"
+#define PDM_DRIVER_SECTION ".pdm_driver"
+#define PDM_CONCAT(a, b) a##b
+#define PDM_UNIQUE_ID(a, b) PDM_CONCAT(a, b)
 
-typedef struct {
-	int32_t (*probe)(const pconfig_device_config_t *device);
-	void (*remove_all)(void);
-} pdm_driver_ops_t;
-
-typedef struct {
+typedef struct pdm_driver {
 	const char *name;
+	pconfig_device_type_t type;
 	int (*init)(void);
 	void (*exit)(void);
-} pdm_builtin_driver_t;
+	int32_t (*probe)(const pconfig_device_config_t *device);
+	void (*remove_all)(void);
+} pdm_driver_t;
 
-#define PDM_BUILTIN_DRIVER(_id, _init, _exit)                         \
-	static const pdm_builtin_driver_t __pdm_builtin_driver_##_id   \
-		__attribute__((used, aligned(sizeof(void *)),           \
-			       section(PDM_BUILTIN_DRIVER_SECTION))) = { \
-			.name = #_id,                                  \
-			.init = _init,                                 \
-			.exit = _exit,                                 \
-		}
+#define pdm_driver_register(_driver)                                      \
+	static const pdm_driver_t *const PDM_UNIQUE_ID(__pdm_driver_,     \
+						       __LINE__)          \
+		__attribute__((used, aligned(sizeof(void *)),              \
+			       section(PDM_DRIVER_SECTION))) = (_driver)
 
-extern const pdm_builtin_driver_t pdm_builtin_driver_start;
-extern const pdm_builtin_driver_t pdm_builtin_driver_end;
-
-int32_t pdm_driver_register(pconfig_device_type_t type,
-			    const pdm_driver_ops_t *ops);
-void pdm_driver_unregister(pconfig_device_type_t type,
-			   const pdm_driver_ops_t *ops);
+extern const pdm_driver_t *const pdm_driver_start;
+extern const pdm_driver_t *const pdm_driver_end;
 
 #endif /* PDM_INTERNAL_H */

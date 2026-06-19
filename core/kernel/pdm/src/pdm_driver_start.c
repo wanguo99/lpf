@@ -2,6 +2,6 @@
 
 #include "pdm_internal.h"
 
-const pdm_builtin_driver_t pdm_builtin_driver_end
+const pdm_driver_t *const pdm_driver_start
 	__attribute__((used, aligned(sizeof(void *)),
-		       section(PDM_BUILTIN_DRIVER_SECTION))) = {};
+		       section(PDM_DRIVER_SECTION))) = NULL;

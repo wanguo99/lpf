@@ -12,7 +12,7 @@ set(PDM_SRCS "")
 
 list(APPEND PDM_SRCS
     "src/pdm.c"
-    "src/pdm_builtin_start.c"
+    "src/pdm_driver_start.c"
 )
 
 if(CONFIG_PDM_PROTOCOL)
@@ -35,7 +35,7 @@ if(CONFIG_PDM_MCU_SUPPORT)
     message(STATUS "  [PDM] MCU peripheral support enabled")
 endif()
 
-list(APPEND PDM_SRCS "src/pdm_builtin_end.c")
+list(APPEND PDM_SRCS "src/pdm_driver_end.c")
 
 list(LENGTH PDM_SRCS PDM_FILE_COUNT)
 message(STATUS "  [PDM] Total ${PDM_FILE_COUNT} source files selected")
