@@ -25,6 +25,7 @@
 #include "sys/osal_thread.h"
 #include "util/osal_log.h"
 #include "util/osal_crc.h"
+#include "util/osal_version.h"
 
 typedef struct {
 	uint32_t seconds;

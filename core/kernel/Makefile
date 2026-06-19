@@ -10,6 +10,7 @@ include $(src)/hal/Makefile
 include $(src)/pdm/Makefile
 
 ccflags-y += -I$(src)/include
+ccflags-y += -I$(ESMW_ROOT)/include
 ccflags-y += -I$(src)/include/osal
 ccflags-y += -I$(src)/include/hal
 ccflags-y += -I$(src)/include/hal/config

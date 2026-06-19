@@ -8,6 +8,7 @@
 
 static int __init hal_init(void)
 {
+	osal_print_module_version("HAL");
 #ifdef CONFIG_HAL_GPIO
 	int ret;
 

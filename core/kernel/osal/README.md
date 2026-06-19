@@ -20,6 +20,8 @@ kernel-backed OSAL subsets currently available:
 - `util/osal_log.h`: LOG_* macros and logging control functions backed by
   printk.
 - `util/osal_crc.h`: CRC16-CCITT, CRC16-MODBUS, and CRC32 helpers.
+- `util/osal_version.h`: module version logging backed by generated build
+  metadata.
 
 Interfaces that have no safe kernel equivalent should either be omitted from the
 kernel header set or return `OSAL_ERR_NOT_SUPPORTED`; do not tunnel back to

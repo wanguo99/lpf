@@ -12,6 +12,8 @@ static int __init pdm_init(void)
 {
 	int ret;
 
+	osal_print_module_version("PDM");
+
 #ifdef CONFIG_PDM_PROTOCOL
 	ret = pdm_protocol_init();
 	if (ret)
