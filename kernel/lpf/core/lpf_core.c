@@ -61,6 +61,47 @@ lpf_find_device_node_locked(lpf_device_type_t type, uint32_t index)
 	return NULL;
 }
 
+static lpf_device_node_t *lpf_find_device_node_by_name_locked(const char *name)
+{
+	lpf_device_node_t *device_node;
+
+	if (!name)
+		return NULL;
+
+	list_for_each_entry(device_node, &g_lpf_devices, node) {
+		if (0 == osal_strcmp(device_node->device.name, name))
+			return device_node;
+	}
+
+	return NULL;
+}
+
+static void lpf_copy_device_info(const lpf_device_t *device,
+				 lpf_device_info_t *info)
+{
+	const char *driver_name = NULL;
+
+	if (!device || !info)
+		return;
+
+	osal_memset(info, 0, sizeof(*info));
+	info->type = device->config.type;
+	info->index = device->config.index;
+	info->state = device->state;
+	info->last_error = device->last_error;
+	info->capabilities = device->capabilities;
+	osal_strncpy(info->name, device->name, sizeof(info->name) - 1U);
+	info->name[sizeof(info->name) - 1U] = '\0';
+
+	if (device->driver)
+		driver_name = device->driver->name;
+	if (driver_name) {
+		osal_strncpy(info->driver_name, driver_name,
+			     sizeof(info->driver_name) - 1U);
+		info->driver_name[sizeof(info->driver_name) - 1U] = '\0';
+	}
+}
+
 static void lpf_make_device_name(lpf_device_t *device,
 				 const lpf_driver_t *driver)
 {
@@ -356,6 +397,119 @@ const lpf_device_t *lpf_device_find(lpf_device_type_t type, uint32_t index)
 	return device;
 }
 EXPORT_SYMBOL_GPL(lpf_device_find);
+
+int32_t lpf_device_get_info(lpf_device_type_t type, uint32_t index,
+			    lpf_device_info_t *info)
+{
+	lpf_device_node_t *device_node;
+
+	if (!info || type == LPF_DEVICE_TYPE_INVALID)
+		return OSAL_ERR_INVALID_PARAM;
+
+	if (!g_lpf_core_ready)
+		return OSAL_ERR_INVALID_STATE;
+
+	osal_mutex_lock(&g_lpf_core_lock);
+	device_node = lpf_find_device_node_locked(type, index);
+	if (!device_node) {
+		osal_mutex_unlock(&g_lpf_core_lock);
+		return OSAL_ERR_NAME_NOT_FOUND;
+	}
+
+	lpf_copy_device_info(&device_node->device, info);
+	osal_mutex_unlock(&g_lpf_core_lock);
+	return OSAL_SUCCESS;
+}
+EXPORT_SYMBOL_GPL(lpf_device_get_info);
+
+int32_t lpf_device_get_info_by_name(const char *name, lpf_device_info_t *info)
+{
+	lpf_device_node_t *device_node;
+
+	if (!name || !info)
+		return OSAL_ERR_INVALID_PARAM;
+
+	if (!g_lpf_core_ready)
+		return OSAL_ERR_INVALID_STATE;
+
+	osal_mutex_lock(&g_lpf_core_lock);
+	device_node = lpf_find_device_node_by_name_locked(name);
+	if (!device_node) {
+		osal_mutex_unlock(&g_lpf_core_lock);
+		return OSAL_ERR_NAME_NOT_FOUND;
+	}
+
+	lpf_copy_device_info(&device_node->device, info);
+	osal_mutex_unlock(&g_lpf_core_lock);
+	return OSAL_SUCCESS;
+}
+EXPORT_SYMBOL_GPL(lpf_device_get_info_by_name);
+
+int32_t lpf_device_get_info_by_capability(lpf_capability_t required,
+					  uint32_t match_index,
+					  lpf_device_info_t *info)
+{
+	lpf_device_node_t *device_node;
+	uint32_t matched_count = 0;
+
+	if (!info || required == LPF_DEVICE_CAP_NONE)
+		return OSAL_ERR_INVALID_PARAM;
+
+	if (!g_lpf_core_ready)
+		return OSAL_ERR_INVALID_STATE;
+
+	osal_mutex_lock(&g_lpf_core_lock);
+	list_for_each_entry(device_node, &g_lpf_devices, node) {
+		if ((device_node->device.capabilities & required) != required)
+			continue;
+
+		if (matched_count++ != match_index)
+			continue;
+
+		lpf_copy_device_info(&device_node->device, info);
+		osal_mutex_unlock(&g_lpf_core_lock);
+		return OSAL_SUCCESS;
+	}
+	osal_mutex_unlock(&g_lpf_core_lock);
+
+	return OSAL_ERR_NAME_NOT_FOUND;
+}
+EXPORT_SYMBOL_GPL(lpf_device_get_info_by_capability);
+
+int32_t lpf_device_list(lpf_device_info_t *infos, uint32_t *count)
+{
+	lpf_device_node_t *device_node;
+	uint32_t max_count;
+	uint32_t actual_count = 0;
+	uint32_t total_count = 0;
+
+	if (!count)
+		return OSAL_ERR_INVALID_PARAM;
+
+	if (!g_lpf_core_ready) {
+		*count = 0;
+		return OSAL_ERR_INVALID_STATE;
+	}
+
+	max_count = infos ? *count : 0;
+
+	osal_mutex_lock(&g_lpf_core_lock);
+	list_for_each_entry(device_node, &g_lpf_devices, node) {
+		if (infos && actual_count < max_count) {
+			lpf_copy_device_info(&device_node->device,
+					     &infos[actual_count]);
+			actual_count++;
+		}
+		total_count++;
+	}
+	osal_mutex_unlock(&g_lpf_core_lock);
+
+	*count = infos ? actual_count : total_count;
+	return (infos && actual_count < total_count) ?
+		       OSAL_ERR_RESOURCE_LIMIT :
+		       OSAL_SUCCESS;
+}
+EXPORT_SYMBOL_GPL(lpf_device_list);
 
 static int __init lpf_core_module_init(void)
 {

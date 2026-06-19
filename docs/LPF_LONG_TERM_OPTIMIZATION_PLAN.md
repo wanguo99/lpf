@@ -115,8 +115,11 @@ Current status:
   driver, and capability model.
 - PDM maps PCONFIG entries into `lpf_device_config_t` and registers MCU/LED
   services through LPF Core.
-- Remaining work: add reference-safe device lookup, event notification, and
-  userspace capability discovery.
+- Started device discovery. LPF Core now exposes snapshot APIs for listing
+  devices and querying by type/index, name, or capability without exposing
+  internal list nodes to callers.
+- Remaining work: add reference-counted active device handles, event
+  notification, and userspace discovery through the UAPI/PDI layer.
 
 ## Phase 3: Kernel Compat Layer
 

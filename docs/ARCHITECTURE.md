@@ -75,7 +75,10 @@ LPF drivers, and configured device instances are registered as LPF devices. LPF
 Core handles bind, probe, remove ordering, stable device names, and capability
 metadata. It does not depend on PCONFIG; callers map configuration backends into
 LPF device configs before registration. LPF Core also initializes the default
-SoC adapter path used by HAL.
+SoC adapter path used by HAL. Device discovery callers should use the snapshot
+APIs (`lpf_device_list()`, `lpf_device_get_info_by_name()`, and capability
+queries) instead of retaining internal `lpf_device_t` pointers across lifecycle
+events.
 
 ### LPF SoC Adapter
 

@@ -7,7 +7,8 @@ menuconfig LPF_CORE
 	help
 	  LPF Core owns the framework device and driver registry used by
 	  peripheral services. It provides a stable LPF device model above
-	  kernel-version and SoC-specific adapter layers.
+	  kernel-version and SoC-specific adapter layers, plus snapshot device
+	  discovery by stable name and capability.
 
 	  It also contains the initial kernel compatibility wrappers and
 	  default generic-Linux SoC adapter used by HAL backends.

@@ -16,5 +16,13 @@ void lpf_driver_unregister_all(void);
 int32_t lpf_device_register(const lpf_device_config_t *config);
 void lpf_device_unregister_all(void);
 const lpf_device_t *lpf_device_find(lpf_device_type_t type, uint32_t index);
+int32_t lpf_device_get_info(lpf_device_type_t type, uint32_t index,
+			    lpf_device_info_t *info);
+int32_t lpf_device_get_info_by_name(const char *name,
+				    lpf_device_info_t *info);
+int32_t lpf_device_get_info_by_capability(lpf_capability_t required,
+					  uint32_t match_index,
+					  lpf_device_info_t *info);
+int32_t lpf_device_list(lpf_device_info_t *infos, uint32_t *count);
 
 #endif /* LPF_CORE_H */

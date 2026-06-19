@@ -48,4 +48,14 @@ typedef struct lpf_device {
 	char name[LPF_DEVICE_NAME_LEN];
 } lpf_device_t;
 
+typedef struct {
+	lpf_device_type_t type;
+	uint32_t index;
+	lpf_device_state_t state;
+	int32_t last_error;
+	lpf_capability_t capabilities;
+	char name[LPF_DEVICE_NAME_LEN];
+	char driver_name[LPF_DEVICE_NAME_LEN];
+} lpf_device_info_t;
+
 #endif /* LPF_DEVICE_H */
