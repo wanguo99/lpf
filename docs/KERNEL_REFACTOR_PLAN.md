@@ -91,15 +91,15 @@ implemented and verified.
 
 ## Phase 3: Finish PDM Driver Model
 
-- [ ] Keep the current `init` and `probe` split.
+- [x] Keep the current `init` and `probe` split.
   - `init`: register global resources for a PDM driver type.
   - `probe`: create per-device instances from PConfig entries.
-- [ ] Audit PDM error-code conversion.
+- [x] Audit PDM error-code conversion.
   - Avoid double-negating OSAL status values.
   - Kernel entry points should return Linux negative errno.
   - Internal OSAL-style APIs should return `OSAL_SUCCESS` or positive OSAL
     status codes consistently.
-- [ ] Define a reusable PDM peripheral driver template.
+- [x] Define a reusable PDM peripheral driver template.
   - Driver object.
   - `pdm_driver_register`.
   - Per-device context table.
@@ -159,17 +159,17 @@ implemented and verified.
 - [ ] Decide policy for socket APIs in kernel OSAL.
   - Either wrap kernel socket operations needed by HAL CAN, or document them as
     HAL-owned kernel details.
-- [ ] Decide policy for usercopy helpers.
+- [x] Decide policy for usercopy helpers.
   - If PDM character devices should not call `copy_to_user` directly, add
     `osal_copy_to_user` and `osal_copy_from_user`.
-- [ ] Decide policy for character-device helpers.
+- [x] Decide policy for character-device helpers.
   - If repeated PDM chrdev code grows, add common OSAL or PDM-local helpers for
     misc device registration and ioctl dispatch.
 - [ ] Explicitly list unsupported user OSAL APIs.
   - Examples: process, environment, signal, POSIX shared memory, pty.
   - Unsupported APIs should either be absent from kernel OSAL or return
     `OSAL_ERR_NOT_SUPPORTED` with clear documentation.
-- [ ] Replace remaining direct kernel primitives in PDM/PConfig where OSAL
+- [x] Replace remaining direct kernel primitives in PDM/PConfig where OSAL
       equivalents are intended.
   - Keep direct Linux subsystem calls inside HAL where they are the hardware
     implementation detail.
@@ -187,10 +187,10 @@ implemented and verified.
 
 ## Phase 7: Clean Build And Feature Selection
 
-- [ ] Remove unused `ccflags-$(CONFIG_...) += -DCONFIG_...` definitions from
+- [x] Remove unused `ccflags-$(CONFIG_...) += -DCONFIG_...` definitions from
       `kernel/Makefile`.
   - Keep Kbuild object selection such as `pdm-$(CONFIG_PDM_MCU_SUPPORT)`.
-- [ ] Keep feature selection at object/list registration boundaries.
+- [x] Keep feature selection at object/list registration boundaries.
   - Kconfig selects objects.
   - Linked objects register themselves.
   - Business code should not branch on feature macros.
