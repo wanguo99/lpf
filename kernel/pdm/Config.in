@@ -115,13 +115,6 @@ config PDM_PROTOCOL_SEQUENCE_CHECK
 	help
 	  Enable sequence number helpers for packet ordering.
 
-config PDM_PROTOCOL_TIMESTAMP_CHECK
-	bool "Enable timestamp validation"
-	default n
-	depends on PDM_PROTOCOL
-	help
-	  Reserve timestamp validation support for protocol packets.
-
 config PDM_PROTOCOL_MAX_PAYLOAD_SIZE
 	int "Maximum protocol payload size (bytes)"
 	default 4096
