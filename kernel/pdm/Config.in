@@ -92,7 +92,7 @@ menuconfig PDM_MCU_SUPPORT
 
 	  If unsure, say Y.
 
-source "kernel/pdm/src/pdm_mcu/Config.in"
+source "kernel/pdm/src/mcu/Config.in"
 
 menuconfig PDM_LED_SUPPORT
 	bool "LED peripheral support"
@@ -105,7 +105,7 @@ menuconfig PDM_LED_SUPPORT
 	  LED peripherals can be controlled through GPIO or PWM according to
 	  PConfig entries. The driver exposes /dev/pdm_led for userspace PDI.
 
-source "kernel/pdm/src/pdm_led/Config.in"
+source "kernel/pdm/src/led/Config.in"
 
 menu "PDM Protocol Configuration"
 

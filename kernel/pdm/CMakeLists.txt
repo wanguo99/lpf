@@ -11,7 +11,7 @@ list(APPEND ADD_PRIVATE_INCLUDE "src/protocol")
 ############## Add source files ###############
 list(APPEND ADD_SRCS
     "src/pdm.c"
-    "src/pdm_driver_start.c"
+    "src/base/pdm_driver_start.c"
 )
 
 # 根据配置添加子模块源文件
@@ -22,21 +22,21 @@ endif()
 
 if(CONFIG_PDM_MCU_SUPPORT AND TARGET hal)
     list(APPEND ADD_SRCS
-        "src/pdm_mcu/pdm_mcu.c"
-        "src/pdm_mcu/pdm_mcu_chrdev.c"
-        "src/pdm_mcu/pdm_mcu_can.c"
-        "src/pdm_mcu/pdm_mcu_serial.c"
+        "src/mcu/pdm_mcu.c"
+        "src/mcu/pdm_mcu_chrdev.c"
+        "src/mcu/pdm_mcu_can.c"
+        "src/mcu/pdm_mcu_serial.c"
     )
 endif()
 
 if(CONFIG_PDM_LED_SUPPORT AND TARGET hal)
     list(APPEND ADD_SRCS
-        "src/pdm_led/pdm_led.c"
-        "src/pdm_led/pdm_led_chrdev.c"
+        "src/led/pdm_led.c"
+        "src/led/pdm_led_chrdev.c"
     )
 endif()
 
-list(APPEND ADD_SRCS "src/pdm_driver_end.c")
+list(APPEND ADD_SRCS "src/base/pdm_driver_end.c")
 ###############################################
 
 ###### Add required/dependent components ######

@@ -12,7 +12,7 @@ set(PDM_SRCS "")
 
 list(APPEND PDM_SRCS
     "src/pdm.c"
-    "src/pdm_driver_start.c"
+    "src/base/pdm_driver_start.c"
 )
 
 if(CONFIG_PDM_PROTOCOL)
@@ -27,15 +27,23 @@ endif()
 # MCU 外设支持（根据 Kconfig 配置）
 if(CONFIG_PDM_MCU_SUPPORT)
     list(APPEND PDM_SRCS
-        "src/pdm_mcu/pdm_mcu.c"
-        "src/pdm_mcu/pdm_mcu_chrdev.c"
-        "src/pdm_mcu/pdm_mcu_can.c"
-        "src/pdm_mcu/pdm_mcu_serial.c"
+        "src/mcu/pdm_mcu.c"
+        "src/mcu/pdm_mcu_chrdev.c"
+        "src/mcu/pdm_mcu_can.c"
+        "src/mcu/pdm_mcu_serial.c"
     )
     message(STATUS "  [PDM] MCU peripheral support enabled")
 endif()
 
-list(APPEND PDM_SRCS "src/pdm_driver_end.c")
+if(CONFIG_PDM_LED_SUPPORT)
+    list(APPEND PDM_SRCS
+        "src/led/pdm_led.c"
+        "src/led/pdm_led_chrdev.c"
+    )
+    message(STATUS "  [PDM] LED peripheral support enabled")
+endif()
+
+list(APPEND PDM_SRCS "src/base/pdm_driver_end.c")
 
 list(LENGTH PDM_SRCS PDM_FILE_COUNT)
 message(STATUS "  [PDM] Total ${PDM_FILE_COUNT} source files selected")
