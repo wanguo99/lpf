@@ -147,16 +147,16 @@ implemented and verified.
 - [x] Add kernel OSAL logging wrappers.
 - [x] Add kernel OSAL CRC helpers.
 - [x] Add kernel OSAL errno/status mapping.
-- [ ] Add kernel OSAL sleep/time header parity.
+- [x] Add kernel OSAL sleep/time header parity.
   - Provide `osal_msleep`, `osal_usleep`, `osal_sleep`,
     `osal_get_monotonic_time`, and related functions with user-compatible names.
-- [ ] Add kernel OSAL semaphore wrappers.
-- [ ] Add kernel OSAL condition or wait-event wrappers.
-- [ ] Add kernel OSAL rwlock wrappers.
-- [ ] Decide policy for file APIs in kernel OSAL.
+- [x] Add kernel OSAL semaphore wrappers.
+- [x] Add kernel OSAL condition or wait-event wrappers.
+- [x] Add kernel OSAL rwlock wrappers.
+- [x] Decide policy for file APIs in kernel OSAL.
   - Either wrap kernel file operations needed by HAL serial, or document them as
     HAL-owned kernel details.
-- [ ] Decide policy for socket APIs in kernel OSAL.
+- [x] Decide policy for socket APIs in kernel OSAL.
   - Either wrap kernel socket operations needed by HAL CAN, or document them as
     HAL-owned kernel details.
 - [x] Decide policy for usercopy helpers.
@@ -165,7 +165,7 @@ implemented and verified.
 - [x] Decide policy for character-device helpers.
   - If repeated PDM chrdev code grows, add common OSAL or PDM-local helpers for
     misc device registration and ioctl dispatch.
-- [ ] Explicitly list unsupported user OSAL APIs.
+- [x] Explicitly list unsupported user OSAL APIs.
   - Examples: process, environment, signal, POSIX shared memory, pty.
   - Unsupported APIs should either be absent from kernel OSAL or return
     `OSAL_ERR_NOT_SUPPORTED` with clear documentation.
