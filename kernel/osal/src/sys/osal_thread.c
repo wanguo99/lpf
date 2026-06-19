@@ -25,6 +25,26 @@ struct osal_thread_s {
 static DEFINE_MUTEX(g_thread_registry_lock);
 static LIST_HEAD(g_thread_registry);
 
+static int32_t osal_thread_errno_to_status(int ret)
+{
+	int err;
+
+	if (ret >= 0)
+		return OSAL_SUCCESS;
+
+	err = -ret;
+	if (err == ENOMEM)
+		return OSAL_ERR_NO_MEMORY;
+	if (err == EINVAL)
+		return OSAL_ERR_INVALID_PARAM;
+	if (err == EBUSY)
+		return OSAL_ERR_BUSY;
+	if (err == EINTR)
+		return OSAL_ERR_INTERRUPTED;
+
+	return OSAL_ERR_GENERIC;
+}
+
 static osal_thread_t osal_thread_find_current_locked(void)
 {
 	osal_thread_t thread;
@@ -116,7 +136,7 @@ int32_t osal_thread_create(osal_thread_t *thread,
 		int32_t ret = (int32_t)PTR_ERR(ctx->task);
 
 		kfree(ctx);
-		return ret;
+		return osal_thread_errno_to_status(ret);
 	}
 
 	mutex_lock(&g_thread_registry_lock);
@@ -217,7 +237,7 @@ int32_t osal_thread_cancel(osal_thread_t thread)
 
 	ret = kthread_stop(thread->task);
 	wait_for_completion(&thread->done);
-	return ret;
+	return osal_thread_errno_to_status(ret);
 }
 EXPORT_SYMBOL_GPL(osal_thread_cancel);
 
