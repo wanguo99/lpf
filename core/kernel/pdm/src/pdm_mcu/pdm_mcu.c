@@ -284,9 +284,10 @@ int32_t pdm_mcu_get_version(pdm_mcu_handle_t handle, pdm_mcu_version_t *version)
 		version->minor = response[1];
 		version->patch = response[2];
 		version->build = (cmd.response_len >= 4) ? response[3] : 0;
-		scnprintf(version->version_string, sizeof(version->version_string),
-			  "%u.%u.%u.%u", version->major, version->minor,
-			  version->patch, version->build);
+		osal_snprintf(version->version_string,
+			      sizeof(version->version_string), "%u.%u.%u.%u",
+			      version->major, version->minor, version->patch,
+			      version->build);
 	} else {
 		return OSAL_ERR_GENERIC;
 	}

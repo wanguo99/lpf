@@ -83,9 +83,9 @@ static int32_t hal_serial_build_path(const char *device, char *path,
 		return OSAL_ERR_INVALID_PARAM;
 
 	if (device[0] == '/')
-		len = scnprintf(path, path_size, "%s", device);
+		len = osal_snprintf(path, path_size, "%s", device);
 	else
-		len = scnprintf(path, path_size, "/dev/%s", device);
+		len = osal_snprintf(path, path_size, "/dev/%s", device);
 
 	if (len <= 0 || len >= path_size)
 		return OSAL_ERR_INVALID_PARAM;

@@ -7,6 +7,7 @@
 
 #include "osal.h"
 #include "hal_gpio.h"
+#include "hal_internal.h"
 
 #define HAL_GPIO_MAX_PINS 1024
 
@@ -21,7 +22,7 @@ typedef struct {
 	bool interrupt_enabled;
 } hal_gpio_context_t;
 
-static DEFINE_MUTEX(g_hal_gpio_lock);
+static osal_mutex_t g_hal_gpio_lock;
 static hal_gpio_context_t *g_hal_gpio_table[HAL_GPIO_MAX_PINS];
 
 static int32_t hal_gpio_errno_to_status(int ret)
@@ -160,19 +161,19 @@ int32_t hal_gpio_init(uint32_t gpio_num, const hal_gpio_config_t *config)
 	    (config->edge != HAL_GPIO_EDGE_NONE && !config->callback))
 		return OSAL_ERR_INVALID_PARAM;
 
-	mutex_lock(&g_hal_gpio_lock);
+	osal_mutex_lock(&g_hal_gpio_lock);
 	ctx = g_hal_gpio_table[gpio_num];
 	if (!ctx) {
 		ctx = osal_zalloc(sizeof(*ctx));
 		if (!ctx) {
-			mutex_unlock(&g_hal_gpio_lock);
+			osal_mutex_unlock(&g_hal_gpio_lock);
 			return OSAL_ERR_NO_MEMORY;
 		}
 
 		ret = gpio_request(gpio_num, "es-middleware-hal");
 		if (ret < 0) {
 			osal_free(ctx);
-			mutex_unlock(&g_hal_gpio_lock);
+			osal_mutex_unlock(&g_hal_gpio_lock);
 			return hal_gpio_errno_to_status(ret);
 		}
 
@@ -203,7 +204,7 @@ int32_t hal_gpio_init(uint32_t gpio_num, const hal_gpio_config_t *config)
 			goto err_existing;
 	}
 
-	mutex_unlock(&g_hal_gpio_lock);
+	osal_mutex_unlock(&g_hal_gpio_lock);
 	return OSAL_SUCCESS;
 
 err_existing:
@@ -212,7 +213,7 @@ err_existing:
 		g_hal_gpio_table[gpio_num] = NULL;
 		osal_free(ctx);
 	}
-	mutex_unlock(&g_hal_gpio_lock);
+	osal_mutex_unlock(&g_hal_gpio_lock);
 	return ret < 0 ? hal_gpio_errno_to_status(ret) : ret;
 }
 EXPORT_SYMBOL_GPL(hal_gpio_init);
@@ -224,17 +225,17 @@ int32_t hal_gpio_deinit(uint32_t gpio_num)
 	if (gpio_num >= HAL_GPIO_MAX_PINS)
 		return OSAL_ERR_INVALID_PARAM;
 
-	mutex_lock(&g_hal_gpio_lock);
+	osal_mutex_lock(&g_hal_gpio_lock);
 	ctx = g_hal_gpio_table[gpio_num];
 	if (!ctx) {
-		mutex_unlock(&g_hal_gpio_lock);
+		osal_mutex_unlock(&g_hal_gpio_lock);
 		return OSAL_ERR_INVALID_ID;
 	}
 
 	hal_gpio_free_interrupt(ctx);
 	gpio_free(gpio_num);
 	g_hal_gpio_table[gpio_num] = NULL;
-	mutex_unlock(&g_hal_gpio_lock);
+	osal_mutex_unlock(&g_hal_gpio_lock);
 	osal_free(ctx);
 	return OSAL_SUCCESS;
 }
@@ -249,10 +250,10 @@ int32_t hal_gpio_set_direction(uint32_t gpio_num,
 	if (gpio_num >= HAL_GPIO_MAX_PINS || !hal_gpio_valid_direction(direction))
 		return OSAL_ERR_INVALID_PARAM;
 
-	mutex_lock(&g_hal_gpio_lock);
+	osal_mutex_lock(&g_hal_gpio_lock);
 	ctx = hal_gpio_get_context(gpio_num);
 	if (!ctx) {
-		mutex_unlock(&g_hal_gpio_lock);
+		osal_mutex_unlock(&g_hal_gpio_lock);
 		return OSAL_ERR_INVALID_ID;
 	}
 
@@ -263,7 +264,7 @@ int32_t hal_gpio_set_direction(uint32_t gpio_num,
 
 	if (ret == 0)
 		ctx->direction = direction;
-	mutex_unlock(&g_hal_gpio_lock);
+	osal_mutex_unlock(&g_hal_gpio_lock);
 	return hal_gpio_errno_to_status(ret);
 }
 EXPORT_SYMBOL_GPL(hal_gpio_set_direction);
@@ -276,15 +277,15 @@ int32_t hal_gpio_get_direction(uint32_t gpio_num,
 	if (gpio_num >= HAL_GPIO_MAX_PINS || !direction)
 		return OSAL_ERR_INVALID_PARAM;
 
-	mutex_lock(&g_hal_gpio_lock);
+	osal_mutex_lock(&g_hal_gpio_lock);
 	ctx = hal_gpio_get_context(gpio_num);
 	if (!ctx) {
-		mutex_unlock(&g_hal_gpio_lock);
+		osal_mutex_unlock(&g_hal_gpio_lock);
 		return OSAL_ERR_INVALID_ID;
 	}
 
 	*direction = ctx->direction;
-	mutex_unlock(&g_hal_gpio_lock);
+	osal_mutex_unlock(&g_hal_gpio_lock);
 	return OSAL_SUCCESS;
 }
 EXPORT_SYMBOL_GPL(hal_gpio_get_direction);
@@ -296,15 +297,15 @@ int32_t hal_gpio_set_level(uint32_t gpio_num, hal_gpio_level_t level)
 	if (gpio_num >= HAL_GPIO_MAX_PINS || !hal_gpio_valid_level(level))
 		return OSAL_ERR_INVALID_PARAM;
 
-	mutex_lock(&g_hal_gpio_lock);
+	osal_mutex_lock(&g_hal_gpio_lock);
 	ctx = hal_gpio_get_context(gpio_num);
 	if (!ctx) {
-		mutex_unlock(&g_hal_gpio_lock);
+		osal_mutex_unlock(&g_hal_gpio_lock);
 		return OSAL_ERR_INVALID_ID;
 	}
 
 	gpio_set_value(gpio_num, level == HAL_GPIO_LEVEL_HIGH);
-	mutex_unlock(&g_hal_gpio_lock);
+	osal_mutex_unlock(&g_hal_gpio_lock);
 	return OSAL_SUCCESS;
 }
 EXPORT_SYMBOL_GPL(hal_gpio_set_level);
@@ -317,16 +318,16 @@ int32_t hal_gpio_get_level(uint32_t gpio_num, hal_gpio_level_t *level)
 	if (gpio_num >= HAL_GPIO_MAX_PINS || !level)
 		return OSAL_ERR_INVALID_PARAM;
 
-	mutex_lock(&g_hal_gpio_lock);
+	osal_mutex_lock(&g_hal_gpio_lock);
 	ctx = hal_gpio_get_context(gpio_num);
 	if (!ctx) {
-		mutex_unlock(&g_hal_gpio_lock);
+		osal_mutex_unlock(&g_hal_gpio_lock);
 		return OSAL_ERR_INVALID_ID;
 	}
 
 	value = gpio_get_value(gpio_num);
 	*level = value ? HAL_GPIO_LEVEL_HIGH : HAL_GPIO_LEVEL_LOW;
-	mutex_unlock(&g_hal_gpio_lock);
+	osal_mutex_unlock(&g_hal_gpio_lock);
 	return OSAL_SUCCESS;
 }
 EXPORT_SYMBOL_GPL(hal_gpio_get_level);
@@ -343,15 +344,15 @@ int32_t hal_gpio_set_interrupt(uint32_t gpio_num, hal_gpio_edge_t edge,
 	    (edge != HAL_GPIO_EDGE_NONE && !callback))
 		return OSAL_ERR_INVALID_PARAM;
 
-	mutex_lock(&g_hal_gpio_lock);
+	osal_mutex_lock(&g_hal_gpio_lock);
 	ctx = hal_gpio_get_context(gpio_num);
 	if (!ctx) {
-		mutex_unlock(&g_hal_gpio_lock);
+		osal_mutex_unlock(&g_hal_gpio_lock);
 		return OSAL_ERR_INVALID_ID;
 	}
 
 	ret = hal_gpio_set_interrupt_locked(ctx, edge, callback, user_data);
-	mutex_unlock(&g_hal_gpio_lock);
+	osal_mutex_unlock(&g_hal_gpio_lock);
 	return ret;
 }
 EXPORT_SYMBOL_GPL(hal_gpio_set_interrupt);
@@ -363,10 +364,10 @@ int32_t hal_gpio_enable_interrupt(uint32_t gpio_num)
 	if (gpio_num >= HAL_GPIO_MAX_PINS)
 		return OSAL_ERR_INVALID_PARAM;
 
-	mutex_lock(&g_hal_gpio_lock);
+	osal_mutex_lock(&g_hal_gpio_lock);
 	ctx = hal_gpio_get_context(gpio_num);
 	if (!ctx || !ctx->interrupt_configured) {
-		mutex_unlock(&g_hal_gpio_lock);
+		osal_mutex_unlock(&g_hal_gpio_lock);
 		return OSAL_ERR_INVALID_ID;
 	}
 
@@ -374,7 +375,7 @@ int32_t hal_gpio_enable_interrupt(uint32_t gpio_num)
 		enable_irq(ctx->irq);
 		ctx->interrupt_enabled = true;
 	}
-	mutex_unlock(&g_hal_gpio_lock);
+	osal_mutex_unlock(&g_hal_gpio_lock);
 	return OSAL_SUCCESS;
 }
 EXPORT_SYMBOL_GPL(hal_gpio_enable_interrupt);
@@ -386,10 +387,10 @@ int32_t hal_gpio_disable_interrupt(uint32_t gpio_num)
 	if (gpio_num >= HAL_GPIO_MAX_PINS)
 		return OSAL_ERR_INVALID_PARAM;
 
-	mutex_lock(&g_hal_gpio_lock);
+	osal_mutex_lock(&g_hal_gpio_lock);
 	ctx = hal_gpio_get_context(gpio_num);
 	if (!ctx || !ctx->interrupt_configured) {
-		mutex_unlock(&g_hal_gpio_lock);
+		osal_mutex_unlock(&g_hal_gpio_lock);
 		return OSAL_ERR_INVALID_ID;
 	}
 
@@ -397,7 +398,17 @@ int32_t hal_gpio_disable_interrupt(uint32_t gpio_num)
 		disable_irq_nosync(ctx->irq);
 		ctx->interrupt_enabled = false;
 	}
-	mutex_unlock(&g_hal_gpio_lock);
+	osal_mutex_unlock(&g_hal_gpio_lock);
 	return OSAL_SUCCESS;
 }
 EXPORT_SYMBOL_GPL(hal_gpio_disable_interrupt);
+
+int hal_gpio_module_init(void)
+{
+	return osal_mutex_init(&g_hal_gpio_lock, NULL);
+}
+
+void hal_gpio_module_deinit(void)
+{
+	osal_mutex_destroy(&g_hal_gpio_lock);
+}

@@ -1,20 +1,17 @@
 // SPDX-License-Identifier: GPL-2.0
 
-#include <linux/atomic.h>
 #include <linux/compat.h>
 #include <linux/fs.h>
 #include <linux/miscdevice.h>
 #include <linux/module.h>
-#include <linux/mutex.h>
-#include <linux/string.h>
 #include <linux/uaccess.h>
 
 #include "pdi/pdi_mcu.h"
 #include "pdm.h"
 #include "pdm_mcu_internal.h"
 
-static DEFINE_MUTEX(g_pdm_mcu_chrdev_lock);
-static atomic_t g_pdm_mcu_open_count = ATOMIC_INIT(0);
+static osal_mutex_t g_pdm_mcu_chrdev_lock;
+static osal_atomic_uint32_t g_pdm_mcu_open_count;
 static struct miscdevice g_pdm_mcu_miscdev;
 
 static long pdm_mcu_status_to_errno(int32_t status)
@@ -48,12 +45,12 @@ static long pdm_mcu_status_to_errno(int32_t status)
 
 static void pdm_mcu_fill_info(struct pdi_mcu_info *info)
 {
-	memset(info, 0, sizeof(*info));
+	osal_memset(info, 0, sizeof(*info));
 	info->abi_version = PDI_MCU_ABI_VERSION;
 	info->module_version_major = PDM_VERSION_MAJOR;
 	info->module_version_minor = PDM_VERSION_MINOR;
 	info->module_version_patch = PDM_VERSION_PATCH;
-	info->open_count = (u32)atomic_read(&g_pdm_mcu_open_count);
+	info->open_count = osal_atomic_load(&g_pdm_mcu_open_count);
 	info->max_devices = CONFIG_PDM_MCU_MAX_DEVICES;
 }
 
@@ -76,9 +73,9 @@ static long pdm_mcu_ioctl_get_info(unsigned long arg)
 {
 	struct pdi_mcu_info info;
 
-	mutex_lock(&g_pdm_mcu_chrdev_lock);
+	osal_mutex_lock(&g_pdm_mcu_chrdev_lock);
 	pdm_mcu_fill_info(&info);
-	mutex_unlock(&g_pdm_mcu_chrdev_lock);
+	osal_mutex_unlock(&g_pdm_mcu_chrdev_lock);
 
 	if (copy_to_user((void __user *)arg, &info, sizeof(info)))
 		return -EFAULT;
@@ -100,7 +97,7 @@ static long pdm_mcu_ioctl_get_version(unsigned long arg)
 	if (!handle)
 		return -ENODEV;
 
-	memset(&version, 0, sizeof(version));
+	osal_memset(&version, 0, sizeof(version));
 	ret = pdm_mcu_get_version(handle, &version);
 	pdm_mcu_deinit(handle);
 	if (ret != OSAL_SUCCESS)
@@ -110,8 +107,8 @@ static long pdm_mcu_ioctl_get_version(unsigned long arg)
 	request.minor = version.minor;
 	request.patch = version.patch;
 	request.build = version.build;
-	strscpy(request.version_string, version.version_string,
-		sizeof(request.version_string));
+	osal_strncpy(request.version_string, version.version_string,
+		     sizeof(request.version_string));
 
 	if (copy_to_user((void __user *)arg, &request, sizeof(request)))
 		return -EFAULT;
@@ -133,7 +130,7 @@ static long pdm_mcu_ioctl_get_status(unsigned long arg)
 	if (!handle)
 		return -ENODEV;
 
-	memset(&status, 0, sizeof(status));
+	osal_memset(&status, 0, sizeof(status));
 	ret = pdm_mcu_get_status(handle, &status);
 	pdm_mcu_deinit(handle);
 	if (ret != OSAL_SUCCESS)
@@ -295,25 +292,28 @@ static int pdm_mcu_open(struct inode *inode, struct file *file)
 	(void)inode;
 	(void)file;
 
-	mutex_lock(&g_pdm_mcu_chrdev_lock);
-	open_count = atomic_inc_return(&g_pdm_mcu_open_count);
-	mutex_unlock(&g_pdm_mcu_chrdev_lock);
+	osal_mutex_lock(&g_pdm_mcu_chrdev_lock);
+	open_count = (int)osal_atomic_inc(&g_pdm_mcu_open_count);
+	osal_mutex_unlock(&g_pdm_mcu_chrdev_lock);
 
-	pr_info("%s: open count=%d\n", PDI_MCU_DEVICE_NAME, open_count);
+	LOG_INFO(PDI_MCU_DEVICE_NAME, "open count=%d", open_count);
 	return 0;
 }
 
 static int pdm_mcu_release(struct inode *inode, struct file *file)
 {
+	int open_count;
+
 	(void)inode;
 	(void)file;
 
-	mutex_lock(&g_pdm_mcu_chrdev_lock);
-	atomic_dec_if_positive(&g_pdm_mcu_open_count);
-	mutex_unlock(&g_pdm_mcu_chrdev_lock);
+	osal_mutex_lock(&g_pdm_mcu_chrdev_lock);
+	if (osal_atomic_load(&g_pdm_mcu_open_count) > 0)
+		osal_atomic_dec(&g_pdm_mcu_open_count);
+	open_count = (int)osal_atomic_load(&g_pdm_mcu_open_count);
+	osal_mutex_unlock(&g_pdm_mcu_chrdev_lock);
 
-	pr_info("%s: release count=%d\n", PDI_MCU_DEVICE_NAME,
-		atomic_read(&g_pdm_mcu_open_count));
+	LOG_INFO(PDI_MCU_DEVICE_NAME, "release count=%d", open_count);
 	return 0;
 }
 
@@ -332,21 +332,29 @@ int pdm_mcu_chrdev_register(void)
 {
 	int ret;
 
+	ret = osal_mutex_init(&g_pdm_mcu_chrdev_lock, NULL);
+	if (ret != OSAL_SUCCESS)
+		return -ret;
+
+	osal_atomic_init(&g_pdm_mcu_open_count, 0);
+
 	g_pdm_mcu_miscdev.minor = MISC_DYNAMIC_MINOR;
 	g_pdm_mcu_miscdev.name = PDI_MCU_DEVICE_NAME;
 	g_pdm_mcu_miscdev.fops = &pdm_mcu_fops;
 	g_pdm_mcu_miscdev.mode = 0666;
 
 	ret = misc_register(&g_pdm_mcu_miscdev);
-	if (ret)
+	if (ret) {
+		osal_mutex_destroy(&g_pdm_mcu_chrdev_lock);
 		return ret;
+	}
 
-	pr_info("%s: /dev/%s ready\n", PDI_MCU_DEVICE_NAME,
-		PDI_MCU_DEVICE_NAME);
+	LOG_INFO(PDI_MCU_DEVICE_NAME, "/dev/%s ready", PDI_MCU_DEVICE_NAME);
 	return 0;
 }
 
 void pdm_mcu_chrdev_unregister(void)
 {
 	misc_deregister(&g_pdm_mcu_miscdev);
+	osal_mutex_destroy(&g_pdm_mcu_chrdev_lock);
 }

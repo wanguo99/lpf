@@ -2,6 +2,7 @@
 
 #include <linux/module.h>
 
+#include "osal.h"
 #include "pdm_mcu/pdm_mcu_internal.h"
 #ifdef CONFIG_PDM_PROTOCOL
 #include "pdm_protocol.h"
@@ -29,7 +30,7 @@ static int __init pdm_init(void)
 	ret = 0;
 #endif
 
-	pr_info("pdm: loaded\n");
+	LOG_INFO("PDM", "loaded");
 	return 0;
 }
 
@@ -41,7 +42,7 @@ static void __exit pdm_exit(void)
 #ifdef CONFIG_PDM_PROTOCOL
 	pdm_protocol_deinit();
 #endif
-	pr_info("pdm: unloaded\n");
+	LOG_INFO("PDM", "unloaded");
 }
 
 module_init(pdm_init);

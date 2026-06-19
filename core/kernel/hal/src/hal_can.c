@@ -120,7 +120,7 @@ int32_t hal_can_init(const hal_can_config_t *config, hal_can_handle_t *handle)
 	if (ret != OSAL_SUCCESS)
 		goto err_tx_mutex;
 
-	strscpy(ctx->interface, config->interface, sizeof(ctx->interface));
+	osal_strncpy(ctx->interface, config->interface, sizeof(ctx->interface));
 	ctx->baudrate = config->baudrate;
 	ctx->rx_timeout = config->rx_timeout;
 	ctx->tx_timeout = config->tx_timeout;

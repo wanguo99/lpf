@@ -2,17 +2,30 @@
 
 #include <linux/module.h>
 
+#include "osal.h"
 #include "hal/hal.h"
+#include "hal_internal.h"
 
 static int __init hal_init(void)
 {
-	pr_info("es-middleware-hal: loaded\n");
+#ifdef CONFIG_HAL_GPIO
+	int ret;
+
+	ret = hal_gpio_module_init();
+	if (ret)
+		return ret;
+#endif
+
+	LOG_INFO("HAL", "loaded");
 	return 0;
 }
 
 static void __exit hal_exit(void)
 {
-	pr_info("es-middleware-hal: unloaded\n");
+#ifdef CONFIG_HAL_GPIO
+	hal_gpio_module_deinit();
+#endif
+	LOG_INFO("HAL", "unloaded");
 }
 
 module_init(hal_init);
