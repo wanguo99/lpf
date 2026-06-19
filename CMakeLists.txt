@@ -121,15 +121,6 @@ if(CONFIG_LINUX_ONLY)
 endif()
 
 # ==============================================================================
-# Build Tests
-# ==============================================================================
-
-if(CONFIG_BUILD_TESTING)
-    message(STATUS "Building test suite")
-    add_subdirectory(products/ctest)
-endif()
-
-# ==============================================================================
 # Configuration Summary
 # ==============================================================================
 
@@ -142,11 +133,6 @@ message(STATUS "Git Commit:     ${GIT_COMMIT_HASH}")
 message(STATUS "Build Type:     ${CMAKE_BUILD_TYPE}")
 message(STATUS "Install Prefix: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "")
-if(NOT CONFIG_LINUX_ONLY)
-    message(STATUS "Products:")
-    message(STATUS "  Tests:        ${CONFIG_BUILD_TESTING}")
-    message(STATUS "")
-endif()
 message(STATUS "Core Modules:")
 message(STATUS "  Linux-only:    ${CONFIG_LINUX_ONLY}")
 message(STATUS "  OSAL:         ${CONFIG_OSAL}")

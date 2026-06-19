@@ -245,12 +245,10 @@ function(kconfig_print_summary)
         OS_LINUX
         PRODUCT_FRAMEWORK
         PRODUCT_SAMPLE
-        BUILD_TESTING
         OSAL
         HAL
         PDM
         PDI
-        PRL
         PCONFIG
         ACONFIG
     )

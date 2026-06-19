@@ -61,7 +61,7 @@ static bool _expand_registry(void)
 
 /**
  * Register a test suite
- * Called by the generated ctest registration unit at process startup.
+ * Called by a test product registration unit at process startup.
  */
 void libutest_register_suite(const test_suite_t *suite)
 {

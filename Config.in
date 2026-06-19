@@ -1,11 +1,8 @@
 # ============================================================================
 # ES-Middleware SDK Root Configuration
 # ============================================================================
-# This is the root Config.in file for the entire ES-Middleware SDK.
-# It provides a unified configuration interface for:
-#   - Product selection (which products to build)
-#   - Core components configuration (OSAL, HAL, PCONFIG, PDM, PDI, ACONFIG)
-#   - Product-specific configurations
+# This is the root Config.in file for the ES-Middleware kernel-centric SDK.
+# It provides a unified configuration interface for core components.
 # ============================================================================
 
 mainmenu "ES-Middleware SDK Configuration"
@@ -24,9 +21,8 @@ config PROJECT_NAME
 	help
 	  Project name, typically extracted from defconfig filename.
 
-	  Naming convention: <product>_<project>_defconfig
-	  - ctest_x86_full_defconfig → project name: x86_full
-	  - generic_framework_defconfig → project name: generic_framework
+	  Naming convention: <scope>_<project>_defconfig
+	  - kernel_x86_modules_defconfig → project name: x86_modules
 
 	  Can be overridden in defconfig file by setting CONFIG_PROJECT_NAME.
 
@@ -46,17 +42,8 @@ config LINUX_ONLY
 	help
 	  Restrict the SDK to Linux development only.
 
-	  This profile hides product-test menus and non-Linux operating
-	  system options. It is intended for the current kernel-centric
-	  middleware direction.
-
-# ============================================================================
-# Product Configuration
-# ============================================================================
-
-if !LINUX_ONLY
-source "products/Config.in"
-endif
+	  This profile hides non-Linux operating system options. It is
+	  intended for the current kernel-centric middleware direction.
 
 # ============================================================================
 # Build System Configuration
@@ -1093,45 +1080,6 @@ config SANITY_ERROR_ACONFIG_NO_OSAL
 	depends on ACONFIG && !OSAL
 	prompt "ERROR: ACONFIG requires OSAL to be enabled"
 
-config SANITY_ERROR_TEST_FRAMEWORK_NO_OSAL
-	def_bool y
-	depends on TEST_FRAMEWORK && !OSAL
-	prompt "ERROR: TEST_FRAMEWORK requires OSAL to be enabled"
-
-# ============================================================================
-# Test Dependency Checks
-# ============================================================================
-
-config SANITY_ERROR_TEST_OSAL_NO_MODULE
-	def_bool y
-	depends on TEST_OSAL && !OSAL
-	prompt "ERROR: OSAL tests require OSAL module to be enabled"
-
-config SANITY_ERROR_TEST_HAL_NO_MODULE
-	def_bool y
-	depends on TEST_HAL && !HAL
-	prompt "ERROR: HAL tests require HAL module to be enabled"
-
-config SANITY_ERROR_TEST_PCONFIG_NO_MODULE
-	def_bool y
-	depends on TEST_PCONFIG && !PCONFIG
-	prompt "ERROR: PCONFIG tests require PCONFIG module to be enabled"
-
-config SANITY_ERROR_TEST_PDI_NO_MODULE
-	def_bool y
-	depends on TEST_PDI && !PDI
-	prompt "ERROR: PDI tests require PDI module to be enabled"
-
-config SANITY_ERROR_TEST_PDM_NO_MODULE
-	def_bool y
-	depends on TEST_PDM && !PDM
-	prompt "ERROR: PDM tests require PDM module to be enabled"
-
-config SANITY_ERROR_TEST_ACONFIG_NO_MODULE
-	def_bool y
-	depends on TEST_ACONFIG && !ACONFIG
-	prompt "ERROR: ACONFIG tests require ACONFIG module to be enabled"
-
 # ============================================================================
 # HAL Driver Dependency Checks
 # ============================================================================
@@ -1150,6 +1098,16 @@ config SANITY_ERROR_HAL_GPIO_NO_PLATFORM
 	def_bool y
 	depends on HAL_GPIO && !PLATFORM_LINUX
 	prompt "ERROR: HAL_GPIO requires Linux platform support (PLATFORM_LINUX)"
+
+config SANITY_ERROR_HAL_I2C_NO_PLATFORM
+	def_bool y
+	depends on HAL_I2C && !PLATFORM_LINUX
+	prompt "ERROR: HAL_I2C requires Linux platform support (PLATFORM_LINUX)"
+
+config SANITY_ERROR_HAL_SPI_NO_PLATFORM
+	def_bool y
+	depends on HAL_SPI && !PLATFORM_LINUX
+	prompt "ERROR: HAL_SPI requires Linux platform support (PLATFORM_LINUX)"
 
 # ============================================================================
 # Security Configuration Checks

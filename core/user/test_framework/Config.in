@@ -29,9 +29,7 @@ menuconfig TEST_FRAMEWORK
 
 	  Note: Enable OSAL first in "Core Modules" menu.
 
-	  Required for CONFIG_BUILD_TESTING=y.
-
-	  If unsure, say Y when building tests.
+	  If unsure, say N until a new test product is added.
 
 if TEST_FRAMEWORK
 

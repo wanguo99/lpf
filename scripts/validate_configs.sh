@@ -72,20 +72,12 @@ test_defconfig() {
     fi
 }
 
-# Test all x86 test configs
-echo "Testing x86 Test Configurations:"
+# Test all defconfigs
+echo "Testing Configurations:"
 echo "----------------------------------------"
 while IFS= read -r config; do
     test_defconfig "$config"
-done < <(find configs/tests -name "tests_x86_*_defconfig" -type f | sort)
-echo ""
-
-# Test all ARM64 test configs
-echo "Testing ARM64 Test Configurations:"
-echo "----------------------------------------"
-while IFS= read -r config; do
-    test_defconfig "$config"
-done < <(find configs/tests -name "tests_arm64_*_defconfig" -type f | sort)
+done < <(find configs -name "*_defconfig" -type f | sort)
 echo ""
 
 # Summary

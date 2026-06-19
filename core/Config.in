@@ -13,37 +13,4 @@ source "core/user/aconfig/Config.in"
 source "core/user/pdi/Config.in"
 source "core/user/test_framework/Config.in"
 
-# ============================================================================
-# Core Modules Testing
-# ============================================================================
-
-if !LINUX_ONLY
-menuconfig BUILD_TESTING
-	bool "Build test suite"
-	default n
-	help
-	  Build test suite for core modules.
-
-	  The test suite provides comprehensive testing capabilities:
-	  - Unit tests for individual modules (OSAL, HAL, PDI, PDM, etc.)
-	  - Performance tests for benchmarking
-	  - Stress tests for stability validation
-	  - System tests for integration testing
-
-	  Note: Most tests require OSAL (Operating System Abstraction Layer)
-	  as they depend on OS primitives like threads, mutexes, and timing.
-	  Enable the modules you want to test in their respective submenus.
-
-	  The test suite helps ensure code quality and detect regressions
-	  during development.
-
-	  Memory footprint: Varies by enabled test modules
-
-	  Recommended: Enable for development, disable for production.
-
-if BUILD_TESTING
-	source "products/ctest/Config.in"
-endif
-endif
-
 endmenu
