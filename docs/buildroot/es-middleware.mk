@@ -29,7 +29,7 @@ ES_MIDDLEWARE_BUILD_TYPE = $(call qstrip,$(BR2_PACKAGE_ES_MIDDLEWARE_BUILD_TYPE)
 # Build in-tree for Buildroot (output/build/es-middleware/_build)
 ES_MIDDLEWARE_BUILD_OUTPUT = $(@D)/_build
 ES_MIDDLEWARE_MODULES_OUTPUT = $(@D)/_build/modules
-ES_MIDDLEWARE_MODULE_INSTALL_DIR = /lib/modules/$(LINUX_VERSION_PROBED)/extra/es-middleware
+ES_MIDDLEWARE_MODULE_EXTRA_DIR = extra/es-middleware
 
 ES_MIDDLEWARE_MAKE_OPTS = \
 	BUILD_DIR="$(ES_MIDDLEWARE_BUILD_OUTPUT)" \
@@ -74,13 +74,14 @@ define ES_MIDDLEWARE_INSTALL_TARGET_CMDS
 		BUILD_DIR="$(ES_MIDDLEWARE_BUILD_OUTPUT)" \
 		CMAKE_INSTALL_PREFIX="/usr" \
 		install DESTDIR=$(TARGET_DIR)
-	$(INSTALL) -d "$(TARGET_DIR)$(ES_MIDDLEWARE_MODULE_INSTALL_DIR)"
+	kernel_release="$(LINUX_VERSION_PROBED)"; \
+	module_install_dir="$(TARGET_DIR)/lib/modules/$$kernel_release/$(ES_MIDDLEWARE_MODULE_EXTRA_DIR)"; \
+	$(INSTALL) -d "$$module_install_dir"; \
 	modules_found=0; \
 	for module in "$(ES_MIDDLEWARE_MODULES_OUTPUT)"/*.ko; do \
 		[ -e "$$module" ] || continue; \
 		modules_found=1; \
-		$(INSTALL) -m 0644 "$$module" \
-			"$(TARGET_DIR)$(ES_MIDDLEWARE_MODULE_INSTALL_DIR)/$$(basename "$$module")"; \
+		$(INSTALL) -m 0644 "$$module" "$$module_install_dir/$$(basename "$$module")"; \
 	done; \
 	if [ "$$modules_found" -eq 0 ]; then \
 		echo "ES-Middleware: no kernel modules found in $(ES_MIDDLEWARE_MODULES_OUTPUT)"; \
