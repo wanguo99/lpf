@@ -9,6 +9,11 @@ list(APPEND ADD_PRIVATE_INCLUDE "src/protocol")
 ###############################################
 
 ############## Add source files ###############
+list(APPEND ADD_SRCS
+    "src/pdm.c"
+    "src/pdm_builtin_start.c"
+)
+
 # 根据配置添加子模块源文件
 if(CONFIG_PDM_PROTOCOL)
     file(GLOB PDM_PROTOCOL_SRCS "src/protocol/*.c")
@@ -16,9 +21,15 @@ if(CONFIG_PDM_PROTOCOL)
 endif()
 
 if(CONFIG_PDM_MCU_SUPPORT AND TARGET hal)
-    file(GLOB PDM_MCU_SRCS "src/pdm_mcu/*.c")
-    list(APPEND ADD_SRCS ${PDM_MCU_SRCS})
+    list(APPEND ADD_SRCS
+        "src/pdm_mcu/pdm_mcu.c"
+        "src/pdm_mcu/pdm_mcu_chrdev.c"
+        "src/pdm_mcu/pdm_mcu_can.c"
+        "src/pdm_mcu/pdm_mcu_serial.c"
+    )
 endif()
+
+list(APPEND ADD_SRCS "src/pdm_builtin_end.c")
 ###############################################
 
 ###### Add required/dependent components ######

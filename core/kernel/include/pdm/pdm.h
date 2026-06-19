@@ -30,14 +30,6 @@
 
 void pdm_print_version(void);
 
-/* 依赖的基础库 */
-#ifdef CONFIG_OSAL
-#include "osal.h"
-#endif /* CONFIG_OSAL */
-
-/* 设备驱动 - 当前仅保留 MCU 外设类型 */
-#ifdef CONFIG_PDM_MCU_SUPPORT
-#include "pdm_mcu.h" /* MCU（微控制器）驱动 */
-#endif /* CONFIG_PDM_MCU_SUPPORT */
+#include "pdm_mcu.h"
 
 #endif /* PDM_H */

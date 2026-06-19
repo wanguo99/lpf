@@ -13,6 +13,12 @@
 #include "pconfig.h"
 #include "pdm_protocol.h"
 
+#ifndef CONFIG_PDM_MCU_MAX_DEVICES
+#define CONFIG_PDM_MCU_MAX_DEVICES 4
+#endif
+
+#define PDM_MCU_MAX_DEVICES CONFIG_PDM_MCU_MAX_DEVICES
+
 /*===========================================================================
  * 通信层操作函数表
  *===========================================================================*/

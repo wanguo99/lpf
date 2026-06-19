@@ -11,9 +11,7 @@
 #include "pdm_protocol_device.h"
 
 /* Device-specific protocol - current MCU path */
-#ifdef CONFIG_PDM_PROTOCOL_MCU
 #include "pdm_protocol_mcu.h"
-#endif /* CONFIG_PDM_PROTOCOL_MCU */
 
 int pdm_protocol_init(void);
 int pdm_protocol_deinit(void);

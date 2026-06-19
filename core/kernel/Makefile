@@ -16,6 +16,7 @@ ccflags-y += -I$(src)/include/hal
 ccflags-y += -I$(src)/include/hal/config
 ccflags-y += -I$(src)/include/pconfig
 ccflags-y += -I$(src)/include/pdm
+ccflags-y += -I$(src)/pdm/src
 ccflags-y += -I$(src)/pdm/src/protocol
 ccflags-y += -I$(src)/../uapi
 

@@ -51,12 +51,12 @@ static void pdm_mcu_fill_info(struct pdi_mcu_info *info)
 	info->module_version_minor = PDM_VERSION_MINOR;
 	info->module_version_patch = PDM_VERSION_PATCH;
 	info->open_count = osal_atomic_load(&g_pdm_mcu_open_count);
-	info->max_devices = CONFIG_PDM_MCU_MAX_DEVICES;
+	info->max_devices = PDM_MCU_MAX_DEVICES;
 }
 
 static pdm_mcu_handle_t pdm_mcu_open_index(u32 index)
 {
-	if (index >= CONFIG_PDM_MCU_MAX_DEVICES)
+	if (index >= PDM_MCU_MAX_DEVICES)
 		return NULL;
 
 	return pdm_mcu_get(index);

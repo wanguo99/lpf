@@ -11,6 +11,7 @@
 #include "hal.h"
 #include "pconfig.h"
 #include "pdm.h"
+#include "pdm_internal.h"
 #include "pdm_protocol.h"
 #include "pdm_mcu_internal.h"
 
@@ -25,9 +26,11 @@ typedef struct {
 	osal_mutex_t mutex;
 } pdm_mcu_context_t;
 
-static pdm_mcu_context_t *g_mcu_contexts[16] = { NULL };
+static pdm_mcu_context_t *g_mcu_contexts[PDM_MCU_MAX_DEVICES] = { NULL };
 static osal_mutex_t g_registry_mutex;
 static bool g_registry_initialized = false;
+
+static const pdm_driver_ops_t g_pdm_mcu_driver_ops;
 
 /*===========================================================================
  * 内部辅助函数
@@ -554,3 +557,45 @@ int32_t pdm_mcu_send_command(pdm_mcu_handle_t handle, uint8_t cmd_id,
 
 	return ret;
 }
+
+static const pdm_driver_ops_t g_pdm_mcu_driver_ops = {
+	.probe = pdm_mcu_probe,
+	.remove_all = pdm_mcu_remove_all,
+};
+
+static int pdm_mcu_builtin_init(void)
+{
+	int ret;
+
+	ret = pdm_protocol_init();
+	if (ret)
+		return ret;
+
+	ret = pdm_driver_register(PCONFIG_DEVICE_TYPE_MCU,
+				  &g_pdm_mcu_driver_ops);
+	if (ret != OSAL_SUCCESS) {
+		pdm_protocol_deinit();
+		return -ret;
+	}
+
+	ret = pdm_mcu_chrdev_register();
+	if (ret) {
+		pdm_driver_unregister(PCONFIG_DEVICE_TYPE_MCU,
+				      &g_pdm_mcu_driver_ops);
+		pdm_protocol_deinit();
+		return ret;
+	}
+
+	LOG_INFO("PDM_MCU", "registered");
+	return 0;
+}
+
+static void pdm_mcu_builtin_exit(void)
+{
+	pdm_mcu_chrdev_unregister();
+	pdm_driver_unregister(PCONFIG_DEVICE_TYPE_MCU, &g_pdm_mcu_driver_ops);
+	pdm_protocol_deinit();
+	LOG_INFO("PDM_MCU", "unregistered");
+}
+
+PDM_BUILTIN_DRIVER(mcu, pdm_mcu_builtin_init, pdm_mcu_builtin_exit);

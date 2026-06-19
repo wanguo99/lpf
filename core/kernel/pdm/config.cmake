@@ -10,6 +10,11 @@ message(STATUS "Configuring PDM module...")
 
 set(PDM_SRCS "")
 
+list(APPEND PDM_SRCS
+    "src/pdm.c"
+    "src/pdm_builtin_start.c"
+)
+
 if(CONFIG_PDM_PROTOCOL)
     list(APPEND PDM_SRCS
         "src/protocol/pdm_protocol.c"
@@ -30,10 +35,7 @@ if(CONFIG_PDM_MCU_SUPPORT)
     message(STATUS "  [PDM] MCU peripheral support enabled")
 endif()
 
-if(NOT PDM_SRCS)
-    message(WARNING "PDM: No peripheral support enabled. Skipping PDM build.")
-    message(WARNING "  Enable PDM_MCU_SUPPORT to build the current peripheral layer")
-else()
-    list(LENGTH PDM_SRCS PDM_FILE_COUNT)
-    message(STATUS "  [PDM] Total ${PDM_FILE_COUNT} source files selected")
-endif()
+list(APPEND PDM_SRCS "src/pdm_builtin_end.c")
+
+list(LENGTH PDM_SRCS PDM_FILE_COUNT)
+message(STATUS "  [PDM] Total ${PDM_FILE_COUNT} source files selected")
