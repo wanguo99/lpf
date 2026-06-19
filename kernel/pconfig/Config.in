@@ -35,31 +35,3 @@ menuconfig PCONFIG
 	  Recommended: Enable for products with hardware configuration tables
 
 	  If unsure, say Y.
-
-if PCONFIG
-
-menu "PCONFIG Build Configuration"
-
-config PCONFIG_BUILD_STATIC
-	bool "Build static library (.a)"
-	default n
-	help
-	  Build PCONFIG as a static library (libpconfig.a) for CMake-based
-	  transitional validation.
-
-	  Kernel module builds do not use this option; PCONFIG is intended
-	  to be linked into kernel-side modules that need it.
-
-config PCONFIG_BUILD_SHARED
-	bool "Build shared library (.so)"
-	default n
-	help
-	  Build PCONFIG as a shared library (libpconfig.so) for CMake-based
-	  transitional validation.
-
-	  Kernel module builds do not use this option; PCONFIG is intended
-	  to be linked into kernel-side modules that need it.
-
-endmenu
-
-endif # PCONFIG

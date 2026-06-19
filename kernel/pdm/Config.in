@@ -35,30 +35,6 @@ menuconfig PDM
 
 if PDM
 
-menu "PDM Build Configuration"
-
-config PDM_BUILD_STATIC
-	bool "Build static library (.a)"
-	default y
-	help
-	  Build PDM as a static library (libpdm.a) for CMake-based
-	  transitional validation.
-
-	  Kernel module builds do not use this option; use make modules to
-	  generate pdm.ko when CONFIG_PDM is enabled.
-
-config PDM_BUILD_SHARED
-	bool "Build shared library (.so)"
-	default n
-	help
-	  Build PDM as a shared library (libpdm.so) for CMake-based
-	  transitional validation.
-
-	  Kernel module builds do not use this option; use make modules to
-	  generate pdm.ko when CONFIG_PDM is enabled.
-
-endmenu
-
 menuconfig PDM_MCU_SUPPORT
 	bool "MCU peripheral support"
 	default n

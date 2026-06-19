@@ -194,14 +194,14 @@ implemented and verified.
   - Kconfig selects objects.
   - Linked objects register themselves.
   - Business code should not branch on feature macros.
-- [ ] Revisit parameter macros.
+- [x] Revisit parameter macros.
   - Capacity parameters such as `CONFIG_PDM_MCU_MAX_DEVICES` may remain.
   - Prefer generated config constants or module parameters if runtime tuning is
     needed.
-- [ ] Remove or document transitional CMake kernel component logic.
-  - `kernel/pdm/CMakeLists.txt` and `pconfig/CMakeLists.txt` still contain
-    static/shared library options.
-  - HAL CMake is currently an interface target only.
+- [x] Remove or document transitional CMake kernel component logic.
+  - Removed PDM/PConfig static/shared transitional Kconfig and CMake branches.
+  - HAL CMake remains an interface target for host-side dependency metadata;
+    kernel module output is produced by Kbuild.
 - [x] Ensure defconfigs match the current module build model.
   - `kernel_x86_modules_defconfig` should enable only valid kernel module
     options.

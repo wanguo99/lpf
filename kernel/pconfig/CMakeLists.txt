@@ -43,8 +43,4 @@ endif()
 ###############################################
 
 # 注册组件
-if(CONFIG_PCONFIG_BUILD_SHARED)
-    register_component(SHARED)
-else()
-    register_component()
-endif()
+register_component()
