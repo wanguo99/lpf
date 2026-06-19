@@ -10,7 +10,7 @@ menuconfig PDM
 
 	  PDM sits above HAL and provides:
 	  - Protocol-aware peripheral drivers
-	  - Device abstraction (current MCU peripheral type)
+	  - Device abstraction and discovery through /dev/pdm_ctl
 	  - State management and error handling
 	  - Unified API for complex peripherals
 

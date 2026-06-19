@@ -6,8 +6,9 @@ menuconfig PDI
 	help
 	  Userspace API library for the kernel PDM module.
 
-	  PDI owns the userspace API surface and is organized by peripheral.
-	  MCU access wraps open/ioctl/close for /dev/pdm_mcu.
+	  PDI owns the userspace API surface, including device discovery
+	  through /dev/pdm_ctl and peripheral APIs such as /dev/pdm_mcu and
+	  /dev/pdm_led.
 
 if PDI
 

@@ -7,6 +7,7 @@
 #include "pdm/pdm.h"
 #include "pconfig/pconfig.h"
 #include "pdm_driver.h"
+#include "pdm_ctl.h"
 #include "pdm_status.h"
 #include "generated/gen_version.h"
 
@@ -156,6 +157,13 @@ static int __init pdm_init(void)
 		goto out_registry_deinit;
 	}
 
+	ret = pdm_ctl_chrdev_register();
+	if (ret) {
+		lpf_device_unregister_all();
+		pdm_drivers_exit();
+		goto out_registry_deinit;
+	}
+
 	LOG_INFO("PDM", "loaded");
 	return 0;
 
@@ -166,6 +174,7 @@ out_registry_deinit:
 
 static void __exit pdm_exit(void)
 {
+	pdm_ctl_chrdev_unregister();
 	lpf_device_unregister_all();
 	pdm_drivers_exit();
 	pdm_driver_registry_deinit();

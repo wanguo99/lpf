@@ -347,6 +347,15 @@ Acceptance criteria:
 - PDI hides ioctl details from application code.
 - Applications can open devices by stable name or capability.
 
+Current status:
+
+- Started. `/dev/pdm_ctl` and `uapi/pdi/pdi_ctl.h` expose LPF device discovery
+  snapshots to userspace.
+- Started. PDI now provides `pdi_list_devices`,
+  `pdi_get_device_by_name`, and `pdi_get_device_by_capability`.
+- Remaining work: finish UAPI/PDI header separation for existing MCU/LED APIs,
+  add `pdi_open_by_name`, and standardize PDI error mapping.
+
 ## Phase 9: Device Nodes And Observability
 
 Goal: provide maintainable runtime access and debug visibility.
@@ -383,6 +392,11 @@ Acceptance criteria:
 - Every peripheral instance can be inspected independently.
 - Device permissions can be controlled by userspace policy such as udev.
 - Debug interfaces are separate from stable user ABI.
+
+Current status:
+
+- Started. `/dev/pdm_ctl` is the first management node and exposes discovery
+  only; peripheral operations remain under `/dev/pdm_mcu` and `/dev/pdm_led`.
 
 ## Phase 10: Test And Validation System
 

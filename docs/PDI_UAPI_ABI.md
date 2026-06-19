@@ -5,7 +5,8 @@ kernel PDM character devices and userspace PDI wrappers.
 
 ## Header Rules
 
-- One peripheral owns one UAPI header: `pdi_<peripheral>.h`.
+- One peripheral owns one UAPI header: `pdi_<peripheral>.h`. Shared management
+  or discovery nodes own explicit control headers such as `pdi_ctl.h`.
 - The header must compile in both kernel and userspace builds.
 - UAPI structures use Linux fixed-width types such as `__u32`, `__s32`, and
   `__u64`.
@@ -47,3 +48,7 @@ Add the following pieces together:
 - PDM character device implementation for `/dev/pdm_<peripheral>`
 - `PDI_<PERIPHERAL>_IOC_GET_INFO`
 - A unique `PDI_<PERIPHERAL>_IOC_MAGIC`
+
+Management APIs follow the same ABI rules but should stay separate from
+peripheral business commands. For example, `/dev/pdm_ctl` uses
+`uapi/pdi/pdi_ctl.h` only for device discovery snapshots.

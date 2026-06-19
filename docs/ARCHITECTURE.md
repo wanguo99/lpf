@@ -110,7 +110,9 @@ the data.
 
 PDM owns kernel-side peripheral business behavior, ioctl dispatch, procfs debug
 nodes, and protocol helpers. Concrete peripheral services such as MCU and LED
-live under PDM and register with LPF Core for device lifecycle handling.
+live under PDM and register with LPF Core for device lifecycle handling. PDM
+also exposes `/dev/pdm_ctl` as the management/discovery ioctl node; business
+operations stay on peripheral nodes such as `/dev/pdm_mcu` and `/dev/pdm_led`.
 
 ### UAPI
 
@@ -122,7 +124,8 @@ kernel-internal types.
 
 PDI is the userspace C API layer. It opens the matching `/dev/pdm_*` node,
 marshals requests through UAPI ioctls, and hides ioctl details from
-applications.
+applications. Discovery APIs use `/dev/pdm_ctl` to list LPF device snapshots and
+look up devices by stable name or capability.
 
 ### ACONFIG
 

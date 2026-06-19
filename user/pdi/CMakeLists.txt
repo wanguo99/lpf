@@ -5,6 +5,7 @@ list(APPEND ADD_PUBLIC_HEADER_DIRS "${SDK_PATH}/uapi")
 ###############################################
 
 ############## Add source files ###############
+list(APPEND ADD_SRCS "src/pdi_discovery.c")
 list(APPEND ADD_SRCS "src/pdi_mcu.c")
 list(APPEND ADD_SRCS "src/pdi_led.c")
 ###############################################

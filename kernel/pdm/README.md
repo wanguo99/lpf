@@ -19,6 +19,7 @@ The kernel module currently provides:
   linked into `pdm.ko`
 - PDM LED core and `/dev/pdm_led` ioctl dispatch for GPIO/PWM controlled LEDs
   linked into `pdm.ko`
+- PDM control node `/dev/pdm_ctl` for LPF device discovery snapshots
 - PDM procfs debug nodes under `/proc/pdm/`
 
 PDM consumes exported `hal.ko` symbols for MCU transport and LED GPIO/PWM
@@ -44,6 +45,7 @@ kernel/pdm/
 ├── CMakeLists.txt
 ├── include/
 │   ├── pdm_chrdev.h
+│   ├── pdm_ctl.h
 │   ├── pdm_driver.h
 │   ├── pdm_internal.h
 │   ├── pdm_proc.h
@@ -51,6 +53,7 @@ kernel/pdm/
 └── src/
     ├── base/
     │   ├── pdm_chrdev.c
+    │   ├── pdm_ctl_chrdev.c
     │   ├── pdm_driver.c
     │   ├── pdm_proc.c
     │   └── pdm_status.c
@@ -89,6 +92,11 @@ devices before driver global resources are released.
 Each PDM peripheral exposes
 its own character device, such as `/dev/pdm_mcu`, and each PDI peripheral API
 uses the matching UAPI ioctl header, such as `pdi_mcu.h`.
+
+`/dev/pdm_ctl` is the management node for discovery. It exposes LPF Core device
+snapshots through `uapi/pdi/pdi_ctl.h`, including stable name, type, state,
+driver name, and capability flags. It does not perform peripheral business
+operations.
 
 Procfs is reserved for debug and observability data. Current nodes:
 

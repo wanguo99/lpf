@@ -8,6 +8,7 @@
 #ifndef PDI_H
 #define PDI_H
 
+#include "pdi/pdi_discovery.h"
 #include "pdi/pdi_led.h"
 #include "pdi/pdi_mcu.h"
 

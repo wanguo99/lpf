@@ -5,6 +5,7 @@ ifeq ($(CONFIG_PDM),y)
 obj-m += pdm.o
 pdm-y := pdm/src/pdm.o
 pdm-y += pdm/src/base/pdm_chrdev.o
+pdm-y += pdm/src/base/pdm_ctl_chrdev.o
 pdm-y += pdm/src/base/pdm_driver.o
 pdm-y += pdm/src/base/pdm_proc.o
 pdm-y += pdm/src/base/pdm_status.o
