@@ -16,6 +16,7 @@ menuconfig HAL
 	  - I2C (Inter-Integrated Circuit)
 	  - SPI (Serial Peripheral Interface)
 	  - GPIO (General Purpose I/O)
+	  - PWM (Pulse Width Modulation)
 
 	  Memory footprint: ~5KB (minimal) ~ 50KB (all drivers)
 
@@ -182,6 +183,22 @@ menuconfig HAL_GPIO
 	  - Hardware reset control
 
 	  Platform support: Linux kernel GPIO and IRQ APIs
+
+menuconfig HAL_PWM
+	bool "PWM support"
+	default n
+	help
+	  Enable PWM (Pulse Width Modulation) driver.
+
+	  PWM provides duty-cycle based output control for LEDs, buzzers,
+	  backlights, and other simple actuators.
+
+	  Features:
+	  - Configure period and duty cycle
+	  - Enable/disable output
+	  - Normal and inversed polarity
+
+	  Platform support: Linux kernel PWM consumer API
 
 endmenu
 

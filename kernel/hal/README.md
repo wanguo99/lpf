@@ -15,6 +15,7 @@ Current kernel implementations:
 - Serial uses Linux kernel TTY APIs plus kernel file I/O for `/dev/tty*`
   devices.
 - GPIO uses Linux kernel GPIO and IRQ APIs.
+- PWM uses Linux kernel PWM consumer APIs.
 - I2C uses Linux kernel I2C adapter transfer APIs.
 - SPI uses Linux kernel SPI device and transfer APIs.
 
@@ -26,6 +27,7 @@ CONFIG_HAL=y
 CONFIG_HAL_CAN=y
 CONFIG_HAL_UART=y
 CONFIG_HAL_GPIO=y
+CONFIG_HAL_PWM=y
 CONFIG_HAL_I2C=y
 CONFIG_HAL_SPI=y
 ```
@@ -57,6 +59,7 @@ kernel/hal/
     ├── hal_can.c
     ├── hal_serial.c
     ├── hal_gpio.c
+    ├── hal_pwm.c
     ├── hal_i2c.c
     └── hal_spi.c
 ```

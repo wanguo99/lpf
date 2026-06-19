@@ -32,6 +32,9 @@ void hal_print_version(void);
 /* GPIO */
 #include "hal_gpio.h"
 
+/* PWM */
+#include "hal_pwm.h"
+
 /* I2C 总线 */
 #include "config/hal_i2c_types.h"
 #include "hal_i2c.h"
