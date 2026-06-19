@@ -11,6 +11,7 @@ list(APPEND ADD_PRIVATE_INCLUDE "src/protocol")
 ############## Add source files ###############
 list(APPEND ADD_SRCS
     "src/pdm.c"
+    "src/base/pdm_chrdev.c"
     "src/base/pdm_driver_start.c"
 )
 

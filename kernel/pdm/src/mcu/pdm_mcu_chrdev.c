@@ -2,46 +2,15 @@
 
 #include <linux/compat.h>
 #include <linux/fs.h>
-#include <linux/miscdevice.h>
 #include <linux/module.h>
 #include <linux/uaccess.h>
 
 #include "pdi/pdi_mcu.h"
 #include "pdm.h"
+#include "base/pdm_chrdev.h"
 #include "pdm_mcu_internal.h"
 
-static osal_mutex_t g_pdm_mcu_chrdev_lock;
-static osal_atomic_uint32_t g_pdm_mcu_open_count;
-static struct miscdevice g_pdm_mcu_miscdev;
-
-static long pdm_mcu_status_to_errno(int32_t status)
-{
-	if (status == OSAL_SUCCESS)
-		return 0;
-
-	if (status == OSAL_ERR_INVALID_PARAM ||
-	    status == OSAL_ERR_INVALID_POINTER ||
-	    status == OSAL_ERR_INVALID_SIZE ||
-	    status == OSAL_ERR_INVALID_ID)
-		return -EINVAL;
-
-	if (status == OSAL_ERR_NO_MEMORY)
-		return -ENOMEM;
-
-	if (status == OSAL_ERR_TIMEOUT)
-		return -ETIMEDOUT;
-
-	if (status == OSAL_ERR_BUSY)
-		return -EBUSY;
-
-	if (status == OSAL_ERR_NOT_SUPPORTED)
-		return -EOPNOTSUPP;
-
-	if (status == OSAL_ERR_NOT_IMPLEMENTED)
-		return -ENOSYS;
-
-	return -EIO;
-}
+static pdm_chrdev_t g_pdm_mcu_chrdev;
 
 static void pdm_mcu_fill_info(struct pdi_mcu_info *info)
 {
@@ -50,7 +19,7 @@ static void pdm_mcu_fill_info(struct pdi_mcu_info *info)
 	info->module_version_major = PDM_VERSION_MAJOR;
 	info->module_version_minor = PDM_VERSION_MINOR;
 	info->module_version_patch = PDM_VERSION_PATCH;
-	info->open_count = osal_atomic_load(&g_pdm_mcu_open_count);
+	info->open_count = pdm_chrdev_open_count(&g_pdm_mcu_chrdev);
 	info->max_devices = PDM_MCU_MAX_DEVICES;
 }
 
@@ -66,9 +35,7 @@ static long pdm_mcu_ioctl_get_info(unsigned long arg)
 {
 	struct pdi_mcu_info info;
 
-	osal_mutex_lock(&g_pdm_mcu_chrdev_lock);
 	pdm_mcu_fill_info(&info);
-	osal_mutex_unlock(&g_pdm_mcu_chrdev_lock);
 
 	if (copy_to_user((void __user *)arg, &info, sizeof(info)))
 		return -EFAULT;
@@ -93,7 +60,7 @@ static long pdm_mcu_ioctl_get_version(unsigned long arg)
 	osal_memset(&version, 0, sizeof(version));
 	ret = pdm_mcu_get_version(handle, &version);
 	if (ret != OSAL_SUCCESS)
-		return pdm_mcu_status_to_errno(ret);
+		return pdm_status_to_errno(ret);
 
 	request.major = version.major;
 	request.minor = version.minor;
@@ -125,7 +92,7 @@ static long pdm_mcu_ioctl_get_status(unsigned long arg)
 	osal_memset(&status, 0, sizeof(status));
 	ret = pdm_mcu_get_status(handle, &status);
 	if (ret != OSAL_SUCCESS)
-		return pdm_mcu_status_to_errno(ret);
+		return pdm_status_to_errno(ret);
 
 	request.online = status.online ? 1U : 0U;
 	request.state = status.state;
@@ -155,7 +122,7 @@ static long pdm_mcu_ioctl_reset(unsigned long arg)
 		return -ENODEV;
 
 	ret = pdm_mcu_reset(handle);
-	return pdm_mcu_status_to_errno(ret);
+	return pdm_status_to_errno(ret);
 }
 
 static long pdm_mcu_ioctl_command(unsigned long arg)
@@ -182,7 +149,7 @@ static long pdm_mcu_ioctl_command(unsigned long arg)
 				   request.tx_data, request.tx_len,
 				   request.rx_data, request.rx_len, &actual_len);
 	if (ret != OSAL_SUCCESS)
-		return pdm_mcu_status_to_errno(ret);
+		return pdm_status_to_errno(ret);
 
 	request.rx_len = actual_len;
 	if (copy_to_user((void __user *)arg, &request, sizeof(request)))
@@ -210,7 +177,7 @@ static long pdm_mcu_ioctl_read_data(unsigned long arg)
 	ret = pdm_mcu_read_data(handle, request.address, request.data,
 				request.len);
 	if (ret != OSAL_SUCCESS)
-		return pdm_mcu_status_to_errno(ret);
+		return pdm_status_to_errno(ret);
 
 	if (copy_to_user((void __user *)arg, &request, sizeof(request)))
 		return -EFAULT;
@@ -236,7 +203,7 @@ static long pdm_mcu_ioctl_write_data(unsigned long arg)
 
 	ret = pdm_mcu_write_data(handle, request.address, request.data,
 				 request.len);
-	return pdm_mcu_status_to_errno(ret);
+	return pdm_status_to_errno(ret);
 }
 
 static long pdm_mcu_ioctl(struct file *file, unsigned int cmd,
@@ -274,34 +241,18 @@ static long pdm_mcu_compat_ioctl(struct file *file, unsigned int cmd,
 
 static int pdm_mcu_open(struct inode *inode, struct file *file)
 {
-	int open_count;
-
 	(void)inode;
 	(void)file;
 
-	osal_mutex_lock(&g_pdm_mcu_chrdev_lock);
-	open_count = (int)osal_atomic_inc(&g_pdm_mcu_open_count);
-	osal_mutex_unlock(&g_pdm_mcu_chrdev_lock);
-
-	LOG_INFO(PDI_MCU_DEVICE_NAME, "open count=%d", open_count);
-	return 0;
+	return pdm_chrdev_open(&g_pdm_mcu_chrdev);
 }
 
 static int pdm_mcu_release(struct inode *inode, struct file *file)
 {
-	int open_count;
-
 	(void)inode;
 	(void)file;
 
-	osal_mutex_lock(&g_pdm_mcu_chrdev_lock);
-	if (osal_atomic_load(&g_pdm_mcu_open_count) > 0)
-		osal_atomic_dec(&g_pdm_mcu_open_count);
-	open_count = (int)osal_atomic_load(&g_pdm_mcu_open_count);
-	osal_mutex_unlock(&g_pdm_mcu_chrdev_lock);
-
-	LOG_INFO(PDI_MCU_DEVICE_NAME, "release count=%d", open_count);
-	return 0;
+	return pdm_chrdev_release(&g_pdm_mcu_chrdev);
 }
 
 static const struct file_operations pdm_mcu_fops = {
@@ -317,31 +268,11 @@ static const struct file_operations pdm_mcu_fops = {
 
 int pdm_mcu_chrdev_register(void)
 {
-	int ret;
-
-	ret = osal_mutex_init(&g_pdm_mcu_chrdev_lock, NULL);
-	if (ret != OSAL_SUCCESS)
-		return -ret;
-
-	osal_atomic_init(&g_pdm_mcu_open_count, 0);
-
-	g_pdm_mcu_miscdev.minor = MISC_DYNAMIC_MINOR;
-	g_pdm_mcu_miscdev.name = PDI_MCU_DEVICE_NAME;
-	g_pdm_mcu_miscdev.fops = &pdm_mcu_fops;
-	g_pdm_mcu_miscdev.mode = 0666;
-
-	ret = misc_register(&g_pdm_mcu_miscdev);
-	if (ret) {
-		osal_mutex_destroy(&g_pdm_mcu_chrdev_lock);
-		return ret;
-	}
-
-	LOG_INFO(PDI_MCU_DEVICE_NAME, "/dev/%s ready", PDI_MCU_DEVICE_NAME);
-	return 0;
+	return pdm_chrdev_register(&g_pdm_mcu_chrdev, PDI_MCU_DEVICE_NAME,
+				   &pdm_mcu_fops);
 }
 
 void pdm_mcu_chrdev_unregister(void)
 {
-	misc_deregister(&g_pdm_mcu_miscdev);
-	osal_mutex_destroy(&g_pdm_mcu_chrdev_lock);
+	pdm_chrdev_unregister(&g_pdm_mcu_chrdev);
 }
