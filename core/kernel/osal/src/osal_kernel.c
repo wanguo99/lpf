@@ -35,7 +35,7 @@ EXPORT_SYMBOL_GPL(osal_crc16_ccitt_update);
 uint16_t osal_crc16_ccitt(const uint8_t *data, size_t len)
 {
 	if (!data)
-		return 0;
+		return 0xFFFF;
 
 	return osal_crc16_ccitt_update(0xFFFF, data, len);
 }

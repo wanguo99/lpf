@@ -5,7 +5,6 @@
 #   - OSAL (Operating System Abstraction Layer)
 #   - HAL (Hardware Abstraction Layer)
 #   - PDI (Peripheral Driver Interface)
-#   - PRL (Peripheral Resource Library)
 #   - PCONFIG (Platform Configuration)
 #   - ACONFIG (Application Configuration)
 #
@@ -67,6 +66,20 @@ config TEST_PDI
 	  Fine-grained control over individual PDI test files is available
 	  in the PDI Unit Tests submenu.
 
+config TEST_PDM
+	bool "Build PDM internal unit tests"
+	depends on PDM
+	default n
+	help
+	  Build PDM internal unit tests.
+
+	  These tests cover PDM-owned implementation details that are linked
+	  into pdm.ko, such as the internal peripheral protocol. They are not
+	  tests for the userspace PDI ioctl API.
+
+	  Fine-grained control over individual PDM test files is available
+	  in the PDM Unit Tests submenu.
+
 config TEST_ACONFIG
 	bool "Build ACONFIG unit tests"
 	depends on OSAL  # ACONFIG dependency
@@ -80,17 +93,6 @@ config TEST_ACONFIG
 
 	  Fine-grained control over individual ACONFIG test files is available
 	  in the ACONFIG Unit Tests submenu.
-
-config TEST_PRL
-	bool "Build PRL unit tests"
-	select PRL
-	default n
-	help
-	  Build PRL layer unit tests.
-	  This will automatically enable the PRL module.
-
-	  Fine-grained control over individual PRL test files is available
-	  in the PRL Unit Tests submenu.
 
 config TEST_PCONFIG
 	bool "Build PCONFIG unit tests"
@@ -190,13 +192,6 @@ config TEST_STRESS_PCONFIG
 	  Build PCONFIG layer stress tests.
 
 	  Note: PCONFIG requires OSAL.
-
-config TEST_STRESS_PRL
-	bool "Build PRL stress tests"
-	select PRL
-	default n
-	help
-	  Build PRL layer stress tests.
 
 config TEST_STRESS_ACONFIG
 	bool "Build ACONFIG stress tests"

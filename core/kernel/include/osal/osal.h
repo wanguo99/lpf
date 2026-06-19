@@ -2,7 +2,7 @@
  * Kernel OSAL compatibility entry
  *
  * This header exposes the small OSAL subset required by kernel-side
- * PCONFIG/PRL/PDM code. It is intentionally not a mirror of userspace OSAL.
+ * PCONFIG/PDM code. It is intentionally not a mirror of userspace OSAL.
  ************************************************************************/
 
 #ifndef OSAL_H

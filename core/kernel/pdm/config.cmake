@@ -10,6 +10,15 @@ message(STATUS "Configuring PDM module...")
 
 set(PDM_SRCS "")
 
+if(CONFIG_PDM_PROTOCOL)
+    list(APPEND PDM_SRCS
+        "src/protocol/pdm_protocol.c"
+        "src/protocol/pdm_protocol_common.c"
+        "src/protocol/pdm_protocol_device.c"
+    )
+    message(STATUS "  [PDM] Internal protocol support enabled")
+endif()
+
 # MCU 外设支持（根据 Kconfig 配置）
 if(CONFIG_PDM_MCU_SUPPORT)
     list(APPEND PDM_SRCS

@@ -9,7 +9,7 @@ if TEST_UNIT
 source "products/ctest/unit/osal/Config.in"
 source "products/ctest/unit/hal/Config.in"
 source "products/ctest/unit/pdi/Config.in"
-source "products/ctest/unit/prl/Config.in"
+source "products/ctest/unit/pdm/Config.in"
 source "products/ctest/unit/pconfig/Config.in"
 source "products/ctest/unit/aconfig/Config.in"
 

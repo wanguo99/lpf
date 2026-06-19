@@ -217,9 +217,9 @@ static void _test_crc32_some_data(void)
 {
 	uint8_t data[] = { 0x01, 0x02, 0x03, 0x04, 0x05 };
 
-	/* CRC32暂未实现，应该返回0 */
+	/* 标准 CRC32 测试向量 */
 	uint32_t crc = osal_crc32(data, sizeof(data));
-	TEST_ASSERT_EQUAL(0, crc);
+	TEST_ASSERT_EQUAL(0x470B99F4, crc);
 }
 
 static void _test_crc32_update_returns_input(void)

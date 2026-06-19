@@ -9,7 +9,6 @@ source "core/user/osal/Config.in"
 source "core/kernel/hal/Config.in"
 source "core/kernel/pconfig/Config.in"
 source "core/kernel/pdm/Config.in"
-source "core/kernel/prl/Config.in"
 source "core/user/aconfig/Config.in"
 source "core/user/pdi/Config.in"
 source "core/user/test_framework/Config.in"
@@ -26,7 +25,7 @@ menuconfig BUILD_TESTING
 	  Build test suite for core modules.
 
 	  The test suite provides comprehensive testing capabilities:
-	  - Unit tests for individual modules (OSAL, HAL, PDI, PRL, etc.)
+	  - Unit tests for individual modules (OSAL, HAL, PDI, PDM, etc.)
 	  - Performance tests for benchmarking
 	  - Stress tests for stability validation
 	  - System tests for integration testing

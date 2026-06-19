@@ -19,7 +19,6 @@ config TEST_SYSTEM_ALL
 	default y
 	select TEST_SYSTEM_OSAL if TEST_OSAL
 	select TEST_SYSTEM_HAL if TEST_HAL
-	select TEST_SYSTEM_PRL if TEST_PRL
 	select TEST_SYSTEM_PCONFIG if TEST_PCONFIG
 	select TEST_SYSTEM_ACONFIG if TEST_ACONFIG
 	select TEST_SYSTEM_ACONFIG if CONFIG_ACONFIG
@@ -46,10 +45,6 @@ endif
 
 if TEST_HAL
 	source "products/ctest/system/hal/Config.in"
-endif
-
-if TEST_PRL
-	source "products/ctest/system/prl/Config.in"
 endif
 
 if CONFIG_PCONFIG

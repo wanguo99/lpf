@@ -104,7 +104,6 @@ CONFIG_TEST_PDL_MCU=y
 # Other test modules disabled
 # CONFIG_TEST_OSAL is not set
 # CONFIG_TEST_HAL is not set
-# CONFIG_TEST_PRL is not set
 # CONFIG_TEST_PCONFIG is not set
 # CONFIG_TEST_ACONFIG is not set
 # CONFIG_TEST_PERFORMANCE is not set

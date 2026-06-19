@@ -95,7 +95,6 @@ CONFIG_TEST_OSAL_VERSION=y
 # Other test modules disabled
 # CONFIG_TEST_HAL is not set
 # CONFIG_TEST_PDL is not set
-# CONFIG_TEST_PRL is not set
 # CONFIG_TEST_PCONFIG is not set
 # CONFIG_TEST_ACONFIG is not set
 # CONFIG_TEST_PERFORMANCE is not set
@@ -106,7 +105,6 @@ CONFIG_TEST_OSAL_VERSION=y
 # CONFIG_HAL is not set
 # CONFIG_PCONFIG is not set
 # CONFIG_PDL is not set
-# CONFIG_PRL is not set
 # CONFIG_ACONFIG is not set
 
 # Products - Disabled

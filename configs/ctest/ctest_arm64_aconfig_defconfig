@@ -66,7 +66,6 @@ CONFIG_TEST_ACONFIG_API=y
 # CONFIG_TEST_OSAL is not set
 # CONFIG_TEST_HAL is not set
 # CONFIG_TEST_PDL is not set
-# CONFIG_TEST_PRL is not set
 # CONFIG_TEST_PCONFIG is not set
 # CONFIG_TEST_PERFORMANCE is not set
 # CONFIG_TEST_STRESS is not set

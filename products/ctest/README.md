@@ -222,7 +222,6 @@ make menuconfig
 | `CONFIG_TEST_OSAL` | 启用 OSAL 测试 |
 | `CONFIG_TEST_HAL` | 启用 HAL 测试 |
 | `CONFIG_TEST_PDI` | 启用 PDI 测试 |
-| `CONFIG_TEST_PRL` | 启用 PRL 测试 |
 
 #### 编译类型说明
 
@@ -267,7 +266,6 @@ _build/
 └── lib/
     ├── libosal.a                    # OSAL 库
     ├── libhal.a                     # HAL 库
-    ├── libprl.a                     # PRL 库
     └── libpdi.a                     # PDI 库
 ```
 

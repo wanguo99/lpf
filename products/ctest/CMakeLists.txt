@@ -4,7 +4,7 @@
 # This is a special "product" dedicated to testing ES-Middleware core modules.
 # Unlike regular products (e.g., PMC), this product's sole purpose is to
 # provide comprehensive testing coverage for:
-#   - OSAL, HAL, PDI, PRL, PCONFIG, ACONFIG
+#   - OSAL, HAL, PDI, PCONFIG, ACONFIG
 #
 # Test categories:
 #   - Unit: Component-level testing
@@ -57,12 +57,12 @@ if(CONFIG_PCONFIG AND NOT TARGET pconfig)
     add_subdirectory(${SDK_PATH}/core/kernel/pconfig ${CMAKE_CURRENT_BINARY_DIR}/pconfig)
 endif()
 
-if(CONFIG_PDI AND NOT TARGET pdi)
-    add_subdirectory(${SDK_PATH}/core/user/pdi ${CMAKE_CURRENT_BINARY_DIR}/pdi)
+if(CONFIG_PDM AND NOT TARGET pdm)
+    add_subdirectory(${SDK_PATH}/core/kernel/pdm ${CMAKE_CURRENT_BINARY_DIR}/pdm)
 endif()
 
-if(CONFIG_PRL AND NOT TARGET prl)
-    add_subdirectory(${SDK_PATH}/core/kernel/prl ${CMAKE_CURRENT_BINARY_DIR}/prl)
+if(CONFIG_PDI AND NOT TARGET pdi)
+    add_subdirectory(${SDK_PATH}/core/user/pdi ${CMAKE_CURRENT_BINARY_DIR}/pdi)
 endif()
 
 if(CONFIG_ACONFIG AND NOT TARGET aconfig)
@@ -106,7 +106,6 @@ target_include_directories(es-middleware-test PRIVATE
     ${SDK_PATH}/core/kernel/include/pconfig
     ${SDK_PATH}/core/user/pdi/include
     ${SDK_PATH}/core/uapi
-    ${SDK_PATH}/core/kernel/include/prl
     ${SDK_PATH}/core/user/aconfig/include/aconfig
 )
 
@@ -164,13 +163,15 @@ if(CONFIG_TEST_UNIT)
         )
     endif()
 
-    # PRL Unit Tests - Auto-discover all test_prl_*.c files
-    if(CONFIG_TEST_PRL)
+    # PDM Unit Tests - Auto-discover all test_pdm_*.c files
+    if(CONFIG_TEST_PDM)
         test_discover_and_add(
             TARGET es-middleware-test
-            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/prl
-            MODULE prl
-            LIBRARY prl
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/unit/pdm
+            MODULE pdm
+            LIBRARY pdm
+            INCLUDE_DIRS
+                ${SDK_PATH}/core/kernel/pdm/src/protocol
         )
     endif()
 
@@ -269,16 +270,6 @@ if(CONFIG_TEST_STRESS)
         )
     endif()
 
-    # PRL Stress Tests - Auto-discover all test_stress_prl_*.c files
-    if(CONFIG_TEST_STRESS_PRL)
-        test_discover_and_add(
-            TARGET es-middleware-test
-            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/stress/prl
-            MODULE stress_prl
-            LIBRARY prl
-        )
-    endif()
-
     # PCONFIG Stress Tests - Auto-discover all test_stress_pconfig_*.c files
     if(CONFIG_TEST_STRESS_PCONFIG)
         test_discover_and_add(
@@ -322,9 +313,6 @@ if(CONFIG_TEST_SYSTEM)
     if(TARGET hal)
         target_link_libraries(es-middleware-test PRIVATE hal)
     endif()
-    if(TARGET prl)
-        target_link_libraries(es-middleware-test PRIVATE prl)
-    endif()
     if(TARGET aconfig)
         target_link_libraries(es-middleware-test PRIVATE aconfig)
     endif()
@@ -351,16 +339,6 @@ if(CONFIG_TEST_SYSTEM)
             target_sources(es-middleware-test PRIVATE ${HAL_SYSTEM_TEST_FILES})
             test_collect_registration_functions(${HAL_SYSTEM_TEST_FILES})
         endif()
-    endif()
-
-    # PRL System Tests - Auto-discover all test_system_prl_*.c files
-    if(CONFIG_TEST_SYSTEM_PRL)
-        test_discover_and_add(
-            TARGET es-middleware-test
-            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/system/prl
-            MODULE system_prl
-            # Library already linked at system test level
-        )
     endif()
 
     # PCONFIG System Tests - Auto-discover all test_system_pconfig_*.c files

@@ -1,6 +1,7 @@
 # PDM
 
-PDM is the Peripheral Driver Module. It contains high-level peripheral drivers built on top of PCONFIG, PRL, HAL, and OSAL.
+PDM is the Peripheral Driver Module. It contains high-level peripheral drivers
+built on top of PCONFIG, HAL, OSAL, and the PDM-owned internal protocol helpers.
 
 ## Current Scope
 
@@ -8,7 +9,7 @@ The kernel module currently provides:
 
 - ioctl device-node dispatch in `pdm/src/pdm_main.c`
 - PCONFIG query logic linked into `pdm.ko`
-- PRL protocol encode/decode logic linked into `pdm.ko`
+- PDM protocol encode/decode logic linked into `pdm.ko`
 - PDM MCU core and CAN/Serial transport glue linked into `pdm.ko`
 
 The kernel HAL CAN/Serial implementations are currently stubs that return
@@ -20,8 +21,9 @@ while the real in-kernel transport implementations are developed.
 ```text
 CONFIG_PDM=y
 CONFIG_PCONFIG=y
-CONFIG_PRL=y
 CONFIG_PDM_MCU_SUPPORT=y
+CONFIG_PDM_PROTOCOL=y
+CONFIG_PDM_PROTOCOL_MCU=y
 ```
 
 ## Layout
@@ -46,8 +48,9 @@ core/kernel/include/pdm/
 
 ## Layering
 
-`pdm.ko` owns the userspace boundary. PDM may consume PCONFIG and PRL internally,
-but userspace must call through PDI/ioctl rather than including kernel headers.
+`pdm.ko` owns the userspace boundary. PDM may consume PCONFIG and its internal
+protocol helpers, but userspace must call through PDI/ioctl rather than
+including kernel headers.
 
 MCU transport APIs are linked into `pdm.ko`, but hardware access remains behind
 HAL. Until the kernel HAL CAN/Serial backends are implemented, MCU init fails

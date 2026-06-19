@@ -94,7 +94,7 @@ uint16_t osal_crc16_ccitt(const uint8_t *data, size_t len)
 	size_t i;
 
 	if (!data)
-		return 0;
+		return crc;
 
 	for (i = 0; i < len; i++)
 		crc = (crc << 8) ^ crc16_ccitt_table[(crc >> 8) ^ data[i]];
@@ -129,7 +129,7 @@ uint16_t osal_crc16_modbus(const uint8_t *data, size_t len)
 	int j;
 
 	if (!data)
-		return 0;
+		return crc;
 
 	for (i = 0; i < len; i++) {
 		crc ^= data[i];

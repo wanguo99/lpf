@@ -1,25 +1,35 @@
 /**
- * @file prl_common.c
+ * @file pdm_protocol_common.c
  * @brief Protocol Layer Common Implementation
  */
 
 #include "osal.h"
 
-#include "prl.h"
+#include "pdm_protocol.h"
 
-/* 全局序列号（静态存储期原子对象默认初始化为 0） */
-osal_atomic_uint32_t g_seq_number;
+/* Static storage duration leaves the atomic initialized to zero. */
+static osal_atomic_uint32_t g_pdm_protocol_seq_number;
 
 /*===========================================================================
  * 序列号和时间戳
  *===========================================================================*/
 
-uint32_t prl_get_next_seq(void)
+uint32_t pdm_protocol_get_next_seq(void)
 {
-	return osal_atomic_fetch_add(&g_seq_number, 1);
+	return osal_atomic_fetch_add(&g_pdm_protocol_seq_number, 1);
 }
 
-uint32_t prl_get_timestamp(void)
+void pdm_protocol_reset_sequence(uint32_t seq)
+{
+	osal_atomic_store(&g_pdm_protocol_seq_number, seq);
+}
+
+uint32_t pdm_protocol_get_current_sequence(void)
+{
+	return osal_atomic_load(&g_pdm_protocol_seq_number);
+}
+
+uint32_t pdm_protocol_get_timestamp(void)
 {
 	OS_time_t time_struct;
 	osal_get_local_time(&time_struct);
@@ -30,24 +40,26 @@ uint32_t prl_get_timestamp(void)
  * 协议头初始化和验证
  *===========================================================================*/
 
-void prl_init_header(prl_header_t *hdr, uint8_t dev_type, uint8_t msg_type,
-					 uint16_t payload_len, uint8_t flags)
+void pdm_protocol_init_header(pdm_protocol_header_t *hdr, uint8_t dev_type,
+			      uint8_t msg_type, uint16_t payload_len,
+			      uint8_t flags)
 {
-	osal_memset(hdr, 0, OSAL_sizeof(prl_header_t));
+	osal_memset(hdr, 0, OSAL_sizeof(pdm_protocol_header_t));
 
 	/* 多字节字段使用网络字节序（大端），确保跨平台兼容性 */
-	hdr->magic = osal_htons(PRL_MAGIC);
-	hdr->version = PRL_VERSION;
+	hdr->magic = osal_htons(PDM_PROTOCOL_MAGIC);
+	hdr->version = PDM_PROTOCOL_VERSION;
 	hdr->dev_type = dev_type;
 	hdr->msg_type = msg_type;
 	hdr->flags = flags;
 	hdr->length = osal_htons(payload_len);
-	hdr->seq = osal_htonl(prl_get_next_seq());
-	hdr->timestamp = osal_htonl(prl_get_timestamp());
-	/* crc16 将在 prl_set_packet_crc() 中转换 */
+	hdr->seq = osal_htonl(pdm_protocol_get_next_seq());
+	hdr->timestamp = osal_htonl(pdm_protocol_get_timestamp());
+	/* crc16 将在 pdm_protocol_set_packet_crc() 中转换 */
 }
 
-int prl_validate_header(const prl_header_t *hdr, uint8_t expected_type)
+int pdm_protocol_validate_header(const pdm_protocol_header_t *hdr,
+				 uint8_t expected_type)
 {
 	uint16_t magic;
 	uint16_t length;
@@ -56,11 +68,11 @@ int prl_validate_header(const prl_header_t *hdr, uint8_t expected_type)
 	magic = osal_ntohs(hdr->magic);
 	length = osal_ntohs(hdr->length);
 
-	if (magic != PRL_MAGIC) {
+	if (magic != PDM_PROTOCOL_MAGIC) {
 		return OSAL_EPROTO; /* 协议错误：魔数不匹配 */
 	}
 
-	if ((hdr->version >> 4) != PRL_VERSION_MAJOR) {
+	if ((hdr->version >> 4) != PDM_PROTOCOL_VERSION_MAJOR) {
 		return OSAL_EPROTO; /* 协议错误：版本不匹配 */
 	}
 
@@ -68,7 +80,7 @@ int prl_validate_header(const prl_header_t *hdr, uint8_t expected_type)
 		return OSAL_EINVAL; /* 无效的设备类型 */
 	}
 
-	if (length > PRL_MAX_PAYLOAD_SIZE) {
+	if (length > PDM_PROTOCOL_MAX_PAYLOAD_SIZE) {
 		return OSAL_EINVAL; /* 无效的长度 */
 	}
 
@@ -79,14 +91,14 @@ int prl_validate_header(const prl_header_t *hdr, uint8_t expected_type)
  * CRC 校验（使用 OSAL CRC 函数）
  *===========================================================================*/
 
-uint16_t prl_crc16(const uint8_t *data, uint16_t len)
+uint16_t pdm_protocol_crc16(const uint8_t *data, uint16_t len)
 {
 	return osal_crc16_ccitt(data, len);
 }
 
-void prl_set_packet_crc(uint8_t *packet, size_t total_len)
+void pdm_protocol_set_packet_crc(uint8_t *packet, size_t total_len)
 {
-	prl_header_t *hdr = (prl_header_t *)packet;
+	pdm_protocol_header_t *hdr = (pdm_protocol_header_t *)packet;
 
 	/* CRC 字段先置 0 */
 	hdr->crc16 = 0;
@@ -98,9 +110,9 @@ void prl_set_packet_crc(uint8_t *packet, size_t total_len)
 	hdr->crc16 = osal_htons(crc);
 }
 
-bool prl_verify_packet_crc(const uint8_t *packet, size_t total_len)
+bool pdm_protocol_verify_packet_crc(const uint8_t *packet, size_t total_len)
 {
-	const prl_header_t *hdr = (const prl_header_t *)packet;
+	const pdm_protocol_header_t *hdr = (const pdm_protocol_header_t *)packet;
 	uint16_t received_crc = osal_ntohs(hdr->crc16); /* 转换为主机字节序 */
 
 	/* 分段计算 CRC，避免动态内存分配
@@ -125,7 +137,7 @@ bool prl_verify_packet_crc(const uint8_t *packet, size_t total_len)
 
 	/* 第三段：从 CRC 字段之后到报文结束 */
 	crc = osal_crc16_ccitt_update(crc, packet + crc_offset + 2,
-								  total_len - crc_offset - 2);
+				      total_len - crc_offset - 2);
 
 	return (crc == received_crc);
 }

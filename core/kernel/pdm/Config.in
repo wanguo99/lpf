@@ -61,8 +61,8 @@ endmenu
 menuconfig PDM_MCU_SUPPORT
 	bool "MCU peripheral support"
 	default n
-	depends on PRL
-	select PRL_MCU
+	select PDM_PROTOCOL
+	select PDM_PROTOCOL_MCU
 	select HAL_CAN
 	select HAL_UART
 	help
@@ -93,5 +93,54 @@ menuconfig PDM_MCU_SUPPORT
 	  If unsure, say Y.
 
 source "core/kernel/pdm/src/pdm_mcu/Config.in"
+
+menu "PDM Protocol Configuration"
+
+config PDM_PROTOCOL
+	bool "PDM internal protocol support"
+	default n
+	help
+	  Enable the PDM-owned protocol encoder/decoder used by peripheral
+	  driver modules.
+
+	  This is not a standalone framework layer or user ABI. It is linked
+	  into pdm.ko when a PDM peripheral requires framed communication.
+
+config PDM_PROTOCOL_MCU
+	bool "MCU protocol messages"
+	default n
+	help
+	  Enable MCU message definitions for the PDM internal protocol.
+
+config PDM_PROTOCOL_CRC_CHECK
+	bool "Enable CRC16 checksum"
+	default y
+	depends on PDM_PROTOCOL
+	help
+	  Enable CRC16-CCITT checksum support for protocol packets.
+
+config PDM_PROTOCOL_SEQUENCE_CHECK
+	bool "Enable sequence number check"
+	default y
+	depends on PDM_PROTOCOL
+	help
+	  Enable sequence number helpers for packet ordering.
+
+config PDM_PROTOCOL_TIMESTAMP_CHECK
+	bool "Enable timestamp validation"
+	default n
+	depends on PDM_PROTOCOL
+	help
+	  Reserve timestamp validation support for protocol packets.
+
+config PDM_PROTOCOL_MAX_PAYLOAD_SIZE
+	int "Maximum protocol payload size (bytes)"
+	default 4096
+	range 256 65536
+	depends on PDM_PROTOCOL
+	help
+	  Maximum payload size for PDM internal protocol packets.
+
+endmenu
 
 endif # PDM

@@ -19,7 +19,6 @@ config TEST_STRESS_ALL
 	default y
 	select TEST_STRESS_OSAL if TEST_OSAL
 	select TEST_STRESS_HAL if TEST_HAL
-	select TEST_STRESS_PRL if TEST_PRL
 	select TEST_STRESS_PCONFIG if TEST_PCONFIG
 	select TEST_STRESS_ACONFIG if TEST_ACONFIG
 	help
@@ -47,10 +46,6 @@ endif
 
 if TEST_HAL
 	source "products/ctest/stress/hal/Config.in"
-endif
-
-if TEST_PRL
-	source "products/ctest/stress/prl/Config.in"
 endif
 
 if TEST_PCONFIG

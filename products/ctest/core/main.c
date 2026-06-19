@@ -82,7 +82,7 @@ static void _print_usage(const char *program_name)
 
 		osal_printf("FILTER OPTIONS:\n");
 		osal_printf("    -L, --layer <name>         Filter by layer (OSAL, "
-					"HAL, PDI, PRL, etc.)\n");
+					"HAL, PDI, PDM, etc.)\n");
 		osal_printf("    -M, --module <name>        Filter by module name\n");
 		osal_printf("        --category <cat>       Filter by category:\n");
 		osal_printf("                               unit, performance, stress, "

@@ -11,7 +11,7 @@
 
 #include "osal.h"
 #include "pconfig.h"
-#include "prl.h"
+#include "pdm_protocol.h"
 
 /*===========================================================================
  * 通信层操作函数表
@@ -37,9 +37,9 @@ typedef struct {
 	int32_t (*deinit)(void *handle);
 
 	/**
-     * @brief 发送 PRL 报文并接收响应
+     * @brief 发送 PDM protocol 报文并接收响应
      * @param[in] handle 通信句柄
-     * @param[in] packet PRL 报文数据
+     * @param[in] packet PDM protocol 报文数据
      * @param[in] packet_len 报文长度
      * @param[out] response 响应缓冲区
      * @param[in] resp_size 响应缓冲区大小

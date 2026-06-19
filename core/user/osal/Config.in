@@ -387,7 +387,7 @@ config OSAL_UTIL_CRC
 	  Performance: ~10-20 cycles per byte
 
 	  Use cases:
-	  - Protocol packet checksums (PRL, PDM)
+	  - Protocol packet checksums (PDM protocol, PDI)
 	  - Hardware ID validation (HWID)
 	  - Configuration integrity checking
 	  - Firmware update verification
@@ -613,7 +613,7 @@ config LOG_MODULE_NAME
 	help
 	  Include the source module name in log messages.
 
-	  Examples: [OSAL], [HAL], [PDI], [PRL]
+	  Examples: [OSAL], [HAL], [PDI], [PDM]
 
 config LOG_FUNCTION_NAME
 	bool "Include function name in messages"

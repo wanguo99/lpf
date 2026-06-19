@@ -5,10 +5,16 @@ list(APPEND ADD_INCLUDE "${SDK_PATH}/core/kernel/include/pdm")
 
 # 私有头文件目录（仅内部使用）
 list(APPEND ADD_PRIVATE_INCLUDE "src")
+list(APPEND ADD_PRIVATE_INCLUDE "src/protocol")
 ###############################################
 
 ############## Add source files ###############
 # 根据配置添加子模块源文件
+if(CONFIG_PDM_PROTOCOL)
+    file(GLOB PDM_PROTOCOL_SRCS "src/protocol/*.c")
+    list(APPEND ADD_SRCS ${PDM_PROTOCOL_SRCS})
+endif()
+
 if(CONFIG_PDM_MCU_SUPPORT)
     file(GLOB PDM_MCU_SRCS "src/pdm_mcu/*.c")
     list(APPEND ADD_SRCS ${PDM_MCU_SRCS})
@@ -42,14 +48,6 @@ else()
     message(FATAL_ERROR "PDM requires PCONFIG but CONFIG_PCONFIG is not enabled")
 endif()
 
-# PRL 是条件依赖的（仅 MCU 外设需要）
-if(CONFIG_PDM_MCU_SUPPORT)
-    if(CONFIG_PRL)
-        list(APPEND ADD_REQUIREMENTS prl)
-    else()
-        message(FATAL_ERROR "PDM_MCU requires PRL but CONFIG_PRL is not enabled")
-    endif()
-endif()
 ###############################################
 
 #### Add compile option for this component ####

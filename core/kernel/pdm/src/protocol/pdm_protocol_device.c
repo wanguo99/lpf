@@ -1,12 +1,12 @@
 /**
- * @file prl_device.c
+ * @file pdm_protocol_device.c
  * @brief Protocol Layer Device Messages Implementation
  * @details 统一设备协议消息实现
  */
 
 #include "osal.h"
 
-#include "prl.h"
+#include "pdm_protocol.h"
 
 /* 设备类型名称映射表 */
 static const char *device_type_names[] = {
@@ -14,12 +14,12 @@ static const char *device_type_names[] = {
 	"MCU", /* 0x01 */
 };
 
-bool prl_device_type_valid(uint8_t dev_type)
+bool pdm_protocol_device_type_valid(uint8_t dev_type)
 {
-	return (dev_type == PRL_DEV_TYPE_MCU);
+	return (dev_type == PDM_PROTOCOL_DEV_TYPE_MCU);
 }
 
-const char *prl_device_type_name(uint8_t dev_type)
+const char *pdm_protocol_device_type_name(uint8_t dev_type)
 {
 	if (dev_type <
 		OSAL_sizeof(device_type_names) / OSAL_sizeof(device_type_names[0])) {
@@ -28,9 +28,9 @@ const char *prl_device_type_name(uint8_t dev_type)
 	return "INVALID";
 }
 
-int prl_device_encode(prl_encode_ctx_t *ctx)
+int pdm_protocol_device_encode(pdm_protocol_encode_ctx_t *ctx)
 {
-	prl_header_t *hdr;
+	pdm_protocol_header_t *hdr;
 	size_t total_len;
 
 	/* 参数检查 */
@@ -38,75 +38,77 @@ int prl_device_encode(prl_encode_ctx_t *ctx)
 		return OSAL_ERR_INVALID_PARAM;
 	}
 
-	if (!prl_device_type_valid(ctx->dev_type)) {
+	if (!pdm_protocol_device_type_valid(ctx->dev_type)) {
 		return OSAL_ERR_INVALID_PARAM;
 	}
 
-	total_len = PRL_HEADER_SIZE + ctx->payload_len;
+	total_len = PDM_PROTOCOL_HEADER_SIZE + ctx->payload_len;
 	if (total_len > ctx->buffer_size) {
 		return OSAL_ERR_NO_MEMORY;
 	}
 
 	/* 填充协议头 */
-	hdr = (prl_header_t *)ctx->buffer;
-	hdr->magic = osal_htons(PRL_MAGIC);
-	hdr->version = PRL_VERSION;
+	hdr = (pdm_protocol_header_t *)ctx->buffer;
+	hdr->magic = osal_htons(PDM_PROTOCOL_MAGIC);
+	hdr->version = PDM_PROTOCOL_VERSION;
 	hdr->dev_type = ctx->dev_type;
 	hdr->msg_type = ctx->msg_type;
 	hdr->flags = ctx->flags;
 	hdr->length = osal_htons(ctx->payload_len);
-	hdr->seq = osal_htonl(prl_get_next_seq());
-	hdr->timestamp = osal_htonl(prl_get_timestamp());
+	hdr->seq = osal_htonl(pdm_protocol_get_next_seq());
+	hdr->timestamp = osal_htonl(pdm_protocol_get_timestamp());
 	hdr->reserved = 0;
 
 	/* 复制payload */
 	if (ctx->payload && ctx->payload_len > 0) {
-		osal_memcpy(ctx->buffer + PRL_HEADER_SIZE, ctx->payload,
+		osal_memcpy(ctx->buffer + PDM_PROTOCOL_HEADER_SIZE, ctx->payload,
 					ctx->payload_len);
 	}
 
-	prl_set_packet_crc(ctx->buffer, total_len);
+	pdm_protocol_set_packet_crc(ctx->buffer, total_len);
 
 	return (int)total_len;
 }
 
-int prl_device_decode(prl_decode_ctx_t *ctx)
+int pdm_protocol_device_decode(pdm_protocol_decode_ctx_t *ctx)
 {
-	const prl_header_t *hdr;
+	const pdm_protocol_header_t *hdr;
 	uint16_t magic;
 	uint16_t payload_len;
 
 	/* 参数检查 */
-	if (!ctx || !ctx->buffer || ctx->buffer_len < PRL_HEADER_SIZE) {
+	if (!ctx || !ctx->buffer || ctx->buffer_len < PDM_PROTOCOL_HEADER_SIZE) {
 		return OSAL_ERR_INVALID_PARAM;
 	}
 
-	hdr = (const prl_header_t *)ctx->buffer;
+	hdr = (const pdm_protocol_header_t *)ctx->buffer;
 
 	/* 验证魔数 */
 	magic = osal_ntohs(hdr->magic);
-	if (magic != PRL_MAGIC) {
+	if (magic != PDM_PROTOCOL_MAGIC) {
 		return OSAL_ERR_GENERIC;
 	}
 
 	/* 验证版本 */
-	if (hdr->version != PRL_VERSION) {
+	if (hdr->version != PDM_PROTOCOL_VERSION) {
 		return OSAL_ERR_GENERIC;
 	}
 
 	/* 验证设备类型 */
-	if (!prl_device_type_valid(hdr->dev_type)) {
+	if (!pdm_protocol_device_type_valid(hdr->dev_type)) {
 		return OSAL_ERR_GENERIC;
 	}
 
 	/* 获取payload长度 */
 	payload_len = osal_ntohs(hdr->length);
-	if (PRL_HEADER_SIZE + payload_len > ctx->buffer_len) {
+	if (PDM_PROTOCOL_HEADER_SIZE + payload_len > ctx->buffer_len) {
 		return OSAL_ERR_GENERIC;
 	}
 
 	/* 验证CRC：不修改输入缓冲区，避免破坏调用方持有的数据 */
-	if (!prl_verify_packet_crc(ctx->buffer, PRL_HEADER_SIZE + payload_len)) {
+	if (!pdm_protocol_verify_packet_crc(ctx->buffer,
+					    PDM_PROTOCOL_HEADER_SIZE +
+						    payload_len)) {
 		return OSAL_ERR_GENERIC;
 	}
 
@@ -122,7 +124,8 @@ int prl_device_decode(prl_decode_ctx_t *ctx)
 		if (ctx->payload_size < payload_len) {
 			return OSAL_ERR_NO_MEMORY;
 		}
-		osal_memcpy(ctx->payload, ctx->buffer + PRL_HEADER_SIZE, payload_len);
+		osal_memcpy(ctx->payload, ctx->buffer + PDM_PROTOCOL_HEADER_SIZE,
+			    payload_len);
 	}
 
 	return OSAL_SUCCESS;

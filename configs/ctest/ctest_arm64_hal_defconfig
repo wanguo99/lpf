@@ -84,7 +84,6 @@ CONFIG_TEST_HAL_SPI=y
 # Other test modules disabled
 # CONFIG_TEST_OSAL is not set
 # CONFIG_TEST_PDL is not set
-# CONFIG_TEST_PRL is not set
 # CONFIG_TEST_PCONFIG is not set
 # CONFIG_TEST_ACONFIG is not set
 # CONFIG_TEST_PERFORMANCE is not set
@@ -94,7 +93,6 @@ CONFIG_TEST_HAL_SPI=y
 # Other Modules - Disabled
 # CONFIG_PCONFIG is not set
 # CONFIG_PDL is not set
-# CONFIG_PRL is not set
 # CONFIG_ACONFIG is not set
 
 # Products - Disabled
