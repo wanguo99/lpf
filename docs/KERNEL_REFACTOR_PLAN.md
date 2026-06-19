@@ -111,10 +111,12 @@ implemented and verified.
   - `remove`.
   - Bus-owned device removal.
   - Character-device registration if userspace access is needed.
-- [ ] Decide whether protocol support is global or per-driver.
-  - Current MCU driver initializes the PDM protocol globally.
-  - If future peripherals share the protocol layer, move ownership to PDM core
-    or introduce protocol reference counting.
+- [x] Decide whether protocol support is global or per-driver.
+  - PDM protocol is a common peripheral communication protocol library under
+    `kernel/pdm/src/protocol`.
+  - It has no independent module lifecycle; MCU, FPGA, and future peripheral
+    drivers call it to package payloads into standard protocol frames and parse
+    received raw frames back into device type, message type, and payload data.
 - [x] Revisit PDM device removal.
   - PDM should remove devices before driver exit.
   - PConfig state should remain owned by PConfig.

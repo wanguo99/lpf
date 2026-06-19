@@ -22,8 +22,10 @@ list(APPEND ADD_SRCS
 
 # 根据配置添加子模块源文件
 if(CONFIG_PDM_PROTOCOL)
-    file(GLOB PDM_PROTOCOL_SRCS "src/protocol/*.c")
-    list(APPEND ADD_SRCS ${PDM_PROTOCOL_SRCS})
+    list(APPEND ADD_SRCS
+        "src/protocol/pdm_protocol.c"
+        "src/protocol/pdm_protocol_common.c"
+    )
 endif()
 
 if(CONFIG_PDM_MCU_SUPPORT AND TARGET hal)

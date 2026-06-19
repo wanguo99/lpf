@@ -59,7 +59,7 @@ void pdm_protocol_init_header(pdm_protocol_header_t *hdr, uint8_t dev_type,
 }
 
 int pdm_protocol_validate_header(const pdm_protocol_header_t *hdr,
-				 uint8_t expected_type)
+				 uint8_t expected_dev_type)
 {
 	uint16_t magic;
 	uint16_t length;
@@ -76,7 +76,8 @@ int pdm_protocol_validate_header(const pdm_protocol_header_t *hdr,
 		return OSAL_EPROTO; /* 协议错误：版本不匹配 */
 	}
 
-	if (expected_type != 0 && hdr->msg_type != expected_type) {
+	if (expected_dev_type != PDM_PROTOCOL_DEV_TYPE_INVALID &&
+	    hdr->dev_type != expected_dev_type) {
 		return OSAL_EINVAL; /* 无效的设备类型 */
 	}
 

@@ -9,7 +9,9 @@ The kernel module currently provides:
 
 - module load/unload orchestration in `pdm/src/pdm.c`
 - PCONFIG query logic linked into `pdm.ko`
-- PDM protocol encode/decode logic linked into `pdm.ko`
+- PDM protocol package/parse helpers linked into `pdm.ko`; peripheral drivers
+  pass a device type, message type, and payload to produce or parse standard
+  protocol frames
 - PDM-local bus logic for built-in driver registration, configured device
   binding, and device removal ordering
 - PDM MCU core, `/dev/pdm_mcu` ioctl dispatch, and CAN/Serial transport glue
@@ -93,3 +95,7 @@ Procfs is reserved for read-only debug and observability data. Current nodes:
 MCU transport APIs are linked into `pdm.ko`, but hardware access remains behind
 HAL. `pdm.ko` depends on `hal.ko` and calls the HAL transport symbols exported
 by that module.
+
+The protocol layer under `src/protocol/` is a common PDM-internal peripheral
+communication protocol. It does not own module lifecycle; concrete peripheral
+drivers such as MCU call it when they need framed communication.

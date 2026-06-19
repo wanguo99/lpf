@@ -67,7 +67,7 @@ static int32_t _mcu_send_packet(pdm_mcu_context_t *ctx, uint8_t msg_type,
 									.payload_len = payload_len,
 									.buffer = tx_buffer,
 									.buffer_size = PDM_PROTOCOL_MAX_PACKET_SIZE };
-	tx_len = pdm_protocol_device_encode(&encode_ctx);
+	tx_len = pdm_protocol_encode(&encode_ctx);
 	if (tx_len < 0) {
 		ret = tx_len;
 		goto out_free;
@@ -86,7 +86,7 @@ static int32_t _mcu_send_packet(pdm_mcu_context_t *ctx, uint8_t msg_type,
 									.buffer_len = rx_len,
 									.payload = response,
 									.payload_size = resp_size };
-	ret = pdm_protocol_device_decode(&decode_ctx);
+	ret = pdm_protocol_decode(&decode_ctx);
 	if (ret == OSAL_SUCCESS && actual_size) {
 		*actual_size = decode_ctx.payload_len;
 	}
@@ -627,21 +627,14 @@ static int pdm_mcu_driver_init(void)
 {
 	int ret;
 
-	ret = pdm_protocol_init();
+	ret = pdm_mcu_chrdev_register();
 	if (ret)
 		return ret;
-
-	ret = pdm_mcu_chrdev_register();
-	if (ret) {
-		pdm_protocol_deinit();
-		return ret;
-	}
 
 	ret = pdm_proc_register(&g_pdm_mcu_proc, "mcu",
 				pdm_mcu_proc_show, NULL);
 	if (ret) {
 		pdm_mcu_chrdev_unregister();
-		pdm_protocol_deinit();
 		return ret;
 	}
 
@@ -654,7 +647,6 @@ static void pdm_mcu_driver_exit(void)
 	pdm_mcu_registry_deinit();
 	pdm_proc_unregister(&g_pdm_mcu_proc);
 	pdm_mcu_chrdev_unregister();
-	pdm_protocol_deinit();
 	LOG_INFO("PDM_MCU", "unregistered");
 }
 

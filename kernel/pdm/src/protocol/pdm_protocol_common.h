@@ -32,7 +32,11 @@
 
 /* ========== Device Types ========== */
 
-typedef enum { PDM_PROTOCOL_DEV_TYPE_MCU = 0x01 } pdm_protocol_dev_type_t;
+typedef enum {
+	PDM_PROTOCOL_DEV_TYPE_INVALID = 0x00,
+	PDM_PROTOCOL_DEV_TYPE_MCU = 0x01,
+	PDM_PROTOCOL_DEV_TYPE_FPGA = 0x02,
+} pdm_protocol_dev_type_t;
 
 /* ========== Protocol Header ========== */
 
@@ -65,7 +69,7 @@ void pdm_protocol_init_header(pdm_protocol_header_t *hdr, uint8_t dev_type,
 			      uint8_t msg_type, uint16_t payload_len,
 			      uint8_t flags);
 int pdm_protocol_validate_header(const pdm_protocol_header_t *hdr,
-				 uint8_t expected_type);
+				 uint8_t expected_dev_type);
 void pdm_protocol_set_packet_crc(uint8_t *packet, size_t total_len);
 bool pdm_protocol_verify_packet_crc(const uint8_t *packet, size_t total_len);
 
