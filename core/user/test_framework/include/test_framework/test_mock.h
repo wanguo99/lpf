@@ -32,7 +32,7 @@
  *     TEST_MOCK_SET_RETURN(OSAL_SUCCESS);
  *
  *     // 执行测试
- *     int32_t ret = pdi_open(&ctx, NULL);
+ *     int32_t ret = pdi_mcu_open(&ctx, NULL);
  *
  *     // 验证 mock 被调用
  *     TEST_MOCK_VERIFY_CALLED(HAL_CAN_Init);
