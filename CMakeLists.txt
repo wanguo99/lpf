@@ -96,7 +96,6 @@ endif()
 # ==============================================================================
 
 include(${SDK_PATH}/scripts/cmake/compile.cmake)
-include(${SDK_PATH}/scripts/cmake/ComponentAPI.cmake)
 
 # ==============================================================================
 # Build Modules Directly
