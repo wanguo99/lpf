@@ -11,6 +11,7 @@ satellite/PMC business code and the previous test product have been removed.
 Current concrete peripheral/device type:
 
 - MCU peripheral type in PCONFIG/PDM, exposed to userspace through PDI
+- LED peripheral type in PCONFIG/PDM, exposed to userspace through PDI
 
 The framework keeps the layered extension points so additional peripheral types can be added later without changing the core architecture.
 
@@ -35,6 +36,8 @@ make kernel_x86_modules_defconfig
 make modules
 ```
 
+Kernel module load order is `osal.ko`, `pconfig.ko`, `hal.ko`, then `pdm.ko`.
+
 ## Project Layout
 
 ```text
@@ -54,3 +57,9 @@ Defconfigs live under `configs/`, for example:
 - `kernel_x86_modules_defconfig`
 
 Use `make menuconfig` for interactive configuration.
+
+## Documentation
+
+- `docs/ARCHITECTURE.md`: current module architecture and extension flow.
+- `docs/KERNEL_USER_SPLIT.md`: kernel/userspace boundary and include rules.
+- `docs/PDI_UAPI_ABI.md`: PDI ioctl ABI rules for new peripherals.

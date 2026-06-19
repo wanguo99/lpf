@@ -45,10 +45,44 @@ The current framework keeps one concrete peripheral/device family:
 - MCU protocol in PDM
 - MCU driver in PDM
 - Userspace access through PDI
+- LED configuration in PCONFIG
+- LED driver in PDM
+- Userspace access through PDI
 
 Other peripheral families can be added later by introducing matching PCONFIG
 types, PDM protocol definitions, PDM kernel implementation, PDI userspace API
 coverage, UAPI definitions when needed, and Kconfig entries.
+
+## Kernel Module Load Order
+
+Load kernel modules in dependency order:
+
+```text
+osal.ko
+pconfig.ko
+hal.ko
+pdm.ko
+```
+
+`pdm.ko` consumes PConfig entries and HAL symbols, then probes linked PDM
+drivers for each configured peripheral.
+
+## Adding A Peripheral
+
+Add the following pieces together:
+
+- PCONFIG type and platform config array entry.
+- PDM driver object registered with `pdm_driver_register`.
+- Optional PDM character device `/dev/pdm_<peripheral>` when userspace access
+  is needed.
+- UAPI header `uapi/pdi/pdi_<peripheral>.h` following
+  `docs/PDI_UAPI_ABI.md`.
+- Userspace wrapper `user/pdi/src/pdi_<peripheral>.c`.
+- Kbuild object selection for the new PDM driver.
+
+Feature selection stays at object/list registration boundaries. Kconfig may
+select which objects are linked, but business logic should not branch on
+feature macros.
 
 ## Dependency Rules
 

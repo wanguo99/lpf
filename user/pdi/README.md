@@ -16,4 +16,7 @@ Current peripheral APIs:
 - LED: `pdi_led_*` wraps `/dev/pdm_led`; ioctl ABI lives in
   `uapi/pdi/pdi_led.h`.
 
+UAPI and ABI rules for new peripherals are documented in
+`docs/PDI_UAPI_ABI.md`.
+
 PDI must not reimplement kernel HAL, PConfig, or PDM business logic.

@@ -125,15 +125,15 @@ implemented and verified.
 - [x] LED UAPI lives in `uapi/pdi/pdi_led.h`.
 - [x] LED ioctl definitions are owned by `pdi_led.h`.
 - [x] Userspace PDI aggregates per-peripheral headers from `pdi.h`.
-- [ ] Define UAPI rules for all future peripherals.
+- [x] Define UAPI rules for all future peripherals.
   - UAPI headers must be usable by both kernel and userspace.
   - Use fixed-width Linux UAPI types in ioctl structures.
   - Keep ioctl magic and command numbers per peripheral.
   - Avoid exposing kernel-only PDM/HAL/PConfig types through PDI.
-- [ ] Add version/ABI compatibility policy for each PDI peripheral.
+- [x] Add version/ABI compatibility policy for each PDI peripheral.
   - Keep an ABI version field or `GET_INFO` command.
   - Define compatibility expectations for structure growth.
-- [ ] Decide whether `CONFIG_COMPAT` support stays local in each chrdev.
+- [x] Decide whether `CONFIG_COMPAT` support stays local in each chrdev.
   - Current MCU chrdev forwards compat ioctl directly.
   - Future peripherals should follow the same rule or use a common helper.
 
@@ -176,14 +176,14 @@ implemented and verified.
 
 ## Phase 6: Remove Old Test Infrastructure
 
-- [ ] Decide whether `user/test_framework` is retained.
+- [x] Decide whether `user/test_framework` is retained.
   - The ctest product has been removed.
   - If the test framework is also considered part of ctest, delete it.
-- [ ] Remove `CONFIG_TEST_FRAMEWORK` from root `Config.in` if deleted.
-- [ ] Remove `test_framework` from root `CMakeLists.txt` if deleted.
-- [ ] Remove test framework install/build files if deleted.
-- [ ] Update README and docs after deletion.
-- [ ] Leave a placeholder for future rewritten tests only if needed.
+- [x] Remove `CONFIG_TEST_FRAMEWORK` from root `Config.in` if deleted.
+- [x] Remove `test_framework` from root `CMakeLists.txt` if deleted.
+- [x] Remove test framework install/build files if deleted.
+- [x] Update README and docs after deletion.
+- [x] Leave a placeholder for future rewritten tests only if needed.
 
 ## Phase 7: Clean Build And Feature Selection
 
@@ -208,19 +208,19 @@ implemented and verified.
 
 ## Phase 8: Documentation And Naming Cleanup
 
-- [ ] Update README to match the current kernel-module architecture.
-- [ ] Update `docs/KERNEL_USER_SPLIT.md`.
-- [ ] Update `docs/ARCHITECTURE.md`.
-- [ ] Remove outdated references to ctest and old userspace HAL/PDM behavior.
-- [ ] Document module load order and dependencies.
+- [x] Update README to match the current kernel-module architecture.
+- [x] Update `docs/KERNEL_USER_SPLIT.md`.
+- [x] Update `docs/ARCHITECTURE.md`.
+- [x] Remove outdated references to ctest and old userspace HAL/PDM behavior.
+- [x] Document module load order and dependencies.
   - OSAL before PConfig/HAL.
   - PConfig and HAL before PDM.
-- [ ] Document how to add a new peripheral.
+- [x] Document how to add a new peripheral.
   - PConfig type and platform entry.
   - PDM driver object and registration.
   - PDI UAPI header and userspace wrapper.
   - Kbuild object selection.
-- [ ] Document the feature-selection rule.
+- [x] Document the feature-selection rule.
   - Build/link selection is allowed.
   - Business-code feature `#ifdef CONFIG_*` should be avoided.
 

@@ -52,3 +52,4 @@ integration.
 - UAPI headers live under `uapi/pdi/` and must be valid for both kernel and
   userspace builds.
 - Userspace code must not include non-UAPI kernel headers.
+- PDI/UAPI ABI rules are documented in `docs/PDI_UAPI_ABI.md`.
