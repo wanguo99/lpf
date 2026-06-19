@@ -1,12 +1,13 @@
 config BR2_PACKAGE_ES_MIDDLEWARE
 	bool "es-middleware"
+	depends on BR2_LINUX_KERNEL
 	depends on BR2_TOOLCHAIN_HAS_THREADS
 	depends on BR2_USE_MMU
 	depends on BR2_INSTALL_LIBSTDCPP
 	help
 	  ES-Middleware is a generic embedded middleware framework
-	  with a Kconfig+CMake build system. It provides OSAL, HAL, PDM,
-	  PDI, ACONFIG, and PCONFIG layers for Linux systems.
+	  with a Kconfig+CMake/Kbuild build system. It provides OSAL,
+	  HAL, PDM, PDI, ACONFIG, and PCONFIG layers for Linux systems.
 
 if BR2_PACKAGE_ES_MIDDLEWARE
 
@@ -53,5 +54,6 @@ config BR2_PACKAGE_ES_MIDDLEWARE_MENUCONFIG
 
 endif # BR2_PACKAGE_ES_MIDDLEWARE
 
-comment "ES-Middleware needs a toolchain w/ threads, C++, MMU"
-	depends on !BR2_TOOLCHAIN_HAS_THREADS || !BR2_USE_MMU || 		!BR2_INSTALL_LIBSTDCPP
+comment "ES-Middleware needs Linux kernel and a toolchain w/ threads, C++, MMU"
+	depends on !BR2_LINUX_KERNEL || !BR2_TOOLCHAIN_HAS_THREADS || \
+		!BR2_USE_MMU || !BR2_INSTALL_LIBSTDCPP

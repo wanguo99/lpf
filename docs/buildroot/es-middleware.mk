@@ -12,8 +12,8 @@ ES_MIDDLEWARE_SITE_METHOD = git
 ES_MIDDLEWARE_LICENSE = Proprietary
 ES_MIDDLEWARE_INSTALL_TARGET = YES
 
-# Dependencies - Kconfig + CMake build system (zero Python dependency)
-ES_MIDDLEWARE_DEPENDENCIES = host-pkgconf host-cmake
+# Dependencies - Kconfig + CMake/Kbuild build system
+ES_MIDDLEWARE_DEPENDENCIES = host-pkgconf host-cmake host-flex host-bison linux
 
 # Optional: Add Kconfig tools if menuconfig support is enabled
 ifeq ($(BR2_PACKAGE_ES_MIDDLEWARE_MENUCONFIG),y)
@@ -27,28 +27,32 @@ ES_MIDDLEWARE_KCONFIG_DEFCONFIG = $(call qstrip,$(BR2_PACKAGE_ES_MIDDLEWARE_DEFC
 ES_MIDDLEWARE_BUILD_TYPE = $(call qstrip,$(BR2_PACKAGE_ES_MIDDLEWARE_BUILD_TYPE))
 
 # Build in-tree for Buildroot (output/build/es-middleware/_build)
-# This follows Buildroot convention: build directly in source directory
 ES_MIDDLEWARE_BUILD_OUTPUT = $(@D)/_build
+ES_MIDDLEWARE_MODULES_OUTPUT = $(@D)/_build/modules
+ES_MIDDLEWARE_MODULE_INSTALL_DIR = /lib/modules/$(LINUX_VERSION_PROBED)/extra/es-middleware
+
+ES_MIDDLEWARE_MAKE_OPTS = \
+	BUILD_DIR="$(ES_MIDDLEWARE_BUILD_OUTPUT)" \
+	MODULES_BUILD_DIR="$(ES_MIDDLEWARE_MODULES_OUTPUT)" \
+	KERNEL_SRC="$(LINUX_DIR)" \
+	ARCH="$(KERNEL_ARCH)" \
+	CROSS_COMPILE="$(TARGET_CROSS)" \
+	CMAKE_BUILD_TYPE="$(ES_MIDDLEWARE_BUILD_TYPE)" \
+	CMAKE_TOOLCHAIN_FILE="$(HOST_DIR)/share/buildroot/toolchainfile.cmake" \
+	CMAKE_INSTALL_PREFIX="/usr"
 
 # Configure using make (kernel-style interface)
 # This loads the defconfig and generates .config + autoconf.h
 define ES_MIDDLEWARE_CONFIGURE_CMDS
 	@echo "ES-Middleware: Loading defconfig $(ES_MIDDLEWARE_KCONFIG_DEFCONFIG)"
-	$(MAKE) -C $(@D) $(ES_MIDDLEWARE_KCONFIG_DEFCONFIG)
+	$(MAKE) -C $(@D) $(ES_MIDDLEWARE_MAKE_OPTS) $(ES_MIDDLEWARE_KCONFIG_DEFCONFIG)
 	@echo "ES-Middleware: Configuration loaded successfully"
 endef
 
-# Build using make (auto-detects cores and calls CMake backend)
-# Pass cross-compilation toolchain via CMAKE_TOOLCHAIN_FILE
+# Build userspace libraries and kernel modules.
 define ES_MIDDLEWARE_BUILD_CMDS
 	@echo "ES-Middleware: Building with configuration $(ES_MIDDLEWARE_KCONFIG_DEFCONFIG)"
-	$(TARGET_MAKE_ENV) \
-	$(MAKE) -C $(@D) \
-		CMAKE_BUILD_TYPE="$(ES_MIDDLEWARE_BUILD_TYPE)" \
-		CMAKE_TOOLCHAIN_FILE="$(HOST_DIR)/share/buildroot/toolchainfile.cmake" \
-		CMAKE_INSTALL_PREFIX="/usr" \
-		$(if $(BR2_PACKAGE_ES_MIDDLEWARE_INSTALL_HEADERS),INSTALL_DEVELOPMENT_HEADERS=ON) \
-		all
+	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D) $(ES_MIDDLEWARE_MAKE_OPTS) all
 endef
 
 # Clean build artifacts (keep configuration)
@@ -63,28 +67,40 @@ define ES_MIDDLEWARE_DISTCLEAN_CMDS
 	-$(MAKE) -C $(@D) distclean
 endef
 
-# Install applications and libraries to target using make install
-# Note: INSTALL_DEVELOPMENT_HEADERS is intentionally NOT set here
-# Headers should only go to staging directory, not target rootfs
+# Install userspace libraries and kernel modules to target.
 define ES_MIDDLEWARE_INSTALL_TARGET_CMDS
 	@echo "ES-Middleware: Installing to target"
 	$(MAKE) -C $(@D) \
+		BUILD_DIR="$(ES_MIDDLEWARE_BUILD_OUTPUT)" \
 		CMAKE_INSTALL_PREFIX="/usr" \
-		INSTALL_DEVELOPMENT_HEADERS=OFF \
 		install DESTDIR=$(TARGET_DIR)
+	$(INSTALL) -d "$(TARGET_DIR)$(ES_MIDDLEWARE_MODULE_INSTALL_DIR)"
+	modules_found=0; \
+	for module in "$(ES_MIDDLEWARE_MODULES_OUTPUT)"/*.ko; do \
+		[ -e "$$module" ] || continue; \
+		modules_found=1; \
+		$(INSTALL) -m 0644 "$$module" \
+			"$(TARGET_DIR)$(ES_MIDDLEWARE_MODULE_INSTALL_DIR)/$$(basename "$$module")"; \
+	done; \
+	if [ "$$modules_found" -eq 0 ]; then \
+		echo "ES-Middleware: no kernel modules found in $(ES_MIDDLEWARE_MODULES_OUTPUT)"; \
+		exit 1; \
+	fi
 	@echo "ES-Middleware: Target installation complete"
 endef
 
-# Optional: Install development headers to staging directory
+# Optional: Install development headers and userspace libraries to staging.
 ifeq ($(BR2_PACKAGE_ES_MIDDLEWARE_INSTALL_HEADERS),y)
 ES_MIDDLEWARE_INSTALL_STAGING = YES
 define ES_MIDDLEWARE_INSTALL_STAGING_CMDS
 	@echo "ES-Middleware: Installing libraries to staging"
 	$(MAKE) -C $(@D) \
+		BUILD_DIR="$(ES_MIDDLEWARE_BUILD_OUTPUT)" \
 		CMAKE_INSTALL_PREFIX="/usr" \
 		install DESTDIR=$(STAGING_DIR)
 	@echo "ES-Middleware: Installing development headers to staging"
 	$(MAKE) -C $(@D) \
+		BUILD_DIR="$(ES_MIDDLEWARE_BUILD_OUTPUT)" \
 		CMAKE_INSTALL_PREFIX="/usr" \
 		install_headers DESTDIR=$(STAGING_DIR)
 	@echo "ES-Middleware: Staging installation complete"
