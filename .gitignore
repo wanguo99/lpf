@@ -25,6 +25,10 @@ include/autoconf.h
 include/version.h
 
 # Kconfig 工具（编译产物）
+scripts/basic/fixdep
+scripts/basic/docproc
+scripts/basic/split-include
+scripts/basic/.*.cmd
 scripts/kconfig/conf
 scripts/kconfig/mconf
 scripts/kconfig/nconf
