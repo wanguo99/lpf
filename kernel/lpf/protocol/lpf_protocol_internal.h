@@ -3,7 +3,7 @@
 #ifndef LPF_PROTOCOL_INTERNAL_H
 #define LPF_PROTOCOL_INTERNAL_H
 
-#include "lpf/lpf_protocol.h"
+#include "lpf/protocol/lpf_protocol.h"
 
 uint16_t lpf_protocol_crc16(const uint8_t *data, uint16_t len);
 uint32_t lpf_protocol_get_next_seq(void);

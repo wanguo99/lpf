@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 
-#include "lpf/lpf_mcu_transport.h"
+#include "lpf/transport/mcu/lpf_mcu_transport.h"
 
 #ifdef CONFIG_LPF_MCU_TRANSPORT_CAN
 extern const lpf_mcu_transport_ops_t lpf_mcu_transport_can_ops;

@@ -6,7 +6,7 @@
 #include "lpf/hw/lpf_hw.h"
 #include "lpf/lpf_led_service.h"
 #include "lpf/lpf_mcu_service.h"
-#include "lpf/lpf_config.h"
+#include "lpf/config/lpf_config.h"
 #include "lpf_peripheral_internal.h"
 #include "generated/gen_version.h"
 

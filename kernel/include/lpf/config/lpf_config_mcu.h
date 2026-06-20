@@ -12,7 +12,7 @@
 #ifndef LPF_CONFIG_MCU_H
 #define LPF_CONFIG_MCU_H
 
-#include "lpf_config_common.h"
+#include "lpf/config/lpf_config_common.h"
 
 /*===========================================================================
  * MCU 配置类型定义

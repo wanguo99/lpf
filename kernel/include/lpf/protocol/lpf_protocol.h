@@ -42,7 +42,7 @@ typedef struct {
 	uint16_t reserved;
 } __attribute__((packed)) lpf_protocol_header_t;
 
-#include "lpf/lpf_protocol_mcu.h"
+#include "lpf/protocol/lpf_protocol_mcu.h"
 
 #ifdef __cplusplus
 extern "C" {

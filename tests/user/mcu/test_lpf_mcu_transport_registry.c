@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-#include "lpf/lpf_mcu_transport.h"
+#include "lpf/transport/mcu/lpf_mcu_transport.h"
 
 #include <string.h>
 

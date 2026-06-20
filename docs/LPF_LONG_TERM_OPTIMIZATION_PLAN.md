@@ -198,7 +198,7 @@ Work items:
 
 Deliverables:
 
-- `kernel/include/lpf/lpf_soc_adapter.h`
+- `kernel/include/lpf/soc/lpf_soc_adapter.h`
 - `kernel/lpf/soc/generic_linux/`
 - Future adapter directories such as `soc/am62x/`, `soc/imx8/`, or
   `soc/rk3568/`.
@@ -210,7 +210,7 @@ Acceptance criteria:
 
 Current status:
 
-- Started. `kernel/include/lpf/lpf_soc_adapter.h` defines the initial CAN,
+- Started. `kernel/include/lpf/soc/lpf_soc_adapter.h` defines the initial CAN,
   serial, GPIO, PWM, I2C, and SPI adapter interfaces.
 - `kernel/lpf/soc/generic_linux/` provides the default Linux backend.
 - Started. `kernel/lpf/soc/mock/` provides a Kconfig-selectable mock SoC
@@ -329,7 +329,7 @@ Current status:
   `lpf_peripheral_runtime.ko`, and the standalone configuration module boundary
   has been removed from the build.
 - Done. Runtime config source files now live under `kernel/lpf/config/`,
-  top-level runtime config headers live under `kernel/include/lpf/`, and
+  public runtime config headers live under `kernel/include/lpf/config/`, and
   APIs/types use the `lpf_config_*` namespace.
 - Done. The static backend now supports runtime product selection by compiled
   table index or by product/project/version identity fields.
@@ -403,7 +403,8 @@ Current status:
   registry instead of direct service dependencies.
 - Done. The framed peripheral protocol has moved into the LPF protocol layer
   under `kernel/lpf/protocol/`, with public protocol headers under
-  `kernel/include/lpf/` and encode/decode symbols exported by `lpf_core.ko`.
+  `kernel/include/lpf/protocol/` and encode/decode symbols exported by
+  `lpf_core.ko`.
 - Done. The old compatibility shell has been renamed to the integrated LPF
   peripheral runtime module `lpf_peripheral_runtime.ko`; the legacy module
   entry has been removed.

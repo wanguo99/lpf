@@ -3,7 +3,7 @@
 #ifndef LPF_CONFIG_NORMALIZER_H
 #define LPF_CONFIG_NORMALIZER_H
 
-#include "lpf/lpf_config.h"
+#include "lpf/config/lpf_config.h"
 
 int32_t lpf_config_normalize_devices(
 	const lpf_config_platform_config_t *platform,

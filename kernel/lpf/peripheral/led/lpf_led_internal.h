@@ -3,7 +3,7 @@
 #ifndef LPF_LED_INTERNAL_H
 #define LPF_LED_INTERNAL_H
 
-#include "lpf_config.h"
+#include "lpf/config/lpf_config.h"
 #include "lpf/lpf_core.h"
 #include "lpf/lpf_led_service.h"
 

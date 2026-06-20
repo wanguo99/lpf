@@ -4,7 +4,7 @@
 #define LPF_MCU_TRANSPORT_H
 
 #include "osal.h"
-#include "lpf_config.h"
+#include "lpf/config/lpf_config.h"
 
 typedef void *lpf_mcu_transport_handle_t;
 

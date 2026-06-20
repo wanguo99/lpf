@@ -5,7 +5,7 @@
 #include "osal.h"
 #include "lpf/hw/lpf_hw_gpio.h"
 #include "lpf_hw_internal.h"
-#include "lpf/lpf_soc_adapter.h"
+#include "lpf/soc/lpf_soc_adapter.h"
 
 typedef struct lpf_hw_gpio_context {
 	uint32_t gpio_num;

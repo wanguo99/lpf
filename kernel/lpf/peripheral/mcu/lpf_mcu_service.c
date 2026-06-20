@@ -8,8 +8,8 @@
  ************************************************************************/
 
 #include "osal.h"
-#include "lpf_config.h"
-#include "lpf/lpf_protocol.h"
+#include "lpf/config/lpf_config.h"
+#include "lpf/protocol/lpf_protocol.h"
 #include "lpf_mcu_internal.h"
 
 /*===========================================================================

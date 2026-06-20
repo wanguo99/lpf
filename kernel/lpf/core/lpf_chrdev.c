@@ -6,7 +6,7 @@
 #include <linux/device.h>
 #include <linux/errno.h>
 
-#include "lpf/lpf_soc_adapter.h"
+#include "lpf/soc/lpf_soc_adapter.h"
 #include "lpf_sysfs.h"
 
 typedef struct {

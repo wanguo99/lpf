@@ -2,7 +2,7 @@
 
 #include <linux/module.h>
 
-#include "lpf/lpf_soc_adapter.h"
+#include "lpf/soc/lpf_soc_adapter.h"
 
 #define LPF_SOC_MOCK_MAX_GPIO 256U
 #define LPF_SOC_MOCK_MAX_PWM 32U

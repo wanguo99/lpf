@@ -11,8 +11,8 @@
 #ifndef LPF_CONFIG_PLATFORM_H
 #define LPF_CONFIG_PLATFORM_H
 
-#include "lpf_config_mcu.h"
-#include "lpf_config_led.h"
+#include "lpf/config/lpf_config_mcu.h"
+#include "lpf/config/lpf_config_led.h"
 
 /*===========================================================================
  * 板级配置（顶层）

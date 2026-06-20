@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 
-#include "lpf/lpf_config.h"
+#include "lpf/config/lpf_config.h"
 
 static const lpf_config_mcu_entry_t
 	g_lpf_config_kernel_x86_mock_modules_mcus[] = {

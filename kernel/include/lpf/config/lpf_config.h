@@ -23,10 +23,10 @@
 #define LPF_CONFIG_VERSION_PATCH 0x0
 
 /* 类型定义 - 按模块组织 */
-#include "lpf_config_common.h" /* 通用基础类型 */
-#include "lpf_config_mcu.h" /* MCU 配置类型 */
-#include "lpf_config_led.h" /* LED 配置类型 */
-#include "lpf_config_platform.h" /* 板级配置类型 */
+#include "lpf/config/lpf_config_common.h" /* 通用基础类型 */
+#include "lpf/config/lpf_config_mcu.h" /* MCU 配置类型 */
+#include "lpf/config/lpf_config_led.h" /* LED 配置类型 */
+#include "lpf/config/lpf_config_platform.h" /* 板级配置类型 */
 
 /*===========================================================================
  * 产品配置入口

@@ -11,8 +11,11 @@ kernel/
   Makefile
   include/
     osal/          # kernel-side cross-module OSAL headers
-    lpf_config/       # transitional runtime config type headers
-    lpf/           # kernel-side cross-module LPF headers
+    lpf/           # kernel-side cross-module LPF headers and layer subdirs
+      config/      # runtime config type headers
+      hw/          # LPF HW API headers
+      protocol/    # LPF protocol headers
+      soc/         # LPF SoC adapter headers
   osal/
     src/           # builds osal.ko
   lpf/
@@ -91,6 +94,7 @@ validated without requiring live LPF device nodes.
 ## Include Rules
 
 - Kernel cross-module headers live under `kernel/include/<module>/`.
+- LPF layer-specific kernel headers live under `kernel/include/lpf/<layer>/`.
 - UAPI headers live under `uapi/lpf/` and must be valid for both kernel and
   userspace builds.
 - Userspace code must not include non-UAPI kernel headers.

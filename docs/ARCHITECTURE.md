@@ -109,7 +109,8 @@ should not require live hardware. The mock preset can also build
 the mock backend when loaded after
 `lpf_peripheral_runtime.ko`. Future SoC-specific adapters should live under
 `kernel/lpf/soc/` and must keep vendor BSP calls out of hardware access APIs
-and LPF peripheral services.
+and LPF peripheral services. Public kernel-internal SoC adapter headers live
+under `kernel/include/lpf/soc/`.
 
 ### LPF Kernel Compat
 
@@ -131,7 +132,8 @@ Device Tree first and falls back to the built-in static table, while `dt` and
 `lpf_config_*` names, but the code is linked into the LPF peripheral runtime
 instead of a standalone config module. Future board-profile or product-selection
 backends should produce the same runtime config model before LPF peripheral
-configuration sees the data.
+configuration sees the data. Public kernel-internal runtime config headers live
+under `kernel/include/lpf/config/`.
 
 ### LPF Peripheral Services
 
@@ -151,7 +153,8 @@ LPF transport implementations own reusable communication backends used by
 peripheral services. The current MCU CAN and UART transports live under
 `kernel/lpf/transport/mcu/` and are selected by normalized LPF_CONFIG interface
 type. MCU service code uses the transport registry instead of depending on
-CAN/UART implementation symbols directly.
+CAN/UART implementation symbols directly. Public kernel-internal MCU transport
+headers live under `kernel/include/lpf/transport/mcu/`.
 
 ### LPF Protocol
 
@@ -159,7 +162,7 @@ LPF protocol helpers own reusable kernel-side packet framing for peripheral
 services that need a standard message envelope. The current implementation
 lives under `kernel/lpf/protocol/`, exports encode/decode entry points from
 `lpf_core.ko`, and keeps protocol constants and MCU message definitions under
-`kernel/include/lpf/`.
+`kernel/include/lpf/protocol/`.
 
 ### LPF Peripheral Runtime
 

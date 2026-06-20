@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-#include "lpf/lpf_config.h"
+#include "lpf/config/lpf_config.h"
 #include "lpf_config_normalizer.h"
 
 #include <string.h>

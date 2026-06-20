@@ -4,7 +4,7 @@
 
 #include "lpf/lpf_core.h"
 #include "lpf_peripheral_internal.h"
-#include "lpf/lpf_config.h"
+#include "lpf/config/lpf_config.h"
 
 static int32_t lpf_peripheral_make_mcu_config(
 	const lpf_config_device_config_t *device, lpf_device_config_t *config)

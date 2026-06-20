@@ -7,7 +7,7 @@
  ************************************************************************/
 
 #include "osal.h"
-#include "lpf/lpf_config.h"
+#include "lpf/config/lpf_config.h"
 #include "lpf_config_backend.h"
 #include "lpf_config_normalizer.h"
 #include "lpf_config_validator.h"

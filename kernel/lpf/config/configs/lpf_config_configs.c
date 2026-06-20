@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 
-#include "lpf/lpf_config.h"
+#include "lpf/config/lpf_config.h"
 
 extern const lpf_config_platform_config_t
 	g_lpf_config_kernel_x86_modules_1_0_0;

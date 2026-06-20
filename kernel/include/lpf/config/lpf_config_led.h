@@ -5,7 +5,7 @@
 #ifndef LPF_CONFIG_LED_H
 #define LPF_CONFIG_LED_H
 
-#include "lpf_config_common.h"
+#include "lpf/config/lpf_config_common.h"
 
 typedef enum {
 	LPF_CONFIG_LED_CONTROL_GPIO = 0x00,

@@ -3,7 +3,7 @@
 #ifndef LPF_CONFIG_VALIDATOR_H
 #define LPF_CONFIG_VALIDATOR_H
 
-#include "lpf/lpf_config.h"
+#include "lpf/config/lpf_config.h"
 
 typedef uint32_t (*lpf_config_device_count_fn)(
 	const lpf_config_platform_config_t *platform);

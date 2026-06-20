@@ -2,7 +2,7 @@
 
 #include <linux/module.h>
 
-#include "lpf/lpf_soc_adapter.h"
+#include "lpf/soc/lpf_soc_adapter.h"
 
 #if defined(CONFIG_LPF_SOC_ADAPTER_MOCK)
 extern const lpf_soc_adapter_t g_lpf_soc_mock_adapter;

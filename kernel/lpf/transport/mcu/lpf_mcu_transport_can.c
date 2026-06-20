@@ -8,9 +8,9 @@
  ************************************************************************/
 
 #include "osal.h"
-#include "lpf_config.h"
+#include "lpf/config/lpf_config.h"
 #include "lpf/hw/lpf_hw_transport_can.h"
-#include "lpf/lpf_mcu_transport.h"
+#include "lpf/transport/mcu/lpf_mcu_transport.h"
 
 /*===========================================================================
  * CAN通信实现

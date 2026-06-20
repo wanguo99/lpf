@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 
 #include "osal.h"
-#include "lpf_config.h"
+#include "lpf/config/lpf_config.h"
 #include "lpf/lpf_driver.h"
 #include "lpf/hw/lpf_hw.h"
 #include "lpf_led_internal.h"

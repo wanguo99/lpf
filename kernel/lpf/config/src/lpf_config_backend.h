@@ -3,7 +3,7 @@
 #ifndef LPF_CONFIG_BACKEND_H
 #define LPF_CONFIG_BACKEND_H
 
-#include "lpf/lpf_config.h"
+#include "lpf/config/lpf_config.h"
 
 typedef struct {
 	const char *name;

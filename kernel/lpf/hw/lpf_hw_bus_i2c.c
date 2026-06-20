@@ -4,7 +4,7 @@
 
 #include "osal.h"
 #include "lpf/hw/lpf_hw_bus_i2c.h"
-#include "lpf/lpf_soc_adapter.h"
+#include "lpf/soc/lpf_soc_adapter.h"
 
 typedef struct {
 	lpf_i2c_handle_t adapter;

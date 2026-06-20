@@ -84,10 +84,15 @@ kernel/include/lpf/
 ├── lpf_peripheral.h
 ├── lpf_led_service.h
 ├── lpf_mcu_service.h
-├── lpf_mcu_transport.h
 ├── lpf_proc.h
-├── lpf_protocol.h
-├── lpf_protocol_mcu.h
+├── config/
+│   └── lpf_config*.h
+├── protocol/
+│   ├── lpf_protocol.h
+│   └── lpf_protocol_mcu.h
+├── transport/
+│   └── mcu/
+│       └── lpf_mcu_transport.h
 └── ...
 ```
 

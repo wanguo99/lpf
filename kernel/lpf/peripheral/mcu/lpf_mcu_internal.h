@@ -11,9 +11,9 @@
 
 #include "osal.h"
 #include "lpf/lpf_core.h"
-#include "lpf_config.h"
+#include "lpf/config/lpf_config.h"
 #include "lpf/lpf_mcu_service.h"
-#include "lpf/lpf_mcu_transport.h"
+#include "lpf/transport/mcu/lpf_mcu_transport.h"
 
 #ifndef CONFIG_LPF_MCU_MAX_DEVICES
 #define CONFIG_LPF_MCU_MAX_DEVICES 4
