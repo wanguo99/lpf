@@ -884,6 +884,43 @@ out:
 	return failures ? 1 : 0;
 }
 
+static int test_pdi_coverage_tracks_discovery_paths(void)
+{
+	char *pdi_mock;
+	char *plan;
+	int failures = 0;
+
+	pdi_mock = read_source_file("tests/user/pdi/test_pdi_ioctl_mock.c");
+	plan = read_source_file("docs/LPF_ARCHITECTURE_REFACTOR_PLAN.md");
+	if (!pdi_mock || !plan) {
+		fprintf(stderr, "failed to read PDI coverage sources\n");
+		failures = 1;
+		goto out;
+	}
+
+	failures += expect_contains("test_pdi_ioctl_mock.c", pdi_mock,
+				    "test_control_discovery");
+	failures += expect_contains("test_pdi_ioctl_mock.c", pdi_mock,
+				    "LPF_CTL_IOC_GET_DEVICE_BY_CAPABILITY");
+	failures += expect_contains("test_pdi_ioctl_mock.c", pdi_mock,
+				    "pdi_get_device_by_capability");
+	failures += expect_contains("test_pdi_ioctl_mock.c", pdi_mock,
+				    "\"missing\"");
+	failures += expect_contains("test_pdi_ioctl_mock.c", pdi_mock,
+				    "\"wrong-type\"");
+	failures += expect_contains("test_pdi_ioctl_mock.c", pdi_mock,
+				    "pdi_mcu_get_info");
+	failures += expect_contains("test_pdi_ioctl_mock.c", pdi_mock,
+				    "pdi_led_get_info");
+	failures += expect_contains("LPF_ARCHITECTURE_REFACTOR_PLAN.md",
+				    plan, "Add ABI/PDI coverage for current");
+
+out:
+	free(plan);
+	free(pdi_mock);
+	return failures ? 1 : 0;
+}
+
 int main(void)
 {
 	int ret = 0;
@@ -901,6 +938,7 @@ int main(void)
 	ret += test_instance_devnode_mode_policy();
 	ret += test_no_separate_bus_layer();
 	ret += test_mock_smoke_covers_runtime_surfaces();
+	ret += test_pdi_coverage_tracks_discovery_paths();
 
 	return ret ? EXIT_FAILURE : EXIT_SUCCESS;
 }

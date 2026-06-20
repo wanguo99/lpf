@@ -188,7 +188,8 @@ Acceptance:
 - [ ] Verify `/dev/lpf/mcuN` and `/dev/lpf/ledN` creation.
 - [ ] Verify configured and unconfigured PDI ioctl behavior.
 - [ ] Keep kernel matrix builds active for supported kernel versions.
-- [ ] Add ABI/PDI coverage whenever a new peripheral is introduced.
+- [x] Add ABI/PDI coverage for current MCU and LED peripheral discovery,
+      configured/unconfigured paths, and operation marshaling.
 
 Acceptance:
 - Module build, unit tests, mock module load tests, and target smoke checks all

@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#define ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
 #define MOCK_FD 77
 
 typedef struct {
@@ -46,6 +47,42 @@ static int mock_close(int fd)
 	return 0;
 }
 
+static void fill_mock_device(struct lpf_ctl_device_info *info, uint32_t type,
+			     uint32_t index, const char *name,
+			     uint64_t capabilities)
+{
+	memset(info, 0, sizeof(*info));
+	info->type = type;
+	info->index = index;
+	info->state = LPF_CTL_DEVICE_STATE_BOUND;
+	info->capabilities = capabilities;
+	strncpy(info->name, name, sizeof(info->name) - 1U);
+	strncpy(info->driver_name, "mock-driver",
+		sizeof(info->driver_name) - 1U);
+}
+
+static int fill_mock_device_by_index(uint32_t index,
+				     struct lpf_ctl_device_info *info)
+{
+	switch (index) {
+	case 0:
+		fill_mock_device(info, LPF_CTL_DEVICE_TYPE_MCU, 3, "mcu-main",
+				 LPF_CTL_DEVICE_CAP_USER_IOCTL |
+					 LPF_CTL_DEVICE_CAP_DEBUGFS |
+					 LPF_CTL_DEVICE_CAP_TRANSPORT_CAN);
+		return 0;
+	case 1:
+		fill_mock_device(info, LPF_CTL_DEVICE_TYPE_LED, 2, "led-front",
+				 LPF_CTL_DEVICE_CAP_USER_IOCTL |
+					 LPF_CTL_DEVICE_CAP_DEBUGFS |
+					 LPF_CTL_DEVICE_CAP_CONTROL_PWM);
+		return 0;
+	default:
+		errno = ENODEV;
+		return -1;
+	}
+}
+
 static int mock_ioctl(int fd, unsigned long request, void *arg)
 {
 	g_mock.ioctl_calls++;
@@ -53,22 +90,64 @@ static int mock_ioctl(int fd, unsigned long request, void *arg)
 	g_mock.last_request = request;
 
 	switch (request) {
+	case LPF_CTL_IOC_GET_INFO: {
+		struct lpf_ctl_info *info = arg;
+
+		memset(info, 0, sizeof(*info));
+		info->abi_version = LPF_CTL_ABI_VERSION;
+		info->device_count = 2;
+		return 0;
+	}
+	case LPF_CTL_IOC_GET_DEVICE: {
+		struct lpf_ctl_device_query *query = arg;
+
+		return fill_mock_device_by_index(query->match_index,
+						 &query->info);
+	}
 	case LPF_CTL_IOC_GET_DEVICE_BY_NAME: {
 		struct lpf_ctl_device_name_query *query = arg;
 
-		if (strcmp(query->name, "mcu-main") == 0) {
-			query->info.type = LPF_CTL_DEVICE_TYPE_MCU;
-			query->info.index = 3;
-			return 0;
-		}
-		if (strcmp(query->name, "led-front") == 0) {
-			query->info.type = LPF_CTL_DEVICE_TYPE_LED;
-			query->info.index = 2;
+		if (strcmp(query->name, "mcu-main") == 0)
+			return fill_mock_device_by_index(0, &query->info);
+		if (strcmp(query->name, "led-front") == 0)
+			return fill_mock_device_by_index(1, &query->info);
+		if (strcmp(query->name, "wrong-type") == 0) {
+			fill_mock_device(&query->info, LPF_CTL_DEVICE_TYPE_LED,
+					 4, "wrong-type",
+					 LPF_CTL_DEVICE_CAP_USER_IOCTL);
 			return 0;
 		}
 
 		errno = ENODEV;
 		return -1;
+	}
+	case LPF_CTL_IOC_GET_DEVICE_BY_CAPABILITY: {
+		struct lpf_ctl_device_query *query = arg;
+		struct lpf_ctl_device_info info;
+		uint32_t match = 0;
+		uint32_t i;
+
+		for (i = 0; fill_mock_device_by_index(i, &info) == 0; i++) {
+			if ((info.capabilities & query->required_capabilities) !=
+			    query->required_capabilities)
+				continue;
+			if (match == query->match_index) {
+				query->info = info;
+				return 0;
+			}
+			match++;
+		}
+
+		errno = ENODEV;
+		return -1;
+	}
+	case LPF_MCU_IOC_GET_INFO: {
+		struct lpf_mcu_info *info = arg;
+
+		memset(info, 0, sizeof(*info));
+		info->abi_version = LPF_MCU_ABI_VERSION;
+		info->max_devices = 4;
+		return 0;
 	}
 	case LPF_MCU_IOC_GET_VERSION: {
 		struct lpf_mcu_version *version = arg;
@@ -144,6 +223,14 @@ static int mock_ioctl(int fd, unsigned long request, void *arg)
 		state->enabled = 1;
 		return 0;
 	}
+	case LPF_LED_IOC_GET_INFO: {
+		struct lpf_led_info *info = arg;
+
+		memset(info, 0, sizeof(*info));
+		info->abi_version = LPF_LED_ABI_VERSION;
+		info->max_devices = 8;
+		return 0;
+	}
 	case LPF_LED_IOC_SET_BRIGHTNESS: {
 		const struct lpf_led_brightness *brightness = arg;
 
@@ -208,6 +295,61 @@ static int test_default_paths(void)
 	return 0;
 }
 
+static int test_control_discovery(void)
+{
+	pdi_ctl_context_t ctl = { .fd = MOCK_FD };
+	struct lpf_ctl_info info;
+	struct lpf_ctl_device_info devices[2];
+	struct lpf_ctl_device_info device;
+	uint32_t count;
+
+	mock_reset();
+	pdi_syscall_set_ops(&g_mock_ops);
+
+	memset(&info, 0, sizeof(info));
+	if (pdi_ctl_get_info(&ctl, &info) != 0)
+		return 401;
+	if (g_mock.last_request != LPF_CTL_IOC_GET_INFO ||
+	    info.abi_version != LPF_CTL_ABI_VERSION || info.device_count != 2)
+		return 402;
+
+	memset(devices, 0, sizeof(devices));
+	count = ARRAY_SIZE(devices);
+	if (pdi_list_devices(&ctl, devices, &count) != 0)
+		return 403;
+	if (count != 2 || devices[0].type != LPF_CTL_DEVICE_TYPE_MCU ||
+	    devices[0].index != 3 || strcmp(devices[0].name, "mcu-main") ||
+	    devices[1].type != LPF_CTL_DEVICE_TYPE_LED ||
+	    devices[1].index != 2 || strcmp(devices[1].name, "led-front"))
+		return 404;
+
+	memset(&device, 0, sizeof(device));
+	if (pdi_get_device_by_capability(&ctl,
+					 LPF_CTL_DEVICE_CAP_CONTROL_PWM, 0,
+					 &device) != 0)
+		return 405;
+	if (g_mock.last_request != LPF_CTL_IOC_GET_DEVICE_BY_CAPABILITY ||
+	    device.type != LPF_CTL_DEVICE_TYPE_LED || device.index != 2)
+		return 406;
+
+	errno = 0;
+	if (pdi_get_device_by_name(&ctl, "missing", &device) != -1)
+		return 407;
+	if (errno != ENODEV)
+		return 408;
+
+	errno = 0;
+	if (pdi_get_device_by_capability(&ctl,
+					 LPF_CTL_DEVICE_CAP_CONTROL_GPIO, 0,
+					 &device) != -1)
+		return 409;
+	if (errno != ENODEV)
+		return 410;
+
+	pdi_syscall_reset_ops();
+	return 0;
+}
+
 static int test_open_by_name(void)
 {
 	pdi_mcu_context_t mcu = { .fd = -1 };
@@ -237,6 +379,18 @@ static int test_open_by_name(void)
 	if (pdi_led_close(&led) != 0 || led.fd != -1)
 		return 9;
 
+	errno = 0;
+	if (pdi_mcu_open_by_name(&mcu, "wrong-type") != -1)
+		return 10;
+	if (errno != ENODEV || mcu.fd != -1)
+		return 11;
+
+	errno = 0;
+	if (pdi_led_open_by_name(&led, "mcu-main") != -1)
+		return 12;
+	if (errno != ENODEV || led.fd != -1)
+		return 13;
+
 	pdi_syscall_reset_ops();
 	return 0;
 }
@@ -244,6 +398,7 @@ static int test_open_by_name(void)
 static int test_mcu_operations(void)
 {
 	pdi_mcu_context_t ctx = { .fd = MOCK_FD };
+	struct lpf_mcu_info info;
 	struct lpf_mcu_version version;
 	struct lpf_mcu_status status;
 	struct lpf_mcu_command command;
@@ -251,6 +406,13 @@ static int test_mcu_operations(void)
 
 	mock_reset();
 	pdi_syscall_set_ops(&g_mock_ops);
+
+	memset(&info, 0, sizeof(info));
+	if (pdi_mcu_get_info(&ctx, &info) != 0)
+		return 112;
+	if (g_mock.last_request != LPF_MCU_IOC_GET_INFO ||
+	    info.abi_version != LPF_MCU_ABI_VERSION || info.max_devices != 4)
+		return 113;
 
 	memset(&version, 0, sizeof(version));
 	if (pdi_mcu_get_version(&ctx, &version) != 0)
@@ -312,10 +474,18 @@ static int test_mcu_operations(void)
 static int test_led_operations(void)
 {
 	pdi_led_context_t ctx = { .fd = MOCK_FD };
+	struct lpf_led_info info;
 	struct lpf_led_state state;
 
 	mock_reset();
 	pdi_syscall_set_ops(&g_mock_ops);
+
+	memset(&info, 0, sizeof(info));
+	if (pdi_led_get_info(&ctx, &info) != 0)
+		return 206;
+	if (g_mock.last_request != LPF_LED_IOC_GET_INFO ||
+	    info.abi_version != LPF_LED_ABI_VERSION || info.max_devices != 8)
+		return 207;
 
 	memset(&state, 0, sizeof(state));
 	if (pdi_led_get_state(&ctx, &state) != 0)
@@ -346,6 +516,10 @@ int main(void)
 	int ret;
 
 	ret = test_default_paths();
+	if (ret)
+		return ret;
+
+	ret = test_control_discovery();
 	if (ret)
 		return ret;
 
