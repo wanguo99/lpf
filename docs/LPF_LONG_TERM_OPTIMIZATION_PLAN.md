@@ -341,6 +341,8 @@ Current status:
 - Done. LPF Core initialization, peripheral service registration, and
   configured-device probing are now wrapped by the LPF peripheral runtime
   entry; PDM calls one runtime entry instead of owning the sequence directly.
+- Done. The obsolete PDM public header has been removed; runtime version
+  reporting is now owned by the LPF peripheral runtime entry.
 - Started. MCU CAN/UART implementations have moved behind
   `kernel/lpf/transport/mcu/` and are selected through the LPF MCU transport
   registry instead of direct service dependencies.

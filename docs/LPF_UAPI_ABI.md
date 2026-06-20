@@ -1,7 +1,7 @@
 # LPF UAPI ABI Rules
 
-LPF UAPI headers under `uapi/lpf/` define the stable ioctl ABI shared by
-kernel PDM character devices and userspace PDI wrappers. PDI owns the
+LPF UAPI headers under `uapi/lpf/` define the stable ioctl ABI shared by LPF
+kernel character devices and userspace PDI wrappers. PDI owns the
 application-facing SDK; LPF UAPI owns ioctl commands, fixed-layout payloads,
 device-node names, and ABI version constants.
 
@@ -12,8 +12,8 @@ device-node names, and ABI version constants.
 - The header must compile in both kernel and userspace builds.
 - UAPI structures use Linux fixed-width types such as `__u32`, `__s32`, and
   `__u64`.
-- UAPI structures must not expose kernel-only HAL, PConfig, PDM, or OSAL
-  internal types.
+- UAPI structures must not expose kernel-only HAL, PConfig, LPF Core, LPF
+  peripheral, or OSAL internal types.
 - Each peripheral owns a unique ioctl magic and command-number namespace.
 - Ioctl payloads should be plain fixed-layout structs or fixed-width scalar
   types.
@@ -33,7 +33,7 @@ device-node names, and ABI version constants.
 
 ## Compatibility
 
-- `CONFIG_COMPAT` handling stays local to each PDM peripheral character device.
+- `CONFIG_COMPAT` handling stays local to each LPF peripheral character device.
 - A peripheral may forward compat ioctl directly only when all ioctl payloads
   use fixed-width fields and pointer-free structures.
 - If a future peripheral needs pointer-bearing or layout-dependent payloads, it
@@ -48,7 +48,8 @@ Add the following pieces together:
 - `user/pdi/include/pdi/<peripheral>.h`
 - `user/pdi/src/pdi_<peripheral>.c`
 - PDI aggregate include from `user/pdi/include/pdi/pdi.h`
-- PDM character device implementation for `/dev/lpf/<peripheral><index>`
+- LPF peripheral character device implementation for
+  `/dev/lpf/<peripheral><index>`
 - `LPF_<PERIPHERAL>_IOC_GET_INFO`
 - A unique `LPF_<PERIPHERAL>_IOC_MAGIC`
 

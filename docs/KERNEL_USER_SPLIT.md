@@ -13,7 +13,7 @@ kernel/
     osal/          # kernel-side cross-module OSAL headers
     hal/           # kernel-side cross-module HAL headers
     pconfig/       # kernel-side cross-module PConfig headers
-    pdm/           # kernel-side cross-module PDM headers
+    lpf/           # kernel-side cross-module LPF headers
   osal/
     src/           # builds osal.ko
   hal/
@@ -21,42 +21,48 @@ kernel/
   pconfig/
     src/           # kernel-side configuration implementation
   lpf/
+    core/          # LPF device model and shared node infrastructure
     protocol/      # LPF protocol helpers linked into lpf_core.ko
+    peripheral/    # framework-owned peripheral services
   pdm/
-    src/           # builds pdm.ko and owns ioctl dispatch
+    src/           # current integration module entry for pdm.ko
 
 user/
   osal/            # userspace OSAL library
   aconfig/         # userspace application configuration
-  pdi/             # userspace API library for PDM
+  pdi/             # userspace API library for LPF
 
 uapi/
-  lpf/             # ioctl ABI shared by PDM and PDI
+  lpf/             # ioctl ABI shared by LPF kernel nodes and PDI
 ```
 
 ## Responsibilities
 
 - `kernel/osal` wraps Linux kernel APIs and builds `osal.ko`.
-- `kernel/pdm` owns the kernel module entry, device node, ioctl boundary,
-  and links current LPF peripheral service paths into `pdm.ko`.
+- `kernel/lpf/core` owns the LPF device model, control/discovery node, and
+  shared chrdev/sysfs/debugfs helpers.
+- `kernel/lpf/peripheral` owns the framework peripheral runtime and service
+  implementations; current service paths are linked into `pdm.ko`.
+- `kernel/pdm` owns only the current integration module entry point.
 - `kernel/lpf/protocol` provides kernel-side LPF protocol helpers through
   `lpf_core.ko` for services that need framed communication.
-- `kernel/hal` provides kernel-only hardware access used by PDM.
-  It builds as `hal.ko` and exports HAL API symbols for PDM.
+- `kernel/hal` provides kernel-only hardware access used by LPF peripheral
+  services. It builds as `hal.ko` and exports HAL API symbols.
 - `kernel/pconfig` provides kernel-side platform/product configuration used
-  by PDM. It builds as `pconfig.ko`.
+  by LPF peripheral configuration. It builds as `pconfig.ko`.
 - `user/pdi` provides the application-facing C API and wraps open/ioctl.
-- `uapi/lpf` is the stable ABI shared by `kernel/pdm` and `user/pdi`.
+- `uapi/lpf` is the stable ABI shared by LPF kernel nodes and `user/pdi`.
 
 ## Boundary Rules
 
 - Kernel code may include `kernel/include/<module>/` and generated headers.
 - Userspace code may include `user/<module>/include/` and `uapi/` headers.
-- Userspace code must not include kernel-internal HAL, PCONFIG, or PDM headers.
+- Userspace code must not include kernel-internal HAL, PCONFIG, LPF Core, or
+  LPF peripheral headers.
 - UAPI headers must not depend on kernel-only types or private framework
   structures.
-- PDI should marshal data and call ioctl; it should not duplicate PDM or HAL
-  behavior in userspace.
+- PDI should marshal data and call ioctl; it should not duplicate LPF
+  peripheral service or HAL behavior in userspace.
 - Product code should call PDI and ACONFIG rather than reaching into kernel
   framework internals.
 
@@ -69,9 +75,9 @@ PDI userspace API
     ↓
 /dev/lpf/<peripheral><index> ioctl
     ↓
-PDM kernel driver
+LPF peripheral service
     ↓
-PCONFIG + HAL
+PCONFIG + LPF Core + HAL
     ↓
 Linux kernel subsystem / hardware
 ```

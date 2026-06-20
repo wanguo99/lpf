@@ -161,9 +161,9 @@ Business operations stay on LPF instance nodes such as `/dev/lpf/mcu0` and
 
 ### UAPI
 
-UAPI headers define the stable ioctl ABI shared between PDM and PDI. They must
-remain valid for both kernel and userspace compilation and should avoid
-kernel-internal types.
+UAPI headers define the stable ioctl ABI shared between LPF kernel nodes and
+PDI. They must remain valid for both kernel and userspace compilation and
+should avoid kernel-internal types.
 
 ### PDI
 
@@ -266,4 +266,4 @@ and build configuration remain consistent.
 - HAL should call LPF SoC Adapter APIs for SoC-backed hardware capabilities.
 - Kernel-version conditionals belong in `kernel/lpf/compat/`.
 - Userspace code must use PDI/UAPI rather than including kernel-internal HAL,
-  PCONFIG, or PDM headers.
+  PCONFIG, LPF Core, or LPF peripheral headers.

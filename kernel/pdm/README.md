@@ -83,6 +83,7 @@ kernel/lpf/protocol/
 
 kernel/include/lpf/
 ├── lpf_errno.h
+├── lpf_peripheral.h
 ├── lpf_led_service.h
 ├── lpf_mcu_service.h
 ├── lpf_mcu_transport.h
@@ -90,9 +91,6 @@ kernel/include/lpf/
 ├── lpf_protocol.h
 ├── lpf_protocol_mcu.h
 └── ...
-
-kernel/include/pdm/
-└── pdm.h
 ```
 
 ## Layering

@@ -6,9 +6,23 @@
 #include "lpf/lpf_led_service.h"
 #include "lpf/lpf_mcu_service.h"
 #include "lpf_peripheral_internal.h"
+#include "generated/gen_version.h"
 
 static bool g_lpf_peripheral_runtime_ready;
 static bool g_lpf_peripheral_services_ready;
+
+void lpf_peripheral_runtime_print_version(void)
+{
+	osal_log(OS_LOG_LEVEL_INFO, "LPF-PERIPHERAL",
+		 "module_version=%u.%u.%u lpf_version=%s git=%s build_time=%s build_by=%s@%s compiler=%s arch=%s kernel=%s",
+		 LPF_PERIPHERAL_RUNTIME_VERSION_MAJOR,
+		 LPF_PERIPHERAL_RUNTIME_VERSION_MINOR,
+		 LPF_PERIPHERAL_RUNTIME_VERSION_PATCH,
+		 LPF_VERSION, LPF_GIT_COMMIT,
+		 LPF_COMPILE_TIME, LPF_COMPILE_BY,
+		 LPF_COMPILE_HOST, LPF_COMPILER,
+		 LPF_BUILD_ARCH, LPF_BUILD_KERNEL);
+}
 
 static int32_t lpf_peripheral_register_services(void)
 {

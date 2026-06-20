@@ -26,14 +26,14 @@ menuconfig PCONFIG
 	  Use cases:
 	  - Fixed product hardware descriptions
 	  - Multi-board product variants selected by a PCONFIG backend
-	  - Hardware abstraction for kernel PDM
+	  - Hardware configuration for LPF peripheral services
 	  - Peripheral lookup by index or platform/product name
 
 	  Dependencies: OSAL (for basic services)
 
 	  Note: Enable OSAL first in "Core Modules" menu.
-	  PDM and peripheral services must not depend on concrete product table
-	  symbols or backend implementations.
+	  LPF peripheral services must not depend on concrete product table symbols
+	  or backend implementations.
 
 	  Recommended: Enable for products with hardware configuration tables
 

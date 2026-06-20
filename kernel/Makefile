@@ -18,7 +18,6 @@ ccflags-y += -I$(src)/include/hal
 ccflags-y += -I$(src)/include/hal/config
 ccflags-y += -I$(src)/hal/src
 ccflags-y += -I$(src)/include/pconfig
-ccflags-y += -I$(src)/include/pdm
 ccflags-y += -I$(src)/lpf/peripheral/mcu
 ccflags-y += -I$(src)/lpf/peripheral/led
 ccflags-y += -I$(src)/lpf/transport/mcu

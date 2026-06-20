@@ -5,14 +5,14 @@ menuconfig PDM
 	default n
 	depends on OSAL && LPF_CORE && HAL && PCONFIG
 	help
-	  Peripheral Driver Module provides high-level peripheral management
-	  and LPF device orchestration.
+	  Peripheral Driver Module is the current compatibility module entry
+	  that hosts the integrated LPF peripheral runtime.
 
 	  PDM currently hosts the LPF peripheral runtime and services that are
 	  integrated through one framework module boundary.
 
 	  Architecture:
-	  PDM integrates LPF Core, PCONFIG, HAL, and LPF peripheral services
+	  LPF Core, PCONFIG, HAL, and LPF peripheral services remain integrated
 	  through one framework module boundary.
 
 	  Memory footprint: framework shell + selected peripheral services

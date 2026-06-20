@@ -1,6 +1,7 @@
 # HAL
 
-HAL is the kernel-mode Hardware Abstraction Layer used by PDM.
+HAL is the kernel-mode Hardware Abstraction Layer used by LPF peripheral
+services.
 
 ## Scope
 
@@ -67,7 +68,7 @@ kernel/hal/
 
 ## Layering
 
-PDM includes HAL headers and calls exported HAL symbols. HAL owns hardware
-capability APIs. New HAL paths should call LPF SoC Adapter APIs instead of
-calling Linux or vendor BSP APIs directly. Current HAL CAN, serial, GPIO, PWM,
-I2C, and SPI implementations all follow this rule.
+LPF peripheral services include HAL headers and call exported HAL symbols. HAL
+owns hardware capability APIs. New HAL paths should call LPF SoC Adapter APIs
+instead of calling Linux or vendor BSP APIs directly. Current HAL CAN, serial,
+GPIO, PWM, I2C, and SPI implementations all follow this rule.

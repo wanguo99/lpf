@@ -189,11 +189,11 @@ device and driver lifecycle instead of adding new PDM-local bus code.
   - Either wrap kernel socket operations needed by HAL CAN, or document them as
     HAL-owned kernel details.
 - [x] Decide policy for usercopy helpers.
-  - If PDM character devices should not call `copy_to_user` directly, add
+  - If LPF character devices should not call `copy_to_user` directly, add
     `osal_copy_to_user` and `osal_copy_from_user`.
 - [x] Decide policy for character-device helpers.
-  - If repeated PDM chrdev code grows, add common OSAL or PDM-local helpers for
-    misc device registration and ioctl dispatch.
+  - Repeated LPF chrdev code now uses LPF Core helpers for misc device
+    registration and ioctl dispatch.
 - [x] Explicitly list unsupported user OSAL APIs.
   - Examples: process, environment, signal, POSIX shared memory, pty.
   - Unsupported APIs should either be absent from kernel OSAL or return
