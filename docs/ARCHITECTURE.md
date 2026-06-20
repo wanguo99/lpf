@@ -132,10 +132,12 @@ controlled by the `backend` module parameter on `lpf_runtime.ko`: `auto` tries
 the built-in static table first and falls back to Device Tree, while `static`
 and `dt` require a specific backend and do not fall back. The source still uses
 transitional `lpf_config_*` names, but the code is linked into the LPF runtime
-instead of a standalone config module. Future board-profile or product-selection
-backends should produce the same runtime config model before LPF peripheral
-configuration sees the data. Public kernel-internal runtime config headers live
-under `kernel/include/lpf/config/`.
+instead of a standalone config module. Static C configs should author the board
+description as first-class configured-device node tables, with legacy
+per-peripheral arrays kept only as compatibility payload storage where needed.
+Future board-profile or product-selection backends should produce the same
+runtime config model before LPF peripheral configuration sees the data. Public
+kernel-internal runtime config headers live under `kernel/include/lpf/config/`.
 
 ### LPF Peripheral Services
 

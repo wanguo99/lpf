@@ -21,6 +21,40 @@ static void lpf_config_normalizer_clear_devices(
 	}
 }
 
+static int32_t lpf_config_copy_platform_nodes(
+	const lpf_config_platform_config_t *platform,
+	lpf_config_device_node_t *nodes, uint32_t *count)
+{
+	uint32_t capacity;
+	uint32_t i;
+
+	if (!platform || !count)
+		return OSAL_ERR_INVALID_PARAM;
+
+	if (!platform->device_nodes || platform->device_node_count == 0)
+		return OSAL_ERR_NAME_NOT_FOUND;
+
+	capacity = nodes ? *count : 0;
+	if (nodes && capacity > 0)
+		lpf_config_normalizer_clear_devices(nodes, capacity);
+
+	if (!nodes) {
+		*count = platform->device_node_count;
+		return OSAL_SUCCESS;
+	}
+
+	for (i = 0; i < platform->device_node_count && i < capacity; i++)
+		nodes[i] = platform->device_nodes[i];
+
+	*count = platform->device_node_count;
+	if (platform->device_node_count >= capacity)
+		return OSAL_ERR_RESOURCE_LIMIT;
+
+	nodes[platform->device_node_count].device_type =
+		LPF_CONFIG_DEVICE_TYPE_INVALID;
+	return OSAL_SUCCESS;
+}
+
 int32_t lpf_config_build_device_nodes(
 	const lpf_config_platform_config_t *platform,
 	lpf_config_device_node_t *nodes, uint32_t *count)
@@ -33,6 +67,9 @@ int32_t lpf_config_build_device_nodes(
 
 	if (!platform || !count)
 		return OSAL_ERR_INVALID_PARAM;
+
+	if (platform->device_nodes && platform->device_node_count > 0)
+		return lpf_config_copy_platform_nodes(platform, nodes, count);
 
 	capacity = nodes ? *count : 0;
 	if (nodes && capacity > 0)

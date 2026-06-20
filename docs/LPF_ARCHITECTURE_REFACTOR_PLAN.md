@@ -102,10 +102,10 @@ parser, or driver-core internals.
 6. **Board config shape is still partially transitional**
    - Fixed for runtime probing by introducing a generic configured-device node
      table and making runtime traverse nodes instead of peripheral arrays.
-   - The static platform config still stores source data in per-peripheral
-     arrays such as MCU and LED arrays.
-   - A future cleanup can move static config authoring itself closer to a
-     first-class node table if that reduces duplication.
+   - Fixed for static config authoring by making static C configs publish
+     first-class configured-device node tables.
+   - Per-peripheral arrays remain only as a compatibility fallback for older
+     helpers and transitional backends.
 
 ## Refactor Phases
 
@@ -212,8 +212,9 @@ Acceptance:
       but prevent runtime core from knowing peripheral-specific arrays.
 - [x] Add architecture tests that reject new central MCU/LED-style mapping in
       runtime core.
-- [ ] Decide whether static config authoring should move from per-peripheral
-      arrays to first-class node tables after target smoke validation.
+- [x] Move static config authoring from per-peripheral arrays toward
+      first-class node tables for local code cleanup; target smoke validation
+      remains tracked in Phases 5 and 6.
 - [x] Add compatible-string dispatch when multiple drivers need to bind the
       same LPF config device type.
 

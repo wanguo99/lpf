@@ -414,6 +414,27 @@ static int test_static_config_sources_are_version_named(void)
 	failures += expect_not_contains("lpf_config_kernel_x86_mock_modules_v1.c",
 					mock_config,
 					"g_lpf_config_platform_table");
+	failures += expect_contains("lpf_config_kernel_x86_mock_modules_v1.c",
+				    mock_config,
+				    "g_lpf_config_kernel_x86_mock_modules_nodes");
+	failures += expect_contains("lpf_config_kernel_x86_mock_modules_v1.c",
+				    mock_config,
+				    ".device_node_count = OSAL_ARRAY_SIZE");
+	failures += expect_contains("lpf_config_kernel_x86_mock_modules_v1.c",
+				    mock_config,
+				    ".device_nodes = g_lpf_config_kernel_x86_mock_modules_nodes");
+	failures += expect_contains("lpf_config_kernel_x86_mock_modules_v1.c",
+				    mock_config,
+				    ".compatible = \"lpf,mcu\"");
+	failures += expect_contains("lpf_config_kernel_x86_mock_modules_v1.c",
+				    mock_config,
+				    ".compatible = \"lpf,led\"");
+	failures += expect_contains("lpf_config_kernel_x86_mock_modules_v1.c",
+				    mock_config,
+				    ".mcu_count = 0");
+	failures += expect_contains("lpf_config_kernel_x86_mock_modules_v1.c",
+				    mock_config,
+				    ".led_count = 0");
 
 out:
 	free(mock_config);

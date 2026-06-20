@@ -207,6 +207,29 @@ static int test_count_only_reports_enabled_devices(void)
 	return count == 3U ? 0 : 202;
 }
 
+static int test_node_table_supports_compat_accessors(void)
+{
+	const lpf_config_mcu_entry_t *mcu;
+	const lpf_config_led_entry_t *status;
+	const lpf_config_led_entry_t *activity;
+
+	mcu = lpf_config_hw_get_mcu(&g_lpf_config_kernel_x86_mock_modules_v1,
+				    0);
+	status = lpf_config_hw_get_led(
+		&g_lpf_config_kernel_x86_mock_modules_v1, 0);
+	activity = lpf_config_hw_get_led(
+		&g_lpf_config_kernel_x86_mock_modules_v1, 1);
+
+	if (!mcu || !status || !activity)
+		return 401;
+	if (test_lpf_config_string_equal(mcu->config.name, "mcu0") ||
+	    test_lpf_config_string_equal(status->config.name, "status") ||
+	    test_lpf_config_string_equal(activity->config.name, "activity"))
+		return 402;
+
+	return 0;
+}
+
 static int test_exact_capacity_requires_sentinel_slot(void)
 {
 	lpf_config_device_config_t devices[3];
@@ -235,6 +258,10 @@ int main(void)
 		return ret;
 
 	ret = test_count_only_reports_enabled_devices();
+	if (ret)
+		return ret;
+
+	ret = test_node_table_supports_compat_accessors();
 	if (ret)
 		return ret;
 

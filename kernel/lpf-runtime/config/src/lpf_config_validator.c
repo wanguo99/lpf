@@ -3,14 +3,69 @@
 #include "osal.h"
 #include "lpf_config_validator.h"
 
+static uint32_t lpf_config_node_count_by_type(
+	const lpf_config_platform_config_t *platform,
+	lpf_config_device_type_t type)
+{
+	uint32_t count = 0;
+	uint32_t i;
+
+	if (!platform || !platform->device_nodes)
+		return 0;
+
+	for (i = 0; i < platform->device_node_count; i++) {
+		if (platform->device_nodes[i].device_type == type)
+			count++;
+	}
+
+	return count;
+}
+
+static const lpf_config_device_node_t *lpf_config_node_by_type(
+	const lpf_config_platform_config_t *platform,
+	lpf_config_device_type_t type, uint32_t ordinal)
+{
+	uint32_t current_ordinal = 0;
+	uint32_t i;
+
+	if (!platform || !platform->device_nodes)
+		return NULL;
+
+	for (i = 0; i < platform->device_node_count; i++) {
+		const lpf_config_device_node_t *node = &platform->device_nodes[i];
+
+		if (node->device_type != type)
+			continue;
+		if (current_ordinal == ordinal)
+			return node;
+		current_ordinal++;
+	}
+
+	return NULL;
+}
+
 static uint32_t lpf_config_mcu_count(const lpf_config_platform_config_t *platform)
 {
+	uint32_t count;
+
+	count = lpf_config_node_count_by_type(platform,
+					      LPF_CONFIG_DEVICE_TYPE_MCU);
+	if (count > 0)
+		return count;
+
 	return platform->mcu_count;
 }
 
 static const void *lpf_config_mcu_entry(const lpf_config_platform_config_t *platform,
 				     uint32_t index)
 {
+	const lpf_config_device_node_t *node;
+
+	node = lpf_config_node_by_type(platform, LPF_CONFIG_DEVICE_TYPE_MCU,
+				       index);
+	if (node)
+		return node->payload;
+
 	return lpf_config_hw_get_mcu(platform, index);
 }
 
@@ -129,12 +184,26 @@ static void lpf_config_print_mcu_entry(uint32_t index, const void *entry)
 
 static uint32_t lpf_config_led_count(const lpf_config_platform_config_t *platform)
 {
+	uint32_t count;
+
+	count = lpf_config_node_count_by_type(platform,
+					      LPF_CONFIG_DEVICE_TYPE_LED);
+	if (count > 0)
+		return count;
+
 	return platform->led_count;
 }
 
 static const void *lpf_config_led_entry(const lpf_config_platform_config_t *platform,
 				     uint32_t index)
 {
+	const lpf_config_device_node_t *node;
+
+	node = lpf_config_node_by_type(platform, LPF_CONFIG_DEVICE_TYPE_LED,
+				       index);
+	if (node)
+		return node->payload;
+
 	return lpf_config_hw_get_led(platform, index);
 }
 

@@ -21,13 +21,14 @@
 /**
  * @brief 板级硬件配置
  *
- * 这是顶层配置结构，以外设为单位描述整个板子的硬件配置
- * 当前只保留 MCU 外设类型，后续可按需继续增加其他外设
+ * 这是顶层配置结构，用 DTS-like configured-device node 表描述板级硬件。
+ * 旧的按外设数组字段保留为兼容路径，新增静态配置应优先填写
+ * device_nodes。
  *
  * 设计说明：
- * - 使用计数器+直接数组指针模式
- * - 配置数组直接定义，不使用指针数组
- * - 通过数组索引访问，业务层通过索引映射到具体硬件
+ * - device_nodes 是首选的有序配置节点表
+ * - mcu_array/led_array 保留给旧调用者和过渡后端
+ * - 运行时配置驱动消费 device node payload，不感知配置来源
  */
 typedef struct {
 	/* 板级信息 */
@@ -37,7 +38,11 @@ typedef struct {
 	const char *product_name; /* 产品名称（如"framework"） */
 	const char *version; /* 配置版本（如"1.0.0"） */
 
-	/* 硬件外设配置数组（直接数组指针） */
+	/* 首选 DTS-like configured-device node 表 */
+	uint32_t device_node_count; /* configured-device node 数量 */
+	const lpf_config_device_node_t *device_nodes; /* 有序 node 表 */
+
+	/* 兼容硬件外设配置数组（直接数组指针） */
 	uint32_t mcu_count; /* MCU外设数量 */
 	const lpf_config_mcu_entry_t *mcu_array; /* MCU外设数组（直接指向数组首元素） */
 	uint32_t led_count; /* LED外设数量 */

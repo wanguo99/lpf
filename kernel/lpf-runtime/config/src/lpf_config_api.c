@@ -187,6 +187,59 @@ static int32_t lpf_config_load_auto(void)
 	return last_ret;
 }
 
+static bool lpf_config_payload_size_valid(
+	lpf_config_device_type_t type, uint32_t payload_size)
+{
+	const lpf_config_device_descriptor_t *descriptors;
+	uint32_t descriptor_count;
+	uint32_t i;
+
+	descriptors = lpf_config_device_descriptors(&descriptor_count);
+	for (i = 0; i < descriptor_count; i++) {
+		if (descriptors[i].type == type &&
+		    descriptors[i].payload_size == payload_size)
+			return true;
+	}
+
+	return false;
+}
+
+static int32_t lpf_config_validate_device_nodes(
+	const lpf_config_platform_config_t *config)
+{
+	uint32_t i;
+
+	if (!config->device_nodes && config->device_node_count > 0) {
+		LOG_ERROR("LPF_CONFIG", "Missing configured-device node table");
+		return OSAL_ERR_GENERIC;
+	}
+
+	for (i = 0; config->device_nodes &&
+	     i < config->device_node_count; i++) {
+		const lpf_config_device_node_t *node = &config->device_nodes[i];
+
+		if (node->device_type == LPF_CONFIG_DEVICE_TYPE_INVALID) {
+			LOG_ERROR("LPF_CONFIG", "Device node[%u] invalid type", i);
+			return OSAL_ERR_INVALID_PARAM;
+		}
+
+		if (!node->payload || !node->entry) {
+			LOG_ERROR("LPF_CONFIG", "Device node[%u] missing payload",
+				  i);
+			return OSAL_ERR_INVALID_PARAM;
+		}
+
+		if (!lpf_config_payload_size_valid(node->device_type,
+						   node->payload_size)) {
+			LOG_ERROR("LPF_CONFIG",
+				  "Device node[%u] invalid payload size", i);
+			return OSAL_ERR_INVALID_PARAM;
+		}
+	}
+
+	return OSAL_SUCCESS;
+}
+
 int32_t lpf_config_validate(const lpf_config_platform_config_t *config)
 {
 	const lpf_config_device_descriptor_t *descriptors;
@@ -214,6 +267,10 @@ int32_t lpf_config_validate(const lpf_config_platform_config_t *config)
 		LOG_ERROR("LPF_CONFIG", "Missing LED config array");
 		return OSAL_ERR_GENERIC;
 	}
+
+	ret = lpf_config_validate_device_nodes(config);
+	if (ret != OSAL_SUCCESS)
+		return ret;
 
 	descriptors = lpf_config_device_descriptors(&descriptor_count);
 	for (desc_index = 0; desc_index < descriptor_count; desc_index++) {

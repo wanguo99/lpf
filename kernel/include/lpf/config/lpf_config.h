@@ -81,19 +81,51 @@ int32_t lpf_config_list(const lpf_config_platform_config_t **configs,
 static inline const lpf_config_mcu_entry_t *
 lpf_config_hw_get_mcu(const lpf_config_platform_config_t *platform, uint32_t index)
 {
-	if (!platform || !platform->mcu_array || index >= platform->mcu_count) {
+	uint32_t i;
+
+	if (!platform) {
 		return NULL;
 	}
-	return &platform->mcu_array[index];
+
+	if (platform->mcu_array && index < platform->mcu_count)
+		return &platform->mcu_array[index];
+
+	for (i = 0; platform->device_nodes &&
+	     i < platform->device_node_count; i++) {
+		const lpf_config_device_node_t *node = &platform->device_nodes[i];
+
+		if (node->device_type == LPF_CONFIG_DEVICE_TYPE_MCU &&
+		    node->index == index &&
+		    node->payload_size == sizeof(lpf_config_mcu_entry_t))
+			return (const lpf_config_mcu_entry_t *)node->payload;
+	}
+
+	return NULL;
 }
 
 static inline const lpf_config_led_entry_t *
 lpf_config_hw_get_led(const lpf_config_platform_config_t *platform, uint32_t index)
 {
-	if (!platform || !platform->led_array || index >= platform->led_count) {
+	uint32_t i;
+
+	if (!platform) {
 		return NULL;
 	}
-	return &platform->led_array[index];
+
+	if (platform->led_array && index < platform->led_count)
+		return &platform->led_array[index];
+
+	for (i = 0; platform->device_nodes &&
+	     i < platform->device_node_count; i++) {
+		const lpf_config_device_node_t *node = &platform->device_nodes[i];
+
+		if (node->device_type == LPF_CONFIG_DEVICE_TYPE_LED &&
+		    node->index == index &&
+		    node->payload_size == sizeof(lpf_config_led_entry_t))
+			return (const lpf_config_led_entry_t *)node->payload;
+	}
+
+	return NULL;
 }
 
 /*===========================================================================

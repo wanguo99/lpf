@@ -150,9 +150,10 @@ lpf_config_get_device_nodes(&count);
 ```
 
 Each node carries a device type, source index, name, status, compatible string,
-typed payload pointer, and payload size. The current static backend still stores
-source data in per-peripheral arrays, but runtime probing consumes the generic
-node table.
+typed payload pointer, and payload size. Static configs should author the board
+description as a first-class ordered node table. The platform config still keeps
+per-peripheral arrays as a compatibility fallback for older helpers and
+transitional backends, but runtime probing consumes the generic node table.
 
 The current header also keeps inline index-based peripheral accessors for
 service-owned typed payload lookups and compatibility:
