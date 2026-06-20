@@ -21,11 +21,13 @@ The runtime module currently provides:
 - LPF read-only procfs status nodes under `/proc/lpf/`
 - LPF debugfs command nodes under `/sys/kernel/debug/lpf/`
 
-LPF peripheral services consume exported `hal.ko` symbols for MCU transport and
-LED GPIO/PWM hardware access. Runtime character-device, sysfs-attribute, and debugfs-file
-lifecycle helpers are provided by `lpf_core.ko`; LPF peripheral services own
-the concrete operation handlers. LPF protocol encode/decode helpers are also
-provided by `lpf_core.ko` for services that need framed communication.
+LPF peripheral services currently consume transitional `hal_*` APIs for MCU
+transport and LED GPIO/PWM hardware access. Those hardware access objects are
+linked into `lpf_peripheral_runtime.ko`; standalone `hal.ko` has been removed.
+Runtime character-device, sysfs-attribute, and debugfs-file lifecycle helpers
+are provided by `lpf_core.ko`; LPF peripheral services own the concrete
+operation handlers. LPF protocol encode/decode helpers are also provided by
+`lpf_core.ko` for services that need framed communication.
 LPF device discovery is provided by the LPF Core control node `/dev/pdm_ctl`.
 
 ## Configuration

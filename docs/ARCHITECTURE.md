@@ -66,11 +66,12 @@ where the semantics are equivalent.
 
 ### HAL
 
-HAL is currently a transitional kernel module that owns LPF hardware-capability
-APIs in kernel mode. Current HAL support includes CAN, serial, GPIO, PWM, I2C,
-and SPI. HAL calls the LPF SoC Adapter instead of Linux subsystem APIs directly.
-The long-term direction is to remove standalone `hal.ko` and migrate useful
-hardware semantics into LPF-internal `lpf_hw_*` APIs.
+HAL is currently a transitional API layer linked into
+`lpf_peripheral_runtime.ko`. It owns temporary LPF hardware-capability APIs in
+kernel mode. Current support includes CAN, serial, GPIO, PWM, I2C, and SPI. HAL
+calls the LPF SoC Adapter instead of Linux subsystem APIs directly. The
+long-term direction is to migrate useful hardware semantics into LPF-internal
+`lpf_hw_*` APIs and remove the HAL naming surface.
 
 ### LPF Core
 
@@ -79,13 +80,14 @@ LPF drivers, and configured device instances are registered as LPF devices. LPF
 Core handles bind, probe, remove ordering, stable device names, and capability
 metadata. It does not depend on PCONFIG; callers map configuration backends into
 LPF device configs before registration. LPF Core also initializes the default
-SoC adapter path used by HAL. Device discovery callers should use the snapshot
-APIs (`lpf_device_list()`, `lpf_device_get_info_by_name()`, and capability
-queries) instead of retaining internal `lpf_device_t` pointers across lifecycle
-events. Kernel code that needs to keep a device active across operations should
-use `lpf_device_get()` or the name/capability variants and release the returned
-handle with `lpf_device_put()`. LPF Core emits kernel device events for
-registration, bind, state changes, errors, remove start, and remove completion.
+SoC adapter path used by hardware access paths. Device discovery callers should
+use the snapshot APIs (`lpf_device_list()`, `lpf_device_get_info_by_name()`,
+and capability queries) instead of retaining internal `lpf_device_t` pointers
+across lifecycle events. Kernel code that needs to keep a device active across
+operations should use `lpf_device_get()` or the name/capability variants and
+release the returned handle with `lpf_device_put()`. LPF Core emits kernel
+device events for registration, bind, state changes, errors, remove start, and
+remove completion.
 It also provides reusable kernel infrastructure helpers for LPF instance
 character devices, instance sysfs attributes, and debugfs command files so
 peripheral services do not duplicate node lifecycle code.
@@ -95,15 +97,17 @@ exposes read-only snapshots of the LPF device model through
 
 ### LPF SoC Adapter
 
-The SoC adapter layer owns hardware backend differences below HAL. The current
-default backend is `generic-linux`, which calls LPF kernel compat wrappers for
-CAN, serial, GPIO, PWM, I2C, and SPI. Kconfig selects the default backend built
-into `lpf_core.ko`; `kernel/lpf/soc/mock/` provides a deterministic mock backend
-for development and framework tests that should not require live hardware. The
-mock preset can also build `hal_mock_selftest.ko`, which runs HAL operation-path
-checks over the mock backend when loaded. Future SoC-specific adapters should
-live under `kernel/lpf/soc/` and must keep vendor BSP calls out of HAL and LPF
-peripheral services.
+The SoC adapter layer owns hardware backend differences below LPF hardware
+access APIs. The current default backend is `generic-linux`, which calls LPF
+kernel compat wrappers for CAN, serial, GPIO, PWM, I2C, and SPI. Kconfig
+selects the default backend built into `lpf_core.ko`; `kernel/lpf/soc/mock/`
+provides a deterministic mock backend for development and framework tests that
+should not require live hardware. The mock preset can also build
+`hal_mock_selftest.ko`, which runs transitional HAL operation-path checks over
+the mock backend when loaded after
+`lpf_peripheral_runtime.ko`. Future SoC-specific adapters should live under
+`kernel/lpf/soc/` and must keep vendor BSP calls out of hardware access APIs
+and LPF peripheral services.
 
 ### LPF Kernel Compat
 
@@ -215,15 +219,15 @@ Load kernel modules in dependency order:
 ```text
 osal.ko
 lpf_core.ko
-hal.ko
 lpf_peripheral_runtime.ko
 ```
 
 `lpf_peripheral_runtime.ko` hosts the current LPF peripheral runtime. The
-runtime includes the configuration backend objects, consumes runtime config
-entries and HAL symbols, registers the current framework-hosted peripheral
-services, maps enabled config entries to LPF devices, and lets LPF Core probe
-the matching registered service for each configured peripheral.
+runtime includes the configuration backend and transitional HAL hardware access
+objects, consumes runtime config entries, registers the current
+framework-hosted peripheral services, maps enabled config entries to LPF
+devices, and lets LPF Core probe the matching registered service for each
+configured peripheral.
 
 ## Adding A Peripheral
 
@@ -245,8 +249,8 @@ select which objects are linked, but business logic should not branch on
 feature macros.
 
 Keep kernel/userspace changes aligned. A peripheral exposed to userspace should
-add or update runtime config, LPF peripheral service, UAPI, PDI, and Kconfig coverage
-together so the ABI and build configuration remain consistent.
+add or update runtime config, LPF peripheral service, UAPI, PDI, and Kconfig
+coverage together so the ABI and build configuration remain consistent.
 
 ## Runtime Interfaces
 
@@ -268,7 +272,8 @@ together so the ABI and build configuration remain consistent.
 - Kernel hardware configuration is selected through LPF runtime config backends and
   consumed by LPF peripheral configuration through the normalized device list,
   then mapped into LPF Core device configs.
-- HAL should call LPF SoC Adapter APIs for SoC-backed hardware capabilities.
+- Transitional HAL APIs should call LPF SoC Adapter APIs for SoC-backed
+  hardware capabilities.
 - Kernel-version conditionals belong in `kernel/lpf/compat/`.
 - Userspace code must use PDI/UAPI rather than including kernel-internal HAL,
   PCONFIG, LPF Core, or LPF peripheral headers.

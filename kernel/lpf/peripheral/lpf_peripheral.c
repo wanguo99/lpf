@@ -5,6 +5,7 @@
 #include "lpf/lpf_core.h"
 #include "lpf/lpf_led_service.h"
 #include "lpf/lpf_mcu_service.h"
+#include "hal/hal.h"
 #include "pconfig/pconfig.h"
 #include "lpf_peripheral_internal.h"
 #include "generated/gen_version.h"
@@ -94,14 +95,21 @@ int32_t lpf_peripheral_runtime_init(void)
 	if (ret != OSAL_SUCCESS)
 		return ret;
 
-	ret = lpf_peripheral_services_init();
+	ret = hal_runtime_init();
 	if (ret != OSAL_SUCCESS)
 		return ret;
+
+	ret = lpf_peripheral_services_init();
+	if (ret != OSAL_SUCCESS) {
+		hal_runtime_exit();
+		return ret;
+	}
 
 	ret = lpf_peripheral_probe_devices();
 	if (ret != OSAL_SUCCESS) {
 		lpf_peripheral_services_exit();
 		pconfig_unload();
+		hal_runtime_exit();
 		return ret;
 	}
 
@@ -116,5 +124,6 @@ void lpf_peripheral_runtime_exit(void)
 
 	lpf_peripheral_services_exit();
 	pconfig_unload();
+	hal_runtime_exit();
 	g_lpf_peripheral_runtime_ready = false;
 }

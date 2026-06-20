@@ -1,13 +1,14 @@
-# HAL
+# Transitional HAL APIs
 
-HAL is the kernel-mode Hardware Abstraction Layer used by LPF peripheral
-services.
+This directory currently contains transitional `hal_*` hardware access APIs used
+by LPF peripheral services. The standalone HAL module boundary has been removed;
+these objects are linked into `lpf_peripheral_runtime.ko`.
 
 ## Scope
 
-- Builds as `hal.ko` through `make modules`.
-- Exports kernel symbols for the public HAL C API under
-  `kernel/include/hal/`.
+- Builds as part of `lpf_peripheral_runtime.ko` through `make modules`.
+- Keeps the public HAL C API under `kernel/include/hal/` until the next
+  migration renames it to LPF HW APIs.
 - Has no userspace HAL library or userspace HAL test product.
 
 Current kernel implementations:
@@ -24,7 +25,7 @@ Current kernel implementations:
 ```text
 CONFIG_OSAL=y
 CONFIG_LPF_CORE=y
-CONFIG_HAL=y
+CONFIG_LPF_PERIPHERAL_RUNTIME=y
 CONFIG_HAL_CAN=y
 CONFIG_HAL_UART=y
 CONFIG_HAL_GPIO=y
@@ -45,7 +46,6 @@ Expected module artifacts include:
 ```text
 _build/modules/osal.ko
 _build/modules/lpf_core.ko
-_build/modules/hal.ko
 _build/modules/lpf_peripheral_runtime.ko
 ```
 
@@ -68,7 +68,9 @@ kernel/hal/
 
 ## Layering
 
-LPF peripheral services include HAL headers and call exported HAL symbols. HAL
-owns hardware capability APIs. New HAL paths should call LPF SoC Adapter APIs
-instead of calling Linux or vendor BSP APIs directly. Current HAL CAN, serial,
-GPIO, PWM, I2C, and SPI implementations all follow this rule.
+LPF peripheral services include HAL headers and call `hal_*` APIs as a
+transition step. Those APIs own temporary hardware capability semantics and
+call LPF SoC Adapter APIs instead of calling Linux or vendor BSP APIs directly.
+Current HAL CAN, serial, GPIO, PWM, I2C, and SPI implementations all follow
+this rule. New code should target the upcoming LPF HW API naming instead of
+expanding the HAL naming surface.

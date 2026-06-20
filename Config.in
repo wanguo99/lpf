@@ -554,15 +554,10 @@ menu "Configuration Validation"
 # Dependency Checks
 # ============================================================================
 
-config SANITY_ERROR_HAL_NO_DEPS
-	def_bool y
-	depends on HAL && (!OSAL || !LPF_CORE)
-	prompt "ERROR: HAL requires OSAL and LPF Core to be enabled"
-
 config SANITY_ERROR_LPF_PERIPHERAL_RUNTIME_NO_DEPS
 	def_bool y
-	depends on LPF_PERIPHERAL_RUNTIME && (!OSAL || !LPF_CORE || !HAL)
-	prompt "ERROR: LPF peripheral runtime requires OSAL, LPF Core, and HAL to be enabled"
+	depends on LPF_PERIPHERAL_RUNTIME && (!OSAL || !LPF_CORE)
+	prompt "ERROR: LPF peripheral runtime requires OSAL and LPF Core to be enabled"
 
 config SANITY_ERROR_ACONFIG_NO_OSAL
 	def_bool y
@@ -617,8 +612,7 @@ config SANITY_ERROR_SANITIZER_CONFLICT
 
 config SANITY_CHECK_PASSED
 	def_bool y
-	depends on !SANITY_ERROR_HAL_NO_DEPS && \
-	           !SANITY_ERROR_LPF_PERIPHERAL_RUNTIME_NO_DEPS && \
+	depends on !SANITY_ERROR_LPF_PERIPHERAL_RUNTIME_NO_DEPS && \
 	           !SANITY_ERROR_ACONFIG_NO_OSAL && \
 	           !SANITY_ERROR_SANITIZER_CONFLICT
 	help

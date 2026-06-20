@@ -246,7 +246,6 @@ function(kconfig_print_summary)
         PRODUCT_FRAMEWORK
         PRODUCT_SAMPLE
         OSAL
-        HAL
         LPF_PERIPHERAL_RUNTIME
         PDI
         ACONFIG

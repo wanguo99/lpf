@@ -1,33 +1,9 @@
-# HAL (Hardware Abstraction Layer) Configuration
-
-menuconfig HAL
-	bool "HAL (Hardware Abstraction Layer)"
-	default n
-	depends on OSAL && LPF_CORE
-	help
-	  Hardware Abstraction Layer provides kernel-mode hardware interfaces.
-
-	  HAL abstracts Linux hardware access details and provides a
-	  consistent API for kernel-side peripheral drivers.
-
-	  Provides drivers for:
-	  - CAN bus (Controller Area Network)
-	  - UART/Serial (RS-232, RS-485)
-	  - I2C (Inter-Integrated Circuit)
-	  - SPI (Serial Peripheral Interface)
-	  - GPIO (General Purpose I/O)
-	  - PWM (Pulse Width Modulation)
-
-	  Memory footprint: ~5KB (minimal) ~ 50KB (all drivers)
-
-	  Required by: LPF kernel-side peripheral services
-	  Dependencies: OSAL, LPF Core
-
-	  Note: Enable OSAL and LPF Core first in "Core Modules" menu.
-
-	  If unsure, say Y.
-
-if HAL
+# Transitional HAL capability configuration.
+#
+# These symbols now select hardware capability objects that are linked into
+# lpf_peripheral_runtime.ko. The standalone HAL module boundary has been
+# removed; the hal_* API names are transitional until they are migrated to
+# LPF HW APIs.
 
 # =============================================================================
 # Platform Configuration
@@ -64,6 +40,7 @@ menu "Driver Configuration"
 menuconfig HAL_CAN
 	bool "CAN bus support"
 	default n
+	depends on LPF_PERIPHERAL_RUNTIME
 	help
 	  Enable CAN (Controller Area Network) bus driver.
 
@@ -88,6 +65,7 @@ menuconfig HAL_CAN
 menuconfig HAL_UART
 	bool "UART support"
 	default n
+	depends on LPF_PERIPHERAL_RUNTIME
 	help
 	  Enable UART/serial port driver.
 
@@ -113,6 +91,7 @@ menuconfig HAL_UART
 menuconfig HAL_I2C
 	bool "I2C support"
 	default n
+	depends on LPF_PERIPHERAL_RUNTIME
 	help
 	  Enable I2C (Inter-Integrated Circuit) bus driver.
 
@@ -138,6 +117,7 @@ menuconfig HAL_I2C
 menuconfig HAL_SPI
 	bool "SPI support"
 	default n
+	depends on LPF_PERIPHERAL_RUNTIME
 	help
 	  Enable SPI (Serial Peripheral Interface) bus driver.
 
@@ -163,6 +143,7 @@ menuconfig HAL_SPI
 menuconfig HAL_GPIO
 	bool "GPIO support"
 	default n
+	depends on LPF_PERIPHERAL_RUNTIME
 	help
 	  Enable GPIO (General Purpose I/O) driver.
 
@@ -187,6 +168,7 @@ menuconfig HAL_GPIO
 menuconfig HAL_PWM
 	bool "PWM support"
 	default n
+	depends on LPF_PERIPHERAL_RUNTIME
 	help
 	  Enable PWM (Pulse Width Modulation) driver.
 
@@ -206,7 +188,7 @@ menu "Self Test Configuration"
 
 config HAL_MOCK_SELFTEST
 	bool "Build HAL mock backend self-test module"
-	depends on LPF_SOC_ADAPTER_MOCK
+	depends on LPF_SOC_ADAPTER_MOCK && LPF_PERIPHERAL_RUNTIME
 	select HAL_CAN
 	select HAL_UART
 	select HAL_I2C
@@ -220,5 +202,3 @@ config HAL_MOCK_SELFTEST
 	  that need no live hardware.
 
 endmenu
-
-endif # HAL

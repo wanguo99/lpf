@@ -8,7 +8,7 @@ Reusable framework layers live at the repository top level: `kernel/` holds kern
 - `make kernel_x86_modules_defconfig` - load a baseline kernel-module configuration.
 - `make menuconfig` - open the interactive Kconfig editor.
 - `make all` - configure and build the selected target.
-- `make modules` - build enabled kernel modules such as `osal.ko`, `hal.ko`, and `lpf_peripheral_runtime.ko`.
+- `make modules` - build enabled kernel modules such as `osal.ko`, `lpf_core.ko`, and `lpf_peripheral_runtime.ko`.
 - `make clean` - remove build outputs.
 
 ## Coding Style & Naming Conventions

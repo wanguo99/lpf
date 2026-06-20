@@ -221,7 +221,9 @@ Work items:
   - `lpf_hw_bus_spi`
 - Make LPF peripheral services call `lpf_hw_*` instead of `hal_*`.
 - Make `lpf_hw_*` call the SoC adapter layer internally.
-- Delete `CONFIG_HAL`, `hal.ko`, and standalone HAL headers after users migrate.
+- Delete the `CONFIG_HAL` root switch and standalone `hal.ko` build target.
+- Delete standalone HAL headers after the `hal_*` API surface has migrated to
+  LPF-internal `lpf_hw_*` APIs.
 - Remove hard-coded global limits where possible.
 - Move mock operation-path coverage from HAL selftest to LPF HW/SoC adapter
   tests.
@@ -251,8 +253,12 @@ Current status:
 - Decision update: standalone HAL is a transitional boundary. The final design
   removes `hal.ko` and migrates useful hardware semantics into LPF-internal
   `lpf_hw_*` APIs.
+- Done. The standalone `hal.ko` build target and `CONFIG_HAL` root switch have
+  been removed. Transitional HAL hardware access objects now link directly into
+  `lpf_peripheral_runtime.ko`.
 - Remaining work: introduce `kernel/lpf/hw/`, migrate peripheral services from
-  `hal_*` to `lpf_hw_*`, then remove `kernel/hal/` and HAL Kconfig symbols.
+  `hal_*` to `lpf_hw_*`, then remove `kernel/hal/`, HAL headers, and
+  transitional `CONFIG_HAL_*` capability symbols.
 
 ## Phase 6: Runtime Configuration Layer
 
@@ -564,8 +570,10 @@ Current status:
 2. Introduce LPF Core.
 3. Add the kernel compat layer.
 4. Add the SoC adapter layer.
-5. Remove standalone HAL by migrating useful semantics into LPF HW APIs.
-6. Merge PCONFIG into the LPF runtime configuration layer.
+5. Finish removing the HAL naming surface by migrating useful semantics into
+   LPF HW APIs.
+6. Finish merging PCONFIG naming and headers into the LPF runtime
+   configuration layer.
 7. Migrate LED first as the simplest complete peripheral service.
 8. Migrate MCU and split transport handling inside the LPF framework layers.
 9. Split UAPI and PDI.

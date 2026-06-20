@@ -11,7 +11,7 @@ menuconfig LPF_CORE
 	  discovery by stable name and capability.
 
 	  It also contains the initial kernel compatibility wrappers and
-	  selected SoC adapter used by HAL backends.
+	  selected SoC adapter used by LPF hardware access paths.
 
 	  Required by the LPF peripheral runtime and services.
 
@@ -91,7 +91,6 @@ endmenu
 menuconfig LPF_PERIPHERAL_RUNTIME
 	bool "LPF peripheral runtime module"
 	default n
-	depends on HAL
 	help
 	  Build the integrated LPF peripheral runtime module. This module hosts
 	  the reusable LPF peripheral services selected below and the runtime
@@ -104,7 +103,7 @@ menuconfig LPF_PERIPHERAL_RUNTIME
 menuconfig LPF_MCU_SERVICE
 	bool "LPF MCU peripheral service"
 	default n
-	depends on LPF_PERIPHERAL_RUNTIME && HAL
+	depends on LPF_PERIPHERAL_RUNTIME
 	select LPF_PROTOCOL
 	select LPF_PROTOCOL_MCU
 	select HAL_CAN
@@ -120,7 +119,7 @@ source "kernel/lpf/transport/mcu/Config.in"
 menuconfig LPF_LED_SERVICE
 	bool "LPF LED peripheral service"
 	default n
-	depends on LPF_PERIPHERAL_RUNTIME && HAL
+	depends on LPF_PERIPHERAL_RUNTIME
 	select HAL_GPIO
 	select HAL_PWM
 	help

@@ -11,7 +11,8 @@ use LPF Core for device and driver lifecycle instead of adding local bus code.
 
 ## Target Architecture
 
-- HAL is a kernel-only module built as `hal.ko`.
+- Transitional HAL hardware access objects are linked into
+  `lpf_peripheral_runtime.ko`; standalone `hal.ko` has been removed.
 - Runtime config is linked into `lpf_peripheral_runtime.ko`.
 - Runtime config selects a configuration backend. The current static backend
   consumes platform configs compiled under
@@ -37,7 +38,8 @@ use LPF Core for device and driver lifecycle instead of adding local bus code.
 ## Current Completed Work
 
 - [x] Move HAL implementation to kernel-side `kernel/hal/src`.
-- [x] Build HAL as `hal.ko` with module entry in `hal.c`.
+- [x] Remove standalone `hal.ko`; link transitional HAL hardware access
+      objects into `lpf_peripheral_runtime.ko`.
 - [x] Remove HAL userspace implementation from the active module path.
 - [x] Rename kernel module entry files from `main.c` to module names.
 - [x] Move HAL source files directly under `src` without an extra `kernel`
@@ -66,8 +68,8 @@ use LPF Core for device and driver lifecycle instead of adding local bus code.
       device binding.
 - [x] Keep LPF peripheral services linked into `lpf_peripheral_runtime.ko`
       instead of adding one kernel module per peripheral.
-- [x] Add HAL built-in initialization table for HAL subdrivers that need global
-      module initialization.
+- [x] Add HAL built-in initialization table for transitional hardware access
+      paths that need runtime initialization.
 - [x] Remove ctest product files from the current tree.
 - [x] Create a tag for the last pure userspace implementation and merge the
       refactor branch back to `master`.
@@ -92,7 +94,7 @@ use LPF Core for device and driver lifecycle instead of adding local bus code.
   - Acceptance: unloading `lpf_peripheral_runtime.ko` removes LPF devices
     before unloading runtime config.
 - [ ] Add a basic module load/unload smoke path.
-  - Target order: `osal.ko`, `lpf_core.ko`, `hal.ko`,
+  - Target order: `osal.ko`, `lpf_core.ko`,
     `lpf_peripheral_runtime.ko`.
   - Acceptance: all modules load and unload cleanly on the target kernel with
     the selected defconfig.
@@ -236,8 +238,8 @@ use LPF Core for device and driver lifecycle instead of adding local bus code.
 - [x] Remove or document transitional CMake kernel component logic.
   - Removed LPF runtime/PConfig static/shared transitional Kconfig and CMake
     branches.
-  - HAL CMake remains an interface target for host-side dependency metadata;
-    kernel module output is produced by Kbuild.
+  - Transitional HAL CMake metadata remains only for host-side dependency
+    metadata; kernel module output is produced by Kbuild.
 - [x] Ensure defconfigs match the current module build model.
   - `kernel_x86_modules_defconfig` should enable only valid kernel module
     options.
@@ -250,9 +252,10 @@ use LPF Core for device and driver lifecycle instead of adding local bus code.
 - [x] Remove outdated references to ctest and old userspace HAL/runtime
       behavior.
 - [x] Document module load order and dependencies.
-  - OSAL before PConfig/HAL.
   - OSAL before LPF Core.
-  - LPF Core, PConfig, and HAL before LPF peripheral runtime.
+  - LPF Core before LPF peripheral runtime.
+  - Runtime config and transitional HAL hardware access are linked into
+    `lpf_peripheral_runtime.ko`.
 - [x] Document how to add a new peripheral.
   - PConfig type and platform entry.
   - LPF device type/capability mapping.
@@ -273,8 +276,9 @@ use LPF Core for device and driver lifecycle instead of adding local bus code.
   - `make modules`
 - [x] Verify module artifact names.
   - `osal.ko`
-  - `hal.ko`
+  - `lpf_core.ko`
   - `lpf_peripheral_runtime.ko`
+  - `hal.ko` is no longer produced.
 - [ ] Run module load/unload smoke test on a compatible kernel.
 - [ ] Verify `/dev/lpf/mcuN` appears when MCU is configured.
 - [ ] Verify each PDI ioctl returns expected status on configured and

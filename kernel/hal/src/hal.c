@@ -79,7 +79,7 @@ void hal_print_version(void)
 }
 EXPORT_SYMBOL_GPL(hal_print_version);
 
-static int __init hal_init(void)
+int32_t hal_runtime_init(void)
 {
 	int ret;
 
@@ -89,20 +89,12 @@ static int __init hal_init(void)
 	if (ret)
 		return ret;
 
-	LOG_INFO("HAL", "loaded");
-	return 0;
+	LOG_INFO("HAL", "runtime initialized");
+	return OSAL_SUCCESS;
 }
 
-static void __exit hal_exit(void)
+void hal_runtime_exit(void)
 {
 	hal_builtin_drivers_exit();
-	LOG_INFO("HAL", "unloaded");
+	LOG_INFO("HAL", "runtime exited");
 }
-
-module_init(hal_init);
-module_exit(hal_exit);
-
-MODULE_AUTHOR("LPF");
-MODULE_DESCRIPTION("LPF HAL kernel module");
-MODULE_LICENSE("GPL");
-MODULE_SOFTDEP("pre: osal lpf_core can can_raw");

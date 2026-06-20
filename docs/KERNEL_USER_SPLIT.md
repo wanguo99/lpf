@@ -11,13 +11,13 @@ kernel/
   Makefile
   include/
     osal/          # kernel-side cross-module OSAL headers
-    hal/           # kernel-side cross-module HAL headers
+    hal/           # transitional hardware API headers
     pconfig/       # transitional runtime config type headers
     lpf/           # kernel-side cross-module LPF headers
   osal/
     src/           # builds osal.ko
   hal/
-    src/           # kernel-only hardware access implementation
+    src/           # transitional hardware access objects linked into runtime
   lpf/
     core/          # LPF device model and shared node infrastructure
     protocol/      # LPF protocol helpers linked into lpf_core.ko
@@ -42,8 +42,9 @@ uapi/
   current service paths are linked into `lpf_peripheral_runtime.ko`.
 - `kernel/lpf/protocol` provides kernel-side LPF protocol helpers through
   `lpf_core.ko` for services that need framed communication.
-- `kernel/hal` provides kernel-only hardware access used by LPF peripheral
-  services. It builds as `hal.ko` and exports HAL API symbols.
+- `kernel/hal` currently provides transitional hardware access sources and
+  headers used by LPF peripheral services. The objects are linked into
+  `lpf_peripheral_runtime.ko`; standalone `hal.ko` has been removed.
 - `kernel/pconfig` currently provides transitional runtime config source files
   and type headers. The objects are linked into `lpf_peripheral_runtime.ko`
   rather than a standalone module.
@@ -74,7 +75,7 @@ PDI userspace API
     ↓
 LPF peripheral service
     ↓
-LPF runtime config + LPF Core + HAL
+LPF runtime config + LPF Core + transitional HAL APIs
     ↓
 Linux kernel subsystem / hardware
 ```
