@@ -42,11 +42,11 @@ LPF Core
         ↓
 LPF Transport Layer
         ↓
-LPF HAL
-        ↓
-Kernel Compat Layer
+LPF HW API
         ↓
 SoC Adapter Layer
+        ↓
+Kernel Compat Layer
         ↓
 Linux Kernel / Vendor BSP / Hardware
 ```
@@ -57,8 +57,8 @@ Goal: lock down the framework concepts before larger code movement.
 
 Work items:
 
-- Define final responsibilities for OSAL, HAL, PCONFIG, the legacy peripheral
-  module shell, PDI, and UAPI.
+- Define final responsibilities for OSAL, LPF Core, LPF runtime config, LPF HW
+  API, PDI, and UAPI.
 - Reframe the old peripheral module responsibilities as the LPF Peripheral
   Service Layer.
 - Reframe the old local peripheral bus as the future LPF Core.
@@ -204,36 +204,40 @@ Current status:
 - Remaining work: extend the interface to pinctrl, clocks, resets, and SoC
   identity, then add target SoC adapters.
 
-## Phase 5: HAL Layering
+## Phase 5: Remove Standalone HAL Boundary
 
-Goal: keep HAL as LPF's stable hardware abstraction API while moving kernel and
-SoC differences below it.
+Goal: remove the standalone HAL module and keep useful hardware-capability
+semantics as LPF-internal HW APIs above the SoC adapter layer.
 
 Work items:
 
-- Keep HAL APIs focused on LPF business needs rather than one-to-one Linux API
-  wrappers.
-- Make HAL call the kernel compat layer and SoC adapter layer internally.
-- Split HAL by capability:
-  - `lpf_hal_gpio`
-  - `lpf_hal_pwm`
-  - `lpf_hal_transport_can`
-  - `lpf_hal_transport_uart`
-  - `lpf_hal_bus_i2c`
-  - `lpf_hal_bus_spi`
+- Add `kernel/lpf/hw/` for LPF-internal hardware capability APIs.
+- Migrate useful HAL state/context handling into:
+  - `lpf_hw_gpio`
+  - `lpf_hw_pwm`
+  - `lpf_hw_transport_can`
+  - `lpf_hw_transport_uart`
+  - `lpf_hw_bus_i2c`
+  - `lpf_hw_bus_spi`
+- Make LPF peripheral services call `lpf_hw_*` instead of `hal_*`.
+- Make `lpf_hw_*` call the SoC adapter layer internally.
+- Delete `CONFIG_HAL`, `hal.ko`, and standalone HAL headers after users migrate.
 - Remove hard-coded global limits where possible.
-- Add mock HAL backends for tests.
+- Move mock operation-path coverage from HAL selftest to LPF HW/SoC adapter
+  tests.
 
 Deliverables:
 
-- HAL API reference.
-- HAL backend selection mechanism.
-- HAL mock backend.
+- `kernel/lpf/hw/`
+- LPF HW API reference.
+- Removal of `kernel/hal/` from the active module build.
 
 Acceptance criteria:
 
-- Peripheral business code depends only on HAL APIs.
-- HAL behavior stays consistent across supported kernel and SoC backends.
+- Peripheral business code depends only on LPF-owned HW APIs.
+- No LPF peripheral service includes HAL headers.
+- Module builds no longer produce `hal.ko`.
+- Hardware behavior stays consistent across supported kernel and SoC backends.
 
 Current status:
 
@@ -244,13 +248,16 @@ Current status:
 - Started. `hal_mock_selftest.ko` now exercises HAL GPIO, PWM, CAN, serial,
   I2C, and SPI operation paths over the mock SoC backend when the module is
   loaded.
-- Remaining work: remove hard-coded GPIO table limits and extend mock backend
-  tests with failure injection and CI/module-load automation.
+- Decision update: standalone HAL is a transitional boundary. The final design
+  removes `hal.ko` and migrates useful hardware semantics into LPF-internal
+  `lpf_hw_*` APIs.
+- Remaining work: introduce `kernel/lpf/hw/`, migrate peripheral services from
+  `hal_*` to `lpf_hw_*`, then remove `kernel/hal/` and HAL Kconfig symbols.
 
-## Phase 6: PCONFIG Multi-Backend Model
+## Phase 6: Runtime Configuration Layer
 
-Goal: evolve PCONFIG from a compile-time product table into a configuration
-aggregation layer.
+Goal: move PCONFIG responsibilities into the LPF peripheral runtime as its
+configuration input layer, while keeping backend-based configuration loading.
 
 Work items:
 
@@ -263,18 +270,25 @@ Work items:
 - Add a board profile backend for product-line selection.
 - Make all backends produce the same `lpf_device_config` model.
 - Move per-device validation into per-device validators.
+- Delete standalone `CONFIG_PCONFIG` and `pconfig.ko`.
+- Move source layout toward `kernel/lpf/config/`.
+- Rename public-internal APIs from `pconfig_*` to `lpf_config_*` after the
+  module boundary is removed.
 
 Deliverables:
 
-- `pconfig_backend_ops`
-- `pconfig_static_backend`
-- `pconfig_dt_backend`
-- `pconfig_validator`
+- Runtime-linked config backend objects.
+- `lpf_config_backend_ops`
+- `lpf_config_static_backend`
+- `lpf_config_dt_backend`
+- `lpf_config_validator`
 
 Acceptance criteria:
 
 - The same MCU or LED device can be created from static table or Device Tree.
 - LPF Core and peripheral services do not care where configuration came from.
+- Module builds no longer produce `pconfig.ko`.
+- Runtime config unloads when `lpf_peripheral_runtime.ko` unloads.
 
 Current status:
 
@@ -288,8 +302,13 @@ Current status:
   table.
 - Started the Device Tree backend. It parses LPF root identity, MCU CAN/Serial,
   and LED GPIO/PWM entries into the same normalized PCONFIG model.
-- Remaining work: add a documented DTS binding/schema, board-profile backend,
-  product-selection policy, and broader peripheral coverage.
+- Done. PCONFIG backend objects are linked into
+  `lpf_peripheral_runtime.ko`, and standalone `pconfig.ko` has been removed
+  from the module build.
+- Remaining work: rename `pconfig_*` APIs/types to `lpf_config_*`, move files
+  under `kernel/lpf/config/`, add a documented DTS binding/schema,
+  board-profile backend, product-selection policy, and broader peripheral
+  coverage.
 
 ## Phase 7: Peripheral Service Layer
 
@@ -545,8 +564,8 @@ Current status:
 2. Introduce LPF Core.
 3. Add the kernel compat layer.
 4. Add the SoC adapter layer.
-5. Refactor HAL on top of compat and adapter layers.
-6. Refactor PCONFIG into a multi-backend configuration system.
+5. Remove standalone HAL by migrating useful semantics into LPF HW APIs.
+6. Merge PCONFIG into the LPF runtime configuration layer.
 7. Migrate LED first as the simplest complete peripheral service.
 8. Migrate MCU and split transport handling inside the LPF framework layers.
 9. Split UAPI and PDI.

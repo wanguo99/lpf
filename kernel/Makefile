@@ -6,7 +6,6 @@ LPF_AUTOCONF_H := $(LPF_ROOT)/include/generated/gen_autoconf.h
 
 include $(src)/osal/Makefile
 include $(src)/lpf/Makefile
-include $(src)/pconfig/Makefile
 include $(src)/hal/Makefile
 
 ccflags-y += -I$(src)/include

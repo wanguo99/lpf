@@ -74,7 +74,6 @@ MODULES_OUTPUT_DIR ?= $(MODULES_BUILD_DIR)
 MODULES_LIST ?= $(strip \
 	$(if $(CONFIG_OSAL),osal) \
 	$(if $(CONFIG_LPF_CORE),lpf_core) \
-	$(if $(CONFIG_PCONFIG),pconfig) \
 	$(if $(CONFIG_HAL),hal) \
 	$(if $(CONFIG_LPF_PERIPHERAL_RUNTIME),lpf_peripheral_runtime) \
 	$(if $(CONFIG_HAL_MOCK_SELFTEST),hal_mock_selftest))
@@ -738,7 +737,7 @@ help:
 	@echo '  KERNEL_SRC=<dir> - Kernel build tree for modules target'
 	@echo '  MODULES_BUILD_DIR=<dir> - Output directory for module artifacts'
 	@echo '  MODULES_SRC_DIR=<dir> - Kernel module source directory'
-	@echo '  MODULES_LIST="<list>" - Expected modules (default: osal lpf_core pconfig hal lpf_peripheral_runtime)'
+	@echo '  MODULES_LIST="<list>" - Expected modules (default: osal lpf_core hal lpf_peripheral_runtime)'
 	@echo '  CMAKE_BUILD_TYPE=<type>'
 	@echo '                  - Set build type: Debug, Release, RelWithDebInfo, MinSizeRel'
 	@echo '  CMAKE_INSTALL_PREFIX=<path>'

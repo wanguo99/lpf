@@ -23,9 +23,9 @@ ioctl / UAPI
         ↓
 LPF peripheral services + LPF protocol
         ↓
-LPF Core + PCONFIG mapping
+LPF runtime config mapping
         ↓
-HAL
+HAL (transitional)
         ↓
 LPF SoC Adapter
         ↓
@@ -42,12 +42,12 @@ Linux kernel / hardware
 - Kernel OSAL wraps Linux kernel APIs used by kernel modules.
 - LPF Core owns the framework device and driver registry, lifecycle, device
   names, capability metadata, and the active SoC adapter.
-- HAL provides kernel-side hardware access helpers.
+- HAL provides transitional kernel-side hardware access helpers.
 - LPF SoC Adapter isolates SoC or vendor BSP differences below HAL.
 - LPF Kernel Compat isolates Linux kernel API differences below the generic
   Linux SoC adapter.
-- PCONFIG selects a kernel-side platform configuration backend and exposes a
-  normalized device list.
+- LPF runtime config selects a kernel-side platform configuration backend and
+  exposes a normalized device list to the runtime.
 - LPF peripheral services provide kernel-side peripheral business behavior.
 - LPF protocol helpers provide kernel-side packet framing for services that use
   framed peripheral communication.
@@ -66,10 +66,11 @@ where the semantics are equivalent.
 
 ### HAL
 
-HAL owns LPF hardware-capability APIs in kernel mode. Current HAL support
-includes CAN, serial, GPIO, PWM, I2C, and SPI. HAL calls the LPF SoC Adapter
-instead of Linux subsystem APIs directly. LPF peripheral services call exported
-HAL symbols; userspace does not include or call HAL directly.
+HAL is currently a transitional kernel module that owns LPF hardware-capability
+APIs in kernel mode. Current HAL support includes CAN, serial, GPIO, PWM, I2C,
+and SPI. HAL calls the LPF SoC Adapter instead of Linux subsystem APIs directly.
+The long-term direction is to remove standalone `hal.ko` and migrate useful
+hardware semantics into LPF-internal `lpf_hw_*` APIs.
 
 ### LPF Core
 
@@ -112,16 +113,18 @@ versions. GPIO, PWM, I2C, and SPI wrappers currently live under
 and HAL business-facing APIs should not use `LINUX_VERSION_CODE` or vendor BSP
 APIs directly.
 
-### PCONFIG
+### LPF Runtime Config
 
-PCONFIG owns kernel-side platform hardware configuration aggregation. It selects
-a backend, validates the active platform, and exposes enabled device entries in
-one normalized list. Backend selection is controlled by the `backend` module
-parameter: `auto` tries Device Tree first and falls back to the built-in static
-table, while `dt` and `static` require a specific backend. Future
-board-profile or product-selection backends should produce the same
-`pconfig_platform_config_t` and `pconfig_device_config_t` model before LPF
-peripheral configuration sees the data.
+LPF runtime config owns kernel-side platform hardware configuration
+aggregation. It selects a backend, validates the active platform, and exposes
+enabled device entries in one normalized list. Backend selection is controlled
+by the `backend` module parameter on `lpf_peripheral_runtime.ko`: `auto` tries
+Device Tree first and falls back to the built-in static table, while `dt` and
+`static` require a specific backend. The source still uses transitional
+`pconfig_*` names, but the code is linked into the LPF peripheral runtime rather
+than a standalone `pconfig.ko`. Future board-profile or product-selection
+backends should produce the same runtime config model before LPF peripheral
+configuration sees the data.
 
 ### LPF Peripheral Services
 
@@ -182,19 +185,20 @@ PCONFIG so application function metadata does not leak into hardware tables.
 
 The current framework keeps one concrete peripheral/device family:
 
-- MCU configuration in PCONFIG
+- MCU configuration in LPF runtime config
 - MCU protocol in LPF protocol
 - MCU service in LPF peripheral layer
 - MCU CAN/UART transport in LPF transport layer
 - Userspace access through PDI
-- LED configuration in PCONFIG
+- LED configuration in LPF runtime config
 - LED service in LPF peripheral layer
 - Userspace access through PDI
 
-Other peripheral families can be added later by introducing matching PCONFIG
-types, LPF peripheral-service implementations, PDI userspace API coverage, UAPI
-definitions when needed, and Kconfig entries. Protocol definitions are only
-needed for peripherals that use framed LPF protocol communication.
+Other peripheral families can be added later by introducing matching runtime
+config types, LPF peripheral-service implementations, PDI userspace API
+coverage, UAPI definitions when needed, and Kconfig entries. Protocol
+definitions are only needed for peripherals that use framed LPF protocol
+communication.
 
 ## Build And Runtime Boundaries
 
@@ -211,23 +215,22 @@ Load kernel modules in dependency order:
 ```text
 osal.ko
 lpf_core.ko
-pconfig.ko
 hal.ko
 lpf_peripheral_runtime.ko
 ```
 
 `lpf_peripheral_runtime.ko` hosts the current LPF peripheral runtime. The
-runtime consumes PConfig entries and HAL symbols, registers the current
-framework-hosted peripheral services, maps enabled PConfig entries to LPF
-devices, and lets LPF Core probe the matching registered service for each
-configured peripheral.
+runtime includes the configuration backend objects, consumes runtime config
+entries and HAL symbols, registers the current framework-hosted peripheral
+services, maps enabled config entries to LPF devices, and lets LPF Core probe
+the matching registered service for each configured peripheral.
 
 ## Adding A Peripheral
 
 Add the following pieces together:
 
-- PCONFIG type and platform config array entry.
-- LPF device type and capability mapping for the PCONFIG entry.
+- Runtime config type and platform config array entry.
+- LPF device type and capability mapping for the runtime config entry.
 - LPF service driver object registered with `lpf_driver_register`.
 - Optional LPF instance character device `/dev/lpf/<peripheral><index>` when
   userspace access is needed.
@@ -242,7 +245,7 @@ select which objects are linked, but business logic should not branch on
 feature macros.
 
 Keep kernel/userspace changes aligned. A peripheral exposed to userspace should
-add or update PCONFIG, LPF peripheral service, UAPI, PDI, and Kconfig coverage
+add or update runtime config, LPF peripheral service, UAPI, PDI, and Kconfig coverage
 together so the ABI and build configuration remain consistent.
 
 ## Runtime Interfaces
@@ -262,7 +265,7 @@ together so the ABI and build configuration remain consistent.
 - Core modules do not depend on product/application code.
 - Dependencies point downward through the layer stack.
 - Product-specific behavior belongs outside shared framework module directories.
-- Kernel hardware configuration is selected through PCONFIG backends and
+- Kernel hardware configuration is selected through LPF runtime config backends and
   consumed by LPF peripheral configuration through the normalized device list,
   then mapped into LPF Core device configs.
 - HAL should call LPF SoC Adapter APIs for SoC-backed hardware capabilities.

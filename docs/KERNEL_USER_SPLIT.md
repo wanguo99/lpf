@@ -12,14 +12,12 @@ kernel/
   include/
     osal/          # kernel-side cross-module OSAL headers
     hal/           # kernel-side cross-module HAL headers
-    pconfig/       # kernel-side cross-module PConfig headers
+    pconfig/       # transitional runtime config type headers
     lpf/           # kernel-side cross-module LPF headers
   osal/
     src/           # builds osal.ko
   hal/
     src/           # kernel-only hardware access implementation
-  pconfig/
-    src/           # kernel-side configuration implementation
   lpf/
     core/          # LPF device model and shared node infrastructure
     protocol/      # LPF protocol helpers linked into lpf_core.ko
@@ -40,14 +38,15 @@ uapi/
 - `kernel/lpf/core` owns the LPF device model, control/discovery node, and
   shared chrdev/sysfs/debugfs helpers.
 - `kernel/lpf/peripheral` owns the framework peripheral runtime, integrated
-  module entry, and service implementations; current service paths are linked
-  into `lpf_peripheral_runtime.ko`.
+  module entry, runtime configuration loading, and service implementations;
+  current service paths are linked into `lpf_peripheral_runtime.ko`.
 - `kernel/lpf/protocol` provides kernel-side LPF protocol helpers through
   `lpf_core.ko` for services that need framed communication.
 - `kernel/hal` provides kernel-only hardware access used by LPF peripheral
   services. It builds as `hal.ko` and exports HAL API symbols.
-- `kernel/pconfig` provides kernel-side platform/product configuration used
-  by LPF peripheral configuration. It builds as `pconfig.ko`.
+- `kernel/pconfig` currently provides transitional runtime config source files
+  and type headers. The objects are linked into `lpf_peripheral_runtime.ko`
+  rather than a standalone module.
 - `user/pdi` provides the application-facing C API and wraps open/ioctl.
 - `uapi/lpf` is the stable ABI shared by LPF kernel nodes and `user/pdi`.
 
@@ -75,7 +74,7 @@ PDI userspace API
     ↓
 LPF peripheral service
     ↓
-PCONFIG + LPF Core + HAL
+LPF runtime config + LPF Core + HAL
     ↓
 Linux kernel subsystem / hardware
 ```

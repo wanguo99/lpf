@@ -91,19 +91,20 @@ endmenu
 menuconfig LPF_PERIPHERAL_RUNTIME
 	bool "LPF peripheral runtime module"
 	default n
-	depends on HAL && PCONFIG
+	depends on HAL
 	help
 	  Build the integrated LPF peripheral runtime module. This module hosts
-	  the reusable LPF peripheral services selected below and keeps them in
-	  one framework runtime boundary instead of splitting one kernel module
-	  per peripheral.
+	  the reusable LPF peripheral services selected below and the runtime
+	  configuration backend used to create LPF devices. It keeps framework
+	  services in one runtime boundary instead of splitting one kernel
+	  module per peripheral.
 
 	  If unsure, say Y when enabling LPF peripheral services.
 
 menuconfig LPF_MCU_SERVICE
 	bool "LPF MCU peripheral service"
 	default n
-	depends on LPF_PERIPHERAL_RUNTIME && HAL && PCONFIG
+	depends on LPF_PERIPHERAL_RUNTIME && HAL
 	select LPF_PROTOCOL
 	select LPF_PROTOCOL_MCU
 	select HAL_CAN
@@ -119,7 +120,7 @@ source "kernel/lpf/transport/mcu/Config.in"
 menuconfig LPF_LED_SERVICE
 	bool "LPF LED peripheral service"
 	default n
-	depends on LPF_PERIPHERAL_RUNTIME && HAL && PCONFIG
+	depends on LPF_PERIPHERAL_RUNTIME && HAL
 	select HAL_GPIO
 	select HAL_PWM
 	help

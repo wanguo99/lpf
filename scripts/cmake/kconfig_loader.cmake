@@ -249,7 +249,6 @@ function(kconfig_print_summary)
         HAL
         LPF_PERIPHERAL_RUNTIME
         PDI
-        PCONFIG
         ACONFIG
     )
 

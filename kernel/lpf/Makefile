@@ -25,6 +25,13 @@ endif
 ifeq ($(CONFIG_LPF_PERIPHERAL_RUNTIME),y)
 obj-m += lpf_peripheral_runtime.o
 lpf_peripheral_runtime-y := lpf/peripheral/lpf_peripheral_module.o
+lpf_peripheral_runtime-y += pconfig/src/pconfig_api.o
+lpf_peripheral_runtime-y += pconfig/src/pconfig_backend.o
+lpf_peripheral_runtime-y += pconfig/src/pconfig_dt_backend.o
+lpf_peripheral_runtime-y += pconfig/src/pconfig_static_backend.o
+lpf_peripheral_runtime-y += pconfig/src/pconfig_validator.o
+lpf_peripheral_runtime-y += pconfig/configs/pconfig_configs.o
+lpf_peripheral_runtime-y += pconfig/configs/kernel/x86_modules/1.0.0/pconfig_kernel_x86_modules.o
 lpf_peripheral_runtime-y += lpf/peripheral/lpf_peripheral.o
 lpf_peripheral_runtime-y += lpf/peripheral/lpf_peripheral_config.o
 lpf_peripheral_runtime-$(CONFIG_LPF_MCU_SERVICE) += lpf/peripheral/mcu/lpf_mcu_service.o

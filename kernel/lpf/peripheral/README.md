@@ -33,7 +33,6 @@ LPF device discovery is provided by the LPF Core control node `/dev/pdm_ctl`.
 ```text
 CONFIG_LPF_PERIPHERAL_RUNTIME=y
 CONFIG_LPF_CORE=y
-CONFIG_PCONFIG=y
 CONFIG_LPF_MCU_SERVICE=y
 CONFIG_LPF_MCU_MAX_DEVICES=4
 CONFIG_LPF_LED_SERVICE=y
@@ -96,9 +95,9 @@ kernel/include/lpf/
 service paths. During module initialization the runtime module calls
 `lpf_peripheral_runtime_init()`. The LPF
 peripheral runtime initializes LPF Core, registers peripheral services, loads
-PConfig, maps each enabled normalized PConfig device entry into an
+runtime config, maps each enabled normalized runtime config device entry into an
 `lpf_device_config_t`, and registers it with LPF Core. The module entry does not
-depend on the concrete PCONFIG backend, service registration order, or
+depend on the concrete runtime config backend, service registration order, or
 per-device capability mapping. LPF Core then binds the configured device to the
 matching service `probe`. On unload, LPF Core removes devices before driver
 global resources are released.

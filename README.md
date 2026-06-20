@@ -19,9 +19,9 @@ satellite/PMC business code and the previous test product have been removed.
 
 Current concrete peripheral/device types:
 
-- MCU peripheral type in PCONFIG and LPF peripheral runtime, exposed to
+- MCU peripheral type in LPF runtime config, exposed to
   userspace through PDI
-- LED peripheral type in PCONFIG and LPF peripheral runtime, exposed to
+- LED peripheral type in LPF runtime config, exposed to
   userspace through PDI
 
 The framework keeps layered extension points so additional peripheral types can
@@ -34,7 +34,8 @@ APIs from higher layers, but non-Linux ports are outside the current direction.
 
 - OSAL: operating-system abstraction
 - HAL: kernel hardware abstraction module (`hal.ko`)
-- PCONFIG: platform hardware configuration registry
+- LPF Runtime Config: platform hardware configuration registry linked into
+  `lpf_peripheral_runtime.ko`
 - LPF Core: framework device model and shared kernel infrastructure
 - LPF Peripheral Runtime: integrated kernel module for reusable peripheral
   services (`lpf_peripheral_runtime.ko`)
@@ -44,7 +45,7 @@ APIs from higher layers, but non-Linux ports are outside the current direction.
 ## What LPF Provides
 
 - A clear split between kernel modules, UAPI headers, and userspace libraries.
-- Kernel-side peripheral drivers built on PCONFIG, HAL, and OSAL.
+- Kernel-side peripheral drivers built on LPF runtime config, HAL, and OSAL.
 - Userspace PDI libraries that hide ioctl details from applications.
 - Kconfig-controlled feature selection for modules and peripheral families.
 - CMake/Kbuild integration for userspace libraries and Linux kernel modules.
@@ -93,8 +94,8 @@ That preset also builds `hal_mock_selftest.ko`; loading it after `osal.ko`,
 `lpf_core.ko`, and `hal.ko` runs HAL GPIO/PWM/CAN/Serial/I2C/SPI checks through
 the mock SoC adapter.
 
-Kernel module load order is `osal.ko`, `lpf_core.ko`, `pconfig.ko`,
-`hal.ko`, then `lpf_peripheral_runtime.ko`.
+Kernel module load order is `osal.ko`, `lpf_core.ko`, `hal.ko`, then
+`lpf_peripheral_runtime.ko`.
 
 Generated libraries are written under `_build/lib/`. Kernel modules are written
 under `_build/modules/`.

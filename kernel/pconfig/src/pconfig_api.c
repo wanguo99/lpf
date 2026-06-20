@@ -12,8 +12,6 @@
 #include "pconfig_validator.h"
 #include "generated/gen_version.h"
 
-#include <linux/module.h>
-
 #define PCONFIG_MAX_DEVICES 32U
 
 static pconfig_device_config_t g_pconfig_devices[PCONFIG_MAX_DEVICES + 1U];
@@ -268,29 +266,3 @@ void pconfig_unload(void)
 	LOG_INFO("PCONFIG", "Deinitialized");
 }
 EXPORT_SYMBOL_GPL(pconfig_unload);
-
-static int __init pconfig_init(void)
-{
-	int32_t ret;
-
-	ret = pconfig_load();
-	if (ret != OSAL_SUCCESS)
-		return -ret;
-
-	LOG_INFO("PCONFIG", "loaded");
-	return 0;
-}
-
-static void __exit pconfig_exit(void)
-{
-	pconfig_unload();
-	LOG_INFO("PCONFIG", "unloaded");
-}
-
-module_init(pconfig_init);
-module_exit(pconfig_exit);
-
-MODULE_AUTHOR("LPF");
-MODULE_DESCRIPTION("LPF PConfig kernel module");
-MODULE_LICENSE("GPL");
-MODULE_SOFTDEP("pre: osal");

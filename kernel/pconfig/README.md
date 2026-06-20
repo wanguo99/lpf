@@ -1,8 +1,12 @@
-# PCONFIG
+# LPF Runtime Config
 
-PCONFIG is the platform hardware-configuration aggregation layer. It selects a
-configuration backend, validates the active platform, and exposes one typed
-device list to the LPF peripheral runtime and other LPF kernel services.
+This directory currently contains the transitional `pconfig_*` source and type
+names for the LPF runtime configuration layer. The code is no longer built as a
+standalone `pconfig.ko`; it is linked into `lpf_peripheral_runtime.ko`.
+
+The runtime configuration layer selects a configuration backend, validates the
+active platform, and exposes one typed device list to the LPF peripheral
+runtime.
 
 ## Current Responsibility
 
@@ -16,7 +20,8 @@ device list to the LPF peripheral runtime and other LPF kernel services.
 
 ## Backend Selection
 
-PCONFIG supports a `backend` module parameter:
+Runtime config supports a `backend` module parameter on
+`lpf_peripheral_runtime.ko`:
 
 ```text
 backend=auto    # default: try dt, then static
@@ -108,11 +113,11 @@ pconfig_hw_get_led(platform, index);
 
 ## Layering Rules
 
-- `kernel/pconfig` owns backend selection, validation, and normalized device
+- Runtime config owns backend selection, validation, and normalized device
   enumeration.
 - `kernel/pconfig/configs` owns concrete static platform tables.
 - LPF peripheral configuration consumes `pconfig_get()` and typed entries; it
   must not know concrete product table symbols or backend implementations.
-- New configuration sources should be added as PCONFIG backends. They must
+- New configuration sources should be added as runtime config backends. They must
   produce the same `pconfig_platform_config_t` and `pconfig_device_config_t`
   model before LPF peripheral configuration sees them.

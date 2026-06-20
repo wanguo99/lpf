@@ -12,21 +12,21 @@ use LPF Core for device and driver lifecycle instead of adding local bus code.
 ## Target Architecture
 
 - HAL is a kernel-only module built as `hal.ko`.
-- PConfig is a standalone kernel module built as `pconfig.ko`.
-- PConfig selects a configuration backend. The current static backend consumes
-  platform configs compiled under
+- Runtime config is linked into `lpf_peripheral_runtime.ko`.
+- Runtime config selects a configuration backend. The current static backend
+  consumes platform configs compiled under
   `kernel/pconfig/configs/<product>/<project>/<version>/`.
 - LPF Core is a standalone kernel module built as `lpf_core.ko`; it owns the
   framework device and driver registry.
 - LPF peripheral runtime is a kernel module built as
   `lpf_peripheral_runtime.ko`; current LPF peripheral services are linked into
   that integrated module while their code lives under `kernel/lpf/peripheral/`.
-- PConfig supplies device instances; the LPF peripheral configuration entry maps
-  those instances into LPF device configs, and LPF Core matches each instance
-  to a driver and owns remove ordering.
+- Runtime config supplies device instances; the LPF peripheral configuration
+  entry maps those instances into LPF device configs, and LPF Core matches each
+  instance to a driver and owns remove ordering.
 - PDI remains a userspace library, but it only talks to per-peripheral character
   devices and UAPI headers.
-- Each peripheral owns its own PConfig type, LPF peripheral service, LPF UAPI
+- Each peripheral owns its own runtime config type, LPF peripheral service, LPF UAPI
   header, PDI userspace wrapper, character device, and ioctl namespace.
 - Feature selection is handled by Kbuild object selection and registration
   tables, not by business-code `#ifdef CONFIG_*` branches.
@@ -42,12 +42,12 @@ use LPF Core for device and driver lifecycle instead of adding local bus code.
 - [x] Rename kernel module entry files from `main.c` to module names.
 - [x] Move HAL source files directly under `src` without an extra `kernel`
       subdirectory.
-- [x] Add per-module version printing for OSAL, HAL, PConfig, and the LPF
-      peripheral runtime.
+- [x] Add per-module version printing for OSAL, HAL, runtime config, and the
+      LPF peripheral runtime.
 - [x] Keep OSAL version printing in `osal.c` instead of a separate
       `osal_version.c`.
 - [x] Add `module_init`/`module_exit` for OSAL.
-- [x] Add `module_init`/`module_exit` for PConfig.
+- [x] Add runtime config load/unload integration.
 - [x] Build the LPF peripheral runtime as `lpf_peripheral_runtime.ko` with
       module entry in `lpf_peripheral_module.c`.
 - [x] Split PDI MCU UAPI into `uapi/lpf/lpf_mcu.h`.
@@ -71,26 +71,28 @@ use LPF Core for device and driver lifecycle instead of adding local bus code.
 - [x] Remove ctest product files from the current tree.
 - [x] Create a tag for the last pure userspace implementation and merge the
       refactor branch back to `master`.
-- [x] Keep concrete platform configuration inside the original PConfig module
-      instead of adding a separate product config kernel module.
+- [x] Keep concrete platform configuration inside runtime config instead of
+      adding a separate product config kernel module.
 - [x] Introduce PCONFIG backend selection and move the original static table
       behind a static backend.
 - [x] Add HAL PWM support and LPF LED service support with GPIO/PWM control.
 
 ## Phase 1: Make The Current Kernel Modules Loadable
 
-- [x] Add a real product/platform PConfig source for the kernel module build.
-  - `pconfig.ko` links `g_pconfig_platform_table` from
+- [x] Add a real product/platform runtime config source for the kernel module
+      build.
+  - `lpf_peripheral_runtime.ko` links `g_pconfig_platform_table` from
     `kernel/pconfig/configs` through the static backend.
-  - Acceptance: `pconfig_load()` finds a board config and `pconfig.ko` loads.
-- [x] Define the PConfig ownership model.
-  - PConfig owns its module lifetime and global config state.
+  - Acceptance: runtime config load finds a board config during
+    `lpf_peripheral_runtime.ko` initialization.
+- [x] Define the runtime config ownership model.
+  - Runtime config lifetime follows `lpf_peripheral_runtime.ko`.
   - LPF peripheral configuration reads PConfig and LPF Core removes registered
     devices on exit.
-  - Acceptance: unloading `lpf_peripheral_runtime.ko` does not invalidate a
-    loaded `pconfig.ko` unexpectedly.
+  - Acceptance: unloading `lpf_peripheral_runtime.ko` removes LPF devices
+    before unloading runtime config.
 - [ ] Add a basic module load/unload smoke path.
-  - Target order: `osal.ko`, `lpf_core.ko`, `pconfig.ko`, `hal.ko`,
+  - Target order: `osal.ko`, `lpf_core.ko`, `hal.ko`,
     `lpf_peripheral_runtime.ko`.
   - Acceptance: all modules load and unload cleanly on the target kernel with
     the selected defconfig.
@@ -142,7 +144,7 @@ use LPF Core for device and driver lifecycle instead of adding local bus code.
     received raw frames back into device type, message type, and payload data.
 - [x] Revisit LPF peripheral runtime device removal.
   - LPF peripheral runtime should remove devices before driver exit.
-  - PConfig state should remain owned by PConfig.
+  - Runtime config state should remain owned by runtime config.
   - Implemented with LPF Core: device nodes are removed before driver
     unregister/exit, and each bound device calls its driver's `remove`.
 - [x] Add LED peripheral support using the established model.
@@ -271,7 +273,6 @@ use LPF Core for device and driver lifecycle instead of adding local bus code.
   - `make modules`
 - [x] Verify module artifact names.
   - `osal.ko`
-  - `pconfig.ko`
   - `hal.ko`
   - `lpf_peripheral_runtime.ko`
 - [ ] Run module load/unload smoke test on a compatible kernel.
