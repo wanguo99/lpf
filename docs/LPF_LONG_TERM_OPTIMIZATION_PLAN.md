@@ -313,10 +313,10 @@ Work items:
 
 Deliverables:
 
-- `lpf_mcu.ko`
-- `lpf_led.ko`
-- `lpf_transport_can.ko`
-- `lpf_transport_uart.ko`
+- `kernel/lpf/peripheral/mcu/`
+- `kernel/lpf/peripheral/led/`
+- `kernel/lpf/transport/mcu/`
+- Unified service registration in the existing framework integration module.
 
 Acceptance criteria:
 
@@ -329,17 +329,17 @@ Current status:
 - Started. MCU and LED service code now live under `kernel/lpf/peripheral/`
   with public kernel service headers at `kernel/include/lpf/`.
 - Started. MCU and LED services register as LPF drivers and expose
-  `/dev/lpf/mcuN` and `/dev/lpf/ledN`; LED now builds as standalone
-  `lpf_led.ko`, while MCU remains linked into `pdm.ko` until the next
-  service-module split.
+  `/dev/lpf/mcuN` and `/dev/lpf/ledN`; both remain integrated through the
+  current PDM-hosted framework module so deployment does not fragment into one
+  KO per peripheral.
 - Started. MCU CAN/UART implementations have moved behind
   `kernel/lpf/transport/mcu/` and are selected through the LPF MCU transport
   registry instead of direct service dependencies.
 - Done. The framed peripheral protocol has moved from PDM into the LPF protocol
   layer under `kernel/lpf/protocol/`, with public protocol headers under
   `kernel/include/lpf/` and encode/decode symbols exported by `lpf_core.ko`.
-- Remaining work: promote MCU transports and MCU service into standalone LPF
-  modules.
+- Remaining work: continue reducing PDM-specific ownership while keeping
+  peripheral services integrated through the framework module boundary.
 
 ## Phase 8: UAPI And PDI Separation
 
@@ -524,8 +524,8 @@ Current status:
 4. Add the SoC adapter layer.
 5. Refactor HAL on top of compat and adapter layers.
 6. Refactor PCONFIG into a multi-backend configuration system.
-7. Migrate LED first as the simplest complete peripheral.
-8. Migrate MCU and split transport handling.
+7. Migrate LED first as the simplest complete peripheral service.
+8. Migrate MCU and split transport handling inside the LPF framework layers.
 9. Split UAPI and PDI.
 10. Add debugfs, sysfs, and test coverage.
 

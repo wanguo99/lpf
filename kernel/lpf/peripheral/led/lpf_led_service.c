@@ -1,11 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0
 
-#include <linux/module.h>
-
 #include "osal.h"
 #include "hal.h"
 #include "pconfig.h"
-#include "lpf/lpf_errno.h"
 #include "lpf/lpf_driver.h"
 #include "lpf_led_internal.h"
 
@@ -460,38 +457,12 @@ static const lpf_driver_t g_lpf_led_driver = {
 	.remove = lpf_led_remove,
 };
 
-static int32_t lpf_led_service_register(void)
+int32_t lpf_led_service_register(void)
 {
 	return lpf_driver_register(&g_lpf_led_driver);
 }
 
-static void lpf_led_service_unregister(void)
+void lpf_led_service_unregister(void)
 {
 	lpf_driver_unregister(&g_lpf_led_driver);
 }
-
-static int __init lpf_led_module_init(void)
-{
-	int32_t ret;
-
-	ret = lpf_led_service_register();
-	if (ret != OSAL_SUCCESS)
-		return lpf_status_to_errno(ret);
-
-	LOG_INFO("LPF_LED", "module loaded");
-	return 0;
-}
-
-static void __exit lpf_led_module_exit(void)
-{
-	lpf_led_service_unregister();
-	LOG_INFO("LPF_LED", "module unloaded");
-}
-
-module_init(lpf_led_module_init);
-module_exit(lpf_led_module_exit);
-
-MODULE_AUTHOR("LPF");
-MODULE_DESCRIPTION("LPF LED peripheral service");
-MODULE_LICENSE("GPL");
-MODULE_SOFTDEP("pre: osal lpf_core hal");

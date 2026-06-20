@@ -17,6 +17,8 @@ typedef struct {
 	bool enabled;
 } lpf_led_service_state_t;
 
+int32_t lpf_led_service_register(void);
+void lpf_led_service_unregister(void);
 lpf_led_handle_t lpf_led_get(uint32_t index);
 int32_t lpf_led_set_brightness(lpf_led_handle_t handle, uint32_t brightness);
 int32_t lpf_led_get_state(lpf_led_handle_t handle,

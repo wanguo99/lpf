@@ -18,8 +18,8 @@ device and driver lifecycle instead of adding new PDM-local bus code.
   `kernel/pconfig/configs/<product>/<project>/<version>/`.
 - LPF Core is a standalone kernel module built as `lpf_core.ko`; it owns the
   framework device and driver registry.
-- PDM is a kernel module built as `pdm.ko`; the current MCU service path remains
-  linked into `pdm.ko`, while LED now builds as standalone `lpf_led.ko`.
+- PDM is a kernel module built as `pdm.ko`; current LPF peripheral services are
+  linked into `pdm.ko` while their code lives under `kernel/lpf/peripheral/`.
 - PConfig supplies device instances; PDM maps those instances into LPF device
   configs, and LPF Core matches each instance to a driver and owns remove
   ordering.
@@ -55,9 +55,8 @@ device and driver lifecycle instead of adding new PDM-local bus code.
 - [x] Add PDM built-in driver registration through LPF Core.
 - [x] Replace the PDM-local virtual bus/list manager with LPF Core for driver
       and device binding.
-- [x] Keep the initial PDM peripheral drivers linked into `pdm.ko` instead of
-      adding one kernel module per peripheral.
-- [x] Split the LED peripheral service into standalone `lpf_led.ko`.
+- [x] Keep PDM peripheral drivers linked into `pdm.ko` instead of adding one
+      kernel module per peripheral.
 - [x] Add HAL built-in initialization table for HAL subdrivers that need global
       module initialization.
 - [x] Remove ctest product files from the current tree.
@@ -81,8 +80,7 @@ device and driver lifecycle instead of adding new PDM-local bus code.
   - Acceptance: unloading `pdm.ko` does not invalidate a loaded `pconfig.ko`
     unexpectedly.
 - [ ] Add a basic module load/unload smoke path.
-  - Target order: `osal.ko`, `lpf_core.ko`, `pconfig.ko`, `hal.ko`,
-    `lpf_led.ko`, `pdm.ko`.
+  - Target order: `osal.ko`, `lpf_core.ko`, `pconfig.ko`, `hal.ko`, `pdm.ko`.
   - Acceptance: all modules load and unload cleanly on the target kernel with
     the selected defconfig.
 
@@ -260,7 +258,6 @@ device and driver lifecycle instead of adding new PDM-local bus code.
   - `osal.ko`
   - `pconfig.ko`
   - `hal.ko`
-  - `lpf_led.ko`
   - `pdm.ko`
 - [ ] Run module load/unload smoke test on a compatible kernel.
 - [ ] Verify `/dev/lpf/mcuN` appears when MCU is configured.

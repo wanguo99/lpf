@@ -107,7 +107,7 @@ source "kernel/lpf/transport/mcu/Config.in"
 menuconfig LPF_LED_SERVICE
 	bool "LPF LED peripheral service"
 	default n
-	depends on HAL && PCONFIG
+	depends on PDM && HAL && PCONFIG
 	select HAL_GPIO
 	select HAL_PWM
 	help

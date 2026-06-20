@@ -20,11 +20,4 @@ lpf_core-$(CONFIG_LPF_SOC_ADAPTER_MOCK) += lpf/soc/mock/lpf_soc_mock.o
 ifneq ($(CONFIG_LPF_SOC_ADAPTER_MOCK),y)
 lpf_core-y += lpf/soc/generic_linux/lpf_soc_generic_linux.o
 endif
-
-ifeq ($(CONFIG_LPF_LED_SERVICE),y)
-obj-m += lpf_led.o
-lpf_led-y := lpf/peripheral/led/lpf_led_service.o
-lpf_led-y += lpf/peripheral/led/lpf_led_chrdev.o
-lpf_led-y += lpf/peripheral/led/lpf_led_proc.o
-endif
 endif
