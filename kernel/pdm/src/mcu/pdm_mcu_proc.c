@@ -287,43 +287,59 @@ static int pdm_mcu_proc_write(char *command, size_t count, void *data)
 		return ret;
 
 	handle = pdm_mcu_proc_get_handle(index);
-	if (!handle)
+	if (!handle) {
+		pdm_mcu_chrdev_record_error(index, -ENODEV);
 		return -ENODEV;
+	}
 
-	if (!strcmp(op, "version"))
-		return pdm_mcu_proc_do_version(handle, index);
+	if (!strcmp(op, "version")) {
+		ret = pdm_mcu_proc_do_version(handle, index);
+		goto out;
+	}
 
-	if (!strcmp(op, "status"))
-		return pdm_mcu_proc_do_status(handle, index);
+	if (!strcmp(op, "status")) {
+		ret = pdm_mcu_proc_do_status(handle, index);
+		goto out;
+	}
 
-	if (!strcmp(op, "reset"))
-		return pdm_mcu_proc_do_reset(handle, index);
+	if (!strcmp(op, "reset")) {
+		ret = pdm_mcu_proc_do_reset(handle, index);
+		goto out;
+	}
 
 	if (!strcmp(op, "cmd")) {
 		ret = pdm_mcu_proc_parse_u32(&cursor, &value);
 		if (ret)
-			return ret;
-		return pdm_mcu_proc_do_cmd(handle, index, value, &cursor);
+			goto out;
+		ret = pdm_mcu_proc_do_cmd(handle, index, value, &cursor);
+		goto out;
 	}
 
 	if (!strcmp(op, "read")) {
 		ret = pdm_mcu_proc_parse_u32(&cursor, &value);
 		if (ret)
-			return ret;
+			goto out;
 		ret = pdm_mcu_proc_parse_u32(&cursor, &size);
 		if (ret)
-			return ret;
-		return pdm_mcu_proc_do_read(handle, index, value, size);
+			goto out;
+		ret = pdm_mcu_proc_do_read(handle, index, value, size);
+		goto out;
 	}
 
 	if (!strcmp(op, "write")) {
 		ret = pdm_mcu_proc_parse_u32(&cursor, &value);
 		if (ret)
-			return ret;
-		return pdm_mcu_proc_do_write(handle, index, value, &cursor);
+			goto out;
+		ret = pdm_mcu_proc_do_write(handle, index, value, &cursor);
+		goto out;
 	}
 
-	return -EINVAL;
+	ret = -EINVAL;
+
+out:
+	if (ret)
+		pdm_mcu_chrdev_record_error(index, ret);
+	return ret;
 }
 
 int pdm_mcu_proc_register(void)

@@ -44,6 +44,7 @@ typedef struct lpf_device {
 	const struct lpf_driver *driver;
 	lpf_device_state_t state;
 	int32_t last_error;
+	uint32_t error_count;
 	lpf_capability_t capabilities;
 	char name[LPF_DEVICE_NAME_LEN];
 } lpf_device_t;
@@ -53,6 +54,7 @@ typedef struct {
 	uint32_t index;
 	lpf_device_state_t state;
 	int32_t last_error;
+	uint32_t error_count;
 	lpf_capability_t capabilities;
 	char name[LPF_DEVICE_NAME_LEN];
 	char driver_name[LPF_DEVICE_NAME_LEN];

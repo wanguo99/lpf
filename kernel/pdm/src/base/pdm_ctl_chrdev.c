@@ -55,6 +55,7 @@ static void pdm_ctl_fill_device_info(const lpf_device_info_t *src,
 	dst->index = src->index;
 	dst->state = pdm_ctl_device_state(src->state);
 	dst->last_error = src->last_error;
+	dst->error_count = src->error_count;
 	dst->capabilities = src->capabilities;
 	osal_strncpy(dst->name, src->name, sizeof(dst->name) - 1U);
 	dst->name[sizeof(dst->name) - 1U] = '\0';

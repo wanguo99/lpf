@@ -106,12 +106,16 @@ Instance character devices expose read-only sysfs attributes for inspection:
 - `driver`
 - `soc`
 - `last_error`
+- `error_count`
 - `open_count`
+
+`last_error` and `error_count` are updated from runtime ioctl and debugfs
+command failures for the specific instance.
 
 `/dev/pdm_ctl` is the management node for discovery. It exposes LPF Core device
 snapshots through `uapi/lpf/lpf_ctl.h`, including stable name, type, state,
-driver name, and capability flags. It does not perform peripheral business
-operations.
+driver name, capability flags, `last_error`, and `error_count`. It does not
+perform peripheral business operations.
 
 Procfs is reserved for read-only observability data. Current nodes:
 

@@ -89,6 +89,7 @@ static void lpf_copy_device_info(const lpf_device_t *device,
 	info->index = device->config.index;
 	info->state = device->state;
 	info->last_error = device->last_error;
+	info->error_count = device->error_count;
 	info->capabilities = device->capabilities;
 	osal_strncpy(info->name, device->name, sizeof(info->name) - 1U);
 	info->name[sizeof(info->name) - 1U] = '\0';
@@ -510,6 +511,26 @@ int32_t lpf_device_list(lpf_device_info_t *infos, uint32_t *count)
 		       OSAL_SUCCESS;
 }
 EXPORT_SYMBOL_GPL(lpf_device_list);
+
+void lpf_device_record_error(lpf_device_type_t type, uint32_t index,
+			     int32_t error)
+{
+	lpf_device_node_t *device_node;
+
+	if (error == OSAL_SUCCESS || type == LPF_DEVICE_TYPE_INVALID)
+		return;
+	if (!g_lpf_core_ready)
+		return;
+
+	osal_mutex_lock(&g_lpf_core_lock);
+	device_node = lpf_find_device_node_locked(type, index);
+	if (device_node) {
+		device_node->device.last_error = error;
+		device_node->device.error_count++;
+	}
+	osal_mutex_unlock(&g_lpf_core_lock);
+}
+EXPORT_SYMBOL_GPL(lpf_device_record_error);
 
 static int __init lpf_core_module_init(void)
 {

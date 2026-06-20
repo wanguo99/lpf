@@ -23,6 +23,12 @@ static uint32_t pdm_led_file_index(struct file *file)
 	return pdm_chrdev_index(chrdev);
 }
 
+static void pdm_led_record_file_error(struct file *file, long ret)
+{
+	if (ret < 0)
+		pdm_chrdev_record_error(pdm_led_chrdev_from_file(file), (int)ret);
+}
+
 static uint32_t pdm_led_open_count(void)
 {
 	uint32_t open_count = 0;
@@ -161,22 +167,33 @@ static long pdm_led_ioctl_disable(struct file *file, unsigned long arg)
 static long pdm_led_ioctl(struct file *file, unsigned int cmd,
 			  unsigned long arg)
 {
+	long ret;
+
 	(void)file;
 
 	switch (cmd) {
 	case LPF_LED_IOC_GET_INFO:
-		return pdm_led_ioctl_get_info(arg);
+		ret = pdm_led_ioctl_get_info(arg);
+		break;
 	case LPF_LED_IOC_GET_STATE:
-		return pdm_led_ioctl_get_state(file, arg);
+		ret = pdm_led_ioctl_get_state(file, arg);
+		break;
 	case LPF_LED_IOC_SET_BRIGHTNESS:
-		return pdm_led_ioctl_set_brightness(file, arg);
+		ret = pdm_led_ioctl_set_brightness(file, arg);
+		break;
 	case LPF_LED_IOC_ENABLE:
-		return pdm_led_ioctl_enable(file, arg);
+		ret = pdm_led_ioctl_enable(file, arg);
+		break;
 	case LPF_LED_IOC_DISABLE:
-		return pdm_led_ioctl_disable(file, arg);
+		ret = pdm_led_ioctl_disable(file, arg);
+		break;
 	default:
-		return -ENOTTY;
+		ret = -ENOTTY;
+		break;
 	}
+
+	pdm_led_record_file_error(file, ret);
+	return ret;
 }
 
 #ifdef CONFIG_COMPAT
@@ -270,4 +287,12 @@ void pdm_led_chrdev_unregister_device(const lpf_device_t *device)
 		return;
 
 	pdm_chrdev_unregister(&g_pdm_led_chrdevs[index]);
+}
+
+void pdm_led_chrdev_record_error(uint32_t index, int error)
+{
+	if (index >= OSAL_ARRAY_SIZE(g_pdm_led_chrdevs))
+		return;
+
+	pdm_chrdev_record_error(&g_pdm_led_chrdevs[index], error);
 }

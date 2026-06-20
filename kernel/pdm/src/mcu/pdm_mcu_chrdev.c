@@ -23,6 +23,12 @@ static uint32_t pdm_mcu_file_index(struct file *file)
 	return pdm_chrdev_index(chrdev);
 }
 
+static void pdm_mcu_record_file_error(struct file *file, long ret)
+{
+	if (ret < 0)
+		pdm_chrdev_record_error(pdm_mcu_chrdev_from_file(file), (int)ret);
+}
+
 static uint32_t pdm_mcu_open_count(void)
 {
 	uint32_t open_count = 0;
@@ -258,26 +264,39 @@ static long pdm_mcu_ioctl_write_data(struct file *file, unsigned long arg)
 static long pdm_mcu_ioctl(struct file *file, unsigned int cmd,
 			  unsigned long arg)
 {
+	long ret;
+
 	(void)file;
 
 	switch (cmd) {
 	case LPF_MCU_IOC_GET_INFO:
-		return pdm_mcu_ioctl_get_info(arg);
+		ret = pdm_mcu_ioctl_get_info(arg);
+		break;
 	case LPF_MCU_IOC_GET_VERSION:
-		return pdm_mcu_ioctl_get_version(file, arg);
+		ret = pdm_mcu_ioctl_get_version(file, arg);
+		break;
 	case LPF_MCU_IOC_GET_STATUS:
-		return pdm_mcu_ioctl_get_status(file, arg);
+		ret = pdm_mcu_ioctl_get_status(file, arg);
+		break;
 	case LPF_MCU_IOC_RESET:
-		return pdm_mcu_ioctl_reset(file, arg);
+		ret = pdm_mcu_ioctl_reset(file, arg);
+		break;
 	case LPF_MCU_IOC_COMMAND:
-		return pdm_mcu_ioctl_command(file, arg);
+		ret = pdm_mcu_ioctl_command(file, arg);
+		break;
 	case LPF_MCU_IOC_READ_DATA:
-		return pdm_mcu_ioctl_read_data(file, arg);
+		ret = pdm_mcu_ioctl_read_data(file, arg);
+		break;
 	case LPF_MCU_IOC_WRITE_DATA:
-		return pdm_mcu_ioctl_write_data(file, arg);
+		ret = pdm_mcu_ioctl_write_data(file, arg);
+		break;
 	default:
-		return -ENOTTY;
+		ret = -ENOTTY;
+		break;
 	}
+
+	pdm_mcu_record_file_error(file, ret);
+	return ret;
 }
 
 #ifdef CONFIG_COMPAT
@@ -371,4 +390,12 @@ void pdm_mcu_chrdev_unregister_device(const lpf_device_t *device)
 		return;
 
 	pdm_chrdev_unregister(&g_pdm_mcu_chrdevs[index]);
+}
+
+void pdm_mcu_chrdev_record_error(uint32_t index, int error)
+{
+	if (index >= OSAL_ARRAY_SIZE(g_pdm_mcu_chrdevs))
+		return;
+
+	pdm_chrdev_record_error(&g_pdm_mcu_chrdevs[index], error);
 }

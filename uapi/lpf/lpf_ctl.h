@@ -50,6 +50,7 @@ struct lpf_ctl_device_info {
 	__u32 index;
 	__u32 state;
 	__s32 last_error;
+	__u32 error_count;
 	__u64 capabilities;
 	char name[LPF_CTL_NAME_LEN];
 	char driver_name[LPF_CTL_NAME_LEN];

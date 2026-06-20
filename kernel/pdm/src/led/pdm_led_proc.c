@@ -130,43 +130,61 @@ static int pdm_led_proc_write(char *command, size_t count, void *data)
 		return ret;
 
 	handle = pdm_led_proc_get_handle(index);
-	if (!handle)
+	if (!handle) {
+		pdm_led_chrdev_record_error(index, -ENODEV);
 		return -ENODEV;
+	}
 
-	if (!strcmp(op, "state"))
-		return pdm_led_proc_do_state(handle, index);
+	if (!strcmp(op, "state")) {
+		ret = pdm_led_proc_do_state(handle, index);
+		goto out;
+	}
 
 	if (!strcmp(op, "enable") || !strcmp(op, "on")) {
 		status = pdm_led_enable(handle);
-		if (status != OSAL_SUCCESS)
-			return pdm_status_to_errno(status);
+		if (status != OSAL_SUCCESS) {
+			ret = pdm_status_to_errno(status);
+			goto out;
+		}
 		LOG_INFO("PDM_LED", "debugfs enable index=%u success", index);
-		return 0;
+		ret = 0;
+		goto out;
 	}
 
 	if (!strcmp(op, "disable") || !strcmp(op, "off")) {
 		status = pdm_led_disable(handle);
-		if (status != OSAL_SUCCESS)
-			return pdm_status_to_errno(status);
+		if (status != OSAL_SUCCESS) {
+			ret = pdm_status_to_errno(status);
+			goto out;
+		}
 		LOG_INFO("PDM_LED", "debugfs disable index=%u success", index);
-		return 0;
+		ret = 0;
+		goto out;
 	}
 
 	if (!strcmp(op, "set") || !strcmp(op, "brightness")) {
 		ret = pdm_led_proc_parse_u32(&cursor, &brightness);
 		if (ret)
-			return ret;
+			goto out;
 
 		status = pdm_led_set_brightness(handle, brightness);
-		if (status != OSAL_SUCCESS)
-			return pdm_status_to_errno(status);
+		if (status != OSAL_SUCCESS) {
+			ret = pdm_status_to_errno(status);
+			goto out;
+		}
 		LOG_INFO("PDM_LED",
 			 "debugfs set index=%u brightness=%u success",
 			 index, brightness);
-		return 0;
+		ret = 0;
+		goto out;
 	}
 
-	return -EINVAL;
+	ret = -EINVAL;
+
+out:
+	if (ret)
+		pdm_led_chrdev_record_error(index, ret);
+	return ret;
 }
 
 int pdm_led_proc_register(void)

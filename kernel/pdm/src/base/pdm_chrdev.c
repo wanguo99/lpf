@@ -6,6 +6,7 @@
 #include <linux/device.h>
 #include <linux/errno.h>
 
+#include "lpf/lpf_core.h"
 #include "lpf/lpf_driver.h"
 #include "lpf/lpf_soc_adapter.h"
 
@@ -106,6 +107,18 @@ static ssize_t last_error_show(struct device *dev,
 	return sysfs_emit(buf, "%d\n", chrdev->info.last_error);
 }
 
+static ssize_t error_count_show(struct device *dev,
+				struct device_attribute *attr, char *buf)
+{
+	pdm_chrdev_t *chrdev = dev_get_drvdata(dev);
+
+	(void)attr;
+	if (!chrdev)
+		return sysfs_emit(buf, "0\n");
+
+	return sysfs_emit(buf, "%u\n", pdm_chrdev_error_count(chrdev));
+}
+
 static ssize_t open_count_show(struct device *dev,
 			       struct device_attribute *attr, char *buf)
 {
@@ -126,6 +139,7 @@ static DEVICE_ATTR_RO(capabilities);
 static DEVICE_ATTR_RO(driver);
 static DEVICE_ATTR_RO(soc);
 static DEVICE_ATTR_RO(last_error);
+static DEVICE_ATTR_RO(error_count);
 static DEVICE_ATTR_RO(open_count);
 
 static struct attribute *pdm_chrdev_attrs[] = {
@@ -137,6 +151,7 @@ static struct attribute *pdm_chrdev_attrs[] = {
 	&dev_attr_driver.attr,
 	&dev_attr_soc.attr,
 	&dev_attr_last_error.attr,
+	&dev_attr_error_count.attr,
 	&dev_attr_open_count.attr,
 	NULL,
 };
@@ -163,6 +178,7 @@ static void pdm_chrdev_fill_info(pdm_chrdev_t *chrdev,
 		chrdev->info.index = device->config.index;
 		chrdev->info.state = device->state;
 		chrdev->info.last_error = device->last_error;
+		chrdev->info.error_count = device->error_count;
 		chrdev->info.capabilities = device->capabilities;
 		osal_strncpy(chrdev->info.name, device->name,
 			     sizeof(chrdev->info.name) - 1U);
@@ -266,6 +282,7 @@ int pdm_chrdev_register_lpf_device(pdm_chrdev_t *chrdev, const char *name,
 	chrdev->index = index;
 	pdm_chrdev_fill_info(chrdev, device, index);
 	osal_atomic_init(&chrdev->open_count, 0);
+	osal_atomic_init(&chrdev->error_count, 0);
 
 	chrdev->miscdev.minor = MISC_DYNAMIC_MINOR;
 	chrdev->miscdev.name = chrdev->name;
@@ -319,6 +336,29 @@ uint32_t pdm_chrdev_open_count(const pdm_chrdev_t *chrdev)
 		return 0;
 
 	return osal_atomic_load(&chrdev->open_count);
+}
+
+uint32_t pdm_chrdev_error_count(const pdm_chrdev_t *chrdev)
+{
+	if (!chrdev)
+		return 0;
+
+	return osal_atomic_load(&chrdev->error_count);
+}
+
+void pdm_chrdev_record_error(pdm_chrdev_t *chrdev, int error)
+{
+	if (!chrdev || error == 0)
+		return;
+	if (!chrdev->registered)
+		return;
+
+	osal_mutex_lock(&chrdev->lock);
+	chrdev->info.last_error = error;
+	chrdev->info.error_count = osal_atomic_inc(&chrdev->error_count);
+	osal_mutex_unlock(&chrdev->lock);
+
+	lpf_device_record_error(chrdev->info.type, chrdev->info.index, error);
 }
 
 uint32_t pdm_chrdev_index(const pdm_chrdev_t *chrdev)

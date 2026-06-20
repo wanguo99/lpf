@@ -200,7 +200,9 @@ and build configuration remain consistent.
 - `/dev/pdm_ctl` is the management/discovery node.
 - `/dev/lpf/<peripheral><index>` nodes are the stable per-instance business ABI.
 - `/sys/class/misc/<device>/` attributes are read-only per-instance sysfs
-  inspection data.
+  inspection data, including runtime `last_error` and `error_count`.
+- LPF discovery snapshots report the same runtime `last_error` and
+  `error_count` values for management clients.
 - `/proc/pdm/*` nodes are read-only PDM status snapshots.
 - `/sys/kernel/debug/pdm/*` nodes are debug-only command entry points and must
   not be treated as stable product ABI.

@@ -105,6 +105,7 @@ int pdm_mcu_chrdev_register(void);
 void pdm_mcu_chrdev_unregister(void);
 int pdm_mcu_chrdev_register_device(const lpf_device_t *device);
 void pdm_mcu_chrdev_unregister_device(const lpf_device_t *device);
+void pdm_mcu_chrdev_record_error(uint32_t index, int error);
 int pdm_mcu_proc_register(void);
 void pdm_mcu_proc_unregister(void);
 int pdm_mcu_debugfs_register(void);

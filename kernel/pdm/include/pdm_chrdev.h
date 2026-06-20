@@ -22,6 +22,7 @@ typedef struct {
 	const struct file_operations *fops;
 	osal_mutex_t lock;
 	osal_atomic_uint32_t open_count;
+	osal_atomic_uint32_t error_count;
 	struct miscdevice miscdev;
 	uint32_t index;
 	bool registered;
@@ -41,6 +42,8 @@ int pdm_chrdev_register_lpf_device(pdm_chrdev_t *chrdev, const char *name,
 void pdm_chrdev_unregister(pdm_chrdev_t *chrdev);
 pdm_chrdev_t *pdm_chrdev_from_file(struct file *file);
 uint32_t pdm_chrdev_open_count(const pdm_chrdev_t *chrdev);
+uint32_t pdm_chrdev_error_count(const pdm_chrdev_t *chrdev);
+void pdm_chrdev_record_error(pdm_chrdev_t *chrdev, int error);
 uint32_t pdm_chrdev_index(const pdm_chrdev_t *chrdev);
 
 #endif /* PDM_CHRDEV_H */

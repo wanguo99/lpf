@@ -409,12 +409,12 @@ Current status:
   `/dev/lpf/ledN` nodes.
 - Started. Instance character devices now expose read-only sysfs attributes:
   `name`, `type`, `index`, `state`, `capabilities`, `driver`, `soc`,
-  `last_error`, and `open_count`.
+  `last_error`, `error_count`, and `open_count`.
 - Done. Debug-only MCU and LED write commands now live under debugfs:
   `/sys/kernel/debug/pdm/mcu` and `/sys/kernel/debug/pdm/led`; `/proc/pdm/mcu`
   and `/proc/pdm/led` are read-only status snapshots.
-- Remaining observability work: add true runtime error counters in the PDM
-  operation paths.
+- Done. Runtime ioctl and debugfs command failures update each instance's
+  `last_error` and `error_count` sysfs attributes.
 
 ## Phase 10: Test And Validation System
 
