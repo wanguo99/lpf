@@ -44,8 +44,8 @@ Linux Kernel / Vendor BSP / Hardware
 - UAPI owns fixed ABI structures, ioctl constants, and ABI version constants.
 - LPF Peripheral Services own reusable MCU, LED, and future peripheral business
   behavior.
-- LPF Core owns the LPF device and driver model, lifecycle, discovery, event
-  notification, and shared runtime node helpers.
+- LPF Core owns the LPF device and driver model, lifecycle, discovery, kernel
+  event notification, and shared runtime node helpers.
 - LPF Transport owns reusable communication backends such as MCU CAN and UART.
 - LPF HW owns framework hardware capability APIs consumed by services and
   transports.
@@ -74,6 +74,8 @@ peripheral service.
 ## Runtime Access Model
 
 - `/dev/pdm_ctl` is the Core-owned control and discovery node.
+- `/dev/pdm_ctl` exposes synchronous device snapshots; LPF v1 keeps device
+  event notification kernel-only.
 - `/dev/lpf/<type><index>` is the per-instance business ABI.
 - Sysfs attributes are read-only runtime inspection data.
 - Debugfs files are debug command channels and are not stable product ABI.
@@ -91,4 +93,3 @@ Adding a new peripheral family should add matching pieces together:
 - UAPI header when userspace access is needed.
 - PDI wrapper when application-facing C APIs are needed.
 - Tests covering ABI layout and operation marshaling.
-

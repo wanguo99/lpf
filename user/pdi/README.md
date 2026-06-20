@@ -14,7 +14,8 @@ Current peripheral APIs:
 
 - Discovery: `pdi_ctl_*`, `pdi_list_devices`, and lookup helpers wrap the LPF
   control node `/dev/pdm_ctl`; ioctl ABI lives in `uapi/lpf/lpf_ctl.h`; the
-  SDK default path is `PDI_CTL_DEFAULT_DEVICE`.
+  SDK default path is `PDI_CTL_DEFAULT_DEVICE`. Discovery is snapshot-based;
+  LPF v1 does not expose asynchronous userspace device event subscriptions.
 - MCU: `pdi_mcu_*` wraps `/dev/lpf/mcuN`; ioctl ABI lives in
   `uapi/lpf/lpf_mcu.h`; SDK declarations and the default path
   `PDI_MCU_DEFAULT_DEVICE` live in `pdi/mcu.h`.
@@ -24,7 +25,8 @@ Current peripheral APIs:
 
 `pdi_mcu_open_by_name()` and `pdi_led_open_by_name()` use `/dev/pdm_ctl` to
 validate the LPF stable device name, then open the matching instance node by
-the discovered index.
+the discovered index. Applications that need change detection should re-query
+discovery snapshots or per-instance sysfs attributes at their chosen cadence.
 
 Applications should include `pdi/pdi.h` or the SDK headers under
 `user/pdi/include/pdi/`. UAPI headers under `uapi/lpf/` are ABI-only and should

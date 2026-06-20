@@ -48,7 +48,7 @@ the target direction.
 
 ### Batch 4: Lifecycle And State Hardening
 
-- [ ] Define the final userspace event delivery decision.
+- [x] Define the final userspace event delivery decision.
 - [x] Deepen peripheral service state and recovery models.
 - [x] Ensure runtime errors consistently update Core device state,
   per-instance sysfs, and discovery snapshots.

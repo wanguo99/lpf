@@ -131,8 +131,11 @@ Current status:
 - Started runtime integration. LPF instance character devices acquire an LPF
   active device handle on open and release it on close, so LPF Core removal
   waits for active instance users before invoking peripheral `remove`.
-- Remaining work: define the final userspace event delivery model and extend
-  service-specific health mapping as new peripherals are introduced.
+- Done. LPF v1 keeps device events as a kernel-only notifier; userspace observes
+  lifecycle and health through synchronous discovery/sysfs/procfs snapshots.
+  Future userspace event delivery requires a separately versioned ABI plan.
+- Remaining work: extend service-specific health mapping as new peripherals are
+  introduced.
 
 ## Phase 3: Kernel Compat Layer
 
@@ -462,8 +465,9 @@ Current status:
 - Done. Instance-aware device nodes are available as `/dev/lpf/mcuN` and
   `/dev/lpf/ledN`, and PDI name-based open helpers resolve stable LPF names to
   those nodes through discovery.
-- Remaining work: decide whether LPF device events should be exposed to
-  userspace through the control ABI or kept as a kernel-only service mechanism.
+- Done. LPF v1 does not expose asynchronous userspace device events. PDI keeps
+  discovery as synchronous snapshot and lookup APIs over `/dev/pdm_ctl`; the
+  kernel LPF event notifier remains an in-kernel service mechanism.
 
 ## Phase 9: Device Nodes And Observability
 

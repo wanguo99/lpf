@@ -60,6 +60,12 @@ Management APIs follow the same ABI rules but should stay separate from
 peripheral business commands. For example, `/dev/pdm_ctl` uses
 `uapi/lpf/lpf_ctl.h` only for device discovery snapshots.
 
+LPF v1 does not expose asynchronous userspace device events through the control
+ABI. `/dev/pdm_ctl` remains a synchronous snapshot and lookup interface. Do not
+add event ioctls, blocking reads, mmap queues, signal delivery, netlink, or
+eventfd plumbing without a separate versioned event ABI plan covering buffering,
+overflow, replay, filtering, and compatibility behavior.
+
 ## ABI Layout Checks
 
 UAPI structure sizes, key field offsets, ABI versions, and ioctl command

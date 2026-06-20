@@ -86,7 +86,9 @@ across lifecycle events. Kernel code that needs to keep a device active across
 operations should use `lpf_device_get()` or the name/capability variants and
 release the returned handle with `lpf_device_put()`. LPF Core emits kernel
 device events for registration, bind, state changes, errors, remove start, and
-remove completion.
+remove completion. These events are kernel-only in LPF v1; userspace observes
+lifecycle and health through synchronous `/dev/pdm_ctl`, sysfs, and procfs
+snapshots.
 It also provides reusable kernel infrastructure helpers for LPF instance
 character devices, instance sysfs attributes, and debugfs command files so
 peripheral services do not duplicate node lifecycle code.
@@ -253,6 +255,8 @@ coverage together so the ABI and build configuration remain consistent.
 ## Runtime Interfaces
 
 - `/dev/pdm_ctl` is the LPF Core-owned management/discovery node.
+- `/dev/pdm_ctl` is a synchronous snapshot and lookup ABI; LPF v1 does not
+  expose asynchronous userspace device events.
 - `/dev/lpf/<peripheral><index>` nodes are the stable per-instance business ABI.
 - `/sys/class/misc/<device>/` attributes are read-only per-instance sysfs
   inspection data, including runtime `state`, `last_error`, and `error_count`.
