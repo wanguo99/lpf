@@ -443,16 +443,19 @@ Current status:
   `name`, `type`, `index`, `state`, `capabilities`, `driver`, `soc`,
   `last_error`, `error_count`, and `open_count`.
 - Done. Debug-only MCU and LED write commands now live under debugfs:
-  `/sys/kernel/debug/lpf/mcu` and `/sys/kernel/debug/lpf/led`; `/proc/pdm/mcu`
-  and `/proc/pdm/led` are read-only status snapshots.
+  `/sys/kernel/debug/lpf/mcu` and `/sys/kernel/debug/lpf/led`; `/proc/lpf/mcu`
+  and `/proc/lpf/led` are read-only status snapshots.
 - Done. Runtime ioctl and debugfs command failures update each instance's
   `last_error` and `error_count` sysfs attributes.
 - Started. PDM-local character-device, sysfs, and debugfs helper
   implementations have been extracted into LPF infrastructure under
   `kernel/lpf/core/` and are linked into `lpf_core.ko` as `lpf_chrdev`,
   `lpf_sysfs`, and `lpf_debugfs`.
-- Remaining work: migrate future peripheral services to use these LPF helpers
-  directly instead of PDM compatibility wrapper headers.
+- Done. Procfs and OSAL-status-to-errno helpers have been extracted into LPF
+  helpers, and migrated peripheral services no longer depend on PDM proc/status
+  wrappers.
+- Remaining work: migrate any future peripheral services to use these LPF
+  helpers directly instead of PDM compatibility wrapper headers.
 
 ## Phase 10: Test And Validation System
 

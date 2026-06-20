@@ -4,11 +4,11 @@
 #include <linux/errno.h>
 
 #include "osal.h"
+#include "lpf/lpf_errno.h"
 #include "pdm/pdm.h"
 #include "pconfig/pconfig.h"
 #include "pdm_driver.h"
 #include "pdm_ctl.h"
-#include "pdm_status.h"
 #include "generated/gen_version.h"
 
 static int32_t pdm_make_lpf_mcu_config(const pconfig_device_config_t *device,
@@ -96,7 +96,7 @@ static int pdm_probe_devices(void)
 
 	ret = pconfig_load();
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	device = pconfig_get();
 	if (!device)
@@ -107,13 +107,13 @@ static int pdm_probe_devices(void)
 
 		ret = pdm_make_lpf_device_config(device, &config);
 		if (ret != OSAL_SUCCESS) {
-			ret = pdm_status_to_errno(ret);
+			ret = lpf_status_to_errno(ret);
 			goto out_error;
 		}
 
 		ret = lpf_device_register(&config);
 		if (ret != OSAL_SUCCESS) {
-			ret = pdm_status_to_errno(ret);
+			ret = lpf_status_to_errno(ret);
 			goto out_error;
 		}
 	}
@@ -145,7 +145,7 @@ static int __init pdm_init(void)
 
 	ret = pdm_driver_registry_init();
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	ret = pdm_drivers_init();
 	if (ret)

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0
 
 #include "pdm_driver.h"
-#include "pdm_status.h"
 
+#include "lpf/lpf_errno.h"
 #include "lpf/lpf_led_service.h"
 #include "lpf/lpf_mcu_service.h"
 
@@ -56,7 +56,7 @@ int pdm_drivers_init(void)
 
 	ret = pdm_register_builtin_drivers();
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	g_pdm_drivers_ready = true;
 	return 0;

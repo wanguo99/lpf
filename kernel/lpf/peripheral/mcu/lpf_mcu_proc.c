@@ -2,15 +2,15 @@
 
 #include "lpf_mcu_internal.h"
 #include "lpf/lpf_debugfs.h"
-#include "pdm_proc.h"
-#include "pdm_status.h"
+#include "lpf/lpf_errno.h"
+#include "lpf/lpf_proc.h"
 
 #include <linux/errno.h>
 #include <linux/kernel.h>
 #include <linux/kstrtox.h>
 #include <linux/string.h>
 
-static pdm_proc_entry_t g_lpf_mcu_proc;
+static lpf_proc_entry_t g_lpf_mcu_proc;
 static lpf_debugfs_entry_t g_lpf_mcu_debugfs;
 
 static void lpf_mcu_proc_format_bytes(const uint8_t *data, uint32_t size,
@@ -149,7 +149,7 @@ static int lpf_mcu_proc_do_version(lpf_mcu_handle_t handle, uint32_t index)
 	osal_memset(&version, 0, sizeof(version));
 	ret = lpf_mcu_get_version(handle, &version);
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	LOG_INFO("LPF_MCU",
 		 "debugfs version index=%u version=%u.%u.%u.%u string=%s",
@@ -166,7 +166,7 @@ static int lpf_mcu_proc_do_status(lpf_mcu_handle_t handle, uint32_t index)
 	osal_memset(&status, 0, sizeof(status));
 	ret = lpf_mcu_get_status(handle, &status);
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	LOG_INFO("LPF_MCU",
 		 "debugfs status index=%u online=%u state=%u uptime=%u error=%u temp_mc=%d voltage_mv=%u timestamp_us=%llu",
@@ -182,7 +182,7 @@ static int lpf_mcu_proc_do_reset(lpf_mcu_handle_t handle, uint32_t index)
 	int32_t ret = lpf_mcu_reset(handle);
 
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	LOG_INFO("LPF_MCU", "debugfs reset index=%u success", index);
 	return 0;
@@ -211,7 +211,7 @@ static int lpf_mcu_proc_do_cmd(lpf_mcu_handle_t handle, uint32_t index,
 				   request_len, response, sizeof(response),
 				   &response_len);
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	lpf_mcu_proc_format_bytes(response, response_len, response_hex,
 				  sizeof(response_hex));
@@ -233,7 +233,7 @@ static int lpf_mcu_proc_do_read(lpf_mcu_handle_t handle, uint32_t index,
 
 	ret = lpf_mcu_read_data(handle, address, data, size);
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	lpf_mcu_proc_format_bytes(data, size, data_hex, sizeof(data_hex));
 	LOG_INFO("LPF_MCU",
@@ -258,7 +258,7 @@ static int lpf_mcu_proc_do_write(lpf_mcu_handle_t handle, uint32_t index,
 
 	ret = lpf_mcu_write_data(handle, address, data, size);
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	LOG_INFO("LPF_MCU", "debugfs write index=%u addr=0x%08x len=%u",
 		 index, address, size);
@@ -344,13 +344,13 @@ out:
 
 int lpf_mcu_proc_register(void)
 {
-	return pdm_proc_register(&g_lpf_mcu_proc, "mcu",
+	return lpf_proc_register(&g_lpf_mcu_proc, "mcu",
 				 lpf_mcu_proc_show, NULL, NULL);
 }
 
 void lpf_mcu_proc_unregister(void)
 {
-	pdm_proc_unregister(&g_lpf_mcu_proc);
+	lpf_proc_unregister(&g_lpf_mcu_proc);
 }
 
 int lpf_mcu_debugfs_register(void)

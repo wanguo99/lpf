@@ -6,8 +6,8 @@
 
 #include "lpf/lpf_led.h"
 #include "lpf/lpf_chrdev.h"
+#include "lpf/lpf_errno.h"
 #include "lpf_led_internal.h"
-#include "pdm_status.h"
 
 static lpf_chrdev_t g_lpf_led_chrdevs[LPF_LED_MAX_DEVICES];
 
@@ -68,7 +68,7 @@ static long lpf_led_ioctl_get_info(unsigned long arg)
 
 	ret = osal_copy_to_user((void __user *)arg, &info, sizeof(info));
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	return 0;
 }
@@ -83,7 +83,7 @@ static long lpf_led_ioctl_get_state(struct file *file, unsigned long arg)
 	ret = osal_copy_from_user(&request, (void __user *)arg,
 				  sizeof(request));
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	request.index = lpf_led_file_index(file);
 	handle = lpf_led_open_index(request.index);
@@ -92,7 +92,7 @@ static long lpf_led_ioctl_get_state(struct file *file, unsigned long arg)
 
 	ret = lpf_led_get_state(handle, &state);
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	request.brightness = state.brightness;
 	request.max_brightness = state.max_brightness;
@@ -101,7 +101,7 @@ static long lpf_led_ioctl_get_state(struct file *file, unsigned long arg)
 	ret = osal_copy_to_user((void __user *)arg, &request,
 				sizeof(request));
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	return 0;
 }
@@ -115,7 +115,7 @@ static long lpf_led_ioctl_set_brightness(struct file *file, unsigned long arg)
 	ret = osal_copy_from_user(&request, (void __user *)arg,
 				  sizeof(request));
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	request.index = lpf_led_file_index(file);
 	handle = lpf_led_open_index(request.index);
@@ -123,7 +123,7 @@ static long lpf_led_ioctl_set_brightness(struct file *file, unsigned long arg)
 		return -ENODEV;
 
 	ret = lpf_led_set_brightness(handle, request.brightness);
-	return pdm_status_to_errno(ret);
+	return lpf_status_to_errno(ret);
 }
 
 static long lpf_led_ioctl_enable(struct file *file, unsigned long arg)
@@ -134,7 +134,7 @@ static long lpf_led_ioctl_enable(struct file *file, unsigned long arg)
 
 	ret = osal_copy_from_user(&index, (void __user *)arg, sizeof(index));
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	index = lpf_led_file_index(file);
 	handle = lpf_led_open_index(index);
@@ -142,7 +142,7 @@ static long lpf_led_ioctl_enable(struct file *file, unsigned long arg)
 		return -ENODEV;
 
 	ret = lpf_led_enable(handle);
-	return pdm_status_to_errno(ret);
+	return lpf_status_to_errno(ret);
 }
 
 static long lpf_led_ioctl_disable(struct file *file, unsigned long arg)
@@ -153,7 +153,7 @@ static long lpf_led_ioctl_disable(struct file *file, unsigned long arg)
 
 	ret = osal_copy_from_user(&index, (void __user *)arg, sizeof(index));
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	index = lpf_led_file_index(file);
 	handle = lpf_led_open_index(index);
@@ -161,7 +161,7 @@ static long lpf_led_ioctl_disable(struct file *file, unsigned long arg)
 		return -ENODEV;
 
 	ret = lpf_led_disable(handle);
-	return pdm_status_to_errno(ret);
+	return lpf_status_to_errno(ret);
 }
 
 static long lpf_led_ioctl(struct file *file, unsigned int cmd,

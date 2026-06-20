@@ -4,13 +4,13 @@
 #include <linux/fs.h>
 
 #include "generated/gen_version.h"
+#include "lpf/lpf_chrdev.h"
 #include "lpf/lpf_core.h"
 #include "lpf/lpf_ctl.h"
-#include "pdm_chrdev.h"
 #include "pdm_ctl.h"
 #include "pdm/pdm.h"
 
-static pdm_chrdev_t g_pdm_ctl_chrdev;
+static lpf_chrdev_t g_pdm_ctl_chrdev;
 
 static uint32_t pdm_ctl_device_count(void)
 {
@@ -73,7 +73,7 @@ static long pdm_ctl_ioctl_get_info(unsigned long arg)
 	info.module_version_major = PDM_VERSION_MAJOR;
 	info.module_version_minor = PDM_VERSION_MINOR;
 	info.module_version_patch = PDM_VERSION_PATCH;
-	info.open_count = pdm_chrdev_open_count(&g_pdm_ctl_chrdev);
+	info.open_count = lpf_chrdev_open_count(&g_pdm_ctl_chrdev);
 	info.device_count = pdm_ctl_device_count();
 
 	if (osal_copy_to_user((void __user *)arg, &info, sizeof(info)) !=
@@ -197,14 +197,14 @@ static int pdm_ctl_open(struct inode *inode, struct file *file)
 {
 	(void)inode;
 
-	return pdm_chrdev_open(file);
+	return lpf_chrdev_open(file);
 }
 
 static int pdm_ctl_release(struct inode *inode, struct file *file)
 {
 	(void)inode;
 
-	return pdm_chrdev_release(file);
+	return lpf_chrdev_release(file);
 }
 
 static const struct file_operations g_pdm_ctl_fops = {
@@ -219,11 +219,11 @@ static const struct file_operations g_pdm_ctl_fops = {
 
 int pdm_ctl_chrdev_register(void)
 {
-	return pdm_chrdev_register(&g_pdm_ctl_chrdev, LPF_CTL_DEVICE_NAME,
+	return lpf_chrdev_register(&g_pdm_ctl_chrdev, LPF_CTL_DEVICE_NAME,
 				   &g_pdm_ctl_fops);
 }
 
 void pdm_ctl_chrdev_unregister(void)
 {
-	pdm_chrdev_unregister(&g_pdm_ctl_chrdev);
+	lpf_chrdev_unregister(&g_pdm_ctl_chrdev);
 }

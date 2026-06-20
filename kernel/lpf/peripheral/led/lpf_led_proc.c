@@ -2,15 +2,15 @@
 
 #include "lpf_led_internal.h"
 #include "lpf/lpf_debugfs.h"
-#include "pdm_proc.h"
-#include "pdm_status.h"
+#include "lpf/lpf_errno.h"
+#include "lpf/lpf_proc.h"
 
 #include <linux/errno.h>
 #include <linux/kernel.h>
 #include <linux/kstrtox.h>
 #include <linux/string.h>
 
-static pdm_proc_entry_t g_lpf_led_proc;
+static lpf_proc_entry_t g_lpf_led_proc;
 static lpf_debugfs_entry_t g_lpf_led_debugfs;
 
 static char *lpf_led_proc_next_token(char **cursor)
@@ -99,7 +99,7 @@ static int lpf_led_proc_do_state(lpf_led_handle_t handle, uint32_t index)
 	osal_memset(&state, 0, sizeof(state));
 	ret = lpf_led_get_state(handle, &state);
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	LOG_INFO("LPF_LED",
 		 "debugfs state index=%u enabled=%u brightness=%u max_brightness=%u",
@@ -143,7 +143,7 @@ static int lpf_led_proc_write(char *command, size_t count, void *data)
 	if (!strcmp(op, "enable") || !strcmp(op, "on")) {
 		status = lpf_led_enable(handle);
 		if (status != OSAL_SUCCESS) {
-			ret = pdm_status_to_errno(status);
+			ret = lpf_status_to_errno(status);
 			goto out;
 		}
 		LOG_INFO("LPF_LED", "debugfs enable index=%u success", index);
@@ -154,7 +154,7 @@ static int lpf_led_proc_write(char *command, size_t count, void *data)
 	if (!strcmp(op, "disable") || !strcmp(op, "off")) {
 		status = lpf_led_disable(handle);
 		if (status != OSAL_SUCCESS) {
-			ret = pdm_status_to_errno(status);
+			ret = lpf_status_to_errno(status);
 			goto out;
 		}
 		LOG_INFO("LPF_LED", "debugfs disable index=%u success", index);
@@ -169,7 +169,7 @@ static int lpf_led_proc_write(char *command, size_t count, void *data)
 
 		status = lpf_led_set_brightness(handle, brightness);
 		if (status != OSAL_SUCCESS) {
-			ret = pdm_status_to_errno(status);
+			ret = lpf_status_to_errno(status);
 			goto out;
 		}
 		LOG_INFO("LPF_LED",
@@ -189,13 +189,13 @@ out:
 
 int lpf_led_proc_register(void)
 {
-	return pdm_proc_register(&g_lpf_led_proc, "led",
+	return lpf_proc_register(&g_lpf_led_proc, "led",
 				 lpf_led_proc_show, NULL, NULL);
 }
 
 void lpf_led_proc_unregister(void)
 {
-	pdm_proc_unregister(&g_lpf_led_proc);
+	lpf_proc_unregister(&g_lpf_led_proc);
 }
 
 int lpf_led_debugfs_register(void)

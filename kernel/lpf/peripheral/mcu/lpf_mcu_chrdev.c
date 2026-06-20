@@ -6,8 +6,8 @@
 
 #include "lpf/lpf_mcu.h"
 #include "lpf/lpf_chrdev.h"
+#include "lpf/lpf_errno.h"
 #include "lpf_mcu_internal.h"
-#include "pdm_status.h"
 
 static lpf_chrdev_t g_lpf_mcu_chrdevs[LPF_MCU_MAX_DEVICES];
 
@@ -68,7 +68,7 @@ static long lpf_mcu_ioctl_get_info(unsigned long arg)
 
 	ret = osal_copy_to_user((void __user *)arg, &info, sizeof(info));
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	return 0;
 }
@@ -83,7 +83,7 @@ static long lpf_mcu_ioctl_get_version(struct file *file, unsigned long arg)
 	ret = osal_copy_from_user(&request, (void __user *)arg,
 				  sizeof(request));
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	request.index = lpf_mcu_file_index(file);
 	handle = lpf_mcu_open_index(request.index);
@@ -93,7 +93,7 @@ static long lpf_mcu_ioctl_get_version(struct file *file, unsigned long arg)
 	osal_memset(&version, 0, sizeof(version));
 	ret = lpf_mcu_get_version(handle, &version);
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	request.major = version.major;
 	request.minor = version.minor;
@@ -105,7 +105,7 @@ static long lpf_mcu_ioctl_get_version(struct file *file, unsigned long arg)
 	ret = osal_copy_to_user((void __user *)arg, &request,
 				sizeof(request));
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	return 0;
 }
@@ -120,7 +120,7 @@ static long lpf_mcu_ioctl_get_status(struct file *file, unsigned long arg)
 	ret = osal_copy_from_user(&request, (void __user *)arg,
 				  sizeof(request));
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	request.index = lpf_mcu_file_index(file);
 	handle = lpf_mcu_open_index(request.index);
@@ -130,7 +130,7 @@ static long lpf_mcu_ioctl_get_status(struct file *file, unsigned long arg)
 	osal_memset(&status, 0, sizeof(status));
 	ret = lpf_mcu_get_status(handle, &status);
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	request.online = status.online ? 1U : 0U;
 	request.state = status.state;
@@ -143,7 +143,7 @@ static long lpf_mcu_ioctl_get_status(struct file *file, unsigned long arg)
 	ret = osal_copy_to_user((void __user *)arg, &request,
 				sizeof(request));
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	return 0;
 }
@@ -156,7 +156,7 @@ static long lpf_mcu_ioctl_reset(struct file *file, unsigned long arg)
 
 	ret = osal_copy_from_user(&index, (void __user *)arg, sizeof(index));
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	index = lpf_mcu_file_index(file);
 	handle = lpf_mcu_open_index(index);
@@ -164,7 +164,7 @@ static long lpf_mcu_ioctl_reset(struct file *file, unsigned long arg)
 		return -ENODEV;
 
 	ret = lpf_mcu_reset(handle);
-	return pdm_status_to_errno(ret);
+	return lpf_status_to_errno(ret);
 }
 
 static long lpf_mcu_ioctl_command(struct file *file, unsigned long arg)
@@ -177,7 +177,7 @@ static long lpf_mcu_ioctl_command(struct file *file, unsigned long arg)
 	ret = osal_copy_from_user(&request, (void __user *)arg,
 				  sizeof(request));
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	if (request.tx_len > sizeof(request.tx_data) ||
 	    request.rx_len > sizeof(request.rx_data))
@@ -194,13 +194,13 @@ static long lpf_mcu_ioctl_command(struct file *file, unsigned long arg)
 				   request.tx_data, request.tx_len,
 				   request.rx_data, request.rx_len, &actual_len);
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	request.rx_len = actual_len;
 	ret = osal_copy_to_user((void __user *)arg, &request,
 				sizeof(request));
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	return 0;
 }
@@ -214,7 +214,7 @@ static long lpf_mcu_ioctl_read_data(struct file *file, unsigned long arg)
 	ret = osal_copy_from_user(&request, (void __user *)arg,
 				  sizeof(request));
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	if (request.len > sizeof(request.data))
 		return -EINVAL;
@@ -227,12 +227,12 @@ static long lpf_mcu_ioctl_read_data(struct file *file, unsigned long arg)
 	ret = lpf_mcu_read_data(handle, request.address, request.data,
 				request.len);
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	ret = osal_copy_to_user((void __user *)arg, &request,
 				sizeof(request));
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	return 0;
 }
@@ -246,7 +246,7 @@ static long lpf_mcu_ioctl_write_data(struct file *file, unsigned long arg)
 	ret = osal_copy_from_user(&request, (void __user *)arg,
 				  sizeof(request));
 	if (ret != OSAL_SUCCESS)
-		return pdm_status_to_errno(ret);
+		return lpf_status_to_errno(ret);
 
 	if (request.len > LPF_MCU_MAX_WRITE_SIZE)
 		return -EINVAL;
@@ -258,7 +258,7 @@ static long lpf_mcu_ioctl_write_data(struct file *file, unsigned long arg)
 
 	ret = lpf_mcu_write_data(handle, request.address, request.data,
 				 request.len);
-	return pdm_status_to_errno(ret);
+	return lpf_status_to_errno(ret);
 }
 
 static long lpf_mcu_ioctl(struct file *file, unsigned int cmd,

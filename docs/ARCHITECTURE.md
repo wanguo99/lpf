@@ -139,9 +139,9 @@ CAN/UART implementation symbols directly.
 ### PDM
 
 PDM owns the current built-in service registration path, `/dev/pdm_ctl`
-management/discovery ioctl node, read-only `/proc/pdm/` status root, and
-PDM-internal protocol helpers. Business operations stay on LPF instance nodes
-such as `/dev/lpf/mcu0` and `/dev/lpf/led0`.
+management/discovery ioctl node, and PDM-internal protocol helpers. Business
+operations stay on LPF instance nodes such as `/dev/lpf/mcu0` and
+`/dev/lpf/led0`; LPF service status snapshots live under `/proc/lpf/`.
 
 ### UAPI
 
@@ -233,7 +233,7 @@ and build configuration remain consistent.
   inspection data, including runtime `last_error` and `error_count`.
 - LPF discovery snapshots report the same runtime `last_error` and
   `error_count` values for management clients.
-- `/proc/pdm/*` nodes are read-only PDM status snapshots.
+- `/proc/lpf/*` nodes are read-only LPF service status snapshots.
 - `/sys/kernel/debug/pdm/*` nodes are debug-only command entry points and must
   not be treated as stable product ABI.
 

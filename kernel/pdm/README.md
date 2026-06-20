@@ -1,9 +1,9 @@
 # PDM
 
 PDM is the Peripheral Driver Module. It currently owns module orchestration,
-LPF device registration, the management/discovery node, procfs status root, and
-the PDM-owned internal protocol helpers. LPF peripheral services are still
-linked into `pdm.ko` during the migration to standalone service modules.
+LPF device registration, the management/discovery node, and the PDM-owned
+internal protocol helpers. LPF peripheral services are still linked into
+`pdm.ko` during the migration to standalone service modules.
 
 ## Current Scope
 
@@ -21,7 +21,7 @@ The kernel module currently provides:
 - LPF LED service and `/dev/lpf/ledN` ioctl dispatch for GPIO/PWM controlled
   LEDs linked into `pdm.ko`
 - PDM control node `/dev/pdm_ctl` for LPF device discovery snapshots
-- PDM read-only procfs status nodes under `/proc/pdm/`
+- LPF read-only procfs status nodes under `/proc/lpf/`
 - LPF debugfs command nodes under `/sys/kernel/debug/lpf/`
 
 PDM consumes exported `hal.ko` symbols for MCU transport and LED GPIO/PWM
@@ -50,19 +50,13 @@ kernel/pdm/
 ├── Config.in
 ├── CMakeLists.txt
 ├── include/
-│   ├── pdm_chrdev.h
 │   ├── pdm_ctl.h
-│   ├── pdm_debugfs.h
 │   ├── pdm_driver.h
-│   ├── pdm_internal.h
-│   ├── pdm_proc.h
-│   └── pdm_status.h
+│   └── pdm_internal.h
 └── src/
     ├── base/
     │   ├── pdm_ctl_chrdev.c
-    │   ├── pdm_driver.c
-    │   ├── pdm_proc.c
-    │   └── pdm_status.c
+    │   └── pdm_driver.c
     └── pdm.c
 kernel/lpf/peripheral/
 ├── mcu/
@@ -85,9 +79,12 @@ kernel/lpf/transport/
     └── lpf_mcu_transport_uart.c
 
 kernel/include/lpf/
+├── lpf_errno.h
 ├── lpf_led_service.h
 ├── lpf_mcu_service.h
-└── lpf_mcu_transport.h
+├── lpf_mcu_transport.h
+├── lpf_proc.h
+└── ...
 
 kernel/include/pdm/
 └── pdm.h
@@ -139,8 +136,8 @@ perform peripheral business operations.
 
 Procfs is reserved for read-only observability data. Current nodes:
 
-- `/proc/pdm/mcu`
-- `/proc/pdm/led`
+- `/proc/lpf/mcu`
+- `/proc/lpf/led`
 
 Debug-only operations are exposed through debugfs so they are separate from
 stable userspace ABI and read-only status files. Current command nodes:

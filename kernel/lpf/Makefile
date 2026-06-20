@@ -5,6 +5,7 @@ obj-m += lpf_core.o
 lpf_core-y := lpf/core/lpf_core.o
 lpf_core-y += lpf/core/lpf_chrdev.o
 lpf_core-y += lpf/core/lpf_debugfs.o
+lpf_core-y += lpf/core/lpf_proc.o
 lpf_core-y += lpf/core/lpf_sysfs.o
 lpf_core-y += lpf/compat/lpf_compat_gpio.o
 lpf_core-y += lpf/compat/lpf_compat_pwm.o
