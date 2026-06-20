@@ -134,7 +134,10 @@ MCU and LED services keep their runtime operation contexts in service-owned
 dynamic registries keyed by LPF device index. The current
 `CONFIG_LPF_MCU_MAX_DEVICES` and `CONFIG_LPF_LED_MAX_DEVICES` limits still size
 the userspace-visible instance-node tables and the legacy `max_devices` info
-fields; they should not be treated as the primary LPF device model.
+fields; they should not be treated as the primary LPF device model. Service
+probe paths do not enforce these node limits directly; instance-node
+registration owns that boundary and cleans up the service context if a
+configured device cannot be exposed as a character device.
 
 Instance character devices expose read-only sysfs attributes for inspection:
 

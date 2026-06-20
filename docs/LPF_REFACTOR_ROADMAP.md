@@ -27,7 +27,8 @@ the target direction.
 - [x] Update service documentation to explain the transitional distinction between
   service context storage and instance node limits.
 - [x] Add architecture-boundary tests so service context registries do not
-  regress back to fixed `LPF_*_MAX_DEVICES` arrays.
+  regress back to fixed `LPF_*_MAX_DEVICES` arrays or probe-time node-capacity
+  guards.
 
 ### Batch 2: Configuration Coverage
 

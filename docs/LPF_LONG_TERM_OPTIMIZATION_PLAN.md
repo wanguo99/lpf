@@ -414,7 +414,8 @@ Current status:
 - Done. MCU and LED runtime service contexts are kept in dynamic
   service-owned registries keyed by LPF device index. Existing
   `LPF_*_MAX_DEVICES` limits remain scoped to userspace-visible instance-node
-  tables and legacy info fields.
+  tables and legacy info fields, and service probe paths no longer enforce
+  those node-table limits directly.
 - Done. Runtime config-to-LPF device mapping lives in
   `kernel/lpf/peripheral/lpf_peripheral_config.c`; the LPF peripheral runtime
   calls the LPF peripheral probe entry instead of owning per-device capability

@@ -283,8 +283,6 @@ int32_t lpf_led_probe(const lpf_device_t *device)
 
 	if (!device || device->config.type != LPF_DEVICE_TYPE_LED)
 		return OSAL_ERR_INVALID_PARAM;
-	if (device->config.index >= LPF_LED_MAX_DEVICES)
-		return OSAL_ERR_INVALID_PARAM;
 
 	entry = (const lpf_config_led_entry_t *)device->config.entry;
 	ret = lpf_led_init_from_entry(device->config.index, entry, &handle);

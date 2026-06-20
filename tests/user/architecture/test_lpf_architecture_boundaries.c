@@ -124,6 +124,8 @@ static int test_service_context_registries(void)
 				    "lpf_mcu_remove_context_locked");
 	failures += expect_not_contains("lpf_mcu_service.c", mcu_service,
 					"[LPF_MCU_MAX_DEVICES]");
+	failures += expect_not_contains("lpf_mcu_service.c", mcu_service,
+					"LPF_MCU_MAX_DEVICES");
 
 	failures += expect_contains(
 		"lpf_led_service.c", led_service,
@@ -137,6 +139,8 @@ static int test_service_context_registries(void)
 				    "lpf_led_remove_context_locked");
 	failures += expect_not_contains("lpf_led_service.c", led_service,
 					"[LPF_LED_MAX_DEVICES]");
+	failures += expect_not_contains("lpf_led_service.c", led_service,
+					"LPF_LED_MAX_DEVICES");
 
 	failures += expect_contains(
 		"lpf_mcu_chrdev.c", mcu_chrdev,
