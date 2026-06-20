@@ -3,10 +3,10 @@
 #include <linux/module.h>
 
 #include "osal.h"
-#include "hal_can.h"
+#include "lpf/lpf_hw_transport_can.h"
 #include "lpf/lpf_soc_adapter.h"
 
-static void hal_can_fill_lpf_config(const hal_can_config_t *src,
+static void lpf_hw_transport_can_fill_lpf_config(const lpf_can_config_t *src,
 				    lpf_can_config_t *dst)
 {
 	dst->interface = src->interface;
@@ -15,7 +15,7 @@ static void hal_can_fill_lpf_config(const hal_can_config_t *src,
 	dst->tx_timeout = src->tx_timeout;
 }
 
-static void hal_can_fill_lpf_frame(const hal_can_frame_t *src,
+static void lpf_hw_transport_can_fill_lpf_frame(const lpf_can_frame_t *src,
 				   lpf_can_frame_t *dst)
 {
 	dst->can_id = src->can_id;
@@ -24,8 +24,8 @@ static void hal_can_fill_lpf_frame(const hal_can_frame_t *src,
 	dst->timestamp = src->timestamp;
 }
 
-static void hal_can_fill_frame(const lpf_can_frame_t *src,
-			       hal_can_frame_t *dst)
+static void lpf_hw_transport_can_fill_frame(const lpf_can_frame_t *src,
+			       lpf_can_frame_t *dst)
 {
 	dst->can_id = src->can_id;
 	dst->dlc = src->dlc;
@@ -33,40 +33,42 @@ static void hal_can_fill_frame(const lpf_can_frame_t *src,
 	dst->timestamp = src->timestamp;
 }
 
-int32_t hal_can_init(const hal_can_config_t *config, hal_can_handle_t *handle)
+int32_t lpf_hw_transport_can_init(
+	const lpf_can_config_t *config, lpf_hw_transport_can_handle_t *handle)
 {
 	lpf_can_config_t lpf_config;
 
 	if (!config || !handle)
 		return OSAL_ERR_INVALID_PARAM;
 
-	hal_can_fill_lpf_config(config, &lpf_config);
+	lpf_hw_transport_can_fill_lpf_config(config, &lpf_config);
 	return lpf_soc_can_init(&lpf_config, (lpf_can_handle_t *)handle);
 }
-EXPORT_SYMBOL_GPL(hal_can_init);
+EXPORT_SYMBOL_GPL(lpf_hw_transport_can_init);
 
-int32_t hal_can_deinit(hal_can_handle_t handle)
+int32_t lpf_hw_transport_can_deinit(lpf_hw_transport_can_handle_t handle)
 {
 	return lpf_soc_can_deinit((lpf_can_handle_t)handle);
 }
-EXPORT_SYMBOL_GPL(hal_can_deinit);
+EXPORT_SYMBOL_GPL(lpf_hw_transport_can_deinit);
 
-int32_t hal_can_send(hal_can_handle_t handle, const hal_can_frame_t *frame)
+int32_t lpf_hw_transport_can_send(lpf_hw_transport_can_handle_t handle,
+				  const lpf_can_frame_t *frame)
 {
 	lpf_can_frame_t lpf_frame;
 
 	if (!handle || !frame)
 		return OSAL_ERR_INVALID_PARAM;
 
-	if (frame->dlc > HAL_CAN_MAX_DATA_LEN)
+	if (frame->dlc > LPF_CAN_MAX_DATA_LEN)
 		return OSAL_ERR_INVALID_SIZE;
 
-	hal_can_fill_lpf_frame(frame, &lpf_frame);
+	lpf_hw_transport_can_fill_lpf_frame(frame, &lpf_frame);
 	return lpf_soc_can_send((lpf_can_handle_t)handle, &lpf_frame);
 }
-EXPORT_SYMBOL_GPL(hal_can_send);
+EXPORT_SYMBOL_GPL(lpf_hw_transport_can_send);
 
-int32_t hal_can_recv(hal_can_handle_t handle, hal_can_frame_t *frame,
+int32_t lpf_hw_transport_can_recv(lpf_hw_transport_can_handle_t handle, lpf_can_frame_t *frame,
 		     int32_t timeout)
 {
 	lpf_can_frame_t lpf_frame;
@@ -79,15 +81,15 @@ int32_t hal_can_recv(hal_can_handle_t handle, hal_can_frame_t *frame,
 	if (ret != OSAL_SUCCESS)
 		return ret;
 
-	hal_can_fill_frame(&lpf_frame, frame);
+	lpf_hw_transport_can_fill_frame(&lpf_frame, frame);
 	return OSAL_SUCCESS;
 }
-EXPORT_SYMBOL_GPL(hal_can_recv);
+EXPORT_SYMBOL_GPL(lpf_hw_transport_can_recv);
 
-int32_t hal_can_set_filter(hal_can_handle_t handle, uint32_t filter_id,
+int32_t lpf_hw_transport_can_set_filter(lpf_hw_transport_can_handle_t handle, uint32_t filter_id,
 			   uint32_t filter_mask)
 {
 	return lpf_soc_can_set_filter((lpf_can_handle_t)handle, filter_id,
 				      filter_mask);
 }
-EXPORT_SYMBOL_GPL(hal_can_set_filter);
+EXPORT_SYMBOL_GPL(lpf_hw_transport_can_set_filter);

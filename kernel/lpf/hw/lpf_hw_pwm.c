@@ -3,15 +3,15 @@
 #include <linux/module.h>
 
 #include "osal.h"
-#include "hal_pwm.h"
+#include "lpf/lpf_hw_pwm.h"
 #include "lpf/lpf_soc_adapter.h"
 
 typedef struct {
 	lpf_pwm_handle_t pwm;
 	osal_mutex_t lock;
-} hal_pwm_context_t;
+} lpf_hw_pwm_context_t;
 
-static void hal_pwm_fill_state(const lpf_pwm_state_t *src, hal_pwm_state_t *dst)
+static void lpf_hw_pwm_fill_state(const lpf_pwm_state_t *src, lpf_pwm_state_t *dst)
 {
 	dst->period_ns = src->period_ns;
 	dst->duty_ns = src->duty_ns;
@@ -19,7 +19,7 @@ static void hal_pwm_fill_state(const lpf_pwm_state_t *src, hal_pwm_state_t *dst)
 	dst->polarity_inversed = src->polarity_inversed;
 }
 
-static void hal_pwm_fill_lpf_state(const hal_pwm_state_t *src,
+static void lpf_hw_pwm_fill_lpf_state(const lpf_pwm_state_t *src,
 				   lpf_pwm_state_t *dst)
 {
 	dst->period_ns = src->period_ns;
@@ -28,9 +28,9 @@ static void hal_pwm_fill_lpf_state(const hal_pwm_state_t *src,
 	dst->polarity_inversed = src->polarity_inversed;
 }
 
-int32_t hal_pwm_init(const hal_pwm_config_t *config, hal_pwm_handle_t *handle)
+int32_t lpf_hw_pwm_init(const lpf_pwm_config_t *config, lpf_hw_pwm_handle_t *handle)
 {
-	hal_pwm_context_t *ctx;
+	lpf_hw_pwm_context_t *ctx;
 	lpf_pwm_state_t state;
 	int32_t ret;
 
@@ -70,11 +70,11 @@ int32_t hal_pwm_init(const hal_pwm_config_t *config, hal_pwm_handle_t *handle)
 	*handle = ctx;
 	return OSAL_SUCCESS;
 }
-EXPORT_SYMBOL_GPL(hal_pwm_init);
+EXPORT_SYMBOL_GPL(lpf_hw_pwm_init);
 
-int32_t hal_pwm_deinit(hal_pwm_handle_t handle)
+int32_t lpf_hw_pwm_deinit(lpf_hw_pwm_handle_t handle)
 {
-	hal_pwm_context_t *ctx = handle;
+	lpf_hw_pwm_context_t *ctx = handle;
 
 	if (!ctx)
 		return OSAL_ERR_INVALID_PARAM;
@@ -87,11 +87,11 @@ int32_t hal_pwm_deinit(hal_pwm_handle_t handle)
 	osal_free(ctx);
 	return OSAL_SUCCESS;
 }
-EXPORT_SYMBOL_GPL(hal_pwm_deinit);
+EXPORT_SYMBOL_GPL(lpf_hw_pwm_deinit);
 
-int32_t hal_pwm_apply(hal_pwm_handle_t handle, const hal_pwm_state_t *state)
+int32_t lpf_hw_pwm_apply(lpf_hw_pwm_handle_t handle, const lpf_pwm_state_t *state)
 {
-	hal_pwm_context_t *ctx = handle;
+	lpf_hw_pwm_context_t *ctx = handle;
 	lpf_pwm_state_t pwm_state;
 	int32_t ret;
 
@@ -100,17 +100,17 @@ int32_t hal_pwm_apply(hal_pwm_handle_t handle, const hal_pwm_state_t *state)
 		return OSAL_ERR_INVALID_PARAM;
 
 	osal_mutex_lock(&ctx->lock);
-	hal_pwm_fill_lpf_state(state, &pwm_state);
+	lpf_hw_pwm_fill_lpf_state(state, &pwm_state);
 	ret = lpf_soc_pwm_apply(ctx->pwm, &pwm_state);
 	osal_mutex_unlock(&ctx->lock);
 
 	return ret;
 }
-EXPORT_SYMBOL_GPL(hal_pwm_apply);
+EXPORT_SYMBOL_GPL(lpf_hw_pwm_apply);
 
-int32_t hal_pwm_get_state(hal_pwm_handle_t handle, hal_pwm_state_t *state)
+int32_t lpf_hw_pwm_get_state(lpf_hw_pwm_handle_t handle, lpf_pwm_state_t *state)
 {
-	hal_pwm_context_t *ctx = handle;
+	lpf_hw_pwm_context_t *ctx = handle;
 	lpf_pwm_state_t pwm_state;
 	int32_t ret;
 
@@ -123,14 +123,14 @@ int32_t hal_pwm_get_state(hal_pwm_handle_t handle, hal_pwm_state_t *state)
 	if (ret != OSAL_SUCCESS)
 		return ret;
 
-	hal_pwm_fill_state(&pwm_state, state);
+	lpf_hw_pwm_fill_state(&pwm_state, state);
 	return OSAL_SUCCESS;
 }
-EXPORT_SYMBOL_GPL(hal_pwm_get_state);
+EXPORT_SYMBOL_GPL(lpf_hw_pwm_get_state);
 
-int32_t hal_pwm_enable(hal_pwm_handle_t handle)
+int32_t lpf_hw_pwm_enable(lpf_hw_pwm_handle_t handle)
 {
-	hal_pwm_context_t *ctx = handle;
+	lpf_hw_pwm_context_t *ctx = handle;
 	int32_t ret;
 
 	if (!ctx)
@@ -142,11 +142,11 @@ int32_t hal_pwm_enable(hal_pwm_handle_t handle)
 
 	return ret;
 }
-EXPORT_SYMBOL_GPL(hal_pwm_enable);
+EXPORT_SYMBOL_GPL(lpf_hw_pwm_enable);
 
-int32_t hal_pwm_disable(hal_pwm_handle_t handle)
+int32_t lpf_hw_pwm_disable(lpf_hw_pwm_handle_t handle)
 {
-	hal_pwm_context_t *ctx = handle;
+	lpf_hw_pwm_context_t *ctx = handle;
 
 	if (!ctx)
 		return OSAL_ERR_INVALID_PARAM;
@@ -156,4 +156,4 @@ int32_t hal_pwm_disable(hal_pwm_handle_t handle)
 	osal_mutex_unlock(&ctx->lock);
 	return OSAL_SUCCESS;
 }
-EXPORT_SYMBOL_GPL(hal_pwm_disable);
+EXPORT_SYMBOL_GPL(lpf_hw_pwm_disable);

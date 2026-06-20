@@ -11,15 +11,13 @@ kernel/
   Makefile
   include/
     osal/          # kernel-side cross-module OSAL headers
-    hal/           # transitional hardware API headers
     pconfig/       # transitional runtime config type headers
     lpf/           # kernel-side cross-module LPF headers
   osal/
     src/           # builds osal.ko
-  hal/
-    src/           # transitional hardware access objects linked into runtime
   lpf/
     core/          # LPF device model and shared node infrastructure
+    hw/            # LPF-owned hardware access APIs linked into runtime
     protocol/      # LPF protocol helpers linked into lpf_core.ko
     peripheral/    # framework-owned peripheral runtime and services
 
@@ -42,9 +40,9 @@ uapi/
   current service paths are linked into `lpf_peripheral_runtime.ko`.
 - `kernel/lpf/protocol` provides kernel-side LPF protocol helpers through
   `lpf_core.ko` for services that need framed communication.
-- `kernel/hal` currently provides transitional hardware access sources and
-  headers used by LPF peripheral services. The objects are linked into
-  `lpf_peripheral_runtime.ko`; standalone `hal.ko` has been removed.
+- `kernel/lpf/hw` provides LPF-owned hardware access APIs used by LPF
+  peripheral services. The objects are linked into
+  `lpf_peripheral_runtime.ko`.
 - `kernel/pconfig` currently provides transitional runtime config source files
   and type headers. The objects are linked into `lpf_peripheral_runtime.ko`
   rather than a standalone module.
@@ -55,12 +53,12 @@ uapi/
 
 - Kernel code may include `kernel/include/<module>/` and generated headers.
 - Userspace code may include `user/<module>/include/` and `uapi/` headers.
-- Userspace code must not include kernel-internal HAL, PCONFIG, LPF Core, or
+- Userspace code must not include kernel-internal LPF HW, PCONFIG, LPF Core, or
   LPF peripheral headers.
 - UAPI headers must not depend on kernel-only types or private framework
   structures.
 - PDI should marshal data and call ioctl; it should not duplicate LPF
-  peripheral service or HAL behavior in userspace.
+  peripheral service or LPF HW behavior in userspace.
 - Product code should call PDI and ACONFIG rather than reaching into kernel
   framework internals.
 
@@ -75,7 +73,7 @@ PDI userspace API
     ↓
 LPF peripheral service
     ↓
-LPF runtime config + LPF Core + transitional HAL APIs
+LPF runtime config + LPF Core + LPF HW APIs
     ↓
 Linux kernel subsystem / hardware
 ```

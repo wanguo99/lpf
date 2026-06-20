@@ -33,7 +33,7 @@ APIs from higher layers, but non-Linux ports are outside the current direction.
 ## Core Layers
 
 - OSAL: operating-system abstraction
-- HAL transitional APIs: hardware access objects linked into
+- LPF HW: framework-owned hardware access APIs linked into
   `lpf_peripheral_runtime.ko`
 - LPF Runtime Config: platform hardware configuration registry linked into
   `lpf_peripheral_runtime.ko`
@@ -46,8 +46,8 @@ APIs from higher layers, but non-Linux ports are outside the current direction.
 ## What LPF Provides
 
 - A clear split between kernel modules, UAPI headers, and userspace libraries.
-- Kernel-side peripheral drivers built on LPF runtime config, transitional HAL
-  APIs, and OSAL.
+- Kernel-side peripheral drivers built on LPF runtime config, LPF HW APIs,
+  and OSAL.
 - Userspace PDI libraries that hide ioctl details from applications.
 - Kconfig-controlled feature selection for modules and peripheral families.
 - CMake/Kbuild integration for userspace libraries and Linux kernel modules.
@@ -92,9 +92,9 @@ make kernel_x86_mock_modules_defconfig
 make modules
 ```
 
-That preset also builds `hal_mock_selftest.ko`; loading it after `osal.ko`,
-`lpf_core.ko`, and `lpf_peripheral_runtime.ko` runs transitional HAL
-GPIO/PWM/CAN/Serial/I2C/SPI checks through the mock SoC adapter.
+That preset also builds `lpf_hw_mock_selftest.ko`; loading it after `osal.ko`,
+`lpf_core.ko`, and `lpf_peripheral_runtime.ko` runs LPF HW
+GPIO/PWM/CAN/UART/I2C/SPI checks through the mock SoC adapter.
 
 Kernel module load order is `osal.ko`, `lpf_core.ko`, then
 `lpf_peripheral_runtime.ko`.

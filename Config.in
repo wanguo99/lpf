@@ -527,7 +527,7 @@ menu "Modules"
 
 source "user/osal/Config.in"
 source "kernel/lpf/Config.in"
-source "kernel/hal/Config.in"
+source "kernel/lpf/hw/Config.in"
 source "user/aconfig/Config.in"
 source "user/pdi/Config.in"
 
@@ -565,33 +565,38 @@ config SANITY_ERROR_ACONFIG_NO_OSAL
 	prompt "ERROR: ACONFIG requires OSAL to be enabled"
 
 # ============================================================================
-# HAL Driver Dependency Checks
+# LPF HW Dependency Checks
 # ============================================================================
 
-config SANITY_ERROR_HAL_CAN_NO_PLATFORM
+config SANITY_ERROR_LPF_HW_CAN_NO_PLATFORM
 	def_bool y
-	depends on HAL_CAN && !PLATFORM_LINUX
-	prompt "ERROR: HAL_CAN requires Linux platform support (PLATFORM_LINUX)"
+	depends on LPF_HW_CAN && !PLATFORM_LINUX
+	prompt "ERROR: LPF_HW_CAN requires Linux platform support (PLATFORM_LINUX)"
 
-config SANITY_ERROR_HAL_UART_NO_PLATFORM
+config SANITY_ERROR_LPF_HW_UART_NO_PLATFORM
 	def_bool y
-	depends on HAL_UART && !PLATFORM_LINUX
-	prompt "ERROR: HAL_UART requires Linux platform support (PLATFORM_LINUX)"
+	depends on LPF_HW_UART && !PLATFORM_LINUX
+	prompt "ERROR: LPF_HW_UART requires Linux platform support (PLATFORM_LINUX)"
 
-config SANITY_ERROR_HAL_GPIO_NO_PLATFORM
+config SANITY_ERROR_LPF_HW_GPIO_NO_PLATFORM
 	def_bool y
-	depends on HAL_GPIO && !PLATFORM_LINUX
-	prompt "ERROR: HAL_GPIO requires Linux platform support (PLATFORM_LINUX)"
+	depends on LPF_HW_GPIO && !PLATFORM_LINUX
+	prompt "ERROR: LPF_HW_GPIO requires Linux platform support (PLATFORM_LINUX)"
 
-config SANITY_ERROR_HAL_I2C_NO_PLATFORM
+config SANITY_ERROR_LPF_HW_PWM_NO_PLATFORM
 	def_bool y
-	depends on HAL_I2C && !PLATFORM_LINUX
-	prompt "ERROR: HAL_I2C requires Linux platform support (PLATFORM_LINUX)"
+	depends on LPF_HW_PWM && !PLATFORM_LINUX
+	prompt "ERROR: LPF_HW_PWM requires Linux platform support (PLATFORM_LINUX)"
 
-config SANITY_ERROR_HAL_SPI_NO_PLATFORM
+config SANITY_ERROR_LPF_HW_I2C_NO_PLATFORM
 	def_bool y
-	depends on HAL_SPI && !PLATFORM_LINUX
-	prompt "ERROR: HAL_SPI requires Linux platform support (PLATFORM_LINUX)"
+	depends on LPF_HW_I2C && !PLATFORM_LINUX
+	prompt "ERROR: LPF_HW_I2C requires Linux platform support (PLATFORM_LINUX)"
+
+config SANITY_ERROR_LPF_HW_SPI_NO_PLATFORM
+	def_bool y
+	depends on LPF_HW_SPI && !PLATFORM_LINUX
+	prompt "ERROR: LPF_HW_SPI requires Linux platform support (PLATFORM_LINUX)"
 
 # ============================================================================
 # Compatibility Checks
@@ -614,6 +619,12 @@ config SANITY_CHECK_PASSED
 	def_bool y
 	depends on !SANITY_ERROR_LPF_PERIPHERAL_RUNTIME_NO_DEPS && \
 	           !SANITY_ERROR_ACONFIG_NO_OSAL && \
+	           !SANITY_ERROR_LPF_HW_CAN_NO_PLATFORM && \
+	           !SANITY_ERROR_LPF_HW_UART_NO_PLATFORM && \
+	           !SANITY_ERROR_LPF_HW_GPIO_NO_PLATFORM && \
+	           !SANITY_ERROR_LPF_HW_PWM_NO_PLATFORM && \
+	           !SANITY_ERROR_LPF_HW_I2C_NO_PLATFORM && \
+	           !SANITY_ERROR_LPF_HW_SPI_NO_PLATFORM && \
 	           !SANITY_ERROR_SANITIZER_CONFLICT
 	help
 	  This symbol is set when all sanity checks pass.

@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-2.0
 
 #include "osal.h"
-#include "hal.h"
 #include "pconfig.h"
 #include "lpf/lpf_driver.h"
+#include "lpf/lpf_hw.h"
 #include "lpf_led_internal.h"
 
 typedef struct {
 	const pconfig_led_config_t *config;
-	hal_pwm_handle_t pwm;
+	lpf_hw_pwm_handle_t pwm;
 	osal_mutex_t lock;
 	uint32_t brightness;
 	bool enabled;
@@ -30,7 +30,7 @@ static uint32_t lpf_led_clamp_brightness(const lpf_led_context_t *ctx,
 	return brightness;
 }
 
-static hal_gpio_level_t lpf_led_gpio_level(const pconfig_led_config_t *config,
+static lpf_gpio_level_t lpf_led_gpio_level(const pconfig_led_config_t *config,
 					   bool enabled)
 {
 	bool active = enabled;
@@ -38,20 +38,20 @@ static hal_gpio_level_t lpf_led_gpio_level(const pconfig_led_config_t *config,
 	if (config->hw.gpio.active_low)
 		active = !active;
 
-	return active ? HAL_GPIO_LEVEL_HIGH : HAL_GPIO_LEVEL_LOW;
+	return active ? LPF_GPIO_LEVEL_HIGH : LPF_GPIO_LEVEL_LOW;
 }
 
 static int32_t lpf_led_apply_gpio(lpf_led_context_t *ctx)
 {
-	hal_gpio_level_t level;
+	lpf_gpio_level_t level;
 
 	level = lpf_led_gpio_level(ctx->config, ctx->enabled);
-	return hal_gpio_set_level(ctx->config->hw.gpio.gpio_num, level);
+	return lpf_hw_gpio_set_level(ctx->config->hw.gpio.gpio_num, level);
 }
 
 static int32_t lpf_led_apply_pwm(lpf_led_context_t *ctx)
 {
-	hal_pwm_state_t state;
+	lpf_pwm_state_t state;
 	uint64_t duty;
 
 	if (ctx->config->max_brightness == 0)
@@ -64,7 +64,7 @@ static int32_t lpf_led_apply_pwm(lpf_led_context_t *ctx)
 	state.duty_ns = (uint32_t)duty;
 	state.enabled = ctx->enabled && ctx->brightness > 0;
 	state.polarity_inversed = ctx->config->hw.pwm.polarity_inversed;
-	return hal_pwm_apply(ctx->pwm, &state);
+	return lpf_hw_pwm_apply(ctx->pwm, &state);
 }
 
 static int32_t lpf_led_apply(lpf_led_context_t *ctx)
@@ -93,21 +93,21 @@ static int32_t lpf_led_registry_init(void)
 
 static int32_t lpf_led_init_gpio(lpf_led_context_t *ctx)
 {
-	hal_gpio_config_t gpio_config;
+	lpf_gpio_config_t gpio_config;
 
-	gpio_config.direction = HAL_GPIO_DIR_OUTPUT;
+	gpio_config.direction = LPF_GPIO_DIR_OUTPUT;
 	gpio_config.initial_level = lpf_led_gpio_level(ctx->config,
 						       ctx->enabled);
-	gpio_config.edge = HAL_GPIO_EDGE_NONE;
+	gpio_config.edge = LPF_GPIO_EDGE_NONE;
 	gpio_config.callback = NULL;
 	gpio_config.user_data = NULL;
 
-	return hal_gpio_init(ctx->config->hw.gpio.gpio_num, &gpio_config);
+	return lpf_hw_gpio_init(ctx->config->hw.gpio.gpio_num, &gpio_config);
 }
 
 static int32_t lpf_led_init_pwm(lpf_led_context_t *ctx)
 {
-	hal_pwm_config_t pwm_config;
+	lpf_pwm_config_t pwm_config;
 
 	if (!ctx->config->hw.pwm.consumer ||
 	    ctx->config->hw.pwm.period_ns == 0)
@@ -119,7 +119,7 @@ static int32_t lpf_led_init_pwm(lpf_led_context_t *ctx)
 	pwm_config.enabled = false;
 	pwm_config.polarity_inversed = ctx->config->hw.pwm.polarity_inversed;
 
-	return hal_pwm_init(&pwm_config, &ctx->pwm);
+	return lpf_hw_pwm_init(&pwm_config, &ctx->pwm);
 }
 
 static void lpf_led_deinit_hw(lpf_led_context_t *ctx)
@@ -129,11 +129,11 @@ static void lpf_led_deinit_hw(lpf_led_context_t *ctx)
 
 	switch (ctx->config->control) {
 	case PCONFIG_LED_CONTROL_GPIO:
-		hal_gpio_deinit(ctx->config->hw.gpio.gpio_num);
+		lpf_hw_gpio_deinit(ctx->config->hw.gpio.gpio_num);
 		break;
 	case PCONFIG_LED_CONTROL_PWM:
 		if (ctx->pwm)
-			hal_pwm_deinit(ctx->pwm);
+			lpf_hw_pwm_deinit(ctx->pwm);
 		ctx->pwm = NULL;
 		break;
 	default:

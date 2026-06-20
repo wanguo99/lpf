@@ -8,8 +8,8 @@
  ************************************************************************/
 
 #include "osal.h"
-#include "hal.h"
 #include "pconfig.h"
+#include "lpf/lpf_hw_transport_can.h"
 #include "lpf/lpf_mcu_transport.h"
 
 /*===========================================================================
@@ -20,7 +20,7 @@
  * @brief CAN通信上下文
  */
 typedef struct {
-	hal_can_handle_t can_handle;
+	lpf_hw_transport_can_handle_t can_handle;
 	uint32_t tx_id;
 	uint32_t rx_id;
 	osal_mutex_t rx_mutex;
@@ -33,7 +33,7 @@ static int32_t lpf_mcu_transport_can_open(const pconfig_mcu_config_t *mcu_cfg,
 					  lpf_mcu_transport_handle_t *handle)
 {
 	lpf_mcu_can_context_t *ctx;
-	hal_can_config_t can_config;
+	lpf_can_config_t can_config;
 
 	if (!mcu_cfg || !handle) {
 		return OSAL_ERR_INVALID_PARAM;
@@ -52,7 +52,7 @@ static int32_t lpf_mcu_transport_can_open(const pconfig_mcu_config_t *mcu_cfg,
 	can_config.rx_timeout = mcu_cfg->hw.can.rx_timeout;
 	can_config.tx_timeout = mcu_cfg->hw.can.tx_timeout;
 
-	if (OSAL_SUCCESS != hal_can_init(&can_config, &ctx->can_handle)) {
+	if (OSAL_SUCCESS != lpf_hw_transport_can_init(&can_config, &ctx->can_handle)) {
 		osal_free(ctx);
 		return OSAL_ERR_GENERIC;
 	}
@@ -62,7 +62,7 @@ static int32_t lpf_mcu_transport_can_open(const pconfig_mcu_config_t *mcu_cfg,
 
 	/* 创建接收互斥锁 */
 	if (OSAL_SUCCESS != osal_mutex_init(&ctx->rx_mutex, NULL)) {
-		hal_can_deinit(ctx->can_handle);
+		lpf_hw_transport_can_deinit(ctx->can_handle);
 		osal_free(ctx);
 		return OSAL_ERR_GENERIC;
 	}
@@ -84,7 +84,7 @@ static int32_t lpf_mcu_transport_can_close(lpf_mcu_transport_handle_t handle)
 
 	ctx = (lpf_mcu_can_context_t *)handle;
 
-	hal_can_deinit(ctx->can_handle);
+	lpf_hw_transport_can_deinit(ctx->can_handle);
 	osal_mutex_destroy(&ctx->rx_mutex);
 	osal_free(ctx);
 
@@ -100,8 +100,8 @@ static int32_t lpf_mcu_transport_can_transfer(
 	uint32_t *actual_size, uint32_t timeout_ms)
 {
 	lpf_mcu_can_context_t *ctx;
-	hal_can_frame_t can_frame;
-	hal_can_frame_t rx_frame;
+	lpf_can_frame_t can_frame;
+	lpf_can_frame_t rx_frame;
 	int32_t ret;
 	uint64_t start_time_us;
 	uint64_t elapsed_us;
@@ -127,7 +127,7 @@ static int32_t lpf_mcu_transport_can_transfer(
 		can_frame.dlc = chunk_size;
 		osal_memcpy(can_frame.data, &packet[sent_bytes], chunk_size);
 
-		ret = hal_can_send(ctx->can_handle, &can_frame);
+		ret = lpf_hw_transport_can_send(ctx->can_handle, &can_frame);
 		if (ret != OSAL_SUCCESS) {
 			return ret;
 		}
@@ -152,7 +152,7 @@ static int32_t lpf_mcu_transport_can_transfer(
 	osal_mutex_lock(&ctx->rx_mutex);
 
 	while (recv_bytes < resp_size) {
-		ret = hal_can_recv(ctx->can_handle, &rx_frame, remaining_timeout_ms);
+		ret = lpf_hw_transport_can_recv(ctx->can_handle, &rx_frame, remaining_timeout_ms);
 		if (ret != OSAL_SUCCESS) {
 			osal_mutex_unlock(&ctx->rx_mutex);
 			return ret;

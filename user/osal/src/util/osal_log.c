@@ -106,7 +106,7 @@ static const char *log_level_names[] = { "DEBUG", "INFO", "WARN", "ERROR",
 /*
  * 模块名称
  */
-static const char *log_module_names[] = { "OSAL",	 "HAL", "PCONFIG", "PDI",
+static const char *log_module_names[] = { "OSAL", "LPF_HW", "PCONFIG", "PDI",
 										  "ACONFIG", "APP", "TEST" };
 
 /*

@@ -25,7 +25,7 @@ LPF peripheral services + LPF protocol
         ↓
 LPF runtime config mapping
         ↓
-HAL (transitional)
+LPF HW API
         ↓
 LPF SoC Adapter
         ↓
@@ -42,8 +42,8 @@ Linux kernel / hardware
 - Kernel OSAL wraps Linux kernel APIs used by kernel modules.
 - LPF Core owns the framework device and driver registry, lifecycle, device
   names, capability metadata, and the active SoC adapter.
-- HAL provides transitional kernel-side hardware access helpers.
-- LPF SoC Adapter isolates SoC or vendor BSP differences below HAL.
+- LPF HW provides framework-owned kernel-side hardware access helpers.
+- LPF SoC Adapter isolates SoC or vendor BSP differences below LPF HW.
 - LPF Kernel Compat isolates Linux kernel API differences below the generic
   Linux SoC adapter.
 - LPF runtime config selects a kernel-side platform configuration backend and
@@ -64,14 +64,13 @@ OSAL hides Linux kernel or libc/POSIX API differences from framework code. The
 kernel and userspace implementations are separate, but public names should match
 where the semantics are equivalent.
 
-### HAL
+### LPF HW
 
-HAL is currently a transitional API layer linked into
-`lpf_peripheral_runtime.ko`. It owns temporary LPF hardware-capability APIs in
-kernel mode. Current support includes CAN, serial, GPIO, PWM, I2C, and SPI. HAL
-calls the LPF SoC Adapter instead of Linux subsystem APIs directly. The
-long-term direction is to migrate useful hardware semantics into LPF-internal
-`lpf_hw_*` APIs and remove the HAL naming surface.
+LPF HW is the framework-owned hardware access layer linked into
+`lpf_peripheral_runtime.ko`. It owns the kernel-side `lpf_hw_*` APIs consumed
+by LPF peripheral services and transports. Current support includes CAN, UART,
+GPIO, PWM, I2C, and SPI. LPF HW calls the LPF SoC Adapter instead of Linux
+subsystem or vendor BSP APIs directly.
 
 ### LPF Core
 
@@ -103,7 +102,7 @@ kernel compat wrappers for CAN, serial, GPIO, PWM, I2C, and SPI. Kconfig
 selects the default backend built into `lpf_core.ko`; `kernel/lpf/soc/mock/`
 provides a deterministic mock backend for development and framework tests that
 should not require live hardware. The mock preset can also build
-`hal_mock_selftest.ko`, which runs transitional HAL operation-path checks over
+`lpf_hw_mock_selftest.ko`, which runs LPF HW operation-path checks over
 the mock backend when loaded after
 `lpf_peripheral_runtime.ko`. Future SoC-specific adapters should live under
 `kernel/lpf/soc/` and must keep vendor BSP calls out of hardware access APIs
@@ -114,7 +113,7 @@ and LPF peripheral services.
 The compat layer wraps Linux kernel API details that may vary across kernel
 versions. GPIO, PWM, I2C, and SPI wrappers currently live under
 `kernel/lpf/compat/`, along with CAN and serial wrappers. Peripheral services
-and HAL business-facing APIs should not use `LINUX_VERSION_CODE` or vendor BSP
+and LPF HW business-facing APIs should not use `LINUX_VERSION_CODE` or vendor BSP
 APIs directly.
 
 ### LPF Runtime Config
@@ -223,11 +222,10 @@ lpf_peripheral_runtime.ko
 ```
 
 `lpf_peripheral_runtime.ko` hosts the current LPF peripheral runtime. The
-runtime includes the configuration backend and transitional HAL hardware access
-objects, consumes runtime config entries, registers the current
-framework-hosted peripheral services, maps enabled config entries to LPF
-devices, and lets LPF Core probe the matching registered service for each
-configured peripheral.
+runtime includes the configuration backend and LPF HW hardware access objects,
+consumes runtime config entries, registers the current framework-hosted
+peripheral services, maps enabled config entries to LPF devices, and lets LPF
+Core probe the matching registered service for each configured peripheral.
 
 ## Adding A Peripheral
 
@@ -272,8 +270,8 @@ coverage together so the ABI and build configuration remain consistent.
 - Kernel hardware configuration is selected through LPF runtime config backends and
   consumed by LPF peripheral configuration through the normalized device list,
   then mapped into LPF Core device configs.
-- Transitional HAL APIs should call LPF SoC Adapter APIs for SoC-backed
-  hardware capabilities.
+- LPF HW APIs should call LPF SoC Adapter APIs for SoC-backed hardware
+  capabilities.
 - Kernel-version conditionals belong in `kernel/lpf/compat/`.
-- Userspace code must use PDI/UAPI rather than including kernel-internal HAL,
+- Userspace code must use PDI/UAPI rather than including kernel-internal LPF HW,
   PCONFIG, LPF Core, or LPF peripheral headers.

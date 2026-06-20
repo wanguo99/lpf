@@ -75,7 +75,7 @@ MODULES_LIST ?= $(strip \
 	$(if $(CONFIG_OSAL),osal) \
 	$(if $(CONFIG_LPF_CORE),lpf_core) \
 	$(if $(CONFIG_LPF_PERIPHERAL_RUNTIME),lpf_peripheral_runtime) \
-	$(if $(CONFIG_HAL_MOCK_SELFTEST),hal_mock_selftest))
+	$(if $(CONFIG_LPF_HW_MOCK_SELFTEST),lpf_hw_mock_selftest))
 MODULES_ARTIFACTS = $(addprefix $(MODULES_OUTPUT_DIR)/,$(addsuffix .ko,$(MODULES_LIST)))
 
 # Parallel build auto-detection

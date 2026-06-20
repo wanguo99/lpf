@@ -12,7 +12,7 @@ device-node names, and ABI version constants.
 - The header must compile in both kernel and userspace builds.
 - UAPI structures use Linux fixed-width types such as `__u32`, `__s32`, and
   `__u64`.
-- UAPI structures must not expose kernel-only HAL, PConfig, LPF Core, LPF
+- UAPI structures must not expose kernel-only LPF HW, PConfig, LPF Core, LPF
   peripheral, or OSAL internal types.
 - Each peripheral owns a unique ioctl magic and command-number namespace.
 - Ioctl payloads should be plain fixed-layout structs or fixed-width scalar

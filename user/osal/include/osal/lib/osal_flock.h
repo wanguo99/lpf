@@ -66,7 +66,7 @@ typedef enum {
 /**
  * @brief 创建文件锁
  *
- * @param[in] lock_file 锁文件路径（如 "/var/lock/hal_can0.lock"）
+ * @param[in] lock_file 锁文件路径（如 "/var/lock/lpf_can0.lock"）
  * @param[out] flock 文件锁句柄
  *
  * @return OSAL_SUCCESS 成功

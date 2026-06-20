@@ -1,6 +1,6 @@
 # Kernel Refactor Plan
 
-This document tracks the remaining work for moving LPF HAL, PConfig, and the
+This document tracks the remaining work for moving LPF HW, PConfig, and the
 LPF peripheral runtime to the kernel-module architecture. Update the checkboxes
 as each part is implemented and verified.
 
@@ -11,8 +11,9 @@ use LPF Core for device and driver lifecycle instead of adding local bus code.
 
 ## Target Architecture
 
-- Transitional HAL hardware access objects are linked into
-  `lpf_peripheral_runtime.ko`; standalone `hal.ko` has been removed.
+- LPF HW hardware access objects are linked into
+  `lpf_peripheral_runtime.ko`; the old standalone hardware module has been
+  removed.
 - Runtime config is linked into `lpf_peripheral_runtime.ko`.
 - Runtime config selects a configuration backend. The current static backend
   consumes platform configs compiled under
@@ -37,14 +38,14 @@ use LPF Core for device and driver lifecycle instead of adding local bus code.
 
 ## Current Completed Work
 
-- [x] Move HAL implementation to kernel-side `kernel/hal/src`.
-- [x] Remove standalone `hal.ko`; link transitional HAL hardware access
+- [x] Move hardware access implementation to kernel-side `kernel/lpf/hw`.
+- [x] Remove the old standalone hardware module; link LPF HW hardware access
       objects into `lpf_peripheral_runtime.ko`.
-- [x] Remove HAL userspace implementation from the active module path.
+- [x] Remove old userspace hardware access implementation from the active
+      module path.
 - [x] Rename kernel module entry files from `main.c` to module names.
-- [x] Move HAL source files directly under `src` without an extra `kernel`
-      subdirectory.
-- [x] Add per-module version printing for OSAL, HAL, runtime config, and the
+- [x] Move hardware access source files under the LPF tree.
+- [x] Add per-module version printing for OSAL, LPF HW, runtime config, and the
       LPF peripheral runtime.
 - [x] Keep OSAL version printing in `osal.c` instead of a separate
       `osal_version.c`.
@@ -68,7 +69,7 @@ use LPF Core for device and driver lifecycle instead of adding local bus code.
       device binding.
 - [x] Keep LPF peripheral services linked into `lpf_peripheral_runtime.ko`
       instead of adding one kernel module per peripheral.
-- [x] Add HAL built-in initialization table for transitional hardware access
+- [x] Add LPF HW built-in initialization table for hardware access
       paths that need runtime initialization.
 - [x] Remove ctest product files from the current tree.
 - [x] Create a tag for the last pure userspace implementation and merge the
@@ -77,7 +78,7 @@ use LPF Core for device and driver lifecycle instead of adding local bus code.
       adding a separate product config kernel module.
 - [x] Introduce PCONFIG backend selection and move the original static table
       behind a static backend.
-- [x] Add HAL PWM support and LPF LED service support with GPIO/PWM control.
+- [x] Add LPF HW PWM support and LPF LED service support with GPIO/PWM control.
 
 ## Phase 1: Make The Current Kernel Modules Loadable
 
@@ -165,7 +166,7 @@ use LPF Core for device and driver lifecycle instead of adding local bus code.
   - UAPI headers must be usable by both kernel and userspace.
   - Use fixed-width Linux UAPI types in ioctl structures.
   - Keep ioctl magic and command numbers per peripheral.
-  - Avoid exposing kernel-only LPF runtime/HAL/PConfig types through PDI.
+  - Avoid exposing kernel-only LPF runtime, LPF HW, or PConfig types through PDI.
 - [x] Add version/ABI compatibility policy for each PDI peripheral.
   - Keep an ABI version field or `GET_INFO` command.
   - Define compatibility expectations for structure growth.
@@ -190,11 +191,11 @@ use LPF Core for device and driver lifecycle instead of adding local bus code.
 - [x] Add kernel OSAL condition or wait-event wrappers.
 - [x] Add kernel OSAL rwlock wrappers.
 - [x] Decide policy for file APIs in kernel OSAL.
-  - Either wrap kernel file operations needed by HAL serial, or document them as
-    HAL-owned kernel details.
+  - Either wrap kernel file operations needed by LPF HW UART, or document them
+    as LPF HW-owned kernel details.
 - [x] Decide policy for socket APIs in kernel OSAL.
-  - Either wrap kernel socket operations needed by HAL CAN, or document them as
-    HAL-owned kernel details.
+  - Either wrap kernel socket operations needed by LPF HW CAN, or document them
+    as LPF HW-owned kernel details.
 - [x] Decide policy for usercopy helpers.
   - If LPF character devices should not call `copy_to_user` directly, add
     `osal_copy_to_user` and `osal_copy_from_user`.
@@ -207,8 +208,8 @@ use LPF Core for device and driver lifecycle instead of adding local bus code.
     `OSAL_ERR_NOT_SUPPORTED` with clear documentation.
 - [x] Replace remaining direct kernel primitives in LPF runtime/PConfig where
       OSAL equivalents are intended.
-  - Keep direct Linux subsystem calls inside HAL where they are the hardware
-    implementation detail.
+  - Keep direct Linux subsystem calls inside the SoC adapter or compat layer
+    where they are the hardware implementation detail.
 
 ## Phase 6: Remove Old Test Infrastructure
 
@@ -238,8 +239,8 @@ use LPF Core for device and driver lifecycle instead of adding local bus code.
 - [x] Remove or document transitional CMake kernel component logic.
   - Removed LPF runtime/PConfig static/shared transitional Kconfig and CMake
     branches.
-  - Transitional HAL CMake metadata remains only for host-side dependency
-    metadata; kernel module output is produced by Kbuild.
+  - Old hardware access CMake metadata has been removed; kernel module output
+    is produced by Kbuild.
 - [x] Ensure defconfigs match the current module build model.
   - `kernel_x86_modules_defconfig` should enable only valid kernel module
     options.
@@ -249,12 +250,12 @@ use LPF Core for device and driver lifecycle instead of adding local bus code.
 - [x] Update README to match the current kernel-module architecture.
 - [x] Update `docs/KERNEL_USER_SPLIT.md`.
 - [x] Update `docs/ARCHITECTURE.md`.
-- [x] Remove outdated references to ctest and old userspace HAL/runtime
+- [x] Remove outdated references to ctest and old userspace hardware/runtime
       behavior.
 - [x] Document module load order and dependencies.
   - OSAL before LPF Core.
   - LPF Core before LPF peripheral runtime.
-  - Runtime config and transitional HAL hardware access are linked into
+  - Runtime config and LPF HW hardware access are linked into
     `lpf_peripheral_runtime.ko`.
 - [x] Document how to add a new peripheral.
   - PConfig type and platform entry.
@@ -278,7 +279,7 @@ use LPF Core for device and driver lifecycle instead of adding local bus code.
   - `osal.ko`
   - `lpf_core.ko`
   - `lpf_peripheral_runtime.ko`
-  - `hal.ko` is no longer produced.
+  - The old standalone hardware module is no longer produced.
 - [ ] Run module load/unload smoke test on a compatible kernel.
 - [ ] Verify `/dev/lpf/mcuN` appears when MCU is configured.
 - [ ] Verify each PDI ioctl returns expected status on configured and

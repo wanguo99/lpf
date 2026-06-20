@@ -39,7 +39,7 @@ typedef struct {
  *
  * 说明：
  * - 用于 PCONFIG 层的设备扩展（复位 GPIO、中断 GPIO 等）
- * - 实际 GPIO 操作通过 HAL 层实现
+ * - 实际 GPIO 操作通过 LPF HW 层实现
  */
 typedef struct {
 	uint32_t gpio_num; /* GPIO编号 */

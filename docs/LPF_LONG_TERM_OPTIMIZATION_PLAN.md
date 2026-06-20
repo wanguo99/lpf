@@ -179,7 +179,7 @@ Work items:
   required hardware capabilities.
 - Provide a generic Linux adapter using standard kernel APIs.
 - Add SoC-specific adapters only under the SoC layer.
-- Prevent vendor BSP calls from entering HAL or peripheral business code.
+- Prevent vendor BSP calls from entering LPF HW or peripheral business code.
 
 Deliverables:
 
@@ -204,61 +204,57 @@ Current status:
 - Remaining work: extend the interface to pinctrl, clocks, resets, and SoC
   identity, then add target SoC adapters.
 
-## Phase 5: Remove Standalone HAL Boundary
+## Phase 5: LPF HW API Layer
 
-Goal: remove the standalone HAL module and keep useful hardware-capability
-semantics as LPF-internal HW APIs above the SoC adapter layer.
+Goal: keep useful hardware-capability semantics as LPF-internal HW APIs above
+the SoC adapter layer.
 
 Work items:
 
 - Add `kernel/lpf/hw/` for LPF-internal hardware capability APIs.
-- Migrate useful HAL state/context handling into:
+- Migrate useful hardware state/context handling into:
   - `lpf_hw_gpio`
   - `lpf_hw_pwm`
   - `lpf_hw_transport_can`
   - `lpf_hw_transport_uart`
   - `lpf_hw_bus_i2c`
   - `lpf_hw_bus_spi`
-- Make LPF peripheral services call `lpf_hw_*` instead of `hal_*`.
+- Make LPF peripheral services call `lpf_hw_*`.
 - Make `lpf_hw_*` call the SoC adapter layer internally.
-- Delete the `CONFIG_HAL` root switch and standalone `hal.ko` build target.
-- Delete standalone HAL headers after the `hal_*` API surface has migrated to
+- Delete the old standalone hardware Kconfig symbols and module build target.
+- Delete old standalone hardware headers after the API surface has migrated to
   LPF-internal `lpf_hw_*` APIs.
 - Remove hard-coded global limits where possible.
-- Move mock operation-path coverage from HAL selftest to LPF HW/SoC adapter
-  tests.
+- Move mock operation-path coverage from the old hardware selftest to LPF
+  HW/SoC adapter tests.
 
 Deliverables:
 
 - `kernel/lpf/hw/`
 - LPF HW API reference.
-- Removal of `kernel/hal/` from the active module build.
+- Removal of the old standalone hardware access directory from the repository.
 
 Acceptance criteria:
 
 - Peripheral business code depends only on LPF-owned HW APIs.
-- No LPF peripheral service includes HAL headers.
-- Module builds no longer produce `hal.ko`.
+- No LPF peripheral service includes old hardware access headers.
+- Module builds no longer produce the old standalone hardware module.
 - Hardware behavior stays consistent across supported kernel and SoC backends.
 
 Current status:
 
-- Started. HAL CAN, serial, GPIO, PWM, I2C, and SPI now call LPF SoC Adapter
-  APIs instead of Linux subsystem APIs directly.
-- Started. HAL paths can now be built against the mock SoC backend through the
-  `LPF_SOC_ADAPTER_MOCK` Kconfig option.
-- Started. `hal_mock_selftest.ko` now exercises HAL GPIO, PWM, CAN, serial,
-  I2C, and SPI operation paths over the mock SoC backend when the module is
-  loaded.
-- Decision update: standalone HAL is a transitional boundary. The final design
-  removes `hal.ko` and migrates useful hardware semantics into LPF-internal
-  `lpf_hw_*` APIs.
-- Done. The standalone `hal.ko` build target and `CONFIG_HAL` root switch have
-  been removed. Transitional HAL hardware access objects now link directly into
-  `lpf_peripheral_runtime.ko`.
-- Remaining work: introduce `kernel/lpf/hw/`, migrate peripheral services from
-  `hal_*` to `lpf_hw_*`, then remove `kernel/hal/`, HAL headers, and
-  transitional `CONFIG_HAL_*` capability symbols.
+- Done. `kernel/lpf/hw/` now owns LPF-internal hardware access APIs for GPIO,
+  PWM, CAN, UART, I2C, and SPI.
+- Done. LPF peripheral services and MCU transports call `lpf_hw_*` APIs.
+- Done. LPF HW paths call LPF SoC Adapter APIs instead of Linux subsystem APIs
+  directly.
+- Done. The old standalone hardware module target, old hardware Kconfig
+  symbols, old hardware access directory, and standalone hardware headers have
+  been removed.
+- Done. `lpf_hw_mock_selftest.ko` exercises LPF HW GPIO, PWM, CAN, UART, I2C,
+  and SPI operation paths over the mock SoC backend when the module is loaded.
+- Remaining work: remove hard-coded global limits where possible and broaden
+  LPF HW/SoC adapter self-test coverage.
 
 ## Phase 6: Runtime Configuration Layer
 
@@ -525,7 +521,7 @@ tests/mock/
 tests/integration/
 ```
 
-- Add mock HAL backend.
+- Add mock LPF HW backend coverage.
 - Add dummy peripheral service.
 - Add mock MCU transport.
 - Add PDI userspace tests.
@@ -537,7 +533,7 @@ Acceptance criteria:
 - Static config backend is tested.
 - Mock SoC adapter is tested.
 - MCU mock transport is tested.
-- LED mock HAL path is tested.
+- LED mock LPF HW path is tested.
 - PDI open, operation, and close paths are tested.
 - ABI structure layout changes are detected.
 
@@ -557,10 +553,10 @@ Current status:
   payloads, LED ioctl payloads, and close handling without requiring live LPF
   device nodes.
 - Started. Added a Kconfig-selectable mock SoC backend and
-  `kernel_x86_mock_modules_defconfig` so kernel module builds can validate HAL
-  and peripheral-service integration paths without live hardware.
-- Started. `HAL_MOCK_SELFTEST` builds a load-time kernel self-test module for
-  HAL operation paths over the mock SoC backend.
+  `kernel_x86_mock_modules_defconfig` so kernel module builds can validate LPF
+  HW and peripheral-service integration paths without live hardware.
+- Done. `LPF_HW_MOCK_SELFTEST` builds a load-time kernel self-test module for
+  LPF HW operation paths over the mock SoC backend.
 - Remaining work: add dummy peripheral services, module-load automation for
   mock self-tests, and multi-kernel matrix builds.
 
@@ -570,8 +566,7 @@ Current status:
 2. Introduce LPF Core.
 3. Add the kernel compat layer.
 4. Add the SoC adapter layer.
-5. Finish removing the HAL naming surface by migrating useful semantics into
-   LPF HW APIs.
+5. Maintain the LPF HW API layer above the SoC adapter.
 6. Finish merging PCONFIG naming and headers into the LPF runtime
    configuration layer.
 7. Migrate LED first as the simplest complete peripheral service.

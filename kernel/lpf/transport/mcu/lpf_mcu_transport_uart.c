@@ -8,45 +8,45 @@
  ************************************************************************/
 
 #include "osal.h"
-#include "hal.h"
 #include "pconfig.h"
+#include "lpf/lpf_hw_transport_uart.h"
 #include "lpf/lpf_mcu_transport.h"
 
 /*===========================================================================
- * PCONFIG → HAL 类型转换（内部函数，不对外暴露）
+ * PCONFIG to LPF HW type conversion.
  *===========================================================================*/
 
 /**
- * @brief 转换 PCONFIG 校验位类型到 HAL 校验位类型
+ * @brief 转换 PCONFIG 校验位类型到 LPF HW 校验位类型
  */
-static uint8_t _lpf_mcu_to_hal_parity(pconfig_mcu_parity_t parity)
+static uint8_t _lpf_mcu_to_lpf_hw_parity(pconfig_mcu_parity_t parity)
 {
 	switch (parity) {
 	case PCONFIG_MCU_PARITY_NONE:
-		return HAL_SERIAL_PARITY_NONE;
+		return LPF_SERIAL_PARITY_NONE;
 	case PCONFIG_MCU_PARITY_ODD:
-		return HAL_SERIAL_PARITY_ODD;
+		return LPF_SERIAL_PARITY_ODD;
 	case PCONFIG_MCU_PARITY_EVEN:
-		return HAL_SERIAL_PARITY_EVEN;
+		return LPF_SERIAL_PARITY_EVEN;
 	default:
-		return HAL_SERIAL_PARITY_NONE;
+		return LPF_SERIAL_PARITY_NONE;
 	}
 }
 
 /**
- * @brief 转换 PCONFIG 流控类型到 HAL 流控类型
+ * @brief 转换 PCONFIG 流控类型到 LPF HW 流控类型
  */
-static uint8_t _lpf_mcu_to_hal_flow_control(pconfig_mcu_flow_control_t flow)
+static uint8_t _lpf_mcu_to_lpf_hw_flow_control(pconfig_mcu_flow_control_t flow)
 {
 	switch (flow) {
 	case PCONFIG_MCU_FLOW_NONE:
-		return HAL_SERIAL_FLOW_NONE;
+		return LPF_SERIAL_FLOW_NONE;
 	case PCONFIG_MCU_FLOW_HW:
-		return HAL_SERIAL_FLOW_HW;
+		return LPF_SERIAL_FLOW_HW;
 	case PCONFIG_MCU_FLOW_SW:
-		return HAL_SERIAL_FLOW_SW;
+		return LPF_SERIAL_FLOW_SW;
 	default:
-		return HAL_SERIAL_FLOW_NONE;
+		return LPF_SERIAL_FLOW_NONE;
 	}
 }
 
@@ -58,7 +58,7 @@ static uint8_t _lpf_mcu_to_hal_flow_control(pconfig_mcu_flow_control_t flow)
  * @brief 串口通信上下文
  */
 typedef struct {
-	hal_serial_handle_t serial_handle;
+	lpf_hw_transport_uart_handle_t serial_handle;
 	osal_mutex_t rx_mutex;
 } lpf_mcu_serial_context_t;
 
@@ -70,7 +70,7 @@ static int32_t lpf_mcu_transport_uart_open(
 	lpf_mcu_transport_handle_t *handle)
 {
 	lpf_mcu_serial_context_t *ctx;
-	hal_serial_config_t serial_config;
+	lpf_serial_config_t serial_config;
 
 	if (!mcu_cfg || !handle) {
 		return OSAL_ERR_INVALID_PARAM;
@@ -88,11 +88,11 @@ static int32_t lpf_mcu_transport_uart_open(
 	serial_config.data_bits = mcu_cfg->hw.serial.data_bits;
 	serial_config.stop_bits = mcu_cfg->hw.serial.stop_bits;
 	serial_config.parity =
-		_lpf_mcu_to_hal_parity(mcu_cfg->hw.serial.parity);
+		_lpf_mcu_to_lpf_hw_parity(mcu_cfg->hw.serial.parity);
 	serial_config.flow_control =
-		_lpf_mcu_to_hal_flow_control(mcu_cfg->hw.serial.flow_control);
+		_lpf_mcu_to_lpf_hw_flow_control(mcu_cfg->hw.serial.flow_control);
 
-	if (OSAL_SUCCESS != hal_serial_open(mcu_cfg->hw.serial.device,
+	if (OSAL_SUCCESS != lpf_hw_transport_uart_open(mcu_cfg->hw.serial.device,
 										&serial_config, &ctx->serial_handle)) {
 		osal_free(ctx);
 		return OSAL_ERR_GENERIC;
@@ -100,7 +100,7 @@ static int32_t lpf_mcu_transport_uart_open(
 
 	/* 创建接收互斥锁 */
 	if (OSAL_SUCCESS != osal_mutex_init(&ctx->rx_mutex, NULL)) {
-		hal_serial_close(ctx->serial_handle);
+		lpf_hw_transport_uart_close(ctx->serial_handle);
 		osal_free(ctx);
 		return OSAL_ERR_GENERIC;
 	}
@@ -122,7 +122,7 @@ static int32_t lpf_mcu_transport_uart_close(lpf_mcu_transport_handle_t handle)
 
 	ctx = (lpf_mcu_serial_context_t *)handle;
 
-	hal_serial_close(ctx->serial_handle);
+	lpf_hw_transport_uart_close(ctx->serial_handle);
 	osal_mutex_destroy(&ctx->rx_mutex);
 	osal_free(ctx);
 
@@ -154,7 +154,7 @@ static int32_t lpf_mcu_transport_uart_transfer(
 	start_time_us = osal_get_monotonic_time();
 
 	/* 发送 LPF protocol 报文（完整报文，包含协议头和 CRC） */
-	ret = hal_serial_write(ctx->serial_handle, packet, packet_len, timeout_ms);
+	ret = lpf_hw_transport_uart_write(ctx->serial_handle, packet, packet_len, timeout_ms);
 	if (ret != (int32_t)packet_len) {
 		return OSAL_ERR_GENERIC;
 	}
@@ -169,7 +169,7 @@ static int32_t lpf_mcu_transport_uart_transfer(
 	/* 接收响应报文 */
 	osal_mutex_lock(&ctx->rx_mutex);
 
-	rx_len = hal_serial_read(ctx->serial_handle, response, resp_size,
+	rx_len = lpf_hw_transport_uart_read(ctx->serial_handle, response, resp_size,
 							 remaining_timeout_ms);
 
 	osal_mutex_unlock(&ctx->rx_mutex);

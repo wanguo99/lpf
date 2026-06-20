@@ -3,17 +3,17 @@
 #include <linux/module.h>
 
 #include "osal.h"
-#include "hal_spi.h"
+#include "lpf/lpf_hw_bus_spi.h"
 #include "lpf/lpf_soc_adapter.h"
 
 typedef struct {
 	lpf_spi_handle_t spi;
 	osal_mutex_t lock;
-	hal_spi_config_t config;
+	lpf_spi_config_t config;
 	bool initialized;
-} hal_spi_context_t;
+} lpf_hw_bus_spi_context_t;
 
-static void hal_spi_fill_lpf_config(const hal_spi_config_t *src,
+static void lpf_hw_bus_spi_fill_lpf_config(const lpf_spi_config_t *src,
 				    lpf_spi_config_t *dst)
 {
 	dst->device = src->device;
@@ -23,8 +23,8 @@ static void hal_spi_fill_lpf_config(const hal_spi_config_t *src,
 	dst->timeout = src->timeout;
 }
 
-static int32_t hal_spi_apply_config(hal_spi_context_t *ctx,
-				    const hal_spi_config_t *config)
+static int32_t lpf_hw_bus_spi_apply_config(lpf_hw_bus_spi_context_t *ctx,
+				    const lpf_spi_config_t *config)
 {
 	lpf_spi_config_t lpf_config;
 	int32_t ret;
@@ -32,7 +32,7 @@ static int32_t hal_spi_apply_config(hal_spi_context_t *ctx,
 	if (!ctx || !ctx->spi || !config)
 		return OSAL_ERR_INVALID_PARAM;
 
-	hal_spi_fill_lpf_config(config, &lpf_config);
+	lpf_hw_bus_spi_fill_lpf_config(config, &lpf_config);
 	ret = lpf_soc_spi_set_config(ctx->spi, &lpf_config);
 	if (ret != OSAL_SUCCESS)
 		return ret;
@@ -41,9 +41,9 @@ static int32_t hal_spi_apply_config(hal_spi_context_t *ctx,
 	return OSAL_SUCCESS;
 }
 
-int32_t hal_spi_open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
+int32_t lpf_hw_bus_spi_open(const lpf_spi_config_t *config, lpf_hw_bus_spi_handle_t *handle)
 {
-	hal_spi_context_t *ctx;
+	lpf_hw_bus_spi_context_t *ctx;
 	lpf_spi_config_t lpf_config;
 	int32_t ret;
 
@@ -60,7 +60,7 @@ int32_t hal_spi_open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
 	if (ret != OSAL_SUCCESS)
 		goto err_free;
 
-	hal_spi_fill_lpf_config(config, &lpf_config);
+	lpf_hw_bus_spi_fill_lpf_config(config, &lpf_config);
 	ret = lpf_soc_spi_open(&lpf_config, &ctx->spi);
 	if (ret != OSAL_SUCCESS)
 		goto err_mutex;
@@ -69,7 +69,7 @@ int32_t hal_spi_open(const hal_spi_config_t *config, hal_spi_handle_t *handle)
 	ctx->initialized = true;
 	*handle = ctx;
 
-	LOG_INFO("HAL_SPI", "opened %s", config->device);
+	LOG_INFO("LPF_HW_BUS_SPI", "opened %s", config->device);
 	return OSAL_SUCCESS;
 
 err_mutex:
@@ -78,11 +78,11 @@ err_free:
 	osal_free(ctx);
 	return ret;
 }
-EXPORT_SYMBOL_GPL(hal_spi_open);
+EXPORT_SYMBOL_GPL(lpf_hw_bus_spi_open);
 
-int32_t hal_spi_close(hal_spi_handle_t handle)
+int32_t lpf_hw_bus_spi_close(lpf_hw_bus_spi_handle_t handle)
 {
-	hal_spi_context_t *ctx = handle;
+	lpf_hw_bus_spi_context_t *ctx = handle;
 	lpf_spi_handle_t spi;
 
 	if (!handle)
@@ -101,31 +101,31 @@ int32_t hal_spi_close(hal_spi_handle_t handle)
 	osal_free(ctx);
 	return OSAL_SUCCESS;
 }
-EXPORT_SYMBOL_GPL(hal_spi_close);
+EXPORT_SYMBOL_GPL(lpf_hw_bus_spi_close);
 
-int32_t hal_spi_write(hal_spi_handle_t handle, const uint8_t *buffer,
+int32_t lpf_hw_bus_spi_write(lpf_hw_bus_spi_handle_t handle, const uint8_t *buffer,
 		      uint32_t size)
 {
 	if (!handle || !buffer)
 		return OSAL_ERR_INVALID_PARAM;
 
-	return hal_spi_transfer(handle, buffer, NULL, size);
+	return lpf_hw_bus_spi_transfer(handle, buffer, NULL, size);
 }
-EXPORT_SYMBOL_GPL(hal_spi_write);
+EXPORT_SYMBOL_GPL(lpf_hw_bus_spi_write);
 
-int32_t hal_spi_read(hal_spi_handle_t handle, uint8_t *buffer, uint32_t size)
+int32_t lpf_hw_bus_spi_read(lpf_hw_bus_spi_handle_t handle, uint8_t *buffer, uint32_t size)
 {
 	if (!handle || !buffer)
 		return OSAL_ERR_INVALID_PARAM;
 
-	return hal_spi_transfer(handle, NULL, buffer, size);
+	return lpf_hw_bus_spi_transfer(handle, NULL, buffer, size);
 }
-EXPORT_SYMBOL_GPL(hal_spi_read);
+EXPORT_SYMBOL_GPL(lpf_hw_bus_spi_read);
 
-int32_t hal_spi_transfer(hal_spi_handle_t handle, const uint8_t *tx_buffer,
+int32_t lpf_hw_bus_spi_transfer(lpf_hw_bus_spi_handle_t handle, const uint8_t *tx_buffer,
 			 uint8_t *rx_buffer, uint32_t size)
 {
-	hal_spi_transfer_t transfer = {
+	lpf_spi_transfer_t transfer = {
 		.tx_buf = tx_buffer,
 		.rx_buf = rx_buffer,
 		.len = size,
@@ -134,14 +134,14 @@ int32_t hal_spi_transfer(hal_spi_handle_t handle, const uint8_t *tx_buffer,
 	if (!handle || (!tx_buffer && !rx_buffer) || size == 0)
 		return OSAL_ERR_INVALID_PARAM;
 
-	return hal_spi_transfer_multi(handle, &transfer, 1);
+	return lpf_hw_bus_spi_transfer_multi(handle, &transfer, 1);
 }
-EXPORT_SYMBOL_GPL(hal_spi_transfer);
+EXPORT_SYMBOL_GPL(lpf_hw_bus_spi_transfer);
 
-int32_t hal_spi_transfer_multi(hal_spi_handle_t handle,
-			       hal_spi_transfer_t *transfers, uint32_t num)
+int32_t lpf_hw_bus_spi_transfer_multi(lpf_hw_bus_spi_handle_t handle,
+			       lpf_spi_transfer_t *transfers, uint32_t num)
 {
-	hal_spi_context_t *ctx = handle;
+	lpf_hw_bus_spi_context_t *ctx = handle;
 	lpf_spi_transfer_t *xfers;
 	uint32_t i;
 	int32_t ret;
@@ -185,18 +185,18 @@ int32_t hal_spi_transfer_multi(hal_spi_handle_t handle,
 	osal_free(xfers);
 
 	if (ret != OSAL_SUCCESS) {
-		LOG_ERROR("HAL_SPI", "transfer failed: %d", ret);
+		LOG_ERROR("LPF_HW_BUS_SPI", "transfer failed: %d", ret);
 		return ret;
 	}
 
 	return OSAL_SUCCESS;
 }
-EXPORT_SYMBOL_GPL(hal_spi_transfer_multi);
+EXPORT_SYMBOL_GPL(lpf_hw_bus_spi_transfer_multi);
 
-int32_t hal_spi_set_config(hal_spi_handle_t handle,
-			   const hal_spi_config_t *config)
+int32_t lpf_hw_bus_spi_set_config(lpf_hw_bus_spi_handle_t handle,
+			   const lpf_spi_config_t *config)
 {
-	hal_spi_context_t *ctx = handle;
+	lpf_hw_bus_spi_context_t *ctx = handle;
 	int ret;
 
 	if (!handle || !config)
@@ -208,8 +208,8 @@ int32_t hal_spi_set_config(hal_spi_handle_t handle,
 		return OSAL_ERR_INVALID_ID;
 	}
 
-	ret = hal_spi_apply_config(ctx, config);
+	ret = lpf_hw_bus_spi_apply_config(ctx, config);
 	osal_mutex_unlock(&ctx->lock);
 	return ret;
 }
-EXPORT_SYMBOL_GPL(hal_spi_set_config);
+EXPORT_SYMBOL_GPL(lpf_hw_bus_spi_set_config);

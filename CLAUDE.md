@@ -7,7 +7,7 @@ LPF (Linux Peripheral Framework) is now a Linux-focused peripheral framework. Pr
 Core modules:
 
 - OSAL
-- HAL
+- LPF HW
 - LPF Core
 - LPF Peripheral Runtime
 - LPF Runtime Config
@@ -35,4 +35,5 @@ make modules
 - Product/application code belongs outside shared framework module directories.
 - LPF peripheral runtime hosts runtime config loading and kernel-side peripheral services.
 - PDI exposes the userspace API and wraps LPF UAPI ioctl ABIs.
-- HAL and OSAL remain platform abstraction layers.
+- LPF HW owns framework hardware access above the SoC adapter; OSAL remains
+  the operating-system abstraction layer.

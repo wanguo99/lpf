@@ -26,7 +26,7 @@ choice
 	  Select the SoC adapter registered by LPF Core during module
 	  initialization. Product builds should normally use the generic Linux
 	  backend or a future SoC-specific backend. Test builds can select the
-	  mock backend to validate HAL and peripheral-service paths without
+	  mock backend to validate LPF HW and peripheral-service paths without
 	  live hardware.
 
 config LPF_SOC_ADAPTER_GENERIC_LINUX
@@ -106,8 +106,8 @@ menuconfig LPF_MCU_SERVICE
 	depends on LPF_PERIPHERAL_RUNTIME
 	select LPF_PROTOCOL
 	select LPF_PROTOCOL_MCU
-	select HAL_CAN
-	select HAL_UART
+	select LPF_HW_CAN
+	select LPF_HW_UART
 	help
 	  Enable the LPF MCU peripheral service. MCU instances are created from
 	  normalized PCONFIG entries and exposed through LPF device lifecycle,
@@ -120,8 +120,8 @@ menuconfig LPF_LED_SERVICE
 	bool "LPF LED peripheral service"
 	default n
 	depends on LPF_PERIPHERAL_RUNTIME
-	select HAL_GPIO
-	select HAL_PWM
+	select LPF_HW_GPIO
+	select LPF_HW_PWM
 	help
 	  Enable the LPF LED peripheral service. LED instances are created from
 	  normalized PCONFIG entries and exposed through LPF device lifecycle,

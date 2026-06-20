@@ -1,6 +1,6 @@
 # Kernel OSAL
 
-Kernel OSAL wraps Linux kernel APIs needed by kernel HAL, PConfig, LPF Core,
+Kernel OSAL wraps Linux kernel APIs needed by LPF HW, PConfig, LPF Core,
 and LPF peripheral runtime.
 
 It is intentionally separate from `user/osal`, but public OSAL names should
@@ -33,6 +33,6 @@ the kernel header set or return `OSAL_ERR_NOT_SUPPORTED`; do not tunnel back to
 userspace. This currently includes process, environment, signal, POSIX shared
 memory, pty/terminal, select/poll, generic file, and generic socket APIs.
 
-HAL-owned Linux subsystem details stay in HAL instead of being hidden behind
-generic OSAL wrappers. Current examples are SocketCAN access in HAL CAN and TTY
-file operations in HAL serial.
+LPF HW uses the LPF SoC Adapter for hardware access instead of hiding Linux
+subsystem details behind generic OSAL wrappers. Current examples are CAN,
+UART, GPIO, PWM, I2C, and SPI paths below `kernel/lpf/hw/`.

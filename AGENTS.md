@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-Reusable framework layers live at the repository top level: `kernel/` holds kernel-side modules such as `osal`, `hal`, and `lpf`; `kernel/pconfig` currently holds transitional runtime config sources linked into `lpf_peripheral_runtime.ko`; `user/` holds userspace libraries such as `osal`, `aconfig`, and `pdi`; `uapi/` holds shared userspace/kernel ABI headers. Configuration presets live under `configs/`, build support scripts are under `scripts/`, and generated artifacts are written to `_build/`.
+Reusable framework layers live at the repository top level: `kernel/` holds kernel-side modules such as `osal` and `lpf`; `kernel/lpf/hw` holds LPF-owned hardware access objects linked into `lpf_peripheral_runtime.ko`; `kernel/pconfig` currently holds transitional runtime config sources linked into `lpf_peripheral_runtime.ko`; `user/` holds userspace libraries such as `osal`, `aconfig`, and `pdi`; `uapi/` holds shared userspace/kernel ABI headers. Configuration presets live under `configs/`, build support scripts are under `scripts/`, and generated artifacts are written to `_build/`.
 
 ## Build, Test, and Development Commands
 - `make list` - show available configuration and build targets.
@@ -12,7 +12,7 @@ Reusable framework layers live at the repository top level: `kernel/` holds kern
 - `make clean` - remove build outputs.
 
 ## Coding Style & Naming Conventions
-Follow the existing C style in the tree: 4-space indentation in newer code, tabs in legacy Kconfig/C sources where already used, braces on the next line for functions, and short `static` helpers for file-local logic. Keep names uppercase for public APIs and macros (`OSAL_*`, `PDI_*`, `LPF_*`), lowercase snake_case for internal files and helpers, and match the module prefix already in use (`osal_`, `hal_`, `pdi_`, `lpf_`).
+Follow the existing C style in the tree: 4-space indentation in newer code, tabs in legacy Kconfig/C sources where already used, braces on the next line for functions, and short `static` helpers for file-local logic. Keep names uppercase for public APIs and macros (`OSAL_*`, `PDI_*`, `LPF_*`), lowercase snake_case for internal files and helpers, and match the module prefix already in use (`osal_`, `pdi_`, `lpf_`).
 
 ## Testing Guidelines
 The previous test product has been removed. New tests should be added with a fresh test layout and matching Kconfig/CMake integration.

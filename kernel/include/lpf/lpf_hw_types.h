@@ -26,6 +26,15 @@ typedef void (*lpf_gpio_irq_callback_t)(uint32_t gpio_num,
 					lpf_gpio_level_t level,
 					void *user_data);
 
+typedef struct {
+	lpf_gpio_direction_t direction;
+	lpf_gpio_level_t initial_level;
+	lpf_gpio_edge_t edge;
+	lpf_gpio_irq_callback_t callback;
+	void *user_data;
+} lpf_gpio_config_t;
+
+typedef void *lpf_hw_pwm_handle_t;
 typedef void *lpf_pwm_handle_t;
 
 typedef struct {
@@ -43,11 +52,17 @@ typedef struct {
 	bool polarity_inversed;
 } lpf_pwm_state_t;
 
+typedef void *lpf_hw_bus_i2c_handle_t;
 typedef void *lpf_i2c_handle_t;
 
 #define LPF_I2C_M_RD      0x0001
 #define LPF_I2C_M_TEN     0x0010
 #define LPF_I2C_M_NOSTART 0x4000
+
+typedef struct {
+	const char *device;
+	uint32_t timeout;
+} lpf_i2c_config_t;
 
 typedef struct {
 	uint16_t addr;
@@ -56,7 +71,13 @@ typedef struct {
 	uint8_t *buf;
 } lpf_i2c_msg_t;
 
+typedef void *lpf_hw_bus_spi_handle_t;
 typedef void *lpf_spi_handle_t;
+
+#define LPF_SPI_MODE_0 0x00
+#define LPF_SPI_MODE_1 0x01
+#define LPF_SPI_MODE_2 0x02
+#define LPF_SPI_MODE_3 0x03
 
 typedef struct {
 	const char *device;
@@ -76,8 +97,11 @@ typedef struct {
 	uint8_t cs_change;
 } lpf_spi_transfer_t;
 
+typedef void *lpf_hw_transport_can_handle_t;
 typedef void *lpf_can_handle_t;
 
+#define LPF_CAN_DEFAULT_INTERFACE "can0"
+#define LPF_CAN_DEFAULT_BAUDRATE 500000
 #define LPF_CAN_MAX_DATA_LEN 8
 
 typedef struct {
@@ -94,6 +118,7 @@ typedef struct {
 	uint32_t timestamp;
 } lpf_can_frame_t;
 
+typedef void *lpf_hw_transport_uart_handle_t;
 typedef void *lpf_serial_handle_t;
 
 #define LPF_SERIAL_PARITY_NONE 0x00

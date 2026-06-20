@@ -88,7 +88,7 @@ if(CONFIG_OSAL_OS_POSIX)
 
     if(CONFIG_OSAL_SYS_SELECT)
         list(APPEND ADD_SRCS "src/sys/osal_select.c")
-        # Add poll() support (required by some HAL drivers)
+        # Add poll() support for OSAL users that need polling semantics.
         list(APPEND ADD_SRCS "src/sys/osal_poll.c")
     endif()
 

@@ -32,15 +32,15 @@ lpf_peripheral_runtime-y += pconfig/src/pconfig_static_backend.o
 lpf_peripheral_runtime-y += pconfig/src/pconfig_validator.o
 lpf_peripheral_runtime-y += pconfig/configs/pconfig_configs.o
 lpf_peripheral_runtime-y += pconfig/configs/kernel/x86_modules/1.0.0/pconfig_kernel_x86_modules.o
-lpf_peripheral_runtime-y += hal/src/hal.o
-lpf_peripheral_runtime-y += hal/src/hal_builtin_start.o
-lpf_peripheral_runtime-$(CONFIG_HAL_CAN) += hal/src/hal_can.o
-lpf_peripheral_runtime-$(CONFIG_HAL_UART) += hal/src/hal_serial.o
-lpf_peripheral_runtime-$(CONFIG_HAL_GPIO) += hal/src/hal_gpio.o
-lpf_peripheral_runtime-$(CONFIG_HAL_PWM) += hal/src/hal_pwm.o
-lpf_peripheral_runtime-$(CONFIG_HAL_I2C) += hal/src/hal_i2c.o
-lpf_peripheral_runtime-$(CONFIG_HAL_SPI) += hal/src/hal_spi.o
-lpf_peripheral_runtime-y += hal/src/hal_builtin_end.o
+lpf_peripheral_runtime-y += lpf/hw/lpf_hw.o
+lpf_peripheral_runtime-y += lpf/hw/lpf_hw_builtin_start.o
+lpf_peripheral_runtime-$(CONFIG_LPF_HW_CAN) += lpf/hw/lpf_hw_transport_can.o
+lpf_peripheral_runtime-$(CONFIG_LPF_HW_UART) += lpf/hw/lpf_hw_transport_uart.o
+lpf_peripheral_runtime-$(CONFIG_LPF_HW_GPIO) += lpf/hw/lpf_hw_gpio.o
+lpf_peripheral_runtime-$(CONFIG_LPF_HW_PWM) += lpf/hw/lpf_hw_pwm.o
+lpf_peripheral_runtime-$(CONFIG_LPF_HW_I2C) += lpf/hw/lpf_hw_bus_i2c.o
+lpf_peripheral_runtime-$(CONFIG_LPF_HW_SPI) += lpf/hw/lpf_hw_bus_spi.o
+lpf_peripheral_runtime-y += lpf/hw/lpf_hw_builtin_end.o
 lpf_peripheral_runtime-y += lpf/peripheral/lpf_peripheral.o
 lpf_peripheral_runtime-y += lpf/peripheral/lpf_peripheral_config.o
 lpf_peripheral_runtime-$(CONFIG_LPF_MCU_SERVICE) += lpf/peripheral/mcu/lpf_mcu_service.o
@@ -52,5 +52,10 @@ lpf_peripheral_runtime-$(CONFIG_LPF_MCU_TRANSPORT_UART) += lpf/transport/mcu/lpf
 lpf_peripheral_runtime-$(CONFIG_LPF_LED_SERVICE) += lpf/peripheral/led/lpf_led_service.o
 lpf_peripheral_runtime-$(CONFIG_LPF_LED_SERVICE) += lpf/peripheral/led/lpf_led_chrdev.o
 lpf_peripheral_runtime-$(CONFIG_LPF_LED_SERVICE) += lpf/peripheral/led/lpf_led_proc.o
+endif
+
+ifeq ($(CONFIG_LPF_HW_MOCK_SELFTEST),y)
+obj-m += lpf_hw_mock_selftest.o
+lpf_hw_mock_selftest-y := lpf/hw/selftest/lpf_hw_mock_selftest.o
 endif
 endif

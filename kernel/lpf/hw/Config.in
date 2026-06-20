@@ -1,0 +1,78 @@
+# LPF HW configuration
+
+menu "Platform Configuration"
+
+config PLATFORM_LINUX
+	bool "Linux platform"
+	default n
+	depends on OS_LINUX
+	help
+	  Enable Linux hardware access support.
+
+	  Uses Linux kernel interfaces:
+	  - SocketCAN kernel sockets for CAN bus
+	  - TTY, GPIO, I2C, and SPI kernel subsystems
+
+	  Suitable for Linux systems with standard kernel drivers.
+
+endmenu
+
+menu "LPF HW Configuration"
+
+config LPF_HW_CAN
+	bool "LPF HW CAN transport support"
+	default n
+	depends on LPF_PERIPHERAL_RUNTIME
+	help
+	  Enable the LPF HW CAN transport path used by peripheral services.
+
+config LPF_HW_UART
+	bool "LPF HW UART transport support"
+	default n
+	depends on LPF_PERIPHERAL_RUNTIME
+	help
+	  Enable the LPF HW UART transport path used by peripheral services.
+
+config LPF_HW_I2C
+	bool "LPF HW I2C bus support"
+	default n
+	depends on LPF_PERIPHERAL_RUNTIME
+	help
+	  Enable the LPF HW I2C bus path used by peripheral services.
+
+config LPF_HW_SPI
+	bool "LPF HW SPI bus support"
+	default n
+	depends on LPF_PERIPHERAL_RUNTIME
+	help
+	  Enable the LPF HW SPI bus path used by peripheral services.
+
+config LPF_HW_GPIO
+	bool "LPF HW GPIO control support"
+	default n
+	depends on LPF_PERIPHERAL_RUNTIME
+	help
+	  Enable the LPF HW GPIO control path used by peripheral services.
+
+config LPF_HW_PWM
+	bool "LPF HW PWM control support"
+	default n
+	depends on LPF_PERIPHERAL_RUNTIME
+	help
+	  Enable the LPF HW PWM control path used by peripheral services.
+
+config LPF_HW_MOCK_SELFTEST
+	bool "Build LPF HW mock backend self-test module"
+	depends on LPF_SOC_ADAPTER_MOCK && LPF_PERIPHERAL_RUNTIME
+	select LPF_HW_CAN
+	select LPF_HW_UART
+	select LPF_HW_I2C
+	select LPF_HW_SPI
+	select LPF_HW_GPIO
+	select LPF_HW_PWM
+	help
+	  Build lpf_hw_mock_selftest.ko. Loading this module runs LPF HW
+	  GPIO, PWM, CAN, UART, I2C, and SPI operation checks through the
+	  mock SoC adapter.
+
+endmenu

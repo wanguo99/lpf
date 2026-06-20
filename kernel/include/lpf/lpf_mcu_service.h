@@ -96,7 +96,7 @@ typedef struct {
  *       1. 调用 pconfig_get_board() 获取平台配置
  *       2. 调用 pconfig_hw_get_mcu(platform, index) 获取 MCU 配置
  *       3. 检查配置是否启用
- *       4. 将 PCONFIG 配置转换为 HAL 配置并初始化硬件
+ *       4. 将 PCONFIG 配置转换为 LPF HW 配置并初始化硬件
  */
 int32_t lpf_mcu_service_register(void);
 void lpf_mcu_service_unregister(void);
