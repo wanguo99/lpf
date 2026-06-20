@@ -85,12 +85,17 @@ backend, LPF HW self-test module, and LPF Core dummy service self-test module:
 
 ```bash
 make kernel_x86_mock_modules_defconfig
+make tests
 make modules
 sudo make mock-modules-smoke
 ```
 
 The smoke target loads `osal.ko`, `lpf_core.ko`,
 `lpf_runtime.ko`, `lpf_hw_mock_selftest.ko`, and
-`lpf_dummy_service_selftest.ko` in order, then unloads them in reverse order.
-It refuses to run if any target module is already loaded, so it does not take
-ownership of modules started by another test or by a developer shell.
+`lpf_dummy_service_selftest.ko` in order. It then checks the expected
+`/dev/lpf_ctl`, `/dev/lpf/mcu0`, `/dev/lpf/led0`, `/dev/lpf/led1`,
+sysfs, procfs, and debugfs surfaces, and runs the
+`lpf_mock_runtime_smoke` userspace binary for basic PDI/CTL ioctl coverage.
+Modules are unloaded in reverse order. The script refuses to run if any target
+module is already loaded, so it does not take ownership of modules started by
+another test or by a developer shell.

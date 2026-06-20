@@ -829,6 +829,61 @@ out:
 	return failures ? 1 : 0;
 }
 
+static int test_mock_smoke_covers_runtime_surfaces(void)
+{
+	char *script;
+	char *tests_cmake;
+	char *smoke_cmake;
+	char *smoke_source;
+	int failures = 0;
+
+	script = read_source_file("scripts/lpf_mock_module_smoke.sh");
+	tests_cmake = read_source_file("tests/user/CMakeLists.txt");
+	smoke_cmake = read_source_file("tests/user/smoke/CMakeLists.txt");
+	smoke_source = read_source_file(
+		"tests/user/smoke/test_lpf_mock_runtime_smoke.c");
+	if (!script || !tests_cmake || !smoke_cmake || !smoke_source) {
+		fprintf(stderr, "failed to read mock smoke sources\n");
+		failures = 1;
+		goto out;
+	}
+
+	failures += expect_contains("lpf_mock_module_smoke.sh", script,
+				    "lpf_mock_runtime_smoke");
+	failures += expect_contains("lpf_mock_module_smoke.sh", script,
+				    "/dev/lpf_ctl");
+	failures += expect_contains("lpf_mock_module_smoke.sh", script,
+				    "/dev/lpf/mcu0");
+	failures += expect_contains("lpf_mock_module_smoke.sh", script,
+				    "/dev/lpf/led1");
+	failures += expect_contains("lpf_mock_module_smoke.sh", script,
+				    "/proc/lpf/mcu");
+	failures += expect_contains("lpf_mock_module_smoke.sh", script,
+				    "/sys/kernel/debug/lpf/led");
+	failures += expect_contains("tests/user/CMakeLists.txt", tests_cmake,
+				    "add_subdirectory(smoke)");
+	failures += expect_contains("smoke/CMakeLists.txt", smoke_cmake,
+				    "add_executable(lpf_mock_runtime_smoke");
+	failures += expect_not_contains("smoke/CMakeLists.txt", smoke_cmake,
+					"add_test(");
+	failures += expect_contains("test_lpf_mock_runtime_smoke.c",
+				    smoke_source,
+				    "pdi_get_device_by_name");
+	failures += expect_contains("test_lpf_mock_runtime_smoke.c",
+				    smoke_source,
+				    "pdi_mcu_get_info");
+	failures += expect_contains("test_lpf_mock_runtime_smoke.c",
+				    smoke_source,
+				    "pdi_led_get_info");
+
+out:
+	free(smoke_source);
+	free(smoke_cmake);
+	free(tests_cmake);
+	free(script);
+	return failures ? 1 : 0;
+}
+
 int main(void)
 {
 	int ret = 0;
@@ -845,6 +900,7 @@ int main(void)
 	ret += test_core_lifecycle_is_module_owned();
 	ret += test_instance_devnode_mode_policy();
 	ret += test_no_separate_bus_layer();
+	ret += test_mock_smoke_covers_runtime_surfaces();
 
 	return ret ? EXIT_FAILURE : EXIT_SUCCESS;
 }

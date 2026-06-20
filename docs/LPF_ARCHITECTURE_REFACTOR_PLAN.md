@@ -182,6 +182,8 @@ Acceptance:
 
 ### Phase 6: Validation Expansion
 
+- [x] Extend `make mock-modules-smoke` so it checks loaded mock runtime
+      `/dev`, sysfs, procfs, debugfs, and basic PDI/CTL ioctl behavior.
 - [ ] Run `make mock-modules-smoke` on a compatible kernel.
 - [ ] Verify `/dev/lpf/mcuN` and `/dev/lpf/ledN` creation.
 - [ ] Verify configured and unconfigured PDI ioctl behavior.
