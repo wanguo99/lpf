@@ -3,26 +3,26 @@
 #ifndef PDM_DEBUGFS_H
 #define PDM_DEBUGFS_H
 
-#include <linux/dcache.h>
-#include <linux/types.h>
+#include "lpf/lpf_debugfs.h"
 
-#include "osal.h"
+#define PDM_DEBUGFS_ROOT_NAME "pdm"
+#define PDM_DEBUGFS_WRITE_MAX_SIZE LPF_DEBUGFS_WRITE_MAX_SIZE
 
-#define PDM_DEBUGFS_WRITE_MAX_SIZE 256U
+typedef lpf_debugfs_write_t pdm_debugfs_write_t;
+typedef lpf_debugfs_entry_t pdm_debugfs_entry_t;
 
-typedef int (*pdm_debugfs_write_t)(char *command, size_t count, void *data);
+static inline int pdm_debugfs_register(pdm_debugfs_entry_t *entry,
+				       const char *name,
+				       pdm_debugfs_write_t write,
+				       void *data)
+{
+	return lpf_debugfs_register(entry, PDM_DEBUGFS_ROOT_NAME, name, write,
+				    data);
+}
 
-typedef struct {
-	const char *name;
-	pdm_debugfs_write_t write;
-	void *data;
-	struct dentry *entry;
-} pdm_debugfs_entry_t;
-
-int pdm_debugfs_root_init(void);
-void pdm_debugfs_root_deinit(void);
-int pdm_debugfs_register(pdm_debugfs_entry_t *entry, const char *name,
-			 pdm_debugfs_write_t write, void *data);
-void pdm_debugfs_unregister(pdm_debugfs_entry_t *entry);
+static inline void pdm_debugfs_unregister(pdm_debugfs_entry_t *entry)
+{
+	lpf_debugfs_unregister(entry);
+}
 
 #endif /* PDM_DEBUGFS_H */

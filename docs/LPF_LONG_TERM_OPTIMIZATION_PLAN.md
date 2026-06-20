@@ -434,9 +434,12 @@ Current status:
   and `/proc/pdm/led` are read-only status snapshots.
 - Done. Runtime ioctl and debugfs command failures update each instance's
   `last_error` and `error_count` sysfs attributes.
-- Remaining work: extract the current PDM-local character-device, sysfs, and
-  debugfs helpers into reusable LPF infrastructure modules named
-  `lpf_chrdev`, `lpf_sysfs`, and `lpf_debugfs`.
+- Started. PDM-local character-device, sysfs, and debugfs helper
+  implementations have been extracted into LPF infrastructure under
+  `kernel/lpf/core/` and are linked into `lpf_core.ko` as `lpf_chrdev`,
+  `lpf_sysfs`, and `lpf_debugfs`.
+- Remaining work: migrate future peripheral services to use these LPF helpers
+  directly instead of PDM compatibility wrapper headers.
 
 ## Phase 10: Test And Validation System
 

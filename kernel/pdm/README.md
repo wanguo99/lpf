@@ -24,7 +24,9 @@ The kernel module currently provides:
 - PDM debugfs command nodes under `/sys/kernel/debug/pdm/`
 
 PDM consumes exported `hal.ko` symbols for MCU transport and LED GPIO/PWM
-hardware access.
+hardware access. Runtime character-device, sysfs-attribute, and debugfs-file
+lifecycle helpers are provided by `lpf_core.ko`; PDM owns only the peripheral
+operation handlers and PDM-specific wrapper headers.
 
 ## Configuration
 
@@ -54,9 +56,7 @@ kernel/pdm/
 │   └── pdm_status.h
 └── src/
     ├── base/
-    │   ├── pdm_chrdev.c
     │   ├── pdm_ctl_chrdev.c
-    │   ├── pdm_debugfs.c
     │   ├── pdm_driver.c
     │   ├── pdm_proc.c
     │   └── pdm_status.c
@@ -97,7 +97,8 @@ Each PDM peripheral instance exposes its own character device, such as
 header, such as `lpf_mcu.h`. Opening an instance character device acquires an
 LPF Core active-device handle, and closing the file releases it. Device removal
 therefore stops new opens first, waits for active instance handles to drain,
-and then calls the peripheral service `remove` callback.
+and then calls the peripheral service `remove` callback. The concrete node
+implementation is shared through `lpf_chrdev`.
 
 Instance character devices expose read-only sysfs attributes for inspection:
 
@@ -132,7 +133,9 @@ stable userspace ABI and read-only status files. Current command nodes:
 - `/sys/kernel/debug/pdm/led`
 
 Debugfs write commands return standard errno values and log command results
-through the kernel log. For example:
+through the kernel log. Debugfs file creation and root reference counting are
+shared through `lpf_debugfs`; PDM supplies the `mcu` and `led` command handlers.
+For example:
 
 - `echo "status 0" > /sys/kernel/debug/pdm/mcu`
 - `echo "cmd 0 0x10 0x01 0x02" > /sys/kernel/debug/pdm/mcu`

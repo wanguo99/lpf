@@ -82,6 +82,9 @@ events. Kernel code that needs to keep a device active across operations should
 use `lpf_device_get()` or the name/capability variants and release the returned
 handle with `lpf_device_put()`. LPF Core emits kernel device events for
 registration, bind, state changes, errors, remove start, and remove completion.
+It also provides reusable kernel infrastructure helpers for LPF instance
+character devices, instance sysfs attributes, and debugfs command files so
+peripheral services do not duplicate node lifecycle code.
 
 ### LPF SoC Adapter
 
@@ -116,9 +119,10 @@ the data.
 ### PDM
 
 PDM owns kernel-side peripheral business behavior, ioctl dispatch, read-only
-procfs status nodes, debugfs command nodes, and protocol helpers. Concrete
+procfs status content, debugfs command handlers, and protocol helpers. Concrete
 peripheral services such as MCU and LED live under PDM and register with LPF
-Core for device lifecycle handling. PDM also exposes `/dev/pdm_ctl` as the
+Core for device lifecycle handling. PDM uses the LPF chrdev/sysfs/debugfs
+helpers for runtime nodes and exposes `/dev/pdm_ctl` as the
 management/discovery ioctl node; business operations stay on instance nodes
 such as `/dev/lpf/mcu0` and `/dev/lpf/led0`.
 

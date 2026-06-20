@@ -8,6 +8,7 @@
 #include "pdm.h"
 #include "pdm_chrdev.h"
 #include "pdm_led_internal.h"
+#include "pdm_status.h"
 
 static pdm_chrdev_t g_pdm_led_chrdevs[PDM_LED_MAX_DEVICES];
 

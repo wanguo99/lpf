@@ -1,176 +1,20 @@
 // SPDX-License-Identifier: GPL-2.0
 
-#include "pdm_chrdev.h"
+#include "lpf/lpf_chrdev.h"
 
 #include <linux/container_of.h>
 #include <linux/device.h>
 #include <linux/errno.h>
 
-#include "lpf/lpf_core.h"
-#include "lpf/lpf_driver.h"
 #include "lpf/lpf_soc_adapter.h"
-
-static ssize_t name_show(struct device *dev,
-			 struct device_attribute *attr, char *buf)
-{
-	pdm_chrdev_t *chrdev = dev_get_drvdata(dev);
-
-	(void)attr;
-	if (!chrdev)
-		return sysfs_emit(buf, "\n");
-
-	return sysfs_emit(buf, "%s\n", chrdev->info.name);
-}
-
-static ssize_t type_show(struct device *dev,
-			 struct device_attribute *attr, char *buf)
-{
-	pdm_chrdev_t *chrdev = dev_get_drvdata(dev);
-
-	(void)attr;
-	if (!chrdev)
-		return sysfs_emit(buf, "0\n");
-
-	return sysfs_emit(buf, "%u\n", chrdev->info.type);
-}
-
-static ssize_t index_show(struct device *dev,
-			  struct device_attribute *attr, char *buf)
-{
-	pdm_chrdev_t *chrdev = dev_get_drvdata(dev);
-
-	(void)attr;
-	if (!chrdev)
-		return sysfs_emit(buf, "0\n");
-
-	return sysfs_emit(buf, "%u\n", chrdev->index);
-}
-
-static ssize_t state_show(struct device *dev,
-			  struct device_attribute *attr, char *buf)
-{
-	pdm_chrdev_t *chrdev = dev_get_drvdata(dev);
-
-	(void)attr;
-	if (!chrdev)
-		return sysfs_emit(buf, "0\n");
-
-	return sysfs_emit(buf, "%u\n", chrdev->info.state);
-}
-
-static ssize_t capabilities_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
-{
-	pdm_chrdev_t *chrdev = dev_get_drvdata(dev);
-
-	(void)attr;
-	if (!chrdev)
-		return sysfs_emit(buf, "0x0\n");
-
-	return sysfs_emit(buf, "0x%llx\n",
-			  (unsigned long long)chrdev->info.capabilities);
-}
-
-static ssize_t driver_show(struct device *dev,
-			   struct device_attribute *attr, char *buf)
-{
-	pdm_chrdev_t *chrdev = dev_get_drvdata(dev);
-
-	(void)attr;
-	if (!chrdev)
-		return sysfs_emit(buf, "\n");
-
-	return sysfs_emit(buf, "%s\n", chrdev->info.driver_name);
-}
-
-static ssize_t soc_show(struct device *dev,
-			struct device_attribute *attr, char *buf)
-{
-	pdm_chrdev_t *chrdev = dev_get_drvdata(dev);
-
-	(void)attr;
-	if (!chrdev)
-		return sysfs_emit(buf, "\n");
-
-	return sysfs_emit(buf, "%s\n", chrdev->soc_name);
-}
-
-static ssize_t last_error_show(struct device *dev,
-			       struct device_attribute *attr, char *buf)
-{
-	pdm_chrdev_t *chrdev = dev_get_drvdata(dev);
-
-	(void)attr;
-	if (!chrdev)
-		return sysfs_emit(buf, "0\n");
-
-	return sysfs_emit(buf, "%d\n", chrdev->info.last_error);
-}
-
-static ssize_t error_count_show(struct device *dev,
-				struct device_attribute *attr, char *buf)
-{
-	pdm_chrdev_t *chrdev = dev_get_drvdata(dev);
-
-	(void)attr;
-	if (!chrdev)
-		return sysfs_emit(buf, "0\n");
-
-	return sysfs_emit(buf, "%u\n", pdm_chrdev_error_count(chrdev));
-}
-
-static ssize_t open_count_show(struct device *dev,
-			       struct device_attribute *attr, char *buf)
-{
-	pdm_chrdev_t *chrdev = dev_get_drvdata(dev);
-
-	(void)attr;
-	if (!chrdev)
-		return sysfs_emit(buf, "0\n");
-
-	return sysfs_emit(buf, "%u\n", pdm_chrdev_open_count(chrdev));
-}
-
-static DEVICE_ATTR_RO(name);
-static DEVICE_ATTR_RO(type);
-static DEVICE_ATTR_RO(index);
-static DEVICE_ATTR_RO(state);
-static DEVICE_ATTR_RO(capabilities);
-static DEVICE_ATTR_RO(driver);
-static DEVICE_ATTR_RO(soc);
-static DEVICE_ATTR_RO(last_error);
-static DEVICE_ATTR_RO(error_count);
-static DEVICE_ATTR_RO(open_count);
-
-static struct attribute *pdm_chrdev_attrs[] = {
-	&dev_attr_name.attr,
-	&dev_attr_type.attr,
-	&dev_attr_index.attr,
-	&dev_attr_state.attr,
-	&dev_attr_capabilities.attr,
-	&dev_attr_driver.attr,
-	&dev_attr_soc.attr,
-	&dev_attr_last_error.attr,
-	&dev_attr_error_count.attr,
-	&dev_attr_open_count.attr,
-	NULL,
-};
-
-static const struct attribute_group pdm_chrdev_attr_group = {
-	.attrs = pdm_chrdev_attrs,
-};
-
-static const struct attribute_group *pdm_chrdev_attr_groups[] = {
-	&pdm_chrdev_attr_group,
-	NULL,
-};
+#include "lpf_sysfs.h"
 
 typedef struct {
-	pdm_chrdev_t *chrdev;
+	lpf_chrdev_t *chrdev;
 	lpf_device_handle_t *device_handle;
-} pdm_chrdev_file_ctx_t;
+} lpf_chrdev_file_ctx_t;
 
-static pdm_chrdev_t *pdm_chrdev_from_private_data(void *private_data)
+static lpf_chrdev_t *lpf_chrdev_from_private_data(void *private_data)
 {
 	struct miscdevice *miscdev;
 
@@ -178,10 +22,10 @@ static pdm_chrdev_t *pdm_chrdev_from_private_data(void *private_data)
 		return NULL;
 
 	miscdev = private_data;
-	return container_of(miscdev, pdm_chrdev_t, miscdev);
+	return container_of(miscdev, lpf_chrdev_t, miscdev);
 }
 
-static void pdm_chrdev_fill_info(pdm_chrdev_t *chrdev,
+static void lpf_chrdev_fill_info(lpf_chrdev_t *chrdev,
 				 const lpf_device_t *device, uint32_t index)
 {
 	const char *soc_name;
@@ -214,17 +58,17 @@ static void pdm_chrdev_fill_info(pdm_chrdev_t *chrdev,
 	chrdev->soc_name[sizeof(chrdev->soc_name) - 1U] = '\0';
 }
 
-int pdm_chrdev_open(struct file *file)
+int lpf_chrdev_open(struct file *file)
 {
-	pdm_chrdev_file_ctx_t *ctx;
+	lpf_chrdev_file_ctx_t *ctx;
 	lpf_device_handle_t *handle = NULL;
-	pdm_chrdev_t *chrdev;
+	lpf_chrdev_t *chrdev;
 	int open_count;
 
 	if (!file)
 		return -EINVAL;
 
-	chrdev = pdm_chrdev_from_private_data(file->private_data);
+	chrdev = lpf_chrdev_from_private_data(file->private_data);
 	if (!chrdev)
 		return -EINVAL;
 
@@ -250,12 +94,13 @@ int pdm_chrdev_open(struct file *file)
 	LOG_INFO(chrdev->name, "open count=%d", open_count);
 	return 0;
 }
+EXPORT_SYMBOL_GPL(lpf_chrdev_open);
 
-int pdm_chrdev_release(struct file *file)
+int lpf_chrdev_release(struct file *file)
 {
-	pdm_chrdev_file_ctx_t *ctx;
+	lpf_chrdev_file_ctx_t *ctx;
 	lpf_device_handle_t *handle = NULL;
-	pdm_chrdev_t *chrdev;
+	lpf_chrdev_t *chrdev;
 	int open_count;
 
 	if (!file || !file->private_data)
@@ -283,14 +128,16 @@ int pdm_chrdev_release(struct file *file)
 	LOG_INFO(chrdev->name, "release count=%d", open_count);
 	return 0;
 }
+EXPORT_SYMBOL_GPL(lpf_chrdev_release);
 
-int pdm_chrdev_register(pdm_chrdev_t *chrdev, const char *name,
+int lpf_chrdev_register(lpf_chrdev_t *chrdev, const char *name,
 			const struct file_operations *fops)
 {
-	return pdm_chrdev_register_instance(chrdev, name, NULL, 0, fops);
+	return lpf_chrdev_register_instance(chrdev, name, NULL, 0, fops);
 }
+EXPORT_SYMBOL_GPL(lpf_chrdev_register);
 
-int pdm_chrdev_register_instance(pdm_chrdev_t *chrdev, const char *name,
+int lpf_chrdev_register_instance(lpf_chrdev_t *chrdev, const char *name,
 				 const char *nodename, uint32_t index,
 				 const struct file_operations *fops)
 {
@@ -302,11 +149,12 @@ int pdm_chrdev_register_instance(pdm_chrdev_t *chrdev, const char *name,
 	osal_strncpy(device.name, name, sizeof(device.name) - 1U);
 	device.name[sizeof(device.name) - 1U] = '\0';
 
-	return pdm_chrdev_register_lpf_device(chrdev, name, nodename, &device,
+	return lpf_chrdev_register_lpf_device(chrdev, name, nodename, &device,
 					      fops);
 }
+EXPORT_SYMBOL_GPL(lpf_chrdev_register_instance);
 
-int pdm_chrdev_register_lpf_device(pdm_chrdev_t *chrdev, const char *name,
+int lpf_chrdev_register_lpf_device(lpf_chrdev_t *chrdev, const char *name,
 				   const char *nodename,
 				   const lpf_device_t *device,
 				   const struct file_operations *fops)
@@ -334,7 +182,7 @@ int pdm_chrdev_register_lpf_device(pdm_chrdev_t *chrdev, const char *name,
 	}
 	chrdev->fops = fops;
 	chrdev->index = index;
-	pdm_chrdev_fill_info(chrdev, device, index);
+	lpf_chrdev_fill_info(chrdev, device, index);
 	osal_atomic_init(&chrdev->open_count, 0);
 	osal_atomic_init(&chrdev->error_count, 0);
 
@@ -342,7 +190,7 @@ int pdm_chrdev_register_lpf_device(pdm_chrdev_t *chrdev, const char *name,
 	chrdev->miscdev.name = chrdev->name;
 	chrdev->miscdev.fops = fops;
 	chrdev->miscdev.nodename = nodename ? chrdev->nodename : NULL;
-	chrdev->miscdev.groups = pdm_chrdev_attr_groups;
+	chrdev->miscdev.groups = lpf_chrdev_sysfs_groups();
 	chrdev->miscdev.mode = 0666;
 
 	ret = misc_register(&chrdev->miscdev);
@@ -360,8 +208,9 @@ int pdm_chrdev_register_lpf_device(pdm_chrdev_t *chrdev, const char *name,
 					    chrdev->name);
 	return 0;
 }
+EXPORT_SYMBOL_GPL(lpf_chrdev_register_lpf_device);
 
-void pdm_chrdev_unregister(pdm_chrdev_t *chrdev)
+void lpf_chrdev_unregister(lpf_chrdev_t *chrdev)
 {
 	if (!chrdev)
 		return;
@@ -372,11 +221,12 @@ void pdm_chrdev_unregister(pdm_chrdev_t *chrdev)
 	osal_mutex_destroy(&chrdev->lock);
 	osal_memset(chrdev, 0, sizeof(*chrdev));
 }
+EXPORT_SYMBOL_GPL(lpf_chrdev_unregister);
 
-pdm_chrdev_t *pdm_chrdev_from_file(struct file *file)
+lpf_chrdev_t *lpf_chrdev_from_file(struct file *file)
 {
-	pdm_chrdev_file_ctx_t *ctx;
-	pdm_chrdev_t *chrdev;
+	lpf_chrdev_file_ctx_t *ctx;
+	lpf_chrdev_t *chrdev;
 
 	if (!file || !file->private_data)
 		return NULL;
@@ -385,24 +235,27 @@ pdm_chrdev_t *pdm_chrdev_from_file(struct file *file)
 	chrdev = ctx->chrdev;
 	return chrdev && chrdev->registered ? chrdev : NULL;
 }
+EXPORT_SYMBOL_GPL(lpf_chrdev_from_file);
 
-uint32_t pdm_chrdev_open_count(const pdm_chrdev_t *chrdev)
+uint32_t lpf_chrdev_open_count(const lpf_chrdev_t *chrdev)
 {
 	if (!chrdev)
 		return 0;
 
 	return osal_atomic_load(&chrdev->open_count);
 }
+EXPORT_SYMBOL_GPL(lpf_chrdev_open_count);
 
-uint32_t pdm_chrdev_error_count(const pdm_chrdev_t *chrdev)
+uint32_t lpf_chrdev_error_count(const lpf_chrdev_t *chrdev)
 {
 	if (!chrdev)
 		return 0;
 
 	return osal_atomic_load(&chrdev->error_count);
 }
+EXPORT_SYMBOL_GPL(lpf_chrdev_error_count);
 
-void pdm_chrdev_record_error(pdm_chrdev_t *chrdev, int error)
+void lpf_chrdev_record_error(lpf_chrdev_t *chrdev, int error)
 {
 	if (!chrdev || error == 0)
 		return;
@@ -416,11 +269,13 @@ void pdm_chrdev_record_error(pdm_chrdev_t *chrdev, int error)
 
 	lpf_device_record_error(chrdev->info.type, chrdev->info.index, error);
 }
+EXPORT_SYMBOL_GPL(lpf_chrdev_record_error);
 
-uint32_t pdm_chrdev_index(const pdm_chrdev_t *chrdev)
+uint32_t lpf_chrdev_index(const lpf_chrdev_t *chrdev)
 {
 	if (!chrdev)
 		return 0;
 
 	return chrdev->index;
 }
+EXPORT_SYMBOL_GPL(lpf_chrdev_index);

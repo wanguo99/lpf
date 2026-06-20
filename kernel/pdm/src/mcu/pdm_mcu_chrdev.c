@@ -8,6 +8,7 @@
 #include "pdm.h"
 #include "pdm_chrdev.h"
 #include "pdm_mcu_internal.h"
+#include "pdm_status.h"
 
 static pdm_chrdev_t g_pdm_mcu_chrdevs[PDM_MCU_MAX_DEVICES];
 
