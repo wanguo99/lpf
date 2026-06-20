@@ -334,6 +334,9 @@ Current status:
 - Started. MCU CAN/UART implementations have moved behind
   `kernel/lpf/transport/mcu/` and are selected through the LPF MCU transport
   registry instead of direct service dependencies.
+- Done. The framed peripheral protocol has moved from PDM into the LPF protocol
+  layer under `kernel/lpf/protocol/`, with public protocol headers under
+  `kernel/include/lpf/` and encode/decode symbols exported by `lpf_core.ko`.
 - Remaining work: promote MCU transports and LED/MCU services into standalone
   LPF modules.
 

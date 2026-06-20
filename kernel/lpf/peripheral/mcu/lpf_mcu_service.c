@@ -3,13 +3,13 @@
  *
  * 职责：
  * - 提供对外API（初始化、命令收发）
- * - 直接使用 PDM protocol 层进行协议编解码
+ * - 直接使用 LPF protocol 层进行协议编解码
  * - 选择通信层（CAN/串口）
  ************************************************************************/
 
 #include "osal.h"
 #include "pconfig.h"
-#include "pdm_protocol.h"
+#include "lpf/lpf_protocol.h"
 #include "lpf_mcu_internal.h"
 
 /*===========================================================================
@@ -36,7 +36,7 @@ static void lpf_mcu_remove_index(uint32_t index);
  *===========================================================================*/
 
 /**
- * @brief 发送 PDM protocol 报文
+ * @brief 发送 LPF protocol 报文
  */
 static int32_t _mcu_send_packet(lpf_mcu_context_t *ctx, uint8_t msg_type,
 								const void *payload, uint16_t payload_len,
@@ -49,22 +49,22 @@ static int32_t _mcu_send_packet(lpf_mcu_context_t *ctx, uint8_t msg_type,
 	int32_t ret;
 	uint32_t rx_len;
 
-	tx_buffer = osal_malloc(PDM_PROTOCOL_MAX_PACKET_SIZE);
-	rx_buffer = osal_malloc(PDM_PROTOCOL_MAX_PACKET_SIZE);
+	tx_buffer = osal_malloc(LPF_PROTOCOL_MAX_PACKET_SIZE);
+	rx_buffer = osal_malloc(LPF_PROTOCOL_MAX_PACKET_SIZE);
 	if (!tx_buffer || !rx_buffer) {
 		ret = OSAL_ERR_NO_MEMORY;
 		goto out_free;
 	}
 
-	/* 编码 PDM protocol 报文 */
-	pdm_protocol_encode_ctx_t encode_ctx = { .dev_type = PDM_PROTOCOL_DEV_TYPE_MCU,
+	/* 编码 LPF protocol 报文 */
+	lpf_protocol_encode_ctx_t encode_ctx = { .dev_type = LPF_PROTOCOL_DEV_TYPE_MCU,
 									.msg_type = msg_type,
 									.flags = 0,
 									.payload = payload,
 									.payload_len = payload_len,
 									.buffer = tx_buffer,
-									.buffer_size = PDM_PROTOCOL_MAX_PACKET_SIZE };
-	tx_len = pdm_protocol_encode(&encode_ctx);
+									.buffer_size = LPF_PROTOCOL_MAX_PACKET_SIZE };
+	tx_len = lpf_protocol_encode(&encode_ctx);
 	if (tx_len < 0) {
 		ret = tx_len;
 		goto out_free;
@@ -72,18 +72,18 @@ static int32_t _mcu_send_packet(lpf_mcu_context_t *ctx, uint8_t msg_type,
 
 	/* 发送并接收响应 */
 	ret = ctx->transport->transfer(ctx->transport_handle, tx_buffer, tx_len,
-				       rx_buffer, PDM_PROTOCOL_MAX_PACKET_SIZE,
+				       rx_buffer, LPF_PROTOCOL_MAX_PACKET_SIZE,
 				       &rx_len, ctx->config->cmd_timeout_ms);
 	if (ret != OSAL_SUCCESS) {
 		goto out_free;
 	}
 
 	/* 解码响应报文 */
-	pdm_protocol_decode_ctx_t decode_ctx = { .buffer = rx_buffer,
+	lpf_protocol_decode_ctx_t decode_ctx = { .buffer = rx_buffer,
 									.buffer_len = rx_len,
 									.payload = response,
 									.payload_size = resp_size };
-	ret = pdm_protocol_decode(&decode_ctx);
+	ret = lpf_protocol_decode(&decode_ctx);
 	if (ret == OSAL_SUCCESS && actual_size) {
 		*actual_size = decode_ctx.payload_len;
 	}
@@ -405,7 +405,7 @@ int32_t lpf_mcu_get_version(lpf_mcu_handle_t handle, lpf_mcu_version_t *version)
 	}
 
 	/* 发送 GET_VERSION 命令 */
-	lpf_mcu_cmd_t cmd = { .cmd = PDM_PROTOCOL_MCU_MSG_GET_VERSION,
+	lpf_mcu_cmd_t cmd = { .cmd = LPF_PROTOCOL_MCU_MSG_GET_VERSION,
 						  .response = response,
 						  .response_max = sizeof(response) };
 
@@ -444,7 +444,7 @@ int32_t lpf_mcu_get_status(lpf_mcu_handle_t handle, lpf_mcu_status_t *status)
 	}
 
 	/* 发送 GET_STATUS 命令 */
-	lpf_mcu_cmd_t cmd = { .cmd = PDM_PROTOCOL_MCU_MSG_GET_STATUS,
+	lpf_mcu_cmd_t cmd = { .cmd = LPF_PROTOCOL_MCU_MSG_GET_STATUS,
 						  .response = response,
 						  .response_max = sizeof(response) };
 
@@ -489,7 +489,7 @@ int32_t lpf_mcu_reset(lpf_mcu_handle_t handle)
 	}
 
 	/* 发送 RESET 命令 */
-	lpf_mcu_cmd_t cmd = { .cmd = PDM_PROTOCOL_MCU_MSG_RESET,
+	lpf_mcu_cmd_t cmd = { .cmd = LPF_PROTOCOL_MCU_MSG_RESET,
 						  .response = response,
 						  .response_max = sizeof(response) };
 
@@ -520,7 +520,7 @@ int32_t lpf_mcu_read_data(lpf_mcu_handle_t handle, uint32_t addr, uint8_t *data,
 	request[7] = size & 0xFF;
 
 	/* 发送 READ_DATA 命令 */
-	lpf_mcu_data_t send_data = { .cmd = PDM_PROTOCOL_MCU_MSG_READ_DATA,
+	lpf_mcu_data_t send_data = { .cmd = LPF_PROTOCOL_MCU_MSG_READ_DATA,
 								 .data = request,
 								 .data_len = 8,
 								 .response = data,
@@ -559,7 +559,7 @@ int32_t lpf_mcu_write_data(lpf_mcu_handle_t handle, uint32_t addr,
 	osal_memcpy(&request[8], data, size);
 
 	/* 发送 WRITE_DATA 命令 */
-	lpf_mcu_data_t send_data = { .cmd = PDM_PROTOCOL_MCU_MSG_WRITE_DATA,
+	lpf_mcu_data_t send_data = { .cmd = LPF_PROTOCOL_MCU_MSG_WRITE_DATA,
 								 .data = request,
 								 .data_len = 8 + size,
 								 .response = response,
@@ -590,7 +590,7 @@ int32_t lpf_mcu_send_command(lpf_mcu_handle_t handle, uint8_t cmd_id,
 	}
 
 	/* 发送 EXECUTE_CMD 命令 */
-	lpf_mcu_data_t send_data = { .cmd = PDM_PROTOCOL_MCU_MSG_EXECUTE_CMD,
+	lpf_mcu_data_t send_data = { .cmd = LPF_PROTOCOL_MCU_MSG_EXECUTE_CMD,
 								 .data = request,
 								 .data_len = 1 + param_len,
 								 .response = result,

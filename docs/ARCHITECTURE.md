@@ -21,7 +21,7 @@ PDI (userspace API)
         ↓
 ioctl / UAPI
         ↓
-LPF peripheral services + PDM protocol
+LPF peripheral services + LPF protocol
         ↓
 LPF Core + PCONFIG mapping
         ↓
@@ -49,9 +49,9 @@ Linux kernel / hardware
 - PCONFIG selects a kernel-side platform configuration backend and exposes a
   normalized device list.
 - LPF peripheral services provide kernel-side peripheral business behavior.
-- PDM registers built-in kernel services and owns the current management node
-  and PDM protocol helpers.
-- PDM protocol helpers provide kernel-side packet framing owned by PDM.
+- LPF protocol helpers provide kernel-side packet framing for services that use
+  framed peripheral communication.
+- PDM registers built-in kernel services and owns the current management node.
 - PDI provides userspace APIs over the PDM ioctl ABI.
 - ACONFIG stores userspace application-facing configuration mappings.
 
@@ -136,11 +136,19 @@ peripheral services. The current MCU CAN and UART transports live under
 type. MCU service code uses the transport registry instead of depending on
 CAN/UART implementation symbols directly.
 
+### LPF Protocol
+
+LPF protocol helpers own reusable kernel-side packet framing for peripheral
+services that need a standard message envelope. The current implementation
+lives under `kernel/lpf/protocol/`, exports encode/decode entry points from
+`lpf_core.ko`, and keeps protocol constants and MCU message definitions under
+`kernel/include/lpf/`.
+
 ### PDM
 
 PDM owns the current built-in service registration path, `/dev/pdm_ctl`
-management/discovery ioctl node, and PDM-internal protocol helpers. Business
-operations stay on LPF instance nodes such as `/dev/lpf/mcu0` and
+management/discovery ioctl node, and PCONFIG-to-LPF device registration.
+Business operations stay on LPF instance nodes such as `/dev/lpf/mcu0` and
 `/dev/lpf/led0`; LPF service status snapshots live under `/proc/lpf/`.
 
 ### UAPI
@@ -166,7 +174,7 @@ PCONFIG so application function metadata does not leak into hardware tables.
 The current framework keeps one concrete peripheral/device family:
 
 - MCU configuration in PCONFIG
-- MCU protocol in PDM
+- MCU protocol in LPF protocol
 - MCU service in LPF peripheral layer
 - MCU CAN/UART transport in LPF transport layer
 - Userspace access through PDI
@@ -177,7 +185,7 @@ The current framework keeps one concrete peripheral/device family:
 Other peripheral families can be added later by introducing matching PCONFIG
 types, LPF peripheral-service implementations, PDI userspace API coverage, UAPI
 definitions when needed, and Kconfig entries. Protocol definitions are only
-needed for peripherals that use framed PDM protocol communication.
+needed for peripherals that use framed LPF protocol communication.
 
 ## Build And Runtime Boundaries
 
@@ -209,13 +217,14 @@ Add the following pieces together:
 
 - PCONFIG type and platform config array entry.
 - LPF device type and capability mapping for the PCONFIG entry.
-- PDM service driver object registered with `lpf_driver_register`.
-- Optional PDM instance character device `/dev/lpf/<peripheral><index>` when
+- LPF service driver object registered with `lpf_driver_register`.
+- Optional LPF instance character device `/dev/lpf/<peripheral><index>` when
   userspace access is needed.
 - UAPI header `uapi/lpf/lpf_<peripheral>.h` following
   `docs/LPF_UAPI_ABI.md`.
 - Userspace wrapper `user/pdi/src/pdi_<peripheral>.c`.
-- Kbuild object selection for the new PDM driver.
+- Kbuild object selection for the new LPF service and any current PDM-hosted
+  integration path.
 
 Feature selection stays at object/list registration boundaries. Kconfig may
 select which objects are linked, but business logic should not branch on
@@ -234,7 +243,7 @@ and build configuration remain consistent.
 - LPF discovery snapshots report the same runtime `last_error` and
   `error_count` values for management clients.
 - `/proc/lpf/*` nodes are read-only LPF service status snapshots.
-- `/sys/kernel/debug/pdm/*` nodes are debug-only command entry points and must
+- `/sys/kernel/debug/lpf/*` nodes are debug-only command entry points and must
   not be treated as stable product ABI.
 
 ## Dependency Rules

@@ -6,7 +6,7 @@ list(APPEND ADD_INCLUDE "${SDK_PATH}/kernel/include/pdm")
 # 私有头文件目录（仅内部使用）
 list(APPEND ADD_PRIVATE_INCLUDE "include")
 list(APPEND ADD_PRIVATE_INCLUDE "src")
-list(APPEND ADD_PRIVATE_INCLUDE "src/protocol")
+list(APPEND ADD_PRIVATE_INCLUDE "${SDK_PATH}/kernel/lpf/protocol")
 list(APPEND ADD_PRIVATE_INCLUDE "${SDK_PATH}/kernel/lpf/peripheral/mcu")
 list(APPEND ADD_PRIVATE_INCLUDE "${SDK_PATH}/kernel/lpf/peripheral/led")
 list(APPEND ADD_PRIVATE_INCLUDE "${SDK_PATH}/kernel/lpf/transport/mcu")
@@ -20,10 +20,10 @@ list(APPEND ADD_SRCS
 )
 
 # 根据配置添加子模块源文件
-if(CONFIG_PDM_PROTOCOL)
+if(CONFIG_LPF_PROTOCOL)
     list(APPEND ADD_SRCS
-        "src/protocol/pdm_protocol.c"
-        "src/protocol/pdm_protocol_common.c"
+        "../lpf/protocol/lpf_protocol.c"
+        "../lpf/protocol/lpf_protocol_common.c"
     )
 endif()
 

@@ -44,12 +44,56 @@ config LPF_SOC_ADAPTER_MOCK
 
 endchoice
 
+menu "LPF Protocol Configuration"
+
+config LPF_PROTOCOL
+	bool "LPF peripheral protocol support"
+	default n
+	help
+	  Enable the LPF-owned protocol encoder/decoder used by peripheral
+	  services that need framed communication.
+
+	  The protocol layer is part of LPF infrastructure and is linked into
+	  lpf_core.ko so current PDM-hosted services and future standalone
+	  service modules can share the same packet framing implementation.
+
+config LPF_PROTOCOL_MCU
+	bool "MCU protocol messages"
+	default n
+	depends on LPF_PROTOCOL
+	help
+	  Enable MCU message definitions for the LPF peripheral protocol.
+
+config LPF_PROTOCOL_CRC_CHECK
+	bool "Enable CRC16 checksum"
+	default y
+	depends on LPF_PROTOCOL
+	help
+	  Enable CRC16-CCITT checksum support for protocol packets.
+
+config LPF_PROTOCOL_SEQUENCE_CHECK
+	bool "Enable sequence number check"
+	default y
+	depends on LPF_PROTOCOL
+	help
+	  Enable sequence number helpers for packet ordering.
+
+config LPF_PROTOCOL_MAX_PAYLOAD_SIZE
+	int "Maximum protocol payload size (bytes)"
+	default 4096
+	range 256 65536
+	depends on LPF_PROTOCOL
+	help
+	  Maximum payload size for LPF protocol packets.
+
+endmenu
+
 menuconfig LPF_MCU_SERVICE
 	bool "LPF MCU peripheral service"
 	default n
 	depends on PDM && HAL && PCONFIG
-	select PDM_PROTOCOL
-	select PDM_PROTOCOL_MCU
+	select LPF_PROTOCOL
+	select LPF_PROTOCOL_MCU
 	select HAL_CAN
 	select HAL_UART
 	help

@@ -123,8 +123,8 @@ device and driver lifecycle instead of adding new PDM-local bus code.
   - LPF Core-owned device removal.
   - Character-device registration if userspace access is needed.
 - [x] Decide whether protocol support is global or per-driver.
-  - PDM protocol is a common peripheral communication protocol library under
-    `kernel/pdm/src/protocol`.
+  - LPF protocol is a common peripheral communication protocol library under
+    `kernel/lpf/protocol`.
   - It has no independent module lifecycle; MCU, FPGA, and future peripheral
     drivers call it to package payloads into standard protocol frames and parse
     received raw frames back into device type, message type, and payload data.

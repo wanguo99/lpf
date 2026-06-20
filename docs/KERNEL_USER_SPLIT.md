@@ -20,8 +20,10 @@ kernel/
     src/           # kernel-only hardware access implementation
   pconfig/
     src/           # kernel-side configuration implementation
+  lpf/
+    protocol/      # LPF protocol helpers linked into lpf_core.ko
   pdm/
-    src/           # builds pdm.ko, owns ioctl dispatch and protocol helpers
+    src/           # builds pdm.ko and owns ioctl dispatch
 
 user/
   osal/            # userspace OSAL library
@@ -36,7 +38,9 @@ uapi/
 
 - `kernel/osal` wraps Linux kernel APIs and builds `osal.ko`.
 - `kernel/pdm` owns the kernel module entry, device node, ioctl boundary,
-  and links kernel-side PCONFIG/PDM protocol objects into `pdm.ko` when enabled.
+  and links current built-in LPF peripheral services into `pdm.ko`.
+- `kernel/lpf/protocol` provides kernel-side LPF protocol helpers through
+  `lpf_core.ko` for services that need framed communication.
 - `kernel/hal` provides kernel-only hardware access used by PDM.
   It builds as `hal.ko` and exports HAL API symbols for PDM.
 - `kernel/pconfig` provides kernel-side platform/product configuration used

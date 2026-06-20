@@ -3,7 +3,7 @@
  *
  * 职责：
  * - 封装CAN收发
- * - 直接转发 PDM protocol 协议报文（透传模式）
+ * - 直接转发 LPF protocol 协议报文（透传模式）
  * - 处理 CAN 分片传输（每帧最多 8 字节）
  ************************************************************************/
 
@@ -92,7 +92,7 @@ static int32_t lpf_mcu_transport_can_close(lpf_mcu_transport_handle_t handle)
 }
 
 /**
- * @brief 发送 PDM protocol 报文并接收响应
+ * @brief 发送 LPF protocol 报文并接收响应
  */
 static int32_t lpf_mcu_transport_can_transfer(
 	lpf_mcu_transport_handle_t handle, const uint8_t *packet,
@@ -118,7 +118,7 @@ static int32_t lpf_mcu_transport_can_transfer(
 	/* 记录起始时间 */
 	start_time_us = osal_get_monotonic_time();
 
-	/* 分片发送 PDM protocol 报文（CAN 每帧最多 8 字节） */
+	/* 分片发送 LPF protocol 报文（CAN 每帧最多 8 字节） */
 	while (sent_bytes < packet_len) {
 		uint32_t chunk_size =
 			(packet_len - sent_bytes > 8) ? 8 : (packet_len - sent_bytes);

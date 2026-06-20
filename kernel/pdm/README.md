@@ -1,9 +1,9 @@
 # PDM
 
 PDM is the Peripheral Driver Module. It currently owns module orchestration,
-LPF device registration, the management/discovery node, and the PDM-owned
-internal protocol helpers. LPF peripheral services are still linked into
-`pdm.ko` during the migration to standalone service modules.
+LPF device registration, and the management/discovery node. LPF peripheral
+services are still linked into `pdm.ko` during the migration to standalone
+service modules.
 
 ## Current Scope
 
@@ -11,9 +11,6 @@ The kernel module currently provides:
 
 - module load/unload orchestration in `pdm/src/pdm.c`
 - PCONFIG normalized-device query logic linked into `pdm.ko`
-- PDM protocol package/parse helpers linked into `pdm.ko`; peripheral drivers
-  pass a device type, message type, and payload to produce or parse standard
-  protocol frames
 - built-in peripheral-service registration through LPF Core
 - configured-device binding and device removal ordering owned by LPF Core
 - LPF MCU service, `/dev/lpf/mcuN` ioctl dispatch, and CAN/Serial transport
@@ -27,7 +24,8 @@ The kernel module currently provides:
 PDM consumes exported `hal.ko` symbols for MCU transport and LED GPIO/PWM
 hardware access. Runtime character-device, sysfs-attribute, and debugfs-file
 lifecycle helpers are provided by `lpf_core.ko`; LPF peripheral services own
-the concrete operation handlers.
+the concrete operation handlers. LPF protocol encode/decode helpers are also
+provided by `lpf_core.ko` for services that need framed communication.
 
 ## Configuration
 
@@ -39,8 +37,8 @@ CONFIG_LPF_MCU_SERVICE=y
 CONFIG_LPF_MCU_MAX_DEVICES=4
 CONFIG_LPF_LED_SERVICE=y
 CONFIG_LPF_LED_MAX_DEVICES=8
-CONFIG_PDM_PROTOCOL=y
-CONFIG_PDM_PROTOCOL_MCU=y
+CONFIG_LPF_PROTOCOL=y
+CONFIG_LPF_PROTOCOL_MCU=y
 ```
 
 ## Layout
@@ -77,6 +75,10 @@ kernel/lpf/transport/
     ├── lpf_mcu_transport.c
     ├── lpf_mcu_transport_can.c
     └── lpf_mcu_transport_uart.c
+kernel/lpf/protocol/
+├── lpf_protocol.c
+├── lpf_protocol_common.c
+└── lpf_protocol_internal.h
 
 kernel/include/lpf/
 ├── lpf_errno.h
@@ -84,6 +86,8 @@ kernel/include/lpf/
 ├── lpf_mcu_service.h
 ├── lpf_mcu_transport.h
 ├── lpf_proc.h
+├── lpf_protocol.h
+├── lpf_protocol_mcu.h
 └── ...
 
 kernel/include/pdm/
@@ -161,6 +165,7 @@ selected through `lpf_mcu_transport_get()`. They are still linked into
 `pdm.ko`, but the MCU service no longer directly depends on CAN or UART
 implementation symbols. Hardware access remains behind HAL.
 
-The protocol layer under `src/protocol/` is a common PDM-internal peripheral
-communication protocol. It does not own module lifecycle; concrete peripheral
-drivers such as MCU call it when they need framed communication.
+The protocol layer under `kernel/lpf/protocol/` is a common LPF-owned
+peripheral communication protocol linked into `lpf_core.ko`. It does not own
+module lifecycle; concrete peripheral services such as MCU call it when they
+need framed communication.

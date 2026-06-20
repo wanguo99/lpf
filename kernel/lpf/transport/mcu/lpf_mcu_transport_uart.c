@@ -3,7 +3,7 @@
  *
  * 职责：
  * - 封装串口收发
- * - 直接转发 PDM protocol 协议报文（透传模式）
+ * - 直接转发 LPF protocol 协议报文（透传模式）
  * - 超时控制
  ************************************************************************/
 
@@ -130,7 +130,7 @@ static int32_t lpf_mcu_transport_uart_close(lpf_mcu_transport_handle_t handle)
 }
 
 /**
- * @brief 发送 PDM protocol 报文并接收响应（透传模式）
+ * @brief 发送 LPF protocol 报文并接收响应（透传模式）
  */
 static int32_t lpf_mcu_transport_uart_transfer(
 	lpf_mcu_transport_handle_t handle, const uint8_t *packet,
@@ -153,7 +153,7 @@ static int32_t lpf_mcu_transport_uart_transfer(
 	/* 记录起始时间 */
 	start_time_us = osal_get_monotonic_time();
 
-	/* 发送 PDM protocol 报文（完整报文，包含协议头和 CRC） */
+	/* 发送 LPF protocol 报文（完整报文，包含协议头和 CRC） */
 	ret = hal_serial_write(ctx->serial_handle, packet, packet_len, timeout_ms);
 	if (ret != (int32_t)packet_len) {
 		return OSAL_ERR_GENERIC;
