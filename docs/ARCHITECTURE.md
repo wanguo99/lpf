@@ -51,7 +51,7 @@ Linux kernel / hardware
 - LPF peripheral services provide kernel-side peripheral business behavior.
 - LPF protocol helpers provide kernel-side packet framing for services that use
   framed peripheral communication.
-- PDM registers built-in kernel services and owns the current management node.
+- PDM owns the current framework integration module and management node.
 - PDI provides userspace APIs over the PDM ioctl ABI.
 - ACONFIG stores userspace application-facing configuration mappings.
 
@@ -127,6 +127,8 @@ helpers for runtime nodes. MCU and LED services now live under
 `kernel/lpf/peripheral/` and expose instance nodes such as `/dev/lpf/mcu0` and
 `/dev/lpf/led0`; they remain integrated through the current PDM-hosted
 framework module boundary rather than being split into one KO per peripheral.
+`kernel/lpf/peripheral/lpf_peripheral.c` owns the unified service registration
+entry used by the integration module.
 
 ### LPF Transports
 
@@ -146,8 +148,9 @@ lives under `kernel/lpf/protocol/`, exports encode/decode entry points from
 
 ### PDM
 
-PDM owns the current built-in service registration path, `/dev/pdm_ctl`
-management/discovery ioctl node, and PCONFIG-to-LPF device registration.
+PDM owns `/dev/pdm_ctl` management/discovery ioctl node and PCONFIG-to-LPF
+device registration. It calls the LPF peripheral service registration entry
+rather than owning per-service registration logic itself.
 Business operations stay on LPF instance nodes such as `/dev/lpf/mcu0` and
 `/dev/lpf/led0`; LPF service status snapshots live under `/proc/lpf/`.
 

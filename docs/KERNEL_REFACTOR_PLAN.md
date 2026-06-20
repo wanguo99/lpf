@@ -52,7 +52,9 @@ device and driver lifecycle instead of adding new PDM-local bus code.
 - [x] Add `/dev/lpf/mcuN` character-device ioctl boundary.
 - [x] Change PDM startup to initialize built-in drivers, load PConfig, iterate
       configured devices, and call matching driver `probe`.
-- [x] Add PDM built-in driver registration through LPF Core.
+- [x] Add built-in peripheral service registration through LPF Core.
+- [x] Move built-in peripheral service registration out of PDM-local wrappers
+      into `kernel/lpf/peripheral/lpf_peripheral.c`.
 - [x] Replace the PDM-local virtual bus/list manager with LPF Core for driver
       and device binding.
 - [x] Keep PDM peripheral drivers linked into `pdm.ko` instead of adding one

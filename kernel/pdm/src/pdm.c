@@ -4,10 +4,11 @@
 #include <linux/errno.h>
 
 #include "osal.h"
+#include "lpf/lpf_core.h"
 #include "lpf/lpf_errno.h"
+#include "lpf/lpf_peripheral.h"
 #include "pdm/pdm.h"
 #include "pconfig/pconfig.h"
-#include "pdm_driver.h"
 #include "pdm_ctl.h"
 #include "generated/gen_version.h"
 
@@ -143,41 +144,34 @@ static int __init pdm_init(void)
 
 	pdm_print_version();
 
-	ret = pdm_driver_registry_init();
+	ret = lpf_core_init();
 	if (ret != OSAL_SUCCESS)
 		return lpf_status_to_errno(ret);
 
-	ret = pdm_drivers_init();
-	if (ret)
-		goto out_registry_deinit;
+	ret = lpf_peripheral_services_init();
+	if (ret != OSAL_SUCCESS)
+		return lpf_status_to_errno(ret);
 
 	ret = pdm_probe_devices();
 	if (ret) {
-		pdm_drivers_exit();
-		goto out_registry_deinit;
+		lpf_peripheral_services_exit();
+		return ret;
 	}
 
 	ret = pdm_ctl_chrdev_register();
 	if (ret) {
-		lpf_device_unregister_all();
-		pdm_drivers_exit();
-		goto out_registry_deinit;
+		lpf_peripheral_services_exit();
+		return ret;
 	}
 
 	LOG_INFO("PDM", "loaded");
 	return 0;
-
-out_registry_deinit:
-	pdm_driver_registry_deinit();
-	return ret;
 }
 
 static void __exit pdm_exit(void)
 {
 	pdm_ctl_chrdev_unregister();
-	lpf_device_unregister_all();
-	pdm_drivers_exit();
-	pdm_driver_registry_deinit();
+	lpf_peripheral_services_exit();
 	LOG_INFO("PDM", "unloaded");
 }
 

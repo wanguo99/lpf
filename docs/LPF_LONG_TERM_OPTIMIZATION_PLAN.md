@@ -332,14 +332,18 @@ Current status:
   `/dev/lpf/mcuN` and `/dev/lpf/ledN`; both remain integrated through the
   current PDM-hosted framework module so deployment does not fragment into one
   KO per peripheral.
+- Done. Unified peripheral service registration has moved from PDM-local
+  wrappers into `kernel/lpf/peripheral/lpf_peripheral.c`; PDM now calls the LPF
+  service entry instead of registering MCU/LED services directly.
 - Started. MCU CAN/UART implementations have moved behind
   `kernel/lpf/transport/mcu/` and are selected through the LPF MCU transport
   registry instead of direct service dependencies.
 - Done. The framed peripheral protocol has moved from PDM into the LPF protocol
   layer under `kernel/lpf/protocol/`, with public protocol headers under
   `kernel/include/lpf/` and encode/decode symbols exported by `lpf_core.ko`.
-- Remaining work: continue reducing PDM-specific ownership while keeping
-  peripheral services integrated through the framework module boundary.
+- Remaining work: continue reducing PDM-specific device-configuration mapping
+  ownership while keeping peripheral services integrated through the framework
+  module boundary.
 
 ## Phase 8: UAPI And PDI Separation
 

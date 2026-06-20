@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-2.0
 
-#include "pdm_driver.h"
+#include "lpf/lpf_peripheral.h"
 
-#include "lpf/lpf_errno.h"
+#include "lpf/lpf_core.h"
 #include "lpf/lpf_led_service.h"
 #include "lpf/lpf_mcu_service.h"
 
-static bool g_pdm_drivers_ready;
+static bool g_lpf_peripheral_services_ready;
 
-int32_t pdm_register_builtin_drivers(void)
+static int32_t lpf_peripheral_register_services(void)
 {
 	int32_t ret;
 
@@ -31,7 +31,7 @@ int32_t pdm_register_builtin_drivers(void)
 	return OSAL_SUCCESS;
 }
 
-void pdm_unregister_builtin_drivers(void)
+static void lpf_peripheral_unregister_services(void)
 {
 #ifdef CONFIG_LPF_LED_SERVICE
 	lpf_led_service_unregister();
@@ -41,33 +41,27 @@ void pdm_unregister_builtin_drivers(void)
 #endif
 }
 
-int32_t pdm_driver_registry_init(void)
-{
-	return lpf_core_init();
-}
-
-void pdm_driver_registry_deinit(void)
-{
-}
-
-int pdm_drivers_init(void)
+int32_t lpf_peripheral_services_init(void)
 {
 	int32_t ret;
 
-	ret = pdm_register_builtin_drivers();
-	if (ret != OSAL_SUCCESS)
-		return lpf_status_to_errno(ret);
+	if (g_lpf_peripheral_services_ready)
+		return OSAL_SUCCESS;
 
-	g_pdm_drivers_ready = true;
-	return 0;
+	ret = lpf_peripheral_register_services();
+	if (ret != OSAL_SUCCESS)
+		return ret;
+
+	g_lpf_peripheral_services_ready = true;
+	return OSAL_SUCCESS;
 }
 
-void pdm_drivers_exit(void)
+void lpf_peripheral_services_exit(void)
 {
-	if (!g_pdm_drivers_ready)
+	if (!g_lpf_peripheral_services_ready)
 		return;
 
 	lpf_device_unregister_all();
-	pdm_unregister_builtin_drivers();
-	g_pdm_drivers_ready = false;
+	lpf_peripheral_unregister_services();
+	g_lpf_peripheral_services_ready = false;
 }

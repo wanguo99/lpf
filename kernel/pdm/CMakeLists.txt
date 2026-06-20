@@ -16,7 +16,7 @@ list(APPEND ADD_PRIVATE_INCLUDE "${SDK_PATH}/kernel/lpf/transport/mcu")
 list(APPEND ADD_SRCS
     "src/pdm.c"
     "src/base/pdm_ctl_chrdev.c"
-    "src/base/pdm_driver.c"
+    "../lpf/peripheral/lpf_peripheral.c"
 )
 
 # 根据配置添加子模块源文件

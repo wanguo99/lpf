@@ -12,7 +12,7 @@ The kernel module currently provides:
 
 - module load/unload orchestration in `pdm/src/pdm.c`
 - PCONFIG normalized-device query logic linked into `pdm.ko`
-- built-in peripheral-service registration through LPF Core
+- LPF peripheral-service registration through `lpf_peripheral_services_init()`
 - configured-device binding and device removal ordering owned by LPF Core
 - LPF MCU service, `/dev/lpf/mcuN` ioctl dispatch, and CAN/Serial transport
   glue linked into `pdm.ko`
@@ -49,15 +49,13 @@ kernel/pdm/
 ├── Config.in
 ├── CMakeLists.txt
 ├── include/
-│   ├── pdm_ctl.h
-│   ├── pdm_driver.h
-│   └── pdm_internal.h
+│   └── pdm_ctl.h
 └── src/
     ├── base/
-    │   ├── pdm_ctl_chrdev.c
-    │   └── pdm_driver.c
+    │   └── pdm_ctl_chrdev.c
     └── pdm.c
 kernel/lpf/peripheral/
+├── lpf_peripheral.c
 ├── mcu/
 │   ├── Config.in
 │   ├── lpf_mcu_service.c
@@ -98,9 +96,9 @@ kernel/include/pdm/
 ## Layering
 
 `pdm.ko` links the current framework-hosted LPF peripheral service paths.
-Built-in LPF peripheral services register as LPF drivers through LPF Core;
-during module initialization PDM loads PConfig, maps each enabled normalized
-PConfig device entry into an
+LPF peripheral services register as LPF drivers through LPF Core via
+`lpf_peripheral_services_init()`. During module initialization PDM loads
+PConfig, maps each enabled normalized PConfig device entry into an
 `lpf_device_config_t`, and registers it with LPF Core. PDM must not depend on
 the concrete PCONFIG backend that produced the entries. LPF Core then binds the
 configured device to the matching service `probe`. On unload, LPF Core removes
@@ -131,7 +129,7 @@ Instance character devices expose read-only sysfs attributes for inspection:
 command failures for the specific instance.
 
 MCU and LED service implementations live under `kernel/lpf/peripheral/`.
-They are registered from PDM's built-in driver registration path while the
+They are registered through the LPF peripheral service entry while the
 framework module boundary is being cleaned up.
 
 `/dev/pdm_ctl` is the management node for discovery. It exposes LPF Core device
