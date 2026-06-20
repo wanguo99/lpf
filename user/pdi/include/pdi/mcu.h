@@ -13,6 +13,8 @@
 extern "C" {
 #endif
 
+#define PDI_MCU_DEFAULT_DEVICE "/dev/lpf/mcu0"
+
 typedef struct {
 	int fd;
 } pdi_mcu_context_t;

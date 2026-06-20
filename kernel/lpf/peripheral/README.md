@@ -112,6 +112,12 @@ therefore stops new opens first, waits for active instance handles to drain,
 and then calls the peripheral service `remove` callback. The concrete node
 implementation is shared through `lpf_chrdev`.
 
+MCU and LED services keep their runtime operation contexts in service-owned
+dynamic registries keyed by LPF device index. The current
+`CONFIG_LPF_MCU_MAX_DEVICES` and `CONFIG_LPF_LED_MAX_DEVICES` limits still size
+the userspace-visible instance-node tables and the legacy `max_devices` info
+fields; they should not be treated as the primary LPF device model.
+
 Instance character devices expose read-only sysfs attributes for inspection:
 
 - `name`

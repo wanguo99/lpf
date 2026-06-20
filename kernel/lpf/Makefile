@@ -32,6 +32,7 @@ lpf_peripheral_runtime-y += lpf/config/src/lpf_config_static_backend.o
 lpf_peripheral_runtime-y += lpf/config/src/lpf_config_validator.o
 lpf_peripheral_runtime-y += lpf/config/configs/lpf_config_configs.o
 lpf_peripheral_runtime-y += lpf/config/configs/kernel/x86_modules/1.0.0/lpf_config_kernel_x86_modules.o
+lpf_peripheral_runtime-y += lpf/config/configs/kernel/x86_mock_modules/1.0.0/lpf_config_kernel_x86_mock_modules.o
 lpf_peripheral_runtime-y += lpf/hw/lpf_hw.o
 lpf_peripheral_runtime-y += lpf/hw/lpf_hw_builtin_start.o
 lpf_peripheral_runtime-$(CONFIG_LPF_HW_CAN) += lpf/hw/lpf_hw_transport_can.o

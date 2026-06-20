@@ -6,16 +6,18 @@
 #include "lpf/lpf_hw.h"
 #include "lpf_led_internal.h"
 
-typedef struct {
+typedef struct lpf_led_context {
 	const lpf_config_led_config_t *config;
 	lpf_hw_pwm_handle_t pwm;
 	osal_mutex_t lock;
 	uint32_t brightness;
 	bool enabled;
 	bool lock_ready;
+	uint32_t index;
+	struct lpf_led_context *next;
 } lpf_led_context_t;
 
-static lpf_led_context_t *g_led_contexts[LPF_LED_MAX_DEVICES];
+static lpf_led_context_t *g_led_context_list;
 static osal_mutex_t g_led_registry_lock;
 static bool g_led_registry_ready;
 
@@ -141,15 +143,62 @@ static void lpf_led_deinit_hw(lpf_led_context_t *ctx)
 	}
 }
 
+static lpf_led_context_t *lpf_led_find_context_locked(uint32_t index)
+{
+	lpf_led_context_t *ctx;
+
+	for (ctx = g_led_context_list; ctx; ctx = ctx->next) {
+		if (ctx->index == index)
+			return ctx;
+	}
+
+	return NULL;
+}
+
+static void lpf_led_add_context_locked(lpf_led_context_t *ctx)
+{
+	ctx->next = g_led_context_list;
+	g_led_context_list = ctx;
+}
+
+static lpf_led_context_t *lpf_led_remove_context_locked(uint32_t index)
+{
+	lpf_led_context_t **slot = &g_led_context_list;
+	lpf_led_context_t *ctx;
+
+	while (*slot) {
+		ctx = *slot;
+		if (ctx->index == index) {
+			*slot = ctx->next;
+			ctx->next = NULL;
+			return ctx;
+		}
+		slot = &ctx->next;
+	}
+
+	return NULL;
+}
+
+static void lpf_led_free_context(lpf_led_context_t *ctx)
+{
+	if (!ctx)
+		return;
+
+	lpf_led_deinit_hw(ctx);
+	if (ctx->lock_ready)
+		osal_mutex_destroy(&ctx->lock);
+	osal_free(ctx);
+}
+
 static int32_t lpf_led_init_from_entry(uint32_t index,
 				       const lpf_config_led_entry_t *entry,
 				       lpf_led_handle_t *handle)
 {
 	lpf_led_context_t *ctx;
+	lpf_led_context_t *existing;
 	int32_t ret;
 
-	if (!handle || !entry || !entry->enabled ||
-	    index >= OSAL_ARRAY_SIZE(g_led_contexts))
+	if (!handle || !entry || !entry->enabled)
 		return OSAL_ERR_INVALID_PARAM;
 
 	if (entry->config.max_brightness == 0)
@@ -160,8 +209,9 @@ static int32_t lpf_led_init_from_entry(uint32_t index,
 		return ret;
 
 	osal_mutex_lock(&g_led_registry_lock);
-	if (g_led_contexts[index]) {
-		*handle = g_led_contexts[index];
+	existing = lpf_led_find_context_locked(index);
+	if (existing) {
+		*handle = existing;
 		osal_mutex_unlock(&g_led_registry_lock);
 		return OSAL_SUCCESS;
 	}
@@ -172,6 +222,7 @@ static int32_t lpf_led_init_from_entry(uint32_t index,
 		return OSAL_ERR_NO_MEMORY;
 
 	ctx->config = &entry->config;
+	ctx->index = index;
 	ctx->brightness = lpf_led_clamp_brightness(ctx,
 						   entry->config.default_brightness);
 	ctx->enabled = ctx->brightness > 0;
@@ -202,13 +253,14 @@ static int32_t lpf_led_init_from_entry(uint32_t index,
 		goto out_hw;
 
 	osal_mutex_lock(&g_led_registry_lock);
-	if (g_led_contexts[index]) {
-		*handle = g_led_contexts[index];
+	existing = lpf_led_find_context_locked(index);
+	if (existing) {
+		*handle = existing;
 		osal_mutex_unlock(&g_led_registry_lock);
-		lpf_led_deinit_hw(ctx);
-		goto out_free_success;
+		lpf_led_free_context(ctx);
+		return OSAL_SUCCESS;
 	}
-	g_led_contexts[index] = ctx;
+	lpf_led_add_context_locked(ctx);
 	osal_mutex_unlock(&g_led_registry_lock);
 
 	*handle = ctx;
@@ -221,11 +273,6 @@ out_free:
 		osal_mutex_destroy(&ctx->lock);
 	osal_free(ctx);
 	return ret;
-out_free_success:
-	if (ctx->lock_ready)
-		osal_mutex_destroy(&ctx->lock);
-	osal_free(ctx);
-	return OSAL_SUCCESS;
 }
 
 int32_t lpf_led_probe(const lpf_device_t *device)
@@ -235,6 +282,8 @@ int32_t lpf_led_probe(const lpf_device_t *device)
 	int32_t ret;
 
 	if (!device || device->config.type != LPF_DEVICE_TYPE_LED)
+		return OSAL_ERR_INVALID_PARAM;
+	if (device->config.index >= LPF_LED_MAX_DEVICES)
 		return OSAL_ERR_INVALID_PARAM;
 
 	entry = (const lpf_config_led_entry_t *)device->config.entry;
@@ -255,11 +304,11 @@ lpf_led_handle_t lpf_led_get(uint32_t index)
 {
 	lpf_led_handle_t handle = NULL;
 
-	if (!g_led_registry_ready || index >= OSAL_ARRAY_SIZE(g_led_contexts))
+	if (!g_led_registry_ready)
 		return NULL;
 
 	osal_mutex_lock(&g_led_registry_lock);
-	handle = g_led_contexts[index];
+	handle = lpf_led_find_context_locked(index);
 	osal_mutex_unlock(&g_led_registry_lock);
 
 	return handle;
@@ -269,7 +318,7 @@ int32_t lpf_led_debug_get(uint32_t index, lpf_led_debug_info_t *info)
 {
 	lpf_led_context_t *ctx;
 
-	if (!info || index >= OSAL_ARRAY_SIZE(g_led_contexts))
+	if (!info)
 		return OSAL_ERR_INVALID_PARAM;
 
 	osal_memset(info, 0, sizeof(*info));
@@ -278,7 +327,7 @@ int32_t lpf_led_debug_get(uint32_t index, lpf_led_debug_info_t *info)
 		return OSAL_ERR_INVALID_STATE;
 
 	osal_mutex_lock(&g_led_registry_lock);
-	ctx = g_led_contexts[index];
+	ctx = lpf_led_find_context_locked(index);
 	if (ctx) {
 		osal_mutex_lock(&ctx->lock);
 		info->present = true;
@@ -300,22 +349,14 @@ static void lpf_led_remove_index(uint32_t index)
 {
 	lpf_led_context_t *ctx;
 
-	if (!g_led_registry_ready ||
-	    index >= OSAL_ARRAY_SIZE(g_led_contexts))
+	if (!g_led_registry_ready)
 		return;
 
 	osal_mutex_lock(&g_led_registry_lock);
-	ctx = g_led_contexts[index];
-	g_led_contexts[index] = NULL;
+	ctx = lpf_led_remove_context_locked(index);
 	osal_mutex_unlock(&g_led_registry_lock);
 
-	if (!ctx)
-		return;
-
-	lpf_led_deinit_hw(ctx);
-	if (ctx->lock_ready)
-		osal_mutex_destroy(&ctx->lock);
-	osal_free(ctx);
+	lpf_led_free_context(ctx);
 }
 
 void lpf_led_remove(const lpf_device_t *device)
@@ -329,13 +370,24 @@ void lpf_led_remove(const lpf_device_t *device)
 
 static void lpf_led_registry_deinit(void)
 {
-	uint32_t i;
+	lpf_led_context_t *ctx;
 
 	if (!g_led_registry_ready)
 		return;
 
-	for (i = 0; i < OSAL_ARRAY_SIZE(g_led_contexts); i++)
-		lpf_led_remove_index(i);
+	for (;;) {
+		osal_mutex_lock(&g_led_registry_lock);
+		ctx = g_led_context_list;
+		if (ctx)
+			g_led_context_list = ctx->next;
+		osal_mutex_unlock(&g_led_registry_lock);
+
+		if (!ctx)
+			break;
+
+		ctx->next = NULL;
+		lpf_led_free_context(ctx);
+	}
 
 	osal_mutex_destroy(&g_led_registry_lock);
 	g_led_registry_ready = false;

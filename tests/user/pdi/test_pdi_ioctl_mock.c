@@ -169,6 +169,40 @@ static const pdi_syscall_ops_t g_mock_ops = {
 	.ioctl = mock_ioctl,
 };
 
+static int test_default_paths(void)
+{
+	pdi_ctl_context_t ctl = { .fd = -1 };
+	pdi_mcu_context_t mcu = { .fd = -1 };
+	pdi_led_context_t led = { .fd = -1 };
+
+	mock_reset();
+	pdi_syscall_set_ops(&g_mock_ops);
+
+	if (pdi_ctl_open(&ctl, NULL) != 0)
+		return 301;
+	if (strcmp(g_mock.last_path, PDI_CTL_DEFAULT_DEVICE) != 0)
+		return 302;
+	if (pdi_ctl_close(&ctl) != 0 || ctl.fd != -1)
+		return 303;
+
+	if (pdi_mcu_open(&mcu, NULL) != 0)
+		return 304;
+	if (strcmp(g_mock.last_path, PDI_MCU_DEFAULT_DEVICE) != 0)
+		return 305;
+	if (pdi_mcu_close(&mcu) != 0 || mcu.fd != -1)
+		return 306;
+
+	if (pdi_led_open(&led, NULL) != 0)
+		return 307;
+	if (strcmp(g_mock.last_path, PDI_LED_DEFAULT_DEVICE) != 0)
+		return 308;
+	if (pdi_led_close(&led) != 0 || led.fd != -1)
+		return 309;
+
+	pdi_syscall_reset_ops();
+	return 0;
+}
+
 static int test_open_by_name(void)
 {
 	pdi_mcu_context_t mcu = { .fd = -1 };
@@ -305,6 +339,10 @@ static int test_led_operations(void)
 int main(void)
 {
 	int ret;
+
+	ret = test_default_paths();
+	if (ret)
+		return ret;
 
 	ret = test_open_by_name();
 	if (ret)

@@ -4,6 +4,7 @@
 
 #include "pdi/pdi_discovery.h"
 #include "pdi_error.h"
+#include "pdi_path.h"
 #include "pdi_syscall.h"
 
 #include <fcntl.h>
@@ -28,7 +29,7 @@ int32_t pdi_ctl_open(pdi_ctl_context_t *ctx, const char *device_path)
 		return PDI_FAILURE;
 
 	ctx->fd = -1;
-	path = (device_path != NULL) ? device_path : LPF_CTL_DEFAULT_DEVICE;
+	path = (device_path != NULL) ? device_path : PDI_CTL_DEFAULT_DEVICE;
 	ctx->fd = pdi_syscall_open(path, O_RDWR | O_CLOEXEC);
 	if (ctx->fd < 0)
 		return PDI_FAILURE;

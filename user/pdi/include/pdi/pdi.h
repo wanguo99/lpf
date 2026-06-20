@@ -2,7 +2,7 @@
  * PDI user API
  *
  * PDI is organized by peripheral type. Include the per-peripheral header
- * for the API and ioctl ABI you need.
+ * for the userspace API you need.
  ************************************************************************/
 
 #ifndef PDI_H

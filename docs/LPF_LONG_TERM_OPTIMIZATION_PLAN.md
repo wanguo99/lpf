@@ -440,6 +440,8 @@ Current status:
 - Done. UAPI headers now live under the final `uapi/lpf/` namespace with
   `LPF_*` ABI types and ioctl constants. MCU and LED UAPI headers are ABI-only,
   while SDK declarations live under `user/pdi/include/pdi/`.
+- Done. PDI owns default-open path constants and instance-node path construction;
+  UAPI no longer exposes SDK default device paths.
 - Done. PDI now uses internal error helpers to standardize its public return
   convention: success returns `0`, failures return `-1` with `errno` set, and
   system-call failures preserve the kernel/libc errno value.

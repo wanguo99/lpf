@@ -5,13 +5,12 @@
 #include "pdi/led.h"
 #include "pdi/pdi_discovery.h"
 #include "pdi_error.h"
+#include "pdi_path.h"
 #include "pdi_syscall.h"
 
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
-
-#define PDI_LED_DEVICE_PATH_LEN 64U
 
 static int32_t pdi_led_ioctl_checked(pdi_led_context_t *ctx,
 				     unsigned long request, void *arg)
@@ -32,7 +31,7 @@ int32_t pdi_led_open(pdi_led_context_t *ctx, const char *device_path)
 		return PDI_FAILURE;
 
 	ctx->fd = -1;
-	path = (device_path != NULL) ? device_path : LPF_LED_DEFAULT_DEVICE;
+	path = (device_path != NULL) ? device_path : PDI_LED_DEFAULT_DEVICE;
 	ctx->fd = pdi_syscall_open(path, O_RDWR | O_CLOEXEC);
 	if (ctx->fd < 0)
 		return PDI_FAILURE;
@@ -44,7 +43,7 @@ int32_t pdi_led_open_by_name(pdi_led_context_t *ctx, const char *name)
 {
 	pdi_ctl_context_t ctl;
 	struct lpf_ctl_device_info info;
-	char path[PDI_LED_DEVICE_PATH_LEN];
+	char path[PDI_DEVICE_PATH_LEN];
 	int32_t ret;
 
 	if (pdi_check_ptr(ctx) < 0)
@@ -65,7 +64,8 @@ int32_t pdi_led_open_by_name(pdi_led_context_t *ctx, const char *name)
 	if (info.type != LPF_CTL_DEVICE_TYPE_LED)
 		return pdi_fail_no_device();
 
-	ret = snprintf(path, sizeof(path), "/dev/lpf/led%u", info.index);
+	ret = snprintf(path, sizeof(path), PDI_LED_DEVICE_PATH_FORMAT,
+		       info.index);
 	if (ret < 0 || (size_t)ret >= sizeof(path))
 		return pdi_fail_invalid_arg();
 

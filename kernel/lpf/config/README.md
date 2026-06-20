@@ -48,10 +48,15 @@ config_version=x.y.z    # match config-version
 ```
 
 If `config_index` is omitted, the backend first tries the identity selectors.
-If no selector is provided, it falls back to
-`g_lpf_config_platform_table.current_index`. When both `config_index` and
-identity selectors are provided, the selected table entry must also match the
-identity fields.
+For kernel builds, `CONFIG_PROJECT_NAME` and `CONFIG_PROJECT_VERSION` from the
+selected defconfig are used as default project/version selectors when the
+matching module parameters are omitted. Module parameters override those
+generated defaults. If no effective selector is available, the backend falls
+back to `g_lpf_config_platform_table.current_index`.
+
+An explicit `config_index` selects that table entry directly. If `config_index`
+is combined with explicit identity module parameters, the selected table entry
+must also match those fields.
 
 ## Public API
 

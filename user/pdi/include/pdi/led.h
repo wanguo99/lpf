@@ -13,6 +13,8 @@
 extern "C" {
 #endif
 
+#define PDI_LED_DEFAULT_DEVICE "/dev/lpf/led0"
+
 typedef struct {
 	int fd;
 } pdi_led_context_t;

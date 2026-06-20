@@ -5,6 +5,14 @@
 
 #include <linux/moduleparam.h>
 
+#ifndef CONFIG_PROJECT_NAME
+#define CONFIG_PROJECT_NAME ""
+#endif
+
+#ifndef CONFIG_PROJECT_VERSION
+#define CONFIG_PROJECT_VERSION ""
+#endif
+
 static int lpf_config_static_index = -1;
 static char *lpf_config_static_product;
 static char *lpf_config_static_project;
@@ -24,11 +32,33 @@ static const char *lpf_config_static_selector(const char *value)
 	return value && value[0] ? value : NULL;
 }
 
-static bool lpf_config_static_has_identity_selector(void)
+static bool lpf_config_static_has_param_identity_selector(void)
 {
 	return lpf_config_static_selector(lpf_config_static_product) ||
 	       lpf_config_static_selector(lpf_config_static_project) ||
 	       lpf_config_static_selector(lpf_config_static_version);
+}
+
+static const char *lpf_config_static_effective_project(void)
+{
+	const char *project;
+
+	project = lpf_config_static_selector(lpf_config_static_project);
+	return project ? project : lpf_config_static_selector(CONFIG_PROJECT_NAME);
+}
+
+static const char *lpf_config_static_effective_version(void)
+{
+	const char *version;
+
+	version = lpf_config_static_selector(lpf_config_static_version);
+	return version ? version : lpf_config_static_selector(CONFIG_PROJECT_VERSION);
+}
+
+static bool lpf_config_static_has_effective_identity_selector(
+	const char *product, const char *project, const char *version)
+{
+	return product || project || version;
 }
 
 static bool
@@ -95,8 +125,8 @@ static const lpf_config_platform_config_t *lpf_config_static_selected(void)
 {
 	const lpf_config_platform_config_t *config;
 	const char *product = lpf_config_static_selector(lpf_config_static_product);
-	const char *project = lpf_config_static_selector(lpf_config_static_project);
-	const char *version = lpf_config_static_selector(lpf_config_static_version);
+	const char *project = lpf_config_static_effective_project();
+	const char *version = lpf_config_static_effective_version();
 
 	if (lpf_config_static_index < -1)
 		return NULL;
@@ -104,7 +134,7 @@ static const lpf_config_platform_config_t *lpf_config_static_selected(void)
 	if (lpf_config_static_index >= 0) {
 		config = lpf_config_static_config_at(
 			(uint32_t)lpf_config_static_index);
-		if (!lpf_config_static_has_identity_selector())
+		if (!lpf_config_static_has_param_identity_selector())
 			return config;
 
 		return lpf_config_static_identity_matches(config, product,
@@ -113,7 +143,8 @@ static const lpf_config_platform_config_t *lpf_config_static_selected(void)
 			       NULL;
 	}
 
-	if (lpf_config_static_has_identity_selector())
+	if (lpf_config_static_has_effective_identity_selector(product, project,
+							     version))
 		return lpf_config_static_find_by_identity(product, project,
 							  version);
 

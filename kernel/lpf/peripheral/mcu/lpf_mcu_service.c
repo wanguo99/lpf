@@ -16,14 +16,16 @@
  * MCU上下文
  *===========================================================================*/
 
-typedef struct {
+typedef struct lpf_mcu_context {
 	const lpf_config_mcu_config_t *config;
 	const lpf_mcu_transport_ops_t *transport;
 	lpf_mcu_transport_handle_t transport_handle;
 	osal_mutex_t mutex;
+	uint32_t index;
+	struct lpf_mcu_context *next;
 } lpf_mcu_context_t;
 
-static lpf_mcu_context_t *g_mcu_contexts[LPF_MCU_MAX_DEVICES] = { NULL };
+static lpf_mcu_context_t *g_mcu_context_list;
 static osal_mutex_t g_registry_mutex;
 static bool g_registry_initialized = false;
 
@@ -106,6 +108,71 @@ static int32_t lpf_mcu_registry_init(void)
 	return OSAL_SUCCESS;
 }
 
+static lpf_mcu_context_t *lpf_mcu_find_context_locked(uint32_t index)
+{
+	lpf_mcu_context_t *ctx;
+
+	for (ctx = g_mcu_context_list; ctx; ctx = ctx->next) {
+		if (ctx->index == index)
+			return ctx;
+	}
+
+	return NULL;
+}
+
+static void lpf_mcu_add_context_locked(lpf_mcu_context_t *ctx)
+{
+	ctx->next = g_mcu_context_list;
+	g_mcu_context_list = ctx;
+}
+
+static lpf_mcu_context_t *lpf_mcu_remove_context_locked(uint32_t index)
+{
+	lpf_mcu_context_t **slot = &g_mcu_context_list;
+	lpf_mcu_context_t *ctx;
+
+	while (*slot) {
+		ctx = *slot;
+		if (ctx->index == index) {
+			*slot = ctx->next;
+			ctx->next = NULL;
+			return ctx;
+		}
+		slot = &ctx->next;
+	}
+
+	return NULL;
+}
+
+static bool lpf_mcu_remove_handle_locked(lpf_mcu_context_t *target)
+{
+	lpf_mcu_context_t **slot = &g_mcu_context_list;
+	lpf_mcu_context_t *ctx;
+
+	while (*slot) {
+		ctx = *slot;
+		if (ctx == target) {
+			*slot = ctx->next;
+			ctx->next = NULL;
+			return true;
+		}
+		slot = &ctx->next;
+	}
+
+	return false;
+}
+
+static void lpf_mcu_free_context(lpf_mcu_context_t *ctx)
+{
+	if (!ctx)
+		return;
+
+	if (ctx->transport && ctx->transport->close)
+		ctx->transport->close(ctx->transport_handle);
+	osal_mutex_destroy(&ctx->mutex);
+	osal_free(ctx);
+}
+
 /*===========================================================================
  * 基础 API 实现
  *===========================================================================*/
@@ -167,6 +234,7 @@ static int32_t lpf_mcu_init_from_entry(uint32_t mcu_index,
 				       lpf_mcu_handle_t *handle)
 {
 	lpf_mcu_context_t *ctx;
+	lpf_mcu_context_t *existing;
 	const lpf_mcu_transport_ops_t *transport;
 	int32_t ret;
 
@@ -178,9 +246,6 @@ static int32_t lpf_mcu_init_from_entry(uint32_t mcu_index,
 		return OSAL_ERR_GENERIC;
 	}
 
-	if (mcu_index >= OSAL_ARRAY_SIZE(g_mcu_contexts))
-		return OSAL_ERR_INVALID_PARAM;
-
 	/* 初始化全局注册表互斥锁 */
 	if (lpf_mcu_registry_init() != OSAL_SUCCESS)
 		return OSAL_ERR_GENERIC;
@@ -190,8 +255,9 @@ static int32_t lpf_mcu_init_from_entry(uint32_t mcu_index,
 		return OSAL_ERR_GENERIC;
 
 	osal_mutex_lock(&g_registry_mutex);
-	if (g_mcu_contexts[mcu_index]) {
-		*handle = g_mcu_contexts[mcu_index];
+	ctx = lpf_mcu_find_context_locked(mcu_index);
+	if (ctx) {
+		*handle = ctx;
 		osal_mutex_unlock(&g_registry_mutex);
 		return OSAL_SUCCESS;
 	}
@@ -206,6 +272,7 @@ static int32_t lpf_mcu_init_from_entry(uint32_t mcu_index,
 	osal_memset(ctx, 0, sizeof(lpf_mcu_context_t));
 	ctx->config = &entry->config;
 	ctx->transport = transport;
+	ctx->index = mcu_index;
 
 	/* 初始化通信层 */
 	ret = transport->open(&entry->config, &ctx->transport_handle);
@@ -223,15 +290,14 @@ static int32_t lpf_mcu_init_from_entry(uint32_t mcu_index,
 
 	/* 注册上下文 */
 	osal_mutex_lock(&g_registry_mutex);
-	if (g_mcu_contexts[mcu_index]) {
-		*handle = g_mcu_contexts[mcu_index];
+	existing = lpf_mcu_find_context_locked(mcu_index);
+	if (existing) {
+		*handle = existing;
 		osal_mutex_unlock(&g_registry_mutex);
-		osal_mutex_destroy(&ctx->mutex);
-		transport->close(ctx->transport_handle);
-		osal_free(ctx);
+		lpf_mcu_free_context(ctx);
 		return OSAL_SUCCESS;
 	}
-	g_mcu_contexts[mcu_index] = ctx;
+	lpf_mcu_add_context_locked(ctx);
 	osal_mutex_unlock(&g_registry_mutex);
 
 	*handle = ctx;
@@ -259,6 +325,8 @@ int32_t lpf_mcu_probe(const lpf_device_t *device)
 
 	if (!device || device->config.type != LPF_DEVICE_TYPE_MCU)
 		return OSAL_ERR_INVALID_PARAM;
+	if (device->config.index >= LPF_MCU_MAX_DEVICES)
+		return OSAL_ERR_INVALID_PARAM;
 
 	entry = (const lpf_config_mcu_entry_t *)device->config.entry;
 	ret = lpf_mcu_init_from_entry(device->config.index, entry, &handle);
@@ -281,11 +349,8 @@ lpf_mcu_handle_t lpf_mcu_get(uint32_t index)
 	if (lpf_mcu_registry_init() != OSAL_SUCCESS)
 		return NULL;
 
-	if (index >= OSAL_ARRAY_SIZE(g_mcu_contexts))
-		return NULL;
-
 	osal_mutex_lock(&g_registry_mutex);
-	handle = g_mcu_contexts[index];
+	handle = lpf_mcu_find_context_locked(index);
 	osal_mutex_unlock(&g_registry_mutex);
 
 	return handle;
@@ -295,7 +360,7 @@ int32_t lpf_mcu_debug_get(uint32_t index, lpf_mcu_debug_info_t *info)
 {
 	lpf_mcu_context_t *ctx;
 
-	if (!info || index >= OSAL_ARRAY_SIZE(g_mcu_contexts))
+	if (!info)
 		return OSAL_ERR_INVALID_PARAM;
 
 	osal_memset(info, 0, sizeof(*info));
@@ -304,7 +369,7 @@ int32_t lpf_mcu_debug_get(uint32_t index, lpf_mcu_debug_info_t *info)
 		return OSAL_ERR_INVALID_STATE;
 
 	osal_mutex_lock(&g_registry_mutex);
-	ctx = g_mcu_contexts[index];
+	ctx = lpf_mcu_find_context_locked(index);
 	if (ctx) {
 		info->present = true;
 		osal_strncpy(info->name, ctx->config->name,
@@ -322,21 +387,14 @@ static void lpf_mcu_remove_index(uint32_t index)
 {
 	lpf_mcu_context_t *ctx;
 
-	if (!g_registry_initialized ||
-	    index >= OSAL_ARRAY_SIZE(g_mcu_contexts))
+	if (!g_registry_initialized)
 		return;
 
 	osal_mutex_lock(&g_registry_mutex);
-	ctx = g_mcu_contexts[index];
-	g_mcu_contexts[index] = NULL;
+	ctx = lpf_mcu_remove_context_locked(index);
 	osal_mutex_unlock(&g_registry_mutex);
 
-	if (!ctx)
-		return;
-
-	ctx->transport->close(ctx->transport_handle);
-	osal_mutex_destroy(&ctx->mutex);
-	osal_free(ctx);
+	lpf_mcu_free_context(ctx);
 }
 
 void lpf_mcu_remove(const lpf_device_t *device)
@@ -350,13 +408,24 @@ void lpf_mcu_remove(const lpf_device_t *device)
 
 static void lpf_mcu_registry_deinit(void)
 {
-	uint32_t i;
+	lpf_mcu_context_t *ctx;
 
 	if (!g_registry_initialized)
 		return;
 
-	for (i = 0; i < OSAL_ARRAY_SIZE(g_mcu_contexts); i++)
-		lpf_mcu_remove_index(i);
+	for (;;) {
+		osal_mutex_lock(&g_registry_mutex);
+		ctx = g_mcu_context_list;
+		if (ctx)
+			g_mcu_context_list = ctx->next;
+		osal_mutex_unlock(&g_registry_mutex);
+
+		if (!ctx)
+			break;
+
+		ctx->next = NULL;
+		lpf_mcu_free_context(ctx);
+	}
 
 	osal_mutex_destroy(&g_registry_mutex);
 	g_registry_initialized = false;
@@ -368,26 +437,24 @@ static void lpf_mcu_registry_deinit(void)
 int32_t lpf_mcu_deinit(lpf_mcu_handle_t handle)
 {
 	lpf_mcu_context_t *ctx = (lpf_mcu_context_t *)handle;
-	uint32_t i;
+	bool removed;
 
 	if (!ctx) {
 		return OSAL_ERR_INVALID_PARAM;
 	}
 
+	if (!g_registry_initialized)
+		return OSAL_ERR_INVALID_STATE;
+
 	/* 从注册表移除 */
 	osal_mutex_lock(&g_registry_mutex);
-	for (i = 0; i < sizeof(g_mcu_contexts) / sizeof(g_mcu_contexts[0]); i++) {
-		if (g_mcu_contexts[i] == ctx) {
-			g_mcu_contexts[i] = NULL;
-			break;
-		}
-	}
+	removed = lpf_mcu_remove_handle_locked(ctx);
 	osal_mutex_unlock(&g_registry_mutex);
+	if (!removed)
+		return OSAL_ERR_INVALID_PARAM;
 
 	/* 清理资源 */
-	ctx->transport->close(ctx->transport_handle);
-	osal_mutex_destroy(&ctx->mutex);
-	osal_free(ctx);
+	lpf_mcu_free_context(ctx);
 
 	return OSAL_SUCCESS;
 }
