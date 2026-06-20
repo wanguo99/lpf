@@ -28,7 +28,8 @@ kernel/
     soc/           # SoC adapter backends
   lpf-runtime/
     config/        # runtime configuration backends and tables
-    hw/            # LPF-owned hardware access APIs linked into runtime
+    hw/            # capability-grouped LPF HW implementations
+    include/       # runtime-private helper headers
     runtime/       # lpf_runtime.ko entry and orchestration
     peripheral/    # framework-owned runtime services and service backends
 
@@ -51,9 +52,10 @@ uapi/
   current service paths are linked into `lpf_runtime.ko`.
 - `kernel/lpf-core/protocol` provides kernel-side LPF protocol helpers through
   `lpf_core.ko` for services that need framed communication.
-- `kernel/lpf-runtime/hw` provides LPF-owned hardware access APIs used by LPF
-  peripheral services. The objects are linked into
-  `lpf_runtime.ko`.
+- `kernel/lpf-runtime/hw` provides capability-grouped LPF-owned hardware access
+  implementations used by LPF peripheral services. The objects are linked into
+  `lpf_runtime.ko`; runtime-private helper headers live under
+  `kernel/lpf-runtime/include`.
 - `kernel/lpf-runtime/config` provides LPF runtime config source files and type headers.
   The objects are linked into `lpf_runtime.ko` rather than a
   standalone module.

@@ -108,6 +108,24 @@ static int expect_path_absent(const char *relative_path)
 	return 1;
 }
 
+static int expect_path_present(const char *relative_path)
+{
+	char path[1024];
+	struct stat st;
+	int ret;
+
+	ret = snprintf(path, sizeof(path), "%s/%s", SDK_SOURCE_DIR,
+		       relative_path);
+	if (ret < 0 || (size_t)ret >= sizeof(path))
+		return 1;
+
+	if (stat(path, &st) == 0)
+		return 0;
+
+	fprintf(stderr, "required path missing: %s\n", relative_path);
+	return 1;
+}
+
 static int expect_range_not_contains(const char *file_name,
 				     const char *content,
 				     const char *start_token,
@@ -244,6 +262,68 @@ static int test_mcu_transport_is_service_owned(void)
 out:
 	free(mcu_makefile);
 	free(mcu_internal);
+	return failures ? 1 : 0;
+}
+
+static int test_hw_sources_are_capability_grouped(void)
+{
+	char *hw_makefile;
+	char *hw_core;
+	char *hw_gpio;
+	int failures = 0;
+
+	hw_makefile = read_source_file("kernel/lpf-runtime/hw/Makefile");
+	hw_core = read_source_file("kernel/lpf-runtime/hw/core/lpf_hw.c");
+	hw_gpio = read_source_file("kernel/lpf-runtime/hw/gpio/lpf_hw_gpio.c");
+
+	if (!hw_makefile || !hw_core || !hw_gpio) {
+		fprintf(stderr, "failed to read HW grouping sources\n");
+		failures = 1;
+		goto out;
+	}
+
+	failures += expect_path_present("kernel/lpf-runtime/include/lpf_hw_internal.h");
+	failures += expect_path_absent("kernel/lpf-runtime/hw/lpf_hw_internal.h");
+	failures += expect_path_absent("kernel/lpf-runtime/hw/lpf_hw.c");
+	failures += expect_path_absent("kernel/lpf-runtime/hw/lpf_hw_gpio.c");
+	failures += expect_path_absent("kernel/lpf-runtime/hw/lpf_hw_pwm.c");
+	failures += expect_path_absent("kernel/lpf-runtime/hw/lpf_hw_bus_i2c.c");
+	failures += expect_path_absent("kernel/lpf-runtime/hw/lpf_hw_bus_spi.c");
+	failures += expect_path_absent(
+		"kernel/lpf-runtime/hw/lpf_hw_transport_can.c");
+	failures += expect_path_absent(
+		"kernel/lpf-runtime/hw/lpf_hw_transport_uart.c");
+	failures += expect_path_absent("kernel/lpf-runtime/hw/bus/i2c");
+	failures += expect_path_absent("kernel/lpf-runtime/hw/bus/spi");
+	failures += expect_path_absent("kernel/lpf-runtime/hw/transport/can");
+	failures += expect_path_absent("kernel/lpf-runtime/hw/transport/uart");
+
+	failures += expect_contains("hw/Makefile", hw_makefile,
+				    "lpf-runtime/hw/core/lpf_hw.o");
+	failures += expect_contains("hw/Makefile", hw_makefile,
+				    "lpf-runtime/hw/gpio/lpf_hw_gpio.o");
+	failures += expect_contains("hw/Makefile", hw_makefile,
+				    "lpf-runtime/hw/pwm/lpf_hw_pwm.o");
+	failures += expect_contains("hw/Makefile", hw_makefile,
+				    "lpf-runtime/hw/i2c/lpf_hw_bus_i2c.o");
+	failures += expect_contains("hw/Makefile", hw_makefile,
+				    "lpf-runtime/hw/spi/lpf_hw_bus_spi.o");
+	failures += expect_contains(
+		"hw/Makefile", hw_makefile,
+		"lpf-runtime/hw/can/lpf_hw_transport_can.o");
+	failures += expect_contains(
+		"hw/Makefile", hw_makefile,
+		"lpf-runtime/hw/uart/lpf_hw_transport_uart.o");
+
+	failures += expect_contains("lpf_hw.c", hw_core,
+				    "#include \"lpf_hw_internal.h\"");
+	failures += expect_contains("lpf_hw_gpio.c", hw_gpio,
+				    "#include \"lpf_hw_internal.h\"");
+
+out:
+	free(hw_gpio);
+	free(hw_core);
+	free(hw_makefile);
 	return failures ? 1 : 0;
 }
 
@@ -555,6 +635,7 @@ int main(void)
 
 	ret += test_service_context_registries();
 	ret += test_mcu_transport_is_service_owned();
+	ret += test_hw_sources_are_capability_grouped();
 	ret += test_peripheral_layer_dependencies();
 	ret += test_uapi_headers_are_abi_only();
 	ret += test_soc_adapter_header_dependencies();

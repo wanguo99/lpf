@@ -71,7 +71,8 @@ LPF HW is the framework-owned hardware access layer linked into
 by LPF peripheral services and their service-owned transport backends. Current
 support includes CAN, UART, GPIO, PWM, I2C, and SPI. LPF HW calls the LPF SoC
 Adapter instead of Linux subsystem or vendor BSP APIs directly. Public
-kernel-internal LPF HW headers live under `kernel/include/lpf/hw/`.
+kernel-internal LPF HW headers live under `kernel/include/lpf/hw/`, while HW
+implementations are grouped by capability under `kernel/lpf-runtime/hw/`.
 
 ### LPF Core
 

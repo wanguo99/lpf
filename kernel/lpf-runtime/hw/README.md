@@ -1,8 +1,8 @@
 # LPF HW
 
 LPF HW is the framework-owned hardware access layer used by LPF peripheral
-services and transports. It is linked into `lpf_runtime.ko`; it does
-not build as a standalone kernel module.
+services and service-owned transport backends. It is linked into
+`lpf_runtime.ko`; it does not build as a standalone kernel module.
 
 ## Scope
 
@@ -16,6 +16,33 @@ not build as a standalone kernel module.
 All LPF HW implementations call the LPF SoC Adapter. Vendor BSP and
 kernel-version conditionals belong below the SoC adapter or compat layer, not
 in peripheral business code.
+
+## Layout
+
+```text
+kernel/lpf-runtime/hw/
+├── core/
+│   ├── lpf_hw.c
+│   ├── lpf_hw_builtin_start.c
+│   └── lpf_hw_builtin_end.c
+├── gpio/
+│   └── lpf_hw_gpio.c
+├── pwm/
+│   └── lpf_hw_pwm.c
+├── i2c/
+│   └── lpf_hw_bus_i2c.c
+├── spi/
+│   └── lpf_hw_bus_spi.c
+├── can/
+│   └── lpf_hw_transport_can.c
+└── uart/
+    └── lpf_hw_transport_uart.c
+```
+
+The public LPF HW API remains under `kernel/include/lpf/hw/`. Private HW
+registration helpers such as `lpf_hw_internal.h` live under
+`kernel/lpf-runtime/include/` and are included directly by runtime-owned source
+files.
 
 ## Configuration
 
