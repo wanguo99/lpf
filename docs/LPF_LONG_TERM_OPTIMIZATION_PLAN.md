@@ -123,7 +123,9 @@ Current status:
 - Started lifecycle hardening. LPF Core now provides reference-counted active
   device handles, name/capability handle lookup, state updates, and kernel
   event notification for register, bind, state, error, remove start, and remove
-  completion.
+  completion. Runtime errors recorded through LPF instance character devices
+  now move the Core device state to `ERROR` and update discovery snapshots from
+  the same Core state.
 - Started runtime integration. LPF instance character devices acquire an LPF
   active device handle on open and release it on close, so LPF Core removal
   waits for active instance users before invoking peripheral `remove`.
@@ -509,8 +511,11 @@ Current status:
 - Done. Debug-only MCU and LED write commands now live under debugfs:
   `/sys/kernel/debug/lpf/mcu` and `/sys/kernel/debug/lpf/led`; `/proc/lpf/mcu`
   and `/proc/lpf/led` are read-only status snapshots.
-- Done. Runtime ioctl and debugfs command failures update each instance's
-  `last_error` and `error_count` sysfs attributes.
+- Done. Runtime ioctl and debugfs operation failures update each instance's
+  Core `state`, `last_error`, and `error_count`; instance sysfs refreshes these
+  attributes from the same Core snapshot used by discovery. Caller-side ABI
+  errors such as invalid commands or malformed arguments remain syscall
+  failures and do not mark instance runtime health.
 - Started. Legacy local character-device, sysfs, and debugfs helper
   implementations have been extracted into LPF infrastructure under
   `kernel/lpf/core/` and are linked into `lpf_core.ko` as `lpf_chrdev`,

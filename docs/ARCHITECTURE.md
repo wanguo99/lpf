@@ -255,9 +255,12 @@ coverage together so the ABI and build configuration remain consistent.
 - `/dev/pdm_ctl` is the LPF Core-owned management/discovery node.
 - `/dev/lpf/<peripheral><index>` nodes are the stable per-instance business ABI.
 - `/sys/class/misc/<device>/` attributes are read-only per-instance sysfs
-  inspection data, including runtime `last_error` and `error_count`.
-- LPF discovery snapshots report the same runtime `last_error` and
+  inspection data, including runtime `state`, `last_error`, and `error_count`.
+- LPF discovery snapshots report the same runtime `state`, `last_error`, and
   `error_count` values for management clients.
+- Caller-side ABI errors such as malformed arguments or unsupported ioctl
+  commands are returned to the caller without marking peripheral runtime
+  health.
 - `/proc/lpf/*` nodes are read-only LPF service status snapshots.
 - `/sys/kernel/debug/lpf/*` nodes are debug-only command entry points and must
   not be treated as stable product ABI.

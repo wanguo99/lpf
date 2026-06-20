@@ -872,12 +872,13 @@ int32_t lpf_device_set_state(lpf_device_type_t type, uint32_t index,
 		return OSAL_ERR_NAME_NOT_FOUND;
 	}
 
-	device_node->device.state = state;
 	if (status != OSAL_SUCCESS) {
+		state = LPF_DEVICE_STATE_ERROR;
 		device_node->device.last_error = status;
 		device_node->device.error_count++;
 		emit_error = true;
 	}
+	device_node->device.state = state;
 	lpf_make_device_event(&device_node->device,
 			      LPF_DEVICE_EVENT_STATE_CHANGED, status, &event);
 	if (emit_error)
@@ -898,8 +899,10 @@ void lpf_device_record_error(lpf_device_type_t type, uint32_t index,
 			     int32_t error)
 {
 	lpf_device_node_t *device_node;
-	lpf_device_event_t event;
-	bool emit_event = false;
+	lpf_device_event_t state_event;
+	lpf_device_event_t error_event;
+	bool emit_state_event = false;
+	bool emit_error_event = false;
 
 	if (error == OSAL_SUCCESS || type == LPF_DEVICE_TYPE_INVALID)
 		return;
@@ -911,14 +914,24 @@ void lpf_device_record_error(lpf_device_type_t type, uint32_t index,
 	if (device_node) {
 		device_node->device.last_error = error;
 		device_node->device.error_count++;
+		if (device_node->device.state != LPF_DEVICE_STATE_ERROR) {
+			device_node->device.state = LPF_DEVICE_STATE_ERROR;
+			lpf_make_device_event(&device_node->device,
+					      LPF_DEVICE_EVENT_STATE_CHANGED,
+					      error, &state_event);
+			emit_state_event = true;
+		}
 		lpf_make_device_event(&device_node->device,
-				      LPF_DEVICE_EVENT_ERROR, error, &event);
-		emit_event = true;
+				      LPF_DEVICE_EVENT_ERROR, error,
+				      &error_event);
+		emit_error_event = true;
 	}
 	osal_mutex_unlock(&g_lpf_core_lock);
 
-	if (emit_event)
-		lpf_emit_device_event(&event);
+	if (emit_state_event)
+		lpf_emit_device_event(&state_event);
+	if (emit_error_event)
+		lpf_emit_device_event(&error_event);
 }
 EXPORT_SYMBOL_GPL(lpf_device_record_error);
 

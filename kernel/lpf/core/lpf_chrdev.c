@@ -58,6 +58,25 @@ static void lpf_chrdev_fill_info(lpf_chrdev_t *chrdev,
 	chrdev->soc_name[sizeof(chrdev->soc_name) - 1U] = '\0';
 }
 
+static int lpf_chrdev_refresh_info_locked(lpf_chrdev_t *chrdev)
+{
+	lpf_device_info_t info;
+	int32_t ret;
+
+	if (!chrdev)
+		return -EINVAL;
+	if (chrdev->info.type == LPF_DEVICE_TYPE_INVALID)
+		return -ENODEV;
+
+	ret = lpf_device_get_info(chrdev->info.type, chrdev->info.index, &info);
+	if (ret != OSAL_SUCCESS)
+		return -ENODEV;
+
+	chrdev->info = info;
+	osal_atomic_store(&chrdev->error_count, info.error_count);
+	return 0;
+}
+
 int lpf_chrdev_open(struct file *file)
 {
 	lpf_chrdev_file_ctx_t *ctx;
@@ -237,6 +256,26 @@ lpf_chrdev_t *lpf_chrdev_from_file(struct file *file)
 }
 EXPORT_SYMBOL_GPL(lpf_chrdev_from_file);
 
+int lpf_chrdev_get_info(lpf_chrdev_t *chrdev, lpf_device_info_t *info)
+{
+	int ret;
+
+	if (!chrdev || !info)
+		return -EINVAL;
+	if (!chrdev->registered)
+		return -ENODEV;
+
+	osal_mutex_lock(&chrdev->lock);
+	if (chrdev->registered)
+		(void)lpf_chrdev_refresh_info_locked(chrdev);
+	*info = chrdev->info;
+	ret = chrdev->registered ? 0 : -ENODEV;
+	osal_mutex_unlock(&chrdev->lock);
+
+	return ret;
+}
+EXPORT_SYMBOL_GPL(lpf_chrdev_get_info);
+
 uint32_t lpf_chrdev_open_count(const lpf_chrdev_t *chrdev)
 {
 	if (!chrdev)
@@ -257,17 +296,30 @@ EXPORT_SYMBOL_GPL(lpf_chrdev_error_count);
 
 void lpf_chrdev_record_error(lpf_chrdev_t *chrdev, int error)
 {
+	lpf_device_type_t type;
+	uint32_t index;
+
 	if (!chrdev || error == 0)
 		return;
 	if (!chrdev->registered)
 		return;
 
 	osal_mutex_lock(&chrdev->lock);
-	chrdev->info.last_error = error;
-	chrdev->info.error_count = osal_atomic_inc(&chrdev->error_count);
+	type = chrdev->info.type;
+	index = chrdev->info.index;
+	if (type == LPF_DEVICE_TYPE_INVALID) {
+		chrdev->info.state = LPF_DEVICE_STATE_ERROR;
+		chrdev->info.last_error = error;
+		chrdev->info.error_count = osal_atomic_inc(&chrdev->error_count);
+	}
 	osal_mutex_unlock(&chrdev->lock);
 
-	lpf_device_record_error(chrdev->info.type, chrdev->info.index, error);
+	if (type != LPF_DEVICE_TYPE_INVALID) {
+		lpf_device_record_error(type, index, error);
+		osal_mutex_lock(&chrdev->lock);
+		(void)lpf_chrdev_refresh_info_locked(chrdev);
+		osal_mutex_unlock(&chrdev->lock);
+	}
 }
 EXPORT_SYMBOL_GPL(lpf_chrdev_record_error);
 

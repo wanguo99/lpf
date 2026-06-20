@@ -39,6 +39,7 @@ int lpf_chrdev_register_lpf_device(lpf_chrdev_t *chrdev, const char *name,
 				   const struct file_operations *fops);
 void lpf_chrdev_unregister(lpf_chrdev_t *chrdev);
 lpf_chrdev_t *lpf_chrdev_from_file(struct file *file);
+int lpf_chrdev_get_info(lpf_chrdev_t *chrdev, lpf_device_info_t *info);
 uint32_t lpf_chrdev_open_count(const lpf_chrdev_t *chrdev);
 uint32_t lpf_chrdev_error_count(const lpf_chrdev_t *chrdev);
 void lpf_chrdev_record_error(lpf_chrdev_t *chrdev, int error);

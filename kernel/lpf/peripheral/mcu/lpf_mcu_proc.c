@@ -337,7 +337,7 @@ static int lpf_mcu_proc_write(char *command, size_t count, void *data)
 	ret = -EINVAL;
 
 out:
-	if (ret)
+	if (lpf_errno_is_runtime_error(ret))
 		lpf_mcu_chrdev_record_error(index, ret);
 	return ret;
 }

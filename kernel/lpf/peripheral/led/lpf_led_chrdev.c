@@ -25,7 +25,7 @@ static uint32_t lpf_led_file_index(struct file *file)
 
 static void lpf_led_record_file_error(struct file *file, long ret)
 {
-	if (ret < 0)
+	if (lpf_errno_is_runtime_error(ret))
 		lpf_chrdev_record_error(lpf_led_chrdev_from_file(file), (int)ret);
 }
 

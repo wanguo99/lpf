@@ -46,4 +46,19 @@ static inline long lpf_status_to_errno(int32_t status)
 	return -EIO;
 }
 
+static inline bool lpf_errno_is_runtime_error(long error)
+{
+	switch (error) {
+	case -ENODEV:
+	case -EIO:
+	case -ETIMEDOUT:
+	case -EBUSY:
+	case -EOPNOTSUPP:
+	case -ENOSYS:
+		return true;
+	default:
+		return false;
+	}
+}
+
 #endif /* LPF_ERRNO_H */
