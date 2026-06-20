@@ -214,7 +214,7 @@ Acceptance:
       runtime core.
 - [ ] Decide whether static config authoring should move from per-peripheral
       arrays to first-class node tables after target smoke validation.
-- [ ] Add compatible-string dispatch when multiple drivers need to bind the
+- [x] Add compatible-string dispatch when multiple drivers need to bind the
       same LPF config device type.
 
 Acceptance:

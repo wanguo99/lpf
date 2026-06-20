@@ -557,18 +557,21 @@ static int test_soc_adapter_header_dependencies(void)
 static int test_runtime_config_mapping_is_registered(void)
 {
 	char *runtime_config;
+	char *runtime_header;
 	char *mcu_driver;
 	char *led_driver;
 	int failures = 0;
 
 	runtime_config = read_source_file(
 		"kernel/lpf-runtime/runtime/lpf_runtime_config.c");
+	runtime_header = read_source_file(
+		"kernel/lpf-runtime/include/lpf_runtime_internal.h");
 	mcu_driver = read_source_file(
 		"kernel/lpf-runtime/peripheral/mcu/lpf_mcu_config_driver.c");
 	led_driver = read_source_file(
 		"kernel/lpf-runtime/peripheral/led/lpf_led_config_driver.c");
 
-	if (!runtime_config || !mcu_driver || !led_driver) {
+	if (!runtime_config || !runtime_header || !mcu_driver || !led_driver) {
 		fprintf(stderr, "failed to read runtime config driver sources\n");
 		failures = 1;
 		goto out;
@@ -578,6 +581,12 @@ static int test_runtime_config_mapping_is_registered(void)
 				    "lpf_runtime_config_driver_first");
 	failures += expect_contains("lpf_runtime_config.c", runtime_config,
 				    "lpf_config_get_device_nodes");
+	failures += expect_contains("lpf_runtime_config.c", runtime_config,
+				    "driver->compatible");
+	failures += expect_contains("lpf_runtime_config.c", runtime_config,
+				    "node->compatible");
+	failures += expect_contains("lpf_runtime_internal.h", runtime_header,
+				    "lpf_runtime_config_compatible_driver_register");
 	failures += expect_not_contains("lpf_runtime_config.c", runtime_config,
 					"LPF_CONFIG_DEVICE_TYPE_MCU");
 	failures += expect_not_contains("lpf_runtime_config.c", runtime_config,
@@ -612,6 +621,7 @@ static int test_runtime_config_mapping_is_registered(void)
 out:
 	free(led_driver);
 	free(mcu_driver);
+	free(runtime_header);
 	free(runtime_config);
 	return failures ? 1 : 0;
 }

@@ -18,17 +18,31 @@ lpf_runtime_config_driver_last(void)
 }
 
 static const lpf_runtime_config_driver_t *
-lpf_runtime_config_find_driver(lpf_config_device_type_t type)
+lpf_runtime_config_find_driver(const lpf_config_device_node_t *node)
 {
 	const lpf_runtime_config_driver_t *driver;
+	const lpf_runtime_config_driver_t *type_match = NULL;
+
+	if (!node)
+		return NULL;
 
 	for (driver = lpf_runtime_config_driver_first();
 	     driver < lpf_runtime_config_driver_last(); driver++) {
-		if (driver->type == type && driver->probe)
+		if (!driver->probe || driver->type != node->device_type)
+			continue;
+
+		if (!driver->compatible) {
+			if (!type_match)
+				type_match = driver;
+			continue;
+		}
+
+		if (node->compatible &&
+		    0 == osal_strcmp(driver->compatible, node->compatible))
 			return driver;
 	}
 
-	return NULL;
+	return type_match;
 }
 
 int32_t lpf_runtime_probe_devices(void)
@@ -56,12 +70,13 @@ int32_t lpf_runtime_probe_devices(void)
 		if (node->status != LPF_CONFIG_NODE_STATUS_OKAY)
 			continue;
 
-		driver = lpf_runtime_config_find_driver(node->device_type);
+		driver = lpf_runtime_config_find_driver(node);
 		if (!driver) {
 			LOG_WARN("LPF-RUNTIME",
-				 "no config driver for node %s type=%u",
+				 "no config driver for node %s type=%u compatible=%s",
 				 node->name ? node->name : "unknown",
-				 node->device_type);
+				 node->device_type,
+				 node->compatible ? node->compatible : "none");
 			continue;
 		}
 

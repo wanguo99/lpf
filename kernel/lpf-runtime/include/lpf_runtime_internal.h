@@ -27,6 +27,7 @@ typedef struct {
 
 typedef struct {
 	lpf_config_device_type_t type;
+	const char *compatible;
 	int32_t (*probe)(const lpf_config_device_node_t *node);
 } lpf_runtime_config_driver_t;
 
@@ -55,6 +56,17 @@ typedef struct {
 		aligned(sizeof(void *)),                                 \
 		section(LPF_RUNTIME_CONFIG_DRIVER_SECTION))) = {         \
 			.type = _type,                                   \
+			.probe = _probe,                                 \
+		}
+
+#define lpf_runtime_config_compatible_driver_register(_id, _type, _compat, \
+						      _probe)               \
+	static const lpf_runtime_config_driver_t                         \
+		__lpf_runtime_config_driver_##_id __attribute__((used,   \
+		aligned(sizeof(void *)),                                 \
+		section(LPF_RUNTIME_CONFIG_DRIVER_SECTION))) = {         \
+			.type = _type,                                   \
+			.compatible = _compat,                           \
 			.probe = _probe,                                 \
 		}
 

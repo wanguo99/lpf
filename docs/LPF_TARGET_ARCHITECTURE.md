@@ -77,8 +77,8 @@ instead of initializing Core implicitly.
 LPF Core matching is type-based in v1: one `lpf_driver_t` owns one
 `lpf_device_type_t`, and `lpf_device_register()` binds a configured device to
 the registered driver with the same type before calling `probe()`.
-Compatible-string matching belongs in runtime config only if multiple config
-drivers need to share one LPF config device type in the future.
+Runtime config driver dispatch can optionally refine that selection by node
+compatible string before falling back to the type-only config driver.
 
 ## Runtime Access Model
 

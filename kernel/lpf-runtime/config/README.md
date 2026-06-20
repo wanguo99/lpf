@@ -170,7 +170,9 @@ lpf_config_hw_get_led(platform, index);
   tests and comparisons. Runtime probing uses `lpf_config_get_device_nodes()`.
 - Runtime device registration is owned by runtime config drivers registered by
   each peripheral service. Runtime walks nodes generically and dispatches each
-  enabled node to the matching config driver.
+  enabled node to the matching config driver. Dispatch first tries a matching
+  compatible string when a config driver provides one, then falls back to the
+  type-only driver for the node's device type.
 - `kernel/lpf-runtime/config/configs` owns concrete static platform tables.
 - LPF peripheral configuration consumes its own typed node payloads; it must not
   know concrete product table symbols or backend implementations.
