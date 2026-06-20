@@ -179,9 +179,11 @@ Current status:
   baseline and validation policy.
 - Started. `lpf_compat_features.h` defines feature gates for supported kernels,
   and sysfs emission now goes through `lpf_compat_sysfs_emit()`.
-- Remaining work: add matrix validation for selected kernels and introduce
-  additional wrappers when workqueue, usercopy, or lower kernel baselines need
-  API fallbacks.
+- Done. `make kernel-matrix` provides a documented local and CI entry point for
+  compiling the mock module preset against one or more selected kernel build
+  trees with isolated output directories.
+- Remaining work: introduce additional wrappers when workqueue, usercopy, or
+  lower kernel baselines need API fallbacks.
 
 ## Phase 4: SoC Adapter Layer
 
@@ -609,8 +611,10 @@ Current status:
 - Done. `LPF_DUMMY_SERVICE_SELFTEST` builds a load-time kernel self-test module
   for LPF Core dummy service lifecycle, discovery, state, event, and cleanup
   coverage.
-- Remaining work: add multi-kernel matrix builds and extend ABI/PDI coverage as
-  new peripherals are introduced.
+- Done. `make kernel-matrix` builds LPF kernel modules against
+  `KERNEL_SRC_LIST` so CI can validate selected kernel targets without
+  overwriting per-kernel artifacts.
+- Remaining work: extend ABI/PDI coverage as new peripherals are introduced.
 
 ## Recommended Implementation Order
 

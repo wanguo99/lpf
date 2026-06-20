@@ -4,12 +4,12 @@
 
 LPF kernel modules target Linux kernel `5.10` and newer.
 
-The current local validation environment is Linux `6.17.0-35-generic`. When
-changing kernel-facing code, validate at least:
+When changing kernel-facing code, validate at least:
 
 - `make kernel_x86_mock_modules_defconfig`
 - `make modules`
 - `make tests`
+- `make kernel-matrix`
 
 Broader CI should cover one kernel from each actively supported product family.
 If a product needs a kernel older than `5.10`, the required fallback must be
@@ -50,8 +50,20 @@ points within the supported baseline.
 
 ## Matrix Policy
 
-Until CI has a multi-kernel matrix, each kernel-facing refactor should record
-the local kernel used for `make modules` in the change notes or pull request.
+`make kernel-matrix` is the local and CI entry point for compiling LPF kernel
+modules against selected kernel build trees. By default it builds the mock
+module preset against `KERNEL_SRC`. To cover multiple kernels, pass a
+space-separated list:
+
+```bash
+make kernel-matrix KERNEL_SRC_LIST="/path/to/linux-5.10/build /path/to/linux-6.6/build"
+```
+
+The target writes each kernel's artifacts under `_build/kernel-matrix/` so
+results from different kernels do not overwrite each other. The default
+defconfig is `kernel_x86_mock_modules_defconfig`; override it with
+`LPF_KERNEL_MATRIX_DEFCONFIG=<name>` when validating another module preset.
+
 The target CI matrix should include:
 
 - the oldest supported product kernel,

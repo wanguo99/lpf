@@ -501,6 +501,24 @@ mock-modules-smoke:
 	@echo "==================================================================="
 	@echo ""
 
+PHONY += kernel-matrix
+kernel-matrix:
+	@echo ""
+	@echo "==================================================================="
+	@echo "LPF Kernel Module Matrix Build"
+	@echo "==================================================================="
+	@echo ""
+	$(Q)KERNEL_SRC="$(KERNEL_SRC)" \
+		KERNEL_SRC_LIST="$(KERNEL_SRC_LIST)" \
+		LPF_KERNEL_MATRIX_DEFCONFIG="$(LPF_KERNEL_MATRIX_DEFCONFIG)" \
+		LPF_KERNEL_MATRIX_BUILD_ROOT="$(LPF_KERNEL_MATRIX_BUILD_ROOT)" \
+		$(CONFIG_SHELL) $(srctree)/scripts/lpf_kernel_matrix_build.sh
+	@echo ""
+	@echo "==================================================================="
+	@echo "Kernel module matrix build completed successfully!"
+	@echo "==================================================================="
+	@echo ""
+
 PHONY += _modules_check_environment
 _modules_check_environment:
 	@if [ -z "$(strip $(MODULES_LIST))" ]; then \
@@ -735,6 +753,7 @@ help:
 	@echo '  modules         - Build kernel modules via kbuild'
 	@echo '  mock-modules-smoke'
 	@echo '                  - Load/unload mock kernel modules and LPF selftests'
+	@echo '  kernel-matrix   - Build kernel modules against KERNEL_SRC_LIST'
 	@echo '  tests           - Build and run LPF test targets'
 	@echo '  install         - Install binaries and libraries'
 	@echo '  install_headers - Install development headers only'
@@ -752,8 +771,11 @@ help:
 	@echo '  BUILD_DIR=<dir> - Use custom build directory (default: _build)'
 	@echo '  TEST_BUILD_DIR=<dir> - Use custom test build directory (default: _build/tests)'
 	@echo '  KERNEL_SRC=<dir> - Kernel build tree for modules target'
+	@echo '  KERNEL_SRC_LIST="<dirs>" - Space-separated kernel build trees for kernel-matrix'
 	@echo '  MODULES_BUILD_DIR=<dir> - Output directory for module artifacts'
 	@echo '  MODULES_SRC_DIR=<dir> - Kernel module source directory'
+	@echo '  LPF_KERNEL_MATRIX_DEFCONFIG=<name> - Defconfig for kernel-matrix'
+	@echo '  LPF_KERNEL_MATRIX_BUILD_ROOT=<dir> - Output root for kernel-matrix'
 	@echo '  MODULES_LIST="<list>" - Expected modules derived from enabled kernel module options'
 	@echo '  CMAKE_BUILD_TYPE=<type>'
 	@echo '                  - Set build type: Debug, Release, RelWithDebInfo, MinSizeRel'

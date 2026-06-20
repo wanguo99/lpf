@@ -43,7 +43,7 @@ the target direction.
 - [x] Add a compatibility policy document.
 - [x] Introduce explicit feature-detection helpers for supported kernels.
 - [x] Move procfs/debugfs/sysfs API differences behind compat wrappers where needed.
-- [ ] Validate the selected kernel version targets in CI or a documented local
+- [x] Validate the selected kernel version targets in CI or a documented local
   matrix.
 
 ### Batch 4: Lifecycle And State Hardening
