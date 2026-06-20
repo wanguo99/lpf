@@ -3,9 +3,6 @@
 list(APPEND ADD_INCLUDE "${SDK_PATH}/kernel/include")
 list(APPEND ADD_INCLUDE "${SDK_PATH}/kernel/include/pdm")
 
-# 私有头文件目录（仅内部使用）
-list(APPEND ADD_PRIVATE_INCLUDE "include")
-list(APPEND ADD_PRIVATE_INCLUDE "src")
 list(APPEND ADD_PRIVATE_INCLUDE "${SDK_PATH}/kernel/lpf/protocol")
 list(APPEND ADD_PRIVATE_INCLUDE "${SDK_PATH}/kernel/lpf/peripheral/mcu")
 list(APPEND ADD_PRIVATE_INCLUDE "${SDK_PATH}/kernel/lpf/peripheral/led")
@@ -15,7 +12,6 @@ list(APPEND ADD_PRIVATE_INCLUDE "${SDK_PATH}/kernel/lpf/transport/mcu")
 ############## Add source files ###############
 list(APPEND ADD_SRCS
     "src/pdm.c"
-    "src/base/pdm_ctl_chrdev.c"
     "../lpf/peripheral/lpf_peripheral.c"
     "../lpf/peripheral/lpf_peripheral_config.c"
 )

@@ -4,7 +4,6 @@
 ifeq ($(CONFIG_PDM),y)
 obj-m += pdm.o
 pdm-y := pdm/src/pdm.o
-pdm-y += pdm/src/base/pdm_ctl_chrdev.o
 pdm-y += lpf/peripheral/lpf_peripheral.o
 pdm-y += lpf/peripheral/lpf_peripheral_config.o
 pdm-$(CONFIG_LPF_MCU_SERVICE) += lpf/peripheral/mcu/lpf_mcu_service.o

@@ -51,8 +51,9 @@ Linux kernel / hardware
 - LPF peripheral services provide kernel-side peripheral business behavior.
 - LPF protocol helpers provide kernel-side packet framing for services that use
   framed peripheral communication.
-- PDM owns the current framework integration module and management node.
-- PDI provides userspace APIs over the PDM ioctl ABI.
+- LPF Core owns the control/discovery node for device snapshots.
+- PDM owns the current framework integration module entry point.
+- PDI provides userspace APIs over LPF UAPI ioctl nodes.
 - ACONFIG stores userspace application-facing configuration mappings.
 
 ## Layer Responsibilities
@@ -67,8 +68,8 @@ where the semantics are equivalent.
 
 HAL owns LPF hardware-capability APIs in kernel mode. Current HAL support
 includes CAN, serial, GPIO, PWM, I2C, and SPI. HAL calls the LPF SoC Adapter
-instead of Linux subsystem APIs directly. PDM calls exported HAL symbols;
-userspace does not include or call HAL directly.
+instead of Linux subsystem APIs directly. LPF peripheral services call exported
+HAL symbols; userspace does not include or call HAL directly.
 
 ### LPF Core
 
@@ -87,6 +88,9 @@ registration, bind, state changes, errors, remove start, and remove completion.
 It also provides reusable kernel infrastructure helpers for LPF instance
 character devices, instance sysfs attributes, and debugfs command files so
 peripheral services do not duplicate node lifecycle code.
+The LPF control/discovery node `/dev/pdm_ctl` is implemented in LPF Core and
+exposes read-only snapshots of the LPF device model through
+`uapi/lpf/lpf_ctl.h`.
 
 ### LPF SoC Adapter
 
@@ -148,10 +152,10 @@ lives under `kernel/lpf/protocol/`, exports encode/decode entry points from
 
 ### PDM
 
-PDM owns `/dev/pdm_ctl` management/discovery ioctl node and module load/unload
-entry points. It calls the LPF peripheral runtime entry rather than owning LPF
-Core initialization order, per-service registration, configured-device probing,
-or PCONFIG-to-LPF mapping logic itself.
+PDM owns the current integration module load/unload entry points. It calls the
+LPF peripheral runtime entry rather than owning LPF Core initialization order,
+per-service registration, configured-device probing, control-node lifecycle, or
+PCONFIG-to-LPF mapping logic itself.
 Business operations stay on LPF instance nodes such as `/dev/lpf/mcu0` and
 `/dev/lpf/led0`; LPF service status snapshots live under `/proc/lpf/`.
 
@@ -165,8 +169,8 @@ kernel-internal types.
 
 PDI is the userspace C API layer. It opens the matching `/dev/lpf/*` node,
 marshals requests through UAPI ioctls, and hides ioctl details from
-applications. Discovery APIs use `/dev/pdm_ctl` to list LPF device snapshots and
-look up devices by stable name or capability.
+applications. Discovery APIs use the LPF control node `/dev/pdm_ctl` to list
+LPF device snapshots and look up devices by stable name or capability.
 
 ### ACONFIG
 
@@ -241,7 +245,7 @@ and build configuration remain consistent.
 
 ## Runtime Interfaces
 
-- `/dev/pdm_ctl` is the management/discovery node.
+- `/dev/pdm_ctl` is the LPF Core-owned management/discovery node.
 - `/dev/lpf/<peripheral><index>` nodes are the stable per-instance business ABI.
 - `/sys/class/misc/<device>/` attributes are read-only per-instance sysfs
   inspection data, including runtime `last_error` and `error_count`.
@@ -257,8 +261,8 @@ and build configuration remain consistent.
 - Dependencies point downward through the layer stack.
 - Product-specific behavior belongs outside shared framework module directories.
 - Kernel hardware configuration is selected through PCONFIG backends and
-  consumed by PDM through the normalized device list, then mapped into LPF Core
-  device configs.
+  consumed by LPF peripheral configuration through the normalized device list,
+  then mapped into LPF Core device configs.
 - HAL should call LPF SoC Adapter APIs for SoC-backed hardware capabilities.
 - Kernel-version conditionals belong in `kernel/lpf/compat/`.
 - Userspace code must use PDI/UAPI rather than including kernel-internal HAL,

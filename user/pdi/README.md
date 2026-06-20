@@ -1,19 +1,19 @@
 # PDI
 
-PDI is the userspace API library for kernel PDM peripheral devices.
+PDI is the userspace API library for kernel LPF peripheral devices.
 
 Responsibilities:
 
 - Own application-facing C APIs by peripheral type.
-- Open and close peripheral-specific PDM device nodes.
+- Open and close peripheral-specific LPF device nodes.
 - Marshal requests through each peripheral's UAPI ioctl commands.
 - Hide ioctl details from applications.
-- Discover configured LPF devices through the PDM control node.
+- Discover configured LPF devices through the LPF control node.
 
 Current peripheral APIs:
 
-- Discovery: `pdi_ctl_*`, `pdi_list_devices`, and lookup helpers wrap
-  `/dev/pdm_ctl`; ioctl ABI lives in `uapi/lpf/lpf_ctl.h`.
+- Discovery: `pdi_ctl_*`, `pdi_list_devices`, and lookup helpers wrap the LPF
+  control node `/dev/pdm_ctl`; ioctl ABI lives in `uapi/lpf/lpf_ctl.h`.
 - MCU: `pdi_mcu_*` wraps `/dev/lpf/mcuN`; ioctl ABI lives in
   `uapi/lpf/lpf_mcu.h`; SDK declarations live in `pdi/mcu.h`.
 - LED: `pdi_led_*` wraps `/dev/lpf/ledN`; ioctl ABI lives in
@@ -39,4 +39,4 @@ device nodes.
 UAPI and ABI rules for new peripherals are documented in
 `docs/LPF_UAPI_ABI.md`.
 
-PDI must not reimplement kernel HAL, PConfig, or PDM business logic.
+PDI must not reimplement kernel HAL, PConfig, or LPF peripheral service logic.

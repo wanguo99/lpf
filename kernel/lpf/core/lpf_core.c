@@ -6,6 +6,7 @@
 
 #include "lpf/lpf_core.h"
 #include "lpf/lpf_soc_adapter.h"
+#include "lpf_ctl_internal.h"
 
 typedef struct {
 	struct list_head node;
@@ -335,6 +336,17 @@ int32_t lpf_core_init(void)
 	INIT_LIST_HEAD(&g_lpf_devices);
 	INIT_LIST_HEAD(&g_lpf_event_subscribers);
 	g_lpf_core_ready = true;
+
+	ret = lpf_ctl_chrdev_register();
+	if (ret != OSAL_SUCCESS) {
+		g_lpf_core_ready = false;
+		lpf_soc_adapter_deinit();
+		osal_cond_destroy(&g_lpf_device_ref_cond);
+		osal_mutex_destroy(&g_lpf_event_lock);
+		osal_mutex_destroy(&g_lpf_core_lock);
+		return ret;
+	}
+
 	return OSAL_SUCCESS;
 }
 EXPORT_SYMBOL_GPL(lpf_core_init);
@@ -424,6 +436,7 @@ void lpf_core_deinit(void)
 	if (!g_lpf_core_ready)
 		return;
 
+	lpf_ctl_chrdev_unregister();
 	lpf_driver_unregister_all();
 	lpf_device_event_unsubscribe_all();
 	lpf_soc_adapter_deinit();

@@ -8,16 +8,14 @@ menuconfig PDM
 	  Peripheral Driver Module provides high-level peripheral management
 	  and LPF device orchestration.
 
-	  PDM sits above HAL and provides:
-	  - Device abstraction and discovery through /dev/pdm_ctl
-	  - State management and error handling
-	  - Unified API for complex peripherals
+	  PDM currently hosts the LPF peripheral runtime and services that are
+	  integrated through one framework module boundary.
 
 	  Architecture:
 	  PDM integrates LPF Core, PCONFIG, HAL, and LPF peripheral services
 	  through one framework module boundary.
 
-	  Memory footprint: ~15KB base + per-peripheral drivers
+	  Memory footprint: framework shell + selected peripheral services
 
 	  Supported peripherals:
 	  - MCU peripherals

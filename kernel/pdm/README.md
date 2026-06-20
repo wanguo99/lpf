@@ -1,8 +1,8 @@
 # PDM
 
 PDM is the Peripheral Driver Module. It currently owns module load/unload
-entry points and the management/discovery node. LPF peripheral runtime and
-services are layered under `kernel/lpf/peripheral/` but remain integrated
+entry points for the framework-hosted peripheral runtime. LPF peripheral
+runtime and services are layered under `kernel/lpf/peripheral/` but remain integrated
 through `pdm.ko` during the current migration stage so runtime deployment does
 not fragment into one KO per peripheral.
 
@@ -18,7 +18,6 @@ The kernel module currently provides:
   glue linked into `pdm.ko`
 - LPF LED service and `/dev/lpf/ledN` ioctl dispatch for GPIO/PWM controlled
   LEDs linked into `pdm.ko`
-- PDM control node `/dev/pdm_ctl` for LPF device discovery snapshots
 - LPF read-only procfs status nodes under `/proc/lpf/`
 - LPF debugfs command nodes under `/sys/kernel/debug/lpf/`
 
@@ -27,6 +26,7 @@ hardware access. Runtime character-device, sysfs-attribute, and debugfs-file
 lifecycle helpers are provided by `lpf_core.ko`; LPF peripheral services own
 the concrete operation handlers. LPF protocol encode/decode helpers are also
 provided by `lpf_core.ko` for services that need framed communication.
+LPF device discovery is provided by the LPF Core control node `/dev/pdm_ctl`.
 
 ## Configuration
 
@@ -48,12 +48,12 @@ CONFIG_LPF_PROTOCOL_MCU=y
 kernel/pdm/
 ├── Config.in
 ├── CMakeLists.txt
-├── include/
-│   └── pdm_ctl.h
 └── src/
-    ├── base/
-    │   └── pdm_ctl_chrdev.c
     └── pdm.c
+kernel/lpf/core/
+├── lpf_ctl.c
+├── lpf_ctl_internal.h
+└── ...
 kernel/lpf/peripheral/
 ├── lpf_peripheral.c
 ├── lpf_peripheral_config.c
@@ -135,10 +135,11 @@ MCU and LED service implementations live under `kernel/lpf/peripheral/`.
 They are registered through the LPF peripheral runtime while the framework
 module boundary is being cleaned up.
 
-`/dev/pdm_ctl` is the management node for discovery. It exposes LPF Core device
-snapshots through `uapi/lpf/lpf_ctl.h`, including stable name, type, state,
-driver name, capability flags, `last_error`, and `error_count`. It does not
-perform peripheral business operations.
+`/dev/pdm_ctl` is the management node for discovery. It is implemented by LPF
+Core and exposes LPF Core device snapshots through `uapi/lpf/lpf_ctl.h`,
+including stable name, type, state, driver name, capability flags,
+`last_error`, and `error_count`. It does not perform peripheral business
+operations.
 
 Procfs is reserved for read-only observability data. Current nodes:
 

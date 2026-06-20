@@ -390,8 +390,8 @@ Acceptance criteria:
 
 Current status:
 
-- Started. `/dev/pdm_ctl` and `uapi/lpf/lpf_ctl.h` expose LPF device discovery
-  snapshots to userspace.
+- Started. The LPF Core-owned `/dev/pdm_ctl` node and `uapi/lpf/lpf_ctl.h`
+  expose LPF device discovery snapshots to userspace.
 - Started. PDI now provides `pdi_list_devices`,
   `pdi_get_device_by_name`, and `pdi_get_device_by_capability`.
 - Started `pdi_open_by_name` through type-specific helpers
@@ -449,9 +449,9 @@ Acceptance criteria:
 
 Current status:
 
-- Started. `/dev/pdm_ctl` remains the management/discovery node, and
-  configured peripheral instances now expose `/dev/lpf/mcuN` and
-  `/dev/lpf/ledN` nodes.
+- Started. `/dev/pdm_ctl` remains the management/discovery node, is now
+  implemented by LPF Core, and configured peripheral instances expose
+  `/dev/lpf/mcuN` and `/dev/lpf/ledN` nodes.
 - Started. Instance character devices now expose read-only sysfs attributes:
   `name`, `type`, `index`, `state`, `capabilities`, `driver`, `soc`,
   `last_error`, `error_count`, and `open_count`.
@@ -464,6 +464,9 @@ Current status:
   implementations have been extracted into LPF infrastructure under
   `kernel/lpf/core/` and are linked into `lpf_core.ko` as `lpf_chrdev`,
   `lpf_sysfs`, and `lpf_debugfs`.
+- Done. The control/discovery character device implementation has moved from
+  PDM into LPF Core as `kernel/lpf/core/lpf_ctl.c`; PDM no longer owns
+  `/dev/pdm_ctl` registration.
 - Done. Procfs and OSAL-status-to-errno helpers have been extracted into LPF
   helpers, and migrated peripheral services no longer depend on PDM proc/status
   wrappers.
