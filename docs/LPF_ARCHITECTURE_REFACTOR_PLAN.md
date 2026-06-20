@@ -6,11 +6,47 @@ This is the active refactor plan for LPF. It replaces the older overlapping
 kernel refactor, long-term optimization, and roadmap trackers with one
 architecture-driven checklist.
 
-LPF's current direction is sound: `lpf_core.ko` owns the device and driver
-lifecycle, while `lpf_runtime.ko` hosts runtime configuration, LPF HW,
-peripheral services, service-owned transport backends, and configured-device
-probing. The remaining work is to remove transitional coupling and make new
-peripherals or SoC backends extensible without editing central runtime files.
+LPF's current direction is sound: `lpf_core.ko` owns the LPF device model,
+while `lpf_runtime.ko` hosts runtime configuration, LPF HW, peripheral
+services, service-owned transport backends, and configured-device probing. The
+remaining work is to make this model explicit: LPF Core should behave like a
+small LPF-owned pseudo bus and device model, runtime peripherals should behave
+like drivers registered on that model, and configs should behave like
+DTS-style board descriptions even when the current backend is a static C table.
+
+## Target Architecture Model
+
+LPF should follow a simplified Linux driver-model flow without inheriting
+unneeded Linux bus complexity:
+
+1. `lpf_core.ko` initializes the LPF device model.
+2. Runtime peripheral services register `lpf_driver_t` instances with LPF Core.
+3. The selected config backend loads the active board description.
+4. Runtime walks the board's configured device nodes.
+5. A registered runtime config driver parses each matching node.
+6. The config driver creates an `lpf_device_config_t` and calls
+   `lpf_device_register()`.
+7. LPF Core matches the device with a registered driver and calls `probe()`.
+
+In this model:
+
+- `lpf_core.ko` is the LPF device model / pseudo bus. It owns driver
+  registration, device registration, matching, probe/remove, discovery, state,
+  events, and shared userspace observability.
+- `lpf_runtime/peripheral/` owns peripheral drivers such as MCU and LED. These
+  drivers register with LPF Core and own their service-specific parsing,
+  transport, char device, and debug behavior.
+- `lpf_runtime/config/` owns board-description loading and validation. Static C
+  tables, product configuration, or a future Device Tree backend are different
+  backends behind the same board-description model.
+- `configs` are treated as DTS-like board descriptions, not as runtime driver
+  logic. They should describe what devices exist and carry typed payloads, while
+  peripheral config drivers decide how to translate those payloads into LPF
+  devices.
+
+The goal is conceptual alignment with Linux driver registration and device
+registration, not a direct copy of Linux's `struct bus_type`, full Device Tree
+parser, or driver-core internals.
 
 ## Current Architecture Strengths
 
@@ -23,6 +59,10 @@ peripherals or SoC backends extensible without editing central runtime files.
 - LPF Core provides one device/driver lifecycle, discovery snapshots,
   reference-counted device handles, state/error tracking, and shared node
   helpers.
+- LPF Core already follows the critical driver-model path where device
+  registration matches a registered driver and calls `probe()`.
+- Runtime peripheral services already register drivers, and runtime config
+  drivers already own MCU/LED config-to-device creation.
 - UAPI and PDI are separated, with ABI-only headers under `uapi/lpf/`.
 
 ## Architecture Defects To Fix
@@ -56,6 +96,15 @@ peripherals or SoC backends extensible without editing central runtime files.
      default.
    - Target-level verification still needs to confirm devtmpfs/udev ownership
      and read-only observability surfaces on product-like kernels.
+
+6. **Board config shape is still not node-oriented**
+   - The static platform config still exposes per-peripheral arrays such as MCU
+     and LED arrays.
+   - Runtime config drivers currently receive the whole platform config and
+     walk their own arrays.
+   - The next step should move toward a DTS-like configured-device node table:
+     runtime traverses nodes generically, dispatches by type or compatible, and
+     peripheral config drivers parse only the nodes they own.
 
 ## Refactor Phases
 
@@ -142,12 +191,61 @@ Acceptance:
 - Module build, unit tests, mock module load tests, and target smoke checks all
   pass for the selected release configuration.
 
+### Phase 7: Make Configs DTS-Like Device Descriptions
+
+- [ ] Introduce a generic readonly config device-node descriptor that carries
+      stable fields such as type, name, index, enabled/status, compatible
+      string, typed payload pointer, and payload size.
+- [ ] Build or expose the active platform config as an ordered device-node
+      table during `lpf_config_load()`.
+- [ ] Keep existing static C configs as the first backend, but make their data
+      consumable through the generic node table.
+- [ ] Change runtime config drivers to parse one matching node at a time rather
+      than receiving and scanning the whole platform config.
+- [ ] Make `lpf_runtime_probe_devices()` walk configured nodes generically and
+      dispatch each node to a registered runtime config driver by type or
+      compatible.
+- [ ] Keep MCU and LED payload structs module-owned or config-owned as needed,
+      but prevent runtime core from knowing peripheral-specific arrays.
+- [ ] Add architecture tests that reject new central MCU/LED-style mapping in
+      runtime core.
+
+Acceptance:
+- Adding a new peripheral requires adding its config type/payload, config
+  driver, and peripheral driver, without editing runtime config traversal.
+- Static configs look and behave like board device descriptions instead of
+  hard-coded runtime mapping tables.
+- `make tests` and `make modules` pass.
+
+### Phase 8: Document And Harden The LPF Driver Model
+
+- [ ] Document LPF Core as the LPF device model / pseudo bus in the runtime and
+      peripheral README files.
+- [ ] Document the expected ordering: core init, peripheral driver
+      registration, config load, device-node traversal, device registration,
+      Core match, and driver probe.
+- [ ] Define match rules explicitly: initially by LPF device type, with a path
+      to add compatible-string matching only when needed.
+- [ ] Audit exported Core APIs so names and comments reflect device-model
+      ownership rather than ad hoc registries.
+- [ ] Avoid introducing a separate physical `bus` or `transport` layer unless a
+      concrete future requirement needs it.
+
+Acceptance:
+- The code and docs consistently describe one LPF device model.
+- Peripheral ownership remains module-local, and no new generic abstraction is
+  introduced without a real shared behavior.
+
 ## Implementation Rules
 
 - Prefer module-owned private headers unless another module must consume the
   API.
 - Keep feature selection at Kbuild object and section-registration boundaries.
 - Do not add product-specific behavior under shared framework directories.
+- Treat LPF Core as a pseudo bus/device model concept, but do not create extra
+  bus-layer directories or KOs unless there is a concrete need.
+- Treat configs as DTS-like board descriptions, but do not require a Device
+  Tree parser for static configuration.
 - Do not split MCU and LED into separate KOs unless the runtime boundary is
   intentionally redesigned.
 - Update this plan when implementation intentionally differs from the target.
