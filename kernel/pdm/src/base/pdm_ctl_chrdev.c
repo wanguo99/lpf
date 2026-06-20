@@ -196,17 +196,15 @@ static long pdm_ctl_compat_ioctl(struct file *file, unsigned int cmd,
 static int pdm_ctl_open(struct inode *inode, struct file *file)
 {
 	(void)inode;
-	(void)file;
 
-	return pdm_chrdev_open(&g_pdm_ctl_chrdev);
+	return pdm_chrdev_open(file);
 }
 
 static int pdm_ctl_release(struct inode *inode, struct file *file)
 {
 	(void)inode;
-	(void)file;
 
-	return pdm_chrdev_release(&g_pdm_ctl_chrdev);
+	return pdm_chrdev_release(file);
 }
 
 static const struct file_operations g_pdm_ctl_fops = {

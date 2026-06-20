@@ -78,7 +78,10 @@ LPF device configs before registration. LPF Core also initializes the default
 SoC adapter path used by HAL. Device discovery callers should use the snapshot
 APIs (`lpf_device_list()`, `lpf_device_get_info_by_name()`, and capability
 queries) instead of retaining internal `lpf_device_t` pointers across lifecycle
-events.
+events. Kernel code that needs to keep a device active across operations should
+use `lpf_device_get()` or the name/capability variants and release the returned
+handle with `lpf_device_put()`. LPF Core emits kernel device events for
+registration, bind, state changes, errors, remove start, and remove completion.
 
 ### LPF SoC Adapter
 

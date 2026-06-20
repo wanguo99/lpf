@@ -118,8 +118,15 @@ Current status:
 - Started device discovery. LPF Core now exposes snapshot APIs for listing
   devices and querying by type/index, name, or capability without exposing
   internal list nodes to callers.
-- Remaining work: add reference-counted active device handles, event
-  notification, and userspace discovery through the UAPI/PDI layer.
+- Started lifecycle hardening. LPF Core now provides reference-counted active
+  device handles, name/capability handle lookup, state updates, and kernel
+  event notification for register, bind, state, error, remove start, and remove
+  completion.
+- Started PDM integration. PDM instance character devices acquire an LPF active
+  device handle on open and release it on close, so LPF Core removal waits for
+  active instance users before invoking peripheral `remove`.
+- Remaining work: define the final userspace event delivery model and deepen
+  the state/recovery model used by peripheral services.
 
 ## Phase 3: Kernel Compat Layer
 
@@ -371,7 +378,11 @@ Current status:
 - Done. PDI now uses internal error helpers to standardize its public return
   convention: success returns `0`, failures return `-1` with `errno` set, and
   system-call failures preserve the kernel/libc errno value.
-- Remaining work: add instance-aware device nodes.
+- Done. Instance-aware device nodes are available as `/dev/lpf/mcuN` and
+  `/dev/lpf/ledN`, and PDI name-based open helpers resolve stable LPF names to
+  those nodes through discovery.
+- Remaining work: decide whether LPF device events should be exposed to
+  userspace through the control ABI or kept as a kernel-only service mechanism.
 
 ## Phase 9: Device Nodes And Observability
 
@@ -423,6 +434,9 @@ Current status:
   and `/proc/pdm/led` are read-only status snapshots.
 - Done. Runtime ioctl and debugfs command failures update each instance's
   `last_error` and `error_count` sysfs attributes.
+- Remaining work: extract the current PDM-local character-device, sysfs, and
+  debugfs helpers into reusable LPF infrastructure modules named
+  `lpf_chrdev`, `lpf_sysfs`, and `lpf_debugfs`.
 
 ## Phase 10: Test And Validation System
 

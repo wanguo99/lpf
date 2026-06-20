@@ -309,28 +309,16 @@ static long pdm_mcu_compat_ioctl(struct file *file, unsigned int cmd,
 
 static int pdm_mcu_open(struct inode *inode, struct file *file)
 {
-	pdm_chrdev_t *chrdev;
-
 	(void)inode;
 
-	chrdev = pdm_mcu_chrdev_from_file(file);
-	if (!chrdev)
-		return -ENODEV;
-
-	return pdm_chrdev_open(chrdev);
+	return pdm_chrdev_open(file);
 }
 
 static int pdm_mcu_release(struct inode *inode, struct file *file)
 {
-	pdm_chrdev_t *chrdev;
-
 	(void)inode;
 
-	chrdev = pdm_mcu_chrdev_from_file(file);
-	if (!chrdev)
-		return -ENODEV;
-
-	return pdm_chrdev_release(chrdev);
+	return pdm_chrdev_release(file);
 }
 
 static const struct file_operations pdm_mcu_fops = {

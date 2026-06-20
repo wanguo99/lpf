@@ -94,7 +94,10 @@ devices before driver global resources are released.
 
 Each PDM peripheral instance exposes its own character device, such as
 `/dev/lpf/mcu0`, and each PDI peripheral API uses the matching UAPI ioctl
-header, such as `lpf_mcu.h`.
+header, such as `lpf_mcu.h`. Opening an instance character device acquires an
+LPF Core active-device handle, and closing the file releases it. Device removal
+therefore stops new opens first, waits for active instance handles to drain,
+and then calls the peripheral service `remove` callback.
 
 Instance character devices expose read-only sysfs attributes for inspection:
 

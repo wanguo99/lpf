@@ -7,7 +7,7 @@
 #include <linux/miscdevice.h>
 
 #include "osal.h"
-#include "lpf/lpf_device.h"
+#include "lpf/lpf_core.h"
 
 #include "pdm_status.h"
 
@@ -28,8 +28,8 @@ typedef struct {
 	bool registered;
 } pdm_chrdev_t;
 
-int pdm_chrdev_open(pdm_chrdev_t *chrdev);
-int pdm_chrdev_release(pdm_chrdev_t *chrdev);
+int pdm_chrdev_open(struct file *file);
+int pdm_chrdev_release(struct file *file);
 int pdm_chrdev_register(pdm_chrdev_t *chrdev, const char *name,
 			const struct file_operations *fops);
 int pdm_chrdev_register_instance(pdm_chrdev_t *chrdev, const char *name,

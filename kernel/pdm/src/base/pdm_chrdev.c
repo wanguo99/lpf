@@ -165,6 +165,22 @@ static const struct attribute_group *pdm_chrdev_attr_groups[] = {
 	NULL,
 };
 
+typedef struct {
+	pdm_chrdev_t *chrdev;
+	lpf_device_handle_t *device_handle;
+} pdm_chrdev_file_ctx_t;
+
+static pdm_chrdev_t *pdm_chrdev_from_private_data(void *private_data)
+{
+	struct miscdevice *miscdev;
+
+	if (!private_data)
+		return NULL;
+
+	miscdev = private_data;
+	return container_of(miscdev, pdm_chrdev_t, miscdev);
+}
+
 static void pdm_chrdev_fill_info(pdm_chrdev_t *chrdev,
 				 const lpf_device_t *device, uint32_t index)
 {
@@ -198,14 +214,36 @@ static void pdm_chrdev_fill_info(pdm_chrdev_t *chrdev,
 	chrdev->soc_name[sizeof(chrdev->soc_name) - 1U] = '\0';
 }
 
-int pdm_chrdev_open(pdm_chrdev_t *chrdev)
+int pdm_chrdev_open(struct file *file)
 {
+	pdm_chrdev_file_ctx_t *ctx;
+	lpf_device_handle_t *handle = NULL;
+	pdm_chrdev_t *chrdev;
 	int open_count;
 
+	if (!file)
+		return -EINVAL;
+
+	chrdev = pdm_chrdev_from_private_data(file->private_data);
 	if (!chrdev)
 		return -EINVAL;
 
+	ctx = osal_zalloc(sizeof(*ctx));
+	if (!ctx)
+		return -ENOMEM;
+
 	osal_mutex_lock(&chrdev->lock);
+	if (chrdev->info.type != LPF_DEVICE_TYPE_INVALID) {
+		handle = lpf_device_get(chrdev->info.type, chrdev->info.index);
+		if (!handle) {
+			osal_mutex_unlock(&chrdev->lock);
+			osal_free(ctx);
+			return -ENODEV;
+		}
+	}
+	ctx->chrdev = chrdev;
+	ctx->device_handle = handle;
+	file->private_data = ctx;
 	open_count = (int)osal_atomic_inc(&chrdev->open_count);
 	osal_mutex_unlock(&chrdev->lock);
 
@@ -213,12 +251,26 @@ int pdm_chrdev_open(pdm_chrdev_t *chrdev)
 	return 0;
 }
 
-int pdm_chrdev_release(pdm_chrdev_t *chrdev)
+int pdm_chrdev_release(struct file *file)
 {
+	pdm_chrdev_file_ctx_t *ctx;
+	lpf_device_handle_t *handle = NULL;
+	pdm_chrdev_t *chrdev;
 	int open_count;
 
-	if (!chrdev)
+	if (!file || !file->private_data)
 		return -EINVAL;
+
+	ctx = file->private_data;
+	chrdev = ctx->chrdev;
+	handle = ctx->device_handle;
+	file->private_data = NULL;
+
+	if (!chrdev) {
+		lpf_device_put(handle);
+		osal_free(ctx);
+		return -EINVAL;
+	}
 
 	osal_mutex_lock(&chrdev->lock);
 	if (osal_atomic_load(&chrdev->open_count) > 0)
@@ -226,6 +278,8 @@ int pdm_chrdev_release(pdm_chrdev_t *chrdev)
 	open_count = (int)osal_atomic_load(&chrdev->open_count);
 	osal_mutex_unlock(&chrdev->lock);
 
+	lpf_device_put(handle);
+	osal_free(ctx);
 	LOG_INFO(chrdev->name, "release count=%d", open_count);
 	return 0;
 }
@@ -321,13 +375,15 @@ void pdm_chrdev_unregister(pdm_chrdev_t *chrdev)
 
 pdm_chrdev_t *pdm_chrdev_from_file(struct file *file)
 {
-	struct miscdevice *miscdev;
+	pdm_chrdev_file_ctx_t *ctx;
+	pdm_chrdev_t *chrdev;
 
 	if (!file || !file->private_data)
 		return NULL;
 
-	miscdev = file->private_data;
-	return container_of(miscdev, pdm_chrdev_t, miscdev);
+	ctx = file->private_data;
+	chrdev = ctx->chrdev;
+	return chrdev && chrdev->registered ? chrdev : NULL;
 }
 
 uint32_t pdm_chrdev_open_count(const pdm_chrdev_t *chrdev)
