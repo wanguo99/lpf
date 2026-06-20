@@ -33,8 +33,10 @@ the target direction.
 - [x] Add backend-agnostic normalizer tests proving static and
   Device Tree-equivalent platform models produce the same service-visible device
   list.
-- [ ] Add kernel/OF-level tests proving the Device Tree backend parser produces
+- [x] Add Device Tree backend parser tests proving parsed DT-style nodes produce
   the same platform model.
+- [ ] Add kernel/OF overlay tests for the Device Tree backend in a
+  `CONFIG_OF`-enabled target matrix.
 - [ ] Add a board-profile backend only if there is a real product-line selection
   need that static identity selectors cannot cover.
 

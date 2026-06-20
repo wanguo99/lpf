@@ -28,6 +28,7 @@ lpf_peripheral_runtime-y := lpf/peripheral/lpf_peripheral_module.o
 lpf_peripheral_runtime-y += lpf/config/src/lpf_config_api.o
 lpf_peripheral_runtime-y += lpf/config/src/lpf_config_backend.o
 lpf_peripheral_runtime-y += lpf/config/src/lpf_config_dt_backend.o
+lpf_peripheral_runtime-y += lpf/config/src/lpf_config_dt_parser.o
 lpf_peripheral_runtime-y += lpf/config/src/lpf_config_static_backend.o
 lpf_peripheral_runtime-y += lpf/config/src/lpf_config_normalizer.o
 lpf_peripheral_runtime-y += lpf/config/src/lpf_config_validator.o

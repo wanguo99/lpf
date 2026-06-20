@@ -132,6 +132,11 @@ MCU supports `interface = "can"` and `interface = "serial"`. LED supports
 The formal binding is documented in
 `docs/devicetree/bindings/lpf/linux-peripheral-framework.yaml`.
 
+The Linux backend keeps OF tree access in `lpf_config_dt_backend.c` and routes
+property parsing through `lpf_config_dt_parser.c`. This keeps the normalized
+Device Tree parser testable without requiring the host kernel to expose live OF
+overlay support.
+
 ## Typed Accessors
 
 The current header provides inline index-based peripheral accessors:

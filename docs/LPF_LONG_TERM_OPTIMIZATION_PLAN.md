@@ -329,7 +329,8 @@ Current status:
   `backend=static`. `auto` tries Device Tree first and falls back to the static
   table.
 - Started the Device Tree backend. It parses LPF root identity, MCU CAN/Serial,
-  and LED GPIO/PWM entries into the same normalized LPF config model.
+  and LED GPIO/PWM entries into the same normalized LPF config model through a
+  reusable parser below the Linux OF adapter.
 - Done. LPF runtime config backend objects are linked into
   `lpf_peripheral_runtime.ko`, and the standalone configuration module boundary
   has been removed from the build.
@@ -344,6 +345,10 @@ Current status:
   config and CTest, with coverage proving the mock static platform and a
   Device Tree-equivalent platform produce the same service-visible device
   model.
+- Done. The Device Tree parser now has fake-node CTest coverage proving parsed
+  DT-style nodes produce the same mock platform model as the static backend,
+  including required-property failure cleanup. Full kernel OF/overlay tests can
+  be added in a target matrix where `CONFIG_OF` is enabled.
 - Done. The normalized runtime device list is now allocated from the active
   platform's enabled-device count instead of a fixed global capacity.
 - Remaining work: add a board-profile backend and broader peripheral coverage.
@@ -614,6 +619,9 @@ Current status:
 - Done. `make kernel-matrix` builds LPF kernel modules against
   `KERNEL_SRC_LIST` so CI can validate selected kernel targets without
   overwriting per-kernel artifacts.
+- Done. Device Tree parser tests now cover DT-style property parsing and
+  normalized mock platform equivalence without requiring live OF support from
+  the host kernel.
 - Remaining work: extend ABI/PDI coverage as new peripherals are introduced.
 
 ## Recommended Implementation Order
