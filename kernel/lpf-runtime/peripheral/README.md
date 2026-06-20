@@ -172,12 +172,12 @@ and `error_count` remain as historical diagnostics. MCU status queries also map
 reported `OFFLINE` and `ERROR` MCU states into LPF Core runtime health.
 
 MCU and LED service implementations live under `kernel/lpf-runtime/peripheral/`.
-They contribute entries to the LPF runtime section while the
-framework module boundary is being cleaned up.
-New framework-hosted features should declare a file-local runtime entry with
-`lpf_runtime_register(feature_name, feature_init, feature_exit)` and add the
-object with `lpf_runtime-$(CONFIG_LPF_FEATURE) += ...` so Kconfig
-selects whether the feature is linked into `lpf_runtime.ko`.
+They contribute classed entries to the LPF runtime section. New
+framework-hosted services should declare a file-local runtime entry with
+`lpf_runtime_service_register(feature_name, feature_init, feature_exit)` and
+add the object with `lpf_runtime-$(CONFIG_LPF_FEATURE) += ...` so Kconfig
+selects whether the feature is linked into `lpf_runtime.ko`. Runtime self-tests
+should use `lpf_runtime_selftest_register(...)` so they run after services.
 
 `/dev/lpf_ctl` is the management node for discovery. It is implemented by LPF
 Core and exposes LPF Core device snapshots through `uapi/lpf/lpf_ctl.h`,

@@ -518,5 +518,5 @@ static void lpf_led_service_unregister(void)
 	lpf_driver_unregister(&g_lpf_led_driver);
 }
 
-lpf_runtime_register(led_service, lpf_led_service_register,
-			lpf_led_service_unregister);
+lpf_runtime_service_register(led_service, lpf_led_service_register,
+			     lpf_led_service_unregister);

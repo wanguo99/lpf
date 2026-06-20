@@ -322,6 +322,50 @@ out:
 	return failures ? 1 : 0;
 }
 
+static int test_runtime_entries_are_classed(void)
+{
+	char *runtime_header;
+	char *mcu_service;
+	char *led_service;
+	char *config_selftest;
+	int failures = 0;
+
+	runtime_header = read_source_file(
+		"kernel/lpf-runtime/include/lpf_runtime_internal.h");
+	mcu_service = read_source_file(
+		"kernel/lpf-runtime/peripheral/mcu/lpf_mcu_service.c");
+	led_service = read_source_file(
+		"kernel/lpf-runtime/peripheral/led/lpf_led_service.c");
+	config_selftest = read_source_file(
+		"kernel/lpf-runtime/config/selftest/lpf_config_of_selftest.c");
+
+	if (!runtime_header || !mcu_service || !led_service || !config_selftest) {
+		fprintf(stderr, "failed to read runtime entry sources\n");
+		failures = 1;
+		goto out;
+	}
+
+	failures += expect_contains("lpf_runtime_internal.h", runtime_header,
+				    "lpf_runtime_service_register");
+	failures += expect_contains("lpf_runtime_internal.h", runtime_header,
+				    "lpf_runtime_selftest_register");
+	failures += expect_not_contains("lpf_runtime_internal.h", runtime_header,
+					"#define lpf_runtime_register");
+	failures += expect_contains("lpf_mcu_service.c", mcu_service,
+				    "lpf_runtime_service_register");
+	failures += expect_contains("lpf_led_service.c", led_service,
+				    "lpf_runtime_service_register");
+	failures += expect_contains("lpf_config_of_selftest.c", config_selftest,
+				    "lpf_runtime_selftest_register");
+
+out:
+	free(config_selftest);
+	free(led_service);
+	free(mcu_service);
+	free(runtime_header);
+	return failures ? 1 : 0;
+}
+
 int main(void)
 {
 	int ret = 0;
@@ -331,6 +375,7 @@ int main(void)
 	ret += test_uapi_headers_are_abi_only();
 	ret += test_soc_adapter_header_dependencies();
 	ret += test_runtime_config_mapping_is_registered();
+	ret += test_runtime_entries_are_classed();
 
 	return ret ? EXIT_FAILURE : EXIT_SUCCESS;
 }

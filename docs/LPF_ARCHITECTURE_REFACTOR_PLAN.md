@@ -39,10 +39,10 @@ backends extensible without editing central runtime files.
    - Adding a peripheral should not require editing runtime core code.
 
 3. **Implicit section ordering**
-   - `lpf_runtime_register()` depends on object link order between start/end
-     sentinels.
-   - Runtime entries need an explicit class or priority model similar to kernel
-     initcall levels.
+   - Fixed by replacing the single runtime entry registration API with
+     class-specific APIs for core, service, and self-test entries.
+   - Runtime initialization now follows class order, while exit runs in reverse
+     class order and reverse declaration order within each class.
 
 4. **Core lifecycle ownership is blurred**
    - LPF Core module initialization and public registration APIs can both call
@@ -92,12 +92,12 @@ Acceptance:
 
 ### Phase 3: Add Runtime Entry Classes
 
-- [ ] Replace single unordered runtime entry traversal with explicit entry
+- [x] Replace single unordered runtime entry traversal with explicit entry
       classes or priorities.
-- [ ] Keep function-style registration APIs, for example
+- [x] Keep function-style registration APIs, for example
       `lpf_runtime_core_register()`, `lpf_runtime_service_register()`, and
       `lpf_runtime_selftest_register()`.
-- [ ] Preserve reverse-order exit within each class.
+- [x] Preserve reverse-order exit within each class.
 
 Acceptance:
 - Runtime service order is defined by API class or priority, not by incidental

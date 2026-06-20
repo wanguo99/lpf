@@ -562,5 +562,5 @@ static void lpf_config_of_selftest_exit(void)
 	pr_info("LPF:CONFIG_OF_SELFTEST: unloaded\n");
 }
 
-lpf_runtime_register(config_of_selftest, lpf_config_of_selftest_init,
-			lpf_config_of_selftest_exit);
+lpf_runtime_selftest_register(config_of_selftest, lpf_config_of_selftest_init,
+			      lpf_config_of_selftest_exit);

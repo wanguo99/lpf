@@ -724,5 +724,5 @@ static void lpf_mcu_service_unregister(void)
 	lpf_driver_unregister(&g_lpf_mcu_driver);
 }
 
-lpf_runtime_register(mcu_service, lpf_mcu_service_register,
-			lpf_mcu_service_unregister);
+lpf_runtime_service_register(mcu_service, lpf_mcu_service_register,
+			     lpf_mcu_service_unregister);
