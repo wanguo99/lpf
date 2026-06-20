@@ -24,6 +24,7 @@ ccflags-y += -I$(src)/pdm/src
 ccflags-y += -I$(src)/pdm/src/protocol
 ccflags-y += -I$(src)/lpf/peripheral/mcu
 ccflags-y += -I$(src)/lpf/peripheral/led
+ccflags-y += -I$(src)/lpf/transport/mcu
 ccflags-y += -I$(src)/../uapi
 
 ifneq ($(wildcard $(LPF_AUTOCONF_H)),)

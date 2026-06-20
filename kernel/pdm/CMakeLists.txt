@@ -9,6 +9,7 @@ list(APPEND ADD_PRIVATE_INCLUDE "src")
 list(APPEND ADD_PRIVATE_INCLUDE "src/protocol")
 list(APPEND ADD_PRIVATE_INCLUDE "${SDK_PATH}/kernel/lpf/peripheral/mcu")
 list(APPEND ADD_PRIVATE_INCLUDE "${SDK_PATH}/kernel/lpf/peripheral/led")
+list(APPEND ADD_PRIVATE_INCLUDE "${SDK_PATH}/kernel/lpf/transport/mcu")
 ###############################################
 
 ############## Add source files ###############
@@ -33,8 +34,19 @@ if(CONFIG_LPF_MCU_SERVICE AND TARGET hal)
         "../lpf/peripheral/mcu/lpf_mcu_service.c"
         "../lpf/peripheral/mcu/lpf_mcu_chrdev.c"
         "../lpf/peripheral/mcu/lpf_mcu_proc.c"
-        "../lpf/peripheral/mcu/lpf_mcu_can.c"
-        "../lpf/peripheral/mcu/lpf_mcu_serial.c"
+        "../lpf/transport/mcu/lpf_mcu_transport.c"
+    )
+endif()
+
+if(CONFIG_LPF_MCU_TRANSPORT_CAN AND TARGET hal)
+    list(APPEND ADD_SRCS
+        "../lpf/transport/mcu/lpf_mcu_transport_can.c"
+    )
+endif()
+
+if(CONFIG_LPF_MCU_TRANSPORT_UART AND TARGET hal)
+    list(APPEND ADD_SRCS
+        "../lpf/transport/mcu/lpf_mcu_transport_uart.c"
     )
 endif()
 

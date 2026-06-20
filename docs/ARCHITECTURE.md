@@ -128,6 +128,14 @@ helpers for runtime nodes. MCU and LED services now live under
 `/dev/lpf/led0`; during the current migration stage they are still linked into
 `pdm.ko`.
 
+### LPF Transports
+
+LPF transport implementations own reusable communication backends used by
+peripheral services. The current MCU CAN and UART transports live under
+`kernel/lpf/transport/mcu/` and are selected by normalized PCONFIG interface
+type. MCU service code uses the transport registry instead of depending on
+CAN/UART implementation symbols directly.
+
 ### PDM
 
 PDM owns the current built-in service registration path, `/dev/pdm_ctl`
@@ -160,6 +168,7 @@ The current framework keeps one concrete peripheral/device family:
 - MCU configuration in PCONFIG
 - MCU protocol in PDM
 - MCU service in LPF peripheral layer
+- MCU CAN/UART transport in LPF transport layer
 - Userspace access through PDI
 - LED configuration in PCONFIG
 - LED service in LPF peripheral layer

@@ -10,7 +10,7 @@
 #include "osal.h"
 #include "hal.h"
 #include "pconfig.h"
-#include "lpf_mcu_internal.h"
+#include "lpf/lpf_mcu_transport.h"
 
 /*===========================================================================
  * PCONFIG → HAL 类型转换（内部函数，不对外暴露）
@@ -65,17 +65,17 @@ typedef struct {
 /**
  * @brief 初始化串口通信
  */
-int32_t lpf_mcu_serial_init(const void *config, void **handle)
+static int32_t lpf_mcu_transport_uart_open(
+	const pconfig_mcu_config_t *mcu_cfg,
+	lpf_mcu_transport_handle_t *handle)
 {
-	const pconfig_mcu_config_t *mcu_cfg;
 	lpf_mcu_serial_context_t *ctx;
 	hal_serial_config_t serial_config;
 
-	if (!config || !handle) {
+	if (!mcu_cfg || !handle) {
 		return OSAL_ERR_INVALID_PARAM;
 	}
 
-	mcu_cfg = (const pconfig_mcu_config_t *)config;
 	ctx = (lpf_mcu_serial_context_t *)osal_malloc(sizeof(lpf_mcu_serial_context_t));
 	if (!ctx) {
 		return OSAL_ERR_NO_MEMORY;
@@ -112,7 +112,7 @@ int32_t lpf_mcu_serial_init(const void *config, void **handle)
 /**
  * @brief 反初始化串口通信
  */
-int32_t lpf_mcu_serial_deinit(void *handle)
+static int32_t lpf_mcu_transport_uart_close(lpf_mcu_transport_handle_t handle)
 {
 	lpf_mcu_serial_context_t *ctx;
 
@@ -132,10 +132,10 @@ int32_t lpf_mcu_serial_deinit(void *handle)
 /**
  * @brief 发送 PDM protocol 报文并接收响应（透传模式）
  */
-int32_t lpf_mcu_serial_send_packet(void *handle, const uint8_t *packet,
-							   uint32_t packet_len, uint8_t *response,
-							   uint32_t resp_size, uint32_t *actual_size,
-							   uint32_t timeout_ms)
+static int32_t lpf_mcu_transport_uart_transfer(
+	lpf_mcu_transport_handle_t handle, const uint8_t *packet,
+	uint32_t packet_len, uint8_t *response, uint32_t resp_size,
+	uint32_t *actual_size, uint32_t timeout_ms)
 {
 	lpf_mcu_serial_context_t *ctx;
 	int32_t ret;
@@ -190,8 +190,10 @@ int32_t lpf_mcu_serial_send_packet(void *handle, const uint8_t *packet,
 /**
  * @brief Serial接口的ops结构定义（导出供lpf_mcu.c使用）
  */
-const lpf_mcu_ops_t lpf_mcu_serial_ops = {
-	.init = lpf_mcu_serial_init,
-	.deinit = lpf_mcu_serial_deinit,
-	.send_packet = lpf_mcu_serial_send_packet,
+const lpf_mcu_transport_ops_t lpf_mcu_transport_uart_ops = {
+	.interface = PCONFIG_MCU_INTERFACE_SERIAL,
+	.name = "uart",
+	.open = lpf_mcu_transport_uart_open,
+	.close = lpf_mcu_transport_uart_close,
+	.transfer = lpf_mcu_transport_uart_transfer,
 };

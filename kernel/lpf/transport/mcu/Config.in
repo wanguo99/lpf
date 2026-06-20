@@ -1,0 +1,21 @@
+# LPF MCU transport configuration
+
+if LPF_MCU_SERVICE
+
+config LPF_MCU_TRANSPORT_CAN
+	bool "LPF MCU CAN transport"
+	default y
+	depends on HAL_CAN
+	help
+	  Enable the CAN-backed transport implementation used by the LPF MCU
+	  service for PCONFIG_MCU_INTERFACE_CAN entries.
+
+config LPF_MCU_TRANSPORT_UART
+	bool "LPF MCU UART transport"
+	default y
+	depends on HAL_UART
+	help
+	  Enable the UART-backed transport implementation used by the LPF MCU
+	  service for PCONFIG_MCU_INTERFACE_SERIAL entries.
+
+endif # LPF_MCU_SERVICE

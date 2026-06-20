@@ -8,7 +8,6 @@
  ************************************************************************/
 
 #include "osal.h"
-#include "hal.h"
 #include "pconfig.h"
 #include "pdm_protocol.h"
 #include "lpf_mcu_internal.h"
@@ -19,8 +18,8 @@
 
 typedef struct {
 	const pconfig_mcu_config_t *config;
-	const lpf_mcu_ops_t *ops;
-	void *transport_handle;
+	const lpf_mcu_transport_ops_t *transport;
+	lpf_mcu_transport_handle_t transport_handle;
 	osal_mutex_t mutex;
 } lpf_mcu_context_t;
 
@@ -72,9 +71,9 @@ static int32_t _mcu_send_packet(lpf_mcu_context_t *ctx, uint8_t msg_type,
 	}
 
 	/* 发送并接收响应 */
-	ret = ctx->ops->send_packet(ctx->transport_handle, tx_buffer, tx_len,
-								rx_buffer, PDM_PROTOCOL_MAX_PACKET_SIZE, &rx_len,
-								ctx->config->cmd_timeout_ms);
+	ret = ctx->transport->transfer(ctx->transport_handle, tx_buffer, tx_len,
+				       rx_buffer, PDM_PROTOCOL_MAX_PACKET_SIZE,
+				       &rx_len, ctx->config->cmd_timeout_ms);
 	if (ret != OSAL_SUCCESS) {
 		goto out_free;
 	}
@@ -168,7 +167,7 @@ static int32_t lpf_mcu_init_from_entry(uint32_t mcu_index,
 				       lpf_mcu_handle_t *handle)
 {
 	lpf_mcu_context_t *ctx;
-	const lpf_mcu_ops_t *ops;
+	const lpf_mcu_transport_ops_t *transport;
 	int32_t ret;
 
 	if (!handle) {
@@ -186,17 +185,9 @@ static int32_t lpf_mcu_init_from_entry(uint32_t mcu_index,
 	if (lpf_mcu_registry_init() != OSAL_SUCCESS)
 		return OSAL_ERR_GENERIC;
 
-	/* 选择通信层 */
-	switch (entry->config.interface) {
-	case PCONFIG_MCU_INTERFACE_CAN:
-		ops = &lpf_mcu_can_ops;
-		break;
-	case PCONFIG_MCU_INTERFACE_SERIAL:
-		ops = &lpf_mcu_serial_ops;
-		break;
-	default:
+	transport = lpf_mcu_transport_get(entry->config.interface);
+	if (!transport)
 		return OSAL_ERR_GENERIC;
-	}
 
 	osal_mutex_lock(&g_registry_mutex);
 	if (g_mcu_contexts[mcu_index]) {
@@ -214,10 +205,10 @@ static int32_t lpf_mcu_init_from_entry(uint32_t mcu_index,
 
 	osal_memset(ctx, 0, sizeof(lpf_mcu_context_t));
 	ctx->config = &entry->config;
-	ctx->ops = ops;
+	ctx->transport = transport;
 
 	/* 初始化通信层 */
-	ret = ops->init(&entry->config, &ctx->transport_handle);
+	ret = transport->open(&entry->config, &ctx->transport_handle);
 	if (ret != OSAL_SUCCESS) {
 		osal_free(ctx);
 		return ret;
@@ -225,7 +216,7 @@ static int32_t lpf_mcu_init_from_entry(uint32_t mcu_index,
 
 	/* 创建互斥锁 */
 	if (OSAL_SUCCESS != osal_mutex_init(&ctx->mutex, NULL)) {
-		ops->deinit(ctx->transport_handle);
+		transport->close(ctx->transport_handle);
 		osal_free(ctx);
 		return OSAL_ERR_GENERIC;
 	}
@@ -236,7 +227,7 @@ static int32_t lpf_mcu_init_from_entry(uint32_t mcu_index,
 		*handle = g_mcu_contexts[mcu_index];
 		osal_mutex_unlock(&g_registry_mutex);
 		osal_mutex_destroy(&ctx->mutex);
-		ops->deinit(ctx->transport_handle);
+		transport->close(ctx->transport_handle);
 		osal_free(ctx);
 		return OSAL_SUCCESS;
 	}
@@ -343,7 +334,7 @@ static void lpf_mcu_remove_index(uint32_t index)
 	if (!ctx)
 		return;
 
-	ctx->ops->deinit(ctx->transport_handle);
+	ctx->transport->close(ctx->transport_handle);
 	osal_mutex_destroy(&ctx->mutex);
 	osal_free(ctx);
 }
@@ -394,7 +385,7 @@ int32_t lpf_mcu_deinit(lpf_mcu_handle_t handle)
 	osal_mutex_unlock(&g_registry_mutex);
 
 	/* 清理资源 */
-	ctx->ops->deinit(ctx->transport_handle);
+	ctx->transport->close(ctx->transport_handle);
 	osal_mutex_destroy(&ctx->mutex);
 	osal_free(ctx);
 

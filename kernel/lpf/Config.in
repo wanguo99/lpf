@@ -58,6 +58,7 @@ menuconfig LPF_MCU_SERVICE
 	  /dev/lpf/mcuN, sysfs attributes, and debugfs commands.
 
 source "kernel/lpf/peripheral/mcu/Config.in"
+source "kernel/lpf/transport/mcu/Config.in"
 
 menuconfig LPF_LED_SERVICE
 	bool "LPF LED peripheral service"

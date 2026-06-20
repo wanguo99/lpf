@@ -70,8 +70,6 @@ kernel/lpf/peripheral/
 │   ├── lpf_mcu_service.c
 │   ├── lpf_mcu_chrdev.c
 │   ├── lpf_mcu_proc.c
-│   ├── lpf_mcu_can.c
-│   ├── lpf_mcu_serial.c
 │   └── lpf_mcu_internal.h
 └── led/
     ├── Config.in
@@ -79,10 +77,17 @@ kernel/lpf/peripheral/
     ├── lpf_led_chrdev.c
     ├── lpf_led_proc.c
     └── lpf_led_internal.h
+kernel/lpf/transport/
+└── mcu/
+    ├── Config.in
+    ├── lpf_mcu_transport.c
+    ├── lpf_mcu_transport_can.c
+    └── lpf_mcu_transport_uart.c
 
 kernel/include/lpf/
+├── lpf_led_service.h
 ├── lpf_mcu_service.h
-└── lpf_led_service.h
+└── lpf_mcu_transport.h
 
 kernel/include/pdm/
 └── pdm.h
@@ -154,9 +159,10 @@ For example:
 - `echo "set 0 128" > /sys/kernel/debug/lpf/led`
 - `echo "enable 0" > /sys/kernel/debug/lpf/led`
 
-MCU transport glue is linked into `pdm.ko`, but hardware access remains behind
-HAL. `pdm.ko` depends on `lpf_core.ko` and `hal.ko`, and the LPF MCU service
-calls the HAL transport symbols exported by `hal.ko`.
+MCU transport implementations live under `kernel/lpf/transport/mcu/` and are
+selected through `lpf_mcu_transport_get()`. They are still linked into
+`pdm.ko`, but the MCU service no longer directly depends on CAN or UART
+implementation symbols. Hardware access remains behind HAL.
 
 The protocol layer under `src/protocol/` is a common PDM-internal peripheral
 communication protocol. It does not own module lifecycle; concrete peripheral

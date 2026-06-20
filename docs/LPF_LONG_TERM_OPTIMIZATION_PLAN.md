@@ -331,8 +331,11 @@ Current status:
 - Started. MCU and LED services register as LPF drivers and expose
   `/dev/lpf/mcuN` and `/dev/lpf/ledN`; they are still linked into `pdm.ko`
   until peripheral services are split into standalone modules.
-- Remaining work: split MCU transport into replaceable transport services and
-  promote LED/MCU services into standalone LPF peripheral modules.
+- Started. MCU CAN/UART implementations have moved behind
+  `kernel/lpf/transport/mcu/` and are selected through the LPF MCU transport
+  registry instead of direct service dependencies.
+- Remaining work: promote MCU transports and LED/MCU services into standalone
+  LPF modules.
 
 ## Phase 8: UAPI And PDI Separation
 
@@ -519,9 +522,9 @@ Current status:
 9. Split UAPI and PDI.
 10. Add debugfs, sysfs, and test coverage.
 
-LED should be migrated before MCU because it is simpler and can validate the
-new model with less protocol and transport complexity. MCU should follow after
-the transport abstraction is in place.
+LED was migrated before MCU because it is simpler and validated the new model
+with less protocol and transport complexity. MCU now follows the same model
+with a separate transport abstraction.
 
 ## Final Acceptance Criteria
 
