@@ -10,19 +10,18 @@
 #include "osal.h"
 #include "hal.h"
 #include "pconfig.h"
-#include "pdm.h"
-#include "pdm_mcu_internal.h"
+#include "lpf_mcu_internal.h"
 
 /*===========================================================================
- * PDM → HAL 类型转换（内部函数，不对外暴露）
+ * PCONFIG → HAL 类型转换（内部函数，不对外暴露）
  *===========================================================================*/
 
 /**
- * @brief 转换 PDM 校验位类型到 HAL 校验位类型
+ * @brief 转换 PCONFIG 校验位类型到 HAL 校验位类型
  */
-static uint8_t _pdm_to_hal_parity(pconfig_mcu_parity_t pdm_parity)
+static uint8_t _lpf_mcu_to_hal_parity(pconfig_mcu_parity_t parity)
 {
-	switch (pdm_parity) {
+	switch (parity) {
 	case PCONFIG_MCU_PARITY_NONE:
 		return HAL_SERIAL_PARITY_NONE;
 	case PCONFIG_MCU_PARITY_ODD:
@@ -35,11 +34,11 @@ static uint8_t _pdm_to_hal_parity(pconfig_mcu_parity_t pdm_parity)
 }
 
 /**
- * @brief 转换 PDM 流控类型到 HAL 流控类型
+ * @brief 转换 PCONFIG 流控类型到 HAL 流控类型
  */
-static uint8_t _pdm_to_hal_flow_control(pconfig_mcu_flow_control_t pdm_flow)
+static uint8_t _lpf_mcu_to_hal_flow_control(pconfig_mcu_flow_control_t flow)
 {
-	switch (pdm_flow) {
+	switch (flow) {
 	case PCONFIG_MCU_FLOW_NONE:
 		return HAL_SERIAL_FLOW_NONE;
 	case PCONFIG_MCU_FLOW_HW:
@@ -61,15 +60,15 @@ static uint8_t _pdm_to_hal_flow_control(pconfig_mcu_flow_control_t pdm_flow)
 typedef struct {
 	hal_serial_handle_t serial_handle;
 	osal_mutex_t rx_mutex;
-} mcu_serial_context_t;
+} lpf_mcu_serial_context_t;
 
 /**
  * @brief 初始化串口通信
  */
-int32_t mcu_serial_init(const void *config, void **handle)
+int32_t lpf_mcu_serial_init(const void *config, void **handle)
 {
 	const pconfig_mcu_config_t *mcu_cfg;
-	mcu_serial_context_t *ctx;
+	lpf_mcu_serial_context_t *ctx;
 	hal_serial_config_t serial_config;
 
 	if (!config || !handle) {
@@ -77,20 +76,21 @@ int32_t mcu_serial_init(const void *config, void **handle)
 	}
 
 	mcu_cfg = (const pconfig_mcu_config_t *)config;
-	ctx = (mcu_serial_context_t *)osal_malloc(sizeof(mcu_serial_context_t));
+	ctx = (lpf_mcu_serial_context_t *)osal_malloc(sizeof(lpf_mcu_serial_context_t));
 	if (!ctx) {
 		return OSAL_ERR_NO_MEMORY;
 	}
 
-	osal_memset(ctx, 0, sizeof(mcu_serial_context_t));
+	osal_memset(ctx, 0, sizeof(lpf_mcu_serial_context_t));
 
 	/* 配置串口参数 */
 	serial_config.baud_rate = mcu_cfg->hw.serial.baudrate;
 	serial_config.data_bits = mcu_cfg->hw.serial.data_bits;
 	serial_config.stop_bits = mcu_cfg->hw.serial.stop_bits;
-	serial_config.parity = _pdm_to_hal_parity(mcu_cfg->hw.serial.parity);
+	serial_config.parity =
+		_lpf_mcu_to_hal_parity(mcu_cfg->hw.serial.parity);
 	serial_config.flow_control =
-		_pdm_to_hal_flow_control(mcu_cfg->hw.serial.flow_control);
+		_lpf_mcu_to_hal_flow_control(mcu_cfg->hw.serial.flow_control);
 
 	if (OSAL_SUCCESS != hal_serial_open(mcu_cfg->hw.serial.device,
 										&serial_config, &ctx->serial_handle)) {
@@ -112,15 +112,15 @@ int32_t mcu_serial_init(const void *config, void **handle)
 /**
  * @brief 反初始化串口通信
  */
-int32_t mcu_serial_deinit(void *handle)
+int32_t lpf_mcu_serial_deinit(void *handle)
 {
-	mcu_serial_context_t *ctx;
+	lpf_mcu_serial_context_t *ctx;
 
 	if (!handle) {
 		return OSAL_ERR_INVALID_PARAM;
 	}
 
-	ctx = (mcu_serial_context_t *)handle;
+	ctx = (lpf_mcu_serial_context_t *)handle;
 
 	hal_serial_close(ctx->serial_handle);
 	osal_mutex_destroy(&ctx->rx_mutex);
@@ -132,12 +132,12 @@ int32_t mcu_serial_deinit(void *handle)
 /**
  * @brief 发送 PDM protocol 报文并接收响应（透传模式）
  */
-int32_t mcu_serial_send_packet(void *handle, const uint8_t *packet,
+int32_t lpf_mcu_serial_send_packet(void *handle, const uint8_t *packet,
 							   uint32_t packet_len, uint8_t *response,
 							   uint32_t resp_size, uint32_t *actual_size,
 							   uint32_t timeout_ms)
 {
-	mcu_serial_context_t *ctx;
+	lpf_mcu_serial_context_t *ctx;
 	int32_t ret;
 	int32_t rx_len;
 	uint64_t start_time_us;
@@ -148,7 +148,7 @@ int32_t mcu_serial_send_packet(void *handle, const uint8_t *packet,
 		return OSAL_ERR_INVALID_PARAM;
 	}
 
-	ctx = (mcu_serial_context_t *)handle;
+	ctx = (lpf_mcu_serial_context_t *)handle;
 
 	/* 记录起始时间 */
 	start_time_us = osal_get_monotonic_time();
@@ -188,10 +188,10 @@ int32_t mcu_serial_send_packet(void *handle, const uint8_t *packet,
 }
 
 /**
- * @brief Serial接口的ops结构定义（导出供pdm_mcu.c使用）
+ * @brief Serial接口的ops结构定义（导出供lpf_mcu.c使用）
  */
-const pdm_mcu_ops_t mcu_serial_ops = {
-	.init = mcu_serial_init,
-	.deinit = mcu_serial_deinit,
-	.send_packet = mcu_serial_send_packet,
+const lpf_mcu_ops_t lpf_mcu_serial_ops = {
+	.init = lpf_mcu_serial_init,
+	.deinit = lpf_mcu_serial_deinit,
+	.send_packet = lpf_mcu_serial_send_packet,
 };

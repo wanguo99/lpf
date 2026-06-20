@@ -209,13 +209,13 @@ device and driver lifecycle instead of adding new PDM-local bus code.
 
 - [x] Remove unused `ccflags-$(CONFIG_...) += -DCONFIG_...` definitions from
       `kernel/Makefile`.
-  - Keep Kbuild object selection such as `pdm-$(CONFIG_PDM_MCU_SUPPORT)`.
+  - Keep Kbuild object selection such as `pdm-$(CONFIG_LPF_MCU_SERVICE)`.
 - [x] Keep feature selection at object/list registration boundaries.
   - Kconfig selects objects.
   - Linked objects register themselves.
   - Business code should not branch on feature macros.
 - [x] Revisit parameter macros.
-  - Capacity parameters such as `CONFIG_PDM_MCU_MAX_DEVICES` may remain.
+  - Capacity parameters such as `CONFIG_LPF_MCU_MAX_DEVICES` may remain.
   - Prefer generated config constants or module parameters if runtime tuning is
     needed.
 - [x] Remove or document transitional CMake kernel component logic.

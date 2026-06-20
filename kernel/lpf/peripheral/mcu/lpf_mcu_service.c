@@ -10,10 +10,8 @@
 #include "osal.h"
 #include "hal.h"
 #include "pconfig.h"
-#include "pdm.h"
-#include "pdm_internal.h"
 #include "pdm_protocol.h"
-#include "pdm_mcu_internal.h"
+#include "lpf_mcu_internal.h"
 
 /*===========================================================================
  * MCU上下文
@@ -21,18 +19,18 @@
 
 typedef struct {
 	const pconfig_mcu_config_t *config;
-	const pdm_mcu_ops_t *ops;
+	const lpf_mcu_ops_t *ops;
 	void *transport_handle;
 	osal_mutex_t mutex;
-} pdm_mcu_context_t;
+} lpf_mcu_context_t;
 
-static pdm_mcu_context_t *g_mcu_contexts[PDM_MCU_MAX_DEVICES] = { NULL };
+static lpf_mcu_context_t *g_mcu_contexts[LPF_MCU_MAX_DEVICES] = { NULL };
 static osal_mutex_t g_registry_mutex;
 static bool g_registry_initialized = false;
 
-static const pdm_driver_t g_pdm_mcu_driver;
+static const lpf_driver_t g_lpf_mcu_driver;
 
-static void pdm_mcu_remove_index(uint32_t index);
+static void lpf_mcu_remove_index(uint32_t index);
 
 /*===========================================================================
  * 内部辅助函数
@@ -41,7 +39,7 @@ static void pdm_mcu_remove_index(uint32_t index);
 /**
  * @brief 发送 PDM protocol 报文
  */
-static int32_t _mcu_send_packet(pdm_mcu_context_t *ctx, uint8_t msg_type,
+static int32_t _mcu_send_packet(lpf_mcu_context_t *ctx, uint8_t msg_type,
 								const void *payload, uint16_t payload_len,
 								uint8_t *response, uint32_t resp_size,
 								uint32_t *actual_size)
@@ -97,7 +95,7 @@ out_free:
 	return ret;
 }
 
-static int32_t pdm_mcu_registry_init(void)
+static int32_t lpf_mcu_registry_init(void)
 {
 	if (g_registry_initialized)
 		return OSAL_SUCCESS;
@@ -116,9 +114,9 @@ static int32_t pdm_mcu_registry_init(void)
 /**
  * @brief 发送简单命令到MCU（无发送数据）
  */
-int32_t pdm_mcu_send_cmd(pdm_mcu_handle_t handle, pdm_mcu_cmd_t *cmd)
+int32_t lpf_mcu_send_cmd(lpf_mcu_handle_t handle, lpf_mcu_cmd_t *cmd)
 {
-	pdm_mcu_context_t *ctx = (pdm_mcu_context_t *)handle;
+	lpf_mcu_context_t *ctx = (lpf_mcu_context_t *)handle;
 	int32_t ret;
 
 	if (!ctx || !cmd) {
@@ -138,9 +136,9 @@ int32_t pdm_mcu_send_cmd(pdm_mcu_handle_t handle, pdm_mcu_cmd_t *cmd)
 /**
  * @brief 发送数据命令到MCU（带发送数据）
  */
-int32_t pdm_mcu_send_data(pdm_mcu_handle_t handle, pdm_mcu_data_t *data)
+int32_t lpf_mcu_send_data(lpf_mcu_handle_t handle, lpf_mcu_data_t *data)
 {
-	pdm_mcu_context_t *ctx = (pdm_mcu_context_t *)handle;
+	lpf_mcu_context_t *ctx = (lpf_mcu_context_t *)handle;
 	int32_t ret;
 
 	if (!ctx || !data) {
@@ -165,12 +163,12 @@ int32_t pdm_mcu_send_data(pdm_mcu_handle_t handle, pdm_mcu_data_t *data)
 /**
  * @brief 初始化 MCU 驱动
  */
-static int32_t pdm_mcu_init_from_entry(uint32_t mcu_index,
+static int32_t lpf_mcu_init_from_entry(uint32_t mcu_index,
 				       const pconfig_mcu_entry_t *entry,
-				       pdm_mcu_handle_t *handle)
+				       lpf_mcu_handle_t *handle)
 {
-	pdm_mcu_context_t *ctx;
-	const pdm_mcu_ops_t *ops;
+	lpf_mcu_context_t *ctx;
+	const lpf_mcu_ops_t *ops;
 	int32_t ret;
 
 	if (!handle) {
@@ -185,16 +183,16 @@ static int32_t pdm_mcu_init_from_entry(uint32_t mcu_index,
 		return OSAL_ERR_INVALID_PARAM;
 
 	/* 初始化全局注册表互斥锁 */
-	if (pdm_mcu_registry_init() != OSAL_SUCCESS)
+	if (lpf_mcu_registry_init() != OSAL_SUCCESS)
 		return OSAL_ERR_GENERIC;
 
 	/* 选择通信层 */
 	switch (entry->config.interface) {
 	case PCONFIG_MCU_INTERFACE_CAN:
-		ops = &mcu_can_ops;
+		ops = &lpf_mcu_can_ops;
 		break;
 	case PCONFIG_MCU_INTERFACE_SERIAL:
-		ops = &mcu_serial_ops;
+		ops = &lpf_mcu_serial_ops;
 		break;
 	default:
 		return OSAL_ERR_GENERIC;
@@ -209,12 +207,12 @@ static int32_t pdm_mcu_init_from_entry(uint32_t mcu_index,
 	osal_mutex_unlock(&g_registry_mutex);
 
 	/* 分配上下文 */
-	ctx = (pdm_mcu_context_t *)osal_malloc(sizeof(pdm_mcu_context_t));
+	ctx = (lpf_mcu_context_t *)osal_malloc(sizeof(lpf_mcu_context_t));
 	if (!ctx) {
 		return OSAL_ERR_NO_MEMORY;
 	}
 
-	osal_memset(ctx, 0, sizeof(pdm_mcu_context_t));
+	osal_memset(ctx, 0, sizeof(lpf_mcu_context_t));
 	ctx->config = &entry->config;
 	ctx->ops = ops;
 
@@ -249,7 +247,7 @@ static int32_t pdm_mcu_init_from_entry(uint32_t mcu_index,
 	return OSAL_SUCCESS;
 }
 
-int32_t pdm_mcu_init(uint32_t mcu_index, pdm_mcu_handle_t *handle)
+int32_t lpf_mcu_init(uint32_t mcu_index, lpf_mcu_handle_t *handle)
 {
 	const pconfig_platform_config_t *platform;
 	const pconfig_mcu_entry_t *entry;
@@ -259,37 +257,37 @@ int32_t pdm_mcu_init(uint32_t mcu_index, pdm_mcu_handle_t *handle)
 		return OSAL_ERR_GENERIC;
 
 	entry = pconfig_hw_get_mcu(platform, mcu_index);
-	return pdm_mcu_init_from_entry(mcu_index, entry, handle);
+	return lpf_mcu_init_from_entry(mcu_index, entry, handle);
 }
 
-int32_t pdm_mcu_probe(const lpf_device_t *device)
+int32_t lpf_mcu_probe(const lpf_device_t *device)
 {
 	const pconfig_mcu_entry_t *entry;
-	pdm_mcu_handle_t handle = NULL;
+	lpf_mcu_handle_t handle = NULL;
 	int32_t ret;
 
 	if (!device || device->config.type != LPF_DEVICE_TYPE_MCU)
 		return OSAL_ERR_INVALID_PARAM;
 
 	entry = (const pconfig_mcu_entry_t *)device->config.entry;
-	ret = pdm_mcu_init_from_entry(device->config.index, entry, &handle);
+	ret = lpf_mcu_init_from_entry(device->config.index, entry, &handle);
 	if (ret != OSAL_SUCCESS)
 		return ret;
 
-	ret = pdm_mcu_chrdev_register_device(device);
+	ret = lpf_mcu_chrdev_register_device(device);
 	if (ret) {
-		pdm_mcu_remove_index(device->config.index);
+		lpf_mcu_remove_index(device->config.index);
 		return OSAL_ERR_GENERIC;
 	}
 
 	return OSAL_SUCCESS;
 }
 
-pdm_mcu_handle_t pdm_mcu_get(uint32_t index)
+lpf_mcu_handle_t lpf_mcu_get(uint32_t index)
 {
-	pdm_mcu_handle_t handle = NULL;
+	lpf_mcu_handle_t handle = NULL;
 
-	if (pdm_mcu_registry_init() != OSAL_SUCCESS)
+	if (lpf_mcu_registry_init() != OSAL_SUCCESS)
 		return NULL;
 
 	if (index >= OSAL_ARRAY_SIZE(g_mcu_contexts))
@@ -302,9 +300,9 @@ pdm_mcu_handle_t pdm_mcu_get(uint32_t index)
 	return handle;
 }
 
-int32_t pdm_mcu_debug_get(uint32_t index, pdm_mcu_debug_info_t *info)
+int32_t lpf_mcu_debug_get(uint32_t index, lpf_mcu_debug_info_t *info)
 {
-	pdm_mcu_context_t *ctx;
+	lpf_mcu_context_t *ctx;
 
 	if (!info || index >= OSAL_ARRAY_SIZE(g_mcu_contexts))
 		return OSAL_ERR_INVALID_PARAM;
@@ -329,9 +327,9 @@ int32_t pdm_mcu_debug_get(uint32_t index, pdm_mcu_debug_info_t *info)
 	return OSAL_SUCCESS;
 }
 
-static void pdm_mcu_remove_index(uint32_t index)
+static void lpf_mcu_remove_index(uint32_t index)
 {
-	pdm_mcu_context_t *ctx;
+	lpf_mcu_context_t *ctx;
 
 	if (!g_registry_initialized ||
 	    index >= OSAL_ARRAY_SIZE(g_mcu_contexts))
@@ -350,16 +348,16 @@ static void pdm_mcu_remove_index(uint32_t index)
 	osal_free(ctx);
 }
 
-void pdm_mcu_remove(const lpf_device_t *device)
+void lpf_mcu_remove(const lpf_device_t *device)
 {
 	if (!device || device->config.type != LPF_DEVICE_TYPE_MCU)
 		return;
 
-	pdm_mcu_chrdev_unregister_device(device);
-	pdm_mcu_remove_index(device->config.index);
+	lpf_mcu_chrdev_unregister_device(device);
+	lpf_mcu_remove_index(device->config.index);
 }
 
-static void pdm_mcu_registry_deinit(void)
+static void lpf_mcu_registry_deinit(void)
 {
 	uint32_t i;
 
@@ -367,7 +365,7 @@ static void pdm_mcu_registry_deinit(void)
 		return;
 
 	for (i = 0; i < OSAL_ARRAY_SIZE(g_mcu_contexts); i++)
-		pdm_mcu_remove_index(i);
+		lpf_mcu_remove_index(i);
 
 	osal_mutex_destroy(&g_registry_mutex);
 	g_registry_initialized = false;
@@ -376,9 +374,9 @@ static void pdm_mcu_registry_deinit(void)
 /**
  * @brief 反初始化 MCU 驱动
  */
-int32_t pdm_mcu_deinit(pdm_mcu_handle_t handle)
+int32_t lpf_mcu_deinit(lpf_mcu_handle_t handle)
 {
-	pdm_mcu_context_t *ctx = (pdm_mcu_context_t *)handle;
+	lpf_mcu_context_t *ctx = (lpf_mcu_context_t *)handle;
 	uint32_t i;
 
 	if (!ctx) {
@@ -406,7 +404,7 @@ int32_t pdm_mcu_deinit(pdm_mcu_handle_t handle)
 /**
  * @brief 获取 MCU 版本信息
  */
-int32_t pdm_mcu_get_version(pdm_mcu_handle_t handle, pdm_mcu_version_t *version)
+int32_t lpf_mcu_get_version(lpf_mcu_handle_t handle, lpf_mcu_version_t *version)
 {
 	uint8_t response[64];
 	int32_t ret;
@@ -416,11 +414,11 @@ int32_t pdm_mcu_get_version(pdm_mcu_handle_t handle, pdm_mcu_version_t *version)
 	}
 
 	/* 发送 GET_VERSION 命令 */
-	pdm_mcu_cmd_t cmd = { .cmd = PDM_PROTOCOL_MCU_MSG_GET_VERSION,
+	lpf_mcu_cmd_t cmd = { .cmd = PDM_PROTOCOL_MCU_MSG_GET_VERSION,
 						  .response = response,
 						  .response_max = sizeof(response) };
 
-	ret = pdm_mcu_send_cmd(handle, &cmd);
+	ret = lpf_mcu_send_cmd(handle, &cmd);
 	if (ret != OSAL_SUCCESS) {
 		return ret;
 	}
@@ -445,7 +443,7 @@ int32_t pdm_mcu_get_version(pdm_mcu_handle_t handle, pdm_mcu_version_t *version)
 /**
  * @brief 获取 MCU 状态
  */
-int32_t pdm_mcu_get_status(pdm_mcu_handle_t handle, pdm_mcu_status_t *status)
+int32_t lpf_mcu_get_status(lpf_mcu_handle_t handle, lpf_mcu_status_t *status)
 {
 	uint8_t response[64];
 	int32_t ret;
@@ -455,11 +453,11 @@ int32_t pdm_mcu_get_status(pdm_mcu_handle_t handle, pdm_mcu_status_t *status)
 	}
 
 	/* 发送 GET_STATUS 命令 */
-	pdm_mcu_cmd_t cmd = { .cmd = PDM_PROTOCOL_MCU_MSG_GET_STATUS,
+	lpf_mcu_cmd_t cmd = { .cmd = PDM_PROTOCOL_MCU_MSG_GET_STATUS,
 						  .response = response,
 						  .response_max = sizeof(response) };
 
-	ret = pdm_mcu_send_cmd(handle, &cmd);
+	ret = lpf_mcu_send_cmd(handle, &cmd);
 	if (ret != OSAL_SUCCESS) {
 		return ret;
 	}
@@ -469,7 +467,7 @@ int32_t pdm_mcu_get_status(pdm_mcu_handle_t handle, pdm_mcu_status_t *status)
 	/* 解析状态信息 */
 	if (cmd.response_len >= 1) {
 		status->state = response[0];
-		status->online = (status->state != PDM_MCU_STATE_OFFLINE);
+		status->online = (status->state != LPF_MCU_STATE_OFFLINE);
 	} else {
 		return OSAL_ERR_GENERIC;
 	}
@@ -491,7 +489,7 @@ int32_t pdm_mcu_get_status(pdm_mcu_handle_t handle, pdm_mcu_status_t *status)
 /**
  * @brief MCU 复位
  */
-int32_t pdm_mcu_reset(pdm_mcu_handle_t handle)
+int32_t lpf_mcu_reset(lpf_mcu_handle_t handle)
 {
 	uint8_t response[64];
 
@@ -500,17 +498,17 @@ int32_t pdm_mcu_reset(pdm_mcu_handle_t handle)
 	}
 
 	/* 发送 RESET 命令 */
-	pdm_mcu_cmd_t cmd = { .cmd = PDM_PROTOCOL_MCU_MSG_RESET,
+	lpf_mcu_cmd_t cmd = { .cmd = PDM_PROTOCOL_MCU_MSG_RESET,
 						  .response = response,
 						  .response_max = sizeof(response) };
 
-	return pdm_mcu_send_cmd(handle, &cmd);
+	return lpf_mcu_send_cmd(handle, &cmd);
 }
 
 /**
  * @brief 读取 MCU 数据
  */
-int32_t pdm_mcu_read_data(pdm_mcu_handle_t handle, uint32_t addr, uint8_t *data,
+int32_t lpf_mcu_read_data(lpf_mcu_handle_t handle, uint32_t addr, uint8_t *data,
 						  uint32_t size)
 {
 	uint8_t request[8];
@@ -531,13 +529,13 @@ int32_t pdm_mcu_read_data(pdm_mcu_handle_t handle, uint32_t addr, uint8_t *data,
 	request[7] = size & 0xFF;
 
 	/* 发送 READ_DATA 命令 */
-	pdm_mcu_data_t send_data = { .cmd = PDM_PROTOCOL_MCU_MSG_READ_DATA,
+	lpf_mcu_data_t send_data = { .cmd = PDM_PROTOCOL_MCU_MSG_READ_DATA,
 								 .data = request,
 								 .data_len = 8,
 								 .response = data,
 								 .response_max = size };
 
-	ret = pdm_mcu_send_data(handle, &send_data);
+	ret = lpf_mcu_send_data(handle, &send_data);
 	if (ret != OSAL_SUCCESS) {
 		return ret;
 	}
@@ -548,7 +546,7 @@ int32_t pdm_mcu_read_data(pdm_mcu_handle_t handle, uint32_t addr, uint8_t *data,
 /**
  * @brief 写入 MCU 数据
  */
-int32_t pdm_mcu_write_data(pdm_mcu_handle_t handle, uint32_t addr,
+int32_t lpf_mcu_write_data(lpf_mcu_handle_t handle, uint32_t addr,
 						   const uint8_t *data, uint32_t size)
 {
 	uint8_t request[256];
@@ -570,19 +568,19 @@ int32_t pdm_mcu_write_data(pdm_mcu_handle_t handle, uint32_t addr,
 	osal_memcpy(&request[8], data, size);
 
 	/* 发送 WRITE_DATA 命令 */
-	pdm_mcu_data_t send_data = { .cmd = PDM_PROTOCOL_MCU_MSG_WRITE_DATA,
+	lpf_mcu_data_t send_data = { .cmd = PDM_PROTOCOL_MCU_MSG_WRITE_DATA,
 								 .data = request,
 								 .data_len = 8 + size,
 								 .response = response,
 								 .response_max = sizeof(response) };
 
-	return pdm_mcu_send_data(handle, &send_data);
+	return lpf_mcu_send_data(handle, &send_data);
 }
 
 /**
  * @brief 执行 MCU 命令
  */
-int32_t pdm_mcu_send_command(pdm_mcu_handle_t handle, uint8_t cmd_id,
+int32_t lpf_mcu_send_command(lpf_mcu_handle_t handle, uint8_t cmd_id,
 							 const uint8_t *params, uint32_t param_len,
 							 uint8_t *result, uint32_t result_size,
 							 uint32_t *actual_len)
@@ -601,13 +599,13 @@ int32_t pdm_mcu_send_command(pdm_mcu_handle_t handle, uint8_t cmd_id,
 	}
 
 	/* 发送 EXECUTE_CMD 命令 */
-	pdm_mcu_data_t send_data = { .cmd = PDM_PROTOCOL_MCU_MSG_EXECUTE_CMD,
+	lpf_mcu_data_t send_data = { .cmd = PDM_PROTOCOL_MCU_MSG_EXECUTE_CMD,
 								 .data = request,
 								 .data_len = 1 + param_len,
 								 .response = result,
 								 .response_max = result_size };
 
-	ret = pdm_mcu_send_data(handle, &send_data);
+	ret = lpf_mcu_send_data(handle, &send_data);
 	if (ret == OSAL_SUCCESS && actual_len) {
 		*actual_len = send_data.response_len;
 	}
@@ -615,56 +613,56 @@ int32_t pdm_mcu_send_command(pdm_mcu_handle_t handle, uint8_t cmd_id,
 	return ret;
 }
 
-static int pdm_mcu_driver_init(void)
+static int lpf_mcu_driver_init(void)
 {
 	int ret;
 
-	ret = pdm_mcu_chrdev_register();
+	ret = lpf_mcu_chrdev_register();
 	if (ret)
 		return ret;
 
-	ret = pdm_mcu_proc_register();
+	ret = lpf_mcu_proc_register();
 	if (ret) {
-		pdm_mcu_chrdev_unregister();
+		lpf_mcu_chrdev_unregister();
 		return ret;
 	}
 
-	ret = pdm_mcu_debugfs_register();
+	ret = lpf_mcu_debugfs_register();
 	if (ret) {
-		pdm_mcu_proc_unregister();
-		pdm_mcu_chrdev_unregister();
+		lpf_mcu_proc_unregister();
+		lpf_mcu_chrdev_unregister();
 		return ret;
 	}
 
-	LOG_INFO("PDM_MCU", "registered");
+	LOG_INFO("LPF_MCU", "registered");
 	return 0;
 }
 
-static void pdm_mcu_driver_exit(void)
+static void lpf_mcu_driver_exit(void)
 {
-	pdm_mcu_registry_deinit();
-	pdm_mcu_debugfs_unregister();
-	pdm_mcu_proc_unregister();
-	pdm_mcu_chrdev_unregister();
-	LOG_INFO("PDM_MCU", "unregistered");
+	lpf_mcu_registry_deinit();
+	lpf_mcu_debugfs_unregister();
+	lpf_mcu_proc_unregister();
+	lpf_mcu_chrdev_unregister();
+	LOG_INFO("LPF_MCU", "unregistered");
 }
 
-static const pdm_driver_t g_pdm_mcu_driver = {
+static const lpf_driver_t g_lpf_mcu_driver = {
 	.name = "mcu",
 	.type = LPF_DEVICE_TYPE_MCU,
 	.capabilities = LPF_DEVICE_CAP_USER_IOCTL | LPF_DEVICE_CAP_DEBUGFS,
-	.init = pdm_mcu_driver_init,
-	.exit = pdm_mcu_driver_exit,
-	.probe = pdm_mcu_probe,
-	.remove = pdm_mcu_remove,
+	.init = lpf_mcu_driver_init,
+	.exit = lpf_mcu_driver_exit,
+	.probe = lpf_mcu_probe,
+	.remove = lpf_mcu_remove,
 };
 
-int32_t pdm_mcu_driver_register(void)
+int32_t lpf_mcu_service_register(void)
 {
-	return lpf_driver_register(&g_pdm_mcu_driver);
+	return lpf_driver_register(&g_lpf_mcu_driver);
 }
 
-void pdm_mcu_driver_unregister(void)
+void lpf_mcu_service_unregister(void)
 {
-	lpf_driver_unregister(&g_pdm_mcu_driver);
+	lpf_driver_unregister(&g_lpf_mcu_driver);
 }

@@ -10,8 +10,7 @@
 #include "osal.h"
 #include "hal.h"
 #include "pconfig.h"
-#include "pdm.h"
-#include "pdm_mcu_internal.h"
+#include "lpf_mcu_internal.h"
 
 /*===========================================================================
  * CAN通信实现
@@ -25,15 +24,15 @@ typedef struct {
 	uint32_t tx_id;
 	uint32_t rx_id;
 	osal_mutex_t rx_mutex;
-} mcu_can_context_t;
+} lpf_mcu_can_context_t;
 
 /**
  * @brief 初始化CAN通信
  */
-int32_t mcu_can_init(const void *config, void **handle)
+int32_t lpf_mcu_can_init(const void *config, void **handle)
 {
 	const pconfig_mcu_config_t *mcu_cfg;
-	mcu_can_context_t *ctx;
+	lpf_mcu_can_context_t *ctx;
 	hal_can_config_t can_config;
 
 	if (!config || !handle) {
@@ -41,12 +40,12 @@ int32_t mcu_can_init(const void *config, void **handle)
 	}
 
 	mcu_cfg = (const pconfig_mcu_config_t *)config;
-	ctx = (mcu_can_context_t *)osal_malloc(sizeof(mcu_can_context_t));
+	ctx = (lpf_mcu_can_context_t *)osal_malloc(sizeof(lpf_mcu_can_context_t));
 	if (!ctx) {
 		return OSAL_ERR_NO_MEMORY;
 	}
 
-	osal_memset(ctx, 0, sizeof(mcu_can_context_t));
+	osal_memset(ctx, 0, sizeof(lpf_mcu_can_context_t));
 
 	/* 配置CAN参数 */
 	can_config.interface = mcu_cfg->hw.can.device;
@@ -76,15 +75,15 @@ int32_t mcu_can_init(const void *config, void **handle)
 /**
  * @brief 反初始化CAN通信
  */
-int32_t mcu_can_deinit(void *handle)
+int32_t lpf_mcu_can_deinit(void *handle)
 {
-	mcu_can_context_t *ctx;
+	lpf_mcu_can_context_t *ctx;
 
 	if (!handle) {
 		return OSAL_ERR_INVALID_PARAM;
 	}
 
-	ctx = (mcu_can_context_t *)handle;
+	ctx = (lpf_mcu_can_context_t *)handle;
 
 	hal_can_deinit(ctx->can_handle);
 	osal_mutex_destroy(&ctx->rx_mutex);
@@ -96,12 +95,12 @@ int32_t mcu_can_deinit(void *handle)
 /**
  * @brief 发送 PDM protocol 报文并接收响应
  */
-int32_t mcu_can_send_packet(void *handle, const uint8_t *packet,
+int32_t lpf_mcu_can_send_packet(void *handle, const uint8_t *packet,
 							uint32_t packet_len, uint8_t *response,
 							uint32_t resp_size, uint32_t *actual_size,
 							uint32_t timeout_ms)
 {
-	mcu_can_context_t *ctx;
+	lpf_mcu_can_context_t *ctx;
 	hal_can_frame_t can_frame;
 	hal_can_frame_t rx_frame;
 	int32_t ret;
@@ -115,7 +114,7 @@ int32_t mcu_can_send_packet(void *handle, const uint8_t *packet,
 		return OSAL_ERR_INVALID_PARAM;
 	}
 
-	ctx = (mcu_can_context_t *)handle;
+	ctx = (lpf_mcu_can_context_t *)handle;
 
 	/* 记录起始时间 */
 	start_time_us = osal_get_monotonic_time();
@@ -199,10 +198,10 @@ int32_t mcu_can_send_packet(void *handle, const uint8_t *packet,
 }
 
 /**
- * @brief CAN接口的ops结构定义（导出供pdm_mcu.c使用）
+ * @brief CAN接口的ops结构定义（导出供lpf_mcu.c使用）
  */
-const pdm_mcu_ops_t mcu_can_ops = {
-	.init = mcu_can_init,
-	.deinit = mcu_can_deinit,
-	.send_packet = mcu_can_send_packet,
+const lpf_mcu_ops_t lpf_mcu_can_ops = {
+	.init = lpf_mcu_can_init,
+	.deinit = lpf_mcu_can_deinit,
+	.send_packet = lpf_mcu_can_send_packet,
 };

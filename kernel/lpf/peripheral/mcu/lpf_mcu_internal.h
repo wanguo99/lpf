@@ -6,20 +6,20 @@
  * - 声明内部接口（CAN/串口通信层）
  ************************************************************************/
 
-#ifndef PDM_MCU_INTERNAL_H
-#define PDM_MCU_INTERNAL_H
+#ifndef LPF_MCU_INTERNAL_H
+#define LPF_MCU_INTERNAL_H
 
 #include "osal.h"
 #include "lpf/lpf_core.h"
 #include "pconfig.h"
-#include "pdm_mcu.h"
+#include "lpf/lpf_mcu_service.h"
 #include "pdm_protocol.h"
 
-#ifndef CONFIG_PDM_MCU_MAX_DEVICES
-#define CONFIG_PDM_MCU_MAX_DEVICES 4
+#ifndef CONFIG_LPF_MCU_MAX_DEVICES
+#define CONFIG_LPF_MCU_MAX_DEVICES 4
 #endif
 
-#define PDM_MCU_MAX_DEVICES CONFIG_PDM_MCU_MAX_DEVICES
+#define LPF_MCU_MAX_DEVICES CONFIG_LPF_MCU_MAX_DEVICES
 
 /*===========================================================================
  * 通信层操作函数表
@@ -59,56 +59,54 @@ typedef struct {
 						   uint32_t packet_len, uint8_t *response,
 						   uint32_t resp_size, uint32_t *actual_size,
 						   uint32_t timeout_ms);
-} pdm_mcu_ops_t;
+} lpf_mcu_ops_t;
 
 typedef struct {
 	bool present;
 	char name[64];
 	pconfig_mcu_interface_t interface;
 	uint32_t cmd_timeout_ms;
-} pdm_mcu_debug_info_t;
+} lpf_mcu_debug_info_t;
 
 /*===========================================================================
  * CAN通信层接口
  *===========================================================================*/
 
-int32_t mcu_can_init(const void *config, void **handle);
-int32_t mcu_can_deinit(void *handle);
-int32_t mcu_can_send_packet(void *handle, const uint8_t *packet,
+int32_t lpf_mcu_can_init(const void *config, void **handle);
+int32_t lpf_mcu_can_deinit(void *handle);
+int32_t lpf_mcu_can_send_packet(void *handle, const uint8_t *packet,
 							uint32_t packet_len, uint8_t *response,
 							uint32_t resp_size, uint32_t *actual_size,
 							uint32_t timeout_ms);
 
-extern const pdm_mcu_ops_t mcu_can_ops;
+extern const lpf_mcu_ops_t lpf_mcu_can_ops;
 
 /*===========================================================================
  * 串口通信层接口
  *===========================================================================*/
 
-int32_t mcu_serial_init(const void *config, void **handle);
-int32_t mcu_serial_deinit(void *handle);
-int32_t mcu_serial_send_packet(void *handle, const uint8_t *packet,
+int32_t lpf_mcu_serial_init(const void *config, void **handle);
+int32_t lpf_mcu_serial_deinit(void *handle);
+int32_t lpf_mcu_serial_send_packet(void *handle, const uint8_t *packet,
 							   uint32_t packet_len, uint8_t *response,
 							   uint32_t resp_size, uint32_t *actual_size,
 							   uint32_t timeout_ms);
 
-extern const pdm_mcu_ops_t mcu_serial_ops;
+extern const lpf_mcu_ops_t lpf_mcu_serial_ops;
 
-int32_t pdm_mcu_probe(const lpf_device_t *device);
-void pdm_mcu_remove(const lpf_device_t *device);
-int32_t pdm_mcu_driver_register(void);
-void pdm_mcu_driver_unregister(void);
-pdm_mcu_handle_t pdm_mcu_get(uint32_t index);
-int32_t pdm_mcu_debug_get(uint32_t index, pdm_mcu_debug_info_t *info);
+int32_t lpf_mcu_probe(const lpf_device_t *device);
+void lpf_mcu_remove(const lpf_device_t *device);
+lpf_mcu_handle_t lpf_mcu_get(uint32_t index);
+int32_t lpf_mcu_debug_get(uint32_t index, lpf_mcu_debug_info_t *info);
 
-int pdm_mcu_chrdev_register(void);
-void pdm_mcu_chrdev_unregister(void);
-int pdm_mcu_chrdev_register_device(const lpf_device_t *device);
-void pdm_mcu_chrdev_unregister_device(const lpf_device_t *device);
-void pdm_mcu_chrdev_record_error(uint32_t index, int error);
-int pdm_mcu_proc_register(void);
-void pdm_mcu_proc_unregister(void);
-int pdm_mcu_debugfs_register(void);
-void pdm_mcu_debugfs_unregister(void);
+int lpf_mcu_chrdev_register(void);
+void lpf_mcu_chrdev_unregister(void);
+int lpf_mcu_chrdev_register_device(const lpf_device_t *device);
+void lpf_mcu_chrdev_unregister_device(const lpf_device_t *device);
+void lpf_mcu_chrdev_record_error(uint32_t index, int error);
+int lpf_mcu_proc_register(void);
+void lpf_mcu_proc_unregister(void);
+int lpf_mcu_debugfs_register(void);
+void lpf_mcu_debugfs_unregister(void);
 
-#endif /* PDM_MCU_INTERNAL_H */
+#endif /* LPF_MCU_INTERNAL_H */

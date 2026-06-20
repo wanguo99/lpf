@@ -123,9 +123,9 @@ the data.
 LPF peripheral services own kernel-side peripheral business behavior, ioctl
 dispatch, state, error handling, and debug command handlers. Services register
 with LPF Core for device lifecycle handling and use LPF chrdev/sysfs/debugfs
-helpers for runtime nodes. The LED service now lives under
-`kernel/lpf/peripheral/led/` and exposes instance nodes such as
-`/dev/lpf/led0`; during the current migration stage it is still linked into
+helpers for runtime nodes. MCU and LED services now live under
+`kernel/lpf/peripheral/` and expose instance nodes such as `/dev/lpf/mcu0` and
+`/dev/lpf/led0`; during the current migration stage they are still linked into
 `pdm.ko`.
 
 ### PDM
@@ -143,7 +143,7 @@ kernel-internal types.
 
 ### PDI
 
-PDI is the userspace C API layer. It opens the matching `/dev/pdm_*` node,
+PDI is the userspace C API layer. It opens the matching `/dev/lpf/*` node,
 marshals requests through UAPI ioctls, and hides ioctl details from
 applications. Discovery APIs use `/dev/pdm_ctl` to list LPF device snapshots and
 look up devices by stable name or capability.
@@ -159,15 +159,16 @@ The current framework keeps one concrete peripheral/device family:
 
 - MCU configuration in PCONFIG
 - MCU protocol in PDM
-- MCU driver in PDM
+- MCU service in LPF peripheral layer
 - Userspace access through PDI
 - LED configuration in PCONFIG
 - LED service in LPF peripheral layer
 - Userspace access through PDI
 
 Other peripheral families can be added later by introducing matching PCONFIG
-types, PDM protocol definitions, PDM kernel implementation, PDI userspace API
-coverage, UAPI definitions when needed, and Kconfig entries.
+types, LPF peripheral-service implementations, PDI userspace API coverage, UAPI
+definitions when needed, and Kconfig entries. Protocol definitions are only
+needed for peripherals that use framed PDM protocol communication.
 
 ## Build And Runtime Boundaries
 

@@ -36,41 +36,6 @@ menuconfig PDM
 
 if PDM
 
-menuconfig PDM_MCU_SUPPORT
-	bool "MCU peripheral support"
-	default n
-	select PDM_PROTOCOL
-	select PDM_PROTOCOL_MCU
-	select HAL_CAN
-	select HAL_UART
-	help
-	  Enable MCU (Microcontroller) peripheral support.
-
-	  MCU peripherals are microcontroller-based modules that provide
-	  specialized control and monitoring functions, offloading tasks
-	  from the main processor.
-
-	  Typical MCU functions:
-	  - Real-time sensor data acquisition
-	  - PWM control for motors/actuators
-	  - Analog signal processing
-	  - Low-level protocol handling
-
-	  Communication options:
-	  - CAN bus (for robust, multi-drop networks)
-	  - UART (for point-to-point connections)
-
-	  Memory footprint: ~8KB base + protocol overhead
-
-	  You can enable CAN-based or UART-based MCU support in the submenu.
-
-	  Kernel module builds link the MCU core and use the CAN/UART
-	  transport symbols exported by hal.ko.
-
-	  If unsure, say Y.
-
-source "kernel/pdm/src/mcu/Config.in"
-
 menu "PDM Protocol Configuration"
 
 config PDM_PROTOCOL

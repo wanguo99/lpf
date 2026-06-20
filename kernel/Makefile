@@ -22,6 +22,7 @@ ccflags-y += -I$(src)/include/pdm
 ccflags-y += -I$(src)/pdm/include
 ccflags-y += -I$(src)/pdm/src
 ccflags-y += -I$(src)/pdm/src/protocol
+ccflags-y += -I$(src)/lpf/peripheral/mcu
 ccflags-y += -I$(src)/lpf/peripheral/led
 ccflags-y += -I$(src)/../uapi
 

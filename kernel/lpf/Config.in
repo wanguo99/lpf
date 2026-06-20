@@ -44,6 +44,21 @@ config LPF_SOC_ADAPTER_MOCK
 
 endchoice
 
+menuconfig LPF_MCU_SERVICE
+	bool "LPF MCU peripheral service"
+	default n
+	depends on PDM && HAL && PCONFIG
+	select PDM_PROTOCOL
+	select PDM_PROTOCOL_MCU
+	select HAL_CAN
+	select HAL_UART
+	help
+	  Enable the LPF MCU peripheral service. MCU instances are created from
+	  normalized PCONFIG entries and exposed through LPF device lifecycle,
+	  /dev/lpf/mcuN, sysfs attributes, and debugfs commands.
+
+source "kernel/lpf/peripheral/mcu/Config.in"
+
 menuconfig LPF_LED_SERVICE
 	bool "LPF LED peripheral service"
 	default n

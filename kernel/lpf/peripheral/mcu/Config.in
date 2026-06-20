@@ -1,10 +1,8 @@
-# PDM MCU 驱动配置
+# LPF MCU service configuration
 
-if PDM_MCU_SUPPORT
+if LPF_MCU_SERVICE
 
-menu "MCU Driver Configuration"
-
-config PDM_MCU_MAX_DEVICES
+config LPF_MCU_MAX_DEVICES
 	int "Maximum number of MCU devices"
 	default 4
 	range 1 16
@@ -12,6 +10,4 @@ config PDM_MCU_MAX_DEVICES
 	  Maximum number of MCU devices that can be managed simultaneously.
 	  Each device requires approximately 200 bytes of RAM.
 
-endmenu
-
-endif # PDM_MCU_SUPPORT
+endif # LPF_MCU_SERVICE

@@ -30,6 +30,4 @@
 
 void pdm_print_version(void);
 
-#include "pdm_mcu.h"
-
 #endif /* PDM_H */
