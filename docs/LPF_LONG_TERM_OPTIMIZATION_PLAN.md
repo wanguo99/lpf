@@ -253,8 +253,11 @@ Current status:
   been removed.
 - Done. `lpf_hw_mock_selftest.ko` exercises LPF HW GPIO, PWM, CAN, UART, I2C,
   and SPI operation paths over the mock SoC backend when the module is loaded.
-- Remaining work: remove hard-coded global limits where possible and broaden
-  LPF HW/SoC adapter self-test coverage.
+- Started. LPF HW GPIO no longer uses a fixed global GPIO table; requested GPIO
+  contexts are tracked dynamically by GPIO number.
+- Remaining work: continue removing hard-coded global limits where they are not
+  ABI or protocol constraints, and broaden LPF HW/SoC adapter self-test
+  coverage.
 
 ## Phase 6: Runtime Configuration Layer
 

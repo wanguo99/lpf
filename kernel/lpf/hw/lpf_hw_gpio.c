@@ -7,9 +7,7 @@
 #include "lpf_hw_internal.h"
 #include "lpf/lpf_soc_adapter.h"
 
-#define LPF_HW_GPIO_MAX_PINS 1024
-
-typedef struct {
+typedef struct lpf_hw_gpio_context {
 	uint32_t gpio_num;
 	void *irq_handle;
 	lpf_gpio_direction_t direction;
@@ -18,10 +16,11 @@ typedef struct {
 	bool requested;
 	bool interrupt_configured;
 	bool interrupt_enabled;
+	struct lpf_hw_gpio_context *next;
 } lpf_hw_gpio_context_t;
 
 static osal_mutex_t g_lpf_hw_gpio_lock;
-static lpf_hw_gpio_context_t *g_lpf_hw_gpio_table[LPF_HW_GPIO_MAX_PINS];
+static lpf_hw_gpio_context_t *g_lpf_hw_gpio_list;
 
 static bool lpf_hw_gpio_valid_direction(lpf_gpio_direction_t direction)
 {
@@ -145,10 +144,46 @@ static int32_t lpf_hw_gpio_set_interrupt_locked(lpf_hw_gpio_context_t *ctx,
 
 static lpf_hw_gpio_context_t *lpf_hw_gpio_get_context(uint32_t gpio_num)
 {
-	if (gpio_num >= LPF_HW_GPIO_MAX_PINS)
-		return NULL;
+	lpf_hw_gpio_context_t *ctx;
 
-	return g_lpf_hw_gpio_table[gpio_num];
+	for (ctx = g_lpf_hw_gpio_list; ctx; ctx = ctx->next) {
+		if (ctx->gpio_num == gpio_num)
+			return ctx;
+	}
+
+	return NULL;
+}
+
+static void lpf_hw_gpio_add_context(lpf_hw_gpio_context_t *ctx)
+{
+	ctx->next = g_lpf_hw_gpio_list;
+	g_lpf_hw_gpio_list = ctx;
+}
+
+static void lpf_hw_gpio_remove_context(lpf_hw_gpio_context_t *target)
+{
+	lpf_hw_gpio_context_t **slot = &g_lpf_hw_gpio_list;
+
+	while (*slot) {
+		if (*slot == target) {
+			*slot = target->next;
+			target->next = NULL;
+			return;
+		}
+
+		slot = &(*slot)->next;
+	}
+}
+
+static void lpf_hw_gpio_free_context(lpf_hw_gpio_context_t *ctx)
+{
+	if (!ctx)
+		return;
+
+	lpf_hw_gpio_free_interrupt(ctx);
+	if (ctx->requested)
+		lpf_soc_gpio_free(ctx->gpio_num);
+	osal_free(ctx);
 }
 
 int32_t lpf_hw_gpio_init(uint32_t gpio_num, const lpf_gpio_config_t *config)
@@ -157,15 +192,14 @@ int32_t lpf_hw_gpio_init(uint32_t gpio_num, const lpf_gpio_config_t *config)
 	bool new_context = false;
 	int ret;
 
-	if (!config || gpio_num >= LPF_HW_GPIO_MAX_PINS ||
-	    !lpf_hw_gpio_valid_direction(config->direction) ||
+	if (!config || !lpf_hw_gpio_valid_direction(config->direction) ||
 	    !lpf_hw_gpio_valid_level(config->initial_level) ||
 	    !lpf_hw_gpio_valid_edge(config->edge) ||
 	    (config->edge != LPF_GPIO_EDGE_NONE && !config->callback))
 		return OSAL_ERR_INVALID_PARAM;
 
 	osal_mutex_lock(&g_lpf_hw_gpio_lock);
-	ctx = g_lpf_hw_gpio_table[gpio_num];
+	ctx = lpf_hw_gpio_get_context(gpio_num);
 	if (!ctx) {
 		ctx = osal_zalloc(sizeof(*ctx));
 		if (!ctx) {
@@ -182,7 +216,7 @@ int32_t lpf_hw_gpio_init(uint32_t gpio_num, const lpf_gpio_config_t *config)
 
 		ctx->gpio_num = gpio_num;
 		ctx->requested = true;
-		g_lpf_hw_gpio_table[gpio_num] = ctx;
+		lpf_hw_gpio_add_context(ctx);
 		new_context = true;
 	}
 
@@ -206,10 +240,9 @@ int32_t lpf_hw_gpio_init(uint32_t gpio_num, const lpf_gpio_config_t *config)
 	return OSAL_SUCCESS;
 
 err_existing:
-	if (new_context && ctx && ctx->requested && !ctx->interrupt_configured) {
-		lpf_soc_gpio_free(gpio_num);
-		g_lpf_hw_gpio_table[gpio_num] = NULL;
-		osal_free(ctx);
+	if (new_context) {
+		lpf_hw_gpio_remove_context(ctx);
+		lpf_hw_gpio_free_context(ctx);
 	}
 	osal_mutex_unlock(&g_lpf_hw_gpio_lock);
 	return ret;
@@ -220,21 +253,16 @@ int32_t lpf_hw_gpio_deinit(uint32_t gpio_num)
 {
 	lpf_hw_gpio_context_t *ctx;
 
-	if (gpio_num >= LPF_HW_GPIO_MAX_PINS)
-		return OSAL_ERR_INVALID_PARAM;
-
 	osal_mutex_lock(&g_lpf_hw_gpio_lock);
-	ctx = g_lpf_hw_gpio_table[gpio_num];
+	ctx = lpf_hw_gpio_get_context(gpio_num);
 	if (!ctx) {
 		osal_mutex_unlock(&g_lpf_hw_gpio_lock);
 		return OSAL_ERR_INVALID_ID;
 	}
 
-	lpf_hw_gpio_free_interrupt(ctx);
-	lpf_soc_gpio_free(gpio_num);
-	g_lpf_hw_gpio_table[gpio_num] = NULL;
+	lpf_hw_gpio_remove_context(ctx);
+	lpf_hw_gpio_free_context(ctx);
 	osal_mutex_unlock(&g_lpf_hw_gpio_lock);
-	osal_free(ctx);
 	return OSAL_SUCCESS;
 }
 EXPORT_SYMBOL_GPL(lpf_hw_gpio_deinit);
@@ -245,7 +273,7 @@ int32_t lpf_hw_gpio_set_direction(uint32_t gpio_num,
 	lpf_hw_gpio_context_t *ctx;
 	int ret;
 
-	if (gpio_num >= LPF_HW_GPIO_MAX_PINS || !lpf_hw_gpio_valid_direction(direction))
+	if (!lpf_hw_gpio_valid_direction(direction))
 		return OSAL_ERR_INVALID_PARAM;
 
 	osal_mutex_lock(&g_lpf_hw_gpio_lock);
@@ -271,7 +299,7 @@ int32_t lpf_hw_gpio_get_direction(uint32_t gpio_num,
 {
 	lpf_hw_gpio_context_t *ctx;
 
-	if (gpio_num >= LPF_HW_GPIO_MAX_PINS || !direction)
+	if (!direction)
 		return OSAL_ERR_INVALID_PARAM;
 
 	osal_mutex_lock(&g_lpf_hw_gpio_lock);
@@ -292,7 +320,7 @@ int32_t lpf_hw_gpio_set_level(uint32_t gpio_num, lpf_gpio_level_t level)
 	lpf_hw_gpio_context_t *ctx;
 	int32_t ret;
 
-	if (gpio_num >= LPF_HW_GPIO_MAX_PINS || !lpf_hw_gpio_valid_level(level))
+	if (!lpf_hw_gpio_valid_level(level))
 		return OSAL_ERR_INVALID_PARAM;
 
 	osal_mutex_lock(&g_lpf_hw_gpio_lock);
@@ -314,7 +342,7 @@ int32_t lpf_hw_gpio_get_level(uint32_t gpio_num, lpf_gpio_level_t *level)
 	lpf_gpio_level_t lpf_level;
 	int32_t ret;
 
-	if (gpio_num >= LPF_HW_GPIO_MAX_PINS || !level)
+	if (!level)
 		return OSAL_ERR_INVALID_PARAM;
 
 	osal_mutex_lock(&g_lpf_hw_gpio_lock);
@@ -339,8 +367,7 @@ int32_t lpf_hw_gpio_set_interrupt(uint32_t gpio_num, lpf_gpio_edge_t edge,
 	lpf_hw_gpio_context_t *ctx;
 	int ret;
 
-	if (gpio_num >= LPF_HW_GPIO_MAX_PINS ||
-	    !lpf_hw_gpio_valid_edge(edge) ||
+	if (!lpf_hw_gpio_valid_edge(edge) ||
 	    (edge != LPF_GPIO_EDGE_NONE && !callback))
 		return OSAL_ERR_INVALID_PARAM;
 
@@ -361,9 +388,6 @@ int32_t lpf_hw_gpio_enable_interrupt(uint32_t gpio_num)
 {
 	lpf_hw_gpio_context_t *ctx;
 	int32_t ret;
-
-	if (gpio_num >= LPF_HW_GPIO_MAX_PINS)
-		return OSAL_ERR_INVALID_PARAM;
 
 	osal_mutex_lock(&g_lpf_hw_gpio_lock);
 	ctx = lpf_hw_gpio_get_context(gpio_num);
@@ -389,9 +413,6 @@ int32_t lpf_hw_gpio_disable_interrupt(uint32_t gpio_num)
 {
 	lpf_hw_gpio_context_t *ctx;
 	int32_t ret;
-
-	if (gpio_num >= LPF_HW_GPIO_MAX_PINS)
-		return OSAL_ERR_INVALID_PARAM;
 
 	osal_mutex_lock(&g_lpf_hw_gpio_lock);
 	ctx = lpf_hw_gpio_get_context(gpio_num);
@@ -420,6 +441,15 @@ static int lpf_hw_gpio_module_init(void)
 
 static void lpf_hw_gpio_module_deinit(void)
 {
+	lpf_hw_gpio_context_t *ctx;
+
+	osal_mutex_lock(&g_lpf_hw_gpio_lock);
+	while (g_lpf_hw_gpio_list) {
+		ctx = g_lpf_hw_gpio_list;
+		lpf_hw_gpio_remove_context(ctx);
+		lpf_hw_gpio_free_context(ctx);
+	}
+	osal_mutex_unlock(&g_lpf_hw_gpio_lock);
 	osal_mutex_destroy(&g_lpf_hw_gpio_lock);
 }
 
