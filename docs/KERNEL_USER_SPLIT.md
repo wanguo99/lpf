@@ -23,9 +23,7 @@ kernel/
   lpf/
     core/          # LPF device model and shared node infrastructure
     protocol/      # LPF protocol helpers linked into lpf_core.ko
-    peripheral/    # framework-owned peripheral services
-  pdm/
-    src/           # current integration module entry for pdm.ko
+    peripheral/    # framework-owned peripheral runtime and services
 
 user/
   osal/            # userspace OSAL library
@@ -41,9 +39,9 @@ uapi/
 - `kernel/osal` wraps Linux kernel APIs and builds `osal.ko`.
 - `kernel/lpf/core` owns the LPF device model, control/discovery node, and
   shared chrdev/sysfs/debugfs helpers.
-- `kernel/lpf/peripheral` owns the framework peripheral runtime and service
-  implementations; current service paths are linked into `pdm.ko`.
-- `kernel/pdm` owns only the current integration module entry point.
+- `kernel/lpf/peripheral` owns the framework peripheral runtime, integrated
+  module entry, and service implementations; current service paths are linked
+  into `lpf_peripheral_runtime.ko`.
 - `kernel/lpf/protocol` provides kernel-side LPF protocol helpers through
   `lpf_core.ko` for services that need framed communication.
 - `kernel/hal` provides kernel-only hardware access used by LPF peripheral

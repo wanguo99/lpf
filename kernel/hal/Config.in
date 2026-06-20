@@ -20,7 +20,7 @@ menuconfig HAL
 
 	  Memory footprint: ~5KB (minimal) ~ 50KB (all drivers)
 
-	  Required by: PDM kernel-side peripheral drivers
+	  Required by: LPF kernel-side peripheral services
 	  Dependencies: OSAL, LPF Core
 
 	  Note: Enable OSAL and LPF Core first in "Core Modules" menu.

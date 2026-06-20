@@ -13,7 +13,7 @@ menuconfig LPF_CORE
 	  It also contains the initial kernel compatibility wrappers and
 	  selected SoC adapter used by HAL backends.
 
-	  Required by PDM and future LPF peripheral service modules.
+	  Required by the LPF peripheral runtime and services.
 
 	  If unsure, say Y when enabling LPF peripheral services.
 
@@ -54,8 +54,8 @@ config LPF_PROTOCOL
 	  services that need framed communication.
 
 	  The protocol layer is part of LPF infrastructure and is linked into
-	  lpf_core.ko so current PDM-hosted services and future standalone
-	  service modules can share the same packet framing implementation.
+	  lpf_core.ko so services hosted by the integrated LPF peripheral
+	  runtime can share the same packet framing implementation.
 
 config LPF_PROTOCOL_MCU
 	bool "MCU protocol messages"
@@ -88,10 +88,22 @@ config LPF_PROTOCOL_MAX_PAYLOAD_SIZE
 
 endmenu
 
+menuconfig LPF_PERIPHERAL_RUNTIME
+	bool "LPF peripheral runtime module"
+	default n
+	depends on HAL && PCONFIG
+	help
+	  Build the integrated LPF peripheral runtime module. This module hosts
+	  the reusable LPF peripheral services selected below and keeps them in
+	  one framework runtime boundary instead of splitting one kernel module
+	  per peripheral.
+
+	  If unsure, say Y when enabling LPF peripheral services.
+
 menuconfig LPF_MCU_SERVICE
 	bool "LPF MCU peripheral service"
 	default n
-	depends on PDM && HAL && PCONFIG
+	depends on LPF_PERIPHERAL_RUNTIME && HAL && PCONFIG
 	select LPF_PROTOCOL
 	select LPF_PROTOCOL_MCU
 	select HAL_CAN
@@ -107,7 +119,7 @@ source "kernel/lpf/transport/mcu/Config.in"
 menuconfig LPF_LED_SERVICE
 	bool "LPF LED peripheral service"
 	default n
-	depends on PDM && HAL && PCONFIG
+	depends on LPF_PERIPHERAL_RUNTIME && HAL && PCONFIG
 	select HAL_GPIO
 	select HAL_PWM
 	help

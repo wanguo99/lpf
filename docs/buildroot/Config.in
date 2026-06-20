@@ -7,7 +7,8 @@ config BR2_PACKAGE_LPF
 	help
 	  LPF is a generic Linux peripheral framework
 	  with a Kconfig+CMake/Kbuild build system. It provides OSAL,
-	  HAL, PDM, PDI, ACONFIG, and PCONFIG layers for Linux systems.
+	  HAL, LPF Core, LPF peripheral runtime, PDI, ACONFIG, and
+	  PCONFIG layers for Linux systems.
 
 if BR2_PACKAGE_LPF
 

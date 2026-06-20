@@ -46,7 +46,7 @@ Expected module artifacts include:
 _build/modules/osal.ko
 _build/modules/lpf_core.ko
 _build/modules/hal.ko
-_build/modules/pdm.ko
+_build/modules/lpf_peripheral_runtime.ko
 ```
 
 ## Layout

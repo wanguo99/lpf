@@ -76,7 +76,7 @@ MODULES_LIST ?= $(strip \
 	$(if $(CONFIG_LPF_CORE),lpf_core) \
 	$(if $(CONFIG_PCONFIG),pconfig) \
 	$(if $(CONFIG_HAL),hal) \
-	$(if $(CONFIG_PDM),pdm) \
+	$(if $(CONFIG_LPF_PERIPHERAL_RUNTIME),lpf_peripheral_runtime) \
 	$(if $(CONFIG_HAL_MOCK_SELFTEST),hal_mock_selftest))
 MODULES_ARTIFACTS = $(addprefix $(MODULES_OUTPUT_DIR)/,$(addsuffix .ko,$(MODULES_LIST)))
 
@@ -495,7 +495,7 @@ _modules_check_environment:
 		echo "ERROR: No kernel modules are enabled in the current configuration."; \
 		echo "==================================================================="; \
 		echo ""; \
-		echo "Enable CONFIG_OSAL, CONFIG_LPF_CORE, CONFIG_HAL, and/or CONFIG_PDM before invoking make modules."; \
+		echo "Enable CONFIG_OSAL, CONFIG_LPF_CORE, CONFIG_HAL, and/or CONFIG_LPF_PERIPHERAL_RUNTIME before invoking make modules."; \
 		echo "For example, run make menuconfig or load a defconfig that enables"; \
 		echo "the kernel modules you want to build."; \
 		echo "==================================================================="; \
@@ -738,7 +738,7 @@ help:
 	@echo '  KERNEL_SRC=<dir> - Kernel build tree for modules target'
 	@echo '  MODULES_BUILD_DIR=<dir> - Output directory for module artifacts'
 	@echo '  MODULES_SRC_DIR=<dir> - Kernel module source directory'
-	@echo '  MODULES_LIST="<list>" - Expected modules (default: osal lpf_core pconfig hal pdm)'
+	@echo '  MODULES_LIST="<list>" - Expected modules (default: osal lpf_core pconfig hal lpf_peripheral_runtime)'
 	@echo '  CMAKE_BUILD_TYPE=<type>'
 	@echo '                  - Set build type: Debug, Release, RelWithDebInfo, MinSizeRel'
 	@echo '  CMAKE_INSTALL_PREFIX=<path>'

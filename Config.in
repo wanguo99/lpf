@@ -529,7 +529,6 @@ source "user/osal/Config.in"
 source "kernel/lpf/Config.in"
 source "kernel/hal/Config.in"
 source "kernel/pconfig/Config.in"
-source "kernel/pdm/Config.in"
 source "user/aconfig/Config.in"
 source "user/pdi/Config.in"
 
@@ -566,10 +565,10 @@ config SANITY_ERROR_PCONFIG_NO_DEPS
 	depends on PCONFIG && !OSAL
 	prompt "ERROR: PCONFIG requires OSAL to be enabled"
 
-config SANITY_ERROR_PDM_NO_DEPS
+config SANITY_ERROR_LPF_PERIPHERAL_RUNTIME_NO_DEPS
 	def_bool y
-	depends on PDM && (!OSAL || !LPF_CORE || !HAL || !PCONFIG)
-	prompt "ERROR: PDM requires OSAL, LPF Core, HAL, and PCONFIG to be enabled"
+	depends on LPF_PERIPHERAL_RUNTIME && (!OSAL || !LPF_CORE || !HAL || !PCONFIG)
+	prompt "ERROR: LPF peripheral runtime requires OSAL, LPF Core, HAL, and PCONFIG to be enabled"
 
 config SANITY_ERROR_ACONFIG_NO_OSAL
 	def_bool y
@@ -626,7 +625,7 @@ config SANITY_CHECK_PASSED
 	def_bool y
 	depends on !SANITY_ERROR_HAL_NO_DEPS && \
 	           !SANITY_ERROR_PCONFIG_NO_DEPS && \
-	           !SANITY_ERROR_PDM_NO_DEPS && \
+	           !SANITY_ERROR_LPF_PERIPHERAL_RUNTIME_NO_DEPS && \
 	           !SANITY_ERROR_ACONFIG_NO_OSAL && \
 	           !SANITY_ERROR_SANITIZER_CONFLICT
 	help

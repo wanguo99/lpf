@@ -247,7 +247,7 @@ function(kconfig_print_summary)
         PRODUCT_SAMPLE
         OSAL
         HAL
-        PDM
+        LPF_PERIPHERAL_RUNTIME
         PDI
         PCONFIG
         ACONFIG

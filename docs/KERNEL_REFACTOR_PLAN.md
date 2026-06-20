@@ -1,13 +1,13 @@
 # Kernel Refactor Plan
 
-This document tracks the remaining work for moving LPF HAL/PConfig/PDM
-to the kernel-module architecture. Update the checkboxes as each part is
-implemented and verified.
+This document tracks the remaining work for moving LPF HAL, PConfig, and the
+LPF peripheral runtime to the kernel-module architecture. Update the checkboxes
+as each part is implemented and verified.
 
 Note: this is the historical kernel-module refactor tracker. The long-term LPF
-architecture is now tracked in `docs/LPF_LONG_TERM_OPTIMIZATION_PLAN.md`. PDM's
-local bus has been promoted into LPF Core, so new work should use LPF Core for
-device and driver lifecycle instead of adding new PDM-local bus code.
+architecture is now tracked in `docs/LPF_LONG_TERM_OPTIMIZATION_PLAN.md`. The
+old local peripheral bus has been promoted into LPF Core, so new work should
+use LPF Core for device and driver lifecycle instead of adding local bus code.
 
 ## Target Architecture
 
@@ -18,8 +18,9 @@ device and driver lifecycle instead of adding new PDM-local bus code.
   `kernel/pconfig/configs/<product>/<project>/<version>/`.
 - LPF Core is a standalone kernel module built as `lpf_core.ko`; it owns the
   framework device and driver registry.
-- PDM is a kernel module built as `pdm.ko`; current LPF peripheral services are
-  linked into `pdm.ko` while their code lives under `kernel/lpf/peripheral/`.
+- LPF peripheral runtime is a kernel module built as
+  `lpf_peripheral_runtime.ko`; current LPF peripheral services are linked into
+  that integrated module while their code lives under `kernel/lpf/peripheral/`.
 - PConfig supplies device instances; the LPF peripheral configuration entry maps
   those instances into LPF device configs, and LPF Core matches each instance
   to a driver and owns remove ordering.
@@ -41,29 +42,30 @@ device and driver lifecycle instead of adding new PDM-local bus code.
 - [x] Rename kernel module entry files from `main.c` to module names.
 - [x] Move HAL source files directly under `src` without an extra `kernel`
       subdirectory.
-- [x] Add per-module version printing for OSAL, HAL, PConfig, and PDM.
+- [x] Add per-module version printing for OSAL, HAL, PConfig, and the LPF
+      peripheral runtime.
 - [x] Keep OSAL version printing in `osal.c` instead of a separate
       `osal_version.c`.
 - [x] Add `module_init`/`module_exit` for OSAL.
 - [x] Add `module_init`/`module_exit` for PConfig.
-- [x] Build PDM as `pdm.ko` with module entry in `pdm.c`.
+- [x] Build the LPF peripheral runtime as `lpf_peripheral_runtime.ko` with
+      module entry in `lpf_peripheral_module.c`.
 - [x] Split PDI MCU UAPI into `uapi/lpf/lpf_mcu.h`.
 - [x] Split userspace PDI MCU wrapper into `user/pdi/src/pdi_mcu.c`.
 - [x] Add `/dev/lpf/mcuN` character-device ioctl boundary.
-- [x] Change PDM startup to call the LPF peripheral runtime entry and let LPF
-      own service registration, configured-device probing, and LPF Core
-      binding.
+- [x] Make the LPF peripheral runtime entry own service registration,
+      configured-device probing, and LPF Core binding.
 - [x] Add built-in peripheral service registration through LPF Core.
-- [x] Move built-in peripheral service registration out of PDM-local wrappers
-      into `kernel/lpf/peripheral/lpf_peripheral.c`.
-- [x] Move PCONFIG-to-LPF device config mapping out of `pdm.c` and into
+- [x] Move built-in peripheral service registration into
+      `kernel/lpf/peripheral/lpf_peripheral.c`.
+- [x] Move PCONFIG-to-LPF device config mapping into
       `kernel/lpf/peripheral/lpf_peripheral_config.c`.
-- [x] Move LPF Core/peripheral initialization sequencing out of `pdm.c` and
-      behind `lpf_peripheral_runtime_init()`.
-- [x] Replace the PDM-local virtual bus/list manager with LPF Core for driver
-      and device binding.
-- [x] Keep PDM peripheral drivers linked into `pdm.ko` instead of adding one
-      kernel module per peripheral.
+- [x] Move LPF Core/peripheral initialization sequencing behind
+      `lpf_peripheral_runtime_init()`.
+- [x] Replace the local virtual bus/list manager with LPF Core for driver and
+      device binding.
+- [x] Keep LPF peripheral services linked into `lpf_peripheral_runtime.ko`
+      instead of adding one kernel module per peripheral.
 - [x] Add HAL built-in initialization table for HAL subdrivers that need global
       module initialization.
 - [x] Remove ctest product files from the current tree.
@@ -85,10 +87,11 @@ device and driver lifecycle instead of adding new PDM-local bus code.
   - PConfig owns its module lifetime and global config state.
   - LPF peripheral configuration reads PConfig and LPF Core removes registered
     devices on exit.
-  - Acceptance: unloading `pdm.ko` does not invalidate a loaded `pconfig.ko`
-    unexpectedly.
+  - Acceptance: unloading `lpf_peripheral_runtime.ko` does not invalidate a
+    loaded `pconfig.ko` unexpectedly.
 - [ ] Add a basic module load/unload smoke path.
-  - Target order: `osal.ko`, `lpf_core.ko`, `pconfig.ko`, `hal.ko`, `pdm.ko`.
+  - Target order: `osal.ko`, `lpf_core.ko`, `pconfig.ko`, `hal.ko`,
+    `lpf_peripheral_runtime.ko`.
   - Acceptance: all modules load and unload cleanly on the target kernel with
     the selected defconfig.
 
@@ -118,7 +121,7 @@ device and driver lifecycle instead of adding new PDM-local bus code.
 - [x] Keep the current `init` and `probe` split.
   - `init`: register global resources for an LPF peripheral service type.
   - `probe`: create per-device instances from PConfig entries.
-- [x] Audit PDM error-code conversion.
+- [x] Audit LPF peripheral runtime error-code conversion.
   - Avoid double-negating OSAL status values.
   - Kernel entry points should return Linux negative errno.
   - Internal OSAL-style APIs should return `OSAL_SUCCESS` or positive OSAL
@@ -137,8 +140,8 @@ device and driver lifecycle instead of adding new PDM-local bus code.
   - It has no independent module lifecycle; MCU, FPGA, and future peripheral
     drivers call it to package payloads into standard protocol frames and parse
     received raw frames back into device type, message type, and payload data.
-- [x] Revisit PDM device removal.
-  - PDM should remove devices before driver exit.
+- [x] Revisit LPF peripheral runtime device removal.
+  - LPF peripheral runtime should remove devices before driver exit.
   - PConfig state should remain owned by PConfig.
   - Implemented with LPF Core: device nodes are removed before driver
     unregister/exit, and each bound device calls its driver's `remove`.
@@ -158,7 +161,7 @@ device and driver lifecycle instead of adding new PDM-local bus code.
   - UAPI headers must be usable by both kernel and userspace.
   - Use fixed-width Linux UAPI types in ioctl structures.
   - Keep ioctl magic and command numbers per peripheral.
-  - Avoid exposing kernel-only PDM/HAL/PConfig types through PDI.
+  - Avoid exposing kernel-only LPF runtime/HAL/PConfig types through PDI.
 - [x] Add version/ABI compatibility policy for each PDI peripheral.
   - Keep an ABI version field or `GET_INFO` command.
   - Define compatibility expectations for structure growth.
@@ -198,8 +201,8 @@ device and driver lifecycle instead of adding new PDM-local bus code.
   - Examples: process, environment, signal, POSIX shared memory, pty.
   - Unsupported APIs should either be absent from kernel OSAL or return
     `OSAL_ERR_NOT_SUPPORTED` with clear documentation.
-- [x] Replace remaining direct kernel primitives in PDM/PConfig where OSAL
-      equivalents are intended.
+- [x] Replace remaining direct kernel primitives in LPF runtime/PConfig where
+      OSAL equivalents are intended.
   - Keep direct Linux subsystem calls inside HAL where they are the hardware
     implementation detail.
 
@@ -218,7 +221,8 @@ device and driver lifecycle instead of adding new PDM-local bus code.
 
 - [x] Remove unused `ccflags-$(CONFIG_...) += -DCONFIG_...` definitions from
       `kernel/Makefile`.
-  - Keep Kbuild object selection such as `pdm-$(CONFIG_LPF_MCU_SERVICE)`.
+  - Keep Kbuild object selection such as
+    `lpf_peripheral_runtime-$(CONFIG_LPF_MCU_SERVICE)`.
 - [x] Keep feature selection at object/list registration boundaries.
   - Kconfig selects objects.
   - Linked objects register themselves.
@@ -228,7 +232,8 @@ device and driver lifecycle instead of adding new PDM-local bus code.
   - Prefer generated config constants or module parameters if runtime tuning is
     needed.
 - [x] Remove or document transitional CMake kernel component logic.
-  - Removed PDM/PConfig static/shared transitional Kconfig and CMake branches.
+  - Removed LPF runtime/PConfig static/shared transitional Kconfig and CMake
+    branches.
   - HAL CMake remains an interface target for host-side dependency metadata;
     kernel module output is produced by Kbuild.
 - [x] Ensure defconfigs match the current module build model.
@@ -240,15 +245,16 @@ device and driver lifecycle instead of adding new PDM-local bus code.
 - [x] Update README to match the current kernel-module architecture.
 - [x] Update `docs/KERNEL_USER_SPLIT.md`.
 - [x] Update `docs/ARCHITECTURE.md`.
-- [x] Remove outdated references to ctest and old userspace HAL/PDM behavior.
+- [x] Remove outdated references to ctest and old userspace HAL/runtime
+      behavior.
 - [x] Document module load order and dependencies.
   - OSAL before PConfig/HAL.
   - OSAL before LPF Core.
-  - LPF Core, PConfig, and HAL before PDM.
+  - LPF Core, PConfig, and HAL before LPF peripheral runtime.
 - [x] Document how to add a new peripheral.
   - PConfig type and platform entry.
   - LPF device type/capability mapping.
-  - PDM service driver object and LPF Core registration.
+  - LPF service driver object and LPF Core registration.
   - LPF UAPI header and userspace wrapper.
   - Kbuild object selection.
 - [x] Document the feature-selection rule.
@@ -267,7 +273,7 @@ device and driver lifecycle instead of adding new PDM-local bus code.
   - `osal.ko`
   - `pconfig.ko`
   - `hal.ko`
-  - `pdm.ko`
+  - `lpf_peripheral_runtime.ko`
 - [ ] Run module load/unload smoke test on a compatible kernel.
 - [ ] Verify `/dev/lpf/mcuN` appears when MCU is configured.
 - [ ] Verify each PDI ioctl returns expected status on configured and

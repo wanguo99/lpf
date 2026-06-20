@@ -1,6 +1,7 @@
 # Kernel OSAL
 
-Kernel OSAL wraps Linux kernel APIs needed by kernel HAL, PConfig, and PDM.
+Kernel OSAL wraps Linux kernel APIs needed by kernel HAL, PConfig, LPF Core,
+and LPF peripheral runtime.
 
 It is intentionally separate from `user/osal`, but public OSAL names should
 match userspace where the kernel can provide equivalent or close semantics. This

@@ -57,9 +57,11 @@ Goal: lock down the framework concepts before larger code movement.
 
 Work items:
 
-- Define final responsibilities for OSAL, HAL, PCONFIG, PDM, PDI, and UAPI.
-- Reframe PDM as the LPF Peripheral Service Layer.
-- Reframe the current PDM bus as the future LPF Core.
+- Define final responsibilities for OSAL, HAL, PCONFIG, the legacy peripheral
+  module shell, PDI, and UAPI.
+- Reframe the old peripheral module responsibilities as the LPF Peripheral
+  Service Layer.
+- Reframe the old local peripheral bus as the future LPF Core.
 - Document allowed dependencies and forbidden dependencies for each layer.
 - Document the target directory layout.
 
@@ -78,8 +80,8 @@ Acceptance criteria:
 
 ## Phase 2: LPF Core
 
-Goal: upgrade the current PDM bus idea into the formal LPF device management
-core.
+Goal: upgrade the old local peripheral bus idea into the formal LPF device
+management core.
 
 Work items:
 
@@ -122,9 +124,9 @@ Current status:
   device handles, name/capability handle lookup, state updates, and kernel
   event notification for register, bind, state, error, remove start, and remove
   completion.
-- Started PDM integration. PDM instance character devices acquire an LPF active
-  device handle on open and release it on close, so LPF Core removal waits for
-  active instance users before invoking peripheral `remove`.
+- Started runtime integration. LPF instance character devices acquire an LPF
+  active device handle on open and release it on close, so LPF Core removal
+  waits for active instance users before invoking peripheral `remove`.
 - Remaining work: define the final userspace event delivery model and deepen
   the state/recovery model used by peripheral services.
 
@@ -329,28 +331,35 @@ Current status:
 - Started. MCU and LED service code now live under `kernel/lpf/peripheral/`
   with public kernel service headers at `kernel/include/lpf/`.
 - Started. MCU and LED services register as LPF drivers and expose
-  `/dev/lpf/mcuN` and `/dev/lpf/ledN`; both remain integrated through the
-  current PDM-hosted framework module so deployment does not fragment into one
-  KO per peripheral.
-- Done. Unified peripheral service registration has moved from PDM-local
-  wrappers into `kernel/lpf/peripheral/lpf_peripheral.c`; PDM now calls the LPF
-  service entry instead of registering MCU/LED services directly.
-- Done. PCONFIG-to-LPF device mapping has moved from `pdm.c` into
-  `kernel/lpf/peripheral/lpf_peripheral_config.c`; PDM now calls the LPF
-  peripheral probe entry instead of owning per-device capability mapping.
+  `/dev/lpf/mcuN` and `/dev/lpf/ledN`; both remain integrated through
+  `lpf_peripheral_runtime.ko` so deployment does not fragment into one KO per
+  peripheral.
+- Done. Unified peripheral service registration lives in
+  `kernel/lpf/peripheral/lpf_peripheral.c`; the LPF peripheral runtime entry
+  calls that service entry instead of registering MCU/LED services directly in
+  the module shell.
+- Done. PCONFIG-to-LPF device mapping lives in
+  `kernel/lpf/peripheral/lpf_peripheral_config.c`; the LPF peripheral runtime
+  calls the LPF peripheral probe entry instead of owning per-device capability
+  mapping in the module shell.
 - Done. LPF Core initialization, peripheral service registration, and
   configured-device probing are now wrapped by the LPF peripheral runtime
-  entry; PDM calls one runtime entry instead of owning the sequence directly.
-- Done. The obsolete PDM public header has been removed; runtime version
+  entry.
+- Done. The obsolete public header for the old module shell has been removed;
+  runtime version
   reporting is now owned by the LPF peripheral runtime entry.
 - Started. MCU CAN/UART implementations have moved behind
   `kernel/lpf/transport/mcu/` and are selected through the LPF MCU transport
   registry instead of direct service dependencies.
-- Done. The framed peripheral protocol has moved from PDM into the LPF protocol
-  layer under `kernel/lpf/protocol/`, with public protocol headers under
+- Done. The framed peripheral protocol has moved into the LPF protocol layer
+  under `kernel/lpf/protocol/`, with public protocol headers under
   `kernel/include/lpf/` and encode/decode symbols exported by `lpf_core.ko`.
-- Remaining work: continue reducing the PDM compatibility shell while keeping
-  peripheral services integrated through the framework module boundary.
+- Done. The old compatibility shell has been renamed to the integrated LPF
+  peripheral runtime module `lpf_peripheral_runtime.ko`; the legacy module
+  entry has been removed.
+- Remaining work: continue hardening the integrated LPF peripheral runtime
+  boundary while keeping services inside the framework module instead of
+  splitting per-peripheral KOs.
 
 ## Phase 8: UAPI And PDI Separation
 
@@ -462,18 +471,18 @@ Current status:
   and `/proc/lpf/led` are read-only status snapshots.
 - Done. Runtime ioctl and debugfs command failures update each instance's
   `last_error` and `error_count` sysfs attributes.
-- Started. PDM-local character-device, sysfs, and debugfs helper
+- Started. Legacy local character-device, sysfs, and debugfs helper
   implementations have been extracted into LPF infrastructure under
   `kernel/lpf/core/` and are linked into `lpf_core.ko` as `lpf_chrdev`,
   `lpf_sysfs`, and `lpf_debugfs`.
 - Done. The control/discovery character device implementation has moved from
-  PDM into LPF Core as `kernel/lpf/core/lpf_ctl.c`; PDM no longer owns
-  `/dev/pdm_ctl` registration.
+  the old module shell into LPF Core as `kernel/lpf/core/lpf_ctl.c`; LPF
+  peripheral runtime no longer owns `/dev/pdm_ctl` registration.
 - Done. Procfs and OSAL-status-to-errno helpers have been extracted into LPF
-  helpers, and migrated peripheral services no longer depend on PDM proc/status
-  wrappers.
+  helpers, and migrated peripheral services no longer depend on legacy
+  proc/status wrappers.
 - Remaining work: migrate any future peripheral services to use these LPF
-  helpers directly instead of PDM compatibility wrapper headers.
+  helpers directly instead of adding local wrapper headers.
 
 ## Phase 10: Test And Validation System
 

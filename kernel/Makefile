@@ -8,7 +8,6 @@ include $(src)/osal/Makefile
 include $(src)/lpf/Makefile
 include $(src)/pconfig/Makefile
 include $(src)/hal/Makefile
-include $(src)/pdm/Makefile
 
 ccflags-y += -I$(src)/include
 ccflags-y += -I$(LPF_ROOT)/include

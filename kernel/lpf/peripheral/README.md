@@ -1,28 +1,28 @@
-# PDM
+# LPF Peripheral Runtime
 
-PDM is the Peripheral Driver Module. It currently owns module load/unload
-entry points for the framework-hosted peripheral runtime. LPF peripheral
-runtime and services are layered under `kernel/lpf/peripheral/` but remain integrated
-through `pdm.ko` during the current migration stage so runtime deployment does
-not fragment into one KO per peripheral.
+The LPF peripheral runtime is the integrated kernel module that hosts reusable
+LPF peripheral services. Services stay layered under `kernel/lpf/peripheral/`
+and remain integrated through one runtime module so deployment does not
+fragment into one KO per peripheral.
 
 ## Current Scope
 
-The kernel module currently provides:
+The runtime module currently provides:
 
-- module load/unload orchestration in `pdm/src/pdm.c`
-- LPF peripheral runtime and configuration logic linked into `pdm.ko`
+- module load/unload orchestration in `lpf_peripheral_module.c`
+- LPF peripheral runtime and configuration logic linked into
+  `lpf_peripheral_runtime.ko`
 - LPF peripheral runtime initialization through `lpf_peripheral_runtime_init()`
 - configured-device binding and device removal ordering owned by LPF Core
 - LPF MCU service, `/dev/lpf/mcuN` ioctl dispatch, and CAN/Serial transport
-  glue linked into `pdm.ko`
+  glue linked into `lpf_peripheral_runtime.ko`
 - LPF LED service and `/dev/lpf/ledN` ioctl dispatch for GPIO/PWM controlled
-  LEDs linked into `pdm.ko`
+  LEDs linked into `lpf_peripheral_runtime.ko`
 - LPF read-only procfs status nodes under `/proc/lpf/`
 - LPF debugfs command nodes under `/sys/kernel/debug/lpf/`
 
-PDM consumes exported `hal.ko` symbols for MCU transport and LED GPIO/PWM
-hardware access. Runtime character-device, sysfs-attribute, and debugfs-file
+LPF peripheral services consume exported `hal.ko` symbols for MCU transport and
+LED GPIO/PWM hardware access. Runtime character-device, sysfs-attribute, and debugfs-file
 lifecycle helpers are provided by `lpf_core.ko`; LPF peripheral services own
 the concrete operation handlers. LPF protocol encode/decode helpers are also
 provided by `lpf_core.ko` for services that need framed communication.
@@ -31,7 +31,7 @@ LPF device discovery is provided by the LPF Core control node `/dev/pdm_ctl`.
 ## Configuration
 
 ```text
-CONFIG_PDM=y
+CONFIG_LPF_PERIPHERAL_RUNTIME=y
 CONFIG_LPF_CORE=y
 CONFIG_PCONFIG=y
 CONFIG_LPF_MCU_SERVICE=y
@@ -45,19 +45,16 @@ CONFIG_LPF_PROTOCOL_MCU=y
 ## Layout
 
 ```text
-kernel/pdm/
-├── Config.in
-├── CMakeLists.txt
-└── src/
-    └── pdm.c
 kernel/lpf/core/
 ├── lpf_ctl.c
 ├── lpf_ctl_internal.h
 └── ...
 kernel/lpf/peripheral/
+├── Config.in
 ├── lpf_peripheral.c
 ├── lpf_peripheral_config.c
 ├── lpf_peripheral_internal.h
+├── lpf_peripheral_module.c
 ├── mcu/
 │   ├── Config.in
 │   ├── lpf_mcu_service.c
@@ -95,15 +92,16 @@ kernel/include/lpf/
 
 ## Layering
 
-`pdm.ko` links the current framework-hosted LPF peripheral service paths.
-During module initialization PDM calls `lpf_peripheral_runtime_init()`. The LPF
+`lpf_peripheral_runtime.ko` links the current framework-hosted LPF peripheral
+service paths. During module initialization the runtime module calls
+`lpf_peripheral_runtime_init()`. The LPF
 peripheral runtime initializes LPF Core, registers peripheral services, loads
 PConfig, maps each enabled normalized PConfig device entry into an
-`lpf_device_config_t`, and registers it with LPF Core. PDM does not depend on
-the concrete PCONFIG backend, service registration order, or per-device
-capability mapping. LPF Core then binds the configured device to the matching
-service `probe`. On unload, LPF Core removes devices before driver global
-resources are released.
+`lpf_device_config_t`, and registers it with LPF Core. The module entry does not
+depend on the concrete PCONFIG backend, service registration order, or
+per-device capability mapping. LPF Core then binds the configured device to the
+matching service `probe`. On unload, LPF Core removes devices before driver
+global resources are released.
 
 Each LPF peripheral instance exposes its own character device, such as
 `/dev/lpf/mcu0`, and each PDI peripheral API uses the matching UAPI ioctl
@@ -163,8 +161,8 @@ For example:
 
 MCU transport implementations live under `kernel/lpf/transport/mcu/` and are
 selected through `lpf_mcu_transport_get()`. They are still linked into
-`pdm.ko`, but the MCU service no longer directly depends on CAN or UART
-implementation symbols. Hardware access remains behind HAL.
+`lpf_peripheral_runtime.ko`, but the MCU service no longer directly depends on
+CAN or UART implementation symbols. Hardware access remains behind HAL.
 
 The protocol layer under `kernel/lpf/protocol/` is a common LPF-owned
 peripheral communication protocol linked into `lpf_core.ko`. It does not own

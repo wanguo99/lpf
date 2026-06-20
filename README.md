@@ -19,8 +19,10 @@ satellite/PMC business code and the previous test product have been removed.
 
 Current concrete peripheral/device types:
 
-- MCU peripheral type in PCONFIG/PDM, exposed to userspace through PDI
-- LED peripheral type in PCONFIG/PDM, exposed to userspace through PDI
+- MCU peripheral type in PCONFIG and LPF peripheral runtime, exposed to
+  userspace through PDI
+- LED peripheral type in PCONFIG and LPF peripheral runtime, exposed to
+  userspace through PDI
 
 The framework keeps layered extension points so additional peripheral types can
 be added later without changing the core architecture.
@@ -33,7 +35,9 @@ APIs from higher layers, but non-Linux ports are outside the current direction.
 - OSAL: operating-system abstraction
 - HAL: kernel hardware abstraction module (`hal.ko`)
 - PCONFIG: platform hardware configuration registry
-- PDM: kernel peripheral driver module
+- LPF Core: framework device model and shared kernel infrastructure
+- LPF Peripheral Runtime: integrated kernel module for reusable peripheral
+  services (`lpf_peripheral_runtime.ko`)
 - PDI: userspace peripheral driver interface library
 - ACONFIG: application configuration layer
 
@@ -89,7 +93,8 @@ That preset also builds `hal_mock_selftest.ko`; loading it after `osal.ko`,
 `lpf_core.ko`, and `hal.ko` runs HAL GPIO/PWM/CAN/Serial/I2C/SPI checks through
 the mock SoC adapter.
 
-Kernel module load order is `osal.ko`, `pconfig.ko`, `hal.ko`, then `pdm.ko`.
+Kernel module load order is `osal.ko`, `lpf_core.ko`, `pconfig.ko`,
+`hal.ko`, then `lpf_peripheral_runtime.ko`.
 
 Generated libraries are written under `_build/lib/`. Kernel modules are written
 under `_build/modules/`.

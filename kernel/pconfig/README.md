@@ -2,7 +2,7 @@
 
 PCONFIG is the platform hardware-configuration aggregation layer. It selects a
 configuration backend, validates the active platform, and exposes one typed
-device list to PDM and other LPF kernel services.
+device list to the LPF peripheral runtime and other LPF kernel services.
 
 ## Current Responsibility
 
@@ -11,7 +11,8 @@ device list to PDM and other LPF kernel services.
 - Parse LPF Device Tree configuration when an LPF DT node is present.
 - Validate platform identity and per-device configuration.
 - Build a normalized enabled-device list for MCU and LED entries.
-- Keep hardware configuration data separate from PDM and application logic.
+- Keep hardware configuration data separate from LPF peripheral service and
+  application logic.
 
 ## Backend Selection
 

@@ -52,7 +52,7 @@ Linux kernel / hardware
 - LPF protocol helpers provide kernel-side packet framing for services that use
   framed peripheral communication.
 - LPF Core owns the control/discovery node for device snapshots.
-- PDM owns the current framework integration module entry point.
+- LPF peripheral runtime owns the integrated framework module entry point.
 - PDI provides userspace APIs over LPF UAPI ioctl nodes.
 - ACONFIG stores userspace application-facing configuration mappings.
 
@@ -101,7 +101,8 @@ into `lpf_core.ko`; `kernel/lpf/soc/mock/` provides a deterministic mock backend
 for development and framework tests that should not require live hardware. The
 mock preset can also build `hal_mock_selftest.ko`, which runs HAL operation-path
 checks over the mock backend when loaded. Future SoC-specific adapters should
-live under `kernel/lpf/soc/` and must keep vendor BSP calls out of HAL and PDM.
+live under `kernel/lpf/soc/` and must keep vendor BSP calls out of HAL and LPF
+peripheral services.
 
 ### LPF Kernel Compat
 
@@ -129,8 +130,8 @@ dispatch, state, error handling, and debug command handlers. Services register
 with LPF Core for device lifecycle handling and use LPF chrdev/sysfs/debugfs
 helpers for runtime nodes. MCU and LED services now live under
 `kernel/lpf/peripheral/` and expose instance nodes such as `/dev/lpf/mcu0` and
-`/dev/lpf/led0`; they remain integrated through the current PDM-hosted
-framework module boundary rather than being split into one KO per peripheral.
+`/dev/lpf/led0`; they remain integrated through
+`lpf_peripheral_runtime.ko` rather than being split into one KO per peripheral.
 `kernel/lpf/peripheral/lpf_peripheral.c` owns the unified peripheral runtime
 entry used by the integration module.
 
@@ -150,12 +151,12 @@ lives under `kernel/lpf/protocol/`, exports encode/decode entry points from
 `lpf_core.ko`, and keeps protocol constants and MCU message definitions under
 `kernel/include/lpf/`.
 
-### PDM
+### LPF Peripheral Runtime
 
-PDM owns the current integration module load/unload entry points. It calls the
-LPF peripheral runtime entry rather than owning LPF Core initialization order,
-per-service registration, configured-device probing, control-node lifecycle, or
-PCONFIG-to-LPF mapping logic itself.
+`lpf_peripheral_runtime.ko` owns the current integration module load/unload
+entry points. It calls the LPF peripheral runtime entry, which owns LPF Core
+initialization order, per-service registration, configured-device probing, and
+PCONFIG-to-LPF mapping orchestration.
 Business operations stay on LPF instance nodes such as `/dev/lpf/mcu0` and
 `/dev/lpf/led0`; LPF service status snapshots live under `/proc/lpf/`.
 
@@ -212,13 +213,14 @@ osal.ko
 lpf_core.ko
 pconfig.ko
 hal.ko
-pdm.ko
+lpf_peripheral_runtime.ko
 ```
 
-`pdm.ko` hosts the current LPF peripheral runtime. The runtime consumes PConfig
-entries and HAL symbols, registers the current framework-hosted peripheral
-services, maps enabled PConfig entries to LPF devices, and lets LPF Core probe
-the matching registered service for each configured peripheral.
+`lpf_peripheral_runtime.ko` hosts the current LPF peripheral runtime. The
+runtime consumes PConfig entries and HAL symbols, registers the current
+framework-hosted peripheral services, maps enabled PConfig entries to LPF
+devices, and lets LPF Core probe the matching registered service for each
+configured peripheral.
 
 ## Adding A Peripheral
 
@@ -232,16 +234,16 @@ Add the following pieces together:
 - UAPI header `uapi/lpf/lpf_<peripheral>.h` following
   `docs/LPF_UAPI_ABI.md`.
 - Userspace wrapper `user/pdi/src/pdi_<peripheral>.c`.
-- Kbuild object selection for the new LPF service and any current PDM-hosted
-  integration path.
+- Kbuild object selection for the new LPF service inside
+  `lpf_peripheral_runtime.ko`.
 
 Feature selection stays at object/list registration boundaries. Kconfig may
 select which objects are linked, but business logic should not branch on
 feature macros.
 
 Keep kernel/userspace changes aligned. A peripheral exposed to userspace should
-add or update PCONFIG, PDM, UAPI, PDI, and Kconfig coverage together so the ABI
-and build configuration remain consistent.
+add or update PCONFIG, LPF peripheral service, UAPI, PDI, and Kconfig coverage
+together so the ABI and build configuration remain consistent.
 
 ## Runtime Interfaces
 

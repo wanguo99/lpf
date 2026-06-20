@@ -9,7 +9,8 @@ Core modules:
 - OSAL
 - HAL
 - PCONFIG
-- PDM
+- LPF Core
+- LPF Peripheral Runtime
 - PDI
 - ACONFIG
 
@@ -18,7 +19,7 @@ Current concrete peripheral/device family:
 - MCU
 - LED
 
-The framework is still structured for later peripheral expansion. Add new peripheral families by extending PCONFIG types/accessors, PDM kernel modules/protocol helpers, PDI userspace APIs, Kconfig entries, and tests.
+The framework is still structured for later peripheral expansion. Add new peripheral families by extending PCONFIG types/accessors, LPF peripheral services/protocol helpers, PDI userspace APIs, Kconfig entries, and tests.
 
 ## Common Commands
 
@@ -32,6 +33,6 @@ make modules
 
 - Core modules must not depend on product code.
 - Product/application code belongs outside shared framework module directories.
-- PDM consumes PCONFIG through typed accessors and owns kernel-side peripheral logic.
-- PDI exposes the userspace API and wraps the PDM ioctl ABI.
+- LPF peripheral runtime consumes PCONFIG through typed accessors and hosts kernel-side peripheral services.
+- PDI exposes the userspace API and wraps LPF UAPI ioctl ABIs.
 - HAL and OSAL remain platform abstraction layers.
