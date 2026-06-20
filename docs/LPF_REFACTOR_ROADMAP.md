@@ -19,13 +19,15 @@ the target direction.
 
 ### Batch 1: Baseline And Registry Cleanup
 
-- Add target architecture and module boundary documents.
-- Convert MCU and LED service context registries from fixed arrays to dynamic
+- [x] Add target architecture and module boundary documents.
+- [x] Convert MCU and LED service context registries from fixed arrays to dynamic
   service-owned registries.
-- Keep existing `LPF_*_MAX_DEVICES` node limits until the UAPI and node model are
+- [x] Keep existing `LPF_*_MAX_DEVICES` node limits until the UAPI and node model are
   deliberately changed.
-- Update service documentation to explain the transitional distinction between
+- [x] Update service documentation to explain the transitional distinction between
   service context storage and instance node limits.
+- [x] Add architecture-boundary tests so service context registries do not
+  regress back to fixed `LPF_*_MAX_DEVICES` arrays.
 
 ### Batch 2: Configuration Coverage
 

@@ -271,6 +271,9 @@ Current status:
 - Done. LPF peripheral services and MCU transports call `lpf_hw_*` APIs.
 - Done. LPF HW paths call LPF SoC Adapter APIs instead of Linux subsystem APIs
   directly.
+- Done. Architecture-boundary CTest coverage now verifies peripheral service
+  and transport code do not depend directly on SoC adapter or kernel compat
+  layers.
 - Done. The old standalone hardware module target, old hardware Kconfig
   symbols, old hardware access directory, and standalone hardware headers have
   been removed.
@@ -408,6 +411,10 @@ Current status:
   `kernel/lpf/peripheral/lpf_peripheral.c`; the LPF peripheral runtime entry
   calls that service entry instead of registering MCU/LED services directly in
   the module shell.
+- Done. MCU and LED runtime service contexts are kept in dynamic
+  service-owned registries keyed by LPF device index. Existing
+  `LPF_*_MAX_DEVICES` limits remain scoped to userspace-visible instance-node
+  tables and legacy info fields.
 - Done. Runtime config-to-LPF device mapping lives in
   `kernel/lpf/peripheral/lpf_peripheral_config.c`; the LPF peripheral runtime
   calls the LPF peripheral probe entry instead of owning per-device capability
@@ -483,6 +490,8 @@ Current status:
 - Done. UAPI headers now live under the final `uapi/lpf/` namespace with
   `LPF_*` ABI types and ioctl constants. MCU and LED UAPI headers are ABI-only,
   while SDK declarations live under `user/pdi/include/pdi/`.
+- Done. Architecture-boundary CTest coverage verifies UAPI headers remain
+  free of PDI, OSAL, and libc SDK dependencies.
 - Done. PDI owns default-open path constants and instance-node path construction;
   UAPI no longer exposes SDK default device paths.
 - Done. PDI now uses internal error helpers to standardize its public return
@@ -632,6 +641,9 @@ Current status:
 - Done. Device Tree parser tests now cover DT-style property parsing and
   normalized mock platform equivalence without requiring live OF support from
   the host kernel.
+- Done. Architecture-boundary tests now guard the MCU/LED dynamic service
+  context registry model, UAPI/PDI separation, and peripheral-layer dependency
+  direction.
 - Remaining work: extend ABI/PDI coverage as new peripherals are introduced.
 
 ## Recommended Implementation Order
