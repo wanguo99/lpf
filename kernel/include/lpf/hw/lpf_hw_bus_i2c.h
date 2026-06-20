@@ -3,7 +3,7 @@
 #ifndef LPF_HW_BUS_I2C_H
 #define LPF_HW_BUS_I2C_H
 
-#include "lpf/hw/lpf_hw_types.h"
+#include "lpf/types/lpf_i2c_types.h"
 
 int32_t lpf_hw_bus_i2c_open(const lpf_i2c_config_t *config,
 			    lpf_hw_bus_i2c_handle_t *handle);

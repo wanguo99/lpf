@@ -3,7 +3,6 @@
 #ifndef LPF_HW_H
 #define LPF_HW_H
 
-#include "lpf/hw/lpf_hw_types.h"
 #include "lpf/hw/lpf_hw_gpio.h"
 #include "lpf/hw/lpf_hw_pwm.h"
 #include "lpf/hw/lpf_hw_transport_can.h"

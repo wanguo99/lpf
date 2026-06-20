@@ -3,7 +3,7 @@
 #ifndef LPF_COMPAT_PWM_H
 #define LPF_COMPAT_PWM_H
 
-#include "lpf/hw/lpf_hw_types.h"
+#include "lpf/types/lpf_pwm_types.h"
 
 int32_t lpf_compat_pwm_get(const char *consumer, lpf_pwm_handle_t *handle);
 void lpf_compat_pwm_put(lpf_pwm_handle_t handle);

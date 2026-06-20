@@ -3,7 +3,7 @@
 #ifndef LPF_COMPAT_SERIAL_H
 #define LPF_COMPAT_SERIAL_H
 
-#include "lpf/hw/lpf_hw_types.h"
+#include "lpf/types/lpf_serial_types.h"
 
 int32_t lpf_compat_serial_open(const char *device,
 			       const lpf_serial_config_t *config,

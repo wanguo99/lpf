@@ -3,7 +3,7 @@
 #ifndef LPF_HW_PWM_H
 #define LPF_HW_PWM_H
 
-#include "lpf/hw/lpf_hw_types.h"
+#include "lpf/types/lpf_pwm_types.h"
 
 int32_t lpf_hw_pwm_init(const lpf_pwm_config_t *config,
 			lpf_hw_pwm_handle_t *handle);

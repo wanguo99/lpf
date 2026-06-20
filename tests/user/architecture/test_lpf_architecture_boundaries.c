@@ -254,6 +254,74 @@ static int test_uapi_headers_are_abi_only(void)
 	return failures ? 1 : 0;
 }
 
+static int test_soc_adapter_header_dependencies(void)
+{
+	char *content;
+	int failures = 0;
+
+	content = read_source_file("kernel/include/lpf/soc/lpf_soc_adapter.h");
+	if (!content) {
+		fprintf(stderr, "lpf_soc_adapter.h: failed to read header\n");
+		return 1;
+	}
+
+	failures += expect_not_contains("lpf_soc_adapter.h", content,
+					"lpf/hw/");
+	failures += expect_contains("lpf_soc_adapter.h", content,
+				    "lpf/types/lpf_gpio_types.h");
+	failures += expect_contains("lpf_soc_adapter.h", content,
+				    "lpf/types/lpf_pwm_types.h");
+	failures += expect_contains("lpf_soc_adapter.h", content,
+				    "lpf/types/lpf_i2c_types.h");
+	failures += expect_contains("lpf_soc_adapter.h", content,
+				    "lpf/types/lpf_spi_types.h");
+	failures += expect_contains("lpf_soc_adapter.h", content,
+				    "lpf/types/lpf_can_types.h");
+	failures += expect_contains("lpf_soc_adapter.h", content,
+				    "lpf/types/lpf_serial_types.h");
+
+	free(content);
+	return failures ? 1 : 0;
+}
+
+static int test_runtime_config_mapping_is_registered(void)
+{
+	char *runtime_config;
+	char *mcu_mapper;
+	char *led_mapper;
+	int failures = 0;
+
+	runtime_config = read_source_file(
+		"kernel/lpf-runtime/runtime/lpf_runtime_config.c");
+	mcu_mapper = read_source_file(
+		"kernel/lpf-runtime/peripheral/mcu/lpf_mcu_config_mapper.c");
+	led_mapper = read_source_file(
+		"kernel/lpf-runtime/peripheral/led/lpf_led_config_mapper.c");
+
+	if (!runtime_config || !mcu_mapper || !led_mapper) {
+		fprintf(stderr, "failed to read runtime config mapper sources\n");
+		failures = 1;
+		goto out;
+	}
+
+	failures += expect_contains("lpf_runtime_config.c", runtime_config,
+				    "lpf_runtime_config_mapper_first");
+	failures += expect_not_contains("lpf_runtime_config.c", runtime_config,
+					"LPF_CONFIG_DEVICE_TYPE_MCU");
+	failures += expect_not_contains("lpf_runtime_config.c", runtime_config,
+					"LPF_CONFIG_DEVICE_TYPE_LED");
+	failures += expect_contains("lpf_mcu_config_mapper.c", mcu_mapper,
+				    "lpf_runtime_config_mapper_register");
+	failures += expect_contains("lpf_led_config_mapper.c", led_mapper,
+				    "lpf_runtime_config_mapper_register");
+
+out:
+	free(led_mapper);
+	free(mcu_mapper);
+	free(runtime_config);
+	return failures ? 1 : 0;
+}
+
 int main(void)
 {
 	int ret = 0;
@@ -261,6 +329,8 @@ int main(void)
 	ret += test_service_context_registries();
 	ret += test_peripheral_layer_dependencies();
 	ret += test_uapi_headers_are_abi_only();
+	ret += test_soc_adapter_header_dependencies();
+	ret += test_runtime_config_mapping_is_registered();
 
 	return ret ? EXIT_FAILURE : EXIT_SUCCESS;
 }

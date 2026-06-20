@@ -3,85 +3,40 @@
 #include "lpf/runtime/lpf_runtime.h"
 
 #include "lpf/core/lpf_core.h"
-#include "lpf/config/lpf_config.h"
 #include "lpf_runtime_internal.h"
 
-static int32_t lpf_peripheral_make_mcu_config(
-	const lpf_config_device_config_t *device, lpf_device_config_t *config)
+static const lpf_runtime_config_mapper_t *
+lpf_runtime_config_mapper_first(void)
 {
-	const lpf_config_mcu_entry_t *entry;
-	lpf_capability_t capabilities;
-
-	entry = (const lpf_config_mcu_entry_t *)device->entry;
-	if (!entry)
-		return OSAL_ERR_INVALID_PARAM;
-
-	capabilities = LPF_DEVICE_CAP_USER_IOCTL | LPF_DEVICE_CAP_DEBUGFS;
-	switch (entry->config.interface) {
-	case LPF_CONFIG_MCU_INTERFACE_CAN:
-		capabilities |= LPF_DEVICE_CAP_TRANSPORT_CAN;
-		break;
-	case LPF_CONFIG_MCU_INTERFACE_SERIAL:
-		capabilities |= LPF_DEVICE_CAP_TRANSPORT_UART;
-		break;
-	default:
-		return OSAL_ERR_NOT_SUPPORTED;
-	}
-
-	config->type = LPF_DEVICE_TYPE_MCU;
-	config->index = device->index;
-	config->entry = entry;
-	config->name = entry->config.name;
-	config->capabilities = capabilities;
-	return OSAL_SUCCESS;
+	return &lpf_runtime_config_mapper_start + 1;
 }
 
-static int32_t lpf_peripheral_make_led_config(
-	const lpf_config_device_config_t *device, lpf_device_config_t *config)
+static const lpf_runtime_config_mapper_t *
+lpf_runtime_config_mapper_last(void)
 {
-	const lpf_config_led_entry_t *entry;
-	lpf_capability_t capabilities;
-
-	entry = (const lpf_config_led_entry_t *)device->entry;
-	if (!entry)
-		return OSAL_ERR_INVALID_PARAM;
-
-	capabilities = LPF_DEVICE_CAP_USER_IOCTL | LPF_DEVICE_CAP_DEBUGFS;
-	switch (entry->config.control) {
-	case LPF_CONFIG_LED_CONTROL_GPIO:
-		capabilities |= LPF_DEVICE_CAP_CONTROL_GPIO;
-		break;
-	case LPF_CONFIG_LED_CONTROL_PWM:
-		capabilities |= LPF_DEVICE_CAP_CONTROL_PWM;
-		break;
-	default:
-		return OSAL_ERR_NOT_SUPPORTED;
-	}
-
-	config->type = LPF_DEVICE_TYPE_LED;
-	config->index = device->index;
-	config->entry = entry;
-	config->name = entry->config.name;
-	config->capabilities = capabilities;
-	return OSAL_SUCCESS;
+	return &lpf_runtime_config_mapper_end;
 }
 
 static int32_t lpf_peripheral_make_device_config(
 	const lpf_config_device_config_t *device, lpf_device_config_t *config)
 {
+	const lpf_runtime_config_mapper_t *mapper;
+
 	if (!device || !config)
 		return OSAL_ERR_INVALID_PARAM;
 
 	osal_memset(config, 0, sizeof(*config));
 
-	switch (device->device_type) {
-	case LPF_CONFIG_DEVICE_TYPE_MCU:
-		return lpf_peripheral_make_mcu_config(device, config);
-	case LPF_CONFIG_DEVICE_TYPE_LED:
-		return lpf_peripheral_make_led_config(device, config);
-	default:
-		return OSAL_ERR_NOT_SUPPORTED;
+	for (mapper = lpf_runtime_config_mapper_first();
+	     mapper < lpf_runtime_config_mapper_last(); mapper++) {
+		if (mapper->type != device->device_type)
+			continue;
+		if (!mapper->map)
+			return OSAL_ERR_INVALID_PARAM;
+		return mapper->map(device, config);
 	}
+
+	return OSAL_ERR_NOT_SUPPORTED;
 }
 
 int32_t lpf_runtime_probe_devices(void)

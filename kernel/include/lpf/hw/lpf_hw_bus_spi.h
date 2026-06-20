@@ -3,7 +3,7 @@
 #ifndef LPF_HW_BUS_SPI_H
 #define LPF_HW_BUS_SPI_H
 
-#include "lpf/hw/lpf_hw_types.h"
+#include "lpf/types/lpf_spi_types.h"
 
 int32_t lpf_hw_bus_spi_open(const lpf_spi_config_t *config,
 			    lpf_hw_bus_spi_handle_t *handle);

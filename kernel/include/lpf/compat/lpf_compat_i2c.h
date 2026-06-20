@@ -3,7 +3,7 @@
 #ifndef LPF_COMPAT_I2C_H
 #define LPF_COMPAT_I2C_H
 
-#include "lpf/hw/lpf_hw_types.h"
+#include "lpf/types/lpf_i2c_types.h"
 
 int32_t lpf_compat_i2c_open(const char *device, lpf_i2c_handle_t *handle);
 void lpf_compat_i2c_close(lpf_i2c_handle_t handle);

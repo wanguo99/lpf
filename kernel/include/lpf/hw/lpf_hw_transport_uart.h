@@ -3,7 +3,7 @@
 #ifndef LPF_HW_TRANSPORT_UART_H
 #define LPF_HW_TRANSPORT_UART_H
 
-#include "lpf/hw/lpf_hw_types.h"
+#include "lpf/types/lpf_serial_types.h"
 
 int32_t lpf_hw_transport_uart_open(
 	const char *device, const lpf_serial_config_t *config,

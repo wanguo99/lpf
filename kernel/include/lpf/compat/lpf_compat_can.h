@@ -3,7 +3,7 @@
 #ifndef LPF_COMPAT_CAN_H
 #define LPF_COMPAT_CAN_H
 
-#include "lpf/hw/lpf_hw_types.h"
+#include "lpf/types/lpf_can_types.h"
 
 int32_t lpf_compat_can_init(const lpf_can_config_t *config,
 			    lpf_can_handle_t *handle);

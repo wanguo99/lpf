@@ -3,7 +3,7 @@
 #ifndef LPF_COMPAT_SPI_H
 #define LPF_COMPAT_SPI_H
 
-#include "lpf/hw/lpf_hw_types.h"
+#include "lpf/types/lpf_spi_types.h"
 
 int32_t lpf_compat_spi_open(const lpf_spi_config_t *config,
 			    lpf_spi_handle_t *handle);

@@ -3,7 +3,7 @@
 #ifndef LPF_COMPAT_GPIO_H
 #define LPF_COMPAT_GPIO_H
 
-#include "lpf/hw/lpf_hw_types.h"
+#include "lpf/types/lpf_gpio_types.h"
 
 int32_t lpf_compat_gpio_request(uint32_t gpio_num, const char *label);
 void lpf_compat_gpio_free(uint32_t gpio_num);
