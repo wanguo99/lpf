@@ -48,14 +48,6 @@ if(CONFIG_LPF_MCU_TRANSPORT_UART AND TARGET hal)
     )
 endif()
 
-if(CONFIG_LPF_LED_SERVICE AND TARGET hal)
-    list(APPEND ADD_SRCS
-        "../lpf/peripheral/led/lpf_led_service.c"
-        "../lpf/peripheral/led/lpf_led_chrdev.c"
-        "../lpf/peripheral/led/lpf_led_proc.c"
-    )
-endif()
-
 ###############################################
 
 ###### Add required/dependent components ######
@@ -80,10 +72,6 @@ endif()
 # HAL is kernel-module-only. CMake host builds link the HAL-dependent MCU
 # sources only when a test double/legacy target is explicitly present.
 if(CONFIG_LPF_MCU_SERVICE AND TARGET hal)
-    list(APPEND ADD_REQUIREMENTS hal)
-endif()
-
-if(CONFIG_LPF_LED_SERVICE AND TARGET hal)
     list(APPEND ADD_REQUIREMENTS hal)
 endif()
 

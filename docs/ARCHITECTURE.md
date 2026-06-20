@@ -125,8 +125,8 @@ dispatch, state, error handling, and debug command handlers. Services register
 with LPF Core for device lifecycle handling and use LPF chrdev/sysfs/debugfs
 helpers for runtime nodes. MCU and LED services now live under
 `kernel/lpf/peripheral/` and expose instance nodes such as `/dev/lpf/mcu0` and
-`/dev/lpf/led0`; during the current migration stage they are still linked into
-`pdm.ko`.
+`/dev/lpf/led0`; LED is now provided by `lpf_led.ko`, while MCU remains linked
+into `pdm.ko` until the next service-module split.
 
 ### LPF Transports
 
@@ -204,12 +204,14 @@ osal.ko
 lpf_core.ko
 pconfig.ko
 hal.ko
+lpf_led.ko
 pdm.ko
 ```
 
-`pdm.ko` consumes PConfig entries and HAL symbols, maps enabled PConfig entries
-to LPF devices, and lets LPF Core probe linked peripheral services for each
-configured peripheral.
+`lpf_led.ko` registers the LED LPF driver before PDM registers LED device
+instances. `pdm.ko` consumes PConfig entries and HAL symbols, maps enabled
+PConfig entries to LPF devices, and lets LPF Core probe the matching registered
+service for each configured peripheral.
 
 ## Adding A Peripheral
 

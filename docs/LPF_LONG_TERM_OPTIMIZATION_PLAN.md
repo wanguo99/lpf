@@ -329,16 +329,17 @@ Current status:
 - Started. MCU and LED service code now live under `kernel/lpf/peripheral/`
   with public kernel service headers at `kernel/include/lpf/`.
 - Started. MCU and LED services register as LPF drivers and expose
-  `/dev/lpf/mcuN` and `/dev/lpf/ledN`; they are still linked into `pdm.ko`
-  until peripheral services are split into standalone modules.
+  `/dev/lpf/mcuN` and `/dev/lpf/ledN`; LED now builds as standalone
+  `lpf_led.ko`, while MCU remains linked into `pdm.ko` until the next
+  service-module split.
 - Started. MCU CAN/UART implementations have moved behind
   `kernel/lpf/transport/mcu/` and are selected through the LPF MCU transport
   registry instead of direct service dependencies.
 - Done. The framed peripheral protocol has moved from PDM into the LPF protocol
   layer under `kernel/lpf/protocol/`, with public protocol headers under
   `kernel/include/lpf/` and encode/decode symbols exported by `lpf_core.ko`.
-- Remaining work: promote MCU transports and LED/MCU services into standalone
-  LPF modules.
+- Remaining work: promote MCU transports and MCU service into standalone LPF
+  modules.
 
 ## Phase 8: UAPI And PDI Separation
 

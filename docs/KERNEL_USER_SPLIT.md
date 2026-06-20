@@ -38,7 +38,9 @@ uapi/
 
 - `kernel/osal` wraps Linux kernel APIs and builds `osal.ko`.
 - `kernel/pdm` owns the kernel module entry, device node, ioctl boundary,
-  and links current built-in LPF peripheral services into `pdm.ko`.
+  and links the current built-in MCU service path into `pdm.ko`.
+- `kernel/lpf/peripheral/led` builds the standalone `lpf_led.ko` service
+  module.
 - `kernel/lpf/protocol` provides kernel-side LPF protocol helpers through
   `lpf_core.ko` for services that need framed communication.
 - `kernel/hal` provides kernel-only hardware access used by PDM.

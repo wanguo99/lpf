@@ -187,4 +187,8 @@ module_exit(pdm_exit);
 MODULE_AUTHOR("LPF");
 MODULE_DESCRIPTION("LPF PDM kernel module");
 MODULE_LICENSE("GPL");
+#ifdef CONFIG_LPF_LED_SERVICE
+MODULE_SOFTDEP("pre: osal lpf_core pconfig hal lpf_led can can_raw");
+#else
 MODULE_SOFTDEP("pre: osal lpf_core pconfig hal can can_raw");
+#endif

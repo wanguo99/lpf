@@ -2,8 +2,8 @@
 
 PDM is the Peripheral Driver Module. It currently owns module orchestration,
 LPF device registration, and the management/discovery node. LPF peripheral
-services are still linked into `pdm.ko` during the migration to standalone
-service modules.
+service modules are being split out of `pdm.ko`; LED is already provided by
+`lpf_led.ko`, while MCU remains PDM-hosted during the current migration stage.
 
 ## Current Scope
 
@@ -16,16 +16,17 @@ The kernel module currently provides:
 - LPF MCU service, `/dev/lpf/mcuN` ioctl dispatch, and CAN/Serial transport
   glue linked into `pdm.ko`
 - LPF LED service and `/dev/lpf/ledN` ioctl dispatch for GPIO/PWM controlled
-  LEDs linked into `pdm.ko`
+  LEDs provided by `lpf_led.ko`
 - PDM control node `/dev/pdm_ctl` for LPF device discovery snapshots
 - LPF read-only procfs status nodes under `/proc/lpf/`
 - LPF debugfs command nodes under `/sys/kernel/debug/lpf/`
 
-PDM consumes exported `hal.ko` symbols for MCU transport and LED GPIO/PWM
-hardware access. Runtime character-device, sysfs-attribute, and debugfs-file
-lifecycle helpers are provided by `lpf_core.ko`; LPF peripheral services own
-the concrete operation handlers. LPF protocol encode/decode helpers are also
-provided by `lpf_core.ko` for services that need framed communication.
+PDM consumes exported `hal.ko` symbols for MCU transport. LED hardware access
+is now owned by `lpf_led.ko`. Runtime character-device, sysfs-attribute, and
+debugfs-file lifecycle helpers are provided by `lpf_core.ko`; LPF peripheral
+services own the concrete operation handlers. LPF protocol encode/decode
+helpers are also provided by `lpf_core.ko` for services that need framed
+communication.
 
 ## Configuration
 
@@ -96,10 +97,11 @@ kernel/include/pdm/
 
 ## Layering
 
-`pdm.ko` links the current userspace boundaries for LPF peripheral services.
-Built-in LPF peripheral services register as LPF drivers through LPF Core;
-during module initialization
-PDM loads PConfig, maps each enabled normalized PConfig device entry into an
+`pdm.ko` still links the current MCU service path. Standalone LPF peripheral
+service modules, such as `lpf_led.ko`, register their LPF drivers through LPF
+Core before PDM registers configured device instances. During module
+initialization PDM loads PConfig, maps each enabled normalized PConfig device
+entry into an
 `lpf_device_config_t`, and registers it with LPF Core. PDM must not depend on
 the concrete PCONFIG backend that produced the entries. LPF Core then binds the
 configured device to the matching service `probe`. On unload, LPF Core removes
@@ -130,8 +132,8 @@ Instance character devices expose read-only sysfs attributes for inspection:
 command failures for the specific instance.
 
 MCU and LED service implementations live under `kernel/lpf/peripheral/`.
-During the current migration stage they are linked into `pdm.ko` and
-registered from PDM's built-in driver registration path.
+LED is registered by `lpf_led.ko`; MCU is still registered from PDM's built-in
+driver registration path until it is split into its own module.
 
 `/dev/pdm_ctl` is the management node for discovery. It exposes LPF Core device
 snapshots through `uapi/lpf/lpf_ctl.h`, including stable name, type, state,

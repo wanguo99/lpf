@@ -76,6 +76,7 @@ MODULES_LIST ?= $(strip \
 	$(if $(CONFIG_LPF_CORE),lpf_core) \
 	$(if $(CONFIG_PCONFIG),pconfig) \
 	$(if $(CONFIG_HAL),hal) \
+	$(if $(CONFIG_LPF_LED_SERVICE),lpf_led) \
 	$(if $(CONFIG_PDM),pdm) \
 	$(if $(CONFIG_HAL_MOCK_SELFTEST),hal_mock_selftest))
 MODULES_ARTIFACTS = $(addprefix $(MODULES_OUTPUT_DIR)/,$(addsuffix .ko,$(MODULES_LIST)))
@@ -495,7 +496,7 @@ _modules_check_environment:
 		echo "ERROR: No kernel modules are enabled in the current configuration."; \
 		echo "==================================================================="; \
 		echo ""; \
-		echo "Enable CONFIG_OSAL, CONFIG_LPF_CORE, CONFIG_HAL, and/or CONFIG_PDM before invoking make modules."; \
+		echo "Enable CONFIG_OSAL, CONFIG_LPF_CORE, CONFIG_HAL, CONFIG_LPF_LED_SERVICE, and/or CONFIG_PDM before invoking make modules."; \
 		echo "For example, run make menuconfig or load a defconfig that enables"; \
 		echo "the kernel modules you want to build."; \
 		echo "==================================================================="; \
