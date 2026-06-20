@@ -14,9 +14,8 @@ menuconfig PDM
 	  - Unified API for complex peripherals
 
 	  Architecture:
-	  PDM uses HAL for low-level hardware access and PCONFIG for
-	  hardware configuration, providing application-level APIs
-	  for managing peripheral subsystems.
+	  PDM integrates LPF Core, PCONFIG, HAL, and LPF peripheral services
+	  through one framework module boundary.
 
 	  Memory footprint: ~15KB base + per-peripheral drivers
 

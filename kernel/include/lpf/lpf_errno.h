@@ -23,6 +23,10 @@ static inline long lpf_status_to_errno(int32_t status)
 
 	if (status == OSAL_ERR_NO_MEMORY)
 		return -ENOMEM;
+	if (status == OSAL_ENODEV)
+		return -ENODEV;
+	if (status == OSAL_ENOENT)
+		return -ENOENT;
 	if (status == OSAL_ERR_TIMEOUT)
 		return -ETIMEDOUT;
 	if (status == OSAL_ERR_BUSY)

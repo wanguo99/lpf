@@ -110,8 +110,8 @@ pconfig_hw_get_led(platform, index);
 - `kernel/pconfig` owns backend selection, validation, and normalized device
   enumeration.
 - `kernel/pconfig/configs` owns concrete static platform tables.
-- PDM consumes `pconfig_get()` and typed entries; it must not know concrete
-  product table symbols or backend implementations.
+- LPF peripheral configuration consumes `pconfig_get()` and typed entries; it
+  must not know concrete product table symbols or backend implementations.
 - New configuration sources should be added as PCONFIG backends. They must
   produce the same `pconfig_platform_config_t` and `pconfig_device_config_t`
-  model before PDM sees them.
+  model before LPF peripheral configuration sees them.

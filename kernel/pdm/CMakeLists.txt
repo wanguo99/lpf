@@ -17,6 +17,7 @@ list(APPEND ADD_SRCS
     "src/pdm.c"
     "src/base/pdm_ctl_chrdev.c"
     "../lpf/peripheral/lpf_peripheral.c"
+    "../lpf/peripheral/lpf_peripheral_config.c"
 )
 
 # 根据配置添加子模块源文件
@@ -59,10 +60,8 @@ endif()
 ###############################################
 
 ###### Add required/dependent components ######
-# PDM 依赖 OSAL、LPF Core、HAL 和 PCONFIG
-# PDM 从 PCONFIG 获取配置类型和运行时配置
-# PCONFIG 定义配置类型，PDM 使用
-# 依赖关系：PDM→PCONFIG（单向依赖，无循环）
+# PDM 集成 OSAL、LPF Core、HAL、PCONFIG 和 LPF peripheral 层。
+# PCONFIG 到 LPF device 的转换由 LPF peripheral 配置入口完成。
 
 # OSAL 是必须的（Kconfig: select OSAL）
 if(CONFIG_OSAL)
@@ -87,7 +86,7 @@ if(CONFIG_LPF_LED_SERVICE AND TARGET hal)
     list(APPEND ADD_REQUIREMENTS hal)
 endif()
 
-# PCONFIG 是必须的（PDM 使用 PCONFIG 的配置类型）
+# PCONFIG 是必须的（LPF peripheral 配置入口使用 PCONFIG 的配置类型）
 if(CONFIG_PCONFIG)
     list(APPEND ADD_REQUIREMENTS pconfig)
 else()

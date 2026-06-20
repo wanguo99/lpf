@@ -115,8 +115,8 @@ one normalized list. Backend selection is controlled by the `backend` module
 parameter: `auto` tries Device Tree first and falls back to the built-in static
 table, while `dt` and `static` require a specific backend. Future
 board-profile or product-selection backends should produce the same
-`pconfig_platform_config_t` and `pconfig_device_config_t` model before PDM sees
-the data.
+`pconfig_platform_config_t` and `pconfig_device_config_t` model before LPF
+peripheral configuration sees the data.
 
 ### LPF Peripheral Services
 
@@ -148,9 +148,10 @@ lives under `kernel/lpf/protocol/`, exports encode/decode entry points from
 
 ### PDM
 
-PDM owns `/dev/pdm_ctl` management/discovery ioctl node and PCONFIG-to-LPF
-device registration. It calls the LPF peripheral service registration entry
-rather than owning per-service registration logic itself.
+PDM owns `/dev/pdm_ctl` management/discovery ioctl node and framework module
+orchestration. It calls the LPF peripheral service and configured-device probe
+entries rather than owning per-service registration or PCONFIG-to-LPF mapping
+logic itself.
 Business operations stay on LPF instance nodes such as `/dev/lpf/mcu0` and
 `/dev/lpf/led0`; LPF service status snapshots live under `/proc/lpf/`.
 

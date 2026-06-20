@@ -7,5 +7,6 @@
 
 int32_t lpf_peripheral_services_init(void);
 void lpf_peripheral_services_exit(void);
+int32_t lpf_peripheral_probe_devices(void);
 
 #endif /* LPF_PERIPHERAL_H */

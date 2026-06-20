@@ -113,8 +113,8 @@ Current status:
 - Started. `lpf_core.ko` now owns the LPF driver and device registry.
 - `kernel/include/lpf/lpf_device.h` and `lpf_driver.h` define the first device,
   driver, and capability model.
-- PDM maps PCONFIG entries into `lpf_device_config_t` and registers MCU/LED
-  services through LPF Core.
+- LPF peripheral configuration maps PCONFIG entries into
+  `lpf_device_config_t`; MCU/LED services register through LPF Core.
 - Started device discovery. LPF Core now exposes snapshot APIs for listing
   devices and querying by type/index, name, or capability without exposing
   internal list nodes to callers.
@@ -335,15 +335,18 @@ Current status:
 - Done. Unified peripheral service registration has moved from PDM-local
   wrappers into `kernel/lpf/peripheral/lpf_peripheral.c`; PDM now calls the LPF
   service entry instead of registering MCU/LED services directly.
+- Done. PCONFIG-to-LPF device mapping has moved from `pdm.c` into
+  `kernel/lpf/peripheral/lpf_peripheral_config.c`; PDM now calls the LPF
+  peripheral probe entry instead of owning per-device capability mapping.
 - Started. MCU CAN/UART implementations have moved behind
   `kernel/lpf/transport/mcu/` and are selected through the LPF MCU transport
   registry instead of direct service dependencies.
 - Done. The framed peripheral protocol has moved from PDM into the LPF protocol
   layer under `kernel/lpf/protocol/`, with public protocol headers under
   `kernel/include/lpf/` and encode/decode symbols exported by `lpf_core.ko`.
-- Remaining work: continue reducing PDM-specific device-configuration mapping
-  ownership while keeping peripheral services integrated through the framework
-  module boundary.
+- Remaining work: continue moving framework orchestration details out of PDM
+  while keeping peripheral services integrated through the framework module
+  boundary.
 
 ## Phase 8: UAPI And PDI Separation
 

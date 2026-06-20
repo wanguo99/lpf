@@ -11,7 +11,8 @@
  *
  * 设计原则：
  * - PCONFIG 负责屏蔽静态表、Device Tree、产品配置等来源差异
- * - PDM 只消费统一的设备列表和类型化配置入口
+ * - LPF peripheral configuration consumes the unified device list and typed
+ *   configuration entries
  ************************************************************************/
 
 #ifndef PCONFIG_H
@@ -35,8 +36,8 @@
  * @brief 内置静态配置后端使用的平台配置表
  *
  * 产品或测试目标通过 PCONFIG_EXTRA_SRCS 编译进该符号。该符号只属于
- * PCONFIG static backend；其他配置来源应实现独立 backend，不应让 PDM
- * 直接依赖具体表符号。
+ * PCONFIG static backend；其他配置来源应实现独立 backend，不应让 LPF
+ * peripheral configuration 直接依赖具体表符号。
  */
 extern const pconfig_platform_table_t g_pconfig_platform_table;
 

@@ -20,13 +20,13 @@ device and driver lifecycle instead of adding new PDM-local bus code.
   framework device and driver registry.
 - PDM is a kernel module built as `pdm.ko`; current LPF peripheral services are
   linked into `pdm.ko` while their code lives under `kernel/lpf/peripheral/`.
-- PConfig supplies device instances; PDM maps those instances into LPF device
-  configs, and LPF Core matches each instance to a driver and owns remove
-  ordering.
+- PConfig supplies device instances; the LPF peripheral configuration entry maps
+  those instances into LPF device configs, and LPF Core matches each instance
+  to a driver and owns remove ordering.
 - PDI remains a userspace library, but it only talks to per-peripheral character
   devices and UAPI headers.
-- Each peripheral owns its own PConfig type, PDM driver, LPF UAPI header, PDI
-  userspace wrapper, character device, and ioctl namespace.
+- Each peripheral owns its own PConfig type, LPF peripheral service, LPF UAPI
+  header, PDI userspace wrapper, character device, and ioctl namespace.
 - Feature selection is handled by Kbuild object selection and registration
   tables, not by business-code `#ifdef CONFIG_*` branches.
 - OSAL hides kernel/userspace differences where equivalent semantics are
@@ -50,11 +50,13 @@ device and driver lifecycle instead of adding new PDM-local bus code.
 - [x] Split PDI MCU UAPI into `uapi/lpf/lpf_mcu.h`.
 - [x] Split userspace PDI MCU wrapper into `user/pdi/src/pdi_mcu.c`.
 - [x] Add `/dev/lpf/mcuN` character-device ioctl boundary.
-- [x] Change PDM startup to initialize built-in drivers, load PConfig, iterate
-      configured devices, and call matching driver `probe`.
+- [x] Change PDM startup to initialize LPF peripheral services, call the LPF
+      peripheral configured-device probe entry, and let LPF Core bind devices.
 - [x] Add built-in peripheral service registration through LPF Core.
 - [x] Move built-in peripheral service registration out of PDM-local wrappers
       into `kernel/lpf/peripheral/lpf_peripheral.c`.
+- [x] Move PCONFIG-to-LPF device config mapping out of `pdm.c` and into
+      `kernel/lpf/peripheral/lpf_peripheral_config.c`.
 - [x] Replace the PDM-local virtual bus/list manager with LPF Core for driver
       and device binding.
 - [x] Keep PDM peripheral drivers linked into `pdm.ko` instead of adding one
@@ -78,7 +80,8 @@ device and driver lifecycle instead of adding new PDM-local bus code.
   - Acceptance: `pconfig_load()` finds a board config and `pconfig.ko` loads.
 - [x] Define the PConfig ownership model.
   - PConfig owns its module lifetime and global config state.
-  - PDM reads PConfig and removes only PDM-created devices on exit.
+  - LPF peripheral configuration reads PConfig and LPF Core removes registered
+    devices on exit.
   - Acceptance: unloading `pdm.ko` does not invalidate a loaded `pconfig.ko`
     unexpectedly.
 - [ ] Add a basic module load/unload smoke path.
@@ -90,7 +93,8 @@ device and driver lifecycle instead of adding new PDM-local bus code.
 
 - [x] Generalize `pconfig_device_type_t` beyond MCU.
   - Keep `PCONFIG_DEVICE_TYPE_INVALID`.
-  - LED is added with matching PConfig, PDM, PDI, and UAPI pieces.
+  - LED is added with matching PConfig, LPF peripheral service, PDI, and UAPI
+    pieces.
 - [x] Split PConfig per-peripheral types.
   - Current: `pconfig_mcu.h`.
   - LED follows the `pconfig_xxx.h` pattern.
@@ -106,17 +110,17 @@ device and driver lifecycle instead of adding new PDM-local bus code.
 - [x] Update PConfig debug print output.
   - Print all configured peripheral groups, not only MCU.
 
-## Phase 3: Finish PDM Driver Model
+## Phase 3: Finish LPF Peripheral Service Model
 
 - [x] Keep the current `init` and `probe` split.
-  - `init`: register global resources for a PDM driver type.
+  - `init`: register global resources for an LPF peripheral service type.
   - `probe`: create per-device instances from PConfig entries.
 - [x] Audit PDM error-code conversion.
   - Avoid double-negating OSAL status values.
   - Kernel entry points should return Linux negative errno.
   - Internal OSAL-style APIs should return `OSAL_SUCCESS` or positive OSAL
     status codes consistently.
-- [x] Define a reusable PDM peripheral driver template.
+- [x] Define a reusable LPF peripheral service template.
   - Driver object.
   - `lpf_driver_register`.
   - Per-device context table.
