@@ -1,9 +1,9 @@
 # LPF Runtime Config
 
 This directory contains the `lpf_config_*` source and type names for the LPF
-runtime configuration layer. The code is linked into
-`lpf_runtime.ko` instead of being built as a standalone config
-module.
+runtime configuration layer. Backend, validation, normalization, and parser
+objects are linked into `lpf_core.ko`; the selected static board description is
+built separately as `lpf_configs.ko`.
 
 The runtime configuration layer selects a configuration backend, validates the
 active platform, and exposes a configured-device node table to LPF runtime
@@ -12,7 +12,7 @@ config drivers.
 ## Current Responsibility
 
 - Select the active configuration backend.
-- Prefer the built-in static table in `backend=auto`.
+- Prefer the static table exported by `lpf_configs.ko` in `backend=auto`.
 - Fall back to LPF Device Tree configuration when static config is unavailable
   or invalid.
 - Validate platform identity and per-device configuration.
@@ -23,12 +23,11 @@ config drivers.
 
 ## Backend Selection
 
-Runtime config supports a `backend` module parameter on
-`lpf_runtime.ko`:
+Runtime config supports a `backend` module parameter on `lpf_core.ko`:
 
 ```text
-backend=auto    # default: try static, then dt
-backend=static  # require built-in static table backend
+backend=auto    # default: try lpf_configs.ko static config, then dt
+backend=static  # require the lpf_configs.ko static table backend
 backend=dt      # require Device Tree backend
 ```
 
@@ -38,6 +37,11 @@ cannot load, or fails validation. It does not fall back to another backend.
 can override board firmware data while DT remains available as a fallback source.
 
 ## Static Config Selection
+
+The static backend gets its board-description table from the already loaded
+`lpf_configs.ko` module through `g_lpf_config_platform_table`. The config
+module only exports data; it does not register devices and does not depend on
+`lpf_core.ko`.
 
 The static backend supports product-line selection without exposing concrete
 table symbols to peripheral services:
@@ -72,7 +76,7 @@ int32_t lpf_config_validate(const lpf_config_platform_config_t *config);
 void lpf_config_print(const lpf_config_platform_config_t *config);
 ```
 
-The static backend uses a private initialized table:
+The static config module exports the selected table:
 
 ```c
 extern const lpf_config_static_table_t g_lpf_config_platform_table;
@@ -81,7 +85,7 @@ extern const lpf_config_static_table_t g_lpf_config_platform_table;
 Concrete configs live under:
 
 ```text
-configs/<product>/<project>/lpf_config_<product>_<project>_vN.c
+kernel/lpf-runtime/config/configs/<product>/<project>/lpf_config_<product>_<project>_vN.c
 ```
 
 Configuration version identity remains in the table data (`.version`); source

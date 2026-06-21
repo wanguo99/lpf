@@ -1,23 +1,22 @@
-# LPF Runtime
+# LPF Integrated Runtime
 
-The LPF runtime is the integrated kernel module that hosts reusable
-LPF peripheral services. Services stay layered under `kernel/lpf-runtime/peripheral/`
-and remain integrated through one runtime module so deployment does not
-fragment into one KO per peripheral.
+The LPF runtime is integrated into `lpf_core.ko` and hosts reusable LPF
+peripheral services. Services stay layered under
+`kernel/lpf-runtime/peripheral/` and remain integrated through the Core module
+so deployment does not fragment into one KO per peripheral.
 
 ## Current Scope
 
-The runtime module currently provides:
+The integrated runtime currently provides:
 
-- module load/unload orchestration in `kernel/lpf-runtime/runtime/lpf_runtime_module.c`
-- LPF runtime and configuration logic linked into
-  `lpf_runtime.ko`
+- runtime load/unload orchestration called from `lpf_core.ko`
+- LPF runtime and configuration logic linked into `lpf_core.ko`
 - LPF runtime initialization through `lpf_runtime_init()`
 - configured-device binding and device removal ordering owned by LPF Core
 - LPF MCU service, `/dev/lpf/mcuN` ioctl dispatch, and CAN/Serial transport
-  glue linked into `lpf_runtime.ko`
+  glue linked into `lpf_core.ko`
 - LPF LED service and `/dev/lpf/ledN` ioctl dispatch for GPIO/PWM controlled
-  LEDs linked into `lpf_runtime.ko`
+  LEDs linked into `lpf_core.ko`
 - LPF read-only procfs status nodes under `/proc/lpf/`
 - LPF debugfs command nodes under `/sys/kernel/debug/lpf/`
 - optional `lpf_dummy_service_selftest.ko` for mock-build LPF Core service
@@ -25,7 +24,7 @@ The runtime module currently provides:
 
 LPF peripheral services consume `lpf_hw_*` APIs for MCU transport and LED
 GPIO/PWM hardware access. Those hardware access objects are linked into
-`lpf_runtime.ko`.
+`lpf_core.ko`.
 Runtime character-device, sysfs-attribute, and debugfs-file lifecycle helpers
 are provided by `lpf_core.ko`; LPF peripheral services own the concrete
 operation handlers. LPF protocol encode/decode helpers are also provided by
@@ -41,21 +40,24 @@ device to the driver with the same type before calling `probe()`.
 
 Configured-device probing follows this order:
 
-1. `lpf_core.ko` initializes the LPF device model.
-2. `lpf_runtime.ko` initializes runtime core entries and LPF HW.
-3. Peripheral services register their `lpf_driver_t` objects with LPF Core.
-4. Runtime config loads the active board description and exposes device nodes.
-5. Runtime walks enabled config nodes and dispatches them to peripheral config
+1. `osal.ko` provides kernel OS abstraction services.
+2. `lpf_configs.ko` exports the selected static board description.
+3. `lpf_core.ko` initializes the LPF device model.
+4. The integrated runtime initializes runtime core entries and LPF HW.
+5. Peripheral services register their `lpf_driver_t` objects with LPF Core.
+6. Runtime config loads the active board description and exposes device nodes.
+7. Runtime walks enabled config nodes and dispatches them to peripheral config
    drivers.
-6. Each peripheral config driver creates an `lpf_device_config_t` and calls
+8. Each peripheral config driver creates an `lpf_device_config_t` and calls
    `lpf_device_register()`.
-7. LPF Core matches by LPF device type and calls the peripheral service
+9. LPF Core matches by LPF device type and calls the peripheral service
    `probe()`.
 
 ## Configuration
 
 ```text
-CONFIG_LPF_RUNTIME=m
+CONFIG_LPF_RUNTIME=y
+CONFIG_LPF_CONFIGS=m
 CONFIG_LPF_CORE=m
 CONFIG_LPF_MCU_SERVICE=y
 CONFIG_LPF_MCU_MAX_DEVICES=4
@@ -100,8 +102,7 @@ kernel/lpf-runtime/runtime/
 ├── lpf_runtime.c
 ├── lpf_runtime_config.c
 ├── lpf_runtime_entry_start.c
-├── lpf_runtime_entry_end.c
-└── lpf_runtime_module.c
+└── lpf_runtime_entry_end.c
 kernel/lpf-core/protocol/
 ├── lpf_protocol.c
 ├── lpf_protocol_common.c
@@ -137,13 +138,12 @@ module implementation.
 
 ## Layering
 
-`lpf_runtime.ko` links the current framework-hosted LPF peripheral
-service paths. During module initialization the runtime module calls
-`lpf_runtime_init()`. `lpf_runtime.ko` depends on `lpf_core.ko`; it does not
-initialize Core itself. The runtime initializes LPF HW, walks the linked LPF
-peripheral entry section, and initializes each entry. Feature objects such as
-MCU, LED, or runtime selftests are selected with Kbuild `obj-$(CONFIG_...)`; if
-an object is not linked, its section entry is absent and the runtime has no
+`lpf_core.ko` links the current framework-hosted LPF peripheral service paths.
+During module initialization Core calls `lpf_runtime_init()` after Core global
+state is ready. The runtime initializes LPF HW, walks the linked LPF peripheral
+entry section, and initializes each entry. Feature objects such as MCU, LED, or
+runtime selftests are selected with Kbuild `lpf_core-$(CONFIG_...)`; if an
+object is not linked, its section entry is absent and the runtime has no
 feature-specific branch to maintain. The runtime then loads runtime config,
 walks enabled configured-device nodes, and dispatches each node to the matching
 peripheral config driver. That config driver parses its typed node payload,
@@ -202,8 +202,8 @@ MCU and LED service implementations live under `kernel/lpf-runtime/peripheral/`.
 They contribute classed entries to the LPF runtime section. New
 framework-hosted services should declare a file-local runtime entry with
 `lpf_runtime_service_register(feature_name, feature_init, feature_exit)` and
-add the object with `lpf_runtime-$(CONFIG_LPF_FEATURE) += ...` so Kconfig
-selects whether the feature is linked into `lpf_runtime.ko`. Runtime self-tests
+add the object with `lpf_core-$(CONFIG_LPF_FEATURE) += ...` so Kconfig
+selects whether the feature is linked into `lpf_core.ko`. Runtime self-tests
 should use `lpf_runtime_selftest_register(...)` so they run after services.
 
 `/dev/lpf_ctl` is the management node for discovery. It is implemented by LPF
@@ -237,7 +237,7 @@ For example:
 MCU transport implementations live with the MCU service under
 `kernel/lpf-runtime/peripheral/mcu/` and are selected through
 `lpf_mcu_transport_get()`. They remain MCU-owned implementation details linked
-into `lpf_runtime.ko`; hardware access stays behind LPF HW.
+into `lpf_core.ko`; hardware access stays behind LPF HW.
 
 The protocol layer under `kernel/lpf-core/protocol/` is a common LPF-owned
 peripheral communication protocol linked into `lpf_core.ko`. It does not own
@@ -250,4 +250,4 @@ Mock module builds can enable `CONFIG_LPF_DUMMY_SERVICE_SELFTEST=m` to build
 `lpf_dummy_service_selftest.ko`. Loading it registers a temporary dummy driver
 and device through LPF Core, then validates lifecycle events, discovery,
 capability lookup, error/recovery state transitions, and unregister cleanup.
-It is a test module only and is not linked into `lpf_runtime.ko`.
+It is a test module only and is not linked into `lpf_core.ko`.

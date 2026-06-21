@@ -12,5 +12,7 @@
 void lpf_runtime_print_version(void);
 int32_t lpf_runtime_init(void);
 void lpf_runtime_exit(void);
+int32_t lpf_runtime_config_refresh(void);
+void lpf_runtime_config_detach(void);
 
 #endif /* LPF_RUNTIME_H */

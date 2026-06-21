@@ -1,20 +1,46 @@
 # LPF Runtime Configuration
 
 menuconfig LPF_RUNTIME
-	tristate "LPF runtime module"
-	default m
+	bool "LPF integrated peripheral runtime"
+	default y
 	depends on LPF_CORE
-	depends on m
 	help
-	  Build the integrated LPF runtime module. This module hosts
+	  Link the integrated LPF runtime into lpf_core.ko. This runtime hosts
 	  the reusable LPF peripheral services selected below and the runtime
 	  configuration backend used to create LPF devices. It keeps framework
-	  services in one runtime boundary instead of splitting one kernel
-	  module per peripheral.
+	  services in one core/driver module instead of splitting one kernel
+	  module per peripheral. Static platform configuration can be provided
+	  by the separate lpf_configs.ko module or by Device Tree.
 
 	  If unsure, say Y when enabling LPF peripheral services.
 
 if LPF_RUNTIME
+
+config LPF_CONFIGS
+	tristate "Build selected LPF static config module"
+	default m
+	depends on m
+	help
+	  Build lpf_configs.ko from the static platform configuration selected
+	  below. This is the C-config equivalent of providing a product DTS:
+	  only the selected product configuration is compiled into the module.
+
+choice
+	prompt "Selected LPF static config"
+	default LPF_CONFIG_KERNEL_X86_MOCK_MODULES if LPF_SOC_ADAPTER_MOCK
+	default LPF_CONFIG_KERNEL_X86_MODULES
+	depends on LPF_CONFIGS
+	help
+	  Select the single static platform configuration compiled into
+	  lpf_configs.ko.
+
+config LPF_CONFIG_KERNEL_X86_MODULES
+	bool "kernel/x86_modules v1"
+
+config LPF_CONFIG_KERNEL_X86_MOCK_MODULES
+	bool "kernel/x86_mock_modules v1"
+
+endchoice
 
 source "kernel/lpf-runtime/hw/Config.in"
 
@@ -54,7 +80,7 @@ config LPF_CONFIG_OF_SELFTEST
 	depends on LPF_SOC_ADAPTER_MOCK
 	help
 	  Link the LPF Device Tree config self-test into
-	  lpf_runtime.ko. The test contributes an entry to the LPF
+	  lpf_core.ko. The test contributes an entry to the LPF
 	  runtime entry section and validates the LPF Device Tree
 	  parser through Linux OF accessors on kernels with CONFIG_OF and
 	  CONFIG_OF_DYNAMIC enabled. Kernels without live OF support skip the

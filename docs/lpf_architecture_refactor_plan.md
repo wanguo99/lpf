@@ -6,13 +6,15 @@ This is the active refactor plan for LPF. It replaces the older overlapping
 kernel refactor, long-term optimization, and roadmap trackers with one
 architecture-driven checklist.
 
-LPF's current direction is sound: `lpf_core.ko` owns the LPF device model,
-while `lpf_runtime.ko` hosts runtime configuration, LPF HW, peripheral
-services, service-owned transport backends, and configured-device probing. The
-remaining work is to make this model explicit: LPF Core should behave like a
-small LPF-owned pseudo bus and device model, runtime peripherals should behave
-like drivers registered on that model, and configs should behave like
-DTS-style board descriptions even when the current backend is a static C table.
+LPF's current direction is sound: `lpf_core.ko` owns the LPF device model and
+the integrated runtime, including runtime configuration backends, LPF HW,
+peripheral services, service-owned transport backends, and configured-device
+probing. `lpf_configs.ko` is a DTS-like static board-description provider
+loaded before Core. The remaining work is to keep this model explicit: LPF
+Core should behave like a small LPF-owned pseudo bus and device model, runtime
+peripherals should behave like drivers registered on that model, and configs
+should behave like DTS-style board descriptions even when the current backend
+is a static C table.
 
 ## Target Architecture Model
 
@@ -52,8 +54,8 @@ parser, or driver-core internals.
 
 ## Current Architecture Strengths
 
-- Kernel module boundaries are clear: `osal.ko`, `lpf_core.ko`, and
-  `lpf_runtime.ko`.
+- Kernel module boundaries are clear: `osal.ko`, `lpf_configs.ko`, and
+  `lpf_core.ko`.
 - Source layout now follows module ownership with `kernel/lpf-core/` and
   `kernel/lpf-runtime/`.
 - Kbuild object selection is used for trim-friendly services, service-owned

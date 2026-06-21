@@ -73,8 +73,8 @@ MODULES_SRC_DIR ?= $(srctree)/kernel
 MODULES_OUTPUT_DIR ?= $(MODULES_BUILD_DIR)
 MODULES_LIST ?= $(strip \
 	$(if $(filter y m,$(CONFIG_OSAL)),osal) \
+	$(if $(filter y m,$(CONFIG_LPF_CONFIGS)),lpf_configs) \
 	$(if $(filter y m,$(CONFIG_LPF_CORE)),lpf_core) \
-	$(if $(filter y m,$(CONFIG_LPF_RUNTIME)),lpf_runtime) \
 	$(if $(filter y m,$(CONFIG_LPF_HW_MOCK_SELFTEST)),lpf_hw_mock_selftest) \
 	$(if $(filter y m,$(CONFIG_LPF_DUMMY_SERVICE_SELFTEST)),lpf_dummy_service_selftest))
 MODULES_ARTIFACTS = $(addprefix $(MODULES_OUTPUT_DIR)/,$(addsuffix .ko,$(MODULES_LIST)))
@@ -527,7 +527,7 @@ _modules_check_environment:
 		echo "ERROR: No kernel modules are enabled in the current configuration."; \
 		echo "==================================================================="; \
 		echo ""; \
-		echo "Enable CONFIG_OSAL, CONFIG_LPF_CORE, and/or CONFIG_LPF_RUNTIME before invoking make modules."; \
+		echo "Enable CONFIG_OSAL, CONFIG_LPF_CORE, and/or CONFIG_LPF_CONFIGS before invoking make modules."; \
 		echo "For example, run make menuconfig or load a defconfig that enables"; \
 		echo "the kernel modules you want to build."; \
 		echo "==================================================================="; \

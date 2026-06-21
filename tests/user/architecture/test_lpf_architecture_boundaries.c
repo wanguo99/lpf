@@ -417,6 +417,12 @@ static int test_static_config_sources_are_version_named(void)
 	failures += expect_contains(
 		"config/Makefile", config_makefile,
 		"lpf-runtime/config/configs/lpf_config_configs.o");
+	failures += expect_contains(
+		"config/Makefile", config_makefile,
+		"lpf_configs-y += lpf-runtime/config/configs/lpf_config_configs.o");
+	failures += expect_contains(
+		"config/Makefile", config_makefile,
+		"lpf_configs-$(CONFIG_LPF_CONFIG_KERNEL_X86_MODULES)");
 	failures += expect_ordered_contains("lpf_config_backend.c",
 					    config_backend,
 					    "&g_lpf_config_static_backend",
@@ -427,10 +433,17 @@ static int test_static_config_sources_are_version_named(void)
 					"g_lpf_config_platform_table");
 	failures += expect_contains("lpf_config_static.h", config_static_header,
 				    "lpf_config_static_table_t");
+	failures += expect_contains("lpf_config_static.h", config_static_header,
+				    "extern const lpf_config_static_table_t g_lpf_config_platform_table");
 	failures += expect_contains("lpf_config_configs.c", static_table,
-				    "g_lpf_config_platform_table");
+				    "EXPORT_SYMBOL_GPL(g_lpf_config_platform_table)");
 	failures += expect_contains("lpf_config_static_backend.c", static_backend,
-				    "g_lpf_config_platform_table");
+				    "symbol_get(g_lpf_config_platform_table)");
+	failures += expect_contains("lpf_config_static_backend.c", static_backend,
+				    "symbol_put(g_lpf_config_platform_table)");
+	failures += expect_not_contains("lpf_config_static_backend.c",
+					static_backend,
+					"lpf_config_static_register_table");
 	failures += expect_not_contains("lpf_config_kernel_x86_modules_v1.c",
 					x86_config,
 					"g_lpf_config_platform_table");
@@ -749,6 +762,12 @@ static int test_core_lifecycle_is_module_owned(void)
 				    "static int32_t lpf_core_init(void)");
 	failures += expect_contains("lpf_core.c", core_source,
 				    "static void lpf_core_deinit(void)");
+	failures += expect_path_absent(
+		"kernel/lpf-runtime/runtime/lpf_runtime_module.c");
+	failures += expect_contains("lpf_core.c", core_source,
+				    "lpf_runtime_init()");
+	failures += expect_contains("lpf_core.c", core_source,
+				    "lpf_runtime_exit()");
 	failures += expect_not_contains("lpf_core.c", core_source,
 					"EXPORT_SYMBOL_GPL(lpf_core_init)");
 	failures += expect_not_contains("lpf_core.c", core_source,

@@ -45,8 +45,10 @@ const lpf_config_platform_config_t *lpf_config_find(const char *product,
 {
 	const lpf_config_backend_ops_t *backend;
 
-	backend = g_lpf_config_backend ? g_lpf_config_backend :
-				      lpf_config_backend_select();
+	if (!g_lpf_config_initialized)
+		return NULL;
+
+	backend = g_lpf_config_backend;
 	if (!backend || !backend->find)
 		return NULL;
 
@@ -58,8 +60,13 @@ int32_t lpf_config_list(const lpf_config_platform_config_t **configs, uint32_t *
 {
 	const lpf_config_backend_ops_t *backend;
 
-	backend = g_lpf_config_backend ? g_lpf_config_backend :
-				      lpf_config_backend_select();
+	if (!g_lpf_config_initialized) {
+		if (count)
+			*count = 0;
+		return OSAL_ERR_INVALID_STATE;
+	}
+
+	backend = g_lpf_config_backend;
 	if (!backend || !backend->list)
 		return OSAL_ERR_GENERIC;
 

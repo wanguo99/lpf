@@ -528,4 +528,4 @@ module_exit(lpf_hw_mock_selftest_exit);
 MODULE_AUTHOR("LPF");
 MODULE_DESCRIPTION("LPF HW mock backend self-test");
 MODULE_LICENSE("GPL");
-MODULE_SOFTDEP("pre: osal lpf_core lpf_runtime");
+MODULE_SOFTDEP("pre: osal lpf_core");

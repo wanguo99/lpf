@@ -5,6 +5,8 @@
 #include <linux/notifier.h>
 
 #include "lpf/core/lpf_core.h"
+#include "lpf/lpf_errno.h"
+#include "lpf/runtime/lpf_runtime.h"
 #include "lpf/soc/lpf_soc_adapter.h"
 #include "lpf_ctl_internal.h"
 
@@ -1032,7 +1034,16 @@ static int __init lpf_core_module_init(void)
 
 	ret = lpf_core_init();
 	if (ret != OSAL_SUCCESS)
-		return -EINVAL;
+		return lpf_status_to_errno(ret);
+
+#ifdef CONFIG_LPF_RUNTIME
+	lpf_runtime_print_version();
+	ret = lpf_runtime_init();
+	if (ret != OSAL_SUCCESS) {
+		lpf_core_deinit();
+		return lpf_status_to_errno(ret);
+	}
+#endif
 
 	LOG_INFO("LPF", "core loaded");
 	return 0;
@@ -1040,6 +1051,9 @@ static int __init lpf_core_module_init(void)
 
 static void __exit lpf_core_module_exit(void)
 {
+#ifdef CONFIG_LPF_RUNTIME
+	lpf_runtime_exit();
+#endif
 	lpf_core_deinit();
 	LOG_INFO("LPF", "core unloaded");
 }
@@ -1048,6 +1062,6 @@ module_init(lpf_core_module_init);
 module_exit(lpf_core_module_exit);
 
 MODULE_AUTHOR("LPF");
-MODULE_DESCRIPTION("LPF core device model");
+MODULE_DESCRIPTION("LPF core device model and integrated peripheral runtime");
 MODULE_LICENSE("GPL");
 MODULE_SOFTDEP("pre: osal can can_raw");

@@ -4,6 +4,7 @@
 #include "lpf_config_backend.h"
 #include "lpf_config_static.h"
 
+#include <linux/module.h>
 #include <linux/moduleparam.h>
 
 #ifndef CONFIG_PROJECT_NAME
@@ -18,6 +19,8 @@ static int lpf_config_static_index = -1;
 static char *lpf_config_static_product;
 static char *lpf_config_static_project;
 static char *lpf_config_static_version;
+static const lpf_config_static_table_t *g_lpf_config_static_table;
+static bool g_lpf_config_static_loaded;
 
 module_param_named(config_index, lpf_config_static_index, int, 0444);
 MODULE_PARM_DESC(config_index, "LPF static config index override");
@@ -62,6 +65,30 @@ static bool lpf_config_static_has_effective_identity_selector(
 	return product || project || version;
 }
 
+static const lpf_config_static_table_t *lpf_config_static_get_table(void)
+{
+	if (!g_lpf_config_static_table)
+		g_lpf_config_static_table =
+			symbol_get(g_lpf_config_platform_table);
+
+	return g_lpf_config_static_table;
+}
+
+static void lpf_config_static_put_table(void)
+{
+	if (!g_lpf_config_static_table)
+		return;
+
+	symbol_put(g_lpf_config_platform_table);
+	g_lpf_config_static_table = NULL;
+}
+
+static void lpf_config_static_put_table_if_unloaded(void)
+{
+	if (!g_lpf_config_static_loaded)
+		lpf_config_static_put_table();
+}
+
 static bool
 lpf_config_static_identity_matches(const lpf_config_platform_config_t *config,
 				   const char *product, const char *project,
@@ -92,28 +119,29 @@ lpf_config_static_identity_matches(const lpf_config_platform_config_t *config,
 }
 
 static const lpf_config_platform_config_t *
-lpf_config_static_config_at(uint32_t index)
+lpf_config_static_config_at(const lpf_config_static_table_t *table,
+			    uint32_t index)
 {
-	if (!g_lpf_config_platform_table.configs ||
-	    index >= g_lpf_config_platform_table.count)
+	if (!table || !table->configs || index >= table->count)
 		return NULL;
 
-	return g_lpf_config_platform_table.configs[index];
+	return table->configs[index];
 }
 
 static const lpf_config_platform_config_t *
-lpf_config_static_find_by_identity(const char *product, const char *project,
+lpf_config_static_find_by_identity(const lpf_config_static_table_t *table,
+				   const char *product, const char *project,
 				   const char *version)
 {
 	uint32_t i;
 
-	if (!g_lpf_config_platform_table.configs)
+	if (!table || !table->configs)
 		return NULL;
 
-	for (i = 0; i < g_lpf_config_platform_table.count; i++) {
+	for (i = 0; i < table->count; i++) {
 		const lpf_config_platform_config_t *config;
 
-		config = lpf_config_static_config_at(i);
+		config = lpf_config_static_config_at(table, i);
 		if (lpf_config_static_identity_matches(config, product, project,
 						       version))
 			return config;
@@ -122,7 +150,8 @@ lpf_config_static_find_by_identity(const char *product, const char *project,
 	return NULL;
 }
 
-static const lpf_config_platform_config_t *lpf_config_static_selected(void)
+static const lpf_config_platform_config_t *
+lpf_config_static_selected(const lpf_config_static_table_t *table)
 {
 	const lpf_config_platform_config_t *config;
 	const char *product = lpf_config_static_selector(lpf_config_static_product);
@@ -134,7 +163,7 @@ static const lpf_config_platform_config_t *lpf_config_static_selected(void)
 
 	if (lpf_config_static_index >= 0) {
 		config = lpf_config_static_config_at(
-			(uint32_t)lpf_config_static_index);
+			table, (uint32_t)lpf_config_static_index);
 		if (!lpf_config_static_has_param_identity_selector())
 			return config;
 
@@ -146,30 +175,42 @@ static const lpf_config_platform_config_t *lpf_config_static_selected(void)
 
 	if (lpf_config_static_has_effective_identity_selector(product, project,
 							     version))
-		return lpf_config_static_find_by_identity(product, project,
+		return lpf_config_static_find_by_identity(table, product, project,
 							  version);
 
-	return lpf_config_static_config_at(
-		g_lpf_config_platform_table.current_index);
+	return lpf_config_static_config_at(table, table->current_index);
 }
 
 static bool lpf_config_static_available(void)
 {
-	return g_lpf_config_platform_table.configs &&
-	       g_lpf_config_platform_table.count > 0 &&
-	       lpf_config_static_selected();
+	const lpf_config_static_table_t *table;
+	bool available;
+
+	table = lpf_config_static_get_table();
+	available = table && table->configs && table->count > 0 &&
+		    lpf_config_static_selected(table);
+	lpf_config_static_put_table_if_unloaded();
+
+	return available;
 }
 
 static int32_t lpf_config_static_load(void)
 {
+	const lpf_config_static_table_t *table;
 	const lpf_config_platform_config_t *config;
 
-	config = lpf_config_static_selected();
+	table = lpf_config_static_get_table();
+	if (!table)
+		return OSAL_ERR_NOT_SUPPORTED;
+
+	config = lpf_config_static_selected(table);
 	if (!config) {
 		LOG_ERROR("LPF_CONFIG", "No matching static config");
+		lpf_config_static_put_table();
 		return OSAL_ERR_GENERIC;
 	}
 
+	g_lpf_config_static_loaded = true;
 	LOG_INFO("LPF_CONFIG", "Static config selected: %s/%s/%s",
 		 config->product_name ? config->product_name : "unknown",
 		 config->project_name ? config->project_name : "unknown",
@@ -179,45 +220,63 @@ static int32_t lpf_config_static_load(void)
 
 static void lpf_config_static_unload(void)
 {
+	g_lpf_config_static_loaded = false;
+	lpf_config_static_put_table();
 }
 
 static const lpf_config_platform_config_t *lpf_config_static_active(void)
 {
-	return lpf_config_static_selected();
+	if (!g_lpf_config_static_loaded)
+		return NULL;
+
+	return lpf_config_static_selected(g_lpf_config_static_table);
 }
 
 static const lpf_config_platform_config_t *
 lpf_config_static_find(const char *product, const char *project,
 		    const char *version)
 {
+	const lpf_config_static_table_t *table;
+	const lpf_config_platform_config_t *config;
+
 	if (NULL == product || NULL == project)
 		return NULL;
+	if (!g_lpf_config_static_loaded)
+		return NULL;
 
-	return lpf_config_static_find_by_identity(product, project, version);
+	table = g_lpf_config_static_table;
+	config = lpf_config_static_find_by_identity(table, product, project,
+						   version);
+
+	return config;
 }
 
 static int32_t lpf_config_static_list(const lpf_config_platform_config_t **configs,
 				   uint32_t *count)
 {
+	const lpf_config_static_table_t *table;
 	uint32_t actual_count;
 	uint32_t max_count;
 	uint32_t i;
 
 	if (NULL == configs || NULL == count)
 		return OSAL_ERR_GENERIC;
+	if (!g_lpf_config_static_loaded) {
+		*count = 0;
+		return OSAL_ERR_INVALID_STATE;
+	}
 
-	if (NULL == g_lpf_config_platform_table.configs) {
+	table = g_lpf_config_static_table;
+	if (!table || NULL == table->configs) {
 		*count = 0;
 		return OSAL_SUCCESS;
 	}
 
 	max_count = *count;
-	actual_count = (g_lpf_config_platform_table.count < max_count) ?
-			       g_lpf_config_platform_table.count :
-			       max_count;
+	actual_count = (table->count < max_count) ? table->count : max_count;
 
 	for (i = 0; i < actual_count; i++)
-		configs[i] = g_lpf_config_platform_table.configs[i];
+		configs[i] = table->configs[i];
 
 	*count = actual_count;
 	return OSAL_SUCCESS;

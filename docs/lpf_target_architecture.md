@@ -54,25 +54,26 @@ The current module boundary is:
 
 ```text
 osal.ko
+lpf_configs.ko
 lpf_core.ko
-lpf_runtime.ko
 ```
 
 `lpf_core.ko` hosts the LPF device model, discovery control node, shared
 chrdev/sysfs/debugfs/proc helpers, protocol helpers, kernel compat wrappers, and
-the selected SoC adapter.
+the selected SoC adapter. It also hosts the integrated runtime: runtime
+configuration backends, LPF HW objects, peripheral services, service-owned
+transport backends, and configured-device probing.
 
-`lpf_runtime.ko` hosts runtime configuration, LPF HW objects, peripheral
-services, service-owned transport backends, and configured-device probing. It
-should remain an integrated framework runtime instead of splitting one kernel
-module per peripheral service.
+`lpf_configs.ko` hosts the selected static board description. It is a
+DTS-like data provider, does not depend on `lpf_core.ko`, and is loaded before
+Core so the static backend can discover its exported table.
 
 Core lifecycle ownership is module-scoped: only `lpf_core.ko` module
 initialization and exit create or destroy Core global state. Public Core APIs
 such as driver registration, device registration, and event subscription require
-`lpf_core.ko` to be loaded first. `lpf_runtime.ko` declares a soft dependency on
-`osal.ko` and `lpf_core.ko`; if Core is not ready, runtime initialization fails
-instead of initializing Core implicitly.
+initialized Core state. `lpf_core.ko` declares a soft dependency on `osal.ko`;
+the recommended load order is `osal.ko`, `lpf_configs.ko`, then
+`lpf_core.ko`.
 
 LPF Core matching is type-based in v1: one `lpf_driver_t` owns one
 `lpf_device_type_t`, and `lpf_device_register()` binds a configured device to

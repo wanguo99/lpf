@@ -11,7 +11,7 @@ maintainers:
 
 description: |
   LPF runtime configuration describes product, project, and peripheral instance
-  data consumed by lpf_runtime.ko. The Device Tree backend converts
+  data consumed by the integrated runtime in lpf_core.ko. The Device Tree backend converts
   the nodes below into the same normalized lpf_config model used by the static
   backend.
 

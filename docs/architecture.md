@@ -41,8 +41,12 @@ Linux kernel / hardware
 - User OSAL provides libc/POSIX wrappers for userspace libraries and tests.
 - Kernel OSAL wraps Linux kernel APIs used by kernel modules.
 - LPF Core owns the framework device and driver registry, lifecycle, device
-  names, capability metadata, and the active SoC adapter.
-- LPF HW provides framework-owned kernel-side hardware access helpers.
+  names, capability metadata, the active SoC adapter, and the integrated
+  runtime entry used by `lpf_core.ko`.
+- LPF Configs provides the selected static board description in
+  `lpf_configs.ko`.
+- LPF HW provides framework-owned kernel-side hardware access helpers linked
+  into `lpf_core.ko`.
 - LPF SoC Adapter isolates SoC or vendor BSP differences below LPF HW.
 - LPF Kernel Compat isolates Linux kernel API differences below the generic
   Linux SoC adapter.
@@ -52,7 +56,6 @@ Linux kernel / hardware
 - LPF protocol helpers provide kernel-side packet framing for services that use
   framed peripheral communication.
 - LPF Core owns the control/discovery node for device snapshots.
-- LPF runtime owns the integrated framework module entry point.
 - PDI provides userspace APIs over LPF UAPI ioctl nodes.
 - ACONFIG stores userspace application-facing configuration mappings.
 
@@ -67,7 +70,7 @@ where the semantics are equivalent.
 ### LPF HW
 
 LPF HW is the framework-owned hardware access layer linked into
-`lpf_runtime.ko`. It owns the kernel-side `lpf_hw_*` APIs consumed
+`lpf_core.ko`. It owns the kernel-side `lpf_hw_*` APIs consumed
 by LPF peripheral services and their service-owned transport backends. Current
 support includes CAN, UART, GPIO, PWM, I2C, and SPI. LPF HW calls the LPF SoC
 Adapter instead of Linux subsystem or vendor BSP APIs directly. Public
@@ -128,12 +131,14 @@ vendor BSP APIs directly.
 LPF runtime config owns kernel-side platform hardware configuration
 aggregation. It selects a backend, validates the active platform, and exposes
 enabled configured-device nodes in one ordered table. Backend selection is
-controlled by the `backend` module parameter on `lpf_runtime.ko`: `auto` tries
-the built-in static table first and falls back to Device Tree, while `static`
-and `dt` require a specific backend and do not fall back. The source still uses
-transitional `lpf_config_*` names, but the code is linked into the LPF runtime
-instead of a standalone config module. Static C configs should author the board
-description as first-class configured-device node tables, with legacy
+controlled by the `backend` module parameter on `lpf_core.ko`: `auto` tries
+the static table exported by the already loaded `lpf_configs.ko` first and
+falls back to Device Tree, while `static` and `dt` require a specific backend
+and do not fall back. Runtime config backend code is linked into
+`lpf_core.ko`; selected static C configs are built as `lpf_configs.ko`, which
+exports board-description data and does not register devices. Static C configs
+should author the board description as first-class configured-device node
+tables, with legacy
 per-peripheral arrays kept only as compatibility payload storage where needed.
 Future board-profile or product-selection backends should produce the same
 runtime config model before LPF peripheral configuration sees the data. Public
@@ -147,11 +152,11 @@ transport backends. Services register with LPF Core for device lifecycle
 handling and use LPF chrdev/sysfs/debugfs helpers for runtime nodes. MCU and
 LED services now live under `kernel/lpf-runtime/peripheral/` and expose
 instance nodes such as `/dev/lpf/mcu0` and `/dev/lpf/led0`; they remain
-integrated through `lpf_runtime.ko` rather than being split into one KO per
+integrated through `lpf_core.ko` rather than being split into one KO per
 peripheral.
-`kernel/lpf-runtime/runtime/lpf_runtime.c` owns the unified runtime
-entry used by the integration module. Public kernel-internal peripheral headers
-live under `kernel/include/lpf/peripheral/`.
+`kernel/lpf-runtime/runtime/lpf_runtime.c` owns the unified runtime entry that
+is called by `lpf_core.ko` module initialization. Public kernel-internal
+peripheral headers live under `kernel/include/lpf/peripheral/`.
 
 ### LPF Protocol
 
@@ -161,12 +166,11 @@ lives under `kernel/lpf-core/protocol/`, exports encode/decode entry points from
 `lpf_core.ko`, and keeps protocol constants and MCU message definitions under
 `kernel/include/lpf/protocol/`.
 
-### LPF Runtime
+### LPF Integrated Runtime
 
-`lpf_runtime.ko` owns the current integration module load/unload
-entry points. It calls the LPF runtime entry, which owns LPF Core
-initialization order, per-service registration, configured-device probing, and
-runtime config node-to-LPF-device orchestration.
+The integrated runtime is linked into `lpf_core.ko`. It owns runtime entry
+ordering, LPF HW initialization, per-service registration, configured-device
+probing, and runtime config node-to-LPF-device orchestration.
 Business operations stay on LPF instance nodes such as `/dev/lpf/mcu0` and
 `/dev/lpf/led0`; LPF service status snapshots live under `/proc/lpf/`.
 
@@ -221,16 +225,15 @@ Load kernel modules in dependency order:
 
 ```text
 osal.ko
+lpf_configs.ko
 lpf_core.ko
-lpf_runtime.ko
 ```
 
-`lpf_runtime.ko` hosts the current LPF runtime. The
-runtime includes the configuration backend and LPF HW hardware access objects,
-registers the current framework-hosted peripheral services, walks enabled
-configured-device nodes, dispatches each node to a peripheral config driver,
-and lets LPF Core probe the matching registered service for each configured
-peripheral.
+`lpf_configs.ko` hosts the selected DTS-like static board description and only
+depends on OSAL. `lpf_core.ko` hosts the LPF device model plus the integrated
+runtime: configuration backend selection, LPF HW hardware access objects,
+framework-hosted peripheral services, configured-device traversal, and LPF Core
+driver probing.
 
 ## Adding A Peripheral
 
@@ -245,8 +248,7 @@ Add the following pieces together:
 - UAPI header `uapi/lpf/lpf_<peripheral>.h` following
   `docs/lpf_uapi_abi.md`.
 - Userspace wrapper `user/pdi/src/pdi_<peripheral>.c`.
-- Kbuild object selection for the new LPF service inside
-  `lpf_runtime.ko`.
+- Kbuild object selection for the new LPF service inside `lpf_core.ko`.
 
 Feature selection stays at object/list registration boundaries. Kconfig may
 select which objects are linked, but business logic should not branch on

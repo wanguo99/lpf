@@ -10,6 +10,7 @@
 
 static bool g_lpf_runtime_ready;
 static bool g_lpf_runtime_entries_ready;
+static bool g_lpf_runtime_devices_ready;
 
 void lpf_runtime_print_version(void)
 {
@@ -118,12 +119,42 @@ static void lpf_runtime_entries_exit(void)
 	if (!g_lpf_runtime_entries_ready)
 		return;
 
-	lpf_device_unregister_all();
+	lpf_runtime_config_detach();
 	lpf_runtime_entries_exit_initialized(
 		(lpf_runtime_entry_class_t)(LPF_RUNTIME_ENTRY_CLASS_COUNT - 1),
 		lpf_runtime_entry_last());
 	g_lpf_runtime_entries_ready = false;
 }
+
+int32_t lpf_runtime_config_refresh(void)
+{
+	int32_t ret;
+
+	if (!g_lpf_runtime_ready && !g_lpf_runtime_entries_ready)
+		return OSAL_ERR_INVALID_STATE;
+
+	if (g_lpf_runtime_devices_ready)
+		return OSAL_SUCCESS;
+
+	ret = lpf_runtime_probe_devices();
+	if (ret != OSAL_SUCCESS)
+		return ret;
+
+	g_lpf_runtime_devices_ready = true;
+	return OSAL_SUCCESS;
+}
+EXPORT_SYMBOL_GPL(lpf_runtime_config_refresh);
+
+void lpf_runtime_config_detach(void)
+{
+	if (!g_lpf_runtime_devices_ready)
+		return;
+
+	lpf_device_unregister_all();
+	lpf_config_unload();
+	g_lpf_runtime_devices_ready = false;
+}
+EXPORT_SYMBOL_GPL(lpf_runtime_config_detach);
 
 int32_t lpf_runtime_init(void)
 {
@@ -142,10 +173,9 @@ int32_t lpf_runtime_init(void)
 		return ret;
 	}
 
-	ret = lpf_runtime_probe_devices();
+	ret = lpf_runtime_config_refresh();
 	if (ret != OSAL_SUCCESS) {
 		lpf_runtime_entries_exit();
-		lpf_config_unload();
 		lpf_hw_runtime_exit();
 		return ret;
 	}
@@ -160,7 +190,6 @@ void lpf_runtime_exit(void)
 		return;
 
 	lpf_runtime_entries_exit();
-	lpf_config_unload();
 	lpf_hw_runtime_exit();
 	g_lpf_runtime_ready = false;
 }

@@ -54,6 +54,8 @@ int32_t lpf_runtime_probe_devices(void)
 	int32_t ret;
 
 	ret = lpf_config_load();
+	if (ret == OSAL_ERR_NOT_SUPPORTED)
+		return OSAL_SUCCESS;
 	if (ret != OSAL_SUCCESS)
 		return ret;
 
