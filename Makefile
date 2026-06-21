@@ -494,6 +494,7 @@ mock-modules-smoke:
 	@echo "==================================================================="
 	@echo ""
 	$(Q)LPF_MODULE_DIR="$(abspath $(MODULES_OUTPUT_DIR))" \
+		LPF_EXPECT_INSTANCE_DEVNODE_MODE=$(CONFIG_LPF_INSTANCE_DEVNODE_MODE) \
 		$(CONFIG_SHELL) $(srctree)/scripts/lpf_mock_module_smoke.sh
 	@echo ""
 	@echo "==================================================================="

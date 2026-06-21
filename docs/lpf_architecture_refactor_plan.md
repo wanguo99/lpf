@@ -175,6 +175,8 @@ Acceptance:
 - [x] Make LPF instance device node permissions configurable.
 - [x] Default product builds to a conservative mode such as `0660`.
 - [x] Document udev or product policy integration.
+- [x] Add target-smoke checks for `/dev/lpf/*` mode policy, read-only
+      sysfs/procfs inspection nodes, and writable debugfs command nodes.
 - [ ] Verify `/dev/lpf/*`, sysfs, procfs, and debugfs behavior on a real or
       target-like kernel.
 
@@ -186,6 +188,8 @@ Acceptance:
 
 - [x] Extend `make mock-modules-smoke` so it checks loaded mock runtime
       `/dev`, sysfs, procfs, debugfs, and basic PDI/CTL ioctl behavior.
+      This includes instance devnode mode validation against the active
+      Kconfig policy and rejects world-writable instance nodes.
 - [ ] Run `make mock-modules-smoke` on a compatible kernel.
 - [ ] Verify `/dev/lpf/mcuN` and `/dev/lpf/ledN` creation.
 - [ ] Verify configured and unconfigured PDI ioctl behavior.

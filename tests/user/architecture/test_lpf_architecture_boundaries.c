@@ -878,17 +878,20 @@ out:
 static int test_mock_smoke_covers_runtime_surfaces(void)
 {
 	char *script;
+	char *makefile;
 	char *tests_cmake;
 	char *smoke_cmake;
 	char *smoke_source;
 	int failures = 0;
 
 	script = read_source_file("scripts/lpf_mock_module_smoke.sh");
+	makefile = read_source_file("Makefile");
 	tests_cmake = read_source_file("tests/user/CMakeLists.txt");
 	smoke_cmake = read_source_file("tests/user/smoke/CMakeLists.txt");
 	smoke_source = read_source_file(
 		"tests/user/smoke/test_lpf_mock_runtime_smoke.c");
-	if (!script || !tests_cmake || !smoke_cmake || !smoke_source) {
+	if (!script || !makefile || !tests_cmake || !smoke_cmake ||
+	    !smoke_source) {
 		fprintf(stderr, "failed to read mock smoke sources\n");
 		failures = 1;
 		goto out;
@@ -902,6 +905,18 @@ static int test_mock_smoke_covers_runtime_surfaces(void)
 				    "/dev/lpf/mcu0");
 	failures += expect_contains("lpf_mock_module_smoke.sh", script,
 				    "/dev/lpf/led1");
+	failures += expect_contains("lpf_mock_module_smoke.sh", script,
+				    "LPF_EXPECT_INSTANCE_DEVNODE_MODE");
+	failures += expect_contains("lpf_mock_module_smoke.sh", script,
+				    "check_devnode_modes");
+	failures += expect_contains("lpf_mock_module_smoke.sh", script,
+				    "expect_not_world_writable");
+	failures += expect_contains("lpf_mock_module_smoke.sh", script,
+				    "expect_no_write_bits");
+	failures += expect_contains("lpf_mock_module_smoke.sh", script,
+				    "expect_has_write_bits");
+	failures += expect_contains("Makefile", makefile,
+				    "LPF_EXPECT_INSTANCE_DEVNODE_MODE=$(CONFIG_LPF_INSTANCE_DEVNODE_MODE)");
 	failures += expect_contains("lpf_mock_module_smoke.sh", script,
 				    "/proc/lpf/mcu");
 	failures += expect_contains("lpf_mock_module_smoke.sh", script,
@@ -926,6 +941,7 @@ out:
 	free(smoke_source);
 	free(smoke_cmake);
 	free(tests_cmake);
+	free(makefile);
 	free(script);
 	return failures ? 1 : 0;
 }

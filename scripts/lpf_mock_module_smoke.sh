@@ -5,6 +5,7 @@ set -eu
 
 module_dir=${LPF_MODULE_DIR:-_build/modules}
 smoke_binary=${LPF_SMOKE_BINARY:-_build/tests/bin/lpf_mock_runtime_smoke}
+expected_instance_devnode_mode=${LPF_EXPECT_INSTANCE_DEVNODE_MODE:-0660}
 required_modules="osal lpf_configs lpf_core lpf_hw_mock_selftest lpf_dummy_service_selftest"
 loaded_modules=
 
@@ -75,11 +76,69 @@ expect_readable()
 	[ -r "$path" ] || die "path is not readable: $path"
 }
 
+file_mode()
+{
+	path=$1
+
+	mode=$(stat -c '%a' "$path" 2>/dev/null || stat -f '%Lp' "$path")
+	printf '%s\n' "${mode#${mode%???}}"
+}
+
+expect_mode()
+{
+	path=$1
+	expected=$2
+	actual=$(file_mode "$path")
+
+	[ "$actual" = "$expected" ] ||
+		die "unexpected mode for $path: expected $expected, got $actual"
+}
+
+expect_not_world_writable()
+{
+	path=$1
+	mode=$(file_mode "$path")
+	other_digit=${mode#${mode%?}}
+
+	case "$other_digit" in
+		2|3|6|7)
+			die "path is world-writable: $path mode=$mode"
+			;;
+	esac
+}
+
+expect_no_write_bits()
+{
+	path=$1
+	mode=$(file_mode "$path")
+
+	case "$mode" in
+		2??|3??|6??|7??|?2?|?3?|?6?|?7?|??2|??3|??6|??7)
+			die "path has write permission bits: $path mode=$mode"
+			;;
+	esac
+}
+
+expect_has_write_bits()
+{
+	path=$1
+	mode=$(file_mode "$path")
+
+	case "$mode" in
+		2??|3??|6??|7??|?2?|?3?|?6?|?7?|??2|??3|??6|??7)
+			return 0
+			;;
+	esac
+
+	die "path has no write permission bits: $path mode=$mode"
+}
+
 check_procfs()
 {
 	for path in /proc/lpf/mcu /proc/lpf/led; do
 		expect_path "$path"
 		expect_readable "$path"
+		expect_no_write_bits "$path"
 	done
 }
 
@@ -92,7 +151,7 @@ check_debugfs()
 
 	for path in /sys/kernel/debug/lpf/mcu /sys/kernel/debug/lpf/led; do
 		expect_path "$path"
-		[ -w "$path" ] || die "debugfs command node is not writable: $path"
+		expect_has_write_bits "$path"
 	done
 }
 
@@ -102,7 +161,18 @@ check_sysfs()
 		expect_path "$base"
 		for attr in name type index state capabilities driver soc last_error error_count open_count; do
 			expect_readable "$base/$attr"
+			expect_no_write_bits "$base/$attr"
 		done
+	done
+}
+
+check_devnode_modes()
+{
+	expect_mode /dev/lpf_ctl 666
+
+	for path in /dev/lpf/mcu0 /dev/lpf/led0 /dev/lpf/led1; do
+		expect_mode "$path" "$expected_instance_devnode_mode"
+		expect_not_world_writable "$path"
 	done
 }
 
@@ -116,6 +186,7 @@ check_runtime_nodes()
 	expect_absent /dev/lpf/mcu1
 	expect_absent /dev/lpf/led2
 
+	check_devnode_modes
 	check_sysfs
 	check_procfs
 	check_debugfs
@@ -166,6 +237,7 @@ fi
 log "LPF mock module smoke test"
 log "Module directory: $module_dir"
 log "Runtime smoke binary: $smoke_binary"
+log "Expected LPF instance devnode mode: $expected_instance_devnode_mode"
 
 for module in $required_modules; do
 	load_module "$module"
