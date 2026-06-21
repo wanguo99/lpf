@@ -387,8 +387,7 @@ static int test_static_config_sources_are_version_named(void)
 		"kernel/lpf-core/config/src/lpf_config_static.h");
 	static_backend = read_source_file(
 		"kernel/lpf-core/config/src/lpf_config_static_backend.c");
-	static_table = read_source_file(
-		"kernel/lpf-configs/configs/lpf_config_configs.c");
+	static_table = read_source_file("kernel/lpf-configs/lpf_config_configs.c");
 	x86_config = read_source_file(
 		"kernel/lpf-configs/configs/kernel/x86_modules/lpf_config_kernel_x86_modules_v1.c");
 	mock_config = read_source_file(
@@ -405,6 +404,17 @@ static int test_static_config_sources_are_version_named(void)
 		"kernel/lpf-configs/configs/kernel/x86_modules/1.0.0");
 	failures += expect_path_absent(
 		"kernel/lpf-configs/configs/kernel/x86_mock_modules/1.0.0");
+	failures += expect_path_absent(
+		"kernel/lpf-configs/configs/lpf_config_configs.c");
+	failures += expect_path_absent(
+		"kernel/lpf-configs/configs/lpf_config_static_start.c");
+	failures += expect_path_absent(
+		"kernel/lpf-configs/configs/lpf_config_static_end.c");
+	failures += expect_path_present("kernel/lpf-configs/lpf_config_configs.c");
+	failures += expect_path_present(
+		"kernel/lpf-configs/lpf_config_static_start.c");
+	failures += expect_path_present(
+		"kernel/lpf-configs/lpf_config_static_end.c");
 	failures += expect_path_present(
 		"kernel/lpf-configs/configs/kernel/x86_modules/lpf_config_kernel_x86_modules_v1.c");
 	failures += expect_path_present(
@@ -417,16 +427,16 @@ static int test_static_config_sources_are_version_named(void)
 		"lpf-configs/configs/kernel/x86_mock_modules/lpf_config_kernel_x86_mock_modules_v1.o");
 	failures += expect_contains(
 		"config/Makefile", config_makefile,
-		"lpf-configs/configs/lpf_config_configs.o");
+		"lpf-configs/lpf_config_configs.o");
 	failures += expect_contains(
 		"config/Makefile", config_makefile,
-		"lpf-configs/configs/lpf_config_static_start.o");
+		"lpf-configs/lpf_config_static_start.o");
 	failures += expect_contains(
 		"config/Makefile", config_makefile,
-		"lpf-configs/configs/lpf_config_static_end.o");
+		"lpf-configs/lpf_config_static_end.o");
 	failures += expect_contains(
 		"config/Makefile", config_makefile,
-		"lpf_configs-y += lpf-configs/configs/lpf_config_configs.o");
+		"lpf_configs-y += lpf-configs/lpf_config_configs.o");
 	failures += expect_contains(
 		"config/Makefile", config_makefile,
 		"lpf_configs-$(CONFIG_LPF_CONFIG_KERNEL_X86_MODULES)");

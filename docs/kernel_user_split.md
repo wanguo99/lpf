@@ -59,8 +59,9 @@ uapi/
   `kernel/lpf-core/include`.
 - `kernel/lpf-core/config` provides LPF runtime config backend/parser objects
   linked into `lpf_core.ko`.
-- `kernel/lpf-configs/configs` provides selected static board descriptions
-  linked into `lpf_configs.ko`.
+- `kernel/lpf-configs` builds `lpf_configs.ko`; its root holds module glue and
+  section sentinels, while `kernel/lpf-configs/configs` holds concrete static
+  board descriptions.
 - `user/pdi` provides the application-facing C API and wraps open/ioctl.
 - `uapi/lpf` is the stable ABI shared by LPF kernel nodes and `user/pdi`.
 
