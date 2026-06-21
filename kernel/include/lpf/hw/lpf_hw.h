@@ -14,7 +14,6 @@
 #define LPF_HW_VERSION_MINOR 0x00
 #define LPF_HW_VERSION_PATCH 0x00
 
-void lpf_hw_runtime_print_version(void);
 int32_t lpf_hw_runtime_init(void);
 void lpf_hw_runtime_exit(void);
 

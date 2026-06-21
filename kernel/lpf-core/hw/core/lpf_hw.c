@@ -5,8 +5,6 @@
 #include "osal.h"
 #include "lpf/hw/lpf_hw.h"
 #include "lpf_hw_internal.h"
-#include "generated/gen_version.h"
-
 static bool g_lpf_hw_builtin_drivers_ready;
 
 static const lpf_hw_builtin_driver_t *lpf_hw_builtin_driver_first(void)
@@ -67,24 +65,9 @@ static void lpf_hw_builtin_drivers_exit(void)
 	g_lpf_hw_builtin_drivers_ready = false;
 }
 
-void lpf_hw_runtime_print_version(void)
-{
-	osal_log(OS_LOG_LEVEL_INFO, "LPF_HW",
-		 "module_version=%u.%u.%u lpf_version=%s git=%s build_time=%s "
-		 "build_by=%s@%s compiler=%s arch=%s kernel=%s",
-		 LPF_HW_VERSION_MAJOR, LPF_HW_VERSION_MINOR, LPF_HW_VERSION_PATCH,
-		 LPF_VERSION, LPF_GIT_COMMIT,
-		 LPF_COMPILE_TIME, LPF_COMPILE_BY,
-		 LPF_COMPILE_HOST, LPF_COMPILER,
-		 LPF_BUILD_ARCH, LPF_BUILD_KERNEL);
-}
-EXPORT_SYMBOL_GPL(lpf_hw_runtime_print_version);
-
 int32_t lpf_hw_runtime_init(void)
 {
 	int ret;
-
-	lpf_hw_runtime_print_version();
 
 	ret = lpf_hw_builtin_drivers_init();
 	if (ret)
