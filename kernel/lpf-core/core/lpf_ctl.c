@@ -190,11 +190,13 @@ static long lpf_ctl_ioctl(struct file *file, unsigned int cmd,
 	}
 }
 
+#ifdef CONFIG_COMPAT
 static long lpf_ctl_compat_ioctl(struct file *file, unsigned int cmd,
 				 unsigned long arg)
 {
 	return lpf_ctl_ioctl(file, cmd, arg);
 }
+#endif
 
 static int lpf_ctl_open(struct inode *inode, struct file *file)
 {

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 
-#include "lpf_config_static.h"
+#include "lpf/config/lpf_config_static.h"
 
 static const lpf_config_platform_config_t
 	g_lpf_config_ubuntu_x86_modules_v1 = {

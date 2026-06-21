@@ -467,9 +467,15 @@ modules: _check_config include/generated/gen_autoconf.h include/generated/gen_ve
 	@echo "Kernel source: $(KERNEL_SRC)"
 	@echo "Module source: $(abspath $(MODULES_SRC_DIR))"
 	@echo "Output dir:    $(abspath $(MODULES_OUTPUT_DIR))"
+	@echo "ARCH:          $(ARCH)"
+	@echo "CROSS_COMPILE: $(CROSS_COMPILE)"
+	@echo "CC:            $(CC)"
 	@echo ""
 	@echo "  KBUILD   $(addsuffix .ko,$(MODULES_LIST))"
 	$(Q)$(MAKE) -C $(KERNEL_SRC) \
+		ARCH="$(ARCH)" \
+		CROSS_COMPILE="$(CROSS_COMPILE)" \
+		CC="$(CC)" \
 		M=$(abspath $(MODULES_SRC_DIR)) \
 		MO=$(abspath $(MODULES_OUTPUT_DIR)) \
 		modules

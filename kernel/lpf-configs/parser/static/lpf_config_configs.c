@@ -3,7 +3,7 @@
 #include <linux/module.h>
 
 #include "osal.h"
-#include "lpf_config_static.h"
+#include "lpf/config/lpf_config_static.h"
 
 extern const lpf_config_platform_config_t *const lpf_config_static_start;
 extern const lpf_config_platform_config_t *const lpf_config_static_end;
