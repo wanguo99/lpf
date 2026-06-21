@@ -4,8 +4,9 @@
 #
 ################################################################################
 
-# Default: Use git repository
-# Override with local.mk for local development (see README.md)
+# Default: use the canonical LPF git repository.
+# Product trees can set LPF_OVERRIDE_SRCDIR in BR2_PACKAGE_OVERRIDE_FILE for
+# local development or board integration testing.
 LPF_VERSION = v1.0.0
 LPF_SITE = ssh://gitea@192.168.18.254:4022/CSPD/LPF.git
 LPF_SITE_METHOD = git
@@ -14,11 +15,6 @@ LPF_INSTALL_TARGET = YES
 
 # Dependencies - Kconfig + CMake/Kbuild build system
 LPF_DEPENDENCIES = host-pkgconf host-cmake host-flex host-bison linux
-
-# Optional: Add Kconfig tools if menuconfig support is enabled
-ifeq ($(BR2_PACKAGE_LPF_MENUCONFIG),y)
-LPF_DEPENDENCIES += host-kconfig-frontends
-endif
 
 # Kconfig configuration to use (from Buildroot config)
 LPF_KCONFIG_DEFCONFIG = $(call qstrip,$(BR2_PACKAGE_LPF_DEFCONFIG))
@@ -34,6 +30,7 @@ LPF_MODULE_EXTRA_DIR = extra/lpf
 LPF_MAKE_OPTS = \
 	BUILD_DIR="$(LPF_BUILD_OUTPUT)" \
 	MODULES_BUILD_DIR="$(LPF_MODULES_OUTPUT)" \
+	BR2_EXTERNAL=1 \
 	KERNEL_SRC="$(LINUX_DIR)" \
 	ARCH="$(KERNEL_ARCH)" \
 	CROSS_COMPILE="$(TARGET_CROSS)" \
@@ -44,6 +41,10 @@ LPF_MAKE_OPTS = \
 # Configure using make (kernel-style interface)
 # This loads the defconfig and generates .config + autoconf.h
 define LPF_CONFIGURE_CMDS
+	@test -n "$(LPF_KCONFIG_DEFCONFIG)" || { \
+		echo "LPF: BR2_PACKAGE_LPF_DEFCONFIG must be set"; \
+		exit 1; \
+	}
 	@echo "LPF: Loading defconfig $(LPF_KCONFIG_DEFCONFIG)"
 	$(MAKE) -C $(@D) $(LPF_MAKE_OPTS) $(LPF_KCONFIG_DEFCONFIG)
 	@echo "LPF: Configuration loaded successfully"
@@ -75,6 +76,12 @@ define LPF_INSTALL_TARGET_CMDS
 		CMAKE_INSTALL_PREFIX="/usr" \
 		install DESTDIR=$(TARGET_DIR)
 	kernel_release="$(LINUX_VERSION_PROBED)"; \
+	if [ -z "$$kernel_release" ]; then \
+		kernel_release="$$($(MAKE) -C "$(LINUX_DIR)" \
+			ARCH="$(KERNEL_ARCH)" \
+			CROSS_COMPILE="$(TARGET_CROSS)" \
+			--no-print-directory -s kernelrelease)"; \
+	fi; \
 	module_install_dir="$(TARGET_DIR)/lib/modules/$$kernel_release/$(LPF_MODULE_EXTRA_DIR)"; \
 	$(INSTALL) -d "$$module_install_dir"; \
 	modules_found=0; \

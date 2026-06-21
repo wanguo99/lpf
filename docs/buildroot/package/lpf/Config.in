@@ -14,10 +14,11 @@ if BR2_PACKAGE_LPF
 
 config BR2_PACKAGE_LPF_DEFCONFIG
 	string "Kconfig defconfig to use"
-	default "ubuntu_x86_modules_defconfig"
+	default ""
 	help
-	  Specify which LPF configuration to use.
-	  Defconfigs are provided under configs/.
+	  Specify which LPF defconfig to load before building.
+	  Product external trees should set this to a product-specific
+	  LPF defconfig, for example imx6ull_modules_defconfig.
 
 choice
 	prompt "Build type"
@@ -46,12 +47,6 @@ config BR2_PACKAGE_LPF_INSTALL_HEADERS
 	help
 	  Install development headers to $(STAGING_DIR)/usr/include/.
 	  Only needed for packages that depend on LPF.
-
-config BR2_PACKAGE_LPF_MENUCONFIG
-	bool "Enable interactive menuconfig"
-	help
-	  Add host-kconfig-frontends dependency to enable interactive
-	  configuration via 'make lpf-menuconfig'.
 
 endif # BR2_PACKAGE_LPF
 

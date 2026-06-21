@@ -3,21 +3,22 @@
 # lpf - Local development override
 #
 ################################################################################
-# This file allows you to use a local source tree for LPF development
-# instead of fetching from git. This is useful for:
+# Add this override to the external tree's BR2_PACKAGE_OVERRIDE_FILE, for
+# example board/<vendor>/<board>/local.mk. It allows Buildroot to use a local
+# LPF source tree instead of fetching from git. This is useful for:
 # - Rapid iteration during development
 # - Testing local changes before pushing to git
 # - Working offline
 #
-# Usage:
-#   1. Copy this file to local.mk in the same directory
-#   2. Update LPF_OVERRIDE_SRCDIR to point to your local source
+# Usage in a br2-external tree:
+#   1. Ensure the board defconfig sets BR2_PACKAGE_OVERRIDE_FILE.
+#   2. Add LPF_OVERRIDE_SRCDIR to that override file.
 #   3. Rebuild with: make lpf-rebuild
 #
-# Note: local.mk is git-ignored to prevent accidental commits
+# Note: package override files are usually product-local policy.
 ################################################################################
 
-# Override to use local source directory
+# Override to use local source directory.
 LPF_OVERRIDE_SRCDIR = $(TOPDIR)/../LPF
 
 # Optional: Override version for local builds
