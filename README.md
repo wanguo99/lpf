@@ -71,7 +71,7 @@ tests.
 
 ```bash
 make list
-make kernel_x86_modules_defconfig
+make ubuntu_x86_modules_defconfig
 make all
 ```
 
@@ -90,7 +90,7 @@ make tests
 To build the no-hardware kernel mock preset:
 
 ```bash
-make kernel_x86_mock_modules_defconfig
+make ubuntu_x86_mock_modules_defconfig
 make modules
 ```
 
@@ -107,8 +107,8 @@ under `_build/modules/`.
 
 Defconfigs live under `configs/`, for example:
 
-- `kernel_x86_modules_defconfig`
-- `kernel_x86_mock_modules_defconfig`
+- `ubuntu_x86_modules_defconfig`
+- `ubuntu_x86_mock_modules_defconfig`
 
 Use `make menuconfig` for interactive configuration.
 

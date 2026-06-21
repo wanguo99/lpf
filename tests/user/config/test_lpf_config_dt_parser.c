@@ -207,7 +207,7 @@ static const fake_dt_property_t g_fake_root_props[] = {
 	{ "platform-name", FAKE_DT_PROP_STRING, "linux", 0U },
 	{ "chip-name", FAKE_DT_PROP_STRING, "x86_64", 0U },
 	{ "project-name", FAKE_DT_PROP_STRING, "x86_mock_modules", 0U },
-	{ "product-name", FAKE_DT_PROP_STRING, "kernel", 0U },
+	{ "product-name", FAKE_DT_PROP_STRING, "ubuntu", 0U },
 	{ "config-version", FAKE_DT_PROP_STRING, "1.0.0", 0U },
 };
 
@@ -243,7 +243,7 @@ static int test_fake_dt_parser_matches_mock_static_config(void)
 	    test_lpf_config_string_equal(parsed.platform.project_name,
 					 "x86_mock_modules") ||
 	    test_lpf_config_string_equal(parsed.platform.product_name,
-					 "kernel") ||
+					 "ubuntu") ||
 	    test_lpf_config_string_equal(parsed.platform.version, "1.0.0")) {
 		ret = 2;
 		goto out_clear;

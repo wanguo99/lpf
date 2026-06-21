@@ -1,8 +1,8 @@
 # ============================================================================
-# x86 kernel module build configuration with mock SoC backend
+# Ubuntu x86 kernel module build configuration
 # ============================================================================
 
-CONFIG_PROJECT_NAME="x86_mock_modules"
+CONFIG_PROJECT_NAME="x86_modules"
 CONFIG_PROJECT_VERSION="1.0.0"
 
 CONFIG_LINUX_ONLY=y
@@ -12,10 +12,9 @@ CONFIG_PLATFORM_LINUX=y
 
 CONFIG_OSAL=m
 CONFIG_LPF_CORE=m
-CONFIG_LPF_SOC_ADAPTER_MOCK=y
 CONFIG_LPF_RUNTIME=y
 CONFIG_LPF_CONFIGS=m
-CONFIG_LPF_CONFIG_KERNEL_X86_MOCK_MODULES=y
+CONFIG_LPF_CONFIG_UBUNTU_X86_MODULES=y
 
 CONFIG_LPF_HW_CAN=y
 CONFIG_LPF_HW_UART=y
@@ -23,9 +22,6 @@ CONFIG_LPF_HW_I2C=y
 CONFIG_LPF_HW_SPI=y
 CONFIG_LPF_HW_GPIO=y
 CONFIG_LPF_HW_PWM=y
-CONFIG_LPF_HW_MOCK_SELFTEST=m
-CONFIG_LPF_DUMMY_SERVICE_SELFTEST=m
-CONFIG_LPF_CONFIG_OF_SELFTEST=y
 
 CONFIG_LPF_MCU_SERVICE=y
 CONFIG_LPF_MCU_MAX_DEVICES=4

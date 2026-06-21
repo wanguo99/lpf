@@ -9,7 +9,7 @@ libraries and kernel modules.
 Use one of the framework defconfigs, for example:
 
 ```text
-kernel_x86_modules_defconfig
+ubuntu_x86_modules_defconfig
 ```
 
 ## Install Modes

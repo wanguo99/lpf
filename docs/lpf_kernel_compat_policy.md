@@ -6,7 +6,7 @@ LPF kernel modules target Linux kernel `5.10` and newer.
 
 When changing kernel-facing code, validate at least:
 
-- `make kernel_x86_mock_modules_defconfig`
+- `make ubuntu_x86_mock_modules_defconfig`
 - `make modules`
 - `make tests`
 - `make kernel-matrix`
@@ -61,7 +61,7 @@ make kernel-matrix KERNEL_SRC_LIST="/path/to/linux-5.10/build /path/to/linux-6.6
 
 The target writes each kernel's artifacts under `_build/kernel-matrix/` so
 results from different kernels do not overwrite each other. The default
-defconfig is `kernel_x86_mock_modules_defconfig`; override it with
+defconfig is `ubuntu_x86_mock_modules_defconfig`; override it with
 `LPF_KERNEL_MATRIX_DEFCONFIG=<name>` when validating another module preset.
 
 The target CI matrix should include:

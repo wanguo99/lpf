@@ -22,7 +22,7 @@ config PROJECT_NAME
 	  Project name, typically extracted from defconfig filename.
 
 	  Naming convention: <scope>_<project>_defconfig
-	  - kernel_x86_modules_defconfig → project name: x86_modules
+	  - ubuntu_x86_modules_defconfig → project name: x86_modules
 
 	  Can be overridden in defconfig file by setting CONFIG_PROJECT_NAME.
 

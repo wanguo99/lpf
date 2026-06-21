@@ -5,7 +5,7 @@ Reusable framework layers live at the repository top level: `kernel/` holds kern
 
 ## Build, Test, and Development Commands
 - `make list` - show available configuration and build targets.
-- `make kernel_x86_modules_defconfig` - load a baseline kernel-module configuration.
+- `make ubuntu_x86_modules_defconfig` - load a baseline kernel-module configuration.
 - `make menuconfig` - open the interactive Kconfig editor.
 - `make all` - configure and build the selected target.
 - `make modules` - build enabled kernel modules such as `osal.ko`, `lpf_core.ko`, and `lpf_runtime.ko`.

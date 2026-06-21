@@ -377,6 +377,8 @@ static int test_static_config_sources_are_version_named(void)
 	char *static_table;
 	char *x86_config;
 	char *mock_config;
+	char *x86_defconfig;
+	char *mock_defconfig;
 	int failures = 0;
 
 	config_makefile = read_source_file("kernel/lpf-configs/Makefile");
@@ -389,12 +391,16 @@ static int test_static_config_sources_are_version_named(void)
 		"kernel/lpf-core/config/src/lpf_config_static_backend.c");
 	static_table = read_source_file("kernel/lpf-configs/lpf_config_configs.c");
 	x86_config = read_source_file(
-		"kernel/lpf-configs/configs/kernel/x86_modules/lpf_config_kernel_x86_modules_v1.c");
+		"kernel/lpf-configs/configs/ubuntu/x86_modules/lpf_config_ubuntu_x86_modules_v1.c");
 	mock_config = read_source_file(
-		"kernel/lpf-configs/configs/kernel/x86_mock_modules/lpf_config_kernel_x86_mock_modules_v1.c");
+		"kernel/lpf-configs/configs/ubuntu/x86_mock_modules/lpf_config_ubuntu_x86_mock_modules_v1.c");
+	x86_defconfig =
+		read_source_file("configs/ubuntu/ubuntu_x86_modules_defconfig");
+	mock_defconfig = read_source_file(
+		"configs/ubuntu/ubuntu_x86_mock_modules_defconfig");
 	if (!config_makefile || !config_header || !config_backend ||
 	    !config_static_header || !static_backend || !static_table ||
-	    !x86_config || !mock_config) {
+	    !x86_config || !mock_config || !x86_defconfig || !mock_defconfig) {
 		fprintf(stderr, "failed to read static config sources\n");
 		failures = 1;
 		goto out;
@@ -404,6 +410,14 @@ static int test_static_config_sources_are_version_named(void)
 		"kernel/lpf-configs/configs/kernel/x86_modules/1.0.0");
 	failures += expect_path_absent(
 		"kernel/lpf-configs/configs/kernel/x86_mock_modules/1.0.0");
+	failures += expect_path_absent(
+		"kernel/lpf-configs/configs/kernel/x86_modules/lpf_config_kernel_x86_modules_v1.c");
+	failures += expect_path_absent(
+		"kernel/lpf-configs/configs/kernel/x86_mock_modules/lpf_config_kernel_x86_mock_modules_v1.c");
+	failures += expect_path_absent(
+		"configs/kernel/kernel_x86_modules_defconfig");
+	failures += expect_path_absent(
+		"configs/kernel/kernel_x86_mock_modules_defconfig");
 	failures += expect_path_absent(
 		"kernel/lpf-configs/configs/lpf_config_configs.c");
 	failures += expect_path_absent(
@@ -416,15 +430,31 @@ static int test_static_config_sources_are_version_named(void)
 	failures += expect_path_present(
 		"kernel/lpf-configs/lpf_config_static_end.c");
 	failures += expect_path_present(
-		"kernel/lpf-configs/configs/kernel/x86_modules/lpf_config_kernel_x86_modules_v1.c");
+		"kernel/lpf-configs/configs/ubuntu/x86_modules/lpf_config_ubuntu_x86_modules_v1.c");
 	failures += expect_path_present(
-		"kernel/lpf-configs/configs/kernel/x86_mock_modules/lpf_config_kernel_x86_mock_modules_v1.c");
+		"kernel/lpf-configs/configs/ubuntu/x86_mock_modules/lpf_config_ubuntu_x86_mock_modules_v1.c");
+	failures += expect_path_present(
+		"configs/ubuntu/ubuntu_x86_modules_defconfig");
+	failures += expect_path_present(
+		"configs/ubuntu/ubuntu_x86_mock_modules_defconfig");
+	failures += expect_contains("ubuntu_x86_modules_defconfig",
+				    x86_defconfig,
+				    "CONFIG_LPF_CONFIG_UBUNTU_X86_MODULES=y");
+	failures += expect_contains("ubuntu_x86_mock_modules_defconfig",
+				    mock_defconfig,
+				    "CONFIG_LPF_CONFIG_UBUNTU_X86_MOCK_MODULES=y");
+	failures += expect_not_contains("ubuntu_x86_modules_defconfig",
+					x86_defconfig,
+					"CONFIG_LPF_CONFIG_KERNEL_X86");
+	failures += expect_not_contains("ubuntu_x86_mock_modules_defconfig",
+					mock_defconfig,
+					"CONFIG_LPF_CONFIG_KERNEL_X86");
 	failures += expect_contains(
 		"config/Makefile", config_makefile,
-		"lpf-configs/configs/kernel/x86_modules/lpf_config_kernel_x86_modules_v1.o");
+		"lpf-configs/configs/ubuntu/x86_modules/lpf_config_ubuntu_x86_modules_v1.o");
 	failures += expect_contains(
 		"config/Makefile", config_makefile,
-		"lpf-configs/configs/kernel/x86_mock_modules/lpf_config_kernel_x86_mock_modules_v1.o");
+		"lpf-configs/configs/ubuntu/x86_mock_modules/lpf_config_ubuntu_x86_mock_modules_v1.o");
 	failures += expect_contains(
 		"config/Makefile", config_makefile,
 		"lpf-configs/lpf_config_configs.o");
@@ -439,7 +469,9 @@ static int test_static_config_sources_are_version_named(void)
 		"lpf_configs-y += lpf-configs/lpf_config_configs.o");
 	failures += expect_contains(
 		"config/Makefile", config_makefile,
-		"lpf_configs-$(CONFIG_LPF_CONFIG_KERNEL_X86_MODULES)");
+		"lpf_configs-$(CONFIG_LPF_CONFIG_UBUNTU_X86_MODULES)");
+	failures += expect_not_contains("config/Makefile", config_makefile,
+					"CONFIG_LPF_CONFIG_KERNEL_X86");
 	failures += expect_ordered_contains("lpf_config_backend.c",
 					    config_backend,
 					    "&g_lpf_config_static_backend",
@@ -469,41 +501,47 @@ static int test_static_config_sources_are_version_named(void)
 	failures += expect_not_contains("lpf_config_static_backend.c",
 					static_backend,
 					"lpf_config_static_register_table");
-	failures += expect_not_contains("lpf_config_kernel_x86_modules_v1.c",
+	failures += expect_not_contains("lpf_config_ubuntu_x86_modules_v1.c",
 					x86_config,
 					"g_lpf_config_platform_table");
-	failures += expect_contains("lpf_config_kernel_x86_modules_v1.c",
+	failures += expect_contains("lpf_config_ubuntu_x86_modules_v1.c",
 				    x86_config,
 				    "lpf_config_static_register");
-	failures += expect_not_contains("lpf_config_kernel_x86_mock_modules_v1.c",
+	failures += expect_contains("lpf_config_ubuntu_x86_modules_v1.c",
+				    x86_config, ".product_name = \"ubuntu\"");
+	failures += expect_not_contains("lpf_config_ubuntu_x86_mock_modules_v1.c",
 					mock_config,
 					"g_lpf_config_platform_table");
-	failures += expect_contains("lpf_config_kernel_x86_mock_modules_v1.c",
+	failures += expect_contains("lpf_config_ubuntu_x86_mock_modules_v1.c",
 				    mock_config,
 				    "lpf_config_static_register");
-	failures += expect_contains("lpf_config_kernel_x86_mock_modules_v1.c",
+	failures += expect_contains("lpf_config_ubuntu_x86_mock_modules_v1.c",
 				    mock_config,
-				    "g_lpf_config_kernel_x86_mock_modules_nodes");
-	failures += expect_contains("lpf_config_kernel_x86_mock_modules_v1.c",
+				    "g_lpf_config_ubuntu_x86_mock_modules_nodes");
+	failures += expect_contains("lpf_config_ubuntu_x86_mock_modules_v1.c",
 				    mock_config,
 				    ".device_node_count = OSAL_ARRAY_SIZE");
-	failures += expect_contains("lpf_config_kernel_x86_mock_modules_v1.c",
+	failures += expect_contains("lpf_config_ubuntu_x86_mock_modules_v1.c",
 				    mock_config,
-				    ".device_nodes = g_lpf_config_kernel_x86_mock_modules_nodes");
-	failures += expect_contains("lpf_config_kernel_x86_mock_modules_v1.c",
+				    ".device_nodes = g_lpf_config_ubuntu_x86_mock_modules_nodes");
+	failures += expect_contains("lpf_config_ubuntu_x86_mock_modules_v1.c",
 				    mock_config,
 				    ".compatible = \"lpf,mcu\"");
-	failures += expect_contains("lpf_config_kernel_x86_mock_modules_v1.c",
+	failures += expect_contains("lpf_config_ubuntu_x86_mock_modules_v1.c",
 				    mock_config,
 				    ".compatible = \"lpf,led\"");
-	failures += expect_contains("lpf_config_kernel_x86_mock_modules_v1.c",
+	failures += expect_contains("lpf_config_ubuntu_x86_mock_modules_v1.c",
 				    mock_config,
 				    ".mcu_count = 0");
-	failures += expect_contains("lpf_config_kernel_x86_mock_modules_v1.c",
+	failures += expect_contains("lpf_config_ubuntu_x86_mock_modules_v1.c",
 				    mock_config,
 				    ".led_count = 0");
+	failures += expect_contains("lpf_config_ubuntu_x86_mock_modules_v1.c",
+				    mock_config, ".product_name = \"ubuntu\"");
 
 out:
+	free(mock_defconfig);
+	free(x86_defconfig);
 	free(mock_config);
 	free(x86_config);
 	free(static_table);

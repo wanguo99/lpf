@@ -3,7 +3,7 @@
 #include "lpf_config_static.h"
 
 static const lpf_config_mcu_entry_t
-	g_lpf_config_kernel_x86_mock_modules_mcu0 = {
+	g_lpf_config_ubuntu_x86_mock_modules_mcu0 = {
 		.description = "Mock CAN MCU",
 		.enabled = true,
 		.config = {
@@ -25,7 +25,7 @@ static const lpf_config_mcu_entry_t
 	};
 
 static const lpf_config_led_entry_t
-	g_lpf_config_kernel_x86_mock_modules_status_led = {
+	g_lpf_config_ubuntu_x86_mock_modules_status_led = {
 		.description = "Mock GPIO status LED",
 		.enabled = true,
 		.config = {
@@ -44,7 +44,7 @@ static const lpf_config_led_entry_t
 	};
 
 static const lpf_config_led_entry_t
-	g_lpf_config_kernel_x86_mock_modules_activity_led = {
+	g_lpf_config_ubuntu_x86_mock_modules_activity_led = {
 		.description = "Mock PWM activity LED",
 		.enabled = true,
 		.config = {
@@ -61,15 +61,15 @@ static const lpf_config_led_entry_t
 	};
 
 static const lpf_config_device_node_t
-	g_lpf_config_kernel_x86_mock_modules_nodes[] = {
+	g_lpf_config_ubuntu_x86_mock_modules_nodes[] = {
 		{
 			.device_type = LPF_CONFIG_DEVICE_TYPE_MCU,
 			.index = 0,
 			.name = "mcu0",
 			.compatible = "lpf,mcu",
 			.status = LPF_CONFIG_NODE_STATUS_OKAY,
-			.payload = &g_lpf_config_kernel_x86_mock_modules_mcu0,
-			.entry = &g_lpf_config_kernel_x86_mock_modules_mcu0,
+			.payload = &g_lpf_config_ubuntu_x86_mock_modules_mcu0,
+			.entry = &g_lpf_config_ubuntu_x86_mock_modules_mcu0,
 			.payload_size = sizeof(lpf_config_mcu_entry_t),
 		},
 		{
@@ -79,9 +79,9 @@ static const lpf_config_device_node_t
 			.compatible = "lpf,led",
 			.status = LPF_CONFIG_NODE_STATUS_OKAY,
 			.payload =
-				&g_lpf_config_kernel_x86_mock_modules_status_led,
+				&g_lpf_config_ubuntu_x86_mock_modules_status_led,
 			.entry =
-				&g_lpf_config_kernel_x86_mock_modules_status_led,
+				&g_lpf_config_ubuntu_x86_mock_modules_status_led,
 			.payload_size = sizeof(lpf_config_led_entry_t),
 		},
 		{
@@ -91,28 +91,28 @@ static const lpf_config_device_node_t
 			.compatible = "lpf,led",
 			.status = LPF_CONFIG_NODE_STATUS_OKAY,
 			.payload =
-				&g_lpf_config_kernel_x86_mock_modules_activity_led,
+				&g_lpf_config_ubuntu_x86_mock_modules_activity_led,
 			.entry =
-				&g_lpf_config_kernel_x86_mock_modules_activity_led,
+				&g_lpf_config_ubuntu_x86_mock_modules_activity_led,
 			.payload_size = sizeof(lpf_config_led_entry_t),
 		},
 	};
 
 static const lpf_config_platform_config_t
-	g_lpf_config_kernel_x86_mock_modules_v1 = {
+	g_lpf_config_ubuntu_x86_mock_modules_v1 = {
 		.platform_name = "linux",
 		.chip_name = "x86_64",
 		.project_name = "x86_mock_modules",
-		.product_name = "kernel",
+		.product_name = "ubuntu",
 		.version = "1.0.0",
 		.device_node_count = OSAL_ARRAY_SIZE(
-			g_lpf_config_kernel_x86_mock_modules_nodes),
-		.device_nodes = g_lpf_config_kernel_x86_mock_modules_nodes,
+			g_lpf_config_ubuntu_x86_mock_modules_nodes),
+		.device_nodes = g_lpf_config_ubuntu_x86_mock_modules_nodes,
 		.mcu_count = 0,
 		.mcu_array = NULL,
 		.led_count = 0,
 		.led_array = NULL,
-	};
+};
 
-lpf_config_static_register(kernel_x86_mock_modules_v1,
-			   &g_lpf_config_kernel_x86_mock_modules_v1);
+lpf_config_static_register(ubuntu_x86_mock_modules_v1,
+			   &g_lpf_config_ubuntu_x86_mock_modules_v1);

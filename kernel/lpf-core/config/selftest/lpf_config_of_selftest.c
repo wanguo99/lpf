@@ -83,7 +83,7 @@ static const lpf_config_platform_config_t g_lpf_config_of_selftest_expected = {
 	.platform_name = "linux",
 	.chip_name = "x86_64",
 	.project_name = "x86_mock_modules",
-	.product_name = "kernel",
+	.product_name = "ubuntu",
 	.version = "1.0.0",
 	.mcu_count = 1U,
 	.mcu_array = &g_lpf_config_of_selftest_mcu0,
@@ -312,7 +312,7 @@ static int32_t lpf_config_of_selftest_expect_platform(
 		"project-name mismatch");
 	LPF_CONFIG_OF_SELFTEST_EXPECT(
 		lpf_config_of_selftest_string_equal(platform->product_name,
-						    "kernel") == OSAL_SUCCESS,
+						    "ubuntu") == OSAL_SUCCESS,
 		"product-name mismatch");
 	LPF_CONFIG_OF_SELFTEST_EXPECT(
 		lpf_config_of_selftest_string_equal(platform->version,
@@ -402,7 +402,7 @@ static int lpf_config_of_selftest_add_root_props(struct of_changeset *changeset,
 	if (ret != 0)
 		return ret;
 	ret = of_changeset_add_prop_string(changeset, root, "product-name",
-					   "kernel");
+					   "ubuntu");
 	if (ret != 0)
 		return ret;
 	return of_changeset_add_prop_string(changeset, root, "config-version",

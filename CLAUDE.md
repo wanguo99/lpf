@@ -25,7 +25,7 @@ The framework is still structured for later peripheral expansion. Add new periph
 
 ```bash
 make list
-make kernel_x86_modules_defconfig
+make ubuntu_x86_modules_defconfig
 make modules
 ```
 

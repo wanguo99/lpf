@@ -4,7 +4,7 @@
 set -eu
 
 make_cmd=${MAKE:-make}
-defconfig=${LPF_KERNEL_MATRIX_DEFCONFIG:-kernel_x86_mock_modules_defconfig}
+defconfig=${LPF_KERNEL_MATRIX_DEFCONFIG:-ubuntu_x86_mock_modules_defconfig}
 build_root=${LPF_KERNEL_MATRIX_BUILD_ROOT:-_build/kernel-matrix}
 kernel_src_list=${KERNEL_SRC_LIST:-${KERNEL_SRC:-/lib/modules/$(uname -r)/build}}
 

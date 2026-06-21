@@ -62,7 +62,7 @@ adapter.
 ## Build
 
 ```bash
-make kernel_x86_modules_defconfig
+make ubuntu_x86_modules_defconfig
 make modules
 ```
 
@@ -74,7 +74,7 @@ _build/modules/lpf_configs.ko
 _build/modules/lpf_core.ko
 ```
 
-`kernel_x86_mock_modules_defconfig` additionally builds
+`ubuntu_x86_mock_modules_defconfig` additionally builds
 `_build/modules/lpf_hw_mock_selftest.ko` and
 `_build/modules/lpf_dummy_service_selftest.ko`.
 
@@ -84,7 +84,7 @@ The mock preset can run a load/unload smoke path that exercises the mock SoC
 backend, LPF HW self-test module, and LPF Core dummy service self-test module:
 
 ```bash
-make kernel_x86_mock_modules_defconfig
+make ubuntu_x86_mock_modules_defconfig
 make tests
 make modules
 sudo make mock-modules-smoke
