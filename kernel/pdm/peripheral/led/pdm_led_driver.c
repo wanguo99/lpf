@@ -15,6 +15,7 @@
 #include "../pdm_peripheral.h"
 #include "pdm_led_internal.h"
 
+#include "pdm/core/pdm_backend.h"
 #include "pdm/core/pdm_bus.h"
 #include "pdm/pdm_ctl.h"
 #include "pdm/pdm_led.h"
@@ -48,20 +49,37 @@ static const struct pdm_led_backend_ops pdm_led_memory_ops = {
 	.apply = pdm_led_memory_apply,
 };
 
+static bool pdm_led_is_generic_compatible(const char *compatible)
+{
+	return !compatible || !strcmp(compatible, "pdm,led") ||
+	       !strcmp(compatible, "vendor,pdm-led");
+}
+
 const struct pdm_led_backend_ops *pdm_led_backend_select(const char *compatible)
 {
-	if (!compatible)
+	const struct pdm_backend_entry *entry;
+
+	if (pdm_led_is_generic_compatible(compatible))
 		return &pdm_led_memory_ops;
 
-	if (!strcmp(compatible, "pdm,led-gpio") ||
-	    !strcmp(compatible, "vendor,pdm-led-gpio"))
-		return &pdm_led_gpio_ops;
-
-	if (!strcmp(compatible, "pdm,led-pwm") ||
-	    !strcmp(compatible, "vendor,pdm-led-pwm"))
-		return &pdm_led_pwm_ops;
+	entry = pdm_backend_find(PDM_CTL_DEVICE_TYPE_LED,
+				 PDM_BACKEND_CLASS_CONTROL, compatible);
+	if (entry)
+		return entry->ops;
 
 	return &pdm_led_memory_ops;
+}
+
+static bool pdm_led_match(const struct pdm_device *pdm_dev)
+{
+	if (!pdm_dev)
+		return false;
+	if (pdm_led_is_generic_compatible(pdm_dev->compatible))
+		return true;
+
+	return pdm_backend_find(PDM_CTL_DEVICE_TYPE_LED,
+				PDM_BACKEND_CLASS_CONTROL,
+				pdm_dev->compatible) != NULL;
 }
 
 static int pdm_led_read_dt_config(struct pdm_led_instance *inst)
@@ -352,6 +370,7 @@ static struct pdm_driver pdm_led_driver = {
 	},
 	.device_type = PDM_CTL_DEVICE_TYPE_LED,
 	.capabilities = PDM_CTL_DEVICE_CAP_USER_IOCTL,
+	.match = pdm_led_match,
 	.probe = pdm_led_probe,
 	.remove = pdm_led_remove,
 };

@@ -8,6 +8,7 @@
 #include <linux/can/raw.h>
 #include <linux/err.h>
 #include <linux/if.h>
+#include <linux/module.h>
 #include <linux/net.h>
 #include <linux/netdevice.h>
 #include <linux/of.h>
@@ -15,8 +16,16 @@
 #include <net/net_namespace.h>
 #include <net/sock.h>
 
+#include "pdm/core/pdm_backend.h"
 #include "pdm_mcu_internal.h"
 #include "osal.h"
+
+static const struct of_device_id pdm_mcu_can_of_match[] = {
+	{ .compatible = "pdm,mcu-can" },
+	{ .compatible = "vendor,pdm-mcu-can" },
+	{ }
+};
+MODULE_DEVICE_TABLE(of, pdm_mcu_can_of_match);
 
 static canid_t pdm_mcu_can_make_id(struct pdm_mcu_instance *inst, u32 id)
 {
@@ -228,3 +237,7 @@ const struct pdm_mcu_transport_ops pdm_mcu_can_ops = {
 	.read_data = pdm_mcu_can_read_data,
 	.write_data = pdm_mcu_can_write_data,
 };
+
+pdm_backend_register(mcu_can, PDM_CTL_DEVICE_TYPE_MCU,
+		     PDM_BACKEND_CLASS_TRANSPORT, pdm_mcu_can_of_match,
+		     &pdm_mcu_can_ops, NULL, NULL);

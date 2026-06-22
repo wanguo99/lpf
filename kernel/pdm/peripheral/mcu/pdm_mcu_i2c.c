@@ -12,6 +12,7 @@
 #include <linux/string.h>
 
 #include "pdm/compat/pdm_compat_features.h"
+#include "pdm/core/pdm_backend.h"
 #include "pdm_mcu_internal.h"
 #include "osal.h"
 
@@ -260,4 +261,8 @@ void pdm_mcu_i2c_driver_unregister(void)
 {
 	i2c_del_driver(&pdm_mcu_i2c_driver);
 }
+
+pdm_backend_register(mcu_i2c, PDM_CTL_DEVICE_TYPE_MCU,
+		     PDM_BACKEND_CLASS_TRANSPORT, pdm_mcu_i2c_of_match,
+		     &pdm_mcu_i2c_ops, pdm_mcu_i2c_driver_register, pdm_mcu_i2c_driver_unregister);
 #endif

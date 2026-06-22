@@ -6,9 +6,18 @@
 
 #include <linux/err.h>
 #include <linux/gpio/consumer.h>
+#include <linux/module.h>
 
+#include "pdm/core/pdm_backend.h"
 #include "pdm_led_internal.h"
 #include "osal.h"
+
+static const struct of_device_id pdm_led_gpio_of_match[] = {
+	{ .compatible = "pdm,led-gpio" },
+	{ .compatible = "vendor,pdm-led-gpio" },
+	{ }
+};
+MODULE_DEVICE_TABLE(of, pdm_led_gpio_of_match);
 
 static int pdm_led_gpio_setup(struct pdm_led_instance *inst)
 {
@@ -58,3 +67,7 @@ const struct pdm_led_backend_ops pdm_led_gpio_ops = {
 	.cleanup = pdm_led_gpio_cleanup,
 	.apply = pdm_led_gpio_apply,
 };
+
+pdm_backend_register(led_gpio, PDM_CTL_DEVICE_TYPE_LED,
+		     PDM_BACKEND_CLASS_CONTROL, pdm_led_gpio_of_match,
+		     &pdm_led_gpio_ops, NULL, NULL);

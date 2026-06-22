@@ -21,6 +21,7 @@
  * @of_match_table: Optional compatibility alias for driver.of_match_table.
  * @device_type: PDM_CTL_DEVICE_TYPE_* value for devices handled by this driver.
  * @capabilities: Capability flags added to devices handled by this driver.
+ * @match: Optional service-owned match callback for dynamic backend matches.
  * @probe: Called after the PDM bus matches a device to this driver.
  * @remove: Called before a bound PDM device is detached.
  */
@@ -30,6 +31,7 @@ struct pdm_driver {
 	u32 device_type;
 	u64 capabilities;
 
+	bool (*match)(const struct pdm_device *dev);
 	int (*probe)(struct pdm_device *dev);
 	void (*remove)(struct pdm_device *dev);
 };

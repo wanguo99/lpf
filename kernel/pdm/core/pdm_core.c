@@ -6,6 +6,7 @@
 #include "pdm_ctl.h"
 #include "../mock/pdm_mock_devices.h"
 #include "pdm/core/pdm_client.h"
+#include "pdm/core/pdm_backend.h"
 #include "pdm/core/pdm_bus.h"
 #include "pdm/pdm_errno.h"
 
@@ -42,10 +43,16 @@ static int __init pdm_core_module_init(void)
 		goto err_client;
 	}
 
+	ret = pdm_backend_entries_init();
+	if (ret) {
+		LOG_ERROR("PDM_CORE", "Failed to initialize PDM backends: %d", ret);
+		goto err_drivers;
+	}
+
 	ret = pdm_mock_devices_init();
 	if (ret) {
 		LOG_ERROR("PDM_CORE", "Failed to register mock PDM devices: %d", ret);
-		goto err_drivers;
+		goto err_backends;
 	}
 
 	ret = pdm_bus_controller_init();
@@ -59,6 +66,8 @@ static int __init pdm_core_module_init(void)
 
 err_mock_devices:
 	pdm_mock_devices_exit();
+err_backends:
+	pdm_backend_entries_exit();
 err_drivers:
 	pdm_driver_entries_exit();
 err_client:
@@ -77,6 +86,7 @@ static void __exit pdm_core_module_exit(void)
 {
 	pdm_bus_controller_exit();
 	pdm_mock_devices_exit();
+	pdm_backend_entries_exit();
 	pdm_driver_entries_exit();
 	pdm_client_exit();
 	pdm_ctl_exit();

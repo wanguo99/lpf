@@ -145,14 +145,19 @@ static int pdm_bus_device_match_impl(struct device *dev,
 				     const struct device_driver *drv)
 {
 	struct pdm_device *pdm_dev;
+	struct pdm_driver *pdm_drv;
 
 	if (!dev || !drv)
 		return 0;
 
+	pdm_dev = dev_to_pdm_device(dev);
+	pdm_drv = drv_to_pdm_driver(drv);
+	if (pdm_drv->match && pdm_drv->match(pdm_dev))
+		return 1;
+
 	if (dev->of_node && of_driver_match_device(dev, drv))
 		return 1;
 
-	pdm_dev = dev_to_pdm_device(dev);
 	return pdm_bus_match_compatible(pdm_dev, drv);
 }
 

@@ -15,6 +15,7 @@
 #include "../pdm_peripheral.h"
 #include "pdm_mcu_internal.h"
 
+#include "pdm/core/pdm_backend.h"
 #include "pdm/core/pdm_bus.h"
 #include "pdm/pdm_ctl.h"
 #include "osal.h"
@@ -165,32 +166,37 @@ static const struct pdm_mcu_transport_ops pdm_mcu_memory_ops = {
 	.write_data = pdm_mcu_memory_write_data,
 };
 
+static bool pdm_mcu_is_generic_compatible(const char *compatible)
+{
+	return !compatible || !strcmp(compatible, "pdm,mcu") ||
+	       !strcmp(compatible, "vendor,pdm-mcu");
+}
+
 const struct pdm_mcu_transport_ops *pdm_mcu_transport_select(const char *compatible)
 {
-	if (!compatible)
+	const struct pdm_backend_entry *entry;
+
+	if (pdm_mcu_is_generic_compatible(compatible))
 		return &pdm_mcu_memory_ops;
 
-	if (!strcmp(compatible, "pdm,mcu-uart") ||
-	    !strcmp(compatible, "vendor,pdm-mcu-uart"))
-		return &pdm_mcu_uart_ops;
-
-	if (!strcmp(compatible, "pdm,mcu-can") ||
-	    !strcmp(compatible, "vendor,pdm-mcu-can"))
-		return &pdm_mcu_can_ops;
-
-#if IS_ENABLED(CONFIG_PDM_MCU_I2C) && IS_ENABLED(CONFIG_I2C)
-	if (!strcmp(compatible, "pdm,mcu-i2c") ||
-	    !strcmp(compatible, "vendor,pdm-mcu-i2c"))
-		return &pdm_mcu_i2c_ops;
-#endif
-
-#if IS_ENABLED(CONFIG_PDM_MCU_SPI) && IS_ENABLED(CONFIG_SPI)
-	if (!strcmp(compatible, "pdm,mcu-spi") ||
-	    !strcmp(compatible, "vendor,pdm-mcu-spi"))
-		return &pdm_mcu_spi_ops;
-#endif
+	entry = pdm_backend_find(PDM_CTL_DEVICE_TYPE_MCU,
+				 PDM_BACKEND_CLASS_TRANSPORT, compatible);
+	if (entry)
+		return entry->ops;
 
 	return &pdm_mcu_memory_ops;
+}
+
+static bool pdm_mcu_match(const struct pdm_device *pdm_dev)
+{
+	if (!pdm_dev)
+		return false;
+	if (pdm_mcu_is_generic_compatible(pdm_dev->compatible))
+		return true;
+
+	return pdm_backend_find(PDM_CTL_DEVICE_TYPE_MCU,
+				PDM_BACKEND_CLASS_TRANSPORT,
+				pdm_dev->compatible) != NULL;
 }
 
 static int pdm_mcu_record_result(struct pdm_mcu_instance *inst, int ret)
@@ -496,6 +502,7 @@ static struct pdm_driver pdm_mcu_driver = {
 	},
 	.device_type = PDM_CTL_DEVICE_TYPE_MCU,
 	.capabilities = PDM_CTL_DEVICE_CAP_USER_IOCTL,
+	.match = pdm_mcu_match,
 	.probe = pdm_mcu_probe,
 	.remove = pdm_mcu_remove,
 };

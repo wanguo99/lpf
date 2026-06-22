@@ -5,10 +5,19 @@
  */
 
 #include <linux/err.h>
+#include <linux/module.h>
 #include <linux/pwm.h>
 
+#include "pdm/core/pdm_backend.h"
 #include "pdm_led_internal.h"
 #include "osal.h"
+
+static const struct of_device_id pdm_led_pwm_of_match[] = {
+	{ .compatible = "pdm,led-pwm" },
+	{ .compatible = "vendor,pdm-led-pwm" },
+	{ }
+};
+MODULE_DEVICE_TABLE(of, pdm_led_pwm_of_match);
 
 static int pdm_led_pwm_setup(struct pdm_led_instance *inst)
 {
@@ -76,3 +85,7 @@ const struct pdm_led_backend_ops pdm_led_pwm_ops = {
 	.cleanup = pdm_led_pwm_cleanup,
 	.apply = pdm_led_pwm_apply,
 };
+
+pdm_backend_register(led_pwm, PDM_CTL_DEVICE_TYPE_LED,
+		     PDM_BACKEND_CLASS_CONTROL, pdm_led_pwm_of_match,
+		     &pdm_led_pwm_ops, NULL, NULL);
