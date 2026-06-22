@@ -33,4 +33,28 @@ config PDM_MOCK_DEVICES
 	  This is intended for x86 smoke tests that do not have Device Tree
 	  PDM child nodes. Product builds should leave this disabled.
 
+config PDM_MCU_UART_SERDEV
+	bool "PDM MCU UART serdev transport"
+	default y
+	help
+	  Register a serdev client driver for MCU devices described below a UART
+	  controller node. If the target kernel lacks CONFIG_SERIAL_DEV_BUS, this
+	  backend compiles to a no-op and legacy tty-path UART remains available.
+
+config PDM_MCU_I2C
+	bool "PDM MCU I2C transport"
+	default y
+	help
+	  Register an I2C client driver for MCU devices described below an I2C
+	  controller node. If the target kernel lacks CONFIG_I2C, this backend
+	  compiles to a no-op.
+
+config PDM_MCU_SPI
+	bool "PDM MCU SPI transport"
+	default y
+	help
+	  Register an SPI client driver for MCU devices described below an SPI
+	  controller node. If the target kernel lacks CONFIG_SPI, this backend
+	  compiles to a no-op.
+
 endif # PDM_CORE

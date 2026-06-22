@@ -1,14 +1,21 @@
 # PDM Bus Device Tree Notes
 
 PDM Core creates devices from children of a `vendor,pdm-bus` controller node.
-Each child becomes one `struct pdm_device` on `/sys/bus/pdm` and, after driver
-binding, one userspace node under `/dev/pdm/`.
+Native MCU transports can also create PDM devices from children of UART, I2C,
+and SPI controller nodes. Each PDM device appears on `/sys/bus/pdm` and, after
+driver binding, one userspace node under `/dev/pdm/`.
 
 Supported MCU compatibles:
 
 - `pdm,mcu` or `vendor,pdm-mcu`: generic bring-up device; status/reset only.
 - `pdm,mcu-can` or `vendor,pdm-mcu-can`: classic CAN RAW single-frame transport.
-- `pdm,mcu-uart` or `vendor,pdm-mcu-uart`: file-backed UART/TTY byte transport.
+- `pdm,mcu-uart` or `vendor,pdm-mcu-uart`: serdev UART transport when the
+  node is below a UART controller; legacy file-backed TTY transport when the
+  node is below `vendor,pdm-bus` and uses `tty-path`.
+- `pdm,mcu-i2c` or `vendor,pdm-mcu-i2c`: I2C client transport below an
+  I2C controller.
+- `pdm,mcu-spi` or `vendor,pdm-mcu-spi`: SPI client transport below an
+  SPI controller.
 
 Supported LED compatibles:
 
@@ -61,6 +68,60 @@ MCU-CAN maps `PDM_MCU_IOC_COMMAND.command` and `pdm_mcu_data.address` to the CAN
 ID. The current implementation intentionally supports one classic CAN frame per
 ioctl, so payloads larger than 8 bytes return `-EMSGSIZE`.
 
-MCU-UART uses `tty-path` with `filp_open()` and synchronous `kernel_read()` /
-`kernel_write()`. The `baudrate` property is recorded for integration clarity,
-but termios programming is left to the platform serial configuration.
+Legacy MCU-UART nodes under `vendor,pdm-bus` use `tty-path` with `filp_open()`
+and synchronous `kernel_read()` / `kernel_write()`. This remains available for
+compatibility, but new UART MCU descriptions should use serdev by placing the MCU
+node below the UART controller:
+
+```dts
+&uart1 {
+    status = "okay";
+
+    mcu0: mcu {
+        compatible = "pdm,mcu-uart";
+        pdm,id = <0>;
+        current-speed = <115200>;
+        rx-timeout-ms = <100>;
+        /* Optional: uart-has-rtscts; or flow-control = "hw"; */
+    };
+};
+```
+
+I2C and SPI MCU transports are described below their native Linux controller
+nodes. `pdm,id` selects the `/dev/pdm/mcuN` index; if it is omitted, `reg` is
+used as a fallback. For I2C this may produce indices such as `mcu16` for address
+`0x10`, so products should set `pdm,id` when stable numbering matters.
+
+```dts
+&i2c1 {
+    status = "okay";
+
+    mcu1: mcu@10 {
+        compatible = "pdm,mcu-i2c";
+        reg = <0x10>;
+        pdm,id = <1>;
+        rx-timeout-ms = <100>;
+        command-bytes = <1>;
+        address-bytes = <1>;
+    };
+};
+
+&spi0 {
+    status = "okay";
+
+    mcu2: mcu@0 {
+        compatible = "pdm,mcu-spi";
+        reg = <0>;
+        pdm,id = <2>;
+        spi-max-frequency = <1000000>;
+        rx-timeout-ms = <100>;
+        command-bytes = <1>;
+        address-bytes = <1>;
+    };
+};
+```
+
+For I2C/SPI, `PDM_MCU_IOC_COMMAND.command` is encoded as a big-endian prefix
+before `tx_data`; `PDM_MCU_IOC_READ_DATA.address` and
+`PDM_MCU_IOC_WRITE_DATA.address` are encoded as a big-endian address prefix.
+`command-bytes` and `address-bytes` default to 1 and may be set to 0 through 4.
