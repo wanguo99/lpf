@@ -16,6 +16,13 @@
 #include <net/sock.h>
 
 #include "lpf/compat/lpf_compat_can.h"
+#include "lpf/compat/lpf_compat_features.h"
+
+#if LPF_KERNEL_HAS_SOCKADDR_UNSIZED
+#define LPF_COMPAT_SOCKADDR_PTR(addr) ((struct sockaddr_unsized *)(addr))
+#else
+#define LPF_COMPAT_SOCKADDR_PTR(addr) ((struct sockaddr *)(addr))
+#endif
 
 typedef struct {
 	struct socket *sock;
@@ -87,7 +94,7 @@ lpf_compat_can_bind_interface(lpf_compat_can_context_t *ctx)
 	addr.can_family = AF_CAN;
 	addr.can_ifindex = ifindex;
 
-	ret = kernel_bind(ctx->sock, (struct sockaddr *)&addr, sizeof(addr));
+	ret = kernel_bind(ctx->sock, LPF_COMPAT_SOCKADDR_PTR(&addr), sizeof(addr));
 	if (ret < 0) {
 		LOG_ERROR("LPF_CAN", "bind %s failed: %d", ctx->interface,
 			  ret);
