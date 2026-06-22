@@ -444,3 +444,91 @@ static void pdm_led_service_unregister(void)
 
 pdm_runtime_service_register(led_service, pdm_led_service_register,
 			     pdm_led_service_unregister);
+
+#ifdef CONFIG_PDM_NEW_BUS
+/*===========================================================================
+ * 新总线驱动注册（Linux bus_type）
+ *===========================================================================*/
+
+#include "pdm/core/pdm_bus.h"
+#include "pdm/core/pdm_device_new.h"
+
+/**
+ * @brief 新总线的 probe 函数
+ */
+static int pdm_led_probe_new(struct pdm_device *pdm_dev)
+{
+	LOG_INFO("PDM_LED", "New bus probe called for device %s",
+		 dev_name(&pdm_dev->dev));
+
+	/* TODO: 从 pdm_dev->dev.of_node 读取 DT 配置 */
+	/* TODO: 调用旧的 pdm_led_probe 逻辑或重构 */
+
+	/* 暂时返回成功，实际实现在后续完成 */
+	return 0;
+}
+
+/**
+ * @brief 新总线的 remove 函数
+ */
+static void pdm_led_remove_new(struct pdm_device *pdm_dev)
+{
+	LOG_INFO("PDM_LED", "New bus remove called for device %s",
+		 dev_name(&pdm_dev->dev));
+
+	/* TODO: 调用旧的 pdm_led_remove 逻辑 */
+}
+
+/**
+ * @brief Device Tree 匹配表
+ */
+static const struct of_device_id pdm_led_of_match[] = {
+	{ .compatible = "vendor,pdm-led-gpio" },
+	{ .compatible = "vendor,pdm-led-pwm" },
+	{ }
+};
+MODULE_DEVICE_TABLE(of, pdm_led_of_match);
+
+/**
+ * @brief PDM LED 驱动结构（新总线）
+ */
+static struct pdm_driver pdm_led_driver_new = {
+	.driver = {
+		.name = "pdm-led",
+		.of_match_table = pdm_led_of_match,
+	},
+	.probe = pdm_led_probe_new,
+	.remove = pdm_led_remove_new,
+};
+
+/**
+ * @brief 模块初始化（新总线）
+ */
+static int __init pdm_led_driver_init_new(void)
+{
+	int ret;
+
+	LOG_INFO("PDM_LED", "Registering LED driver on new PDM bus");
+
+	ret = pdm_driver_register(&pdm_led_driver_new);
+	if (ret) {
+		LOG_ERROR("PDM_LED", "Failed to register driver, error %d", ret);
+		return ret;
+	}
+
+	return 0;
+}
+
+/**
+ * @brief 模块退出（新总线）
+ */
+static void __exit pdm_led_driver_exit_new(void)
+{
+	pdm_bus_unregister_driver(&pdm_led_driver_new);
+	LOG_INFO("PDM_LED", "LED driver unregistered from PDM bus");
+}
+
+module_init(pdm_led_driver_init_new);
+module_exit(pdm_led_driver_exit_new);
+
+#endif /* CONFIG_PDM_NEW_BUS */

@@ -726,3 +726,95 @@ static void pdm_mcu_service_unregister(void)
 
 pdm_runtime_service_register(mcu_service, pdm_mcu_service_register,
 			     pdm_mcu_service_unregister);
+
+#ifdef CONFIG_PDM_NEW_BUS
+/*===========================================================================
+ * 新总线驱动注册（Linux bus_type）
+ *===========================================================================*/
+
+#include "pdm/core/pdm_bus.h"
+#include "pdm/core/pdm_device_new.h"
+
+/**
+ * @brief 新总线的 probe 函数
+ *
+ * 这是新 Linux bus_type 的 probe 接口，签名与旧的不同
+ */
+static int pdm_mcu_probe_new(struct pdm_device *pdm_dev)
+{
+	/* TODO: 从 pdm_dev->dev.of_node 读取 DT 配置 */
+	/* TODO: 调用旧的 pdm_mcu_probe 逻辑或重构 */
+
+	LOG_INFO("PDM_MCU", "New bus probe called for device %s",
+		 dev_name(&pdm_dev->dev));
+
+	/* 暂时返回成功，实际实现在后续完成 */
+	return 0;
+}
+
+/**
+ * @brief 新总线的 remove 函数
+ */
+static void pdm_mcu_remove_new(struct pdm_device *pdm_dev)
+{
+	LOG_INFO("PDM_MCU", "New bus remove called for device %s",
+		 dev_name(&pdm_dev->dev));
+
+	/* TODO: 调用旧的 pdm_mcu_remove 逻辑 */
+}
+
+/**
+ * @brief Device Tree 匹配表
+ *
+ * 定义此驱动支持的 compatible 字符串
+ */
+static const struct of_device_id pdm_mcu_of_match[] = {
+	{ .compatible = "vendor,pdm-mcu-uart" },
+	{ .compatible = "vendor,pdm-mcu-can" },
+	{ }
+};
+MODULE_DEVICE_TABLE(of, pdm_mcu_of_match);
+
+/**
+ * @brief PDM MCU 驱动结构（新总线）
+ */
+static struct pdm_driver pdm_mcu_driver_new = {
+	.driver = {
+		.name = "pdm-mcu",
+		.of_match_table = pdm_mcu_of_match,
+	},
+	.probe = pdm_mcu_probe_new,
+	.remove = pdm_mcu_remove_new,
+};
+
+/**
+ * @brief 模块初始化（新总线）
+ */
+static int __init pdm_mcu_driver_init_new(void)
+{
+	int ret;
+
+	LOG_INFO("PDM_MCU", "Registering MCU driver on new PDM bus");
+
+	ret = pdm_driver_register(&pdm_mcu_driver_new);
+	if (ret) {
+		LOG_ERROR("PDM_MCU", "Failed to register driver, error %d", ret);
+		return ret;
+	}
+
+	return 0;
+}
+
+/**
+ * @brief 模块退出（新总线）
+ */
+static void __exit pdm_mcu_driver_exit_new(void)
+{
+	pdm_bus_unregister_driver(&pdm_mcu_driver_new);
+	LOG_INFO("PDM_MCU", "MCU driver unregistered from PDM bus");
+}
+
+module_init(pdm_mcu_driver_init_new);
+module_exit(pdm_mcu_driver_exit_new);
+
+#endif /* CONFIG_PDM_NEW_BUS */
