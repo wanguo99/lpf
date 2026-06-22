@@ -528,7 +528,7 @@ menu "Modules"
 
 source "user/osal/Config.in"
 source "kernel/pdm-core/Config.in"
-source "kernel/pdm-configs/Config.in"
+# source "kernel/pdm-configs/Config.in"  # 已删除：使用 Device Tree 替代
 source "user/aconfig/Config.in"
 source "user/pdi/Config.in"
 

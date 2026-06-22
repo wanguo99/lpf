@@ -4,13 +4,15 @@ menuconfig PDM_CORE
 	tristate "PDM core device model"
 	default m
 	depends on OSAL
-	depends on PDM_CONFIGS
+	# depends on PDM_CONFIGS  # 已删除：不再依赖 pdm_configs
 	depends on m
 	help
 	  PDM Core owns the framework device and driver registry used by
 	  peripheral services. It provides a stable PDM device model above
 	  kernel-version and SoC-specific adapter layers, plus snapshot device
 	  discovery by stable name and capability.
+
+	  Device configuration now uses Device Tree exclusively.
 
 	  It also contains the initial kernel compatibility wrappers and
 	  selected SoC adapter used by PDM hardware access paths.
