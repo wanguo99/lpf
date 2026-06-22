@@ -73,10 +73,10 @@ MODULES_SRC_DIR ?= $(srctree)/kernel
 MODULES_OUTPUT_DIR ?= $(MODULES_BUILD_DIR)
 MODULES_LIST ?= $(strip \
 	$(if $(filter y m,$(CONFIG_OSAL)),osal) \
-	$(if $(filter y m,$(CONFIG_PDM_CONFIGS)),pdm_configs) \
 	$(if $(filter y m,$(CONFIG_PDM_CORE)),pdm_core) \
 	$(if $(filter y m,$(CONFIG_PDM_HW_MOCK_SELFTEST)),pdm_hw_mock_selftest) \
 	$(if $(filter y m,$(CONFIG_PDM_DUMMY_SERVICE_SELFTEST)),pdm_dummy_service_selftest))
+# 已删除：pdm_configs - 使用 Device Tree 替代静态配置
 MODULES_ARTIFACTS = $(addprefix $(MODULES_OUTPUT_DIR)/,$(addsuffix .ko,$(MODULES_LIST)))
 
 # Parallel build auto-detection

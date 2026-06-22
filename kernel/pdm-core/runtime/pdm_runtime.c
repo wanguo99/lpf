@@ -4,7 +4,7 @@
 
 #include "pdm/core/pdm_core.h"
 #include "pdm/hw/pdm_hw.h"
-#include "pdm/config/pdm_config.h"
+/* #include "pdm/config/pdm_config.h" - 已删除：使用 Device Tree 替代 */
 #include "pdm_runtime_internal.h"
 #include "generated/gen_version.h"
 
@@ -143,17 +143,23 @@ static void pdm_runtime_entries_exit(void)
 
 int32_t pdm_runtime_config_refresh(void)
 {
-	int32_t ret;
-
 	if (!g_lpf_runtime_ready && !g_lpf_runtime_entries_ready)
 		return OSAL_ERR_INVALID_STATE;
 
 	if (g_lpf_runtime_devices_ready)
 		return OSAL_SUCCESS;
 
-	ret = pdm_runtime_probe_devices();
-	if (ret != OSAL_SUCCESS)
-		return ret;
+	/*
+	 * 注意：pdm_runtime_probe_devices() 已禁用
+	 * 原因：依赖已删除的 pdm_configs 模块
+	 *
+	 * 在新总线架构中：
+	 * - 设备由 pdm_bus_controller 从 Device Tree 创建
+	 * - 驱动通过 pdm_driver_register() 注册到 pdm_bus
+	 * - 内核自动进行匹配和 probe
+	 *
+	 * 此函数现在是空操作，保留以维持 API 兼容性
+	 */
 
 	g_lpf_runtime_devices_ready = true;
 	return OSAL_SUCCESS;
@@ -167,7 +173,7 @@ void pdm_runtime_config_detach(void)
 
 	/* 注意: 在新总线架构中，设备由 Device Tree 创建和管理 */
 	/* pdm_device_unregister_all(); - 旧伪总线 API 已删除 */
-	pdm_config_unload();
+	/* pdm_config_unload(); - pdm_configs 模块已删除 */
 	g_lpf_runtime_devices_ready = false;
 }
 EXPORT_SYMBOL_GPL(pdm_runtime_config_detach);

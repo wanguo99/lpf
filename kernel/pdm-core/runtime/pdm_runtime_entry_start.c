@@ -6,6 +6,8 @@ const pdm_runtime_entry_t pdm_runtime_entry_start
 	__attribute__((used, aligned(sizeof(void *)),
 		       section(PDM_RUNTIME_ENTRY_SECTION))) = {};
 
+/* 已禁用：CONFIG_DRIVER 系统依赖 pdm_configs
 const pdm_runtime_config_driver_t pdm_runtime_config_driver_start
 	__attribute__((used, aligned(sizeof(void *)),
 		       section(PDM_RUNTIME_CONFIG_DRIVER_SECTION))) = {};
+*/
