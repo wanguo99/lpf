@@ -738,17 +738,144 @@ pdm_runtime_service_register(mcu_service, pdm_mcu_service_register,
 /**
  * @brief 新总线的 probe 函数
  *
- * 这是新 Linux bus_type 的 probe 接口，签名与旧的不同
+ * 从 Device Tree 读取配置并初始化 MCU 外设
  */
 static int pdm_mcu_probe_new(struct pdm_device *pdm_dev)
 {
-	/* TODO: 从 pdm_dev->dev.of_node 读取 DT 配置 */
-	/* TODO: 调用旧的 pdm_mcu_probe 逻辑或重构 */
+	struct device_node *np = pdm_dev->dev.of_node;
+	pdm_config_mcu_entry_t *entry;
+	pdm_mcu_handle_t handle = NULL;
+	const char *interface_str;
+	const char *device_str;
+	u32 value;
+	int ret;
 
-	LOG_INFO("PDM_MCU", "New bus probe called for device %s",
-		 dev_name(&pdm_dev->dev));
+	if (!np) {
+		dev_err(&pdm_dev->dev, "No device tree node\n");
+		return -EINVAL;
+	}
 
-	/* 暂时返回成功，实际实现在后续完成 */
+	/* 分配配置结构 */
+	entry = devm_kzalloc(&pdm_dev->dev, sizeof(*entry), GFP_KERNEL);
+	if (!entry)
+		return -ENOMEM;
+
+	entry->enabled = true;
+
+	/* 读取基本配置 */
+	if (of_property_read_string(np, "label", &entry->description))
+		entry->description = "PDM MCU Device";
+
+	if (of_property_read_string(np, "pdm,name", &device_str))
+		device_str = dev_name(&pdm_dev->dev);
+	snprintf(entry->config.name, sizeof(entry->config.name), "%s", device_str);
+
+	/* 读取接口类型 */
+	if (of_property_read_string(np, "pdm,interface", &interface_str)) {
+		dev_err(&pdm_dev->dev, "Missing pdm,interface property\n");
+		return -EINVAL;
+	}
+
+	if (strcmp(interface_str, "uart") == 0 || strcmp(interface_str, "serial") == 0) {
+		entry->config.interface = PDM_CONFIG_MCU_INTERFACE_SERIAL;
+
+		/* 读取串口配置 */
+		if (of_property_read_string(np, "pdm,uart-device", &entry->config.hw.serial.device)) {
+			dev_err(&pdm_dev->dev, "Missing pdm,uart-device property\n");
+			return -EINVAL;
+		}
+
+		if (!of_property_read_u32(np, "pdm,baudrate", &value))
+			entry->config.hw.serial.baudrate = value;
+		else
+			entry->config.hw.serial.baudrate = 115200;
+
+		if (!of_property_read_u32(np, "pdm,data-bits", &value))
+			entry->config.hw.serial.data_bits = value;
+		else
+			entry->config.hw.serial.data_bits = 8;
+
+		if (!of_property_read_u32(np, "pdm,stop-bits", &value))
+			entry->config.hw.serial.stop_bits = value;
+		else
+			entry->config.hw.serial.stop_bits = 1;
+
+		entry->config.hw.serial.parity = PDM_CONFIG_MCU_PARITY_NONE;
+		entry->config.hw.serial.flow_control = PDM_CONFIG_MCU_FLOW_NONE;
+
+	} else if (strcmp(interface_str, "can") == 0) {
+		entry->config.interface = PDM_CONFIG_MCU_INTERFACE_CAN;
+
+		/* 读取 CAN 配置 */
+		if (of_property_read_string(np, "pdm,can-device", &entry->config.hw.can.device)) {
+			dev_err(&pdm_dev->dev, "Missing pdm,can-device property\n");
+			return -EINVAL;
+		}
+
+		if (!of_property_read_u32(np, "pdm,bitrate", &value))
+			entry->config.hw.can.bitrate = value;
+		else
+			entry->config.hw.can.bitrate = 500000;
+
+		if (!of_property_read_u32(np, "pdm,tx-id", &value))
+			entry->config.hw.can.tx_id = value;
+		else
+			entry->config.hw.can.tx_id = 0x100;
+
+		if (!of_property_read_u32(np, "pdm,rx-id", &value))
+			entry->config.hw.can.rx_id = value;
+		else
+			entry->config.hw.can.rx_id = 0x200;
+
+		entry->config.hw.can.rx_timeout = 1000;
+		entry->config.hw.can.tx_timeout = 1000;
+
+	} else {
+		dev_err(&pdm_dev->dev, "Unknown interface type: %s\n", interface_str);
+		return -EINVAL;
+	}
+
+	/* 读取通用配置 */
+	if (!of_property_read_u32(np, "pdm,cmd-timeout-ms", &value))
+		entry->config.cmd_timeout_ms = value;
+	else
+		entry->config.cmd_timeout_ms = 1000;
+
+	if (!of_property_read_u32(np, "pdm,retry-count", &value))
+		entry->config.retry_count = value;
+	else
+		entry->config.retry_count = 3;
+
+	/* 初始化传输层和 MCU 上下文 */
+	ret = pdm_mcu_init_from_entry(pdm_dev->id, entry, &handle);
+	if (ret != OSAL_SUCCESS) {
+		dev_err(&pdm_dev->dev, "Failed to initialize MCU: %d\n", ret);
+		return -EIO;
+	}
+
+	/* 创建字符设备 - 使用临时 device 结构 */
+	{
+		pdm_device_t temp_device = {
+			.config = {
+				.type = PDM_DEVICE_TYPE_MCU,
+				.index = pdm_dev->id,
+				.entry = entry
+			}
+		};
+		ret = pdm_mcu_chrdev_register_device(&temp_device);
+		if (ret) {
+			dev_err(&pdm_dev->dev, "Failed to register chardev: %d\n", ret);
+			pdm_mcu_remove_index(pdm_dev->id);
+			return ret;
+		}
+	}
+
+	/* 保存上下文 */
+	pdm_device_set_drvdata(pdm_dev, handle);
+
+	dev_info(&pdm_dev->dev, "MCU device probed successfully (interface=%s, id=%d)\n",
+		 interface_str, pdm_dev->id);
+
 	return 0;
 }
 
@@ -757,10 +884,20 @@ static int pdm_mcu_probe_new(struct pdm_device *pdm_dev)
  */
 static void pdm_mcu_remove_new(struct pdm_device *pdm_dev)
 {
-	LOG_INFO("PDM_MCU", "New bus remove called for device %s",
-		 dev_name(&pdm_dev->dev));
+	pdm_device_t temp_device = {
+		.config = {
+			.type = PDM_DEVICE_TYPE_MCU,
+			.index = pdm_dev->id,
+		}
+	};
 
-	/* TODO: 调用旧的 pdm_mcu_remove 逻辑 */
+	dev_info(&pdm_dev->dev, "Removing MCU device (id=%d)\n", pdm_dev->id);
+
+	/* 注销字符设备 */
+	pdm_mcu_chrdev_unregister_device(&temp_device);
+
+	/* 清理 MCU 上下文 */
+	pdm_mcu_remove_index(pdm_dev->id);
 }
 
 /**

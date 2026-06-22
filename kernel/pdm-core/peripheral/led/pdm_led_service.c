@@ -458,13 +458,117 @@ pdm_runtime_service_register(led_service, pdm_led_service_register,
  */
 static int pdm_led_probe_new(struct pdm_device *pdm_dev)
 {
-	LOG_INFO("PDM_LED", "New bus probe called for device %s",
-		 dev_name(&pdm_dev->dev));
+	struct device_node *np = pdm_dev->dev.of_node;
+	pdm_config_led_entry_t *entry;
+	pdm_led_handle_t handle = NULL;
+	const char *control_str;
+	const char *name_str;
+	u32 value;
+	int ret;
 
-	/* TODO: 从 pdm_dev->dev.of_node 读取 DT 配置 */
-	/* TODO: 调用旧的 pdm_led_probe 逻辑或重构 */
+	if (!np) {
+		dev_err(&pdm_dev->dev, "No device tree node\n");
+		return -EINVAL;
+	}
 
-	/* 暂时返回成功，实际实现在后续完成 */
+	/* 分配配置结构 */
+	entry = devm_kzalloc(&pdm_dev->dev, sizeof(*entry), GFP_KERNEL);
+	if (!entry)
+		return -ENOMEM;
+
+	entry->enabled = true;
+
+	/* 读取基本配置 */
+	if (of_property_read_string(np, "label", &entry->description))
+		entry->description = "PDM LED Device";
+
+	if (of_property_read_string(np, "pdm,name", &name_str))
+		name_str = dev_name(&pdm_dev->dev);
+	snprintf(entry->config.name, sizeof(entry->config.name), "%s", name_str);
+
+	/* 读取控制类型 */
+	if (of_property_read_string(np, "pdm,control", &control_str)) {
+		dev_err(&pdm_dev->dev, "Missing pdm,control property\n");
+		return -EINVAL;
+	}
+
+	if (strcmp(control_str, "gpio") == 0) {
+		entry->config.control = PDM_CONFIG_LED_CONTROL_GPIO;
+
+		/* 读取 GPIO 配置 */
+		if (of_property_read_string(np, "pdm,gpio-name",
+					    &entry->config.hw.gpio.consumer)) {
+			dev_err(&pdm_dev->dev, "Missing pdm,gpio-name property\n");
+			return -EINVAL;
+		}
+
+		entry->config.hw.gpio.polarity_inversed =
+			of_property_read_bool(np, "pdm,gpio-active-low");
+
+	} else if (strcmp(control_str, "pwm") == 0) {
+		entry->config.control = PDM_CONFIG_LED_CONTROL_PWM;
+
+		/* 读取 PWM 配置 */
+		if (of_property_read_string(np, "pdm,pwm-name",
+					    &entry->config.hw.pwm.consumer)) {
+			dev_err(&pdm_dev->dev, "Missing pdm,pwm-name property\n");
+			return -EINVAL;
+		}
+
+		if (!of_property_read_u32(np, "pdm,pwm-period-ns", &value))
+			entry->config.hw.pwm.period_ns = value;
+		else
+			entry->config.hw.pwm.period_ns = 1000000; /* 1kHz 默认 */
+
+		entry->config.hw.pwm.polarity_inversed =
+			of_property_read_bool(np, "pdm,pwm-inverted");
+
+	} else {
+		dev_err(&pdm_dev->dev, "Unknown control type: %s\n", control_str);
+		return -EINVAL;
+	}
+
+	/* 读取亮度配置 */
+	if (!of_property_read_u32(np, "pdm,max-brightness", &value))
+		entry->config.max_brightness = value;
+	else
+		entry->config.max_brightness = 255;
+
+	if (!of_property_read_u32(np, "pdm,default-brightness", &value))
+		entry->config.default_brightness = value;
+	else
+		entry->config.default_brightness = 0;
+
+	/* 初始化 LED 上下文 */
+	ret = pdm_led_init_from_entry(pdm_dev->id, entry, &handle);
+	if (ret != OSAL_SUCCESS) {
+		dev_err(&pdm_dev->dev, "Failed to initialize LED: %d\n", ret);
+		return -EIO;
+	}
+
+	/* 创建字符设备 */
+	{
+		pdm_device_t temp_device = {
+			.config = {
+				.type = PDM_DEVICE_TYPE_LED,
+				.index = pdm_dev->id,
+				.entry = entry
+			}
+		};
+		ret = pdm_led_chrdev_register_device(&temp_device);
+		if (ret) {
+			dev_err(&pdm_dev->dev, "Failed to register chardev: %d\n", ret);
+			pdm_led_remove_index(pdm_dev->id);
+			return ret;
+		}
+	}
+
+	/* 保存上下文 */
+	pdm_device_set_drvdata(pdm_dev, handle);
+
+	dev_info(&pdm_dev->dev, "LED device probed successfully (control=%s, id=%d)\n",
+		 control_str, pdm_dev->id);
+
 	return 0;
 }
 
@@ -473,10 +577,20 @@ static int pdm_led_probe_new(struct pdm_device *pdm_dev)
  */
 static void pdm_led_remove_new(struct pdm_device *pdm_dev)
 {
-	LOG_INFO("PDM_LED", "New bus remove called for device %s",
-		 dev_name(&pdm_dev->dev));
+	pdm_device_t temp_device = {
+		.config = {
+			.type = PDM_DEVICE_TYPE_LED,
+			.index = pdm_dev->id,
+		}
+	};
 
-	/* TODO: 调用旧的 pdm_led_remove 逻辑 */
+	dev_info(&pdm_dev->dev, "Removing LED device (id=%d)\n", pdm_dev->id);
+
+	/* 注销字符设备 */
+	pdm_led_chrdev_unregister_device(&temp_device);
+
+	/* 清理 LED 上下文 */
+	pdm_led_remove_index(pdm_dev->id);
 }
 
 /**
