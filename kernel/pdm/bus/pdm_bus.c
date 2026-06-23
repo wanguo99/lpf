@@ -93,11 +93,17 @@ static int pdm_bus_device_probe(struct device *dev)
 
 	LOG_DEBUG("PDM-BUS", "Probing device [%s] with driver [%s]",
 		  dev_name(dev), pdm_drv->driver.name);
-	pdm_dev->type = pdm_drv->device_type;
-	pdm_dev->capabilities |= pdm_drv->capabilities;
+	ret = pdm_device_bind(pdm_dev, pdm_drv->device_type,
+			      pdm_drv->capabilities);
+	if (ret) {
+		pdm_device_record_error(pdm_dev, ret);
+		return ret;
+	}
+
 	ret = pdm_drv->probe(pdm_dev);
 	if (ret) {
 		pdm_device_record_error(pdm_dev, ret);
+		pdm_device_unbind(pdm_dev);
 		return ret;
 	}
 
@@ -120,9 +126,7 @@ static void pdm_bus_device_remove(struct device *dev)
 	LOG_DEBUG("PDM-BUS", "Removing device [%s]", dev_name(dev));
 	if (pdm_drv->remove)
 		pdm_drv->remove(pdm_dev);
-	pdm_dev->type = PDM_CTL_DEVICE_TYPE_INVALID;
-	pdm_dev->capabilities = PDM_CTL_DEVICE_CAP_NONE;
-	pdm_device_set_state(pdm_dev, PDM_CTL_DEVICE_STATE_REGISTERED);
+	pdm_device_unbind(pdm_dev);
 }
 
 static int pdm_bus_match_compatible(const struct pdm_device *pdm_dev,

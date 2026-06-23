@@ -41,22 +41,23 @@ static void pdm_bus_controller_unregister_devices(struct pdm_bus_controller *ctr
 	}
 }
 
-static int pdm_bus_controller_child_id(struct device_node *child,
-				       int fallback_id)
+static int pdm_bus_controller_child_id(struct device_node *child)
 {
 	u32 reg;
 
+	if (!of_property_read_u32(child, "pdm,id", &reg))
+		return (int)reg;
 	if (of_property_read_u32(child, "reg", &reg) == 0)
 		return (int)reg;
 
-	return fallback_id;
+	return -1;
 }
 
 static int pdm_bus_controller_probe(struct platform_device *pdev)
 {
 	struct pdm_bus_controller *ctrl;
 	struct device_node *child;
-	int fallback_id = 0;
+	int auto_name_id = 0;
 	int ret = 0;
 
 	LOG_INFO("PDM-BUS-CTRL", "Probing PDM bus controller");
@@ -97,14 +98,18 @@ static int pdm_bus_controller_probe(struct platform_device *pdev)
 			goto err_cleanup;
 		}
 
-		device_id = pdm_bus_controller_child_id(child, fallback_id++);
+		device_id = pdm_bus_controller_child_id(child);
 		pdm_dev->dev.parent = &pdev->dev;
 		pdm_dev->dev.of_node = of_node_get(child);
 		pdm_dev->compatible = compatible;
-		pdm_dev->id = device_id;
+		pdm_device_set_requested_id(pdm_dev, device_id);
 
-		snprintf(name, sizeof(name), "%s.%s.%d",
-			 dev_name(&pdev->dev), child->name, device_id);
+		if (device_id >= 0)
+			snprintf(name, sizeof(name), "%s.%s.%d",
+				 dev_name(&pdev->dev), child->name, device_id);
+		else
+			snprintf(name, sizeof(name), "%s.%s.auto%d",
+				 dev_name(&pdev->dev), child->name, auto_name_id++);
 
 		ret = pdm_device_register(pdm_dev, name);
 		if (ret) {

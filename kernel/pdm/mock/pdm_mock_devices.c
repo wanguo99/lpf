@@ -100,14 +100,13 @@ static int pdm_mock_register_one(struct pdm_mock_device_entry *entry,
 
 	pdm_dev->dev.parent = &entry->parent;
 	pdm_dev->compatible = desc->compatible;
-	pdm_dev->id = desc->id;
+	pdm_device_set_requested_id(pdm_dev, desc->id);
 
 	snprintf(name, sizeof(name), "%s.%s.%d", dev_name(&entry->parent),
 		 desc->name, desc->id);
 
 	ret = pdm_device_register(pdm_dev, name);
 	if (ret) {
-		put_device(&pdm_dev->dev);
 		goto err_unregister_parent;
 	}
 

@@ -22,7 +22,6 @@
 #include "osal.h"
 
 static atomic_t pdm_mcu_device_count = ATOMIC_INIT(0);
-static atomic_t pdm_mcu_native_auto_id = ATOMIC_INIT(0);
 
 #define PDM_MCU_NATIVE_DEVICE_NAME_LEN 96
 
@@ -51,11 +50,9 @@ static int pdm_mcu_native_device_id(struct device_node *np)
 			return (int)value;
 		if (!of_property_read_u32(np, "pdm,index", &value))
 			return (int)value;
-		if (!of_property_read_u32(np, "reg", &value))
-			return (int)value;
 	}
 
-	return atomic_inc_return(&pdm_mcu_native_auto_id) - 1;
+	return -1;
 }
 
 int pdm_mcu_register_native_device(struct device *parent,
@@ -88,11 +85,15 @@ int pdm_mcu_register_native_device(struct device *parent,
 	pdm_dev->dev.of_node = of_node_get(np);
 	pdm_dev->compatible = compatible;
 	pdm_dev->config_data = native;
-	pdm_dev->id = id;
+	pdm_device_set_requested_id(pdm_dev, id);
 	native->type = type;
 	native->pdm_dev = pdm_dev;
 
-	snprintf(name, sizeof(name), "%s.pdm-mcu.%d", dev_name(parent), id);
+	if (id >= 0)
+		snprintf(name, sizeof(name), "%s.pdm-mcu.%d",
+			 dev_name(parent), id);
+	else
+		snprintf(name, sizeof(name), "%s.pdm-mcu", dev_name(parent));
 	ret = pdm_device_register(pdm_dev, name);
 	if (ret) {
 		native->pdm_dev = NULL;

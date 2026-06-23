@@ -5,6 +5,10 @@ Native MCU transports can also create PDM devices from children of UART, I2C,
 and SPI controller nodes. Each PDM device appears on `/sys/bus/pdm` and, after
 driver binding, one userspace node under `/dev/pdm/`.
 
+Userspace instance numbers are owned by PDM Core. Set `pdm,id` when a stable
+`/dev/pdm/<type>N` node is required; otherwise PDM allocates the next free
+number for the matched peripheral type.
+
 Supported MCU compatibles:
 
 - `pdm,mcu` or `vendor,pdm-mcu`: generic bring-up device; status/reset only.
@@ -88,9 +92,9 @@ node below the UART controller:
 ```
 
 I2C and SPI MCU transports are described below their native Linux controller
-nodes. `pdm,id` selects the `/dev/pdm/mcuN` index; if it is omitted, `reg` is
-used as a fallback. For I2C this may produce indices such as `mcu16` for address
-`0x10`, so products should set `pdm,id` when stable numbering matters.
+nodes. `pdm,id` selects the `/dev/pdm/mcuN` index. If it is omitted, PDM Core
+allocates the next free MCU index; the native `reg` property remains the I2C
+address or SPI chip select and is not used as a userspace instance number.
 
 ```dts
 &i2c1 {

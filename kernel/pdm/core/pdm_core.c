@@ -8,6 +8,7 @@
 #include "pdm/core/pdm_client.h"
 #include "pdm/core/pdm_backend.h"
 #include "pdm/core/pdm_bus.h"
+#include "pdm/core/pdm_device.h"
 #include "pdm/pdm_errno.h"
 
 /**
@@ -91,6 +92,7 @@ static void __exit pdm_core_module_exit(void)
 	pdm_client_exit();
 	pdm_ctl_exit();
 	pdm_bus_exit();
+	pdm_device_ids_destroy();
 
 	LOG_INFO("PDM_CORE", "PDM Core exited");
 }

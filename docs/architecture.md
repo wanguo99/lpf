@@ -48,6 +48,12 @@ This keeps feature selection local to backend files and lets Kconfig trim I2C,
 SPI, UART, GPIO, PWM, or future implementations without changing core init
 code.
 
+The PDM bus owns instance numbering. Enumerators may request a preferred
+`pdm,id`, but the bus reserves that id only after a peripheral driver matches
+the device. Peripheral drivers then register user-visible client nodes such as
+`/dev/pdm/mcu0`; backend files provide transport or control ops and should not
+register user nodes directly.
+
 ## Userspace Access
 
 PDI should be the application-facing API. PDI opens `/dev/pdm_ctl` for discovery

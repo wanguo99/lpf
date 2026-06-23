@@ -31,6 +31,16 @@ struct pdm_ctl_match_ctx {
 static atomic_t pdm_ctl_open_count = ATOMIC_INIT(0);
 
 
+static bool pdm_ctl_device_visible(const struct pdm_device *pdm_dev)
+{
+	if (!pdm_dev || !pdm_dev->id_allocated ||
+	    pdm_dev->type == PDM_CTL_DEVICE_TYPE_INVALID)
+		return false;
+
+	return pdm_dev->state == PDM_CTL_DEVICE_STATE_BOUND ||
+	       pdm_dev->state == PDM_CTL_DEVICE_STATE_ERROR;
+}
+
 static void pdm_ctl_fill_device_info(struct device *dev,
 				     struct pdm_ctl_device_info *info)
 {
@@ -52,8 +62,11 @@ static void pdm_ctl_fill_device_info(struct device *dev,
 static int pdm_ctl_count_cb(struct device *dev, void *data)
 {
 	u32 *count = data;
+	struct pdm_device *pdm_dev = dev_to_pdm_device(dev);
 
-	(void)dev;
+	if (!pdm_ctl_device_visible(pdm_dev))
+		return 0;
+
 	(*count)++;
 	return 0;
 }
@@ -61,6 +74,10 @@ static int pdm_ctl_count_cb(struct device *dev, void *data)
 static int pdm_ctl_match_index_cb(struct device *dev, void *data)
 {
 	struct pdm_ctl_match_ctx *ctx = data;
+	struct pdm_device *pdm_dev = dev_to_pdm_device(dev);
+
+	if (!pdm_ctl_device_visible(pdm_dev))
+		return 0;
 
 	if (ctx->seen++ != ctx->match_index)
 		return 0;
@@ -73,6 +90,10 @@ static int pdm_ctl_match_index_cb(struct device *dev, void *data)
 static int pdm_ctl_match_name_cb(struct device *dev, void *data)
 {
 	struct pdm_ctl_match_ctx *ctx = data;
+	struct pdm_device *pdm_dev = dev_to_pdm_device(dev);
+
+	if (!pdm_ctl_device_visible(pdm_dev))
+		return 0;
 
 	if (strncmp(dev_name(dev), ctx->name, PDM_CTL_NAME_LEN) != 0)
 		return 0;
@@ -86,6 +107,9 @@ static int pdm_ctl_match_capability_cb(struct device *dev, void *data)
 {
 	struct pdm_ctl_match_ctx *ctx = data;
 	struct pdm_device *pdm_dev = dev_to_pdm_device(dev);
+
+	if (!pdm_ctl_device_visible(pdm_dev))
+		return 0;
 
 	if ((pdm_dev->capabilities & ctx->required_capabilities) !=
 	    ctx->required_capabilities)

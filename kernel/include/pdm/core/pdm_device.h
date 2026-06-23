@@ -23,6 +23,8 @@
  * @last_error: Last probe/runtime error exported through /dev/pdm_ctl.
  * @error_count: Number of recorded errors exported through /dev/pdm_ctl.
  * @id: Stable instance id, normally sourced from the DT reg property.
+ * @requested_id: Optional preferred instance id requested by the enumerator.
+ * @id_allocated: True once @id has been reserved for @type.
  */
 struct pdm_device {
 	struct device dev;
@@ -34,6 +36,8 @@ struct pdm_device {
 	s32 last_error;
 	u32 error_count;
 	int id;
+	int requested_id;
+	bool id_allocated;
 };
 
 #define dev_to_pdm_device(__dev) \
@@ -85,5 +89,9 @@ static inline void pdm_device_put(struct pdm_device *pdm_dev)
 struct pdm_device *pdm_device_alloc(unsigned int size);
 int pdm_device_register(struct pdm_device *pdm_dev, const char *name);
 void pdm_device_unregister(struct pdm_device *pdm_dev);
+void pdm_device_set_requested_id(struct pdm_device *pdm_dev, int id);
+int pdm_device_bind(struct pdm_device *pdm_dev, u32 type, u64 capabilities);
+void pdm_device_unbind(struct pdm_device *pdm_dev);
+void pdm_device_ids_destroy(void);
 
 #endif /* PDM_DEVICE_H */
