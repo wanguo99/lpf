@@ -237,7 +237,6 @@ function(kconfig_print_summary)
     set(important_configs
         PROJECT_NAME
         PROJECT_VERSION
-        LINUX_ONLY
         BUILD_TYPE
         ARCH_X86_64
         ARCH_ARM64

@@ -1,0 +1,18 @@
+# ============================================================================
+# Application Configuration
+# ============================================================================
+
+menu "Apps"
+
+config DEBUG_STUDY
+	bool "Build debug_study app"
+	help
+	  Build the debug_study userspace executable.
+
+config SMART_MONITOR
+	bool "Build smart_monitor app"
+	help
+	  Build the smart_monitor userspace executable for reading eMMC
+	  SMART data through the Linux MMC ioctl interface.
+
+endmenu

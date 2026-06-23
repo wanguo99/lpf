@@ -33,19 +33,6 @@ config PROJECT_VERSION
 	  Project version string.
 
 # ============================================================================
-# Build Profile
-# ============================================================================
-
-config LINUX_ONLY
-	bool "Linux-only profile"
-	default n
-	help
-	  Restrict the SDK to Linux development only.
-
-	  This profile hides non-Linux operating system options. It is
-	  intended for the current kernel-centric peripheral framework direction.
-
-# ============================================================================
 # Build System Configuration
 # ============================================================================
 
@@ -533,26 +520,7 @@ source "user/pdi/Config.in"
 
 endmenu
 
-# ============================================================================
-# Application Configuration
-# ============================================================================
-
-menu "Apps"
-
-config DEBUG_STUDY
-	bool "Build debug_study app"
-	depends on LINUX_ONLY
-	help
-	  Build the debug_study userspace executable.
-
-config SMART_MONITOR
-	bool "Build smart_monitor app"
-	depends on LINUX_ONLY
-	help
-	  Build the smart_monitor userspace executable for reading eMMC
-	  SMART data through the Linux MMC ioctl interface.
-
-endmenu
+source "apps/Config.in"
 
 # ============================================================================
 # Configuration Validation
