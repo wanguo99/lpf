@@ -9,10 +9,10 @@ Linux driver-model mechanisms underneath.
 Current kernel modules:
 
 - `osal.ko`: kernel OSAL helpers used by PDM kernel code.
-- `pdm_core.ko`: the PDM bus, device model, control node, peripheral drivers,
+- `pdm.ko`: the PDM bus, device model, control node, peripheral drivers,
   and built-in backend registry.
 
-`pdm_core.ko` registers a Linux `bus_type` named `pdm`. PDM devices appear under
+`pdm.ko` registers a Linux `bus_type` named `pdm`. PDM devices appear under
 `/sys/bus/pdm` and expose userspace instance nodes under `/dev/pdm/` when their
 bound driver creates one. `/dev/pdm_ctl` exposes synchronous discovery snapshots
 for userspace.

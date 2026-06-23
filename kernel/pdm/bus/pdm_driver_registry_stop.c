@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 
-/* Keep this object after all pdm_driver_register() users in pdm_core-y. */
+/* Keep this object after all pdm_driver_register() users in pdm-y. */
 asm(
 ".section pdm_driver_entries,\"a\"\n"
 ".balign 8\n"

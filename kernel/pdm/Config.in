@@ -1,6 +1,6 @@
 # PDM Core Configuration
 
-menuconfig PDM_CORE
+menuconfig PDM
 	tristate "PDM core device model"
 	default m
 	depends on OSAL
@@ -11,7 +11,7 @@ menuconfig PDM_CORE
 
 	  If unsure, say Y when enabling PDM peripheral services.
 
-if PDM_CORE
+if PDM
 
 config PDM_INSTANCE_DEVNODE_MODE
 	string "PDM instance device node mode"
@@ -29,7 +29,7 @@ config PDM_MOCK_DEVICES
 	bool "Synthetic PDM devices for module smoke tests"
 	default n
 	help
-	  Create in-kernel mock PDM MCU and LED devices when pdm_core loads.
+	  Create in-kernel mock PDM MCU and LED devices when pdm.ko loads.
 	  This is intended for x86 smoke tests that do not have Device Tree
 	  PDM child nodes. Product builds should leave this disabled.
 
@@ -57,4 +57,4 @@ config PDM_MCU_SPI
 	  controller node. If the target kernel lacks CONFIG_SPI, this backend
 	  compiles to a no-op.
 
-endif # PDM_CORE
+endif # PDM

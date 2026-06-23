@@ -16,6 +16,7 @@
 #include <net/net_namespace.h>
 #include <net/sock.h>
 
+#include "pdm/compat/pdm_compat_features.h"
 #include "pdm/core/pdm_backend.h"
 #include "pdm_mcu_internal.h"
 #include "osal.h"
@@ -139,8 +140,13 @@ static int pdm_mcu_can_setup(struct pdm_mcu_instance *inst)
 
 	addr.can_family = AF_CAN;
 	addr.can_ifindex = netdev->ifindex;
+#if PDM_KERNEL_HAS_SOCKADDR_UNSIZED
+	ret = kernel_bind(inst->transport.can.sock,
+			  (struct sockaddr_unsized *)&addr, sizeof(addr));
+#else
 	ret = kernel_bind(inst->transport.can.sock, (struct sockaddr *)&addr,
 			  sizeof(addr));
+#endif
 	if (ret)
 		goto err_release_sock;
 

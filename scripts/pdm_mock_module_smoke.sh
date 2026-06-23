@@ -5,7 +5,7 @@ set -eu
 
 module_dir=${PDM_MODULE_DIR:-_build/modules}
 config_file=${PDM_CONFIG_FILE:-include/config/auto.conf}
-required_modules="osal pdm_core"
+required_modules="osal pdm"
 loaded_modules=
 
 log()

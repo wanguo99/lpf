@@ -6,6 +6,7 @@
 
 #include <linux/atomic.h>
 #include <linux/kernel.h>
+#include <linux/math64.h>
 #include <linux/module.h>
 #include <linux/of.h>
 #include <linux/slab.h>
@@ -267,7 +268,7 @@ static long pdm_mcu_get_status(struct pdm_mcu_instance *inst, unsigned long arg)
 	elapsed_ns = ktime_to_ns(ktime_sub(ktime_get(), inst->start_time));
 	status.online = inst->online ? 1U : 0U;
 	status.state = inst->state;
-	status.uptime_sec = (u32)(elapsed_ns / NSEC_PER_SEC);
+	status.uptime_sec = (u32)div_u64(elapsed_ns, NSEC_PER_SEC);
 	status.error_code = inst->last_error < 0 ? (u32)(-inst->last_error) : 0U;
 	status.temperature_milli_celsius = 0;
 	status.voltage_mv = 0;

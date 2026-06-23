@@ -32,7 +32,7 @@ user/
 ## Responsibilities
 
 - `kernel/osal` wraps kernel APIs and builds `osal.ko`.
-- `kernel/pdm` builds `pdm_core.ko` and owns all in-kernel PDM device model,
+- `kernel/pdm` builds `pdm.ko` and owns all in-kernel PDM device model,
   driver, backend, control, and instance-node behavior.
 - `kernel/pdm/peripheral` owns reusable kernel peripheral drivers and their
   optional backend files.
