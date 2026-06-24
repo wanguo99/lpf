@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /**
- * @file pdm_led_driver.c
+ * @file pdm_led.c
  * @brief PDM LED bus driver with memory, GPIO and PWM backends
  */
 

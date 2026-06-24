@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /**
- * @file pdm_mcu_driver.c
+ * @file pdm_mcu.c
  * @brief PDM MCU bus driver with registered transport backends
  */
 
