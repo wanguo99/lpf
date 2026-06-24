@@ -23,10 +23,6 @@
 #define PDM_MCU_MAX_PREFIX_BYTES 4U
 #define PDM_MCU_TRANSPORT_ID_BYTES 4U
 
-#define PDM_MCU_TRANSPORT_F_BYTE_STREAM  (1U << 0)
-#define PDM_MCU_TRANSPORT_F_REGISTER_BUS (1U << 1)
-#define PDM_MCU_TRANSPORT_F_FRAME_ID_U32 (1U << 2)
-
 enum pdm_mcu_backend_type {
 	PDM_MCU_BACKEND_UART,
 	PDM_MCU_BACKEND_CAN,
@@ -41,19 +37,30 @@ struct socket;
 struct spi_device;
 struct pdm_mcu_instance;
 
+enum pdm_mcu_xfer_type {
+	PDM_MCU_XFER_CMD,
+	PDM_MCU_XFER_DATA_READ,
+	PDM_MCU_XFER_DATA_WRITE,
+};
+
+struct pdm_mcu_xfer {
+	enum pdm_mcu_xfer_type type;
+	u32 id;
+	const u8 *tx;
+	u32 tx_len;
+	u8 *rx;
+	u32 rx_len;
+	u32 actual_rx_len;
+};
+
 struct pdm_mcu_transport_ops {
-	enum pdm_mcu_backend_type type;
 	const char *name;
 	u64 capability;
 	u32 max_tx_size;
 	u32 max_rx_size;
-	u32 flags;
 	int (*setup)(struct pdm_mcu_instance *inst);
 	void (*cleanup)(struct pdm_mcu_instance *inst);
-	int (*write)(struct pdm_mcu_instance *inst, const u8 *buf, u32 len);
-	int (*read)(struct pdm_mcu_instance *inst, u8 *buf, u32 len);
-	int (*xfer)(struct pdm_mcu_instance *inst, const u8 *tx, u32 tx_len,
-		    u8 *rx, u32 rx_len);
+	int (*xfer)(struct pdm_mcu_instance *inst, struct pdm_mcu_xfer *xfer);
 };
 
 struct pdm_mcu_native_device {

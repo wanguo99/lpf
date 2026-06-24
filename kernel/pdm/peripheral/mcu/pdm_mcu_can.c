@@ -31,23 +31,22 @@ MODULE_DEVICE_TABLE(of, pdm_mcu_can_of_match);
 
 static int pdm_mcu_can_setup(struct pdm_mcu_instance *inst);
 static void pdm_mcu_can_cleanup(struct pdm_mcu_instance *inst);
-static int pdm_mcu_can_write(struct pdm_mcu_instance *inst, const u8 *buf,
-			     u32 len);
-static int pdm_mcu_can_read(struct pdm_mcu_instance *inst, u8 *buf, u32 len);
-static int pdm_mcu_can_xfer(struct pdm_mcu_instance *inst, const u8 *tx,
-			    u32 tx_len, u8 *rx, u32 rx_len);
+static int pdm_mcu_can_xfer(struct pdm_mcu_instance *inst,
+			    struct pdm_mcu_xfer *xfer);
+static int pdm_mcu_can_cmd_xfer(struct pdm_mcu_instance *inst, u32 command,
+				const u8 *tx, u32 tx_len, u8 *rx, u32 *rx_len);
+static int pdm_mcu_can_data_read(struct pdm_mcu_instance *inst,
+				 u32 *address, u8 *buf, u32 *len);
+static int pdm_mcu_can_data_write(struct pdm_mcu_instance *inst, u32 address,
+				  const u8 *buf, u32 len);
 
 static const struct pdm_mcu_transport_ops pdm_mcu_can_ops = {
-	.type = PDM_MCU_BACKEND_CAN,
 	.name = "can",
 	.capability = PDM_CTL_DEVICE_CAP_TRANSPORT_CAN,
-	.max_tx_size = PDM_MCU_TRANSPORT_ID_BYTES + CAN_MAX_DLEN,
-	.max_rx_size = PDM_MCU_TRANSPORT_ID_BYTES + CAN_MAX_DLEN,
-	.flags = PDM_MCU_TRANSPORT_F_FRAME_ID_U32,
+	.max_tx_size = CAN_MAX_DLEN,
+	.max_rx_size = CAN_MAX_DLEN,
 	.setup = pdm_mcu_can_setup,
 	.cleanup = pdm_mcu_can_cleanup,
-	.write = pdm_mcu_can_write,
-	.read = pdm_mcu_can_read,
 	.xfer = pdm_mcu_can_xfer,
 };
 
@@ -195,68 +194,60 @@ static void pdm_mcu_can_cleanup(struct pdm_mcu_instance *inst)
 	inst->transport.can.sock = NULL;
 }
 
-static u32 pdm_mcu_can_decode_be32(const u8 *buf)
+static int pdm_mcu_can_cmd_xfer(struct pdm_mcu_instance *inst, u32 command,
+				const u8 *tx, u32 tx_len, u8 *rx, u32 *rx_len)
 {
-	return ((u32)buf[0] << 24) | ((u32)buf[1] << 16) |
-	       ((u32)buf[2] << 8) | (u32)buf[3];
-}
-
-static void pdm_mcu_can_encode_be32(u8 *buf, u32 value)
-{
-	buf[0] = (u8)(value >> 24);
-	buf[1] = (u8)(value >> 16);
-	buf[2] = (u8)(value >> 8);
-	buf[3] = (u8)value;
-}
-
-static int pdm_mcu_can_write(struct pdm_mcu_instance *inst,
-				    const u8 *buf, u32 len)
-{
-	u32 id;
-
-	if (len < PDM_MCU_TRANSPORT_ID_BYTES)
-		return -EINVAL;
-	if (len - PDM_MCU_TRANSPORT_ID_BYTES > CAN_MAX_DLEN)
-		return -EMSGSIZE;
-
-	id = pdm_mcu_can_decode_be32(buf);
-	return pdm_mcu_can_send_frame(inst, id,
-		buf + PDM_MCU_TRANSPORT_ID_BYTES,
-		len - PDM_MCU_TRANSPORT_ID_BYTES) ?:
-		(int)len;
-}
-
-static int pdm_mcu_can_read(struct pdm_mcu_instance *inst, u8 *buf, u32 len)
-{
-	u32 id;
-	u32 payload_len;
 	int ret;
 
-	if (len < PDM_MCU_TRANSPORT_ID_BYTES)
-		return -EINVAL;
-
-	payload_len = min_t(u32, len - PDM_MCU_TRANSPORT_ID_BYTES, CAN_MAX_DLEN);
-	ret = pdm_mcu_can_recv_frame(inst, &id,
-		buf + PDM_MCU_TRANSPORT_ID_BYTES, &payload_len);
+	ret = pdm_mcu_can_send_frame(inst, command, tx, tx_len);
 	if (ret)
 		return ret;
+	if (!rx_len || !*rx_len)
+		return 0;
 
-	pdm_mcu_can_encode_be32(buf, id);
-	return payload_len + PDM_MCU_TRANSPORT_ID_BYTES;
+	return pdm_mcu_can_recv_frame(inst, &command, rx, rx_len);
+}
+
+static int pdm_mcu_can_data_read(struct pdm_mcu_instance *inst,
+				 u32 *address, u8 *buf, u32 *len)
+{
+	return pdm_mcu_can_recv_frame(inst, address, buf, len);
+}
+
+static int pdm_mcu_can_data_write(struct pdm_mcu_instance *inst, u32 address,
+				  const u8 *buf, u32 len)
+{
+	return pdm_mcu_can_send_frame(inst, address, buf, len);
 }
 
 static int pdm_mcu_can_xfer(struct pdm_mcu_instance *inst,
-			    const u8 *tx, u32 tx_len, u8 *rx, u32 rx_len)
+			    struct pdm_mcu_xfer *xfer)
 {
+	u32 len;
 	int ret;
 
-	ret = pdm_mcu_can_write(inst, tx, tx_len);
-	if (ret < 0)
-		return ret;
-	if (!rx_len)
+	switch (xfer->type) {
+	case PDM_MCU_XFER_CMD:
+		len = xfer->rx_len;
+		ret = pdm_mcu_can_cmd_xfer(inst, xfer->id, xfer->tx,
+					   xfer->tx_len, xfer->rx, &len);
+		if (ret)
+			return ret;
+		xfer->actual_rx_len = len;
 		return 0;
-
-	return pdm_mcu_can_read(inst, rx, rx_len);
+	case PDM_MCU_XFER_DATA_READ:
+		len = xfer->rx_len;
+		ret = pdm_mcu_can_data_read(inst, &xfer->id, xfer->rx, &len);
+		if (ret)
+			return ret;
+		xfer->actual_rx_len = len;
+		return 0;
+	case PDM_MCU_XFER_DATA_WRITE:
+		return pdm_mcu_can_data_write(inst, xfer->id, xfer->tx,
+					      xfer->tx_len);
+	default:
+		return -EINVAL;
+	}
 }
 
 pdm_backend_register(mcu_can, PDM_CTL_DEVICE_TYPE_MCU,
