@@ -25,9 +25,7 @@
 #include "osal.h"
 #include <stdio.h>
 #include <stdarg.h>
-#include <time.h>
 #include <string.h>
-#include <sys/time.h>
 #include <errno.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -102,12 +100,6 @@ static uint64_t g_dropped_log_count = 0; /* 使用原子操作访问 */
  */
 static const char *log_level_names[] = { "DEBUG", "INFO", "WARN", "ERROR",
 										 "FATAL" };
-
-/*
- * 模块名称
- */
-static const char *log_module_names[] = { "OSAL", "PDM_HW", "PDM_CONFIG", "PDI",
-										  "ACONFIG", "APP", "TEST" };
 
 /*
  * 日志级别颜色（终端）
@@ -429,23 +421,6 @@ void osal_log_set_max_files(uint32_t max_files)
 }
 
 /**
- * @brief 获取当前时间字符串
- */
-static void _get_timestamp(char *buffer, osal_size_t size)
-{
-	struct timeval tv;
-	struct tm tm_info;
-
-	gettimeofday(&tv, NULL);
-	localtime_r(&tv.tv_sec, &tm_info); /* 线程安全版本 */
-
-	snprintf(buffer, size, "%04d-%02d-%02d %02d:%02d:%02d.%03d",
-			 tm_info.tm_year + 1900, tm_info.tm_mon + 1, tm_info.tm_mday,
-			 tm_info.tm_hour, tm_info.tm_min, tm_info.tm_sec,
-			 (int)(tv.tv_usec / OSAL_USEC_PER_MSEC));
-}
-
-/**
  * @brief 轮转日志文件
  *
  * 注意：调用此函数前必须持有 g_log_mutex
@@ -639,7 +614,6 @@ static void _log_internal_ex(log_level_t level, const char *module,
 							 const char *file, const char *func, int32_t line,
 							 const char *format, va_list args)
 {
-	char timestamp[OSAL_LOG_TIMESTAMP_SIZE];
 	char message[OSAL_LOG_MESSAGE_SIZE];
 	char full_log[OSAL_LOG_MESSAGE_SIZE + 256];
 	const char *filename = _extract_filename(file);
@@ -648,10 +622,8 @@ static void _log_internal_ex(log_level_t level, const char *module,
 	if (!_log_is_ready())
 		return;
 
-	if (module == NULL)
-		module = "UNKNOWN";
-	if (func == NULL)
-		func = "unknown";
+	(void)module;
+	(void)func;
 	if (format == NULL)
 		return;
 
@@ -661,9 +633,6 @@ static void _log_internal_ex(log_level_t level, const char *module,
 	/* 第一级过滤：检查日志级别（快速返回） */
 	if (level < current_level)
 		return;
-
-	/* 获取时间戳 */
-	_get_timestamp(timestamp, OSAL_sizeof(timestamp));
 
 	/* 延迟格式化：只有通过级别检查才进行格式化 */
 	vsnprintf(message, OSAL_sizeof(message), format, args);
@@ -679,18 +648,16 @@ static void _log_internal_ex(log_level_t level, const char *module,
 	_check_and_rotate_log();
 
 	/* 构造完整日志 */
-	snprintf(full_log, OSAL_sizeof(full_log), "[%s] [%s] [%s] [%s:%s:%d] %s",
-			 timestamp, log_level_names[level], module, filename, func, line,
-			 message);
+	snprintf(full_log, OSAL_sizeof(full_log), "[%s] %s:%d - %s",
+			 log_level_names[level], filename, line, message);
 
 	/* 输出到终端（带颜色） - 使用 write 系统调用 */
 	{
 		char console_buf[OSAL_LOG_MESSAGE_SIZE + 512];
 		int console_len = snprintf(console_buf, OSAL_sizeof(console_buf),
-								   "%s[%s] [%s] [%s] [%s:%s:%d]%s %s\n",
-								   log_level_colors[level], timestamp,
-								   log_level_names[level], module, filename,
-								   func, line, color_reset, message);
+							   "%s[%s] %s:%d%s - %s\n",
+							   log_level_colors[level], log_level_names[level],
+							   filename, line, color_reset, message);
 		if (console_len > 0) {
 			osal_ssize_t ret =
 				write(STDOUT_FILENO, console_buf, (osal_size_t)console_len);
@@ -721,13 +688,13 @@ static void _log_internal_ex(log_level_t level, const char *module,
 static void _log_internal(log_level_t level, const char *module,
 						  const char *format, va_list args)
 {
-	char timestamp[OSAL_LOG_TIMESTAMP_SIZE];
 	char message[OSAL_LOG_MESSAGE_SIZE];
 	log_level_t current_level;
 
 	if (!_log_is_ready())
 		return;
 
+	(void)module;
 	if (format == NULL)
 		return;
 
@@ -737,9 +704,6 @@ static void _log_internal(log_level_t level, const char *module,
 	/* 检查日志级别 */
 	if (level < current_level)
 		return;
-
-	/* 获取时间戳 */
-	_get_timestamp(timestamp, OSAL_sizeof(timestamp));
 
 	/* 格式化消息 */
 	vsnprintf(message, OSAL_sizeof(message), format, args);
@@ -751,26 +715,12 @@ static void _log_internal(log_level_t level, const char *module,
 	_check_and_rotate_log();
 
 	/* 输出到终端（带颜色） - 使用 write 系统调用 */
-	if (NULL != module) {
+	{
 		char console_buf[OSAL_LOG_MESSAGE_SIZE + 256];
 		int console_len = snprintf(console_buf, OSAL_sizeof(console_buf),
-								   "%s[%s] [%s] [%s]%s %s\n",
-								   log_level_colors[level], timestamp,
-								   log_level_names[level], module, color_reset,
-								   message);
-		if (console_len > 0) {
-			osal_ssize_t ret =
-				write(STDOUT_FILENO, console_buf, (osal_size_t)console_len);
-			if (ret < 0) {
-				/* Write failed, but we can't log it (would cause recursion) */
-			}
-		}
-	} else {
-		char console_buf[OSAL_LOG_MESSAGE_SIZE + 256];
-		int console_len =
-			snprintf(console_buf, OSAL_sizeof(console_buf),
-					 "%s[%s] [%s]%s %s\n", log_level_colors[level], timestamp,
-					 log_level_names[level], color_reset, message);
+							   "%s[%s]%s - %s\n",
+							   log_level_colors[level], log_level_names[level],
+							   color_reset, message);
 		if (console_len > 0) {
 			osal_ssize_t ret =
 				write(STDOUT_FILENO, console_buf, (osal_size_t)console_len);
@@ -782,13 +732,8 @@ static void _log_internal(log_level_t level, const char *module,
 
 	/* 输出到文件（无颜色） */
 	if (NULL != g_log_file) {
-		if (NULL != module) {
-			fprintf(g_log_file, "[%s] [%s] [%s] %s\n", timestamp,
-					log_level_names[level], module, message);
-		} else {
-			fprintf(g_log_file, "[%s] [%s] %s\n", timestamp,
-					log_level_names[level], message);
-		}
+		fprintf(g_log_file, "[%s] - %s\n", log_level_names[level],
+				message);
 		fflush(g_log_file);
 	}
 
@@ -879,7 +824,6 @@ void osal_log_structured(int32_t level, log_module_t module,
 						 const char *message, const log_kv_pair_t *kv_pairs,
 						 uint32_t kv_count)
 {
-	char timestamp[OSAL_LOG_TIMESTAMP_SIZE];
 	char full_message[OSAL_LOG_MESSAGE_SIZE];
 	char kv_buffer[512];
 	char remote_log[OSAL_LOG_MESSAGE_SIZE + 256];
@@ -942,9 +886,6 @@ void osal_log_structured(int32_t level, log_module_t module,
 	if (!_should_log_message(full_message))
 		return;
 
-	/* 获取时间戳 */
-	_get_timestamp(timestamp, OSAL_sizeof(timestamp));
-
 	/* 加锁 */
 	osal_mutex_lock(&g_log_mutex);
 
@@ -955,10 +896,9 @@ void osal_log_structured(int32_t level, log_module_t module,
 	{
 		char console_buf[OSAL_LOG_MESSAGE_SIZE + 256];
 		int console_len = snprintf(
-			console_buf, OSAL_sizeof(console_buf), "%s[%s] [%s] [%s]%s %s\n",
-			log_level_colors[level], timestamp, log_level_names[level],
-			module < LOG_MODULE_MAX ? log_module_names[module] : "UNKNOWN",
-			color_reset, full_message);
+			console_buf, OSAL_sizeof(console_buf), "%s[%s]%s - %s\n",
+			log_level_colors[level], log_level_names[level], color_reset,
+			full_message);
 		if (console_len > 0) {
 			osal_ssize_t ret =
 				write(STDOUT_FILENO, console_buf, (osal_size_t)console_len);
@@ -970,9 +910,7 @@ void osal_log_structured(int32_t level, log_module_t module,
 
 	/* 输出到文件（无颜色） */
 	if (NULL != g_log_file) {
-		fprintf(g_log_file, "[%s] [%s] [%s] %s\n", timestamp,
-				log_level_names[level],
-				module < LOG_MODULE_MAX ? log_module_names[module] : "UNKNOWN",
+		fprintf(g_log_file, "[%s] - %s\n", log_level_names[level],
 				full_message);
 		fflush(g_log_file);
 	}
@@ -981,9 +919,7 @@ void osal_log_structured(int32_t level, log_module_t module,
 	osal_mutex_unlock(&g_log_mutex);
 
 	/* 发送到远程服务器（不持有锁） */
-	snprintf(remote_log, OSAL_sizeof(remote_log), "[%s] [%s] [%s] %s",
-			 timestamp, log_level_names[level],
-			 module < LOG_MODULE_MAX ? log_module_names[module] : "UNKNOWN",
-			 full_message);
+	snprintf(remote_log, OSAL_sizeof(remote_log), "[%s] - %s",
+			 log_level_names[level], full_message);
 	_send_remote_log(remote_log);
 }

@@ -137,6 +137,8 @@ void osal_log(int32_t level, const char *module, const char *format, ...)
 	va_list args;
 	char message[OSAL_LOG_MESSAGE_SIZE];
 
+	(void)module;
+
 	if (level < g_log_level) {
 		atomic64_inc(&g_log_dropped);
 		return;
@@ -147,8 +149,8 @@ void osal_log(int32_t level, const char *module, const char *format, ...)
 	va_end(args);
 
 	atomic64_inc(&g_log_total);
-	printk("%s%s:%s: %s\n", osal_log_level_prefix(level),
-	       module ? module : "APP", osal_log_level_name(level), message);
+	printk("%s[%s] - %s\n", osal_log_level_prefix(level),
+	       osal_log_level_name(level), message);
 }
 EXPORT_SYMBOL_GPL(osal_log);
 
@@ -197,6 +199,9 @@ void osal_log_emit(int32_t level, const char *module, const char *file,
 	char message[OSAL_LOG_MESSAGE_SIZE];
 	const char *filename = osal_log_basename(file);
 
+	(void)module;
+	(void)func;
+
 	if (level < g_log_level) {
 		atomic64_inc(&g_log_dropped);
 		return;
@@ -207,9 +212,7 @@ void osal_log_emit(int32_t level, const char *module, const char *file,
 	va_end(args);
 
 	atomic64_inc(&g_log_total);
-	printk("%s%s:%s:%s:%d:%s: %s\n",
-	       osal_log_level_prefix(level), module ? module : "APP",
-	       osal_log_level_name(level), filename, line,
-	       func ? func : "", message);
+	printk("%s[%s] %s:%d - %s\n", osal_log_level_prefix(level),
+	       osal_log_level_name(level), filename, line, message);
 }
 EXPORT_SYMBOL_GPL(osal_log_emit);
