@@ -24,7 +24,8 @@
 
 static atomic_t pdm_mcu_device_count = ATOMIC_INIT(0);
 
-static int pdm_mcu_require_online_locked(struct pdm_mcu_instance *inst);
+static int pdm_mcu_claim_device(struct pdm_mcu_instance *inst);
+static void pdm_mcu_release_device(struct pdm_mcu_instance *inst);
 static bool pdm_mcu_match(const struct pdm_device *pdm_dev);
 static int pdm_mcu_probe(struct pdm_device *pdm_dev);
 static void pdm_mcu_remove(struct pdm_device *pdm_dev);
@@ -140,12 +141,11 @@ static long pdm_mcu_get_version(struct pdm_mcu_instance *inst, unsigned long arg
 	if (copy_from_user(&version, (void __user *)arg, sizeof(version)))
 		return -EFAULT;
 
-	mutex_lock(&inst->lock);
-	ret = pdm_mcu_require_online_locked(inst);
+	ret = pdm_mcu_claim_device(inst);
 	if (!ret)
 		ret = pdm_mcu_protocol_get_version(inst, &version);
 	ret = pdm_mcu_record_result(inst, ret);
-	mutex_unlock(&inst->lock);
+	pdm_mcu_release_device(inst);
 	if (ret)
 		return ret;
 
@@ -162,12 +162,11 @@ static long pdm_mcu_get_status(struct pdm_mcu_instance *inst, unsigned long arg)
 	if (copy_from_user(&status, (void __user *)arg, sizeof(status)))
 		return -EFAULT;
 
-	mutex_lock(&inst->lock);
-	ret = pdm_mcu_require_online_locked(inst);
+	ret = pdm_mcu_claim_device(inst);
 	if (!ret)
 		ret = pdm_mcu_protocol_get_status(inst, &status);
 	ret = pdm_mcu_record_result(inst, ret);
-	mutex_unlock(&inst->lock);
+	pdm_mcu_release_device(inst);
 	if (ret)
 		return ret;
 
@@ -176,14 +175,21 @@ static long pdm_mcu_get_status(struct pdm_mcu_instance *inst, unsigned long arg)
 	return 0;
 }
 
-static int pdm_mcu_require_online_locked(struct pdm_mcu_instance *inst)
+static int pdm_mcu_claim_device(struct pdm_mcu_instance *inst)
 {
+	mutex_lock(&inst->lock);
+
 	if (!inst->online)
 		return -ENODEV;
 	if (!inst->ops)
 		return -EOPNOTSUPP;
 
 	return 0;
+}
+
+static void pdm_mcu_release_device(struct pdm_mcu_instance *inst)
+{
+	mutex_unlock(&inst->lock);
 }
 
 static long pdm_mcu_reset(struct pdm_mcu_instance *inst, unsigned long arg)
@@ -194,12 +200,11 @@ static long pdm_mcu_reset(struct pdm_mcu_instance *inst, unsigned long arg)
 	if (copy_from_user(&index, (void __user *)arg, sizeof(index)))
 		return -EFAULT;
 
-	mutex_lock(&inst->lock);
-	ret = pdm_mcu_require_online_locked(inst);
+	ret = pdm_mcu_claim_device(inst);
 	if (!ret)
 		ret = pdm_mcu_protocol_reset(inst, index);
 	ret = pdm_mcu_record_result(inst, ret);
-	mutex_unlock(&inst->lock);
+	pdm_mcu_release_device(inst);
 	return ret;
 }
 
@@ -211,12 +216,11 @@ static long pdm_mcu_command_ioctl(struct pdm_mcu_instance *inst, unsigned long a
 	if (copy_from_user(&command, (void __user *)arg, sizeof(command)))
 		return -EFAULT;
 
-	mutex_lock(&inst->lock);
-	ret = pdm_mcu_require_online_locked(inst);
+	ret = pdm_mcu_claim_device(inst);
 	if (!ret)
 		ret = pdm_mcu_protocol_command(inst, &command);
 	ret = pdm_mcu_record_result(inst, ret);
-	mutex_unlock(&inst->lock);
+	pdm_mcu_release_device(inst);
 	if (ret)
 		return ret;
 
@@ -233,12 +237,11 @@ static long pdm_mcu_read_data_ioctl(struct pdm_mcu_instance *inst, unsigned long
 	if (copy_from_user(&data, (void __user *)arg, sizeof(data)))
 		return -EFAULT;
 
-	mutex_lock(&inst->lock);
-	ret = pdm_mcu_require_online_locked(inst);
+	ret = pdm_mcu_claim_device(inst);
 	if (!ret)
 		ret = pdm_mcu_protocol_read_data(inst, &data);
 	ret = pdm_mcu_record_result(inst, ret);
-	mutex_unlock(&inst->lock);
+	pdm_mcu_release_device(inst);
 	if (ret)
 		return ret;
 
@@ -255,12 +258,11 @@ static long pdm_mcu_write_data_ioctl(struct pdm_mcu_instance *inst, unsigned lon
 	if (copy_from_user(&data, (void __user *)arg, sizeof(data)))
 		return -EFAULT;
 
-	mutex_lock(&inst->lock);
-	ret = pdm_mcu_require_online_locked(inst);
+	ret = pdm_mcu_claim_device(inst);
 	if (!ret)
 		ret = pdm_mcu_protocol_write_data(inst, &data);
 	ret = pdm_mcu_record_result(inst, ret);
-	mutex_unlock(&inst->lock);
+	pdm_mcu_release_device(inst);
 	return ret;
 }
 
