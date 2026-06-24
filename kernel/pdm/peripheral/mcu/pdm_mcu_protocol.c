@@ -11,6 +11,10 @@
 
 #include "pdm_mcu_internal.h"
 
+#define PDM_MCU_PROTOCOL_CMD_GET_VERSION 0x00000001U
+#define PDM_MCU_PROTOCOL_CMD_GET_STATUS  0x00000002U
+#define PDM_MCU_PROTOCOL_CMD_RESET       0x00000003U
+
 static void pdm_mcu_protocol_encode_be32(u8 *buf, u32 value)
 {
 	buf[0] = (u8)(value >> 24);
@@ -112,10 +116,112 @@ static int pdm_mcu_protocol_write_exact(struct pdm_mcu_instance *inst,
 	return ret == len ? 0 : -EIO;
 }
 
-int pdm_mcu_protocol_reset(struct pdm_mcu_instance *inst)
+static int pdm_mcu_protocol_control_xfer(struct pdm_mcu_instance *inst,
+					 u32 command, const u8 *payload,
+					 u32 payload_len, u8 *response,
+					 u32 response_len)
 {
-	(void)inst;
-	return 0;
+	u8 tx[PDM_MCU_MAX_TRANSFER_SIZE + PDM_MCU_MAX_PREFIX_BYTES];
+	u8 rx[PDM_MCU_MAX_TRANSFER_SIZE + PDM_MCU_TRANSPORT_ID_BYTES];
+	u32 tx_len;
+	u32 rx_len;
+	u8 prefix;
+	int ret;
+
+	if (payload_len > PDM_MCU_MAX_TRANSFER_SIZE ||
+	    response_len > PDM_MCU_MAX_TRANSFER_SIZE)
+		return -EMSGSIZE;
+
+	if (inst->ops->flags & PDM_MCU_TRANSPORT_F_FRAME_ID_U32) {
+		if (payload_len + PDM_MCU_TRANSPORT_ID_BYTES > sizeof(tx) ||
+		    response_len + PDM_MCU_TRANSPORT_ID_BYTES > sizeof(rx))
+			return -EMSGSIZE;
+
+		pdm_mcu_protocol_encode_be32(tx, command);
+		if (payload_len)
+			memcpy(tx + PDM_MCU_TRANSPORT_ID_BYTES, payload,
+			       payload_len);
+		tx_len = payload_len + PDM_MCU_TRANSPORT_ID_BYTES;
+		rx_len = response_len ? response_len + PDM_MCU_TRANSPORT_ID_BYTES : 0;
+
+		ret = pdm_mcu_protocol_xfer(inst, tx, tx_len, rx, rx_len);
+		if (ret < 0)
+			return ret;
+		if (!response_len)
+			return 0;
+		if (ret < response_len + PDM_MCU_TRANSPORT_ID_BYTES)
+			return -EIO;
+		memcpy(response, rx + PDM_MCU_TRANSPORT_ID_BYTES, response_len);
+		return 0;
+	}
+
+	if (inst->ops->flags & PDM_MCU_TRANSPORT_F_BYTE_STREAM) {
+		if (payload_len + PDM_MCU_TRANSPORT_ID_BYTES > sizeof(tx))
+			return -EMSGSIZE;
+
+		pdm_mcu_protocol_encode_be32(tx, command);
+		if (payload_len)
+			memcpy(tx + PDM_MCU_TRANSPORT_ID_BYTES, payload,
+			       payload_len);
+		tx_len = payload_len + PDM_MCU_TRANSPORT_ID_BYTES;
+
+		ret = pdm_mcu_protocol_xfer(inst, tx, tx_len, response,
+						 response_len);
+		if (ret < 0)
+			return ret;
+		if (response_len && ret < response_len)
+			return -EIO;
+		return 0;
+	}
+
+	prefix = pdm_mcu_protocol_command_prefix(inst);
+	if (!prefix)
+		return -EOPNOTSUPP;
+	if (payload_len + prefix > sizeof(tx))
+		return -EMSGSIZE;
+
+	pdm_mcu_protocol_encode_prefix(tx, command, prefix);
+	if (payload_len)
+		memcpy(tx + prefix, payload, payload_len);
+
+	return pdm_mcu_protocol_xfer(inst, tx, prefix + payload_len,
+					 response, response_len);
+}
+
+static void pdm_mcu_protocol_encode_index(u8 *buf, u32 index)
+{
+	pdm_mcu_protocol_encode_be32(buf, index);
+}
+
+int pdm_mcu_protocol_get_version(struct pdm_mcu_instance *inst,
+				 struct pdm_mcu_version *version)
+{
+	u8 payload[sizeof(version->index)];
+
+	pdm_mcu_protocol_encode_index(payload, version->index);
+	return pdm_mcu_protocol_control_xfer(inst,
+		PDM_MCU_PROTOCOL_CMD_GET_VERSION, payload, sizeof(payload),
+		(u8 *)version, sizeof(*version));
+}
+
+int pdm_mcu_protocol_get_status(struct pdm_mcu_instance *inst,
+			       struct pdm_mcu_status *status)
+{
+	u8 payload[sizeof(status->index)];
+
+	pdm_mcu_protocol_encode_index(payload, status->index);
+	return pdm_mcu_protocol_control_xfer(inst,
+		PDM_MCU_PROTOCOL_CMD_GET_STATUS, payload, sizeof(payload),
+		(u8 *)status, sizeof(*status));
+}
+
+int pdm_mcu_protocol_reset(struct pdm_mcu_instance *inst, u32 index)
+{
+	u8 payload[sizeof(index)];
+
+	pdm_mcu_protocol_encode_index(payload, index);
+	return pdm_mcu_protocol_control_xfer(inst,
+		PDM_MCU_PROTOCOL_CMD_RESET, payload, sizeof(payload), NULL, 0);
 }
 
 int pdm_mcu_protocol_command(struct pdm_mcu_instance *inst,

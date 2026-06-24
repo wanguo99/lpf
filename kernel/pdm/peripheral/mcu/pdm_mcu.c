@@ -134,6 +134,8 @@ static bool pdm_mcu_match(const struct pdm_device *pdm_dev)
 	return pdm_dev && pdm_mcu_has_transport_compatible(pdm_dev->compatible);
 }
 
+static int pdm_mcu_require_online_locked(struct pdm_mcu_instance *inst);
+
 static int pdm_mcu_record_result(struct pdm_mcu_instance *inst, int ret)
 {
 	if (ret < 0) {
@@ -173,16 +175,19 @@ static long pdm_mcu_get_info(struct pdm_client *client, unsigned long arg)
 static long pdm_mcu_get_version(struct pdm_mcu_instance *inst, unsigned long arg)
 {
 	struct pdm_mcu_version version;
+	int ret;
 
 	if (copy_from_user(&version, (void __user *)arg, sizeof(version)))
 		return -EFAULT;
 
-	version.major = 1;
-	version.minor = 0;
-	version.patch = 0;
-	version.build = 0;
-	snprintf(version.version_string, sizeof(version.version_string),
-		 "pdm-mcu-%s", inst->ops ? inst->ops->name : "unknown");
+	mutex_lock(&inst->lock);
+	ret = pdm_mcu_require_online_locked(inst);
+	if (!ret)
+		ret = pdm_mcu_protocol_get_version(inst, &version);
+	ret = pdm_mcu_record_result(inst, ret);
+	mutex_unlock(&inst->lock);
+	if (ret)
+		return ret;
 
 	if (copy_to_user((void __user *)arg, &version, sizeof(version)))
 		return -EFAULT;
@@ -192,28 +197,23 @@ static long pdm_mcu_get_version(struct pdm_mcu_instance *inst, unsigned long arg
 static long pdm_mcu_get_status(struct pdm_mcu_instance *inst, unsigned long arg)
 {
 	struct pdm_mcu_status status;
-	u64 elapsed_ns;
-	int ret = 0;
+	int ret;
 
 	if (copy_from_user(&status, (void __user *)arg, sizeof(status)))
 		return -EFAULT;
 
 	mutex_lock(&inst->lock);
-	elapsed_ns = ktime_to_ns(ktime_sub(ktime_get(), inst->start_time));
-	status.online = inst->online ? 1U : 0U;
-	status.state = inst->state;
-	status.uptime_sec = (u32)div_u64(elapsed_ns, NSEC_PER_SEC);
-	status.error_code = inst->last_error < 0 ? (u32)(-inst->last_error) : 0U;
-	status.temperature_milli_celsius = 0;
-	status.voltage_mv = 0;
-	status.timestamp_us = ktime_to_us(ktime_get());
-	if (!inst->online)
-		ret = -ENODEV;
+	ret = pdm_mcu_require_online_locked(inst);
+	if (!ret)
+		ret = pdm_mcu_protocol_get_status(inst, &status);
+	ret = pdm_mcu_record_result(inst, ret);
 	mutex_unlock(&inst->lock);
+	if (ret)
+		return ret;
 
 	if (copy_to_user((void __user *)arg, &status, sizeof(status)))
 		return -EFAULT;
-	return ret;
+	return 0;
 }
 
 static int pdm_mcu_require_online_locked(struct pdm_mcu_instance *inst)
@@ -237,7 +237,7 @@ static long pdm_mcu_reset(struct pdm_mcu_instance *inst, unsigned long arg)
 	mutex_lock(&inst->lock);
 	ret = pdm_mcu_require_online_locked(inst);
 	if (!ret)
-		ret = pdm_mcu_protocol_reset(inst);
+		ret = pdm_mcu_protocol_reset(inst, index);
 	ret = pdm_mcu_record_result(inst, ret);
 	mutex_unlock(&inst->lock);
 	return ret;
