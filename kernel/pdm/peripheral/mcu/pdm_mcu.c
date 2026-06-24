@@ -20,7 +20,7 @@
 #include "pdm/pdm_ctl.h"
 #include "osal.h"
 
-#define PDM_MCU_NATIVE_DEVICE_NAME_LEN 96
+#define PDM_MCU_BUS_DEVICE_NAME_LEN 96
 
 static atomic_t pdm_mcu_device_count = ATOMIC_INIT(0);
 
@@ -70,7 +70,7 @@ static const char *pdm_mcu_default_compatible(enum pdm_mcu_backend_type type)
 	}
 }
 
-static int pdm_mcu_native_device_id(struct device_node *np)
+static int pdm_mcu_bus_device_id(struct device_node *np)
 {
 	u32 value;
 
@@ -381,18 +381,18 @@ static void pdm_mcu_remove(struct pdm_device *pdm_dev)
 	pdm_client_unregister(&inst->client);
 }
 
-int pdm_mcu_register_native_device(struct device *parent,
-				   enum pdm_mcu_backend_type type,
-				   struct pdm_mcu_native_device *native)
+int pdm_mcu_register_bus_device(struct device *parent,
+				enum pdm_mcu_backend_type type,
+				struct pdm_mcu_bus_device *bus_dev)
 {
 	struct device_node *np;
 	struct pdm_device *pdm_dev;
 	const char *compatible;
-	char name[PDM_MCU_NATIVE_DEVICE_NAME_LEN];
+	char name[PDM_MCU_BUS_DEVICE_NAME_LEN];
 	int ret;
 	int id;
 
-	if (!parent || !native)
+	if (!parent || !bus_dev)
 		return -EINVAL;
 
 	np = parent->of_node;
@@ -406,14 +406,14 @@ int pdm_mcu_register_native_device(struct device *parent,
 	if (!pdm_dev)
 		return -ENOMEM;
 
-	id = pdm_mcu_native_device_id(np);
+	id = pdm_mcu_bus_device_id(np);
 	pdm_dev->dev.parent = parent;
 	pdm_dev->dev.of_node = of_node_get(np);
 	pdm_dev->compatible = compatible;
-	pdm_dev->config_data = native;
+	pdm_dev->config_data = bus_dev;
 	pdm_device_set_requested_id(pdm_dev, id);
-	native->type = type;
-	native->pdm_dev = pdm_dev;
+	bus_dev->type = type;
+	bus_dev->pdm_dev = pdm_dev;
 
 	if (id >= 0)
 		snprintf(name, sizeof(name), "%s.pdm-mcu.%d",
@@ -422,22 +422,22 @@ int pdm_mcu_register_native_device(struct device *parent,
 		snprintf(name, sizeof(name), "%s.pdm-mcu", dev_name(parent));
 	ret = pdm_device_register(pdm_dev, name);
 	if (ret) {
-		native->pdm_dev = NULL;
+		bus_dev->pdm_dev = NULL;
 		return ret;
 	}
 
-	LOG_INFO("Created native %s device %s", compatible, name);
+	LOG_INFO("Created bus-bound %s device %s", compatible, name);
 	return 0;
 }
 
-void pdm_mcu_unregister_native_device(struct pdm_mcu_native_device *native)
+void pdm_mcu_unregister_bus_device(struct pdm_mcu_bus_device *bus_dev)
 {
-	if (!native || !native->pdm_dev)
+	if (!bus_dev || !bus_dev->pdm_dev)
 		return;
 
-	pdm_device_unregister(native->pdm_dev);
-	native->pdm_dev = NULL;
-	native->inst = NULL;
+	pdm_device_unregister(bus_dev->pdm_dev);
+	bus_dev->pdm_dev = NULL;
+	bus_dev->inst = NULL;
 }
 
 const struct pdm_mcu_transport_ops *pdm_mcu_transport_select(const char *compatible)

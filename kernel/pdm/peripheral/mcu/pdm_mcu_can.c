@@ -7,11 +7,11 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 #include <linux/err.h>
-#include <linux/if.h>
 #include <linux/module.h>
 #include <linux/net.h>
 #include <linux/netdevice.h>
 #include <linux/of.h>
+#include <linux/of_net.h>
 #include <linux/socket.h>
 #include <linux/string.h>
 #include <net/net_namespace.h>
@@ -126,35 +126,49 @@ static int pdm_mcu_can_recv_frame(struct pdm_mcu_instance *inst, u32 *id,
 	return 0;
 }
 
+static struct net_device *pdm_mcu_can_find_netdev(struct device_node *np)
+{
+	struct device_node *can_np;
+	struct net_device *netdev;
+
+	if (!np)
+		return NULL;
+
+	can_np = of_parse_phandle(np, "can-controller", 0);
+	if (!can_np)
+		can_np = of_parse_phandle(np, "can", 0);
+	if (!can_np)
+		return NULL;
+
+	netdev = of_find_net_device_by_node(can_np);
+	of_node_put(can_np);
+	return netdev;
+}
+
 static int pdm_mcu_can_setup(struct pdm_mcu_instance *inst)
 {
 	struct device_node *np = inst->pdm_dev->dev.of_node;
-	struct net_device *netdev;
 	struct sockaddr_can addr = { };
-	const char *ifname = "can0";
+	struct net_device *netdev;
 	u32 value;
 	int ret;
 
+	netdev = pdm_mcu_can_find_netdev(np);
+	if (!netdev)
+		return -ENODEV;
+
+	inst->transport.can.rx_timeout_ms = PDM_MCU_DEFAULT_RX_TIMEOUT_MS;
 	if (np) {
-		of_property_read_string(np, "can-interface", &ifname);
 		if (!of_property_read_u32(np, "rx-timeout-ms", &value))
 			inst->transport.can.rx_timeout_ms = value;
 		inst->transport.can.extended_id =
 			of_property_read_bool(np, "can-extended-id");
 	}
-	if (!inst->transport.can.rx_timeout_ms)
-		inst->transport.can.rx_timeout_ms = PDM_MCU_DEFAULT_RX_TIMEOUT_MS;
-	strscpy(inst->transport.can.ifname, ifname,
-		sizeof(inst->transport.can.ifname));
-
-	netdev = dev_get_by_name(&init_net, inst->transport.can.ifname);
-	if (!netdev)
-		return -ENODEV;
 
 	ret = sock_create_kern(&init_net, PF_CAN, SOCK_RAW, CAN_RAW,
 			       &inst->transport.can.sock);
 	if (ret)
-		goto out_put_netdev;
+		goto err_put_netdev;
 
 	if (inst->transport.can.sock->sk)
 		inst->transport.can.sock->sk->sk_rcvtimeo =
@@ -172,26 +186,28 @@ static int pdm_mcu_can_setup(struct pdm_mcu_instance *inst)
 	if (ret)
 		goto err_release_sock;
 
-	LOG_INFO("Bound CAN transport to %s",
-		 inst->transport.can.ifname);
-	dev_put(netdev);
+	inst->transport.can.netdev = netdev;
+	LOG_INFO("Bound CAN transport to %s", dev_name(&netdev->dev));
 	return 0;
 
 err_release_sock:
 	sock_release(inst->transport.can.sock);
 	inst->transport.can.sock = NULL;
-out_put_netdev:
+err_put_netdev:
 	dev_put(netdev);
 	return ret;
 }
 
 static void pdm_mcu_can_cleanup(struct pdm_mcu_instance *inst)
 {
-	if (!inst->transport.can.sock)
-		return;
-
-	sock_release(inst->transport.can.sock);
-	inst->transport.can.sock = NULL;
+	if (inst->transport.can.sock) {
+		sock_release(inst->transport.can.sock);
+		inst->transport.can.sock = NULL;
+	}
+	if (inst->transport.can.netdev) {
+		dev_put(inst->transport.can.netdev);
+		inst->transport.can.netdev = NULL;
+	}
 }
 
 static int pdm_mcu_can_cmd_xfer(struct pdm_mcu_instance *inst, u32 command,

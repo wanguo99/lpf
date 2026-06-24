@@ -51,14 +51,14 @@ static unsigned long pdm_mcu_uart_serdev_deadline(u32 timeout_ms)
 static size_t pdm_mcu_serdev_receive_buf(struct serdev_device *serdev,
 					 const u8 *data, size_t count)
 {
-	struct pdm_mcu_native_device *native = serdev_device_get_drvdata(serdev);
+	struct pdm_mcu_bus_device *bus_dev = serdev_device_get_drvdata(serdev);
 	struct pdm_mcu_instance *inst;
 	size_t copied;
 
-	if (!native || !native->inst)
+	if (!bus_dev || !bus_dev->inst)
 		return 0;
 
-	inst = native->inst;
+	inst = bus_dev->inst;
 	copied = kfifo_in_spinlocked(&inst->transport.uart.rx_fifo, data, count,
 				       &inst->transport.uart.rx_lock);
 	if (copied)
@@ -82,28 +82,28 @@ static bool pdm_mcu_uart_hw_flow_control(struct device_node *np)
 
 static int pdm_mcu_serdev_probe(struct serdev_device *serdev)
 {
-	struct pdm_mcu_native_device *native;
+	struct pdm_mcu_bus_device *bus_dev;
 
-	native = devm_kzalloc(&serdev->dev, sizeof(*native), GFP_KERNEL);
-	if (!native)
+	bus_dev = devm_kzalloc(&serdev->dev, sizeof(*bus_dev), GFP_KERNEL);
+	if (!bus_dev)
 		return -ENOMEM;
 
-	native->bus.serdev = serdev;
-	serdev_device_set_drvdata(serdev, native);
-	return pdm_mcu_register_native_device(&serdev->dev,
-					      PDM_MCU_BACKEND_UART, native);
+	bus_dev->bus.serdev = serdev;
+	serdev_device_set_drvdata(serdev, bus_dev);
+	return pdm_mcu_register_bus_device(&serdev->dev,
+					   PDM_MCU_BACKEND_UART, bus_dev);
 }
 
 static void pdm_mcu_serdev_remove(struct serdev_device *serdev)
 {
-	struct pdm_mcu_native_device *native = serdev_device_get_drvdata(serdev);
+	struct pdm_mcu_bus_device *bus_dev = serdev_device_get_drvdata(serdev);
 
-	pdm_mcu_unregister_native_device(native);
+	pdm_mcu_unregister_bus_device(bus_dev);
 	serdev_device_set_drvdata(serdev, NULL);
 }
 
-int pdm_mcu_uart_write_native(struct pdm_mcu_instance *inst,
-			      const u8 *buf, size_t len)
+int pdm_mcu_uart_write_bus(struct pdm_mcu_instance *inst,
+			   const u8 *buf, size_t len)
 {
 	struct serdev_device *serdev = inst->transport.uart.serdev;
 	unsigned long deadline;
@@ -135,8 +135,8 @@ int pdm_mcu_uart_write_native(struct pdm_mcu_instance *inst,
 	return (int)done;
 }
 
-int pdm_mcu_uart_read_native(struct pdm_mcu_instance *inst, u8 *buf,
-			     size_t len)
+int pdm_mcu_uart_read_bus(struct pdm_mcu_instance *inst, u8 *buf,
+			  size_t len)
 {
 	unsigned long deadline;
 	size_t done = 0;
@@ -180,25 +180,24 @@ int pdm_mcu_uart_read_native(struct pdm_mcu_instance *inst, u8 *buf,
 	return (int)done;
 }
 
-int pdm_mcu_uart_setup_native(struct pdm_mcu_instance *inst)
+int pdm_mcu_uart_setup_bus(struct pdm_mcu_instance *inst)
 {
 	struct device_node *np = inst->pdm_dev->dev.of_node;
-	struct pdm_mcu_native_device *native = inst->pdm_dev->config_data;
+	struct pdm_mcu_bus_device *bus_dev = inst->pdm_dev->config_data;
 	struct serdev_device *serdev;
 	u32 value;
 	int ret;
 
-	if (!native || native->type != PDM_MCU_BACKEND_UART ||
-	    !native->bus.serdev)
+	if (!bus_dev || bus_dev->type != PDM_MCU_BACKEND_UART ||
+	    !bus_dev->bus.serdev)
 		return -ENODEV;
 
-	serdev = native->bus.serdev;
+	serdev = bus_dev->bus.serdev;
 	if (!serdev)
 		return -ENODEV;
 
 	inst->transport.uart.serdev = serdev;
-	inst->transport.uart.native = native;
-	inst->transport.uart.use_serdev = true;
+	inst->transport.uart.bus_dev = bus_dev;
 	inst->transport.uart.rx_timeout_ms = PDM_MCU_DEFAULT_RX_TIMEOUT_MS;
 	inst->transport.uart.baudrate = PDM_MCU_DEFAULT_BAUDRATE;
 	INIT_KFIFO(inst->transport.uart.rx_fifo);
@@ -213,11 +212,11 @@ int pdm_mcu_uart_setup_native(struct pdm_mcu_instance *inst)
 			inst->transport.uart.baudrate = value;
 	}
 
-	native->inst = inst;
+	bus_dev->inst = inst;
 	serdev_device_set_client_ops(serdev, &pdm_mcu_serdev_ops);
 	ret = serdev_device_open(serdev);
 	if (ret) {
-		native->inst = NULL;
+		bus_dev->inst = NULL;
 		serdev_device_set_client_ops(serdev, NULL);
 		return ret;
 	}
@@ -234,22 +233,21 @@ int pdm_mcu_uart_setup_native(struct pdm_mcu_instance *inst)
 	return 0;
 }
 
-void pdm_mcu_uart_cleanup_native(struct pdm_mcu_instance *inst)
+void pdm_mcu_uart_cleanup_bus(struct pdm_mcu_instance *inst)
 {
 	struct serdev_device *serdev = inst->transport.uart.serdev;
-	struct pdm_mcu_native_device *native = inst->transport.uart.native;
+	struct pdm_mcu_bus_device *bus_dev = inst->transport.uart.bus_dev;
 
 	if (!serdev)
 		return;
 
-	if (native)
-		native->inst = NULL;
+	if (bus_dev)
+		bus_dev->inst = NULL;
 	wake_up_interruptible(&inst->transport.uart.rx_wait);
 	serdev_device_close(serdev);
 	serdev_device_set_client_ops(serdev, NULL);
 	inst->transport.uart.serdev = NULL;
-	inst->transport.uart.native = NULL;
-	inst->transport.uart.use_serdev = false;
+	inst->transport.uart.bus_dev = NULL;
 }
 
 int pdm_mcu_uart_driver_register(void)

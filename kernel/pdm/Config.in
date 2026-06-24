@@ -37,9 +37,9 @@ config PDM_MCU_CAN
 	bool "PDM MCU CAN RAW transport"
 	default y
 	help
-	  Enable the CAN RAW transport backend for MCU devices described under
-	  the PDM bus controller with compatible "pdm,mcu-can".
-	  Enable this only when the target kernel provides CONFIG_CAN_RAW.
+	  Enable the CAN RAW transport backend for MCU devices bound to a CAN
+	  controller through a Device Tree phandle. Enable this only when the
+	  target kernel provides CONFIG_CAN_RAW.
 
 config PDM_MCU_UART_SERDEV
 	bool "PDM MCU UART serdev transport"
@@ -47,7 +47,7 @@ config PDM_MCU_UART_SERDEV
 	help
 	  Register a serdev client driver for MCU devices described below a UART
 	  controller node. Enable this only when the target kernel provides
-	  CONFIG_SERIAL_DEV_BUS. Disable it to use tty-path UART only.
+	  CONFIG_SERIAL_DEV_BUS. UART path-based fallback is not supported.
 
 config PDM_MCU_I2C
 	bool "PDM MCU I2C transport"

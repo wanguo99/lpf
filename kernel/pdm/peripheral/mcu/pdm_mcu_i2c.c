@@ -124,14 +124,14 @@ static int pdm_mcu_i2c_bus_xfer(struct pdm_mcu_instance *inst,
 
 static int pdm_mcu_i2c_setup(struct pdm_mcu_instance *inst)
 {
-	struct pdm_mcu_native_device *native = inst->pdm_dev->config_data;
+	struct pdm_mcu_bus_device *bus_dev = inst->pdm_dev->config_data;
 	struct device_node *np = inst->pdm_dev->dev.of_node;
 	u32 value;
 
-	if (!native || native->type != PDM_MCU_BACKEND_I2C || !native->bus.i2c)
+	if (!bus_dev || bus_dev->type != PDM_MCU_BACKEND_I2C || !bus_dev->bus.i2c)
 		return -ENODEV;
 
-	inst->transport.i2c.client = native->bus.i2c;
+	inst->transport.i2c.client = bus_dev->bus.i2c;
 	inst->transport.i2c.rx_timeout_ms = PDM_MCU_DEFAULT_RX_TIMEOUT_MS;
 	inst->transport.i2c.command_bytes =
 		pdm_mcu_i2c_prefix_bytes(np, "command-bytes",
@@ -142,18 +142,18 @@ static int pdm_mcu_i2c_setup(struct pdm_mcu_instance *inst)
 	if (np && !of_property_read_u32(np, "rx-timeout-ms", &value))
 		inst->transport.i2c.rx_timeout_ms = value;
 
-	native->inst = inst;
+	bus_dev->inst = inst;
 	LOG_INFO("Bound I2C transport to %s addr=0x%02x",
-		 dev_name(&native->bus.i2c->dev), native->bus.i2c->addr);
+		 dev_name(&bus_dev->bus.i2c->dev), bus_dev->bus.i2c->addr);
 	return 0;
 }
 
 static void pdm_mcu_i2c_cleanup(struct pdm_mcu_instance *inst)
 {
-	struct pdm_mcu_native_device *native = inst->pdm_dev->config_data;
+	struct pdm_mcu_bus_device *bus_dev = inst->pdm_dev->config_data;
 
-	if (native && native->inst == inst)
-		native->inst = NULL;
+	if (bus_dev && bus_dev->inst == inst)
+		bus_dev->inst = NULL;
 	inst->transport.i2c.client = NULL;
 }
 
@@ -246,23 +246,23 @@ static int pdm_mcu_i2c_xfer(struct pdm_mcu_instance *inst,
 
 static int pdm_mcu_i2c_probe(struct i2c_client *client)
 {
-	struct pdm_mcu_native_device *native;
+	struct pdm_mcu_bus_device *bus_dev;
 
-	native = devm_kzalloc(&client->dev, sizeof(*native), GFP_KERNEL);
-	if (!native)
+	bus_dev = devm_kzalloc(&client->dev, sizeof(*bus_dev), GFP_KERNEL);
+	if (!bus_dev)
 		return -ENOMEM;
 
-	native->bus.i2c = client;
-	i2c_set_clientdata(client, native);
-	return pdm_mcu_register_native_device(&client->dev,
-					      PDM_MCU_BACKEND_I2C, native);
+	bus_dev->bus.i2c = client;
+	i2c_set_clientdata(client, bus_dev);
+	return pdm_mcu_register_bus_device(&client->dev,
+					      PDM_MCU_BACKEND_I2C, bus_dev);
 }
 
 static void pdm_mcu_i2c_remove(struct i2c_client *client)
 {
-	struct pdm_mcu_native_device *native = i2c_get_clientdata(client);
+	struct pdm_mcu_bus_device *bus_dev = i2c_get_clientdata(client);
 
-	pdm_mcu_unregister_native_device(native);
+	pdm_mcu_unregister_bus_device(bus_dev);
 	i2c_set_clientdata(client, NULL);
 }
 

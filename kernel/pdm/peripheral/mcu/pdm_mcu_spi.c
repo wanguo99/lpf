@@ -118,14 +118,14 @@ static int pdm_mcu_spi_bus_xfer(struct pdm_mcu_instance *inst,
 
 static int pdm_mcu_spi_setup(struct pdm_mcu_instance *inst)
 {
-	struct pdm_mcu_native_device *native = inst->pdm_dev->config_data;
+	struct pdm_mcu_bus_device *bus_dev = inst->pdm_dev->config_data;
 	struct device_node *np = inst->pdm_dev->dev.of_node;
 	u32 value;
 
-	if (!native || native->type != PDM_MCU_BACKEND_SPI || !native->bus.spi)
+	if (!bus_dev || bus_dev->type != PDM_MCU_BACKEND_SPI || !bus_dev->bus.spi)
 		return -ENODEV;
 
-	inst->transport.spi.spi = native->bus.spi;
+	inst->transport.spi.spi = bus_dev->bus.spi;
 	inst->transport.spi.rx_timeout_ms = PDM_MCU_DEFAULT_RX_TIMEOUT_MS;
 	inst->transport.spi.command_bytes =
 		pdm_mcu_spi_prefix_bytes(np, "command-bytes",
@@ -136,18 +136,18 @@ static int pdm_mcu_spi_setup(struct pdm_mcu_instance *inst)
 	if (np && !of_property_read_u32(np, "rx-timeout-ms", &value))
 		inst->transport.spi.rx_timeout_ms = value;
 
-	native->inst = inst;
+	bus_dev->inst = inst;
 	LOG_INFO("Bound SPI transport to %s",
-		 dev_name(&native->bus.spi->dev));
+		 dev_name(&bus_dev->bus.spi->dev));
 	return 0;
 }
 
 static void pdm_mcu_spi_cleanup(struct pdm_mcu_instance *inst)
 {
-	struct pdm_mcu_native_device *native = inst->pdm_dev->config_data;
+	struct pdm_mcu_bus_device *bus_dev = inst->pdm_dev->config_data;
 
-	if (native && native->inst == inst)
-		native->inst = NULL;
+	if (bus_dev && bus_dev->inst == inst)
+		bus_dev->inst = NULL;
 	inst->transport.spi.spi = NULL;
 }
 
@@ -240,16 +240,16 @@ static int pdm_mcu_spi_xfer(struct pdm_mcu_instance *inst,
 
 static int pdm_mcu_spi_probe(struct spi_device *spi)
 {
-	struct pdm_mcu_native_device *native;
+	struct pdm_mcu_bus_device *bus_dev;
 
-	native = devm_kzalloc(&spi->dev, sizeof(*native), GFP_KERNEL);
-	if (!native)
+	bus_dev = devm_kzalloc(&spi->dev, sizeof(*bus_dev), GFP_KERNEL);
+	if (!bus_dev)
 		return -ENOMEM;
 
-	native->bus.spi = spi;
-	spi_set_drvdata(spi, native);
-	return pdm_mcu_register_native_device(&spi->dev,
-					      PDM_MCU_BACKEND_SPI, native);
+	bus_dev->bus.spi = spi;
+	spi_set_drvdata(spi, bus_dev);
+	return pdm_mcu_register_bus_device(&spi->dev,
+					      PDM_MCU_BACKEND_SPI, bus_dev);
 }
 
 #if PDM_KERNEL_HAS_VOID_SPI_REMOVE
@@ -258,9 +258,9 @@ static void pdm_mcu_spi_remove(struct spi_device *spi)
 static int pdm_mcu_spi_remove(struct spi_device *spi)
 #endif
 {
-	struct pdm_mcu_native_device *native = spi_get_drvdata(spi);
+	struct pdm_mcu_bus_device *bus_dev = spi_get_drvdata(spi);
 
-	pdm_mcu_unregister_native_device(native);
+	pdm_mcu_unregister_bus_device(bus_dev);
 	spi_set_drvdata(spi, NULL);
 #if !PDM_KERNEL_HAS_VOID_SPI_REMOVE
 	return 0;
