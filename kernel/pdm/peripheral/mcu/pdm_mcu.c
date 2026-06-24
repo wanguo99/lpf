@@ -24,37 +24,6 @@
 
 static atomic_t pdm_mcu_device_count = ATOMIC_INIT(0);
 
-static int pdm_mcu_claim_device(struct pdm_mcu_instance *inst);
-static void pdm_mcu_release_device(struct pdm_mcu_instance *inst);
-static bool pdm_mcu_match(const struct pdm_device *pdm_dev);
-static int pdm_mcu_probe(struct pdm_device *pdm_dev);
-static void pdm_mcu_remove(struct pdm_device *pdm_dev);
-
-static const struct of_device_id pdm_mcu_of_match[] = {
-	{ .compatible = "pdm,mcu-uart" },
-	{ .compatible = "pdm,mcu-can" },
-	{ .compatible = "pdm,mcu-i2c" },
-	{ .compatible = "pdm,mcu-spi" },
-	{ .compatible = "vendor,pdm-mcu-uart" },
-	{ .compatible = "vendor,pdm-mcu-can" },
-	{ .compatible = "vendor,pdm-mcu-i2c" },
-	{ .compatible = "vendor,pdm-mcu-spi" },
-	{ }
-};
-MODULE_DEVICE_TABLE(of, pdm_mcu_of_match);
-
-static struct pdm_driver pdm_mcu_driver = {
-	.driver = {
-		.name = "pdm-mcu",
-		.of_match_table = pdm_mcu_of_match,
-	},
-	.device_type = PDM_CTL_DEVICE_TYPE_MCU,
-	.capabilities = PDM_CTL_DEVICE_CAP_USER_IOCTL,
-	.match = pdm_mcu_match,
-	.probe = pdm_mcu_probe,
-	.remove = pdm_mcu_remove,
-};
-
 static const char *pdm_mcu_default_compatible(enum pdm_mcu_backend_type type)
 {
 	switch (type) {
@@ -119,6 +88,25 @@ static int pdm_mcu_record_result(struct pdm_mcu_instance *inst, int ret)
 		inst->pdm_dev->state = PDM_CTL_DEVICE_STATE_BOUND;
 	}
 	return ret;
+}
+
+static int pdm_mcu_claim_device(struct pdm_mcu_instance *inst)
+{
+	mutex_lock(&inst->lock);
+
+	if (!inst->online) {
+		return -ENODEV;
+	}
+	if (!inst->ops) {
+		return -EOPNOTSUPP;
+	}
+
+	return 0;
+}
+
+static void pdm_mcu_release_device(struct pdm_mcu_instance *inst)
+{
+	mutex_unlock(&inst->lock);
 }
 
 static long pdm_mcu_get_info(struct pdm_client *client, unsigned long arg)
@@ -186,25 +174,6 @@ static long pdm_mcu_get_status(struct pdm_mcu_instance *inst, unsigned long arg)
 		return -EFAULT;
 	}
 	return 0;
-}
-
-static int pdm_mcu_claim_device(struct pdm_mcu_instance *inst)
-{
-	mutex_lock(&inst->lock);
-
-	if (!inst->online) {
-		return -ENODEV;
-	}
-	if (!inst->ops) {
-		return -EOPNOTSUPP;
-	}
-
-	return 0;
-}
-
-static void pdm_mcu_release_device(struct pdm_mcu_instance *inst)
-{
-	mutex_unlock(&inst->lock);
 }
 
 static long pdm_mcu_reset(struct pdm_mcu_instance *inst, unsigned long arg)
@@ -345,6 +314,15 @@ static void pdm_mcu_client_release(struct pdm_client *client)
 	kfree(inst);
 }
 
+const struct pdm_mcu_transport_ops *pdm_mcu_transport_select(const char *compatible)
+{
+	const struct pdm_backend_entry *entry;
+
+	entry = pdm_backend_find(PDM_CTL_DEVICE_TYPE_MCU,
+				 PDM_BACKEND_CLASS_TRANSPORT, compatible);
+	return entry ? entry->ops : NULL;
+}
+
 static int pdm_mcu_probe(struct pdm_device *pdm_dev)
 {
 	struct pdm_mcu_instance *inst;
@@ -455,8 +433,7 @@ int pdm_mcu_register_bus_device(struct device *parent,
 	bus_dev->type = type;
 	bus_dev->pdm_dev = pdm_dev;
 
-	if (id >= 0)
-	{
+	if (id >= 0) {
 		snprintf(name, sizeof(name), "%s.pdm-mcu.%d",
 			 dev_name(parent), id);
 	} else {
@@ -483,14 +460,30 @@ void pdm_mcu_unregister_bus_device(struct pdm_mcu_bus_device *bus_dev)
 	bus_dev->inst = NULL;
 }
 
-const struct pdm_mcu_transport_ops *pdm_mcu_transport_select(const char *compatible)
-{
-	const struct pdm_backend_entry *entry;
+static const struct of_device_id pdm_mcu_of_match[] = {
+	{ .compatible = "pdm,mcu-uart" },
+	{ .compatible = "pdm,mcu-can" },
+	{ .compatible = "pdm,mcu-i2c" },
+	{ .compatible = "pdm,mcu-spi" },
+	{ .compatible = "vendor,pdm-mcu-uart" },
+	{ .compatible = "vendor,pdm-mcu-can" },
+	{ .compatible = "vendor,pdm-mcu-i2c" },
+	{ .compatible = "vendor,pdm-mcu-spi" },
+	{ }
+};
+MODULE_DEVICE_TABLE(of, pdm_mcu_of_match);
 
-	entry = pdm_backend_find(PDM_CTL_DEVICE_TYPE_MCU,
-				 PDM_BACKEND_CLASS_TRANSPORT, compatible);
-	return entry ? entry->ops : NULL;
-}
+static struct pdm_driver pdm_mcu_driver = {
+	.driver = {
+		.name = "pdm-mcu",
+		.of_match_table = pdm_mcu_of_match,
+	},
+	.device_type = PDM_CTL_DEVICE_TYPE_MCU,
+	.capabilities = PDM_CTL_DEVICE_CAP_USER_IOCTL,
+	.match = pdm_mcu_match,
+	.probe = pdm_mcu_probe,
+	.remove = pdm_mcu_remove,
+};
 
 static int pdm_mcu_driver_init(void)
 {

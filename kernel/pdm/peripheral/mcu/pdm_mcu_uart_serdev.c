@@ -18,31 +18,6 @@
 #include "pdm_mcu_internal.h"
 #include "osal.h"
 
-static const struct of_device_id pdm_mcu_serdev_of_match[] = {
-	{ .compatible = "pdm,mcu-uart" },
-	{ .compatible = "vendor,pdm-mcu-uart" },
-	{ }
-};
-MODULE_DEVICE_TABLE(of, pdm_mcu_serdev_of_match);
-
-static size_t pdm_mcu_serdev_receive_buf(struct serdev_device *serdev,
-					 const u8 *data, size_t count);
-static int pdm_mcu_serdev_probe(struct serdev_device *serdev);
-static void pdm_mcu_serdev_remove(struct serdev_device *serdev);
-
-static const struct serdev_device_ops pdm_mcu_serdev_ops = {
-	.receive_buf = pdm_mcu_serdev_receive_buf,
-};
-
-static struct serdev_device_driver pdm_mcu_serdev_driver = {
-	.probe = pdm_mcu_serdev_probe,
-	.remove = pdm_mcu_serdev_remove,
-	.driver = {
-		.name = "pdm-mcu-serdev",
-		.of_match_table = pdm_mcu_serdev_of_match,
-	},
-};
-
 static unsigned long pdm_mcu_uart_serdev_deadline(u32 timeout_ms)
 {
 	return jiffies + msecs_to_jiffies(timeout_ms ? timeout_ms : 1U);
@@ -107,6 +82,26 @@ static void pdm_mcu_serdev_remove(struct serdev_device *serdev)
 	pdm_mcu_unregister_bus_device(bus_dev);
 	serdev_device_set_drvdata(serdev, NULL);
 }
+
+static const struct of_device_id pdm_mcu_serdev_of_match[] = {
+	{ .compatible = "pdm,mcu-uart" },
+	{ .compatible = "vendor,pdm-mcu-uart" },
+	{ }
+};
+MODULE_DEVICE_TABLE(of, pdm_mcu_serdev_of_match);
+
+static const struct serdev_device_ops pdm_mcu_serdev_ops = {
+	.receive_buf = pdm_mcu_serdev_receive_buf,
+};
+
+static struct serdev_device_driver pdm_mcu_serdev_driver = {
+	.probe = pdm_mcu_serdev_probe,
+	.remove = pdm_mcu_serdev_remove,
+	.driver = {
+		.name = "pdm-mcu-serdev",
+		.of_match_table = pdm_mcu_serdev_of_match,
+	},
+};
 
 int pdm_mcu_uart_write_bus(struct pdm_mcu_instance *inst,
 			   const u8 *buf, size_t len)
@@ -226,8 +221,7 @@ int pdm_mcu_uart_setup_bus(struct pdm_mcu_instance *inst)
 			inst->transport.uart.rx_timeout_ms = value;
 		}
 		if (!of_property_read_u32(np, "current-speed", &value) ||
-		    !of_property_read_u32(np, "baudrate", &value))
-		{
+		    !of_property_read_u32(np, "baudrate", &value)) {
 			inst->transport.uart.baudrate = value;
 		}
 	}

@@ -22,34 +22,6 @@
 #include "pdm_mcu_internal.h"
 #include "osal.h"
 
-static const struct of_device_id pdm_mcu_can_of_match[] = {
-	{ .compatible = "pdm,mcu-can" },
-	{ .compatible = "vendor,pdm-mcu-can" },
-	{ }
-};
-MODULE_DEVICE_TABLE(of, pdm_mcu_can_of_match);
-
-static int pdm_mcu_can_setup(struct pdm_mcu_instance *inst);
-static void pdm_mcu_can_cleanup(struct pdm_mcu_instance *inst);
-static int pdm_mcu_can_xfer(struct pdm_mcu_instance *inst,
-			    struct pdm_mcu_xfer *xfer);
-static int pdm_mcu_can_cmd_xfer(struct pdm_mcu_instance *inst, u32 command,
-				const u8 *tx, u32 tx_len, u8 *rx, u32 *rx_len);
-static int pdm_mcu_can_data_read(struct pdm_mcu_instance *inst,
-				 u32 *address, u8 *buf, u32 *len);
-static int pdm_mcu_can_data_write(struct pdm_mcu_instance *inst, u32 address,
-				  const u8 *buf, u32 len);
-
-static const struct pdm_mcu_transport_ops pdm_mcu_can_ops = {
-	.name = "can",
-	.capability = PDM_CTL_DEVICE_CAP_TRANSPORT_CAN,
-	.max_tx_size = CAN_MAX_DLEN,
-	.max_rx_size = CAN_MAX_DLEN,
-	.setup = pdm_mcu_can_setup,
-	.cleanup = pdm_mcu_can_cleanup,
-	.xfer = pdm_mcu_can_xfer,
-};
-
 static canid_t pdm_mcu_can_make_id(struct pdm_mcu_instance *inst, u32 id)
 {
 	if (inst->transport.can.extended_id || id > CAN_SFF_MASK) {
@@ -188,8 +160,7 @@ static int pdm_mcu_can_setup(struct pdm_mcu_instance *inst)
 		goto err_put_netdev;
 	}
 
-	if (inst->transport.can.sock->sk)
-	{
+	if (inst->transport.can.sock->sk) {
 		inst->transport.can.sock->sk->sk_rcvtimeo =
 			msecs_to_jiffies(inst->transport.can.rx_timeout_ms);
 	}
@@ -290,6 +261,23 @@ static int pdm_mcu_can_xfer(struct pdm_mcu_instance *inst,
 		return -EINVAL;
 	}
 }
+
+static const struct of_device_id pdm_mcu_can_of_match[] = {
+	{ .compatible = "pdm,mcu-can" },
+	{ .compatible = "vendor,pdm-mcu-can" },
+	{ }
+};
+MODULE_DEVICE_TABLE(of, pdm_mcu_can_of_match);
+
+static const struct pdm_mcu_transport_ops pdm_mcu_can_ops = {
+	.name = "can",
+	.capability = PDM_CTL_DEVICE_CAP_TRANSPORT_CAN,
+	.max_tx_size = CAN_MAX_DLEN,
+	.max_rx_size = CAN_MAX_DLEN,
+	.setup = pdm_mcu_can_setup,
+	.cleanup = pdm_mcu_can_cleanup,
+	.xfer = pdm_mcu_can_xfer,
+};
 
 pdm_backend_register(mcu_can, PDM_CTL_DEVICE_TYPE_MCU,
 		     PDM_BACKEND_CLASS_TRANSPORT, pdm_mcu_can_of_match,

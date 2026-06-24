@@ -16,55 +16,6 @@
 #include "pdm_mcu_internal.h"
 #include "osal.h"
 
-static const struct of_device_id pdm_mcu_i2c_of_match[] = {
-	{ .compatible = "pdm,mcu-i2c" },
-	{ .compatible = "vendor,pdm-mcu-i2c" },
-	{ }
-};
-MODULE_DEVICE_TABLE(of, pdm_mcu_i2c_of_match);
-
-static const struct i2c_device_id pdm_mcu_i2c_id[] = {
-	{ "mcu-i2c", 0 },
-	{ "pdm-mcu-i2c", 0 },
-	{ }
-};
-MODULE_DEVICE_TABLE(i2c, pdm_mcu_i2c_id);
-
-static int pdm_mcu_i2c_setup(struct pdm_mcu_instance *inst);
-static void pdm_mcu_i2c_cleanup(struct pdm_mcu_instance *inst);
-static int pdm_mcu_i2c_xfer(struct pdm_mcu_instance *inst,
-			    struct pdm_mcu_xfer *xfer);
-static int pdm_mcu_i2c_cmd_xfer(struct pdm_mcu_instance *inst, u32 command,
-				const u8 *tx, u32 tx_len, u8 *rx, u32 *rx_len);
-static int pdm_mcu_i2c_data_read(struct pdm_mcu_instance *inst,
-				 u32 *address, u8 *buf, u32 *len);
-static int pdm_mcu_i2c_data_write(struct pdm_mcu_instance *inst, u32 address,
-				  const u8 *buf, u32 len);
-static int pdm_mcu_i2c_probe(struct i2c_client *client);
-static void pdm_mcu_i2c_remove(struct i2c_client *client);
-
-static const struct pdm_mcu_transport_ops pdm_mcu_i2c_ops = {
-	.name = "i2c",
-	.capability = PDM_CTL_DEVICE_CAP_TRANSPORT_I2C,
-	.max_tx_size = PDM_MCU_MAX_TRANSFER_SIZE,
-	.max_rx_size = PDM_MCU_MAX_TRANSFER_SIZE,
-	.setup = pdm_mcu_i2c_setup,
-	.cleanup = pdm_mcu_i2c_cleanup,
-	.xfer = pdm_mcu_i2c_xfer,
-};
-
-static struct pdm_compat_i2c_driver pdm_mcu_i2c_driver = {
-	.driver = {
-		.driver = {
-			.name = "pdm-mcu-i2c",
-			.of_match_table = pdm_mcu_i2c_of_match,
-		},
-		.id_table = pdm_mcu_i2c_id,
-	},
-	.probe = pdm_mcu_i2c_probe,
-	.remove = pdm_mcu_i2c_remove,
-};
-
 static void pdm_mcu_i2c_encode_prefix(u8 *buf, u32 value, u8 bytes)
 {
 	u8 i;
@@ -288,6 +239,42 @@ static void pdm_mcu_i2c_remove(struct i2c_client *client)
 	pdm_mcu_unregister_bus_device(bus_dev);
 	i2c_set_clientdata(client, NULL);
 }
+
+static const struct of_device_id pdm_mcu_i2c_of_match[] = {
+	{ .compatible = "pdm,mcu-i2c" },
+	{ .compatible = "vendor,pdm-mcu-i2c" },
+	{ }
+};
+MODULE_DEVICE_TABLE(of, pdm_mcu_i2c_of_match);
+
+static const struct i2c_device_id pdm_mcu_i2c_id[] = {
+	{ "mcu-i2c", 0 },
+	{ "pdm-mcu-i2c", 0 },
+	{ }
+};
+MODULE_DEVICE_TABLE(i2c, pdm_mcu_i2c_id);
+
+static const struct pdm_mcu_transport_ops pdm_mcu_i2c_ops = {
+	.name = "i2c",
+	.capability = PDM_CTL_DEVICE_CAP_TRANSPORT_I2C,
+	.max_tx_size = PDM_MCU_MAX_TRANSFER_SIZE,
+	.max_rx_size = PDM_MCU_MAX_TRANSFER_SIZE,
+	.setup = pdm_mcu_i2c_setup,
+	.cleanup = pdm_mcu_i2c_cleanup,
+	.xfer = pdm_mcu_i2c_xfer,
+};
+
+static struct pdm_compat_i2c_driver pdm_mcu_i2c_driver = {
+	.driver = {
+		.driver = {
+			.name = "pdm-mcu-i2c",
+			.of_match_table = pdm_mcu_i2c_of_match,
+		},
+		.id_table = pdm_mcu_i2c_id,
+	},
+	.probe = pdm_mcu_i2c_probe,
+	.remove = pdm_mcu_i2c_remove,
+};
 
 static int pdm_mcu_i2c_driver_register(void)
 {

@@ -12,34 +12,6 @@
 #include "pdm_mcu_internal.h"
 #include "osal.h"
 
-static const struct of_device_id pdm_mcu_uart_of_match[] = {
-	{ .compatible = "pdm,mcu-uart" },
-	{ .compatible = "vendor,pdm-mcu-uart" },
-	{ }
-};
-MODULE_DEVICE_TABLE(of, pdm_mcu_uart_of_match);
-
-static int pdm_mcu_uart_setup(struct pdm_mcu_instance *inst);
-static void pdm_mcu_uart_cleanup(struct pdm_mcu_instance *inst);
-static int pdm_mcu_uart_xfer(struct pdm_mcu_instance *inst,
-			     struct pdm_mcu_xfer *xfer);
-static int pdm_mcu_uart_cmd_xfer(struct pdm_mcu_instance *inst, u32 command,
-				 const u8 *tx, u32 tx_len, u8 *rx, u32 *rx_len);
-static int pdm_mcu_uart_data_read(struct pdm_mcu_instance *inst,
-				  u32 *address, u8 *buf, u32 *len);
-static int pdm_mcu_uart_data_write(struct pdm_mcu_instance *inst, u32 address,
-				   const u8 *buf, u32 len);
-
-static const struct pdm_mcu_transport_ops pdm_mcu_uart_ops = {
-	.name = "uart",
-	.capability = PDM_CTL_DEVICE_CAP_TRANSPORT_UART,
-	.max_tx_size = PDM_MCU_MAX_TRANSFER_SIZE,
-	.max_rx_size = PDM_MCU_MAX_TRANSFER_SIZE,
-	.setup = pdm_mcu_uart_setup,
-	.cleanup = pdm_mcu_uart_cleanup,
-	.xfer = pdm_mcu_uart_xfer,
-};
-
 static void pdm_mcu_uart_encode_be32(u8 *buf, u32 value)
 {
 	buf[0] = (u8)(value >> 24);
@@ -215,6 +187,23 @@ int __weak pdm_mcu_uart_driver_register(void)
 void __weak pdm_mcu_uart_driver_unregister(void)
 {
 }
+
+static const struct of_device_id pdm_mcu_uart_of_match[] = {
+	{ .compatible = "pdm,mcu-uart" },
+	{ .compatible = "vendor,pdm-mcu-uart" },
+	{ }
+};
+MODULE_DEVICE_TABLE(of, pdm_mcu_uart_of_match);
+
+static const struct pdm_mcu_transport_ops pdm_mcu_uart_ops = {
+	.name = "uart",
+	.capability = PDM_CTL_DEVICE_CAP_TRANSPORT_UART,
+	.max_tx_size = PDM_MCU_MAX_TRANSFER_SIZE,
+	.max_rx_size = PDM_MCU_MAX_TRANSFER_SIZE,
+	.setup = pdm_mcu_uart_setup,
+	.cleanup = pdm_mcu_uart_cleanup,
+	.xfer = pdm_mcu_uart_xfer,
+};
 
 pdm_backend_register(mcu_uart, PDM_CTL_DEVICE_TYPE_MCU,
 		     PDM_BACKEND_CLASS_TRANSPORT, pdm_mcu_uart_of_match,

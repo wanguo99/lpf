@@ -30,38 +30,6 @@ struct pdm_ctl_match_ctx {
 
 static atomic_t pdm_ctl_open_count = ATOMIC_INIT(0);
 
-static bool pdm_ctl_device_visible(const struct pdm_device *pdm_dev);
-static void pdm_ctl_fill_device_info(struct device *dev,
-				     struct pdm_ctl_device_info *info);
-static int pdm_ctl_count_cb(struct device *dev, void *data);
-static int pdm_ctl_match_index_cb(struct device *dev, void *data);
-static int pdm_ctl_match_name_cb(struct device *dev, void *data);
-static int pdm_ctl_match_capability_cb(struct device *dev, void *data);
-static long pdm_ctl_get_info(unsigned long arg);
-static long pdm_ctl_get_device(unsigned long arg);
-static long pdm_ctl_get_device_by_name(unsigned long arg);
-static long pdm_ctl_get_device_by_capability(unsigned long arg);
-static long pdm_ctl_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
-static int pdm_ctl_open(struct inode *inode, struct file *filp);
-static int pdm_ctl_release(struct inode *inode, struct file *filp);
-
-static const struct file_operations pdm_ctl_fops = {
-	.owner = THIS_MODULE,
-	.open = pdm_ctl_open,
-	.release = pdm_ctl_release,
-	.unlocked_ioctl = pdm_ctl_ioctl,
-#ifdef CONFIG_COMPAT
-	.compat_ioctl = pdm_ctl_ioctl,
-#endif
-};
-
-static struct miscdevice pdm_ctl_miscdev = {
-	.minor = MISC_DYNAMIC_MINOR,
-	.name = PDM_CTL_DEVICE_NAME,
-	.fops = &pdm_ctl_fops,
-	.mode = 0666,
-};
-
 static bool pdm_ctl_device_visible(const struct pdm_device *pdm_dev)
 {
 	if (!pdm_dev || !pdm_dev->id_allocated ||
@@ -315,6 +283,23 @@ static int pdm_ctl_release(struct inode *inode, struct file *filp)
 	atomic_dec_if_positive(&pdm_ctl_open_count);
 	return 0;
 }
+
+static const struct file_operations pdm_ctl_fops = {
+	.owner = THIS_MODULE,
+	.open = pdm_ctl_open,
+	.release = pdm_ctl_release,
+	.unlocked_ioctl = pdm_ctl_ioctl,
+#ifdef CONFIG_COMPAT
+	.compat_ioctl = pdm_ctl_ioctl,
+#endif
+};
+
+static struct miscdevice pdm_ctl_miscdev = {
+	.minor = MISC_DYNAMIC_MINOR,
+	.name = PDM_CTL_DEVICE_NAME,
+	.fops = &pdm_ctl_fops,
+	.mode = 0666,
+};
 
 int pdm_ctl_init(void)
 {

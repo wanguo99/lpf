@@ -15,34 +15,6 @@
 #include "pdm/core/device/pdm_device.h"
 #include "osal.h"
 
-static int pdm_bus_device_match_parent(struct device *dev, const void *data);
-static int pdm_bus_device_probe(struct device *dev);
-static void pdm_bus_device_remove(struct device *dev);
-static int pdm_bus_match_compatible(const struct pdm_device *pdm_dev,
-				    const struct device_driver *drv);
-static int pdm_bus_device_match_impl(struct device *dev,
-				     const struct device_driver *drv);
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 10, 0)
-static int pdm_bus_device_match(struct device *dev, struct device_driver *drv);
-#else
-static int pdm_bus_device_match(struct device *dev,
-				const struct device_driver *drv);
-#endif
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
-struct bus_type pdm_bus_type = {
-#else
-const struct bus_type pdm_bus_type = {
-#endif
-	.name       = "pdm",
-	.probe      = pdm_bus_device_probe,
-	.remove     = pdm_bus_device_remove,
-	.match      = pdm_bus_device_match,
-	.dev_groups = pdm_device_attr_groups,
-};
-EXPORT_SYMBOL_GPL(pdm_bus_type);
-
 static int pdm_bus_device_match_parent(struct device *dev, const void *data)
 {
 	struct device *parent = (struct device *)data;
@@ -160,6 +132,19 @@ static int pdm_bus_device_match(struct device *dev,
 	return pdm_bus_device_match_impl(dev, drv);
 }
 #endif
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
+struct bus_type pdm_bus_type = {
+#else
+const struct bus_type pdm_bus_type = {
+#endif
+	.name       = "pdm",
+	.probe      = pdm_bus_device_probe,
+	.remove     = pdm_bus_device_remove,
+	.match      = pdm_bus_device_match,
+	.dev_groups = pdm_device_attr_groups,
+};
+EXPORT_SYMBOL_GPL(pdm_bus_type);
 
 struct pdm_device *pdm_bus_find_device_by_parent(struct device *parent)
 {
