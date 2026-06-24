@@ -49,7 +49,7 @@ Buildroot will then use the local PDM source tree and skip the git fetch.
 
 `BR2_PACKAGE_PDM_DEFCONFIG` must point to an PDM defconfig available in the PDM
 source tree. Product trees should use a product-specific PDM target. For the
-i.MX6ULL EVK bring-up tree, use:
+i.MX6ULL bring-up tree, use:
 
 ```text
 imx6ull_modules_defconfig
