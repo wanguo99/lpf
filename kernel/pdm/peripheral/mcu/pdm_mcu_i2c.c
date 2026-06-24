@@ -11,12 +11,11 @@
 #include <linux/slab.h>
 #include <linux/string.h>
 
-#include "pdm/compat/pdm_compat_features.h"
+#include "pdm/compat/pdm_compat_i2c.h"
 #include "pdm/core/driver/pdm_backend.h"
 #include "pdm_mcu_internal.h"
 #include "osal.h"
 
-#if IS_ENABLED(CONFIG_PDM_MCU_I2C) && IS_ENABLED(CONFIG_I2C)
 static u8 pdm_mcu_i2c_prefix_bytes(struct device_node *np,
 				   const char *plain_name,
 				   const char *pdm_name,
@@ -210,19 +209,12 @@ static int pdm_mcu_i2c_probe(struct i2c_client *client)
 					      PDM_MCU_BACKEND_I2C, native);
 }
 
-#if PDM_KERNEL_HAS_VOID_I2C_REMOVE
 static void pdm_mcu_i2c_remove(struct i2c_client *client)
-#else
-static int pdm_mcu_i2c_remove(struct i2c_client *client)
-#endif
 {
 	struct pdm_mcu_native_device *native = i2c_get_clientdata(client);
 
 	pdm_mcu_unregister_native_device(native);
 	i2c_set_clientdata(client, NULL);
-#if !PDM_KERNEL_HAS_VOID_I2C_REMOVE
-	return 0;
-#endif
 }
 
 static const struct of_device_id pdm_mcu_i2c_of_match[] = {
@@ -239,31 +231,28 @@ static const struct i2c_device_id pdm_mcu_i2c_id[] = {
 };
 MODULE_DEVICE_TABLE(i2c, pdm_mcu_i2c_id);
 
-static struct i2c_driver pdm_mcu_i2c_driver = {
+static struct pdm_compat_i2c_driver pdm_mcu_i2c_driver = {
 	.driver = {
-		.name = "pdm-mcu-i2c",
-		.of_match_table = pdm_mcu_i2c_of_match,
+		.driver = {
+			.name = "pdm-mcu-i2c",
+			.of_match_table = pdm_mcu_i2c_of_match,
+		},
+		.id_table = pdm_mcu_i2c_id,
 	},
-#if PDM_KERNEL_HAS_I2C_PROBE_ONE_ARG
 	.probe = pdm_mcu_i2c_probe,
-#else
-	.probe_new = pdm_mcu_i2c_probe,
-#endif
 	.remove = pdm_mcu_i2c_remove,
-	.id_table = pdm_mcu_i2c_id,
 };
 
 static int pdm_mcu_i2c_driver_register(void)
 {
-	return i2c_register_driver(THIS_MODULE, &pdm_mcu_i2c_driver);
+	return pdm_compat_i2c_driver_register(&pdm_mcu_i2c_driver);
 }
 
 static void pdm_mcu_i2c_driver_unregister(void)
 {
-	i2c_del_driver(&pdm_mcu_i2c_driver);
+	pdm_compat_i2c_driver_unregister(&pdm_mcu_i2c_driver);
 }
 
 pdm_backend_register(mcu_i2c, PDM_CTL_DEVICE_TYPE_MCU,
 		     PDM_BACKEND_CLASS_TRANSPORT, pdm_mcu_i2c_of_match,
 		     &pdm_mcu_i2c_ops, pdm_mcu_i2c_driver_register, pdm_mcu_i2c_driver_unregister);
-#endif

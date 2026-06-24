@@ -30,6 +30,7 @@ pdm-y += pdm/peripheral/mcu/pdm_mcu_driver.o
 # Automatic PDM backend entries must be linked between these markers.
 pdm-y += pdm/core/driver/pdm_backend_registry_start.o
 pdm-y += pdm/peripheral/mcu/pdm_mcu_uart.o
+pdm-$(CONFIG_PDM_MCU_UART_SERDEV) += pdm/peripheral/mcu/pdm_mcu_uart_serdev.o
 pdm-$(CONFIG_PDM_MCU_CAN) += pdm/peripheral/mcu/pdm_mcu_can.o
 pdm-$(CONFIG_PDM_MCU_I2C) += pdm/peripheral/mcu/pdm_mcu_i2c.o
 pdm-$(CONFIG_PDM_MCU_SPI) += pdm/peripheral/mcu/pdm_mcu_spi.o

@@ -12,8 +12,6 @@
 #include "pdm_led_internal.h"
 #include "osal.h"
 
-#if IS_ENABLED(CONFIG_PWM)
-
 static const struct of_device_id pdm_led_pwm_of_match[] = {
 	{ .compatible = "pdm,led-pwm" },
 	{ .compatible = "vendor,pdm-led-pwm" },
@@ -91,4 +89,3 @@ static const struct pdm_led_backend_ops pdm_led_pwm_ops = {
 pdm_backend_register(led_pwm, PDM_CTL_DEVICE_TYPE_LED,
 		     PDM_BACKEND_CLASS_CONTROL, pdm_led_pwm_of_match,
 		     &pdm_led_pwm_ops, NULL, NULL);
-#endif

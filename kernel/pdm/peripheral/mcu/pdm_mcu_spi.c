@@ -16,7 +16,6 @@
 #include "pdm_mcu_internal.h"
 #include "osal.h"
 
-#if IS_ENABLED(CONFIG_PDM_MCU_SPI) && IS_ENABLED(CONFIG_SPI)
 static u8 pdm_mcu_spi_prefix_bytes(struct device_node *np,
 				   const char *plain_name,
 				   const char *pdm_name,
@@ -254,4 +253,3 @@ static void pdm_mcu_spi_driver_unregister(void)
 pdm_backend_register(mcu_spi, PDM_CTL_DEVICE_TYPE_MCU,
 		     PDM_BACKEND_CLASS_TRANSPORT, pdm_mcu_spi_of_match,
 		     &pdm_mcu_spi_ops, pdm_mcu_spi_driver_register, pdm_mcu_spi_driver_unregister);
-#endif

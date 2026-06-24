@@ -21,7 +21,6 @@
 #include "pdm_mcu_internal.h"
 #include "osal.h"
 
-#if IS_ENABLED(CONFIG_CAN_RAW)
 
 static const struct of_device_id pdm_mcu_can_of_match[] = {
 	{ .compatible = "pdm,mcu-can" },
@@ -249,4 +248,3 @@ static const struct pdm_mcu_transport_ops pdm_mcu_can_ops = {
 pdm_backend_register(mcu_can, PDM_CTL_DEVICE_TYPE_MCU,
 		     PDM_BACKEND_CLASS_TRANSPORT, pdm_mcu_can_of_match,
 		     &pdm_mcu_can_ops, NULL, NULL);
-#endif

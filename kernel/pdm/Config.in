@@ -39,46 +39,46 @@ config PDM_MCU_CAN
 	help
 	  Enable the CAN RAW transport backend for MCU devices described under
 	  the PDM bus controller with compatible "pdm,mcu-can".
-	  The target kernel still needs CAN RAW support for runtime use.
+	  Enable this only when the target kernel provides CONFIG_CAN_RAW.
 
 config PDM_MCU_UART_SERDEV
 	bool "PDM MCU UART serdev transport"
 	default y
 	help
 	  Register a serdev client driver for MCU devices described below a UART
-	  controller node. If the target kernel lacks CONFIG_SERIAL_DEV_BUS, this
-	  backend compiles to a no-op and legacy tty-path UART remains available.
+	  controller node. Enable this only when the target kernel provides
+	  CONFIG_SERIAL_DEV_BUS. Disable it to use tty-path UART only.
 
 config PDM_MCU_I2C
 	bool "PDM MCU I2C transport"
 	default y
 	help
 	  Register an I2C client driver for MCU devices described below an I2C
-	  controller node. If the target kernel lacks CONFIG_I2C, this backend
-	  compiles to a no-op.
+	  controller node. Enable this only when the target kernel provides
+	  CONFIG_I2C.
 
 config PDM_MCU_SPI
 	bool "PDM MCU SPI transport"
 	default y
 	help
 	  Register an SPI client driver for MCU devices described below an SPI
-	  controller node. If the target kernel lacks CONFIG_SPI, this backend
-	  compiles to a no-op.
+	  controller node. Enable this only when the target kernel provides
+	  CONFIG_SPI.
 
 config PDM_LED_GPIO
 	bool "PDM LED GPIO backend"
 	default y
 	help
 	  Enable the GPIO control backend for LED devices described under the
-	  PDM bus controller with compatible "pdm,led-gpio".
-	  The target kernel still needs GPIOLIB support for runtime use.
+	  PDM bus controller with compatible "pdm,led-gpio". Enable this only
+	  when the target kernel provides CONFIG_GPIOLIB.
 
 config PDM_LED_PWM
 	bool "PDM LED PWM backend"
 	default y
 	help
 	  Enable the PWM control backend for LED devices described under the
-	  PDM bus controller with compatible "pdm,led-pwm".
-	  The target kernel still needs PWM support for runtime use.
+	  PDM bus controller with compatible "pdm,led-pwm". Enable this only
+	  when the target kernel provides CONFIG_PWM.
 
 endif # PDM

@@ -107,6 +107,15 @@ struct pdm_mcu_instance {
 };
 
 const struct pdm_mcu_transport_ops *pdm_mcu_transport_select(const char *compatible);
+
+int pdm_mcu_uart_setup_native(struct pdm_mcu_instance *inst);
+void pdm_mcu_uart_cleanup_native(struct pdm_mcu_instance *inst);
+int pdm_mcu_uart_write_native(struct pdm_mcu_instance *inst,
+			      const u8 *buf, size_t len);
+int pdm_mcu_uart_read_native(struct pdm_mcu_instance *inst, u8 *buf,
+			     size_t len);
+int pdm_mcu_uart_driver_register(void);
+void pdm_mcu_uart_driver_unregister(void);
 int pdm_mcu_register_native_device(struct device *parent,
 				   enum pdm_mcu_backend_type type,
 				   struct pdm_mcu_native_device *native);
