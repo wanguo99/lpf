@@ -25,6 +25,24 @@ static const struct of_device_id pdm_mcu_serdev_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, pdm_mcu_serdev_of_match);
 
+static size_t pdm_mcu_serdev_receive_buf(struct serdev_device *serdev,
+					 const u8 *data, size_t count);
+static int pdm_mcu_serdev_probe(struct serdev_device *serdev);
+static void pdm_mcu_serdev_remove(struct serdev_device *serdev);
+
+static const struct serdev_device_ops pdm_mcu_serdev_ops = {
+	.receive_buf = pdm_mcu_serdev_receive_buf,
+};
+
+static struct serdev_device_driver pdm_mcu_serdev_driver = {
+	.probe = pdm_mcu_serdev_probe,
+	.remove = pdm_mcu_serdev_remove,
+	.driver = {
+		.name = "pdm-mcu-serdev",
+		.of_match_table = pdm_mcu_serdev_of_match,
+	},
+};
+
 static unsigned long pdm_mcu_uart_serdev_deadline(u32 timeout_ms)
 {
 	return jiffies + msecs_to_jiffies(timeout_ms ? timeout_ms : 1U);
@@ -48,10 +66,6 @@ static size_t pdm_mcu_serdev_receive_buf(struct serdev_device *serdev,
 	return copied;
 }
 
-static const struct serdev_device_ops pdm_mcu_serdev_ops = {
-	.receive_buf = pdm_mcu_serdev_receive_buf,
-};
-
 static bool pdm_mcu_uart_hw_flow_control(struct device_node *np)
 {
 	const char *flow;
@@ -64,6 +78,28 @@ static bool pdm_mcu_uart_hw_flow_control(struct device_node *np)
 	    !strcmp(flow, "hw"))
 		return true;
 	return false;
+}
+
+static int pdm_mcu_serdev_probe(struct serdev_device *serdev)
+{
+	struct pdm_mcu_native_device *native;
+
+	native = devm_kzalloc(&serdev->dev, sizeof(*native), GFP_KERNEL);
+	if (!native)
+		return -ENOMEM;
+
+	native->bus.serdev = serdev;
+	serdev_device_set_drvdata(serdev, native);
+	return pdm_mcu_register_native_device(&serdev->dev,
+					      PDM_MCU_BACKEND_UART, native);
+}
+
+static void pdm_mcu_serdev_remove(struct serdev_device *serdev)
+{
+	struct pdm_mcu_native_device *native = serdev_device_get_drvdata(serdev);
+
+	pdm_mcu_unregister_native_device(native);
+	serdev_device_set_drvdata(serdev, NULL);
 }
 
 int pdm_mcu_uart_write_native(struct pdm_mcu_instance *inst,
@@ -215,37 +251,6 @@ void pdm_mcu_uart_cleanup_native(struct pdm_mcu_instance *inst)
 	inst->transport.uart.native = NULL;
 	inst->transport.uart.use_serdev = false;
 }
-
-static int pdm_mcu_serdev_probe(struct serdev_device *serdev)
-{
-	struct pdm_mcu_native_device *native;
-
-	native = devm_kzalloc(&serdev->dev, sizeof(*native), GFP_KERNEL);
-	if (!native)
-		return -ENOMEM;
-
-	native->bus.serdev = serdev;
-	serdev_device_set_drvdata(serdev, native);
-	return pdm_mcu_register_native_device(&serdev->dev,
-					      PDM_MCU_BACKEND_UART, native);
-}
-
-static void pdm_mcu_serdev_remove(struct serdev_device *serdev)
-{
-	struct pdm_mcu_native_device *native = serdev_device_get_drvdata(serdev);
-
-	pdm_mcu_unregister_native_device(native);
-	serdev_device_set_drvdata(serdev, NULL);
-}
-
-static struct serdev_device_driver pdm_mcu_serdev_driver = {
-	.probe = pdm_mcu_serdev_probe,
-	.remove = pdm_mcu_serdev_remove,
-	.driver = {
-		.name = "pdm-mcu-serdev",
-		.of_match_table = pdm_mcu_serdev_of_match,
-	},
-};
 
 int pdm_mcu_uart_driver_register(void)
 {

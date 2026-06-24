@@ -8,57 +8,17 @@
 #include "pdm/core/device/pdm_device.h"
 
 static ssize_t pdm_name_show(struct device *dev,
-				     struct device_attribute *attr, char *buf)
-{
-	(void)attr;
-	return pdm_compat_sysfs_emit(buf, "%s\n", dev_name(dev));
-}
-
+				     struct device_attribute *attr, char *buf);
 static ssize_t compatible_show(struct device *dev,
-			       struct device_attribute *attr, char *buf)
-{
-	struct pdm_device *pdm_dev = dev_to_pdm_device(dev);
-
-	(void)attr;
-	return pdm_compat_sysfs_emit(buf, "%s\n",
-				      pdm_dev->compatible ? pdm_dev->compatible : "");
-}
-
+			       struct device_attribute *attr, char *buf);
 static ssize_t pdm_id_show(struct device *dev,
-			   struct device_attribute *attr, char *buf)
-{
-	struct pdm_device *pdm_dev = dev_to_pdm_device(dev);
-
-	(void)attr;
-	return pdm_compat_sysfs_emit(buf, "%d\n", pdm_dev->id);
-}
-
+			   struct device_attribute *attr, char *buf);
 static ssize_t pdm_type_show(struct device *dev,
-				  struct device_attribute *attr, char *buf)
-{
-	struct pdm_device *pdm_dev = dev_to_pdm_device(dev);
-
-	(void)attr;
-	return pdm_compat_sysfs_emit(buf, "%u\n", pdm_dev->type);
-}
-
+			     struct device_attribute *attr, char *buf);
 static ssize_t capabilities_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
-{
-	struct pdm_device *pdm_dev = dev_to_pdm_device(dev);
-
-	(void)attr;
-	return pdm_compat_sysfs_emit(buf, "0x%llx\n",
-				      (unsigned long long)pdm_dev->capabilities);
-}
-
+				 struct device_attribute *attr, char *buf);
 static ssize_t pdm_driver_show(struct device *dev,
-			       struct device_attribute *attr, char *buf)
-{
-	(void)attr;
-	return pdm_compat_sysfs_emit(buf, "%s\n",
-				      dev->driver ? dev->driver->name : "");
-}
+			       struct device_attribute *attr, char *buf);
 
 static DEVICE_ATTR_RO(pdm_name);
 static DEVICE_ATTR_RO(compatible);
@@ -85,3 +45,56 @@ const struct attribute_group *pdm_device_attr_groups[] = {
 	&pdm_device_attr_group,
 	NULL,
 };
+
+static ssize_t pdm_name_show(struct device *dev,
+				     struct device_attribute *attr, char *buf)
+{
+	(void)attr;
+	return pdm_compat_sysfs_emit(buf, "%s\n", dev_name(dev));
+}
+
+static ssize_t compatible_show(struct device *dev,
+			       struct device_attribute *attr, char *buf)
+{
+	struct pdm_device *pdm_dev = dev_to_pdm_device(dev);
+
+	(void)attr;
+	return pdm_compat_sysfs_emit(buf, "%s\n",
+				      pdm_dev->compatible ? pdm_dev->compatible : "");
+}
+
+static ssize_t pdm_id_show(struct device *dev,
+			   struct device_attribute *attr, char *buf)
+{
+	struct pdm_device *pdm_dev = dev_to_pdm_device(dev);
+
+	(void)attr;
+	return pdm_compat_sysfs_emit(buf, "%d\n", pdm_dev->id);
+}
+
+static ssize_t pdm_type_show(struct device *dev,
+			     struct device_attribute *attr, char *buf)
+{
+	struct pdm_device *pdm_dev = dev_to_pdm_device(dev);
+
+	(void)attr;
+	return pdm_compat_sysfs_emit(buf, "%u\n", pdm_dev->type);
+}
+
+static ssize_t capabilities_show(struct device *dev,
+				 struct device_attribute *attr, char *buf)
+{
+	struct pdm_device *pdm_dev = dev_to_pdm_device(dev);
+
+	(void)attr;
+	return pdm_compat_sysfs_emit(buf, "0x%llx\n",
+				      (unsigned long long)pdm_dev->capabilities);
+}
+
+static ssize_t pdm_driver_show(struct device *dev,
+			       struct device_attribute *attr, char *buf)
+{
+	(void)attr;
+	return pdm_compat_sysfs_emit(buf, "%s\n",
+				      dev->driver ? dev->driver->name : "");
+}

@@ -22,13 +22,34 @@
 #include "pdm_mcu_internal.h"
 #include "osal.h"
 
-
 static const struct of_device_id pdm_mcu_can_of_match[] = {
 	{ .compatible = "pdm,mcu-can" },
 	{ .compatible = "vendor,pdm-mcu-can" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, pdm_mcu_can_of_match);
+
+static int pdm_mcu_can_setup(struct pdm_mcu_instance *inst);
+static void pdm_mcu_can_cleanup(struct pdm_mcu_instance *inst);
+static int pdm_mcu_can_write(struct pdm_mcu_instance *inst, const u8 *buf,
+			     u32 len);
+static int pdm_mcu_can_read(struct pdm_mcu_instance *inst, u8 *buf, u32 len);
+static int pdm_mcu_can_xfer(struct pdm_mcu_instance *inst, const u8 *tx,
+			    u32 tx_len, u8 *rx, u32 rx_len);
+
+static const struct pdm_mcu_transport_ops pdm_mcu_can_ops = {
+	.type = PDM_MCU_BACKEND_CAN,
+	.name = "can",
+	.capability = PDM_CTL_DEVICE_CAP_TRANSPORT_CAN,
+	.max_tx_size = PDM_MCU_TRANSPORT_ID_BYTES + CAN_MAX_DLEN,
+	.max_rx_size = PDM_MCU_TRANSPORT_ID_BYTES + CAN_MAX_DLEN,
+	.flags = PDM_MCU_TRANSPORT_F_FRAME_ID_U32,
+	.setup = pdm_mcu_can_setup,
+	.cleanup = pdm_mcu_can_cleanup,
+	.write = pdm_mcu_can_write,
+	.read = pdm_mcu_can_read,
+	.xfer = pdm_mcu_can_xfer,
+};
 
 static canid_t pdm_mcu_can_make_id(struct pdm_mcu_instance *inst, u32 id)
 {
@@ -237,20 +258,6 @@ static int pdm_mcu_can_xfer(struct pdm_mcu_instance *inst,
 
 	return pdm_mcu_can_read(inst, rx, rx_len);
 }
-
-static const struct pdm_mcu_transport_ops pdm_mcu_can_ops = {
-	.type = PDM_MCU_BACKEND_CAN,
-	.name = "can",
-	.capability = PDM_CTL_DEVICE_CAP_TRANSPORT_CAN,
-	.max_tx_size = PDM_MCU_TRANSPORT_ID_BYTES + CAN_MAX_DLEN,
-	.max_rx_size = PDM_MCU_TRANSPORT_ID_BYTES + CAN_MAX_DLEN,
-	.flags = PDM_MCU_TRANSPORT_F_FRAME_ID_U32,
-	.setup = pdm_mcu_can_setup,
-	.cleanup = pdm_mcu_can_cleanup,
-	.write = pdm_mcu_can_write,
-	.read = pdm_mcu_can_read,
-	.xfer = pdm_mcu_can_xfer,
-};
 
 pdm_backend_register(mcu_can, PDM_CTL_DEVICE_TYPE_MCU,
 		     PDM_BACKEND_CLASS_TRANSPORT, pdm_mcu_can_of_match,

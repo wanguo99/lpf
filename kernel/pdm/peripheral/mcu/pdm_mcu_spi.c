@@ -16,6 +16,53 @@
 #include "pdm_mcu_internal.h"
 #include "osal.h"
 
+static const struct of_device_id pdm_mcu_spi_of_match[] = {
+	{ .compatible = "pdm,mcu-spi" },
+	{ .compatible = "vendor,pdm-mcu-spi" },
+	{ }
+};
+MODULE_DEVICE_TABLE(of, pdm_mcu_spi_of_match);
+
+static const struct spi_device_id pdm_mcu_spi_id[] = {
+	{ "mcu-spi", 0 },
+	{ "pdm-mcu-spi", 0 },
+	{ }
+};
+MODULE_DEVICE_TABLE(spi, pdm_mcu_spi_id);
+
+static int pdm_mcu_spi_xfer(struct pdm_mcu_instance *inst, const u8 *tx,
+			    u32 tx_len, u8 *rx, u32 rx_len);
+static int pdm_mcu_spi_setup(struct pdm_mcu_instance *inst);
+static void pdm_mcu_spi_cleanup(struct pdm_mcu_instance *inst);
+static int pdm_mcu_spi_probe(struct spi_device *spi);
+#if PDM_KERNEL_HAS_VOID_SPI_REMOVE
+static void pdm_mcu_spi_remove(struct spi_device *spi);
+#else
+static int pdm_mcu_spi_remove(struct spi_device *spi);
+#endif
+
+static const struct pdm_mcu_transport_ops pdm_mcu_spi_ops = {
+	.type = PDM_MCU_BACKEND_SPI,
+	.name = "spi",
+	.capability = PDM_CTL_DEVICE_CAP_TRANSPORT_SPI,
+	.max_tx_size = PDM_MCU_MAX_TRANSFER_SIZE + PDM_MCU_MAX_PREFIX_BYTES,
+	.max_rx_size = PDM_MCU_MAX_TRANSFER_SIZE,
+	.flags = PDM_MCU_TRANSPORT_F_REGISTER_BUS,
+	.setup = pdm_mcu_spi_setup,
+	.cleanup = pdm_mcu_spi_cleanup,
+	.xfer = pdm_mcu_spi_xfer,
+};
+
+static struct spi_driver pdm_mcu_spi_driver = {
+	.driver = {
+		.name = "pdm-mcu-spi",
+		.of_match_table = pdm_mcu_spi_of_match,
+	},
+	.probe = pdm_mcu_spi_probe,
+	.remove = pdm_mcu_spi_remove,
+	.id_table = pdm_mcu_spi_id,
+};
+
 static u8 pdm_mcu_spi_prefix_bytes(struct device_node *np,
 				   const char *plain_name,
 				   const char *pdm_name,
@@ -92,18 +139,6 @@ static void pdm_mcu_spi_cleanup(struct pdm_mcu_instance *inst)
 	inst->transport.spi.spi = NULL;
 }
 
-static const struct pdm_mcu_transport_ops pdm_mcu_spi_ops = {
-	.type = PDM_MCU_BACKEND_SPI,
-	.name = "spi",
-	.capability = PDM_CTL_DEVICE_CAP_TRANSPORT_SPI,
-	.max_tx_size = PDM_MCU_MAX_TRANSFER_SIZE + PDM_MCU_MAX_PREFIX_BYTES,
-	.max_rx_size = PDM_MCU_MAX_TRANSFER_SIZE,
-	.flags = PDM_MCU_TRANSPORT_F_REGISTER_BUS,
-	.setup = pdm_mcu_spi_setup,
-	.cleanup = pdm_mcu_spi_cleanup,
-	.xfer = pdm_mcu_spi_xfer,
-};
-
 static int pdm_mcu_spi_probe(struct spi_device *spi)
 {
 	struct pdm_mcu_native_device *native;
@@ -132,30 +167,6 @@ static int pdm_mcu_spi_remove(struct spi_device *spi)
 	return 0;
 #endif
 }
-
-static const struct of_device_id pdm_mcu_spi_of_match[] = {
-	{ .compatible = "pdm,mcu-spi" },
-	{ .compatible = "vendor,pdm-mcu-spi" },
-	{ }
-};
-MODULE_DEVICE_TABLE(of, pdm_mcu_spi_of_match);
-
-static const struct spi_device_id pdm_mcu_spi_id[] = {
-	{ "mcu-spi", 0 },
-	{ "pdm-mcu-spi", 0 },
-	{ }
-};
-MODULE_DEVICE_TABLE(spi, pdm_mcu_spi_id);
-
-static struct spi_driver pdm_mcu_spi_driver = {
-	.driver = {
-		.name = "pdm-mcu-spi",
-		.of_match_table = pdm_mcu_spi_of_match,
-	},
-	.probe = pdm_mcu_spi_probe,
-	.remove = pdm_mcu_spi_remove,
-	.id_table = pdm_mcu_spi_id,
-};
 
 static int pdm_mcu_spi_driver_register(void)
 {

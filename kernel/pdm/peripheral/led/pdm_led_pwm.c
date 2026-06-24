@@ -12,12 +12,25 @@
 #include "pdm_led_internal.h"
 #include "osal.h"
 
+static int pdm_led_pwm_setup(struct pdm_led_instance *inst);
+static void pdm_led_pwm_cleanup(struct pdm_led_instance *inst);
+static int pdm_led_pwm_apply(struct pdm_led_instance *inst);
+
 static const struct of_device_id pdm_led_pwm_of_match[] = {
 	{ .compatible = "pdm,led-pwm" },
 	{ .compatible = "vendor,pdm-led-pwm" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, pdm_led_pwm_of_match);
+
+static const struct pdm_led_backend_ops pdm_led_pwm_ops = {
+	.type = PDM_LED_BACKEND_PWM,
+	.name = "pwm",
+	.capability = PDM_CTL_DEVICE_CAP_CONTROL_PWM,
+	.setup = pdm_led_pwm_setup,
+	.cleanup = pdm_led_pwm_cleanup,
+	.apply = pdm_led_pwm_apply,
+};
 
 static int pdm_led_pwm_setup(struct pdm_led_instance *inst)
 {
@@ -76,15 +89,6 @@ static int pdm_led_pwm_apply(struct pdm_led_instance *inst)
 
 	return pwm_apply_might_sleep(inst->hw.pwmdev, &state);
 }
-
-static const struct pdm_led_backend_ops pdm_led_pwm_ops = {
-	.type = PDM_LED_BACKEND_PWM,
-	.name = "pwm",
-	.capability = PDM_CTL_DEVICE_CAP_CONTROL_PWM,
-	.setup = pdm_led_pwm_setup,
-	.cleanup = pdm_led_pwm_cleanup,
-	.apply = pdm_led_pwm_apply,
-};
 
 pdm_backend_register(led_pwm, PDM_CTL_DEVICE_TYPE_LED,
 		     PDM_BACKEND_CLASS_CONTROL, pdm_led_pwm_of_match,

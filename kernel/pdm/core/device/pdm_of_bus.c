@@ -28,6 +28,26 @@ struct pdm_device_list_entry {
 	struct pdm_device *pdm_dev;
 };
 
+static void pdm_of_bus_unregister_devices(struct pdm_of_bus *ctrl);
+static int pdm_of_bus_child_id(struct device_node *child);
+static int pdm_of_bus_probe(struct platform_device *pdev);
+static void pdm_of_bus_remove(struct platform_device *pdev);
+
+static const struct of_device_id pdm_of_bus_of_match[] = {
+	{ .compatible = "vendor,pdm-bus" },
+	{ }
+};
+MODULE_DEVICE_TABLE(of, pdm_of_bus_of_match);
+
+static struct platform_driver pdm_of_bus_driver = {
+	.probe = pdm_of_bus_probe,
+	.remove = pdm_of_bus_remove,
+	.driver = {
+		.name = "pdm-bus-controller",
+		.of_match_table = pdm_of_bus_of_match,
+	},
+};
+
 static void pdm_of_bus_unregister_devices(struct pdm_of_bus *ctrl)
 {
 	struct pdm_device_list_entry *entry, *tmp;
@@ -146,21 +166,6 @@ static void pdm_of_bus_remove(struct platform_device *pdev)
 	pdm_of_bus_unregister_devices(ctrl);
 	LOG_INFO("PDM OF bus enumerator removed");
 }
-
-static const struct of_device_id pdm_of_bus_of_match[] = {
-	{ .compatible = "vendor,pdm-bus" },
-	{ }
-};
-MODULE_DEVICE_TABLE(of, pdm_of_bus_of_match);
-
-static struct platform_driver pdm_of_bus_driver = {
-	.probe = pdm_of_bus_probe,
-	.remove = pdm_of_bus_remove,
-	.driver = {
-		.name = "pdm-bus-controller",
-		.of_match_table = pdm_of_bus_of_match,
-	},
-};
 
 int pdm_of_bus_init(void)
 {

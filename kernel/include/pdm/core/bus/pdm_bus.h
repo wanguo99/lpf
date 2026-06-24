@@ -15,6 +15,30 @@
 
 #include "pdm/core/device/pdm_device.h"
 
+#define drv_to_pdm_driver(__drv) \
+	container_of(__drv, struct pdm_driver, driver)
+
+#define pdm_driver_register(_name, _init, _exit) \
+	static const struct pdm_driver_entry \
+	__pdm_driver_entry_##_name __used \
+	__section("pdm_driver_entries") __aligned(sizeof(void *)) = { \
+		.name = #_name, \
+		.init = _init, \
+		.exit = _exit, \
+	}
+
+#define module_pdm_driver(__pdm_driver) \
+	static int __init __pdm_driver##_init(void) \
+	{ \
+		return pdm_bus_register_driver(THIS_MODULE, &(__pdm_driver)); \
+	} \
+	module_init(__pdm_driver##_init); \
+	static void __exit __pdm_driver##_exit(void) \
+	{ \
+		pdm_bus_unregister_driver(&(__pdm_driver)); \
+	} \
+	module_exit(__pdm_driver##_exit)
+
 /**
  * struct pdm_driver - PDM driver wrapper around struct device_driver
  * @driver: Embedded Linux device driver. Set name and of_match_table here.
@@ -36,8 +60,17 @@ struct pdm_driver {
 	void (*remove)(struct pdm_device *dev);
 };
 
-#define drv_to_pdm_driver(__drv) \
-	container_of(__drv, struct pdm_driver, driver)
+struct pdm_driver_entry {
+	const char *name;
+	int (*init)(void);
+	void (*exit)(void);
+};
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
+extern struct bus_type pdm_bus_type;
+#else
+extern const struct bus_type pdm_bus_type;
+#endif
 
 /**
  * pdm_bus_find_device_by_parent() - find a PDM device by parent device
@@ -52,43 +85,10 @@ int pdm_bus_for_each_dev(void *data, int (*fn)(struct device *dev, void *data));
 int pdm_bus_register_driver(struct module *owner, struct pdm_driver *driver);
 void pdm_bus_unregister_driver(struct pdm_driver *driver);
 
-struct pdm_driver_entry {
-	const char *name;
-	int (*init)(void);
-	void (*exit)(void);
-};
-
-#define pdm_driver_register(_name, _init, _exit) \
-	static const struct pdm_driver_entry \
-	__pdm_driver_entry_##_name __used \
-	__section("pdm_driver_entries") __aligned(sizeof(void *)) = { \
-		.name = #_name, \
-		.init = _init, \
-		.exit = _exit, \
-	}
-
 int pdm_driver_entries_init(void);
 void pdm_driver_entries_exit(void);
 
 int pdm_bus_init(void);
 void pdm_bus_exit(void);
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
-extern struct bus_type pdm_bus_type;
-#else
-extern const struct bus_type pdm_bus_type;
-#endif
-
-#define module_pdm_driver(__pdm_driver) \
-	static int __init __pdm_driver##_init(void) \
-	{ \
-		return pdm_bus_register_driver(THIS_MODULE, &(__pdm_driver)); \
-	} \
-	module_init(__pdm_driver##_init); \
-	static void __exit __pdm_driver##_exit(void) \
-	{ \
-		pdm_bus_unregister_driver(&(__pdm_driver)); \
-	} \
-	module_exit(__pdm_driver##_exit)
 
 #endif /* PDM_BUS_H */

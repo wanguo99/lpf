@@ -19,6 +19,22 @@ static LIST_HEAD(g_lpf_debugfs_roots);
 static osal_mutex_t g_lpf_debugfs_lock;
 static bool g_lpf_debugfs_lock_ready;
 
+static int pdm_debugfs_open(struct inode *inode, struct file *file);
+static ssize_t pdm_debugfs_write(struct file *file,
+				 const char __user *buffer, size_t count,
+				 loff_t *ppos);
+static int pdm_debugfs_lock_init(void);
+static pdm_debugfs_root_t *pdm_debugfs_find_root_locked(const char *root_name);
+static int pdm_debugfs_root_get(const char *root_name,
+				pdm_debugfs_root_t **root_out);
+static void pdm_debugfs_root_put(const char *root_name);
+
+static const struct file_operations g_lpf_debugfs_fops = {
+	.owner = THIS_MODULE,
+	.open = pdm_debugfs_open,
+	.write = pdm_debugfs_write,
+};
+
 static int pdm_debugfs_open(struct inode *inode, struct file *file)
 {
 	file->private_data = inode->i_private;
@@ -65,12 +81,6 @@ static ssize_t pdm_debugfs_write(struct file *file,
 	return count;
 }
 
-static const struct file_operations g_lpf_debugfs_fops = {
-	.owner = THIS_MODULE,
-	.open = pdm_debugfs_open,
-	.write = pdm_debugfs_write,
-};
-
 static int pdm_debugfs_lock_init(void)
 {
 	int ret;
@@ -86,8 +96,7 @@ static int pdm_debugfs_lock_init(void)
 	return 0;
 }
 
-static pdm_debugfs_root_t *
-pdm_debugfs_find_root_locked(const char *root_name)
+static pdm_debugfs_root_t *pdm_debugfs_find_root_locked(const char *root_name)
 {
 	pdm_debugfs_root_t *root;
 

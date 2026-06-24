@@ -18,11 +18,6 @@
 #include "pdm_mcu_internal.h"
 #include "osal.h"
 
-static unsigned long pdm_mcu_uart_deadline(u32 timeout_ms)
-{
-	return jiffies + msecs_to_jiffies(timeout_ms ? timeout_ms : 1U);
-}
-
 static const struct of_device_id pdm_mcu_uart_of_match[] = {
 	{ .compatible = "pdm,mcu-uart" },
 	{ .compatible = "vendor,pdm-mcu-uart" },
@@ -30,42 +25,31 @@ static const struct of_device_id pdm_mcu_uart_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, pdm_mcu_uart_of_match);
 
-int __weak pdm_mcu_uart_write_native(struct pdm_mcu_instance *inst,
-				      const u8 *buf, size_t len)
-{
-	(void)inst;
-	(void)buf;
-	(void)len;
-	return -ENODEV;
-}
+static int pdm_mcu_uart_setup(struct pdm_mcu_instance *inst);
+static void pdm_mcu_uart_cleanup(struct pdm_mcu_instance *inst);
+static int pdm_mcu_uart_write(struct pdm_mcu_instance *inst, const u8 *buf,
+			      u32 len);
+static int pdm_mcu_uart_read(struct pdm_mcu_instance *inst, u8 *buf, u32 len);
+static int pdm_mcu_uart_xfer(struct pdm_mcu_instance *inst, const u8 *tx,
+			     u32 tx_len, u8 *rx, u32 rx_len);
 
-int __weak pdm_mcu_uart_read_native(struct pdm_mcu_instance *inst, u8 *buf,
-				     size_t len)
-{
-	(void)inst;
-	(void)buf;
-	(void)len;
-	return -ENODEV;
-}
+static const struct pdm_mcu_transport_ops pdm_mcu_uart_ops = {
+	.type = PDM_MCU_BACKEND_UART,
+	.name = "uart",
+	.capability = PDM_CTL_DEVICE_CAP_TRANSPORT_UART,
+	.max_tx_size = PDM_MCU_MAX_TRANSFER_SIZE,
+	.max_rx_size = PDM_MCU_MAX_TRANSFER_SIZE,
+	.flags = PDM_MCU_TRANSPORT_F_BYTE_STREAM,
+	.setup = pdm_mcu_uart_setup,
+	.cleanup = pdm_mcu_uart_cleanup,
+	.write = pdm_mcu_uart_write,
+	.read = pdm_mcu_uart_read,
+	.xfer = pdm_mcu_uart_xfer,
+};
 
-int __weak pdm_mcu_uart_setup_native(struct pdm_mcu_instance *inst)
+static unsigned long pdm_mcu_uart_deadline(u32 timeout_ms)
 {
-	(void)inst;
-	return -ENODEV;
-}
-
-void __weak pdm_mcu_uart_cleanup_native(struct pdm_mcu_instance *inst)
-{
-	(void)inst;
-}
-
-int __weak pdm_mcu_uart_driver_register(void)
-{
-	return 0;
-}
-
-void __weak pdm_mcu_uart_driver_unregister(void)
-{
+	return jiffies + msecs_to_jiffies(timeout_ms ? timeout_ms : 1U);
 }
 
 static int pdm_mcu_uart_write_file(struct pdm_mcu_instance *inst,
@@ -248,19 +232,43 @@ static int pdm_mcu_uart_xfer(struct pdm_mcu_instance *inst,
 	return pdm_mcu_uart_read_bytes(inst, rx, rx_len);
 }
 
-static const struct pdm_mcu_transport_ops pdm_mcu_uart_ops = {
-	.type = PDM_MCU_BACKEND_UART,
-	.name = "uart",
-	.capability = PDM_CTL_DEVICE_CAP_TRANSPORT_UART,
-	.max_tx_size = PDM_MCU_MAX_TRANSFER_SIZE,
-	.max_rx_size = PDM_MCU_MAX_TRANSFER_SIZE,
-	.flags = PDM_MCU_TRANSPORT_F_BYTE_STREAM,
-	.setup = pdm_mcu_uart_setup,
-	.cleanup = pdm_mcu_uart_cleanup,
-	.write = pdm_mcu_uart_write,
-	.read = pdm_mcu_uart_read,
-	.xfer = pdm_mcu_uart_xfer,
-};
+int __weak pdm_mcu_uart_write_native(struct pdm_mcu_instance *inst,
+				      const u8 *buf, size_t len)
+{
+	(void)inst;
+	(void)buf;
+	(void)len;
+	return -ENODEV;
+}
+
+int __weak pdm_mcu_uart_read_native(struct pdm_mcu_instance *inst, u8 *buf,
+				     size_t len)
+{
+	(void)inst;
+	(void)buf;
+	(void)len;
+	return -ENODEV;
+}
+
+int __weak pdm_mcu_uart_setup_native(struct pdm_mcu_instance *inst)
+{
+	(void)inst;
+	return -ENODEV;
+}
+
+void __weak pdm_mcu_uart_cleanup_native(struct pdm_mcu_instance *inst)
+{
+	(void)inst;
+}
+
+int __weak pdm_mcu_uart_driver_register(void)
+{
+	return 0;
+}
+
+void __weak pdm_mcu_uart_driver_unregister(void)
+{
+}
 
 pdm_backend_register(mcu_uart, PDM_CTL_DEVICE_TYPE_MCU,
 		     PDM_BACKEND_CLASS_TRANSPORT, pdm_mcu_uart_of_match,

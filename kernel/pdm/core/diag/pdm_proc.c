@@ -18,6 +18,20 @@ static osal_mutex_t g_lpf_proc_lock;
 static bool g_lpf_proc_lock_ready;
 static uint32_t g_lpf_proc_users;
 
+static int pdm_proc_open(struct inode *inode, struct file *file);
+static ssize_t pdm_proc_write(struct file *file, const char __user *buffer,
+			      size_t count, loff_t *ppos);
+static int pdm_proc_root_init(void);
+static void pdm_proc_root_deinit(void);
+
+static const struct proc_ops pdm_proc_ops = {
+	.proc_open = pdm_proc_open,
+	.proc_read = seq_read,
+	.proc_write = pdm_proc_write,
+	.proc_lseek = seq_lseek,
+	.proc_release = single_release,
+};
+
 static int pdm_proc_open(struct inode *inode, struct file *file)
 {
 	pdm_proc_entry_t *entry = pde_data(inode);
@@ -66,14 +80,6 @@ static ssize_t pdm_proc_write(struct file *file, const char __user *buffer,
 
 	return count;
 }
-
-static const struct proc_ops pdm_proc_ops = {
-	.proc_open = pdm_proc_open,
-	.proc_read = seq_read,
-	.proc_write = pdm_proc_write,
-	.proc_lseek = seq_lseek,
-	.proc_release = single_release,
-};
 
 static int pdm_proc_root_init(void)
 {

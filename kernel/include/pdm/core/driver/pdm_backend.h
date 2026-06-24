@@ -13,6 +13,20 @@
 
 #include "pdm/pdm_ctl.h"
 
+#define pdm_backend_register(_name, _device_type, _class, _matches, _ops, \
+			     _init, _exit) \
+	static const struct pdm_backend_entry \
+	__pdm_backend_entry_##_name __used \
+	__section("pdm_backend_entries") __aligned(sizeof(void *)) = { \
+		.name = #_name, \
+		.device_type = _device_type, \
+		.backend_class = _class, \
+		.matches = _matches, \
+		.ops = _ops, \
+		.init = _init, \
+		.exit = _exit, \
+	}
+
 enum pdm_backend_class {
 	PDM_BACKEND_CLASS_TRANSPORT = 0,
 	PDM_BACKEND_CLASS_CONTROL,
@@ -28,20 +42,6 @@ struct pdm_backend_entry {
 	int (*init)(void);
 	void (*exit)(void);
 };
-
-#define pdm_backend_register(_name, _device_type, _class, _matches, _ops, \
-			     _init, _exit) \
-	static const struct pdm_backend_entry \
-	__pdm_backend_entry_##_name __used \
-	__section("pdm_backend_entries") __aligned(sizeof(void *)) = { \
-		.name = #_name, \
-		.device_type = _device_type, \
-		.backend_class = _class, \
-		.matches = _matches, \
-		.ops = _ops, \
-		.init = _init, \
-		.exit = _exit, \
-	}
 
 int pdm_backend_entries_init(void);
 void pdm_backend_entries_exit(void);

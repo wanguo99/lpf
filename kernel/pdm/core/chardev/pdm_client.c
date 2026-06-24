@@ -18,6 +18,19 @@
 static dev_t pdm_client_devt;
 static DEFINE_IDA(pdm_client_ida);
 
+static umode_t pdm_client_devnode_mode(void);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
+static char *pdm_client_devnode(struct device *dev, umode_t *mode);
+#else
+static char *pdm_client_devnode(const struct device *dev, umode_t *mode);
+#endif
+static void pdm_client_device_release(struct device *dev);
+
+static struct class pdm_client_class = {
+	.name = "pdm",
+	.devnode = pdm_client_devnode,
+};
+
 static umode_t pdm_client_devnode_mode(void)
 {
 	unsigned int mode = 0660;
@@ -60,11 +73,6 @@ static void pdm_client_device_release(struct device *dev)
 	if (release)
 		release(client);
 }
-
-static struct class pdm_client_class = {
-	.name = "pdm",
-	.devnode = pdm_client_devnode,
-};
 
 int pdm_client_default_open(struct inode *inode, struct file *filp)
 {

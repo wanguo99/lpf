@@ -22,6 +22,69 @@
 
 static atomic_t pdm_led_device_count = ATOMIC_INIT(0);
 
+static int pdm_led_memory_setup(struct pdm_led_instance *inst);
+static void pdm_led_memory_cleanup(struct pdm_led_instance *inst);
+static int pdm_led_memory_apply(struct pdm_led_instance *inst);
+static bool pdm_led_is_generic_compatible(const char *compatible);
+static bool pdm_led_match(const struct pdm_device *pdm_dev);
+static int pdm_led_read_dt_config(struct pdm_led_instance *inst);
+static long pdm_led_get_info(struct pdm_client *client, unsigned long arg);
+static long pdm_led_get_state(struct pdm_led_instance *inst, unsigned long arg);
+static int pdm_led_apply_locked(struct pdm_led_instance *inst);
+static long pdm_led_set_brightness(struct pdm_led_instance *inst,
+				   unsigned long arg);
+static long pdm_led_set_enabled(struct pdm_led_instance *inst,
+				unsigned long arg, bool enabled);
+static long pdm_led_ioctl(struct file *filp, unsigned int cmd,
+			  unsigned long arg);
+static void pdm_led_client_release(struct pdm_client *client);
+static int pdm_led_probe(struct pdm_device *pdm_dev);
+static void pdm_led_remove(struct pdm_device *pdm_dev);
+static int pdm_led_driver_init(void);
+static void pdm_led_driver_exit(void);
+
+static const struct pdm_led_backend_ops pdm_led_memory_ops = {
+	.type = PDM_LED_BACKEND_MEMORY,
+	.name = "memory",
+	.capability = PDM_CTL_DEVICE_CAP_NONE,
+	.setup = pdm_led_memory_setup,
+	.cleanup = pdm_led_memory_cleanup,
+	.apply = pdm_led_memory_apply,
+};
+
+static const struct file_operations pdm_led_fops = {
+	.owner = THIS_MODULE,
+	.open = pdm_client_default_open,
+	.release = pdm_client_default_release,
+	.unlocked_ioctl = pdm_led_ioctl,
+#ifdef CONFIG_COMPAT
+	.compat_ioctl = pdm_led_ioctl,
+#endif
+};
+
+static const struct of_device_id pdm_led_of_match[] = {
+	{ .compatible = "pdm,led" },
+	{ .compatible = "pdm,led-gpio" },
+	{ .compatible = "pdm,led-pwm" },
+	{ .compatible = "vendor,pdm-led" },
+	{ .compatible = "vendor,pdm-led-gpio" },
+	{ .compatible = "vendor,pdm-led-pwm" },
+	{ }
+};
+MODULE_DEVICE_TABLE(of, pdm_led_of_match);
+
+static struct pdm_driver pdm_led_driver = {
+	.driver = {
+		.name = "pdm-led",
+		.of_match_table = pdm_led_of_match,
+	},
+	.device_type = PDM_CTL_DEVICE_TYPE_LED,
+	.capabilities = PDM_CTL_DEVICE_CAP_USER_IOCTL,
+	.match = pdm_led_match,
+	.probe = pdm_led_probe,
+	.remove = pdm_led_remove,
+};
+
 static int pdm_led_memory_setup(struct pdm_led_instance *inst)
 {
 	(void)inst;
@@ -39,34 +102,10 @@ static int pdm_led_memory_apply(struct pdm_led_instance *inst)
 	return 0;
 }
 
-static const struct pdm_led_backend_ops pdm_led_memory_ops = {
-	.type = PDM_LED_BACKEND_MEMORY,
-	.name = "memory",
-	.capability = PDM_CTL_DEVICE_CAP_NONE,
-	.setup = pdm_led_memory_setup,
-	.cleanup = pdm_led_memory_cleanup,
-	.apply = pdm_led_memory_apply,
-};
-
 static bool pdm_led_is_generic_compatible(const char *compatible)
 {
 	return !compatible || !strcmp(compatible, "pdm,led") ||
 	       !strcmp(compatible, "vendor,pdm-led");
-}
-
-const struct pdm_led_backend_ops *pdm_led_backend_select(const char *compatible)
-{
-	const struct pdm_backend_entry *entry;
-
-	if (pdm_led_is_generic_compatible(compatible))
-		return &pdm_led_memory_ops;
-
-	entry = pdm_backend_find(PDM_CTL_DEVICE_TYPE_LED,
-				 PDM_BACKEND_CLASS_CONTROL, compatible);
-	if (entry)
-		return entry->ops;
-
-	return &pdm_led_memory_ops;
 }
 
 static bool pdm_led_match(const struct pdm_device *pdm_dev)
@@ -177,7 +216,8 @@ static int pdm_led_apply_locked(struct pdm_led_instance *inst)
 	return inst->ops->apply(inst);
 }
 
-static long pdm_led_set_brightness(struct pdm_led_instance *inst, unsigned long arg)
+static long pdm_led_set_brightness(struct pdm_led_instance *inst,
+				   unsigned long arg)
 {
 	struct pdm_led_brightness brightness;
 	u32 old_brightness;
@@ -212,8 +252,8 @@ out_unlock:
 	return ret;
 }
 
-static long pdm_led_set_enabled(struct pdm_led_instance *inst, unsigned long arg,
-				bool enabled)
+static long pdm_led_set_enabled(struct pdm_led_instance *inst,
+				unsigned long arg, bool enabled)
 {
 	u32 index;
 	u32 old_enabled;
@@ -263,16 +303,6 @@ static long pdm_led_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		return -ENOTTY;
 	}
 }
-
-static const struct file_operations pdm_led_fops = {
-	.owner = THIS_MODULE,
-	.open = pdm_client_default_open,
-	.release = pdm_client_default_release,
-	.unlocked_ioctl = pdm_led_ioctl,
-#ifdef CONFIG_COMPAT
-	.compat_ioctl = pdm_led_ioctl,
-#endif
-};
 
 static void pdm_led_client_release(struct pdm_client *client)
 {
@@ -351,28 +381,20 @@ static void pdm_led_remove(struct pdm_device *pdm_dev)
 	pdm_client_unregister(&inst->client);
 }
 
-static const struct of_device_id pdm_led_of_match[] = {
-	{ .compatible = "pdm,led" },
-	{ .compatible = "pdm,led-gpio" },
-	{ .compatible = "pdm,led-pwm" },
-	{ .compatible = "vendor,pdm-led" },
-	{ .compatible = "vendor,pdm-led-gpio" },
-	{ .compatible = "vendor,pdm-led-pwm" },
-	{ }
-};
-MODULE_DEVICE_TABLE(of, pdm_led_of_match);
+const struct pdm_led_backend_ops *pdm_led_backend_select(const char *compatible)
+{
+	const struct pdm_backend_entry *entry;
 
-static struct pdm_driver pdm_led_driver = {
-	.driver = {
-		.name = "pdm-led",
-		.of_match_table = pdm_led_of_match,
-	},
-	.device_type = PDM_CTL_DEVICE_TYPE_LED,
-	.capabilities = PDM_CTL_DEVICE_CAP_USER_IOCTL,
-	.match = pdm_led_match,
-	.probe = pdm_led_probe,
-	.remove = pdm_led_remove,
-};
+	if (pdm_led_is_generic_compatible(compatible))
+		return &pdm_led_memory_ops;
+
+	entry = pdm_backend_find(PDM_CTL_DEVICE_TYPE_LED,
+				 PDM_BACKEND_CLASS_CONTROL, compatible);
+	if (entry)
+		return entry->ops;
+
+	return &pdm_led_memory_ops;
+}
 
 static int pdm_led_driver_init(void)
 {

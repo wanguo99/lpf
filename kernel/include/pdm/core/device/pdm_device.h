@@ -12,6 +12,12 @@
 
 #include "pdm/pdm_ctl.h"
 
+#define dev_to_pdm_device(__dev) \
+	container_of(__dev, struct pdm_device, dev)
+
+#define pdm_device_to_dev(__pdm_dev) \
+	(&(__pdm_dev)->dev)
+
 /**
  * struct pdm_device - device registered on the PDM bus
  * @dev: Embedded Linux device.
@@ -40,12 +46,6 @@ struct pdm_device {
 	bool id_allocated;
 };
 
-#define dev_to_pdm_device(__dev) \
-	container_of(__dev, struct pdm_device, dev)
-
-#define pdm_device_to_dev(__pdm_dev) \
-	(&(__pdm_dev)->dev)
-
 static inline void *pdm_device_get_drvdata(struct pdm_device *pdm_dev)
 {
 	return dev_get_drvdata(&pdm_dev->dev);
@@ -55,7 +55,6 @@ static inline void pdm_device_set_drvdata(struct pdm_device *pdm_dev, void *data
 {
 	dev_set_drvdata(&pdm_dev->dev, data);
 }
-
 
 static inline void pdm_device_set_state(struct pdm_device *pdm_dev, u32 state)
 {
