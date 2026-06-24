@@ -142,8 +142,9 @@ static long pdm_mcu_get_version(struct pdm_mcu_instance *inst, unsigned long arg
 		return -EFAULT;
 
 	ret = pdm_mcu_claim_device(inst);
-	if (!ret)
+	if (!ret) {
 		ret = pdm_mcu_protocol_get_version(inst, &version);
+	}
 	ret = pdm_mcu_record_result(inst, ret);
 	pdm_mcu_release_device(inst);
 	if (ret)
@@ -163,8 +164,9 @@ static long pdm_mcu_get_status(struct pdm_mcu_instance *inst, unsigned long arg)
 		return -EFAULT;
 
 	ret = pdm_mcu_claim_device(inst);
-	if (!ret)
+	if (!ret) {
 		ret = pdm_mcu_protocol_get_status(inst, &status);
+	}
 	ret = pdm_mcu_record_result(inst, ret);
 	pdm_mcu_release_device(inst);
 	if (ret)
@@ -201,8 +203,9 @@ static long pdm_mcu_reset(struct pdm_mcu_instance *inst, unsigned long arg)
 		return -EFAULT;
 
 	ret = pdm_mcu_claim_device(inst);
-	if (!ret)
+	if (!ret) {
 		ret = pdm_mcu_protocol_reset(inst, index);
+	}
 	ret = pdm_mcu_record_result(inst, ret);
 	pdm_mcu_release_device(inst);
 	return ret;
@@ -217,8 +220,9 @@ static long pdm_mcu_command_ioctl(struct pdm_mcu_instance *inst, unsigned long a
 		return -EFAULT;
 
 	ret = pdm_mcu_claim_device(inst);
-	if (!ret)
+	if (!ret) {
 		ret = pdm_mcu_protocol_command(inst, &command);
+	}
 	ret = pdm_mcu_record_result(inst, ret);
 	pdm_mcu_release_device(inst);
 	if (ret)
@@ -238,8 +242,9 @@ static long pdm_mcu_read_data_ioctl(struct pdm_mcu_instance *inst, unsigned long
 		return -EFAULT;
 
 	ret = pdm_mcu_claim_device(inst);
-	if (!ret)
+	if (!ret) {
 		ret = pdm_mcu_protocol_read_data(inst, &data);
+	}
 	ret = pdm_mcu_record_result(inst, ret);
 	pdm_mcu_release_device(inst);
 	if (ret)
@@ -259,8 +264,9 @@ static long pdm_mcu_write_data_ioctl(struct pdm_mcu_instance *inst, unsigned lon
 		return -EFAULT;
 
 	ret = pdm_mcu_claim_device(inst);
-	if (!ret)
+	if (!ret) {
 		ret = pdm_mcu_protocol_write_data(inst, &data);
+	}
 	ret = pdm_mcu_record_result(inst, ret);
 	pdm_mcu_release_device(inst);
 	return ret;
