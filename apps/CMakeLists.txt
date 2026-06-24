@@ -1,5 +1,5 @@
-if(CONFIG_DEBUG_STUDY)
-    add_subdirectory(debug_study)
+if(CONFIG_PRINT_TEST)
+    add_subdirectory(print_test)
 endif()
 
 if(CONFIG_SMART_MONITOR)

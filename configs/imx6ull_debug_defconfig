@@ -1,8 +1,8 @@
 # ============================================================================
-# PDM debug_study build configuration
+# PDM print_test build configuration
 # ============================================================================
 
-CONFIG_PROJECT_NAME="debug_study"
+CONFIG_PROJECT_NAME="print_test"
 CONFIG_PROJECT_VERSION="1.0.0"
 
 CONFIG_OS_LINUX=y
@@ -12,6 +12,6 @@ CONFIG_PLATFORM_LINUX=y
 CONFIG_OSAL=m
 CONFIG_PDM=m
 CONFIG_OSAL_PROFILE_STANDARD=y
-CONFIG_DEBUG_STUDY=y
+CONFIG_PRINT_TEST=y
 CONFIG_SMART_MONITOR=y
 CONFIG_MEMORY_MONITOR=y
