@@ -28,7 +28,6 @@ struct pdm_mock_device_entry {
 };
 
 static const struct pdm_mock_device_desc pdm_mock_device_descs[] = {
-	{ .name = "mcu", .compatible = "pdm,mcu", .id = 0 },
 	{ .name = "led", .compatible = "pdm,led", .id = 0 },
 };
 

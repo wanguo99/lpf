@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /**
  * @file pdm_mcu_driver.c
- * @brief PDM MCU bus driver with generic, UART and CAN transports
+ * @brief PDM MCU bus driver with registered transport backends
  */
 
 #include <linux/atomic.h>
@@ -36,7 +36,7 @@ static const char *pdm_mcu_default_compatible(enum pdm_mcu_backend_type type)
 	case PDM_MCU_BACKEND_CAN:
 		return "pdm,mcu-can";
 	default:
-		return "pdm,mcu";
+		return NULL;
 	}
 }
 
@@ -99,8 +99,7 @@ int pdm_mcu_register_native_device(struct device *parent,
 		return ret;
 	}
 
-	LOG_INFO("Created native %s device %s",
-		 pdm_mcu_default_compatible(type), name);
+	LOG_INFO("Created native %s device %s", compatible, name);
 	return 0;
 }
 
@@ -114,90 +113,25 @@ void pdm_mcu_unregister_native_device(struct pdm_mcu_native_device *native)
 	native->inst = NULL;
 }
 
-static int pdm_mcu_memory_setup(struct pdm_mcu_instance *inst)
-{
-	(void)inst;
-	return 0;
-}
-
-static void pdm_mcu_memory_cleanup(struct pdm_mcu_instance *inst)
-{
-	(void)inst;
-}
-
-static int pdm_mcu_memory_reset(struct pdm_mcu_instance *inst)
-{
-	(void)inst;
-	return 0;
-}
-
-static int pdm_mcu_memory_command(struct pdm_mcu_instance *inst,
-				  struct pdm_mcu_command *command)
-{
-	(void)inst;
-	(void)command;
-	return -EOPNOTSUPP;
-}
-
-static int pdm_mcu_memory_read_data(struct pdm_mcu_instance *inst,
-				    struct pdm_mcu_data *data)
-{
-	(void)inst;
-	(void)data;
-	return -EOPNOTSUPP;
-}
-
-static int pdm_mcu_memory_write_data(struct pdm_mcu_instance *inst,
-				     const struct pdm_mcu_data *data)
-{
-	(void)inst;
-	(void)data;
-	return -EOPNOTSUPP;
-}
-
-static const struct pdm_mcu_transport_ops pdm_mcu_memory_ops = {
-	.type = PDM_MCU_BACKEND_MEMORY,
-	.name = "memory",
-	.capability = PDM_CTL_DEVICE_CAP_NONE,
-	.setup = pdm_mcu_memory_setup,
-	.cleanup = pdm_mcu_memory_cleanup,
-	.reset = pdm_mcu_memory_reset,
-	.command = pdm_mcu_memory_command,
-	.read_data = pdm_mcu_memory_read_data,
-	.write_data = pdm_mcu_memory_write_data,
-};
-
-static bool pdm_mcu_is_generic_compatible(const char *compatible)
-{
-	return !compatible || !strcmp(compatible, "pdm,mcu") ||
-	       !strcmp(compatible, "vendor,pdm-mcu");
-}
-
 const struct pdm_mcu_transport_ops *pdm_mcu_transport_select(const char *compatible)
 {
 	const struct pdm_backend_entry *entry;
 
-	if (pdm_mcu_is_generic_compatible(compatible))
-		return &pdm_mcu_memory_ops;
-
 	entry = pdm_backend_find(PDM_CTL_DEVICE_TYPE_MCU,
 				 PDM_BACKEND_CLASS_TRANSPORT, compatible);
-	if (entry)
-		return entry->ops;
+	return entry ? entry->ops : NULL;
+}
 
-	return &pdm_mcu_memory_ops;
+static bool pdm_mcu_has_transport_compatible(const char *compatible)
+{
+	return compatible &&
+	       (strstarts(compatible, "pdm,mcu-") ||
+		strstarts(compatible, "vendor,pdm-mcu-"));
 }
 
 static bool pdm_mcu_match(const struct pdm_device *pdm_dev)
 {
-	if (!pdm_dev)
-		return false;
-	if (pdm_mcu_is_generic_compatible(pdm_dev->compatible))
-		return true;
-
-	return pdm_backend_find(PDM_CTL_DEVICE_TYPE_MCU,
-				PDM_BACKEND_CLASS_TRANSPORT,
-				pdm_dev->compatible) != NULL;
+	return pdm_dev && pdm_mcu_has_transport_compatible(pdm_dev->compatible);
 }
 
 static int pdm_mcu_record_result(struct pdm_mcu_instance *inst, int ret)
@@ -432,6 +366,12 @@ static int pdm_mcu_probe(struct pdm_device *pdm_dev)
 
 	inst->pdm_dev = pdm_dev;
 	inst->ops = pdm_mcu_transport_select(pdm_dev->compatible);
+	if (!inst->ops) {
+		LOG_ERROR("No MCU transport backend for compatible %s",
+			  pdm_dev->compatible ? pdm_dev->compatible : "<none>");
+		ret = -ENODEV;
+		goto err_free;
+	}
 	inst->start_time = ktime_get();
 	inst->online = true;
 	inst->state = PDM_MCU_STATE_READY;
@@ -482,12 +422,10 @@ static void pdm_mcu_remove(struct pdm_device *pdm_dev)
 }
 
 static const struct of_device_id pdm_mcu_of_match[] = {
-	{ .compatible = "pdm,mcu" },
 	{ .compatible = "pdm,mcu-uart" },
 	{ .compatible = "pdm,mcu-can" },
 	{ .compatible = "pdm,mcu-i2c" },
 	{ .compatible = "pdm,mcu-spi" },
-	{ .compatible = "vendor,pdm-mcu" },
 	{ .compatible = "vendor,pdm-mcu-uart" },
 	{ .compatible = "vendor,pdm-mcu-can" },
 	{ .compatible = "vendor,pdm-mcu-i2c" },
