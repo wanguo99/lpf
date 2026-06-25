@@ -289,25 +289,9 @@ static const struct pdm_led_backend_ops pdm_led_memory_ops = {
 	.apply = pdm_led_memory_apply,
 };
 
-const struct pdm_led_backend_ops *pdm_led_backend_select(const char *compatible)
-{
-	const struct pdm_backend_entry *entry;
-
-	if (pdm_led_is_generic_compatible(compatible)) {
-		return &pdm_led_memory_ops;
-	}
-
-	entry = pdm_backend_find(PDM_LED_DEVICE_TYPE,
-				 PDM_BACKEND_CLASS_CONTROL, compatible);
-	if (entry) {
-		return entry->ops;
-	}
-
-	return &pdm_led_memory_ops;
-}
-
 static int pdm_led_probe(struct pdm_device *pdm_dev)
 {
+	const struct pdm_backend_entry *entry;
 	struct pdm_led_instance *inst;
 	char nodename[32];
 	int ret;
@@ -318,7 +302,16 @@ static int pdm_led_probe(struct pdm_device *pdm_dev)
 	}
 
 	pdm_driver_init(&inst->base, pdm_dev);
-	inst->ops = pdm_led_backend_select(pdm_dev->compatible);
+
+	/* Select backend: generic compatible uses memory, otherwise find backend */
+	if (pdm_led_is_generic_compatible(pdm_dev->compatible)) {
+		inst->ops = &pdm_led_memory_ops;
+	} else {
+		entry = pdm_backend_find(PDM_LED_DEVICE_TYPE,
+					 PDM_BACKEND_CLASS_CONTROL,
+					 pdm_dev->compatible);
+		inst->ops = entry ? entry->ops : &pdm_led_memory_ops;
+	}
 
 	ret = pdm_led_read_dt_config(inst);
 	if (ret) {

@@ -272,17 +272,9 @@ static void pdm_mcu_client_release(struct pdm_client *client)
 	kfree(inst);
 }
 
-const struct pdm_mcu_transport_ops *pdm_mcu_transport_select(const char *compatible)
-{
-	const struct pdm_backend_entry *entry;
-
-	entry = pdm_backend_find(PDM_MCU_DEVICE_TYPE,
-				 PDM_BACKEND_CLASS_TRANSPORT, compatible);
-	return entry ? entry->ops : NULL;
-}
-
 static int pdm_mcu_probe(struct pdm_device *pdm_dev)
 {
+	const struct pdm_backend_entry *entry;
 	struct pdm_mcu_instance *inst;
 	char nodename[32];
 	int ret;
@@ -293,13 +285,18 @@ static int pdm_mcu_probe(struct pdm_device *pdm_dev)
 	}
 
 	pdm_driver_init(&inst->base, pdm_dev);
-	inst->ops = pdm_mcu_transport_select(pdm_dev->compatible);
-	if (!inst->ops) {
+
+	/* Find transport backend for this device */
+	entry = pdm_backend_find(PDM_MCU_DEVICE_TYPE,
+				 PDM_BACKEND_CLASS_TRANSPORT,
+				 pdm_dev->compatible);
+	if (!entry) {
 		LOG_ERROR("No MCU transport backend for compatible %s",
 			  pdm_dev->compatible ? pdm_dev->compatible : "<none>");
 		ret = -ENODEV;
 		goto err_free;
 	}
+	inst->ops = entry->ops;
 	inst->start_time = ktime_get();
 	inst->state = PDM_MCU_STATE_READY;
 

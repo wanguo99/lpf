@@ -101,8 +101,6 @@ struct pdm_mcu_instance {
 	} transport;
 };
 
-const struct pdm_mcu_transport_ops *pdm_mcu_transport_select(const char *compatible);
-
 int pdm_mcu_protocol_get_version(struct pdm_mcu_instance *inst,
 				 struct pdm_mcu_version *version);
 int pdm_mcu_protocol_get_status(struct pdm_mcu_instance *inst,
