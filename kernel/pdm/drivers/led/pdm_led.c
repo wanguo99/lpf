@@ -385,11 +385,25 @@ static struct pdm_driver pdm_led_driver = {
 
 static int pdm_led_driver_init(void)
 {
-	return pdm_bus_register_driver(THIS_MODULE, &pdm_led_driver);
+	int ret;
+
+	ret = pdm_bus_register_driver(THIS_MODULE, &pdm_led_driver);
+	if (ret) {
+		return ret;
+	}
+
+	ret = pdm_led_diag_init(&pdm_led_device_count);
+	if (ret) {
+		pdm_bus_unregister_driver(&pdm_led_driver);
+		return ret;
+	}
+
+	return 0;
 }
 
 static void pdm_led_driver_exit(void)
 {
+	pdm_led_diag_exit();
 	pdm_bus_unregister_driver(&pdm_led_driver);
 }
 

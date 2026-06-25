@@ -122,4 +122,8 @@ int pdm_mcu_register_bus_device(struct device *parent,
 				struct pdm_mcu_bus_device *bus_dev);
 void pdm_mcu_unregister_bus_device(struct pdm_mcu_bus_device *bus_dev);
 
+/* Diagnostic interface functions */
+int pdm_mcu_diag_init(atomic_t *device_count);
+void pdm_mcu_diag_exit(void);
+
 #endif /* PDM_MCU_INTERNAL_H */

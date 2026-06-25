@@ -43,4 +43,8 @@ struct pdm_led_instance {
 	} hw;
 };
 
+/* Diagnostic interface functions */
+int pdm_led_diag_init(atomic_t *device_count);
+void pdm_led_diag_exit(void);
+
 #endif /* PDM_LED_INTERNAL_H */

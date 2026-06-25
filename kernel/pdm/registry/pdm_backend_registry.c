@@ -1,37 +1,16 @@
 // SPDX-License-Identifier: GPL-2.0
 /**
  * @file pdm_backend.c
- * @brief Section-based PDM peripheral backend registry with hash table optimization
+ * @brief Section-based PDM peripheral backend registry
  */
 
 #include <linux/errno.h>
-#include <linux/hash.h>
 #include <linux/kernel.h>
-#include <linux/list.h>
 #include <linux/module.h>
-#include <linux/slab.h>
 #include <linux/string.h>
 
 #include "pdm/registry/pdm_backend.h"
 #include "osal.h"
-
-/* Hash table for fast backend lookup */
-#define PDM_BACKEND_HASH_BITS 4
-#define PDM_BACKEND_HASH_SIZE (1 << PDM_BACKEND_HASH_BITS)
-
-struct pdm_backend_hash_node {
-	struct hlist_node hlist;
-	const struct pdm_backend_entry *entry;
-	u32 device_type;
-	u32 backend_class;
-};
-
-static struct hlist_head pdm_backend_hash[PDM_BACKEND_HASH_SIZE];
-
-static u32 pdm_backend_hash_key(u32 device_type, u32 backend_class)
-{
-	return hash_32((device_type << 16) | backend_class, PDM_BACKEND_HASH_BITS);
-}
 
 /* Delimit pdm_backend_entries inside pdm.ko without a linker script. */
 asm(
@@ -55,7 +34,6 @@ asm(
 );
 
 static size_t pdm_backend_entries_initialized;
-static bool pdm_backend_hash_initialized;
 
 static bool pdm_backend_entry_matches(const struct pdm_backend_entry *entry,
 				      const char *compatible)
@@ -94,15 +72,8 @@ static void pdm_backend_entries_exit_count(size_t count)
 int pdm_backend_entries_init(void)
 {
 	const struct pdm_backend_entry *entry;
-	struct pdm_backend_hash_node *node;
 	size_t count = 0;
-	u32 hash;
 	int ret;
-	int i;
-
-	/* Initialize hash table */
-	for (i = 0; i < PDM_BACKEND_HASH_SIZE; i++)
-		INIT_HLIST_HEAD(&pdm_backend_hash[i]);
 
 	for (entry = __start_pdm_backend_entries;
 	     entry < __stop_pdm_backend_entries; entry++) {
@@ -125,28 +96,10 @@ int pdm_backend_entries_init(void)
 			}
 		}
 
-		/* Add to hash table */
-		node = kmalloc(sizeof(*node), GFP_KERNEL);
-		if (!node) {
-			LOG_ERROR("Failed to allocate hash node for backend [%s]",
-				  entry->name);
-			ret = -ENOMEM;
-			goto err_exit_registered;
-		}
-
-		node->entry = entry;
-		node->device_type = entry->device_type;
-		node->backend_class = entry->backend_class;
-
-		hash = pdm_backend_hash_key(entry->device_type, entry->backend_class);
-		hlist_add_head(&node->hlist, &pdm_backend_hash[hash]);
-
 		count++;
 	}
 
 	pdm_backend_entries_initialized = count;
-	pdm_backend_hash_initialized = true;
-	LOG_INFO("PDM backend registry initialized with %zu entries", count);
 	return 0;
 
 err_exit_registered:
@@ -157,21 +110,6 @@ err_exit_registered:
 
 void pdm_backend_entries_exit(void)
 {
-	struct pdm_backend_hash_node *node;
-	struct hlist_node *tmp;
-	int i;
-
-	/* Free hash table nodes */
-	if (pdm_backend_hash_initialized) {
-		for (i = 0; i < PDM_BACKEND_HASH_SIZE; i++) {
-			hlist_for_each_entry_safe(node, tmp, &pdm_backend_hash[i], hlist) {
-				hlist_del(&node->hlist);
-				kfree(node);
-			}
-		}
-		pdm_backend_hash_initialized = false;
-	}
-
 	pdm_backend_entries_exit_count(pdm_backend_entries_initialized);
 	pdm_backend_entries_initialized = 0;
 }
@@ -180,30 +118,17 @@ const struct pdm_backend_entry *pdm_backend_find(u32 device_type,
 						 u32 backend_class,
 						 const char *compatible)
 {
-	struct pdm_backend_hash_node *node;
-	u32 hash;
+	const struct pdm_backend_entry *entry;
 
-	if (!pdm_backend_hash_initialized) {
-		/* Fallback to linear search during initialization */
-		const struct pdm_backend_entry *entry;
-		for (entry = __start_pdm_backend_entries;
-		     entry < __stop_pdm_backend_entries; entry++) {
-			if (entry->device_type == device_type &&
-			    entry->backend_class == backend_class &&
-			    pdm_backend_entry_matches(entry, compatible)) {
-				return entry;
-			}
+	for (entry = __start_pdm_backend_entries;
+	     entry < __stop_pdm_backend_entries; entry++) {
+		if (entry->device_type != device_type ||
+		    entry->backend_class != backend_class)
+		{
+			continue;
 		}
-		return NULL;
-	}
-
-	/* Fast hash table lookup */
-	hash = pdm_backend_hash_key(device_type, backend_class);
-	hlist_for_each_entry(node, &pdm_backend_hash[hash], hlist) {
-		if (node->device_type == device_type &&
-		    node->backend_class == backend_class &&
-		    pdm_backend_entry_matches(node->entry, compatible)) {
-			return node->entry;
+		if (pdm_backend_entry_matches(entry, compatible)) {
+			return entry;
 		}
 	}
 

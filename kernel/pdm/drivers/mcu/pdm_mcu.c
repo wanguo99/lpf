@@ -438,11 +438,25 @@ static struct pdm_driver pdm_mcu_driver = {
 
 static int pdm_mcu_driver_init(void)
 {
-	return pdm_bus_register_driver(THIS_MODULE, &pdm_mcu_driver);
+	int ret;
+
+	ret = pdm_bus_register_driver(THIS_MODULE, &pdm_mcu_driver);
+	if (ret) {
+		return ret;
+	}
+
+	ret = pdm_mcu_diag_init(&pdm_mcu_device_count);
+	if (ret) {
+		pdm_bus_unregister_driver(&pdm_mcu_driver);
+		return ret;
+	}
+
+	return 0;
 }
 
 static void pdm_mcu_driver_exit(void)
 {
+	pdm_mcu_diag_exit();
 	pdm_bus_unregister_driver(&pdm_mcu_driver);
 }
 

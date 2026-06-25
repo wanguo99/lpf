@@ -24,12 +24,14 @@ pdm-y += pdm/drivers/mcu/pdm_mcu_protocol.o
 
 # Automatic PDM bus driver and backend entries
 pdm-y += pdm/drivers/mcu/pdm_mcu.o
+pdm-y += pdm/drivers/mcu/pdm_mcu_diag.o
 pdm-y += pdm/drivers/mcu/pdm_mcu_uart.o
 pdm-$(CONFIG_PDM_MCU_UART_SERDEV) += pdm/drivers/mcu/pdm_mcu_uart_serdev.o
 pdm-$(CONFIG_PDM_MCU_CAN) += pdm/drivers/mcu/pdm_mcu_can.o
 pdm-$(CONFIG_PDM_MCU_I2C) += pdm/drivers/mcu/pdm_mcu_i2c.o
 pdm-$(CONFIG_PDM_MCU_SPI) += pdm/drivers/mcu/pdm_mcu_spi.o
 pdm-y += pdm/drivers/led/pdm_led.o
+pdm-y += pdm/drivers/led/pdm_led_diag.o
 pdm-$(CONFIG_PDM_LED_GPIO) += pdm/drivers/led/pdm_led_gpio.o
 pdm-$(CONFIG_PDM_LED_PWM) += pdm/drivers/led/pdm_led_pwm.o
 pdm-$(CONFIG_PDM_MOCK_DEVICES) += pdm/drivers/mock/pdm_mock_devices.o

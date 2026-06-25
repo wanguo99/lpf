@@ -52,31 +52,31 @@ static int __init pdm_module_init(void)
 		goto err_bus;
 	}
 
-	ret = pdm_driver_entries_init();
-	if (ret) {
-		LOG_ERROR("Failed to register PDM drivers: %d", ret);
-		goto err_cdev;
-	}
-
 	ret = pdm_backend_entries_init();
 	if (ret) {
 		LOG_ERROR("Failed to initialize PDM backends: %d", ret);
-		goto err_drivers;
+		goto err_cdev;
+	}
+
+	ret = pdm_driver_entries_init();
+	if (ret) {
+		LOG_ERROR("Failed to register PDM drivers: %d", ret);
+		goto err_backends;
 	}
 
 	ret = pdm_mock_devices_init();
 	if (ret) {
 		LOG_ERROR("Failed to register mock PDM devices: %d", ret);
-		goto err_backends;
+		goto err_drivers;
 	}
 
 	LOG_INFO("PDM module initialized successfully");
 	return 0;
 
-err_backends:
-	pdm_backend_entries_exit();
 err_drivers:
 	pdm_driver_entries_exit();
+err_backends:
+	pdm_backend_entries_exit();
 err_cdev:
 	pdm_cdev_exit();
 err_bus:
