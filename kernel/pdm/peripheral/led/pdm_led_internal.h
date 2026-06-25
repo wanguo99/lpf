@@ -6,7 +6,7 @@
 #include <linux/mutex.h>
 #include <linux/types.h>
 
-#include "pdm/core/chardev/pdm_client.h"
+#include "pdm/core/chardev/pdm_cdev.h"
 #include "pdm/core/device/pdm_device.h"
 #include "pdm/core/driver/pdm_driver.h"
 

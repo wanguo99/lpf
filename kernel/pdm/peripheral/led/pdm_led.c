@@ -107,14 +107,14 @@ static int pdm_led_read_dt_config(struct pdm_led_instance *inst)
 	return 0;
 }
 
-static long pdm_led_get_info(struct pdm_client *client, unsigned long arg)
+static long pdm_led_get_info(struct pdm_cdev *client, unsigned long arg)
 {
 	struct pdm_led_info info = {
 		.abi_version = PDM_LED_ABI_VERSION,
 		.module_version_major = 1,
 		.module_version_minor = 0,
 		.module_version_patch = 0,
-		.open_count = pdm_client_open_count(client),
+		.open_count = pdm_cdev_open_count(client),
 		.max_devices = pdm_driver_count_get(&pdm_led_device_count),
 	};
 
@@ -225,13 +225,13 @@ static long pdm_led_set_enabled(struct pdm_led_instance *inst,
 
 static long pdm_led_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
-	struct pdm_client *client = pdm_client_from_file(filp);
+	struct pdm_cdev *client = pdm_cdev_from_file(filp);
 	struct pdm_led_instance *inst;
 
 	if (!client) {
 		return -ENODEV;
 	}
-	inst = container_of(client, struct pdm_led_instance, base.client);
+	inst = container_of(client, struct pdm_led_instance, base.cdev);
 
 	switch (cmd) {
 	case PDM_LED_IOC_GET_INFO:
@@ -251,15 +251,15 @@ static long pdm_led_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 
 static const struct file_operations pdm_led_fops = {
 	.owner = THIS_MODULE,
-	.open = pdm_client_default_open,
-	.release = pdm_client_default_release,
+	.open = pdm_cdev_default_open,
+	.release = pdm_cdev_default_release,
 	.unlocked_ioctl = pdm_led_ioctl,
 #ifdef CONFIG_COMPAT
 	.compat_ioctl = pdm_led_ioctl,
 #endif
 };
 
-static void pdm_led_client_release(struct pdm_client *client)
+static void pdm_led_client_release(struct pdm_cdev *client)
 {
 	struct pdm_led_instance *inst;
 
@@ -267,7 +267,7 @@ static void pdm_led_client_release(struct pdm_client *client)
 		return;
 	}
 
-	inst = container_of(client, struct pdm_led_instance, base.client);
+	inst = container_of(client, struct pdm_led_instance, base.cdev);
 	kfree(inst);
 }
 
@@ -320,7 +320,7 @@ static int pdm_led_probe(struct pdm_device *pdm_dev)
 	}
 
 	snprintf(nodename, sizeof(nodename), "led%d", pdm_dev->id);
-	ret = pdm_client_register(&inst->base.client, pdm_dev, "pdm-led",
+	ret = pdm_cdev_register(&inst->base.cdev, pdm_dev, "pdm-led",
 				  nodename, &pdm_led_fops, pdm_led_client_release);
 	if (ret) {
 		goto err_cleanup_backend;
@@ -357,7 +357,7 @@ static void pdm_led_remove(struct pdm_device *pdm_dev)
 	}
 	mutex_unlock(&inst->base.lock);
 
-	pdm_client_unregister(&inst->base.client);
+	pdm_cdev_unregister(&inst->base.cdev);
 }
 
 static const struct of_device_id pdm_led_of_match[] = {

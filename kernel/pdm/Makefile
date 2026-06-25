@@ -12,7 +12,7 @@ pdm-y += pdm/core/device/pdm_of_bus.o
 
 # Core userspace device nodes
 pdm-y += pdm/core/chardev/pdm_ctl.o
-pdm-y += pdm/core/chardev/pdm_client.o
+pdm-y += pdm/core/chardev/pdm_cdev.o
 
 # Core diagnostics interfaces
 pdm-y += pdm/core/diag/pdm_debugfs.o

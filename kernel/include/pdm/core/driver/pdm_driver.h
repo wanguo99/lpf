@@ -15,12 +15,12 @@
 #include <linux/mutex.h>
 #include <linux/types.h>
 
-#include "pdm/core/chardev/pdm_client.h"
+#include "pdm/core/chardev/pdm_cdev.h"
 #include "pdm/core/device/pdm_device.h"
 
 /**
  * struct pdm_driver_instance - Base structure for driver instances
- * @client: Embedded PDM client for chardev registration
+ * @cdev: Embedded PDM character device for /dev node
  * @pdm_dev: Associated PDM device
  * @lock: Mutex for protecting device state
  * @online: Device is bound and operational
@@ -28,7 +28,7 @@
  * PDM drivers should embed this structure and add their specific fields.
  */
 struct pdm_driver_instance {
-	struct pdm_client client;
+	struct pdm_cdev cdev;
 	struct pdm_device *pdm_dev;
 	struct mutex lock;
 	bool online;

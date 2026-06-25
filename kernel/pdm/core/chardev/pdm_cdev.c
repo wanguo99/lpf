@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /**
- * @file pdm_client.c
+ * @file pdm_cdev.c
  * @brief PDM per-instance character device helper
  */
 
@@ -12,13 +12,13 @@
 #include <linux/string.h>
 #include <linux/version.h>
 
-#include "pdm/core/chardev/pdm_client.h"
+#include "pdm/core/chardev/pdm_cdev.h"
 #include "osal.h"
 
-static dev_t pdm_client_devt;
-static DEFINE_IDA(pdm_client_ida);
+static dev_t pdm_cdev_devt;
+static DEFINE_IDA(pdm_cdev_ida);
 
-static umode_t pdm_client_devnode_mode(void)
+static umode_t pdm_cdev_devnode_mode(void)
 {
 	unsigned int mode = 0660;
 
@@ -32,27 +32,27 @@ static umode_t pdm_client_devnode_mode(void)
 }
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
-static char *pdm_client_devnode(struct device *dev, umode_t *mode)
+static char *pdm_cdev_devnode(struct device *dev, umode_t *mode)
 #else
-static char *pdm_client_devnode(const struct device *dev, umode_t *mode)
+static char *pdm_cdev_devnode(const struct device *dev, umode_t *mode)
 #endif
 {
 	if (mode) {
-		*mode = pdm_client_devnode_mode();
+		*mode = pdm_cdev_devnode_mode();
 	}
 
 	return kasprintf(GFP_KERNEL, "pdm/%s", dev_name(dev));
 }
 
-static struct class pdm_client_class = {
+static struct class pdm_cdev_class = {
 	.name = "pdm",
-	.devnode = pdm_client_devnode,
+	.devnode = pdm_cdev_devnode,
 };
 
-static void pdm_client_device_release(struct device *dev)
+static void pdm_cdev_device_release(struct device *dev)
 {
-	struct pdm_client *client = container_of(dev, struct pdm_client, dev);
-	void (*release)(struct pdm_client *client) = client->release;
+	struct pdm_cdev *client = container_of(dev, struct pdm_cdev, dev);
+	void (*release)(struct pdm_cdev *client) = client->release;
 
 	if (client->pdm_dev) {
 		pdm_device_put(client->pdm_dev);
@@ -60,7 +60,7 @@ static void pdm_client_device_release(struct device *dev)
 	}
 
 	if (client->minor >= 0) {
-		ida_free(&pdm_client_ida, client->minor);
+		ida_free(&pdm_cdev_ida, client->minor);
 		client->minor = -1;
 	}
 
@@ -69,15 +69,15 @@ static void pdm_client_device_release(struct device *dev)
 	}
 }
 
-int pdm_client_default_open(struct inode *inode, struct file *filp)
+int pdm_cdev_default_open(struct inode *inode, struct file *filp)
 {
-	struct pdm_client *client;
+	struct pdm_cdev *client;
 
 	if (!inode || !filp) {
 		return -EINVAL;
 	}
 
-	client = container_of(inode->i_cdev, struct pdm_client, cdev);
+	client = container_of(inode->i_cdev, struct pdm_cdev, cdev);
 	if (!get_device(&client->dev)) {
 		return -ENODEV;
 	}
@@ -86,11 +86,11 @@ int pdm_client_default_open(struct inode *inode, struct file *filp)
 	filp->private_data = client;
 	return 0;
 }
-EXPORT_SYMBOL_GPL(pdm_client_default_open);
+EXPORT_SYMBOL_GPL(pdm_cdev_default_open);
 
-int pdm_client_default_release(struct inode *inode, struct file *filp)
+int pdm_cdev_default_release(struct inode *inode, struct file *filp)
 {
-	struct pdm_client *client = pdm_client_from_file(filp);
+	struct pdm_cdev *client = pdm_cdev_from_file(filp);
 
 	(void)inode;
 	if (client) {
@@ -101,12 +101,12 @@ int pdm_client_default_release(struct inode *inode, struct file *filp)
 
 	return 0;
 }
-EXPORT_SYMBOL_GPL(pdm_client_default_release);
+EXPORT_SYMBOL_GPL(pdm_cdev_default_release);
 
-int pdm_client_register(struct pdm_client *client, struct pdm_device *pdm_dev,
+int pdm_cdev_register(struct pdm_cdev *client, struct pdm_device *pdm_dev,
 			const char *name, const char *nodename,
 			const struct file_operations *fops,
-			void (*release)(struct pdm_client *client))
+			void (*release)(struct pdm_cdev *client))
 {
 	int minor;
 	int ret;
@@ -118,7 +118,7 @@ int pdm_client_register(struct pdm_client *client, struct pdm_device *pdm_dev,
 		return -EINVAL;
 	}
 
-	minor = ida_alloc_max(&pdm_client_ida, PDM_CLIENT_MINORS - 1,
+	minor = ida_alloc_max(&pdm_cdev_ida, PDM_CDEV_MINORS - 1,
 				    GFP_KERNEL);
 	if (minor < 0) {
 		return minor;
@@ -131,10 +131,10 @@ int pdm_client_register(struct pdm_client *client, struct pdm_device *pdm_dev,
 	atomic_set(&client->open_count, 0);
 	client->minor = minor;
 	client->fops = fops;
-	client->dev.class = &pdm_client_class;
+	client->dev.class = &pdm_cdev_class;
 	client->dev.parent = &pdm_dev->dev;
-	client->dev.release = pdm_client_device_release;
-	client->dev.devt = MKDEV(MAJOR(pdm_client_devt), minor);
+	client->dev.release = pdm_cdev_device_release;
+	client->dev.devt = MKDEV(MAJOR(pdm_cdev_devt), minor);
 	device_initialize(&client->dev);
 
 	client->pdm_dev = pdm_device_get(pdm_dev);
@@ -167,9 +167,9 @@ err_put_device:
 	put_device(&client->dev);
 	return ret;
 }
-EXPORT_SYMBOL_GPL(pdm_client_register);
+EXPORT_SYMBOL_GPL(pdm_cdev_register);
 
-void pdm_client_unregister(struct pdm_client *client)
+void pdm_cdev_unregister(struct pdm_cdev *client)
 {
 	if (!client || !client->registered) {
 		return;
@@ -180,37 +180,37 @@ void pdm_client_unregister(struct pdm_client *client)
 	LOG_INFO("/dev/pdm/%s unregistered", client->nodename);
 	put_device(&client->dev);
 }
-EXPORT_SYMBOL_GPL(pdm_client_unregister);
+EXPORT_SYMBOL_GPL(pdm_cdev_unregister);
 
-u32 pdm_client_open_count(const struct pdm_client *client)
+u32 pdm_cdev_open_count(const struct pdm_cdev *client)
 {
 	return client ? (u32)atomic_read(&client->open_count) : 0;
 }
-EXPORT_SYMBOL_GPL(pdm_client_open_count);
+EXPORT_SYMBOL_GPL(pdm_cdev_open_count);
 
-struct pdm_client *pdm_client_from_file(struct file *filp)
+struct pdm_cdev *pdm_cdev_from_file(struct file *filp)
 {
 	return filp ? filp->private_data : NULL;
 }
-EXPORT_SYMBOL_GPL(pdm_client_from_file);
+EXPORT_SYMBOL_GPL(pdm_cdev_from_file);
 
-int pdm_client_init(void)
+int pdm_cdev_init(void)
 {
 	int ret;
 
-	ret = alloc_chrdev_region(&pdm_client_devt, 0, PDM_CLIENT_MINORS,
-				  "pdm_client");
+	ret = alloc_chrdev_region(&pdm_cdev_devt, 0, PDM_CDEV_MINORS,
+				  "pdm_cdev");
 	if (ret) {
 		LOG_ERROR("Failed to allocate device region: %d",
 			  ret);
 		return ret;
 	}
 
-	ret = class_register(&pdm_client_class);
+	ret = class_register(&pdm_cdev_class);
 	if (ret) {
 		LOG_ERROR("Failed to register client class: %d",
 			  ret);
-		unregister_chrdev_region(pdm_client_devt, PDM_CLIENT_MINORS);
+		unregister_chrdev_region(pdm_cdev_devt, PDM_CDEV_MINORS);
 		return ret;
 	}
 
@@ -218,11 +218,11 @@ int pdm_client_init(void)
 	return 0;
 }
 
-void pdm_client_exit(void)
+void pdm_cdev_exit(void)
 {
-	class_unregister(&pdm_client_class);
-	unregister_chrdev_region(pdm_client_devt, PDM_CLIENT_MINORS);
-	ida_destroy(&pdm_client_ida);
+	class_unregister(&pdm_cdev_class);
+	unregister_chrdev_region(pdm_cdev_devt, PDM_CDEV_MINORS);
+	ida_destroy(&pdm_cdev_ida);
 	LOG_INFO("PDM client class exited");
 }
 

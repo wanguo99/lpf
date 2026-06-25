@@ -5,7 +5,7 @@
 #include "device/pdm_of_bus.h"
 #include "chardev/pdm_ctl.h"
 #include "../mock/pdm_mock_devices.h"
-#include "pdm/core/chardev/pdm_client.h"
+#include "pdm/core/chardev/pdm_cdev.h"
 #include "pdm/core/driver/pdm_backend.h"
 #include "pdm/core/bus/pdm_bus.h"
 #include "pdm/core/device/pdm_device.h"
@@ -48,7 +48,7 @@ static int __init pdm_module_init(void)
 		goto err_bus;
 	}
 
-	ret = pdm_client_init();
+	ret = pdm_cdev_init();
 	if (ret) {
 		LOG_ERROR("Failed to initialize PDM client nodes: %d", ret);
 		goto err_ctl;
@@ -88,7 +88,7 @@ err_backends:
 err_drivers:
 	pdm_driver_entries_exit();
 err_client:
-	pdm_client_exit();
+	pdm_cdev_exit();
 err_ctl:
 	pdm_ctl_exit();
 err_bus:
@@ -105,7 +105,7 @@ static void __exit pdm_module_exit(void)
 	pdm_mock_devices_exit();
 	pdm_backend_entries_exit();
 	pdm_driver_entries_exit();
-	pdm_client_exit();
+	pdm_cdev_exit();
 	pdm_ctl_exit();
 	pdm_bus_exit();
 	pdm_device_ids_destroy();

@@ -113,14 +113,14 @@ static void pdm_mcu_release_device(struct pdm_mcu_instance *inst, int ret)
 	pdm_driver_release(&inst->base);
 }
 
-static long pdm_mcu_get_info(struct pdm_client *client, unsigned long arg)
+static long pdm_mcu_get_info(struct pdm_cdev *client, unsigned long arg)
 {
 	struct pdm_mcu_info info = {
 		.abi_version = PDM_MCU_ABI_VERSION,
 		.module_version_major = 1,
 		.module_version_minor = 0,
 		.module_version_patch = 0,
-		.open_count = pdm_client_open_count(client),
+		.open_count = pdm_cdev_open_count(client),
 		.max_devices = pdm_driver_count_get(&pdm_mcu_device_count),
 	};
 
@@ -225,13 +225,13 @@ static long pdm_mcu_command_ioctl(struct pdm_mcu_instance *inst, unsigned long a
 
 static long pdm_mcu_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
-	struct pdm_client *client = pdm_client_from_file(filp);
+	struct pdm_cdev *client = pdm_cdev_from_file(filp);
 	struct pdm_mcu_instance *inst;
 
 	if (!client) {
 		return -ENODEV;
 	}
-	inst = container_of(client, struct pdm_mcu_instance, base.client);
+	inst = container_of(client, struct pdm_mcu_instance, base.cdev);
 
 	switch (cmd) {
 	case PDM_MCU_IOC_GET_INFO:
@@ -251,15 +251,15 @@ static long pdm_mcu_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 
 static const struct file_operations pdm_mcu_fops = {
 	.owner = THIS_MODULE,
-	.open = pdm_client_default_open,
-	.release = pdm_client_default_release,
+	.open = pdm_cdev_default_open,
+	.release = pdm_cdev_default_release,
 	.unlocked_ioctl = pdm_mcu_ioctl,
 #ifdef CONFIG_COMPAT
 	.compat_ioctl = pdm_mcu_ioctl,
 #endif
 };
 
-static void pdm_mcu_client_release(struct pdm_client *client)
+static void pdm_mcu_client_release(struct pdm_cdev *client)
 {
 	struct pdm_mcu_instance *inst;
 
@@ -267,7 +267,7 @@ static void pdm_mcu_client_release(struct pdm_client *client)
 		return;
 	}
 
-	inst = container_of(client, struct pdm_mcu_instance, base.client);
+	inst = container_of(client, struct pdm_mcu_instance, base.cdev);
 	kfree(inst);
 }
 
@@ -305,7 +305,7 @@ static int pdm_mcu_probe(struct pdm_device *pdm_dev)
 	}
 
 	snprintf(nodename, sizeof(nodename), "mcu%d", pdm_dev->id);
-	ret = pdm_client_register(&inst->base.client, pdm_dev, "pdm-mcu",
+	ret = pdm_cdev_register(&inst->base.cdev, pdm_dev, "pdm-mcu",
 				  nodename, &pdm_mcu_fops, pdm_mcu_client_release);
 	if (ret) {
 		goto err_cleanup_transport;
@@ -343,7 +343,7 @@ static void pdm_mcu_remove(struct pdm_device *pdm_dev)
 	}
 	mutex_unlock(&inst->base.lock);
 
-	pdm_client_unregister(&inst->base.client);
+	pdm_cdev_unregister(&inst->base.cdev);
 }
 
 int pdm_mcu_register_bus_device(struct device *parent,
