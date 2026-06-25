@@ -9,7 +9,7 @@
 #include <linux/module.h>
 #include <linux/string.h>
 
-#include "pdm/core/registry/pdm_backend.h"
+#include "pdm/registry/pdm_backend.h"
 #include "osal.h"
 
 /* Delimit pdm_backend_entries inside pdm.ko without a linker script. */

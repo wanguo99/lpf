@@ -5,7 +5,7 @@
 #include <linux/device.h>
 
 #include "pdm/compat/pdm_compat_sysfs.h"
-#include "pdm/core/bus/pdm_device.h"
+#include "pdm/bus/pdm_device.h"
 
 static ssize_t pdm_name_show(struct device *dev,
 				     struct device_attribute *attr, char *buf);

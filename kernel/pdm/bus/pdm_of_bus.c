@@ -10,8 +10,8 @@
 #include <linux/platform_device.h>
 #include <linux/slab.h>
 
-#include "pdm/core/bus/pdm_bus.h"
-#include "pdm/core/bus/pdm_device.h"
+#include "pdm/bus/pdm_bus.h"
+#include "pdm/bus/pdm_device.h"
 #include "pdm_of_bus.h"
 #include "osal.h"
 

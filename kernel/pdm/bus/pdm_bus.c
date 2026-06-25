@@ -10,10 +10,10 @@
 #include <linux/string.h>
 #include <linux/version.h>
 
-#include "../diag/pdm_sysfs.h"
-#include "pdm_of_bus.h"
-#include "pdm/core/bus/pdm_bus.h"
-#include "pdm/core/bus/pdm_device.h"
+#include "pdm/diag/pdm_sysfs.h"
+#include "pdm/bus/pdm_of_bus.h"
+#include "pdm/bus/pdm_bus.h"
+#include "pdm/bus/pdm_device.h"
 #include "osal.h"
 
 static int pdm_bus_device_match_parent(struct device *dev, const void *data)

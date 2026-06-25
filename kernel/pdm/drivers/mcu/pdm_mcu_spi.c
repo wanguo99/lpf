@@ -12,7 +12,7 @@
 #include <linux/string.h>
 
 #include "pdm/compat/pdm_compat_features.h"
-#include "pdm/core/registry/pdm_backend.h"
+#include "pdm/registry/pdm_backend.h"
 #include "pdm/pdm_mcu.h"
 #include "pdm_mcu_internal.h"
 #include "osal.h"

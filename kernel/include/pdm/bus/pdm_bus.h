@@ -13,7 +13,7 @@
 #include <linux/module.h>
 #include <linux/version.h>
 
-#include "pdm/core/bus/pdm_device.h"
+#include "pdm/bus/pdm_device.h"
 
 #define drv_to_pdm_driver(__drv) \
 	container_of(__drv, struct pdm_driver, driver)

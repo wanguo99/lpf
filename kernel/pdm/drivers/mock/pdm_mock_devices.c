@@ -10,8 +10,8 @@
 
 #include "pdm_mock_devices.h"
 
-#include "pdm/core/bus/pdm_bus.h"
-#include "pdm/core/bus/pdm_device.h"
+#include "pdm/bus/pdm_bus.h"
+#include "pdm/bus/pdm_device.h"
 #include "osal.h"
 
 struct pdm_mock_device_desc {

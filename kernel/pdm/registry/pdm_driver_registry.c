@@ -8,7 +8,7 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 
-#include "pdm/core/bus/pdm_bus.h"
+#include "pdm/bus/pdm_bus.h"
 #include "osal.h"
 
 /* Delimit pdm_driver_entries inside pdm.ko without a linker script. */

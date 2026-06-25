@@ -15,8 +15,8 @@
 #include <linux/mutex.h>
 #include <linux/types.h>
 
-#include "pdm/core/bus/pdm_cdev.h"
-#include "pdm/core/bus/pdm_device.h"
+#include "pdm/bus/pdm_cdev.h"
+#include "pdm/bus/pdm_device.h"
 
 /**
  * struct pdm_driver_instance - Base structure for driver instances

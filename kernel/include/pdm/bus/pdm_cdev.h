@@ -13,7 +13,7 @@
 #include <linux/fs.h>
 #include <linux/types.h>
 
-#include "pdm/core/bus/pdm_device.h"
+#include "pdm/bus/pdm_device.h"
 
 #define PDM_CDEV_NAME_LEN 64U
 #define PDM_CDEV_NODE_LEN 64U

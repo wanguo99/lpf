@@ -14,8 +14,8 @@
 
 #include "pdm_led_internal.h"
 
-#include "pdm/core/registry/pdm_backend.h"
-#include "pdm/core/bus/pdm_bus.h"
+#include "pdm/registry/pdm_backend.h"
+#include "pdm/bus/pdm_bus.h"
 #include "pdm/pdm_manager.h"
 #include "pdm/pdm_led.h"
 #include "osal.h"

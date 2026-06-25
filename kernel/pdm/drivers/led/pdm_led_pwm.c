@@ -8,7 +8,7 @@
 #include <linux/module.h>
 #include <linux/pwm.h>
 
-#include "pdm/core/registry/pdm_backend.h"
+#include "pdm/registry/pdm_backend.h"
 #include "pdm/pdm_led.h"
 #include "pdm_led_internal.h"
 #include "osal.h"

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 
-#include "pdm/core/diag/pdm_proc.h"
+#include "pdm/diag/pdm_proc.h"
 
 #include <linux/errno.h>
 #include <linux/fs.h>

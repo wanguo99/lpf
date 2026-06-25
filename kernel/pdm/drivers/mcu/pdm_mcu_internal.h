@@ -10,9 +10,9 @@
 #include <linux/types.h>
 #include <linux/wait.h>
 
-#include "pdm/core/bus/pdm_cdev.h"
-#include "pdm/core/bus/pdm_device.h"
-#include "pdm/core/registry/pdm_driver.h"
+#include "pdm/bus/pdm_cdev.h"
+#include "pdm/bus/pdm_device.h"
+#include "pdm/registry/pdm_driver.h"
 #include "pdm/pdm_mcu.h"
 
 #define PDM_MCU_DEFAULT_RX_TIMEOUT_MS 100U
