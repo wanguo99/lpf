@@ -2,7 +2,6 @@
 
 #include <linux/module.h>
 
-#include "core/bus/pdm_of_bus.h"
 #include "drivers/mock/pdm_mock_devices.h"
 #include "pdm/core/cdev/pdm_cdev.h"
 #include "pdm/core/registry/pdm_backend.h"
@@ -65,17 +64,9 @@ static int __init pdm_module_init(void)
 		goto err_backends;
 	}
 
-	ret = pdm_of_bus_init();
-	if (ret) {
-		LOG_ERROR("Failed to register OF bus enumerator: %d", ret);
-		goto err_mock_devices;
-	}
-
 	LOG_INFO("PDM module initialized successfully");
 	return 0;
 
-err_mock_devices:
-	pdm_mock_devices_exit();
 err_backends:
 	pdm_backend_entries_exit();
 err_drivers:
@@ -92,7 +83,6 @@ err_bus:
  */
 static void __exit pdm_module_exit(void)
 {
-	pdm_of_bus_exit();
 	pdm_mock_devices_exit();
 	pdm_backend_entries_exit();
 	pdm_driver_entries_exit();

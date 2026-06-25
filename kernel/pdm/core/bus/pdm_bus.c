@@ -11,6 +11,7 @@
 #include <linux/version.h>
 
 #include "../diag/pdm_sysfs.h"
+#include "pdm_of_bus.h"
 #include "pdm/core/bus/pdm_bus.h"
 #include "pdm/core/bus/pdm_device.h"
 #include "osal.h"
@@ -215,11 +216,28 @@ int pdm_bus_init(void)
 	}
 
 	LOG_INFO("PDM bus initialized");
+
+	/* Register OF (Device Tree) enumerator if CONFIG_OF is enabled */
+#ifdef CONFIG_OF
+	ret = pdm_of_bus_init();
+	if (ret) {
+		LOG_ERROR("Failed to register OF enumerator: %d", ret);
+		bus_unregister(&pdm_bus_type);
+		return ret;
+	}
+	LOG_INFO("PDM OF enumerator registered");
+#endif
+
 	return 0;
 }
 
 void pdm_bus_exit(void)
 {
+#ifdef CONFIG_OF
+	pdm_of_bus_exit();
+	LOG_INFO("PDM OF enumerator unregistered");
+#endif
+
 	bus_unregister(&pdm_bus_type);
 	LOG_INFO("PDM bus unregistered");
 }
