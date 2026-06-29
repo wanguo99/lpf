@@ -85,7 +85,13 @@ struct pdm_mcu_instance {
 		struct {
 			struct socket *sock;
 			struct net_device *netdev;
+			u32 tx_id;
+			u32 rx_id;
+			u32 token;
 			u32 rx_timeout_ms;
+			u8 frame_data_size;
+			bool can_fd;
+			bool can_fd_brs;
 			bool extended_id;
 		} can;
 		struct {

@@ -121,3 +121,4 @@ PDM/
 - `docs/kernel_user_split.md`: kernel/userspace boundary and include rules.
 - `docs/pdm_uapi_abi.md`: UAPI ABI and PDI wrapper rules for new peripherals.
 - `docs/pdm_bus_devicetree.md`: current PDM bus child-node compatibles and backend properties.
+- `docs/pdm_can_transport.md`: CAN transport frame format, DTS properties, and runtime setup.
