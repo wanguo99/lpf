@@ -11,7 +11,7 @@
 #include <linux/spi/spi.h>
 #include <linux/string.h>
 
-#include "pdm/compat/pdm_compat_features.h"
+#include "pdm/compat/pdm_compat_spi.h"
 #include "pdm/registry/pdm_backend.h"
 #include "pdm/pdm_mcu.h"
 #include "pdm_mcu_internal.h"
@@ -170,19 +170,12 @@ static int pdm_mcu_spi_probe(struct spi_device *spi)
 					      PDM_MCU_BACKEND_SPI, bus_dev);
 }
 
-#if PDM_KERNEL_HAS_VOID_SPI_REMOVE
 static void pdm_mcu_spi_remove(struct spi_device *spi)
-#else
-static int pdm_mcu_spi_remove(struct spi_device *spi)
-#endif
 {
 	struct pdm_mcu_bus_device *bus_dev = spi_get_drvdata(spi);
 
 	pdm_mcu_unregister_bus_device(bus_dev);
 	spi_set_drvdata(spi, NULL);
-#if !PDM_KERNEL_HAS_VOID_SPI_REMOVE
-	return 0;
-#endif
 }
 
 static const struct of_device_id pdm_mcu_spi_of_match[] = {
@@ -209,24 +202,26 @@ static const struct pdm_mcu_transport_ops pdm_mcu_spi_ops = {
 	.xfer = pdm_mcu_spi_xfer,
 };
 
-static struct spi_driver pdm_mcu_spi_driver = {
+static struct pdm_compat_spi_driver pdm_mcu_spi_driver = {
 	.driver = {
-		.name = "pdm-mcu-spi",
-		.of_match_table = pdm_mcu_spi_of_match,
+		.driver = {
+			.name = "pdm-mcu-spi",
+			.of_match_table = pdm_mcu_spi_of_match,
+		},
+		.id_table = pdm_mcu_spi_id,
 	},
 	.probe = pdm_mcu_spi_probe,
 	.remove = pdm_mcu_spi_remove,
-	.id_table = pdm_mcu_spi_id,
 };
 
 static int pdm_mcu_spi_driver_register(void)
 {
-	return spi_register_driver(&pdm_mcu_spi_driver);
+	return pdm_compat_spi_driver_register(&pdm_mcu_spi_driver);
 }
 
 static void pdm_mcu_spi_driver_unregister(void)
 {
-	spi_unregister_driver(&pdm_mcu_spi_driver);
+	pdm_compat_spi_driver_unregister(&pdm_mcu_spi_driver);
 }
 
 pdm_backend_register(mcu_spi, PDM_MCU_DEVICE_TYPE,
