@@ -179,6 +179,45 @@ static int pdm_mcu_can_send_frame(struct pdm_mcu_instance *inst,
 	return ret == frame_size ? 0 : -EIO;
 }
 
+int pdm_mcu_can_diag_send_std_frame(struct pdm_mcu_instance *inst,
+				    u32 can_id, const u8 *data, u8 len)
+{
+	struct can_frame frame = { };
+	struct msghdr msg = { };
+	struct kvec vec;
+	int ret;
+
+	if (!inst || !inst->transport.can.sock) {
+		return -ENODEV;
+	}
+	if (can_id > CAN_SFF_MASK || len > CAN_MAX_DLEN ||
+	    (len && !data)) {
+		return -EINVAL;
+	}
+	if (!inst->transport.can.netdev ||
+	    !netif_running(inst->transport.can.netdev)) {
+		LOG_ERROR("MCU CAN std tx failed: netdev is down");
+		return -ENETDOWN;
+	}
+
+	frame.can_id = can_id & CAN_SFF_MASK;
+	frame.len = len;
+	if (len) {
+		memcpy(frame.data, data, len);
+	}
+
+	vec.iov_base = &frame;
+	vec.iov_len = CAN_MTU;
+	ret = kernel_sendmsg(inst->transport.can.sock, &msg, &vec, 1, CAN_MTU);
+	LOG_DEBUG("MCU CAN std tx id=0x%x len=%u mtu=%zu ret=%d",
+		  can_id, len, (size_t)CAN_MTU, ret);
+	if (ret < 0) {
+		return ret;
+	}
+
+	return ret == CAN_MTU ? 0 : -EIO;
+}
+
 static int pdm_mcu_can_recv_frame(struct pdm_mcu_instance *inst,
 					  struct canfd_frame *frame)
 {

@@ -123,6 +123,8 @@ int pdm_mcu_uart_read_bus(struct pdm_mcu_instance *inst, u8 *buf,
 			  size_t len);
 int pdm_mcu_uart_driver_register(void);
 void pdm_mcu_uart_driver_unregister(void);
+int pdm_mcu_can_diag_send_std_frame(struct pdm_mcu_instance *inst,
+				    u32 can_id, const u8 *data, u8 len);
 int pdm_mcu_register_bus_device(struct device *parent,
 				enum pdm_mcu_backend_type type,
 				struct pdm_mcu_bus_device *bus_dev);

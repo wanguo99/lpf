@@ -28,6 +28,7 @@ static atomic_t *g_device_count;
 #define PDM_MCU_DIAG_LOOP_DEFAULT_DELAY_US 1000U
 #define PDM_MCU_DIAG_LOOP_MAX_DELAY_US 1000000U
 #define PDM_MCU_DIAG_LOOP_DEFAULT_LEN 8U
+#define PDM_MCU_DIAG_CAN_MAX_DLEN 8U
 
 static void pdm_mcu_diag_fill_pattern(u8 *buf, u32 len, u32 iter)
 {
@@ -136,6 +137,68 @@ static int pdm_mcu_diag_loop_xfer(struct pdm_mcu_instance *inst, u32 index,
 
 	LOG_INFO("MCU %u %s loop complete: count=%u", index,
 		 read_loop ? "read" : "write", count);
+	return 0;
+}
+
+static int pdm_mcu_diag_can_write_loop(struct pdm_mcu_instance *inst,
+				       u32 index, u32 can_id, u32 count,
+				       u32 delay_us, u32 data_len)
+{
+	u8 data[PDM_MCU_DIAG_CAN_MAX_DLEN];
+	bool continuous = count == 0;
+	u64 i;
+	int ret;
+
+	if (!inst->ops ||
+	    !(inst->ops->capability & PDM_MCU_CAP_TRANSPORT_CAN)) {
+		return -EOPNOTSUPP;
+	}
+	if (count > PDM_MCU_DIAG_LOOP_MAX_COUNT ||
+	    delay_us > PDM_MCU_DIAG_LOOP_MAX_DELAY_US ||
+	    data_len > PDM_MCU_DIAG_CAN_MAX_DLEN) {
+		return -EINVAL;
+	}
+
+	if (continuous) {
+		LOG_INFO("MCU %u CAN std loop start: id=0x%x count=continuous delay_us=%u dlc=%u",
+			 index, can_id, delay_us, data_len);
+	} else {
+		LOG_INFO("MCU %u CAN std loop start: id=0x%x count=%u delay_us=%u dlc=%u",
+			 index, can_id, count, delay_us, data_len);
+	}
+
+	for (i = 0; continuous || i < count; i++) {
+		if (signal_pending(current)) {
+			LOG_INFO("MCU %u CAN std loop interrupted at %llu frames",
+				 index, i);
+			return -EINTR;
+		}
+
+		pdm_mcu_diag_fill_pattern(data, data_len, i);
+		ret = pdm_mcu_can_diag_send_std_frame(inst, can_id, data,
+						      data_len);
+		if (ret) {
+			if (continuous) {
+				LOG_ERROR("MCU %u CAN std loop failed at %llu: %d",
+					  index, i + 1, ret);
+			} else {
+				LOG_ERROR("MCU %u CAN std loop failed at %llu/%u: %d",
+					  index, i + 1, count, ret);
+			}
+			return ret;
+		}
+
+		if (continuous) {
+			LOG_DEBUG("MCU %u CAN std loop iter=%llu id=0x%x dlc=%u",
+				  index, i + 1, can_id, data_len);
+		} else {
+			LOG_DEBUG("MCU %u CAN std loop iter=%llu/%u id=0x%x dlc=%u",
+				  index, i + 1, count, can_id, data_len);
+		}
+		pdm_mcu_diag_loop_delay(delay_us);
+	}
+
+	LOG_INFO("MCU %u CAN std loop complete: count=%u", index, count);
 	return 0;
 }
 
@@ -304,6 +367,8 @@ static int pdm_mcu_proc_write(char *command, size_t count, void *data)
 		LOG_INFO("  version <index>  - Get MCU firmware version");
 		LOG_INFO("  status <index>   - Get MCU status");
 		LOG_INFO("  reset <index>    - Reset MCU");
+		LOG_INFO("  can_write_loop <index> <can_id_hex> [count] [delay_us] [dlc]");
+		LOG_INFO("                   - Repeated classic standard CAN data frames");
 		LOG_INFO("  write_loop <index> <cmd_hex> [count] [delay_us] [tx_len]");
 		LOG_INFO("                   - Repeated write-only transfers; count 0 runs until interrupted");
 		LOG_INFO("  read_loop <index> <cmd_hex> [count] [delay_us] [rx_len]");
@@ -356,6 +421,22 @@ static int pdm_mcu_proc_write(char *command, size_t count, void *data)
 		ret = pdm_mcu_protocol_reset(inst, index);
 		if (ret == 0) {
 			LOG_INFO("MCU %u reset successful", index);
+		}
+	} else if (strcmp(cmd, "can_write_loop") == 0) {
+		u32 can_id;
+		u32 loop_count = PDM_MCU_DIAG_LOOP_DEFAULT_COUNT;
+		u32 delay_us = PDM_MCU_DIAG_LOOP_DEFAULT_DELAY_US;
+		u32 data_len = PDM_MCU_DIAG_CAN_MAX_DLEN;
+
+		n = sscanf(command, "%31s %u %x %u %u %u", cmd, &index,
+			   &can_id, &loop_count, &delay_us, &data_len);
+		if (n < 3) {
+			LOG_ERROR("Usage: can_write_loop <index> <can_id_hex> [count] [delay_us] [dlc]");
+			ret = -EINVAL;
+		} else {
+			ret = pdm_mcu_diag_can_write_loop(inst, index, can_id,
+						      loop_count, delay_us,
+						      data_len);
 		}
 	} else if (strcmp(cmd, "write_loop") == 0 ||
 		   strcmp(cmd, "read_loop") == 0) {
