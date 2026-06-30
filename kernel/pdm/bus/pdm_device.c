@@ -120,36 +120,46 @@ static void pdm_id_destroy(void)
 	LOG_INFO("PDM ID management destroyed");
 }
 
-static u64 pdm_device_transport_capability(u32 transport)
-{
-	switch (transport) {
-	case PDM_MANAGER_TRANSPORT_CAN:
-		return PDM_MANAGER_DEVICE_CAP_TRANSPORT_CAN;
-	case PDM_MANAGER_TRANSPORT_UART:
-		return PDM_MANAGER_DEVICE_CAP_TRANSPORT_UART;
-	case PDM_MANAGER_TRANSPORT_I2C:
-		return PDM_MANAGER_DEVICE_CAP_TRANSPORT_I2C;
-	case PDM_MANAGER_TRANSPORT_SPI:
-		return PDM_MANAGER_DEVICE_CAP_TRANSPORT_SPI;
-	default:
-		return PDM_MANAGER_DEVICE_CAP_NONE;
-	}
-}
+struct pdm_device_compatible_info {
+	const char *compatible;
+	u32 type;
+	u32 transport;
+	u64 capability;
+};
 
-static u32 pdm_device_transport_from_compatible(const char *compatible)
+static const struct pdm_device_compatible_info pdm_device_compatible_table[] = {
+	{ "pdm,mcu-can", PDM_MANAGER_DEVICE_TYPE_MCU,
+	  PDM_MANAGER_TRANSPORT_CAN, PDM_MANAGER_DEVICE_CAP_TRANSPORT_CAN },
+	{ "vendor,pdm-mcu-can", PDM_MANAGER_DEVICE_TYPE_MCU,
+	  PDM_MANAGER_TRANSPORT_CAN, PDM_MANAGER_DEVICE_CAP_TRANSPORT_CAN },
+	{ "pdm,mcu-uart", PDM_MANAGER_DEVICE_TYPE_MCU,
+	  PDM_MANAGER_TRANSPORT_UART, PDM_MANAGER_DEVICE_CAP_TRANSPORT_UART },
+	{ "vendor,pdm-mcu-uart", PDM_MANAGER_DEVICE_TYPE_MCU,
+	  PDM_MANAGER_TRANSPORT_UART, PDM_MANAGER_DEVICE_CAP_TRANSPORT_UART },
+	{ "pdm,mcu-i2c", PDM_MANAGER_DEVICE_TYPE_MCU,
+	  PDM_MANAGER_TRANSPORT_I2C, PDM_MANAGER_DEVICE_CAP_TRANSPORT_I2C },
+	{ "vendor,pdm-mcu-i2c", PDM_MANAGER_DEVICE_TYPE_MCU,
+	  PDM_MANAGER_TRANSPORT_I2C, PDM_MANAGER_DEVICE_CAP_TRANSPORT_I2C },
+	{ "pdm,mcu-spi", PDM_MANAGER_DEVICE_TYPE_MCU,
+	  PDM_MANAGER_TRANSPORT_SPI, PDM_MANAGER_DEVICE_CAP_TRANSPORT_SPI },
+	{ "vendor,pdm-mcu-spi", PDM_MANAGER_DEVICE_TYPE_MCU,
+	  PDM_MANAGER_TRANSPORT_SPI, PDM_MANAGER_DEVICE_CAP_TRANSPORT_SPI },
+};
+
+static const struct pdm_device_compatible_info *
+pdm_device_lookup_compatible(const char *compatible)
 {
+	size_t i;
+
 	if (!compatible)
-		return PDM_MANAGER_TRANSPORT_NONE;
-	if (strstr(compatible, "mcu-can"))
-		return PDM_MANAGER_TRANSPORT_CAN;
-	if (strstr(compatible, "mcu-uart"))
-		return PDM_MANAGER_TRANSPORT_UART;
-	if (strstr(compatible, "mcu-i2c"))
-		return PDM_MANAGER_TRANSPORT_I2C;
-	if (strstr(compatible, "mcu-spi"))
-		return PDM_MANAGER_TRANSPORT_SPI;
+		return NULL;
 
-	return PDM_MANAGER_TRANSPORT_NONE;
+	for (i = 0; i < ARRAY_SIZE(pdm_device_compatible_table); i++) {
+		if (!strcmp(compatible, pdm_device_compatible_table[i].compatible))
+			return &pdm_device_compatible_table[i];
+	}
+
+	return NULL;
 }
 
 u32 pdm_device_of_owner(struct device_node *np)
@@ -195,7 +205,7 @@ static struct device_node *pdm_device_controller_from_of(struct device_node *np)
 	if (controller)
 		return controller;
 
-	return NULL;
+	return of_node_get(np->parent);
 }
 
 int pdm_device_of_alias_id(struct device_node *np, const char *stem)
@@ -212,12 +222,14 @@ EXPORT_SYMBOL_GPL(pdm_device_of_alias_id);
 
 void pdm_device_apply_of_metadata(struct pdm_device *pdm_dev)
 {
+	const struct pdm_device_compatible_info *info;
 	struct device_node *controller;
 
 	if (!pdm_dev)
 		return;
 
-	pdm_dev->transport = pdm_device_transport_from_compatible(pdm_dev->compatible);
+	info = pdm_device_lookup_compatible(pdm_dev->compatible);
+	pdm_dev->transport = info ? info->transport : PDM_MANAGER_TRANSPORT_NONE;
 	pdm_dev->owner = pdm_device_of_owner(pdm_dev->dev.of_node);
 
 	controller = pdm_device_controller_from_of(pdm_dev->dev.of_node);
@@ -286,11 +298,20 @@ int pdm_device_register(struct pdm_device *pdm_dev, const char *name)
 		return ret;
 	}
 
-	if (pdm_dev->owner == PDM_MANAGER_DEVICE_OWNER_USER &&
-	    pdm_dev->transport != PDM_MANAGER_TRANSPORT_NONE) {
-		ret = pdm_device_bind(pdm_dev, PDM_MANAGER_DEVICE_TYPE_MCU,
-				      PDM_MANAGER_DEVICE_CAP_USER_IOCTL |
-				      pdm_device_transport_capability(pdm_dev->transport));
+	if (pdm_dev->owner == PDM_MANAGER_DEVICE_OWNER_USER) {
+		const struct pdm_device_compatible_info *info;
+
+		info = pdm_device_lookup_compatible(pdm_dev->compatible);
+		if (!info || info->type == PDM_MANAGER_DEVICE_TYPE_INVALID ||
+		    info->transport == PDM_MANAGER_TRANSPORT_NONE) {
+			LOG_ERROR("Cannot reserve user-owned device [%s] with compatible %s",
+				  name, pdm_dev->compatible ? pdm_dev->compatible : "<none>");
+			put_device(&pdm_dev->dev);
+			return -EINVAL;
+		}
+
+		ret = pdm_device_bind(pdm_dev, info->type,
+				      info->capability);
 		if (ret) {
 			LOG_ERROR("Failed to reserve user-owned device [%s], error %d",
 				  name, ret);

@@ -364,23 +364,31 @@ static int pdm_manager_do_get_info(struct pdm_manager_info __user *uinfo)
 	return 0;
 }
 
+static int pdm_manager_find_device_by_index(u32 match_index,
+						 struct pdm_manager_device_info *info)
+{
+	struct pdm_manager_match_ctx ctx;
+
+	memset(&ctx, 0, sizeof(ctx));
+	ctx.info = info;
+	ctx.match_index = match_index;
+
+	bus_for_each_dev(&pdm_bus_type, NULL, &ctx, pdm_manager_match_device);
+	return ctx.found ? 0 : -ENODEV;
+}
+
 static int pdm_manager_do_get_device(struct pdm_manager_device_query __user *uquery)
 {
 	struct pdm_manager_device_query query;
-	struct pdm_manager_match_ctx ctx;
+	int ret;
 
 	if (copy_from_user(&query, uquery, sizeof(query))) {
 		return -EFAULT;
 	}
 
-	memset(&ctx, 0, sizeof(ctx));
-	ctx.info = &query.info;
-	ctx.match_index = query.match_index;
-
-	bus_for_each_dev(&pdm_bus_type, NULL, &ctx, pdm_manager_match_device);
-
-	if (!ctx.found) {
-		return -ENODEV;
+	ret = pdm_manager_find_device_by_index(query.match_index, &query.info);
+	if (ret) {
+		return ret;
 	}
 
 	if (copy_to_user(uquery, &query, sizeof(query))) {
@@ -390,11 +398,25 @@ static int pdm_manager_do_get_device(struct pdm_manager_device_query __user *uqu
 	return 0;
 }
 
+static int pdm_manager_find_device_by_name(const char *name,
+					      struct pdm_manager_device_info *info)
+{
+	struct pdm_manager_match_ctx ctx;
+
+	memset(&ctx, 0, sizeof(ctx));
+	ctx.info = info;
+	ctx.name = name;
+
+	bus_for_each_dev(&pdm_bus_type, NULL, &ctx,
+			 pdm_manager_match_by_name);
+	return ctx.found ? 0 : -ENODEV;
+}
+
 static int pdm_manager_do_get_device_by_name(
 	struct pdm_manager_device_name_query __user *uquery)
 {
 	struct pdm_manager_device_name_query query;
-	struct pdm_manager_match_ctx ctx;
+	int ret;
 
 	if (copy_from_user(&query, uquery, sizeof(query))) {
 		return -EFAULT;
@@ -402,15 +424,9 @@ static int pdm_manager_do_get_device_by_name(
 
 	query.name[PDM_MANAGER_NAME_LEN - 1] = '\0';
 
-	memset(&ctx, 0, sizeof(ctx));
-	ctx.info = &query.info;
-	ctx.name = query.name;
-
-	bus_for_each_dev(&pdm_bus_type, NULL, &ctx,
-			 pdm_manager_match_by_name);
-
-	if (!ctx.found) {
-		return -ENODEV;
+	ret = pdm_manager_find_device_by_name(query.name, &query.info);
+	if (ret) {
+		return ret;
 	}
 
 	if (copy_to_user(uquery, &query, sizeof(query))) {
@@ -420,26 +436,36 @@ static int pdm_manager_do_get_device_by_name(
 	return 0;
 }
 
+static int pdm_manager_find_device_by_capability(u64 required_capabilities,
+						      u32 match_index,
+						      struct pdm_manager_device_info *info)
+{
+	struct pdm_manager_match_ctx ctx;
+
+	memset(&ctx, 0, sizeof(ctx));
+	ctx.info = info;
+	ctx.match_index = match_index;
+	ctx.required_capabilities = required_capabilities;
+
+	bus_for_each_dev(&pdm_bus_type, NULL, &ctx,
+			 pdm_manager_match_by_capability);
+	return ctx.found ? 0 : -ENODEV;
+}
+
 static int pdm_manager_do_get_device_by_capability(
 	struct pdm_manager_device_query __user *uquery)
 {
 	struct pdm_manager_device_query query;
-	struct pdm_manager_match_ctx ctx;
+	int ret;
 
 	if (copy_from_user(&query, uquery, sizeof(query))) {
 		return -EFAULT;
 	}
 
-	memset(&ctx, 0, sizeof(ctx));
-	ctx.info = &query.info;
-	ctx.match_index = query.match_index;
-	ctx.required_capabilities = query.required_capabilities;
-
-	bus_for_each_dev(&pdm_bus_type, NULL, &ctx,
-			 pdm_manager_match_by_capability);
-
-	if (!ctx.found) {
-		return -ENODEV;
+	ret = pdm_manager_find_device_by_capability(query.required_capabilities,
+						   query.match_index, &query.info);
+	if (ret) {
+		return ret;
 	}
 
 	if (copy_to_user(uquery, &query, sizeof(query))) {

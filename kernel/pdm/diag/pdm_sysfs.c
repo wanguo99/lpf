@@ -15,10 +15,54 @@ static ssize_t pdm_id_show(struct device *dev,
 			   struct device_attribute *attr, char *buf);
 static ssize_t pdm_type_show(struct device *dev,
 			     struct device_attribute *attr, char *buf);
+static const char *pdm_owner_name(u32 owner)
+{
+	switch (owner) {
+	case PDM_MANAGER_DEVICE_OWNER_KERNEL:
+		return "kernel";
+	case PDM_MANAGER_DEVICE_OWNER_USER:
+		return "user";
+	default:
+		return "unspecified";
+	}
+}
+
+static const char *pdm_transport_name(u32 transport)
+{
+	switch (transport) {
+	case PDM_MANAGER_TRANSPORT_CAN:
+		return "can";
+	case PDM_MANAGER_TRANSPORT_UART:
+		return "uart";
+	case PDM_MANAGER_TRANSPORT_I2C:
+		return "i2c";
+	case PDM_MANAGER_TRANSPORT_SPI:
+		return "spi";
+	default:
+		return "none";
+	}
+}
+
 static ssize_t owner_show(struct device *dev,
-				 struct device_attribute *attr, char *buf);
+				 struct device_attribute *attr, char *buf)
+{
+	struct pdm_device *pdm_dev = dev_to_pdm_device(dev);
+
+	(void)attr;
+	return pdm_compat_sysfs_emit(buf, "%s\n",
+				      pdm_owner_name(pdm_dev->owner));
+}
+
 static ssize_t transport_show(struct device *dev,
-				     struct device_attribute *attr, char *buf);
+				     struct device_attribute *attr, char *buf)
+{
+	struct pdm_device *pdm_dev = dev_to_pdm_device(dev);
+
+	(void)attr;
+	return pdm_compat_sysfs_emit(buf, "%s\n",
+				      pdm_transport_name(pdm_dev->transport));
+}
+
 static ssize_t controller_path_show(struct device *dev,
 				   struct device_attribute *attr, char *buf);
 static ssize_t capabilities_show(struct device *dev,
@@ -93,23 +137,6 @@ static ssize_t pdm_type_show(struct device *dev,
 	return pdm_compat_sysfs_emit(buf, "%u\n", pdm_dev->type);
 }
 
-static ssize_t owner_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
-{
-	struct pdm_device *pdm_dev = dev_to_pdm_device(dev);
-
-	(void)attr;
-	return pdm_compat_sysfs_emit(buf, "%u\n", pdm_dev->owner);
-}
-
-static ssize_t transport_show(struct device *dev,
-				     struct device_attribute *attr, char *buf)
-{
-	struct pdm_device *pdm_dev = dev_to_pdm_device(dev);
-
-	(void)attr;
-	return pdm_compat_sysfs_emit(buf, "%u\n", pdm_dev->transport);
-}
 
 static ssize_t controller_path_show(struct device *dev,
 				   struct device_attribute *attr, char *buf)

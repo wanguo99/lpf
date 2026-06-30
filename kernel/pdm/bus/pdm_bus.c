@@ -116,6 +116,9 @@ static int pdm_bus_device_match_impl(struct device *dev,
 
 	pdm_dev = dev_to_pdm_device(dev);
 	pdm_drv = drv_to_pdm_driver(drv);
+	if (pdm_dev->owner == PDM_MANAGER_DEVICE_OWNER_USER) {
+		return 0;
+	}
 	if (pdm_drv->match) {
 		return pdm_drv->match(pdm_dev) ? 1 : 0;
 	}

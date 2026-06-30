@@ -8,6 +8,7 @@
 #include "pdi_path.h"
 #include "pdi_syscall.h"
 
+#include <errno.h>
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -71,6 +72,10 @@ int32_t pdi_mcu_open_by_name(pdi_mcu_context_t *ctx, const char *name)
 
 	if (info.type != PDM_MANAGER_DEVICE_TYPE_MCU) {
 		return pdi_fail_no_device();
+	}
+	if (info.owner == PDM_MANAGER_DEVICE_OWNER_USER ||
+	    (info.capabilities & PDM_MANAGER_DEVICE_CAP_USER_IOCTL) == 0U) {
+		return pdi_fail_errno(ENOTSUP);
 	}
 
 	ret = snprintf(path, sizeof(path), PDI_MCU_DEVICE_PATH_FORMAT,

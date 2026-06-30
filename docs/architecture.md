@@ -119,8 +119,10 @@ Logical MCU numbering can be pinned with Device Tree aliases. PDM checks `pdm-mc
 };
 ```
 
-`pdm,owner = "kernel"` is the default and keeps the current kernel backend behavior. `pdm,owner = "user"` reserves the logical MCU id and exposes the node in discovery, but PDM skips kernel backend binding so a user-space MCU daemon can own the transport.
+`pdm,owner = "kernel"` is the default and keeps the current kernel backend behavior. `pdm,owner = "user"` reserves the logical MCU id and exposes the node in discovery, but PDM skips kernel backend binding so a user-space MCU daemon can own the transport. User-owned registry entries expose the transport capability only; they do not expose `PDM_MANAGER_DEVICE_CAP_USER_IOCTL` because no `/dev/pdm/mcuN` command endpoint exists for them.
 
 Kernel-owned I2C, SPI, and serdev UART MCU nodes should remain under their native controller nodes so the native Linux bus creates the `i2c_client`, `spi_device`, or `serdev_device` used by the kernel backend. User-owned CAN/UART logical MCU nodes should be placed under `vendor,pdm-bus` and reference the native controller by phandle; do not duplicate those hardware details in a userspace config file.
 
 The manager v2 device record adds owner, transport, OF node path, and controller path fields. Sysfs also exposes `owner`, `transport`, and `controller_path` for diagnostics.
+
+A user-owned MCU entry is a registry contract, not a kernel character device. PDI must not silently open `/dev/pdm/mcuN` for user-owned devices; until a product supplies a user-space transport owner such as `pdm-mcud`, PDI reports the device as discovered but unsupported for command I/O. A production daemon should consume the manager metadata, claim the native CAN/UART interface, implement the shared MCU protocol, and expose a stable PDI-facing endpoint.

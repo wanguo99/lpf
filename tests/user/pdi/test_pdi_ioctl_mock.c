@@ -55,6 +55,7 @@ static void fill_mock_device(struct pdm_manager_device_info *info, uint32_t type
 	info->type = type;
 	info->index = index;
 	info->state = PDM_MANAGER_DEVICE_STATE_BOUND;
+	info->owner = PDM_MANAGER_DEVICE_OWNER_KERNEL;
 	info->capabilities = capabilities;
 	strncpy(info->name, name, sizeof(info->name) - 1U);
 	strncpy(info->driver_name, "mock-driver",
@@ -77,6 +78,15 @@ static int fill_mock_device_by_index(uint32_t index,
 					 PDM_MANAGER_DEVICE_CAP_DEBUGFS |
 					 PDM_MANAGER_DEVICE_CAP_CONTROL_PWM);
 		return 0;
+	case 2:
+		fill_mock_device(info, PDM_MANAGER_DEVICE_TYPE_MCU, 0, "mcu-user",
+				 PDM_MANAGER_DEVICE_CAP_TRANSPORT_CAN);
+		info->state = PDM_MANAGER_DEVICE_STATE_REGISTERED;
+		info->owner = PDM_MANAGER_DEVICE_OWNER_USER;
+		info->transport = PDM_MANAGER_TRANSPORT_CAN;
+		strncpy(info->controller_path, "/soc/bus/can@02090000",
+			sizeof(info->controller_path) - 1U);
+		return 0;
 	default:
 		errno = ENODEV;
 		return -1;
@@ -95,7 +105,7 @@ static int mock_ioctl(int fd, unsigned long request, void *arg)
 
 		memset(info, 0, sizeof(*info));
 		info->abi_version = PDM_MANAGER_ABI_VERSION;
-		info->device_count = 2;
+		info->device_count = 3;
 		return 0;
 	}
 	case PDM_MANAGER_IOC_GET_DEVICE: {
@@ -112,6 +122,9 @@ static int mock_ioctl(int fd, unsigned long request, void *arg)
 		}
 		if (strcmp(query->name, "led-front") == 0) {
 			return fill_mock_device_by_index(1, &query->info);
+		}
+		if (strcmp(query->name, "mcu-user") == 0) {
+			return fill_mock_device_by_index(2, &query->info);
 		}
 		if (strcmp(query->name, "wrong-type") == 0) {
 			fill_mock_device(&query->info, PDM_MANAGER_DEVICE_TYPE_LED,
@@ -301,7 +314,7 @@ static int test_control_discovery(void)
 {
 	pdi_ctl_context_t ctl = { .fd = MOCK_FD };
 	struct pdm_manager_info info;
-	struct pdm_manager_device_info devices[2];
+	struct pdm_manager_device_info devices[3];
 	struct pdm_manager_device_info device;
 	uint32_t count;
 
@@ -313,7 +326,7 @@ static int test_control_discovery(void)
 		return 401;
 	}
 	if (g_mock.last_request != PDM_MANAGER_IOC_GET_INFO ||
-	    info.abi_version != PDM_MANAGER_ABI_VERSION || info.device_count != 2)
+	    info.abi_version != PDM_MANAGER_ABI_VERSION || info.device_count != 3)
 	{
 		return 402;
 	}
@@ -323,10 +336,13 @@ static int test_control_discovery(void)
 	if (pdi_list_devices(&ctl, devices, &count) != 0) {
 		return 403;
 	}
-	if (count != 2 || devices[0].type != PDM_MANAGER_DEVICE_TYPE_MCU ||
+	if (count != 3 || devices[0].type != PDM_MANAGER_DEVICE_TYPE_MCU ||
 	    devices[0].index != 3 || strcmp(devices[0].name, "mcu-main") ||
 	    devices[1].type != PDM_MANAGER_DEVICE_TYPE_LED ||
-	    devices[1].index != 2 || strcmp(devices[1].name, "led-front"))
+	    devices[1].index != 2 || strcmp(devices[1].name, "led-front") ||
+	    devices[2].owner != PDM_MANAGER_DEVICE_OWNER_USER ||
+	    devices[2].transport != PDM_MANAGER_TRANSPORT_CAN ||
+	    (devices[2].capabilities & PDM_MANAGER_DEVICE_CAP_USER_IOCTL) != 0U)
 	{
 		return 404;
 	}
@@ -403,6 +419,14 @@ static int test_open_by_name(void)
 	}
 	if (pdi_led_close(&led) != 0 || led.fd != -1) {
 		return 9;
+	}
+
+	errno = 0;
+	if (pdi_mcu_open_by_name(&mcu, "mcu-user") != -1) {
+		return 14;
+	}
+	if (errno != ENOTSUP || mcu.fd != -1) {
+		return 15;
 	}
 
 	errno = 0;
