@@ -42,7 +42,6 @@ APIs from higher layers, but non-Linux ports are outside the current direction.
 - PDI: userspace peripheral driver interface library; discovery and MCU/LED
   wrappers remain available, but require matching kernel drivers/device nodes to
   be implemented on the new bus
-- ACONFIG: application configuration layer
 
 ## What PDM Provides
 

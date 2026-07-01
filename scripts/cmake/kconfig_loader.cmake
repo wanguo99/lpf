@@ -248,7 +248,6 @@ function(kconfig_print_summary)
         OSAL
         LPF_RUNTIME
         PDI
-        ACONFIG
     )
 
     foreach(config ${important_configs})
