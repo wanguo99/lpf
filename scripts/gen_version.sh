@@ -14,7 +14,7 @@ mkdir -p include/generated
 
 # Extract version from .config or use default
 if [ -f .config ]; then
-    VERSION=$(grep '^CONFIG_PDM_VERSION=' .config | cut -d'"' -f2)
+    VERSION=$(grep '^CONFIG_PAF_VERSION=' .config | cut -d'"' -f2)
 else
     VERSION="unknown"
 fi
@@ -51,60 +51,72 @@ fi
 cat > "$TEMP_FILE" << EOF
 /*
  * Automatically generated file - do not edit
- * PDM version: ${VERSION}
+ * PAF version: ${VERSION}
  * Generated on: ${BUILD_TIME}
  */
 
-#ifndef __PDM_VERSION_H__
-#define __PDM_VERSION_H__
+#ifndef __PAF_VERSION_H__
+#define __PAF_VERSION_H__
 
 /*
  * Version Information
  */
-#define PDM_VERSION           "${VERSION}"
-#define PDM_VERSION_CODE      ${BUILD_TIMESTAMP}
+#define PAF_VERSION           "${VERSION}"
+#define PAF_VERSION_CODE      ${BUILD_TIMESTAMP}
+#define PDM_VERSION           PAF_VERSION
+#define PDM_VERSION_CODE      PAF_VERSION_CODE
 
 /*
  * Build Information
  */
-#define PDM_COMPILE_BY        "${BUILD_USER}"
-#define PDM_COMPILE_HOST      "${BUILD_HOST}"
-#define PDM_COMPILER          "${GCC_VERSION}"
+#define PAF_COMPILE_BY        "${BUILD_USER}"
+#define PAF_COMPILE_HOST      "${BUILD_HOST}"
+#define PAF_COMPILER          "${GCC_VERSION}"
+#define PDM_COMPILE_BY        PAF_COMPILE_BY
+#define PDM_COMPILE_HOST      PAF_COMPILE_HOST
+#define PDM_COMPILER          PAF_COMPILER
 
 /*
  * Timestamps
  */
-#define PDM_COMPILE_TIME      "${BUILD_TIME}"
-#define PDM_COMPILE_TIMESTAMP ${BUILD_TIMESTAMP}
+#define PAF_COMPILE_TIME      "${BUILD_TIME}"
+#define PAF_COMPILE_TIMESTAMP ${BUILD_TIMESTAMP}
+#define PDM_COMPILE_TIME      PAF_COMPILE_TIME
+#define PDM_COMPILE_TIMESTAMP PAF_COMPILE_TIMESTAMP
 
 /*
  * Platform Information
  */
-#define PDM_BUILD_ARCH        "${ARCH}"
-#define PDM_BUILD_KERNEL      "${KERNEL_VERSION}"
+#define PAF_BUILD_ARCH        "${ARCH}"
+#define PAF_BUILD_KERNEL      "${KERNEL_VERSION}"
+#define PDM_BUILD_ARCH        PAF_BUILD_ARCH
+#define PDM_BUILD_KERNEL      PAF_BUILD_KERNEL
 
 /*
  * Git Information
  */
-#define PDM_GIT_COMMIT        "${GIT_COMMIT}${GIT_DIRTY}"
+#define PAF_GIT_COMMIT        "${GIT_COMMIT}${GIT_DIRTY}"
+#define PDM_GIT_COMMIT        PAF_GIT_COMMIT
 
 /*
  * Version Banner (similar to Linux kernel banner)
- * Format: PDM version <version> (<user>@<host>) (<compiler>) <timestamp>
+ * Format: PAF version <version> (<user>@<host>) (<compiler>) <timestamp>
  */
-#define PDM_BANNER \
-    "PDM version " PDM_VERSION \
-    " (" PDM_COMPILE_BY "@" PDM_COMPILE_HOST ")" \
-    " (" PDM_COMPILER ")" \
-    " " PDM_COMPILE_TIME
+#define PAF_BANNER \
+    "PAF version " PAF_VERSION \
+    " (" PAF_COMPILE_BY "@" PAF_COMPILE_HOST ")" \
+    " (" PAF_COMPILER ")" \
+    " " PAF_COMPILE_TIME
+#define PDM_BANNER            PAF_BANNER
 
 /*
  * Short version string (version + git commit)
  */
-#define PDM_VERSION_STRING \
-    PDM_VERSION "-" PDM_GIT_COMMIT
+#define PAF_VERSION_STRING \
+    PAF_VERSION "-" PAF_GIT_COMMIT
+#define PDM_VERSION_STRING    PAF_VERSION_STRING
 
-#endif /* __PDM_VERSION_H__ */
+#endif /* __PAF_VERSION_H__ */
 EOF
 
 # Only update if changed (to avoid unnecessary rebuilds)

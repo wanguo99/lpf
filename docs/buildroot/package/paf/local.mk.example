@@ -1,29 +1,29 @@
 ################################################################################
 #
-# pdm - Local development override
+# paf - Local development override
 #
 ################################################################################
 # Add this override to the external tree's BR2_PACKAGE_OVERRIDE_FILE, for
 # example board/<vendor>/<board>/local.mk. It allows Buildroot to use a local
-# PDM source tree instead of fetching from git. This is useful for:
+# PAF source tree instead of fetching from git. This is useful for:
 # - Rapid iteration during development
 # - Testing local changes before pushing to git
 # - Working offline
 #
 # Usage in a br2-external tree:
 #   1. Ensure the board defconfig sets BR2_PACKAGE_OVERRIDE_FILE.
-#   2. Add PDM_OVERRIDE_SRCDIR to that override file.
-#   3. Rebuild with: make pdm-rebuild
+#   2. Add PAF_OVERRIDE_SRCDIR to that override file.
+#   3. Rebuild with: make paf-rebuild
 #
 # Note: package override files are usually product-local policy.
 ################################################################################
 
 # Override to use local source directory.
-PDM_OVERRIDE_SRCDIR = $(TOPDIR)/../PDM
+PAF_OVERRIDE_SRCDIR = $(TOPDIR)/../PAF
 
 # Optional: Override version for local builds
-# PDM_VERSION = 1.0.0-local-$(shell date +%Y%m%d)
+# PAF_VERSION = 1.0.0-local-$(shell date +%Y%m%d)
 
 # Optional: Use a specific git branch/tag/commit for local testing
-# PDM_VERSION = feature-branch
-# PDM_SITE_METHOD = git
+# PAF_VERSION = feature-branch
+# PAF_SITE_METHOD = git

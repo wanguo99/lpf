@@ -1,6 +1,6 @@
 # PDI
 
-PDI is the userspace API library for kernel PDM peripheral devices.
+PDI (Peripheral Driver Interface) is the PAF userspace API library for kernel PDM peripheral devices.
 
 Responsibilities:
 

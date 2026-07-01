@@ -1,5 +1,5 @@
 # ==============================================================================
-# PDM SDK Root CMakeLists.txt
+# PAF SDK Root CMakeLists.txt
 # ==============================================================================
 # Clean separation of concerns:
 #   - Makefile:        Configuration management (Kconfig)
@@ -35,7 +35,7 @@ kconfig_load()
 # Project Declaration
 # ==============================================================================
 
-project(pdm_sdk C ASM)
+project(paf_sdk C ASM)
 
 # ==============================================================================
 # Configure Installation Paths (after project())
@@ -125,7 +125,7 @@ add_subdirectory(${SDK_PATH}/apps ${CMAKE_BINARY_DIR}/apps)
 
 message(STATUS "")
 message(STATUS "========================================================================")
-message(STATUS "PDM Configuration Summary")
+message(STATUS "PAF Configuration Summary")
 message(STATUS "========================================================================")
 message(STATUS "SDK Version:    ${SDK_VERSION}")
 message(STATUS "Git Commit:     ${GIT_COMMIT_HASH}")
@@ -134,7 +134,7 @@ message(STATUS "Install Prefix: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "")
 message(STATUS "Selected Components:")
 message(STATUS "  Linux target:  ${CONFIG_OS_LINUX}")
-message(STATUS "  PDM module:   ${CONFIG_PDM}")
+message(STATUS "  PDM:          ${CONFIG_PDM}")
 message(STATUS "  PDI:          ${CONFIG_PDI}")
 message(STATUS "========================================================================")
 message(STATUS "")

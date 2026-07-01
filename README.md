@@ -1,11 +1,11 @@
-# PDM - Peripheral Device Manager
+# PAF - Peripheral Access Framework
 
-PDM (Peripheral Device Manager) is a Linux-focused peripheral access framework.
-It provides the shared layers needed to describe platform devices, access
-hardware from kernel modules, expose stable kernel/userspace ABIs, and offer
-application-facing C APIs.
+PAF (Peripheral Access Framework) is a Linux-focused peripheral access
+framework. It provides the shared layers needed to describe platform devices,
+access hardware from kernel modules, expose stable kernel/userspace ABIs, and
+offer application-facing C APIs.
 
-PDM is not limited to embedded products. The current modules are useful for
+PAF is not limited to embedded products. The current modules are useful for
 embedded Linux boards, industrial controllers, development machines, and other
 Linux systems that need a reusable peripheral driver and access stack.
 
@@ -20,29 +20,30 @@ layers, and the previous examples/tests products have been removed.
 
 Current kernel modules:
 
-- PDM Core (`pdm.ko`), implemented as a Linux `bus_type` named `pdm`
+- PDM (`pdm.ko`), the Peripheral Driver Module implemented as a Linux
+  `bus_type` named `pdm`
 
-PDM Core currently provides the standard Linux bus integration, Device Tree
-backed PDM device creation through the PDM bus controller, native UART/I2C/SPI
-MCU device creation, `/dev/pdm_manager` discovery snapshots, read-only sysfs
+PDM currently provides the standard Linux bus integration, Device Tree backed
+PDM device creation through the PDM bus controller, native UART/I2C/SPI MCU
+device creation, `/dev/pdm_manager` discovery snapshots, read-only sysfs
 diagnostics, optional development proc/debugfs controls, MCU transport backends,
 and LED GPIO/PWM backends.
 
-PDM currently targets Linux only. Kernel code uses native Linux APIs, and
+PAF currently targets Linux only. Kernel code uses native Linux APIs, and
 userspace code uses libc/POSIX APIs directly. Logging is local to PDM in kernel
 space and PDI in userspace through the existing `LOG_*` interface.
 
 ## Core Layers
 
-- PDM Core: Linux `bus_type`, PDM device lifecycle, Device Tree bus controller,
-  `/dev/pdm_manager` discovery, and shared kernel helper infrastructure
-  (`pdm.ko`)
+- PDM: Peripheral Driver Module; Linux `bus_type`, PDM device lifecycle, Device
+  Tree bus controller, `/dev/pdm_manager` discovery, and shared kernel helper
+  infrastructure (`pdm.ko`)
 - UAPI: stable userspace/kernel ABI headers
-- PDI: userspace peripheral driver interface library; discovery and MCU/LED
+- PDI: Peripheral Driver Interface userspace library; discovery and MCU/LED
   wrappers remain available, but require matching kernel drivers/device nodes to
-  be implemented on the new bus
+  be implemented on the PDM bus
 
-## What PDM Provides
+## What PAF Provides
 
 - A clear split between kernel modules, UAPI headers, and userspace libraries.
 - A standard Linux driver-model entry point for PDM kernel drivers.
@@ -53,7 +54,7 @@ space and PDI in userspace through the existing `LOG_*` interface.
 - Kconfig-controlled feature selection for PDM and PDI modules.
 - CMake/Kbuild integration for userspace libraries and Linux kernel modules.
 
-## What PDM Does Not Own
+## What PAF Does Not Own
 
 - Product or business logic.
 - Product-specific init scripts, services, or deployment policy.
@@ -101,7 +102,7 @@ Use `make menuconfig` for interactive configuration.
 ## Project Layout
 
 ```text
-PDM/
+PAF/
 ├── kernel/pdm/         # PDM kernel module implementation
 ├── kernel/include/pdm/ # Kernel-side PDM public headers
 ├── user/pdi/           # Userspace PDI library
@@ -115,6 +116,6 @@ PDM/
 ## Documentation
 
 - `docs/architecture.md`: current module architecture and extension flow.
-- `docs/PDM_架构分析.md`: detailed Chinese architecture analysis and design notes.
+- `docs/PDM_架构分析.md`: detailed Chinese PDM architecture analysis and design notes.
 - `docs/pdm_can_transport.md`: CAN transport frame format, DTS properties, and runtime setup.
 - `docs/buildroot/buildroot_integration.md`: Buildroot integration notes.

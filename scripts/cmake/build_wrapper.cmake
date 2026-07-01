@@ -1,5 +1,5 @@
 # ==============================================================================
-# Build System Wrapper for PDM
+# Build System Wrapper for PAF
 # ==============================================================================
 # This module provides a clean interface layer between Makefile and CMake,
 # inspired by Kconfig-driven build systems.
@@ -73,8 +73,8 @@ function(_generate_version_info)
     # Check if source is overridden (local development)
     if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
         set(GIT_WORK_DIR "${CMAKE_SOURCE_DIR}")
-    elseif(DEFINED ENV{PDM_OVERRIDE_SRCDIR} AND EXISTS "$ENV{PDM_OVERRIDE_SRCDIR}/.git")
-        set(GIT_WORK_DIR "$ENV{PDM_OVERRIDE_SRCDIR}")
+    elseif(DEFINED ENV{PAF_OVERRIDE_SRCDIR} AND EXISTS "$ENV{PAF_OVERRIDE_SRCDIR}/.git")
+        set(GIT_WORK_DIR "$ENV{PAF_OVERRIDE_SRCDIR}")
     endif()
 
     find_package(Git QUIET)
@@ -302,7 +302,7 @@ function(build_wrapper_init)
     if(NOT BUILD_QUIET_MODE)
         message(STATUS "")
         message(STATUS "========================================================================")
-        message(STATUS "PDM Build Wrapper")
+        message(STATUS "PAF Build Wrapper")
         message(STATUS "========================================================================")
     endif()
 

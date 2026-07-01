@@ -1,13 +1,13 @@
 # ============================================================================
-# PDM SDK Root Configuration
+# PAF SDK Root Configuration
 # ============================================================================
-# This is the root Config.in file for the PDM kernel-centric SDK.
+# This is the root Config.in file for the PAF peripheral access framework.
 # It provides a unified configuration interface for core components.
 # ============================================================================
 
-mainmenu "PDM (Linux Peripheral Framework) Configuration"
+mainmenu "PAF (Peripheral Access Framework) Configuration"
 
-config PDM_VERSION
+config PAF_VERSION
 	string
 	default "1.0.0"
 
@@ -28,7 +28,7 @@ config PROJECT_NAME
 
 config PROJECT_VERSION
 	string "Project version"
-	default PDM_VERSION
+	default PAF_VERSION
 	help
 	  Project version string.
 
@@ -43,7 +43,7 @@ config MODULES
 	default y
 	modules
 	help
-	  Enable Kconfig tristate module values. PDM kernel products are built
+	  Enable Kconfig tristate module values. PAF kernel products are built
 	  as external loadable modules, so top-level kernel module targets use
 	  =m while features linked into those modules remain bool options.
 
@@ -57,7 +57,7 @@ choice
 	help
 	  Select the target operating system type.
 
-	  PDM currently supports Linux only.
+	  PAF currently supports Linux only.
 
 config OS_LINUX
 	bool "Linux"

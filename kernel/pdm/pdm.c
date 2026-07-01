@@ -12,14 +12,14 @@
 
 static void pdm_print_version(void)
 {
-	LOG_INFO("================ PDM version info ================");
-	LOG_INFO("pdm_version=%s", PDM_VERSION);
-	LOG_INFO("git=%s", PDM_GIT_COMMIT);
-	LOG_INFO("build_time=%s", PDM_COMPILE_TIME);
-	LOG_INFO("build_by=%s@%s", PDM_COMPILE_BY, PDM_COMPILE_HOST);
-	LOG_INFO("compiler=%s", PDM_COMPILER);
-	LOG_INFO("arch=%s", PDM_BUILD_ARCH);
-	LOG_INFO("kernel=%s", PDM_BUILD_KERNEL);
+	LOG_INFO("================ PAF/PDM version info ================");
+	LOG_INFO("paf_version=%s", PAF_VERSION);
+	LOG_INFO("git=%s", PAF_GIT_COMMIT);
+	LOG_INFO("build_time=%s", PAF_COMPILE_TIME);
+	LOG_INFO("build_by=%s@%s", PAF_COMPILE_BY, PAF_COMPILE_HOST);
+	LOG_INFO("compiler=%s", PAF_COMPILER);
+	LOG_INFO("arch=%s", PAF_BUILD_ARCH);
+	LOG_INFO("kernel=%s", PAF_BUILD_KERNEL);
 	LOG_INFO("==================================================");
 }
 

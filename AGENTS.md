@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-Reusable framework layers live at the repository top level: `kernel/pdm/` holds the kernel-side PDM module implementation; `kernel/pdm/bus`, `registry`, `diag`, and `log` hold core infrastructure; `kernel/pdm/peripherals/` holds logical peripheral drivers and their backends/transports; `kernel/pdm/testing/` holds synthetic smoke-test devices; `kernel/include/pdm/` holds kernel-side public headers; `user/pdi/` holds the userspace PDI library; `uapi/pdm/` holds shared userspace/kernel ABI headers. Common userspace tools live under `apps/`, configuration presets under `configs/`, build support scripts under `scripts/`, documentation under `docs/`, and generated artifacts under `_build/`.
+PAF framework layers live at the repository top level: `kernel/pdm/` holds the PDM (Peripheral Driver Module) kernel implementation; `kernel/pdm/bus`, `registry`, `diag`, and `log` hold core infrastructure; `kernel/pdm/peripherals/` holds logical peripheral drivers and their backends/transports; `kernel/pdm/testing/` holds synthetic smoke-test devices; `kernel/include/pdm/` holds kernel-side public headers; `user/pdi/` holds the PDI (Peripheral Driver Interface) userspace library; `uapi/pdm/` holds shared PDM userspace/kernel ABI headers. Common userspace tools live under `apps/`, configuration presets under `configs/`, build support scripts under `scripts/`, documentation under `docs/`, and generated artifacts under `_build/`.
 
 ## Build, Test, and Development Commands
 - `make list` - show available configuration and build targets.

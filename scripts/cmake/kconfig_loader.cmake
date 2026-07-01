@@ -1,5 +1,5 @@
 # ==============================================================================
-# Kconfig Configuration Loader for PDM
+# Kconfig Configuration Loader for PAF
 # ==============================================================================
 # This module provides clean separation between configuration management and
 # build logic, inspired by Kconfig-driven build systems.

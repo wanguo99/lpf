@@ -1,4 +1,4 @@
-# PDM 子系统架构详解
+# PAF/PDM 子系统架构详解
 
 ## 目录
 
@@ -15,7 +15,7 @@
 
 ## 一、架构概览
 
-PDM (Peripheral Device Manager) 是一个 Linux 内核框架，用于通过统一的总线架构管理嵌入式外设设备。它实现了**分层驱动模型**，将设备逻辑与传输机制分离，支持运行时选择后端（I2C/SPI/UART/CAN）。
+PAF (Peripheral Access Framework) 是整体外设访问框架；PDM (Peripheral Driver Module) 是其中的 Linux 内核模块，用于通过统一的总线架构管理嵌入式外设设备。它实现了**分层驱动模型**，将设备逻辑与传输机制分离，支持运行时选择后端（I2C/SPI/UART/CAN）。
 
 ### 1.1 核心特性
 

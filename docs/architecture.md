@@ -1,8 +1,10 @@
-# PDM Architecture
+# PAF Architecture
 
-PDM is a Linux-focused peripheral access framework. It keeps kernel drivers,
-userspace ABI headers, and userspace SDK wrappers separate while using normal
-Linux driver-model mechanisms underneath.
+PAF (Peripheral Access Framework) is a Linux-focused peripheral access
+framework. It keeps kernel drivers, userspace ABI headers, and userspace SDK
+wrappers separate while using normal Linux driver-model mechanisms underneath.
+PDM is the Peripheral Driver Module inside PAF, and PDI is the Peripheral Driver
+Interface userspace library.
 
 ## Runtime Shape
 

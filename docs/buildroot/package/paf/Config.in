@@ -1,0 +1,53 @@
+config BR2_PACKAGE_PAF
+	bool "paf"
+	depends on BR2_LINUX_KERNEL
+	depends on BR2_TOOLCHAIN_HAS_THREADS
+	depends on BR2_USE_MMU
+	help
+	  PAF is a Linux peripheral access framework with a
+	  Kconfig+CMake/Kbuild build system. It provides the PDM kernel
+	  module, UAPI headers, and PDI layers for Linux systems.
+
+if BR2_PACKAGE_PAF
+
+config BR2_PACKAGE_PAF_DEFCONFIG
+	string "Kconfig defconfig to use"
+	default ""
+	help
+	  Specify which PAF defconfig to load before building.
+	  Product external trees should set this to a product-specific
+	  PAF defconfig, for example imx6ull_modules_defconfig.
+
+choice
+	prompt "Build type"
+	default BR2_PACKAGE_PAF_BUILD_TYPE_RELEASE
+
+config BR2_PACKAGE_PAF_BUILD_TYPE_RELEASE
+	bool "Release"
+
+config BR2_PACKAGE_PAF_BUILD_TYPE_DEBUG
+	bool "Debug"
+
+config BR2_PACKAGE_PAF_BUILD_TYPE_RELWITHDEBINFO
+	bool "RelWithDebInfo"
+
+endchoice
+
+config BR2_PACKAGE_PAF_BUILD_TYPE
+	string
+	default "Release" if BR2_PACKAGE_PAF_BUILD_TYPE_RELEASE
+	default "Debug" if BR2_PACKAGE_PAF_BUILD_TYPE_DEBUG
+	default "RelWithDebInfo" if BR2_PACKAGE_PAF_BUILD_TYPE_RELWITHDEBINFO
+
+config BR2_PACKAGE_PAF_INSTALL_HEADERS
+	bool "Install development headers"
+	default n
+	help
+	  Install development headers to $(STAGING_DIR)/usr/include/pdm/.
+	  Only needed for packages that depend on PAF.
+
+endif # BR2_PACKAGE_PAF
+
+comment "PAF needs Linux kernel and a toolchain w/ threads, MMU"
+	depends on !BR2_LINUX_KERNEL || !BR2_TOOLCHAIN_HAS_THREADS || \
+		!BR2_USE_MMU
