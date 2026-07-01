@@ -14,7 +14,7 @@
 #include "pdm/bus/pdm_of_bus.h"
 #include "pdm/bus/pdm_bus.h"
 #include "pdm/bus/pdm_device.h"
-#include "osal.h"
+#include "pdm/log/pdm_log.h"
 
 static int pdm_bus_device_match_parent(struct device *dev, const void *data)
 {

@@ -11,7 +11,7 @@
 #include "pdm/registry/pdm_backend.h"
 #include "pdm/pdm_led.h"
 #include "pdm_led_internal.h"
-#include "osal.h"
+#include "pdm/log/pdm_log.h"
 
 static int pdm_led_pwm_setup(struct pdm_led_instance *inst)
 {

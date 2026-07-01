@@ -3,7 +3,6 @@
 menuconfig PDM
 	tristate "PDM kernel device model"
 	default m
-	depends on OSAL
 	depends on m
 	help
 	  PDM provides a Linux bus_type implementation for PDM devices.
@@ -12,6 +11,47 @@ menuconfig PDM
 	  If unsure, say Y when enabling PDM peripheral services.
 
 if PDM
+
+
+menu "PDM logging"
+
+config PDM_LOGGING_ENABLE
+	bool "Enable PDM kernel logging"
+	default y
+	help
+	  Enable LOG_* output inside pdm.ko. When disabled, PDM logging calls
+	  are compiled out of the module.
+
+if PDM_LOGGING_ENABLE
+
+choice
+	prompt "PDM kernel log level"
+	default PDM_LOG_LEVEL_INFO if BUILD_TYPE_DEBUG
+	default PDM_LOG_LEVEL_WARN if BUILD_TYPE_RELEASE
+	default PDM_LOG_LEVEL_INFO
+	help
+	  Select the minimum PDM log priority compiled into pdm.ko.
+
+config PDM_LOG_LEVEL_FATAL
+	bool "FATAL - fatal errors only"
+
+config PDM_LOG_LEVEL_ERROR
+	bool "ERROR - errors and above"
+
+config PDM_LOG_LEVEL_WARN
+	bool "WARN - warnings and above"
+
+config PDM_LOG_LEVEL_INFO
+	bool "INFO - informational and above"
+
+config PDM_LOG_LEVEL_DEBUG
+	bool "DEBUG - debug and above"
+
+endchoice
+
+endif # PDM_LOGGING_ENABLE
+
+endmenu
 
 menu "Target kernel feature availability"
 

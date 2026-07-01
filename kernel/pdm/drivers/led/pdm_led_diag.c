@@ -14,7 +14,7 @@
 #include "pdm/diag/pdm_debugfs.h"
 #include "pdm/bus/pdm_bus.h"
 #include "pdm/pdm_led.h"
-#include "osal.h"
+#include "pdm/log/pdm_log.h"
 
 static pdm_proc_entry_t g_led_proc;
 static pdm_debugfs_entry_t g_led_debugfs;

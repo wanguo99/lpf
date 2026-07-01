@@ -9,7 +9,7 @@
 #include <linux/module.h>
 
 #include "pdm/bus/pdm_bus.h"
-#include "osal.h"
+#include "pdm/log/pdm_log.h"
 
 extern const struct pdm_driver_entry __start_pdm_driver_entries[];
 extern const struct pdm_driver_entry __stop_pdm_driver_entries[];

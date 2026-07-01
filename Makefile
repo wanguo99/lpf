@@ -73,7 +73,6 @@ override MODULES_BUILD_DIR := $(patsubst %/,%,$(MODULES_BUILD_DIR))
 MODULES_SRC_DIR ?= $(srctree)/kernel
 MODULES_OUTPUT_DIR ?= $(MODULES_BUILD_DIR)
 MODULES_LIST ?= $(strip \
-	$(if $(filter y m,$(CONFIG_OSAL)),osal) \
 	$(if $(filter y m,$(CONFIG_PDM)),pdm))
 MODULES_ARTIFACTS = $(addprefix $(MODULES_OUTPUT_DIR)/,$(addsuffix .ko,$(MODULES_LIST)))
 
@@ -541,9 +540,9 @@ _modules_check_environment:
 		echo "ERROR: No kernel modules are enabled in the current configuration."; \
 		echo "==================================================================="; \
 		echo ""; \
-		echo "Enable CONFIG_OSAL and/or CONFIG_PDM before invoking make modules."; \
+		echo "Enable CONFIG_PDM before invoking make modules."; \
 		echo "For example, run make menuconfig or load a defconfig that enables"; \
-		echo "the kernel modules you want to build."; \
+		echo "the PDM kernel module you want to build."; \
 		echo "==================================================================="; \
 		echo ""; \
 		exit 1; \

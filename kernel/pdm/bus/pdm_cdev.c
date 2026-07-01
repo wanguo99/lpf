@@ -21,7 +21,7 @@
 #include "pdm/bus/pdm_bus.h"
 #include "pdm/bus/pdm_device.h"
 #include "pdm/pdm_manager.h"
-#include "osal.h"
+#include "pdm/log/pdm_log.h"
 
 static dev_t pdm_cdev_devt;
 static DEFINE_IDA(pdm_cdev_ida);

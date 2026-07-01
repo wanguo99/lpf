@@ -11,7 +11,7 @@
 #include "pdm/registry/pdm_backend.h"
 #include "pdm/pdm_mcu.h"
 #include "pdm_mcu_internal.h"
-#include "osal.h"
+#include "pdm/log/pdm_log.h"
 
 static void pdm_mcu_uart_encode_be32(u8 *buf, u32 value)
 {

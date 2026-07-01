@@ -18,7 +18,7 @@
 #include "pdm/bus/pdm_bus.h"
 #include "pdm/pdm_manager.h"
 #include "pdm/pdm_led.h"
-#include "osal.h"
+#include "pdm/log/pdm_log.h"
 
 static atomic_t pdm_led_device_count = ATOMIC_INIT(0);
 

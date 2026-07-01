@@ -6,7 +6,6 @@
 #include <linux/dcache.h>
 #include <linux/types.h>
 
-#include "osal.h"
 
 #define PDM_DEBUGFS_ROOT_NAME_LEN 64U
 #define PDM_DEBUGFS_WRITE_MAX_SIZE 256U

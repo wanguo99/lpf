@@ -20,7 +20,6 @@ previous test product have been removed.
 
 Current kernel modules:
 
-- OSAL (`osal.ko`)
 - PDM Core (`pdm.ko`), implemented as a Linux `bus_type` named `pdm`
 
 PDM Core currently provides the standard Linux bus integration, Device Tree
@@ -29,12 +28,12 @@ MCU device creation, `/dev/pdm_manager` discovery snapshots, read-only sysfs
 diagnostics, optional development proc/debugfs controls, MCU transport backends,
 and LED GPIO/PWM backends.
 
-PDM currently targets Linux only. OSAL still separates operating-system-facing
-APIs from higher layers, but non-Linux ports are outside the current direction.
+PDM currently targets Linux only. Kernel-side code uses native Linux APIs;
+the remaining OSAL layer is a userspace library for applications that still need it.
 
 ## Core Layers
 
-- OSAL: operating-system abstraction
+- OSAL: userspace operating-system abstraction library
 - PDM Core: Linux `bus_type`, PDM device lifecycle, Device Tree bus controller,
   `/dev/pdm_manager` discovery, and shared kernel helper infrastructure
   (`pdm.ko`)
@@ -82,7 +81,7 @@ make modules
 Generated libraries are written under `_build/lib/`. Kernel modules are written
 under `_build/modules/`.
 
-Kernel module load order is `osal.ko`, then `pdm.ko`.
+`make modules` builds `pdm.ko`. There is no separate kernel OSAL module; PDM kernel logging is linked into `pdm.ko`.
 
 For x86 smoke testing without Device Tree child nodes, use
 `ubuntu_x86_mock_modules_defconfig`; it enables synthetic MCU/LED PDM devices so

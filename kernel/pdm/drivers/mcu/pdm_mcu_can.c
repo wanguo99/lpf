@@ -26,7 +26,7 @@
 #include "pdm/registry/pdm_backend.h"
 #include "pdm/pdm_mcu.h"
 #include "pdm_mcu_internal.h"
-#include "osal.h"
+#include "pdm/log/pdm_log.h"
 
 /*
  * PDM CAN transport frame payload:

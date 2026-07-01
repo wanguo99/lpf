@@ -8,9 +8,8 @@ Linux driver-model mechanisms underneath.
 
 Current kernel modules:
 
-- `osal.ko`: kernel OSAL helpers used by PDM kernel code.
 - `pdm.ko`: the PDM bus, device model, control node, peripheral drivers,
-  and built-in backend registry.
+  built-in backend registry, and PDM-owned kernel logging helpers.
 
 `pdm.ko` registers a Linux `bus_type` named `pdm`. PDM devices appear under
 `/sys/bus/pdm` and expose userspace instance nodes under `/dev/pdm/` when their
@@ -29,6 +28,7 @@ PDM devices can be created from:
 - `kernel/pdm/bus/`: Linux `bus_type`, PDM device lifecycle, Device Tree enumeration, and character-device helpers.
 - `kernel/pdm/registry/`: linker-section registries for PDM drivers and backends.
 - `kernel/pdm/diag/`: read-only sysfs helpers plus optional proc/debugfs development controls.
+- `kernel/pdm/log/`: PDM-owned kernel logging implementation for the existing `LOG_*` interface.
 - `kernel/pdm/drivers/mcu/`: MCU logical driver and UART/I2C/SPI/CAN transport backends.
 - `kernel/pdm/drivers/led/`: LED logical driver and GPIO/PWM control backends.
 - `kernel/pdm/drivers/mock/`: synthetic devices for x86 smoke tests.

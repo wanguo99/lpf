@@ -4,8 +4,13 @@
 
 #include <linux/errno.h>
 #include <linux/fs.h>
+#include <linux/mutex.h>
+#include <linux/slab.h>
+#include <linux/string.h>
+#include <linux/uaccess.h>
 
 #include "pdm/compat/pdm_compat_features.h"
+#include "pdm/log/pdm_log.h"
 
 #if !PDM_KERNEL_HAS_PROC_OPS
 #error "PDM procfs requires proc_ops; add a compat fallback before lowering the kernel baseline"
@@ -14,8 +19,7 @@
 #define PDM_PROC_ROOT_NAME "pdm"
 
 static struct proc_dir_entry *g_lpf_proc_root;
-static osal_mutex_t g_lpf_proc_lock;
-static bool g_lpf_proc_lock_ready;
+static DEFINE_MUTEX(g_lpf_proc_lock);
 static uint32_t g_lpf_proc_users;
 
 static int pdm_proc_open(struct inode *inode, struct file *file)
@@ -34,7 +38,6 @@ static ssize_t pdm_proc_write(struct file *file, const char __user *buffer,
 {
 	pdm_proc_entry_t *entry = pde_data(file_inode(file));
 	char *command;
-	int32_t status;
 	int ret;
 
 	if (!entry || !entry->write) {
@@ -49,20 +52,19 @@ static ssize_t pdm_proc_write(struct file *file, const char __user *buffer,
 		return -E2BIG;
 	}
 
-	command = osal_malloc(count + 1);
+	command = kzalloc(count + 1, GFP_KERNEL);
 	if (!command) {
 		return -ENOMEM;
 	}
 
-	status = osal_copy_from_user(command, buffer, count);
-	if (status != OSAL_SUCCESS) {
-		osal_free(command);
+	if (copy_from_user(command, buffer, count)) {
+		kfree(command);
 		return -EFAULT;
 	}
 	command[count] = '\0';
 
 	ret = entry->write(command, count, entry->data);
-	osal_free(command);
+	kfree(command);
 	if (ret) {
 		return ret;
 	}
@@ -84,37 +86,23 @@ static const struct proc_ops pdm_proc_ops = {
 
 static int pdm_proc_root_init(void)
 {
-	int ret;
-
-	if (!g_lpf_proc_lock_ready) {
-		ret = osal_mutex_init(&g_lpf_proc_lock, NULL);
-		if (ret != OSAL_SUCCESS) {
-			return -ret;
-		}
-		g_lpf_proc_lock_ready = true;
-	}
-
-	osal_mutex_lock(&g_lpf_proc_lock);
+	mutex_lock(&g_lpf_proc_lock);
 	if (!g_lpf_proc_root) {
 		g_lpf_proc_root = proc_mkdir(PDM_PROC_ROOT_NAME, NULL);
 		if (!g_lpf_proc_root) {
-			osal_mutex_unlock(&g_lpf_proc_lock);
+			mutex_unlock(&g_lpf_proc_lock);
 			return -ENOMEM;
 		}
 	}
 	g_lpf_proc_users++;
-	osal_mutex_unlock(&g_lpf_proc_lock);
+	mutex_unlock(&g_lpf_proc_lock);
 
 	return 0;
 }
 
 static void pdm_proc_root_deinit(void)
 {
-	if (!g_lpf_proc_lock_ready) {
-		return;
-	}
-
-	osal_mutex_lock(&g_lpf_proc_lock);
+	mutex_lock(&g_lpf_proc_lock);
 	if (g_lpf_proc_users > 0) {
 		g_lpf_proc_users--;
 	}
@@ -122,7 +110,7 @@ static void pdm_proc_root_deinit(void)
 		proc_remove(g_lpf_proc_root);
 		g_lpf_proc_root = NULL;
 	}
-	osal_mutex_unlock(&g_lpf_proc_lock);
+	mutex_unlock(&g_lpf_proc_lock);
 }
 
 int pdm_proc_register(pdm_proc_entry_t *entry, const char *name,
@@ -141,7 +129,7 @@ int pdm_proc_register(pdm_proc_entry_t *entry, const char *name,
 		return ret;
 	}
 
-	osal_memset(entry, 0, sizeof(*entry));
+	memset(entry, 0, sizeof(*entry));
 	entry->name = name;
 	entry->show = show;
 	entry->write = write;
@@ -151,7 +139,7 @@ int pdm_proc_register(pdm_proc_entry_t *entry, const char *name,
 					&pdm_proc_ops, entry);
 	if (!entry->entry) {
 		pdm_proc_root_deinit();
-		osal_memset(entry, 0, sizeof(*entry));
+		memset(entry, 0, sizeof(*entry));
 		return -ENOMEM;
 	}
 
@@ -167,7 +155,7 @@ void pdm_proc_unregister(pdm_proc_entry_t *entry)
 	}
 
 	proc_remove(entry->entry);
-	osal_memset(entry, 0, sizeof(*entry));
+	memset(entry, 0, sizeof(*entry));
 	pdm_proc_root_deinit();
 }
 EXPORT_SYMBOL_GPL(pdm_proc_unregister);

@@ -13,7 +13,7 @@
 #include "pdm/bus/pdm_bus.h"
 #include "pdm/bus/pdm_device.h"
 #include "pdm/pdm_manager.h"
-#include "osal.h"
+#include "pdm/log/pdm_log.h"
 
 /* ========================================================================
  * Unified ID Management

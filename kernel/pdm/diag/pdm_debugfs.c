@@ -6,6 +6,12 @@
 #include <linux/errno.h>
 #include <linux/fs.h>
 #include <linux/list.h>
+#include <linux/mutex.h>
+#include <linux/slab.h>
+#include <linux/string.h>
+#include <linux/uaccess.h>
+
+#include "pdm/log/pdm_log.h"
 
 typedef struct {
 	struct list_head node;
@@ -16,8 +22,7 @@ typedef struct {
 } pdm_debugfs_root_t;
 
 static LIST_HEAD(g_lpf_debugfs_roots);
-static osal_mutex_t g_lpf_debugfs_lock;
-static bool g_lpf_debugfs_lock_ready;
+static DEFINE_MUTEX(g_lpf_debugfs_lock);
 
 static int pdm_debugfs_open(struct inode *inode, struct file *file)
 {
@@ -31,7 +36,6 @@ static ssize_t pdm_debugfs_write(struct file *file,
 {
 	pdm_debugfs_entry_t *entry = file->private_data;
 	char *command;
-	int32_t status;
 	int ret;
 
 	if (!entry || !entry->write) {
@@ -46,20 +50,19 @@ static ssize_t pdm_debugfs_write(struct file *file,
 		return -E2BIG;
 	}
 
-	command = osal_malloc(count + 1);
+	command = kzalloc(count + 1, GFP_KERNEL);
 	if (!command) {
 		return -ENOMEM;
 	}
 
-	status = osal_copy_from_user(command, buffer, count);
-	if (status != OSAL_SUCCESS) {
-		osal_free(command);
+	if (copy_from_user(command, buffer, count)) {
+		kfree(command);
 		return -EFAULT;
 	}
 	command[count] = '\0';
 
 	ret = entry->write(command, count, entry->data);
-	osal_free(command);
+	kfree(command);
 	if (ret) {
 		return ret;
 	}
@@ -77,29 +80,12 @@ static const struct file_operations g_lpf_debugfs_fops = {
 	.write = pdm_debugfs_write,
 };
 
-static int pdm_debugfs_lock_init(void)
-{
-	int ret;
-
-	if (g_lpf_debugfs_lock_ready) {
-		return 0;
-	}
-
-	ret = osal_mutex_init(&g_lpf_debugfs_lock, NULL);
-	if (ret != OSAL_SUCCESS) {
-		return -ret;
-	}
-
-	g_lpf_debugfs_lock_ready = true;
-	return 0;
-}
-
 static pdm_debugfs_root_t *pdm_debugfs_find_root_locked(const char *root_name)
 {
 	pdm_debugfs_root_t *root;
 
 	list_for_each_entry(root, &g_lpf_debugfs_roots, node) {
-		if (0 == osal_strcmp(root->name, root_name)) {
+		if (strcmp(root->name, root_name) == 0) {
 			return root;
 		}
 	}
@@ -117,29 +103,23 @@ static int pdm_debugfs_root_get(const char *root_name,
 		return -EINVAL;
 	}
 
-	ret = pdm_debugfs_lock_init();
-	if (ret) {
-		return ret;
-	}
-
-	osal_mutex_lock(&g_lpf_debugfs_lock);
+	mutex_lock(&g_lpf_debugfs_lock);
 	root = pdm_debugfs_find_root_locked(root_name);
 	if (!root) {
-		root = osal_zalloc(sizeof(*root));
+		root = kzalloc(sizeof(*root), GFP_KERNEL);
 		if (!root) {
-			osal_mutex_unlock(&g_lpf_debugfs_lock);
+			mutex_unlock(&g_lpf_debugfs_lock);
 			return -ENOMEM;
 		}
 
 		INIT_LIST_HEAD(&root->node);
-		osal_strncpy(root->name, root_name, sizeof(root->name));
-		root->name[sizeof(root->name) - 1U] = '\0';
+		strscpy(root->name, root_name, sizeof(root->name));
 		root->available = true;
 		list_add_tail(&root->node, &g_lpf_debugfs_roots);
 	}
 
 	if (!root->available) {
-		osal_mutex_unlock(&g_lpf_debugfs_lock);
+		mutex_unlock(&g_lpf_debugfs_lock);
 		return -ENODEV;
 	}
 
@@ -149,14 +129,14 @@ static int pdm_debugfs_root_get(const char *root_name,
 			ret = root->root ? PTR_ERR(root->root) : -ENOMEM;
 			root->root = NULL;
 			root->available = false;
-			osal_mutex_unlock(&g_lpf_debugfs_lock);
+			mutex_unlock(&g_lpf_debugfs_lock);
 			return ret;
 		}
 	}
 
 	root->users++;
 	*root_out = root;
-	osal_mutex_unlock(&g_lpf_debugfs_lock);
+	mutex_unlock(&g_lpf_debugfs_lock);
 	return 0;
 }
 
@@ -164,14 +144,14 @@ static void pdm_debugfs_root_put(const char *root_name)
 {
 	pdm_debugfs_root_t *root;
 
-	if (!root_name || !g_lpf_debugfs_lock_ready) {
+	if (!root_name) {
 		return;
 	}
 
-	osal_mutex_lock(&g_lpf_debugfs_lock);
+	mutex_lock(&g_lpf_debugfs_lock);
 	root = pdm_debugfs_find_root_locked(root_name);
 	if (!root) {
-		osal_mutex_unlock(&g_lpf_debugfs_lock);
+		mutex_unlock(&g_lpf_debugfs_lock);
 		return;
 	}
 
@@ -182,7 +162,7 @@ static void pdm_debugfs_root_put(const char *root_name)
 		debugfs_remove_recursive(root->root);
 		root->root = NULL;
 	}
-	osal_mutex_unlock(&g_lpf_debugfs_lock);
+	mutex_unlock(&g_lpf_debugfs_lock);
 }
 
 int pdm_debugfs_register(pdm_debugfs_entry_t *entry, const char *root_name,
@@ -196,7 +176,7 @@ int pdm_debugfs_register(pdm_debugfs_entry_t *entry, const char *root_name,
 		return -EINVAL;
 	}
 
-	osal_memset(entry, 0, sizeof(*entry));
+	memset(entry, 0, sizeof(*entry));
 
 	ret = pdm_debugfs_root_get(root_name, &root);
 	if (ret == -ENODEV) {
@@ -206,8 +186,7 @@ int pdm_debugfs_register(pdm_debugfs_entry_t *entry, const char *root_name,
 		return ret;
 	}
 
-	osal_strncpy(entry->root_name, root_name, sizeof(entry->root_name));
-	entry->root_name[sizeof(entry->root_name) - 1U] = '\0';
+	strscpy(entry->root_name, root_name, sizeof(entry->root_name));
 	entry->name = name;
 	entry->write = write;
 	entry->data = data;
@@ -216,7 +195,7 @@ int pdm_debugfs_register(pdm_debugfs_entry_t *entry, const char *root_name,
 	if (IS_ERR_OR_NULL(entry->entry)) {
 		ret = entry->entry ? PTR_ERR(entry->entry) : -ENOMEM;
 		pdm_debugfs_root_put(root_name);
-		osal_memset(entry, 0, sizeof(*entry));
+		memset(entry, 0, sizeof(*entry));
 		return ret;
 	}
 
@@ -233,11 +212,10 @@ void pdm_debugfs_unregister(pdm_debugfs_entry_t *entry)
 		return;
 	}
 
-	osal_strncpy(root_name, entry->root_name, sizeof(root_name));
-	root_name[sizeof(root_name) - 1U] = '\0';
+	strscpy(root_name, entry->root_name, sizeof(root_name));
 
 	debugfs_remove(entry->entry);
-	osal_memset(entry, 0, sizeof(*entry));
+	memset(entry, 0, sizeof(*entry));
 	pdm_debugfs_root_put(root_name);
 }
 EXPORT_SYMBOL_GPL(pdm_debugfs_unregister);

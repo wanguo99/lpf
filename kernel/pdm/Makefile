@@ -4,6 +4,7 @@ obj-$(CONFIG_PDM) += pdm.o
 
 # Core module entry
 pdm-y := pdm/pdm.o
+pdm-y += pdm/log/pdm_log.o
 
 # Bus and device model
 pdm-y += pdm/bus/pdm_bus.o

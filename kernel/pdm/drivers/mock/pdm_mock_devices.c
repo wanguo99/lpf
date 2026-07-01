@@ -12,7 +12,7 @@
 
 #include "pdm/bus/pdm_bus.h"
 #include "pdm/bus/pdm_device.h"
-#include "osal.h"
+#include "pdm/log/pdm_log.h"
 
 struct pdm_mock_device_desc {
 	const char *name;

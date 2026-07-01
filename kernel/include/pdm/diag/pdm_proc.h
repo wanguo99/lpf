@@ -7,7 +7,6 @@
 #include <linux/seq_file.h>
 #include <linux/types.h>
 
-#include "osal.h"
 
 #define PDM_PROC_WRITE_MAX_SIZE 256U
 

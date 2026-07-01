@@ -17,7 +17,7 @@
 
 #include "pdm/bus/pdm_device.h"
 #include "pdm_mcu_internal.h"
-#include "osal.h"
+#include "pdm/log/pdm_log.h"
 
 static unsigned long pdm_mcu_uart_serdev_deadline(u32 timeout_ms)
 {

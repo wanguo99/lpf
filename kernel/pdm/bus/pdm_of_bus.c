@@ -13,7 +13,7 @@
 #include "pdm/bus/pdm_bus.h"
 #include "pdm/bus/pdm_device.h"
 #include "pdm_of_bus.h"
-#include "osal.h"
+#include "pdm/log/pdm_log.h"
 
 #define PDM_BUS_DEVICE_NAME_LEN 96
 

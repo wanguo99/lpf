@@ -18,7 +18,7 @@
 #include "pdm/registry/pdm_backend.h"
 #include "pdm/bus/pdm_bus.h"
 #include "pdm/pdm_manager.h"
-#include "osal.h"
+#include "pdm/log/pdm_log.h"
 
 #define PDM_MCU_BUS_DEVICE_NAME_LEN 96
 

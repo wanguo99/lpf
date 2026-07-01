@@ -10,7 +10,7 @@
 #include <linux/string.h>
 
 #include "pdm/registry/pdm_backend.h"
-#include "osal.h"
+#include "pdm/log/pdm_log.h"
 
 extern const struct pdm_backend_entry __start_pdm_backend_entries[];
 extern const struct pdm_backend_entry __stop_pdm_backend_entries[];

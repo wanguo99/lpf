@@ -16,7 +16,7 @@
 #include "pdm/registry/pdm_backend.h"
 #include "pdm/pdm_mcu.h"
 #include "pdm_mcu_internal.h"
-#include "osal.h"
+#include "pdm/log/pdm_log.h"
 
 static void pdm_mcu_i2c_encode_prefix(u8 *buf, u32 value, u8 bytes)
 {

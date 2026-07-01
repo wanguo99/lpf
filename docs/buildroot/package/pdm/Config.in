@@ -5,9 +5,8 @@ config BR2_PACKAGE_PDM
 	depends on BR2_USE_MMU
 	help
 	  PDM is a Linux peripheral access framework with a
-	  Kconfig+CMake/Kbuild build system. It provides OSAL,
-	  PDM kernel module, UAPI headers, and PDI layers for
-	  Linux systems.
+	  Kconfig+CMake/Kbuild build system. It provides the userspace OSAL, PDM kernel module, UAPI
+	  headers, and PDI layers for Linux systems.
 
 if BR2_PACKAGE_PDM
 
