@@ -15,8 +15,8 @@ and Linux external-module Kbuild support.
 ## Current Scope
 
 The repository currently contains the framework core modules. Product-specific
-satellite/PMC business code, legacy configuration/runtime layers, and the
-previous test product have been removed.
+business code, legacy configuration/runtime layers, standalone portability
+layers, and the previous examples/tests products have been removed.
 
 Current kernel modules:
 
@@ -28,7 +28,9 @@ MCU device creation, `/dev/pdm_manager` discovery snapshots, read-only sysfs
 diagnostics, optional development proc/debugfs controls, MCU transport backends,
 and LED GPIO/PWM backends.
 
-PDM currently targets Linux only. Kernel and userspace code use native Linux/POSIX APIs; OSAL is no longer a standalone layer.
+PDM currently targets Linux only. Kernel code uses native Linux APIs, and
+userspace code uses libc/POSIX APIs directly. Logging is local to PDM in kernel
+space and PDI in userspace through the existing `LOG_*` interface.
 
 ## Core Layers
 
@@ -58,7 +60,9 @@ PDM currently targets Linux only. Kernel and userspace code use native Linux/POS
 - Generic Linux application framework behavior unrelated to peripheral access.
 - Generated build artifacts under `_build/`.
 
-The previous userspace test product and historical top-level test tree have been removed. New coverage should use a fresh layout when the lower layers stabilize.
+The previous userspace examples and historical top-level test tree have been
+removed. New coverage should use a fresh layout when the lower layers
+stabilize.
 
 ## Quick Start
 
@@ -77,7 +81,8 @@ make modules
 Generated libraries are written under `_build/lib/`. Kernel modules are written
 under `_build/modules/`.
 
-`make modules` builds `pdm.ko`. There is no separate kernel OSAL module; PDM kernel logging is linked into `pdm.ko`.
+`make modules` builds `pdm.ko`. PDM kernel logging is linked into `pdm.ko`;
+there is no separate kernel portability or logging module.
 
 For x86 smoke testing without Device Tree child nodes, use
 `ubuntu_x86_mock_modules_defconfig`; it enables synthetic MCU/LED PDM devices so

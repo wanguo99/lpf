@@ -55,8 +55,8 @@ cat > "$TEMP_FILE" << EOF
  * Generated on: ${BUILD_TIME}
  */
 
-#ifndef __LPF_VERSION_H__
-#define __LPF_VERSION_H__
+#ifndef __PDM_VERSION_H__
+#define __PDM_VERSION_H__
 
 /*
  * Version Information
@@ -104,7 +104,7 @@ cat > "$TEMP_FILE" << EOF
 #define PDM_VERSION_STRING \
     PDM_VERSION "-" PDM_GIT_COMMIT
 
-#endif /* __LPF_VERSION_H__ */
+#endif /* __PDM_VERSION_H__ */
 EOF
 
 # Only update if changed (to avoid unnecessary rebuilds)

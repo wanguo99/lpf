@@ -43,7 +43,7 @@ config BR2_PACKAGE_PDM_INSTALL_HEADERS
 	bool "Install development headers"
 	default n
 	help
-	  Install development headers to $(STAGING_DIR)/usr/include/.
+	  Install development headers to $(STAGING_DIR)/usr/include/pdm/.
 	  Only needed for packages that depend on PDM.
 
 endif # BR2_PACKAGE_PDM

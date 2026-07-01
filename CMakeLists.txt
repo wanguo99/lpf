@@ -101,7 +101,7 @@ include(${SDK_PATH}/scripts/cmake/compile.cmake)
 # Build Modules Directly
 # ==============================================================================
 
-function(_lpf_add_core_component config_var target_name subdir)
+function(_pdm_add_core_component config_var target_name subdir)
     if(DEFINED ${config_var} AND ${config_var} AND NOT TARGET ${target_name})
         add_subdirectory(
             ${SDK_PATH}/${subdir}
@@ -113,8 +113,8 @@ endfunction()
 if(CONFIG_OS_LINUX)
     message(STATUS "Building Linux modules")
 
-    _lpf_add_core_component(CONFIG_PDM pdm kernel/pdm)
-    _lpf_add_core_component(CONFIG_PDI pdi user/pdi)
+    _pdm_add_core_component(CONFIG_PDM pdm kernel/pdm)
+    _pdm_add_core_component(CONFIG_PDI pdi user/pdi)
 endif()
 
 add_subdirectory(${SDK_PATH}/apps ${CMAKE_BINARY_DIR}/apps)

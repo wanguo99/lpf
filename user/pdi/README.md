@@ -1,21 +1,21 @@
 # PDI
 
-PDI is the userspace API library for kernel LPF peripheral devices.
+PDI is the userspace API library for kernel PDM peripheral devices.
 
 Responsibilities:
 
 - Own application-facing C APIs by peripheral type.
-- Open and close peripheral-specific LPF device nodes.
+- Open and close peripheral-specific PDM device nodes.
 - Marshal requests through each peripheral's UAPI ioctl commands.
 - Hide ioctl details from applications.
-- Discover configured LPF devices through the LPF control node.
+- Discover configured PDM devices through the PDM manager node.
 
 Current peripheral APIs:
 
-- Discovery: `pdi_ctl_*`, `pdi_list_devices`, and lookup helpers wrap the LPF
+- Discovery: `pdi_ctl_*`, `pdi_list_devices`, and lookup helpers wrap the PDM
   control node `/dev/pdm_manager`; ioctl ABI lives in `uapi/pdm/pdm_manager.h`; the
   SDK default path is `PDI_CTL_DEFAULT_DEVICE`. Discovery is snapshot-based;
-  LPF v1 does not expose asynchronous userspace device event subscriptions.
+  PDM does not expose asynchronous userspace device event subscriptions.
 - MCU: `pdi_mcu_*` wraps `/dev/pdm/mcuN`; ioctl ABI lives in
   `uapi/pdm/pdm_mcu.h`; SDK declarations and the default path
   `PDI_MCU_DEFAULT_DEVICE` live in `pdi/mcu.h`.
@@ -43,8 +43,8 @@ syscall boundary. Production builds use libc directly; future tests can replace
 that boundary to validate ioctl marshaling and operation paths without live PDM
 device nodes.
 
-UAPI and ABI rules for new peripherals are documented in
-`docs/lpf_uapi_abi.md`.
+UAPI and ABI rules for new peripherals should follow the current architecture
+notes in `docs/architecture.md`.
 
 PDI must not reimplement kernel PDM hardware access, runtime config, or peripheral service
 logic.

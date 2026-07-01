@@ -1,5 +1,5 @@
 # ==============================================================================
-# Build System Wrapper for LPF
+# Build System Wrapper for PDM
 # ==============================================================================
 # This module provides a clean interface layer between Makefile and CMake,
 # inspired by Kconfig-driven build systems.
@@ -73,8 +73,8 @@ function(_generate_version_info)
     # Check if source is overridden (local development)
     if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
         set(GIT_WORK_DIR "${CMAKE_SOURCE_DIR}")
-    elseif(DEFINED ENV{LPF_OVERRIDE_SRCDIR} AND EXISTS "$ENV{LPF_OVERRIDE_SRCDIR}/.git")
-        set(GIT_WORK_DIR "$ENV{LPF_OVERRIDE_SRCDIR}")
+    elseif(DEFINED ENV{PDM_OVERRIDE_SRCDIR} AND EXISTS "$ENV{PDM_OVERRIDE_SRCDIR}/.git")
+        set(GIT_WORK_DIR "$ENV{PDM_OVERRIDE_SRCDIR}")
     endif()
 
     find_package(Git QUIET)
@@ -202,7 +202,7 @@ function(_configure_install_paths)
     # Define installation directories
     set(INSTALL_BINDIR ${CMAKE_INSTALL_BINDIR} PARENT_SCOPE)
     set(INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR} PARENT_SCOPE)
-    set(INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR}/lpf PARENT_SCOPE)
+    set(INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR}/pdm PARENT_SCOPE)
 
     # Only print in verbose mode
     if(NOT BUILD_QUIET_MODE)
@@ -302,7 +302,7 @@ function(build_wrapper_init)
     if(NOT BUILD_QUIET_MODE)
         message(STATUS "")
         message(STATUS "========================================================================")
-        message(STATUS "LPF Build Wrapper")
+        message(STATUS "PDM Build Wrapper")
         message(STATUS "========================================================================")
     endif()
 

@@ -21,8 +21,8 @@ typedef struct {
 	bool available;
 } pdm_debugfs_root_t;
 
-static LIST_HEAD(g_lpf_debugfs_roots);
-static DEFINE_MUTEX(g_lpf_debugfs_lock);
+static LIST_HEAD(g_pdm_debugfs_roots);
+static DEFINE_MUTEX(g_pdm_debugfs_lock);
 
 static int pdm_debugfs_open(struct inode *inode, struct file *file)
 {
@@ -74,7 +74,7 @@ static ssize_t pdm_debugfs_write(struct file *file,
 	return count;
 }
 
-static const struct file_operations g_lpf_debugfs_fops = {
+static const struct file_operations g_pdm_debugfs_fops = {
 	.owner = THIS_MODULE,
 	.open = pdm_debugfs_open,
 	.write = pdm_debugfs_write,
@@ -84,7 +84,7 @@ static pdm_debugfs_root_t *pdm_debugfs_find_root_locked(const char *root_name)
 {
 	pdm_debugfs_root_t *root;
 
-	list_for_each_entry(root, &g_lpf_debugfs_roots, node) {
+	list_for_each_entry(root, &g_pdm_debugfs_roots, node) {
 		if (strcmp(root->name, root_name) == 0) {
 			return root;
 		}
@@ -103,23 +103,23 @@ static int pdm_debugfs_root_get(const char *root_name,
 		return -EINVAL;
 	}
 
-	mutex_lock(&g_lpf_debugfs_lock);
+	mutex_lock(&g_pdm_debugfs_lock);
 	root = pdm_debugfs_find_root_locked(root_name);
 	if (!root) {
 		root = kzalloc(sizeof(*root), GFP_KERNEL);
 		if (!root) {
-			mutex_unlock(&g_lpf_debugfs_lock);
+			mutex_unlock(&g_pdm_debugfs_lock);
 			return -ENOMEM;
 		}
 
 		INIT_LIST_HEAD(&root->node);
 		strscpy(root->name, root_name, sizeof(root->name));
 		root->available = true;
-		list_add_tail(&root->node, &g_lpf_debugfs_roots);
+		list_add_tail(&root->node, &g_pdm_debugfs_roots);
 	}
 
 	if (!root->available) {
-		mutex_unlock(&g_lpf_debugfs_lock);
+		mutex_unlock(&g_pdm_debugfs_lock);
 		return -ENODEV;
 	}
 
@@ -129,14 +129,14 @@ static int pdm_debugfs_root_get(const char *root_name,
 			ret = root->root ? PTR_ERR(root->root) : -ENOMEM;
 			root->root = NULL;
 			root->available = false;
-			mutex_unlock(&g_lpf_debugfs_lock);
+			mutex_unlock(&g_pdm_debugfs_lock);
 			return ret;
 		}
 	}
 
 	root->users++;
 	*root_out = root;
-	mutex_unlock(&g_lpf_debugfs_lock);
+	mutex_unlock(&g_pdm_debugfs_lock);
 	return 0;
 }
 
@@ -148,10 +148,10 @@ static void pdm_debugfs_root_put(const char *root_name)
 		return;
 	}
 
-	mutex_lock(&g_lpf_debugfs_lock);
+	mutex_lock(&g_pdm_debugfs_lock);
 	root = pdm_debugfs_find_root_locked(root_name);
 	if (!root) {
-		mutex_unlock(&g_lpf_debugfs_lock);
+		mutex_unlock(&g_pdm_debugfs_lock);
 		return;
 	}
 
@@ -162,7 +162,7 @@ static void pdm_debugfs_root_put(const char *root_name)
 		debugfs_remove_recursive(root->root);
 		root->root = NULL;
 	}
-	mutex_unlock(&g_lpf_debugfs_lock);
+	mutex_unlock(&g_pdm_debugfs_lock);
 }
 
 int pdm_debugfs_register(pdm_debugfs_entry_t *entry, const char *root_name,
@@ -191,7 +191,7 @@ int pdm_debugfs_register(pdm_debugfs_entry_t *entry, const char *root_name,
 	entry->write = write;
 	entry->data = data;
 	entry->entry = debugfs_create_file(name, 0200, root->root, entry,
-					   &g_lpf_debugfs_fops);
+					   &g_pdm_debugfs_fops);
 	if (IS_ERR_OR_NULL(entry->entry)) {
 		ret = entry->entry ? PTR_ERR(entry->entry) : -ENOMEM;
 		pdm_debugfs_root_put(root_name);

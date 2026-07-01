@@ -1,5 +1,5 @@
 # ==============================================================================
-# Kconfig Configuration Loader for LPF
+# Kconfig Configuration Loader for PDM
 # ==============================================================================
 # This module provides clean separation between configuration management and
 # build logic, inspired by Kconfig-driven build systems.
@@ -243,9 +243,7 @@ function(kconfig_print_summary)
         ARCH_ARM32
         ARCH_RISCV64
         OS_LINUX
-        PRODUCT_FRAMEWORK
-        PRODUCT_SAMPLE
-        LPF_RUNTIME
+        PDM
         PDI
     )
 

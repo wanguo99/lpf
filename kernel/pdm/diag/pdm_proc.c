@@ -18,9 +18,9 @@
 
 #define PDM_PROC_ROOT_NAME "pdm"
 
-static struct proc_dir_entry *g_lpf_proc_root;
-static DEFINE_MUTEX(g_lpf_proc_lock);
-static uint32_t g_lpf_proc_users;
+static struct proc_dir_entry *g_pdm_proc_root;
+static DEFINE_MUTEX(g_pdm_proc_lock);
+static uint32_t g_pdm_proc_users;
 
 static int pdm_proc_open(struct inode *inode, struct file *file)
 {
@@ -86,31 +86,31 @@ static const struct proc_ops pdm_proc_ops = {
 
 static int pdm_proc_root_init(void)
 {
-	mutex_lock(&g_lpf_proc_lock);
-	if (!g_lpf_proc_root) {
-		g_lpf_proc_root = proc_mkdir(PDM_PROC_ROOT_NAME, NULL);
-		if (!g_lpf_proc_root) {
-			mutex_unlock(&g_lpf_proc_lock);
+	mutex_lock(&g_pdm_proc_lock);
+	if (!g_pdm_proc_root) {
+		g_pdm_proc_root = proc_mkdir(PDM_PROC_ROOT_NAME, NULL);
+		if (!g_pdm_proc_root) {
+			mutex_unlock(&g_pdm_proc_lock);
 			return -ENOMEM;
 		}
 	}
-	g_lpf_proc_users++;
-	mutex_unlock(&g_lpf_proc_lock);
+	g_pdm_proc_users++;
+	mutex_unlock(&g_pdm_proc_lock);
 
 	return 0;
 }
 
 static void pdm_proc_root_deinit(void)
 {
-	mutex_lock(&g_lpf_proc_lock);
-	if (g_lpf_proc_users > 0) {
-		g_lpf_proc_users--;
+	mutex_lock(&g_pdm_proc_lock);
+	if (g_pdm_proc_users > 0) {
+		g_pdm_proc_users--;
 	}
-	if (g_lpf_proc_users == 0 && g_lpf_proc_root) {
-		proc_remove(g_lpf_proc_root);
-		g_lpf_proc_root = NULL;
+	if (g_pdm_proc_users == 0 && g_pdm_proc_root) {
+		proc_remove(g_pdm_proc_root);
+		g_pdm_proc_root = NULL;
 	}
-	mutex_unlock(&g_lpf_proc_lock);
+	mutex_unlock(&g_pdm_proc_lock);
 }
 
 int pdm_proc_register(pdm_proc_entry_t *entry, const char *name,
@@ -135,7 +135,7 @@ int pdm_proc_register(pdm_proc_entry_t *entry, const char *name,
 	entry->write = write;
 	entry->data = data;
 	mode = write ? 0644 : 0444;
-	entry->entry = proc_create_data(name, mode, g_lpf_proc_root,
+	entry->entry = proc_create_data(name, mode, g_pdm_proc_root,
 					&pdm_proc_ops, entry);
 	if (!entry->entry) {
 		pdm_proc_root_deinit();

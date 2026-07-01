@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
 
 	printf("\n");
 	printf("========================================\n");
-	printf("  LPF LED Test Program\n");
+	printf("  PDM LED Test Program\n");
 	printf("========================================\n");
 
 	/* Test 1: Basic operations */

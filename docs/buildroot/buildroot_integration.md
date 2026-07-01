@@ -47,7 +47,7 @@ Buildroot will then use the local PDM source tree and skip the git fetch.
 
 ## PDM Defconfig
 
-`BR2_PACKAGE_PDM_DEFCONFIG` must point to an PDM defconfig available in the PDM
+`BR2_PACKAGE_PDM_DEFCONFIG` must point to a PDM defconfig available in the PDM
 source tree. Product trees should use a product-specific PDM target. For the
 i.MX6ULL bring-up tree, use:
 
@@ -63,7 +63,8 @@ are development presets.
 - Target install: userspace libraries are installed under `/usr`, and enabled
   kernel modules are installed under `/lib/modules/<kernel>/extra/pdm/`.
 - Staging install: enable `BR2_PACKAGE_PDM_INSTALL_HEADERS` to install
-  development headers and libraries to staging for packages that depend on PDM.
+  development headers under `/usr/include/pdm` and libraries to staging for
+  packages that depend on PDM.
 
 No product-specific init script is installed by default. Product services,
 udev/devtmpfs policy, and module load order should be owned by the product
